@@ -1,0 +1,33 @@
+export class Empresa{
+    constructor(){
+        this.base64_logo=""
+        this.celular=""
+        this.codigo_precio_menor=""
+        this.condicion=""
+        this.correo=""
+        this.created_at=""
+        this.direccion_fiscal=""
+        this.direccion_llegada=""
+        this.dni_representante=""
+        this.estado=""
+        this.estado_dni_representante=""
+        this.estado_fe=""
+        this.estado_precio_menor=""
+        this.estado_ruc=""
+        this.facebook=null
+        this.id=1
+        this.instagram=null
+        this.nombre_logo=""
+        this.nombre_representante=""
+        this.num_asiento=""
+        this.num_partida=""
+        this.razon_social=""
+        this.razon_social_abreviada=""
+        this.ruc=20481753091
+        this.ruta_logo=""
+        this.telefono=""
+        this.ubigeo=""
+        this.updated_at=""
+        this.web=null
+    }
+}

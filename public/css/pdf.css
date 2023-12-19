@@ -1,0 +1,53 @@
+@import url(https://allfont.es/allfont.css?fonts=dot-matrix);
+body {
+    font-family: 'Dot Matrix', arial;
+    color: #2980B9;
+    padding: 10px;
+}
+
+.tbl-cabecera {
+    width: 100%;
+    word-spacing: 0.90em;
+}
+
+.tbl-datos {
+    width: 100%;
+    word-spacing: 0.90em;
+}
+
+/* .tbl-datos td{
+   border: 1px solid #3333
+} */
+
+.tbl-detalles {
+    width: 100%;
+}
+
+.tbl-detalles thead{
+    border-top: 1px dashed #2980B9;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+
+.tbl-detalles tbody{
+    border-top: 1px dashed #2980B9;
+    border-bottom: 1px dashed #2980B9;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+
+.tbl-firmas {
+    width: 100%;
+}
+
+.tbl-footer {
+    width: 100%;
+}
+
+.m-0 {
+    margin: 0px;
+}
+
+.p-0 {
+    padding: 0px;
+}
