@@ -28,7 +28,7 @@
                     <div class="row">
                         <div class="col-12">
                             <form action="{{ route('ventas.cotizacion.store') }}" method="POST"
-                                id="form_registrar_cotizacion">
+                                id="form-cotizacion">
                                 @csrf
                                 <div class="row">
                                     <div class="col-12">
@@ -105,7 +105,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-md-4">
+                                            {{-- <div class="col-12 col-md-4">
                                                 <div class="form-group">
                                                     <label id="igv_requerido">IGV (%):</label>
                                                     <div class="input-group">
@@ -125,7 +125,7 @@
 
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> --}}
                                             <div class="col-12 col-md-4">
                                                 <div class="form-group">
                                                     <label class="">Vendedor</label>
@@ -340,7 +340,10 @@
                                         class="btn btn-w-m btn-default">
                                         <i class="fa fa-arrow-left"></i> Regresar
                                     </a>
-                                    <button type="submit" id="btn_grabar" form="form_registrar_cotizacion" class="btn btn-w-m btn-primary">
+                                    {{-- <button type="submit" id="btn_grabar" form="form_registrar_cotizacion" class="btn btn-w-m btn-primary">
+                                        <i class="fa fa-save"></i> Grabar
+                                    </button> --}}
+                                    <button type="submit" id="btn_grabar" form="form-cotizacion" class="btn btn-w-m btn-primary">
                                         <i class="fa fa-save"></i> Grabar
                                     </button>
                                 </div>
@@ -1014,13 +1017,17 @@
 
     })
 </script>
-
+<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <script>
     const selectModelo =  document.querySelector('#modelo');
     const tableStocksBody  =  document.querySelector('#table-stocks tbody');
     const tableDetalleBody = document.querySelector('#table-detalle tbody');
     const tokenValue = document.querySelector('input[name="_token"]').value;
     const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle');
+    const formCotizacion= document.querySelector('#form-cotizacion');
+    const tfootTotal=document.querySelector('.total');
+    const tfootIgv=document.querySelector('.igv');
+    const tfootSubtotal=document.querySelector('.subtotal');
     const tallas     = @json($tallas);
 
     let modelo_id   = null;
@@ -1037,6 +1044,26 @@
             if(e.target.classList.contains('inputCantidad')){
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
             }
+        })
+
+        document.addEventListener('click',(e)=>{
+            if(e.target.classList.contains('delete-product')){
+                const productoId = e.target.getAttribute('data-producto');
+                const colorId = e.target.getAttribute('data-color');
+                eliminarProducto(productoId,colorId);
+                pintarDetalleCotizacion(carrito);
+                calcularMontos();
+            }
+        })
+
+        formCotizacion.addEventListener('submit',(e)=>{
+            e.preventDefault();
+            const formData = new FormData(formCotizacion);
+            formData.append("carrito", JSON.stringify(carrito));
+            formData.forEach((valor, clave) => {
+                console.log(`${clave}: ${valor}`);
+            });
+
         })
        
         btnAgregarDetalle.addEventListener('click',()=>{
@@ -1069,8 +1096,33 @@
             })
             reordenarCarrito();
             calcularSubTotal();
-            console.log(carrito);
             pintarDetalleCotizacion(carrito);
+            calcularMontos();
+        })
+    }
+
+    const calcularMontos = ()=>{
+        const subtotales= document.querySelectorAll('.td-subtotal');
+        let total=0;
+        let igv=0;
+        let subtotal=0;
+        
+        subtotales.forEach((subtotal)=>{
+            total+=parseFloat(subtotal.textContent);
+        })
+        
+        igv = 0.18*total;
+        subtotal = total-igv;
+        tfootTotal.textContent='S/. ' + total.toFixed(2);
+        tfootIgv.textContent='S/. ' + igv.toFixed(2);
+        tfootSubtotal.textContent='S/. ' + subtotal.toFixed(2);
+    }
+
+    
+
+    const eliminarProducto = (productoId,colorId)=>{
+        carrito = carrito.filter((p)=>{
+            return !(p.producto_id == productoId && p.color_id == colorId);
         })
     }
 
@@ -1141,6 +1193,11 @@
             htmlTallas=``;
             if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
                 fila+= `<tr>   
+                            <td>
+                                <i class="fas fa-trash-alt btn btn-primary delete-product"
+                                data-producto="${c.producto_id}" data-color="${c.color_id}">
+                                </i>                            
+                            </td>
                             <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
 
                 //tallas
@@ -1154,7 +1211,7 @@
 
 
                 htmlTallas+=`   <td>${c.precio_venta}</td>
-                                <td>${c.subtotal}</td>
+                                <td class="td-subtotal">${c.subtotal}</td>
                             </tr>`;
 
                 fila+=htmlTallas;
@@ -1252,8 +1309,6 @@
  
 
 
-
- 
 
     function addProduct($product) {
         table.row.add([
