@@ -196,7 +196,7 @@
                                 </div>
                                 <input type="hidden" name="monto_sub_total" id="monto_sub_total"
                                     value="{{ old('monto_sub_total') }}">
-                                <input type="hidden" name="monto_total_igv" id="monto_total_igv"
+                                <input type="hidden" name="monto_igv" id="monto_igv"
                                     value="{{ old('monto_total_igv') }}">
                                 <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}">
                             </form>
@@ -1028,6 +1028,10 @@
     const tfootTotal=document.querySelector('.total');
     const tfootIgv=document.querySelector('.igv');
     const tfootSubtotal=document.querySelector('.subtotal');
+    const inputSubTotal= document.querySelector('#monto_sub_total');
+    const inputIgv=document.querySelector('#monto_igv');
+    const inputTotal=document.querySelector('#monto_total');
+    const inputProductos=document.querySelector('#productos_tabla');
     const tallas     = @json($tallas);
 
     let modelo_id   = null;
@@ -1058,12 +1062,13 @@
 
         formCotizacion.addEventListener('submit',(e)=>{
             e.preventDefault();
-            const formData = new FormData(formCotizacion);
-            formData.append("carrito", JSON.stringify(carrito));
-            formData.forEach((valor, clave) => {
-                console.log(`${clave}: ${valor}`);
-            });
-
+            inputProductos.value=JSON.stringify(carrito);
+            // const formData = new FormData(formCotizacion);
+            // formData.append("carrito", JSON.stringify(carrito));
+            // formData.forEach((valor, clave) => {
+            //     console.log(`${clave}: ${valor}`);
+            // });
+            formCotizacion.submit();
         })
        
         btnAgregarDetalle.addEventListener('click',()=>{
@@ -1116,6 +1121,10 @@
         tfootTotal.textContent='S/. ' + total.toFixed(2);
         tfootIgv.textContent='S/. ' + igv.toFixed(2);
         tfootSubtotal.textContent='S/. ' + subtotal.toFixed(2);
+        
+        inputTotal.value=total.toFixed(2);
+        inputIgv.value=igv.toFixed(2);
+        inputSubTotal.value=subtotal.toFixed(2);
     }
 
     
@@ -1305,31 +1314,6 @@
         tableStocksBody.innerHTML = options;
         btnAgregarDetalle.disabled = false;
     }
-
- 
-
-
-
-    function addProduct($product) {
-        table.row.add([
-            $detalle.producto_id,
-            '',
-            $detalle.cantidad.toFixed(2),
-            $detalle.producto,
-            $detalle.valor_unitario.toFixed(2),
-            $detalle.precio_unitario.toFixed(2),
-            $detalle.dinero.toFixed(2),
-            $detalle.precio_nuevo.toFixed(2),
-            $detalle.valor_venta.toFixed(2),
-            $detalle.precio_inicial.toFixed(2),
-            $detalle.descuento.toFixed(2),
-
-        ]).draw(false);
-        cargarProductos();
-    }
-
-    
-   
 </script>
 @endpush
 

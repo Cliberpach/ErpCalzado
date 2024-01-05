@@ -63,13 +63,15 @@ class CotizacionController extends Controller
     public function store(Request $request)
     {
         $data = $request->all();
+        $productos = json_decode($request->input('productos_tabla')[0]);
+        
         $rules = [
             'empresa' => 'required',
             'cliente' => 'required',
             'condicion_id' => 'required',
             'fecha_documento' => 'required',
             'fecha_atencion' => 'nullable',
-            'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
+            // 'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
         ];
 
         $message = [
@@ -78,17 +80,30 @@ class CotizacionController extends Controller
             'condicion_id.required' => 'El campo condicion es obligatorio',
             'moneda' => 'El campo Moneda es obligatorio',
             'fecha_documento.required' => 'El campo Fecha de Documento es obligatorio',
-            'igv.required_if' => 'El campo Igv es obligatorio.',
-            'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
-            'igv.numeric' => 'El campo Igv debe se numérico.',
+            // // 'igv.required_if' => 'El campo Igv es obligatorio.',
+            // // 'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
+            // // 'igv.numeric' => 'El campo Igv debe se numérico.',
         ];
 
         Validator::make($data, $rules, $message)->validate();
 
-        $igv = $request->get('igv') && $request->get('igv_check') == "on" ? (float) $request->get('igv') : 18;
-        $total = (float) $request->get('monto_total');
-        $sub_total = $total / (1 + ($igv/100));
-        $total_igv = $total - $sub_total;
+        // $igv = $request->get('igv') && $request->get('igv_check') == "on" ? (float) $request->get('igv') : 18;
+        // $total = (float) $request->get('monto_total');
+        // $sub_total = $total / (1 + ($igv/100));
+        // $total_igv = $total - $sub_total;
+
+
+        //calculando montos
+        $monto_total=0.0;
+        $monto_igv=0.0;
+        $monto_subtotal=0.0;
+            foreach ($productos as $producto) {
+                $monto_total+=($producto->cantidad*$producto->precio_venta);
+            }
+            $monto_igv=$monto_total*0.18;
+            $monto_subtotal=$monto_total-$monto_igv;
+        
+        
 
         $cotizacion = new Cotizacion();
         $cotizacion->empresa_id = $request->get('empresa');
@@ -99,32 +114,39 @@ class CotizacionController extends Controller
         $cotizacion->fecha_documento = $request->get('fecha_documento');
         $cotizacion->fecha_atencion = $request->get('fecha_atencion');
 
-        $cotizacion->sub_total = $sub_total;
-        $cotizacion->total_igv = $total_igv;
-        $cotizacion->total = $total;
+        $cotizacion->sub_total = $monto_subtotal;
+        $cotizacion->total_igv = $monto_igv;
+        $cotizacion->total = $monto_total;
 
         $cotizacion->user_id = Auth::id();
-        $cotizacion->igv = $request->get('igv');
-        if ($request->get('igv_check') == "on") {
+        //$cotizacion->igv = $request->get('igv');
+        $cotizacion->igv = "SI";
+        //if ($request->get('igv_check') == "on") {
             $cotizacion->igv_check = "1";
-        };
+        //}
         $cotizacion->save();
 
         //Llenado de los Productos
-        $productosJSON = $request->get('productos_tabla');
-        $productotabla = json_decode($productosJSON[0]);
-        foreach ($productotabla as $producto) {
+        //$productosJSON = $request->get('productos_tabla');
+        //$productotabla = json_decode($productosJSON[0]);
+        foreach ($productos as $producto) {
             CotizacionDetalle::create([
                 'cotizacion_id' => $cotizacion->id,
                 'producto_id' => $producto->producto_id,
-                'descuento'=> $producto->descuento,
-                'dinero'=> $producto->dinero,
-                'valor_unitario' => $producto->valor_unitario,
-                'precio_unitario' => $producto->precio_unitario,
-                'precio_inicial' => $producto->precio_inicial,
-                'precio_nuevo' => $producto->precio_nuevo,
+                'color_id'  => $producto->color_id,
+                'talla_id' => $producto->talla_id,
                 'cantidad' => $producto->cantidad,
-                'valor_venta' => $producto->valor_venta,
+                'precio' => $producto->precio_venta,
+                'importe' => $producto->cantidad*$producto->precio_venta,
+
+                //'descuento'=> $producto->descuento,
+                //'dinero'=> $producto->dinero,
+                //'valor_unitario' => $producto->valor_unitario,
+                //'precio_unitario' => $producto->precio_unitario,
+                //'precio_inicial' => $producto->precio_inicial,
+                //'precio_nuevo' => $producto->precio_nuevo,
+                //'cantidad' => $producto->cantidad,
+                //'valor_venta' => $producto->valor_venta,
             ]);
         }
 
@@ -145,8 +167,11 @@ class CotizacionController extends Controller
         $condiciones = Condicion::where('estado','ACTIVO')->get();
         $fecha_hoy = Carbon::now()->toDateString();
         //$lotes = LoteProducto::where('estado', '1')->distinct()->get(['producto_id']);
-        $lotes = Producto::where('estado','ACTIVO')->get();
-        $detalles = CotizacionDetalle::where('cotizacion_id',$id)->where('estado', 'ACTIVO')->get();
+        // $lotes = Producto::where('estado','ACTIVO')->get();
+        $detalles = CotizacionDetalle::where('cotizacion_id',$id)->where('estado', 'ACTIVO')
+                    ->with('producto', 'color', 'talla')->get();
+        $modelos = Modelo::where('estado','ACTIVO')->get();
+        $tallas = Talla::where('estado','ACTIVO')->get();
 
         return view('ventas.cotizaciones.edit', [
             'cotizacion' => $cotizacion,
@@ -154,21 +179,26 @@ class CotizacionController extends Controller
             'clientes' => $clientes,
             'fecha_hoy' => $fecha_hoy,
             'condiciones' => $condiciones,
-            'lotes' => $lotes,
-            'detalles' => $detalles
+            // 'lotes' => $lotes,
+            'detalles' => $detalles,
+            'modelos' => $modelos,
+            'tallas' => $tallas,
         ]);
     }
 
     public function update(Request $request,$id)
     {
         $data = $request->all();
+        $productos = json_decode($request->input('productos_tabla')[0]);
+
+        //dd($data);
         $rules = [
             'empresa' => 'required',
             'cliente' => 'required',
             'condicion_id' => 'required',
             'fecha_documento' => 'required',
             'fecha_atencion' => 'nullable',
-            'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
+            // 'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
         ];
 
         $message = [
@@ -177,17 +207,29 @@ class CotizacionController extends Controller
             'condicion_id.required' => 'El campo condicion es obligatorio',
             'moneda' => 'El campo Moneda es obligatorio',
             'fecha_documento.required' => 'El campo Fecha de Documento es obligatorio',
-            'igv.required_if' => 'El campo Igv es obligatorio.',
-            'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
-            'igv.numeric' => 'El campo Igv debe se numérico.',
+            // 'igv.required_if' => 'El campo Igv es obligatorio.',
+            // 'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
+            // 'igv.numeric' => 'El campo Igv debe se numérico.',
         ];
 
         Validator::make($data, $rules, $message)->validate();
 
-        $igv = $request->get('igv') && $request->get('igv_check') == "on" ? (float) $request->get('igv') : 18;
-        $total = (float) $request->get('monto_total');
-        $sub_total = $total / (1 + ($igv/100));
-        $total_igv = $total - $sub_total;
+        // $igv = $request->get('igv') && $request->get('igv_check') == "on" ? (float) $request->get('igv') : 18;
+        // $total = (float) $request->get('monto_total');
+        // $sub_total = $total / (1 + ($igv/100));
+        // $total_igv = $total - $sub_total;
+
+         //calculando montos
+         $monto_total=0.0;
+         $monto_igv=0.0;
+         $monto_subtotal=0.0;
+             foreach ($productos as $producto) {
+                 $monto_total+=($producto->cantidad*$producto->precio_venta);
+             }
+             $monto_igv=$monto_total*0.18;
+             $monto_subtotal=$monto_total-$monto_igv;
+        
+             
         $cotizacion =  Cotizacion::findOrFail($id);
         $cotizacion->empresa_id = $request->get('empresa');
         $cotizacion->cliente_id = $request->get('cliente');
@@ -196,38 +238,33 @@ class CotizacionController extends Controller
         $cotizacion->fecha_documento = $request->get('fecha_documento');
         $cotizacion->fecha_atencion = $request->get('fecha_atencion');
 
-        $cotizacion->sub_total = $sub_total;
-        $cotizacion->total_igv = $total_igv;
-        $cotizacion->total = $total;
+        $cotizacion->sub_total = $monto_subtotal;
+        $cotizacion->total_igv = $monto_igv;
+        $cotizacion->total = $monto_total;
 
         $cotizacion->user_id = Auth::id();
-        $cotizacion->igv = $request->get('igv');
-
-        if ($request->get('igv_check') == "on") {
+         //$cotizacion->igv = $request->get('igv');
+         $cotizacion->igv = "SI";
+         //if ($request->get('igv_check') == "on") {
             $cotizacion->igv_check = "1";
-        }else{
-            $cotizacion->igv_check = '';
-        }
+         //}
 
         $cotizacion->update();
 
-        $productosJSON = $request->get('productos_tabla');
-        $productotabla = json_decode($productosJSON[0]);
-        if ($productotabla) {
+        //$productosJSON = $request->get('productos_tabla');
+        //$productotabla = json_decode($productosJSON[0]);
+        if ($productos) {
             CotizacionDetalle::where('cotizacion_id', $id)->delete();
 
-            foreach ($productotabla as $producto) {
+            foreach ($productos as $producto) {
                 CotizacionDetalle::create([
                     'cotizacion_id' => $cotizacion->id,
                     'producto_id' => $producto->producto_id,
-                    'descuento'=> $producto->descuento,
-                    'dinero'=> $producto->dinero,
-                    'valor_unitario' => $producto->valor_unitario,
-                    'precio_unitario' => $producto->precio_unitario,
-                    'precio_inicial' => $producto->precio_inicial,
-                    'precio_nuevo' => $producto->precio_nuevo,
+                    'color_id'  => $producto->color_id,
+                    'talla_id' => $producto->talla_id,
                     'cantidad' => $producto->cantidad,
-                    'valor_venta' => $producto->valor_venta,
+                    'precio' => $producto->precio_venta,
+                    'importe' => $producto->cantidad*$producto->precio_venta,    
                 ]);
             }
         }
