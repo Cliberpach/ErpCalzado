@@ -373,6 +373,7 @@ class CotizacionController extends Controller
     public function report($id)
     {
         $cotizacion = Cotizacion::findOrFail($id);
+        $tallas = Talla::all();
         $nombre_completo = $cotizacion->user->user->persona->apellido_paterno.' '.$cotizacion->user->user->persona->apellido_materno.' '.$cotizacion->user->user->persona->nombres;
         $igv = '';
         $tipo_moneda = '';
@@ -384,13 +385,14 @@ class CotizacionController extends Controller
             'nombre_completo' => $nombre_completo,
             'detalles' => $detalles,
             'empresa' => $empresa,
+            'tallas' => $tallas,
             ])->setPaper('a4')->setWarnings(false);
         return $pdf->stream('CO-'.$cotizacion->id.'.pdf');
 
     }
 
     public function document($id){
-
+        
         $documento = Documento::where('cotizacion_venta',$id)->where('estado','!=','ANULADO')->first();
         if ($documento) {
             Session::flash('error', 'Esta cotizacion ya tiene un documento de venta generado.');
@@ -400,6 +402,7 @@ class CotizacionController extends Controller
             // ]);
         }else{
             //REDIRECCIONAR AL DOCUMENTO DE VENTA
+
             return redirect()->route('ventas.documento.create',['cotizacion'=>$id]);
         }
 

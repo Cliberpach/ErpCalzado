@@ -277,22 +277,59 @@
             <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
                 <thead>
                     <tr >
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">CANT</th>
+                        {{-- <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">CANT</th>
                         <th style="text-align: center;border-right: 2px solid #52BE80; width: 10%;">UM</th>
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">DESCRIPCIÓN</th>
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">P. UNIT.</th>
-                        <th style="text-align: right; width: 10%;">TOTAL</th>
+                        <th style="text-align: right; width: 10%;">TOTAL</th> --}}
+                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">PRODUCTO</th>
+                        @foreach ($tallas as $talla)
+                            <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">{{$talla->descripcion}}</th>
+                        @endforeach
+                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">P. UNIT.</th>
+                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">TOTAL</th>
+
                     </tr>
                 </thead>
                 <tbody>
+                    @php
+                        $producto_color_procesados=[];
+                    @endphp
                     @foreach($detalles as $item)
-                    <tr>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">{{ $item->cantidad }}</td>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">{{ $item->producto->tabladetalle->simbolo }}</td>
-                        <td style="text-align: left; border-right: 2px solid #52BE80">{{ $item->producto->codigo . ' - ' . $item->producto->nombre }}</td>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">{{ $item->precio_nuevo }}</td>
-                        <td style="text-align: right">{{ $item->valor_venta }}</td>
-                    </tr>
+                        @if (!in_array($item->producto_id.'-'.$item->color_id, $producto_color_procesados))
+                            @php
+                                $total=0;
+                            @endphp
+                            <tr>
+                                <td style="text-align: left; border-right: 2px solid #52BE80">{{ $item->producto->codigo . ' - ' . $item->producto->nombre.' - '.$item->color->descripcion }}</td>
+                                @foreach ($tallas as $talla)
+                                    @php
+                                        $cantidad=0;
+                                        $detallesArray = json_decode(json_encode($detalles), true);
+                                        $producto_color_talla = array_filter($detallesArray, function ($detalle) use ($item, $talla) {
+                                            return $detalle['producto_id'] == $item->producto_id && 
+                                                $detalle['color_id'] == $item->color_id && 
+                                                $detalle['talla_id'] == $talla->id;
+                                        });
+                                    // Asegurarse de que $producto_color_talla sea un array
+                                        $producto_color_talla = array_values($producto_color_talla);
+
+                                        if (count($producto_color_talla) > 0) {
+                                            $cantidad = $producto_color_talla[0]["cantidad"];
+                                            $total+=$producto_color_talla[0]["importe"];
+                                        }
+                                    @endphp
+                                    <td style="text-align: center; border-right: 2px solid #52BE80">{{ $cantidad }}</td>
+                                @endforeach
+                            
+                                <td style="text-align: center; border-right: 2px solid #52BE80">{{ $item->precio }}</td>
+                                {{-- <td style="text-align: center; border-right: 2px solid #52BE80">{{ $item->precio_nuevo }}</td> --}}
+                                <td style="text-align: right">{{ $total }}</td>
+                                @php
+                                    $producto_color_procesados[]= $item->producto_id.'-'.$item->color_id;
+                                @endphp
+                            </tr>
+                        @endif
                     @endforeach
                 </tbody>
             </table>
@@ -314,7 +351,15 @@
                     <td style="width: 40%;">
                         <table class="tbl-total text-uppercase">
                             <tr>
-                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">Total: S/.</p></td>
+                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">SUBTOTAL: S/.</p></td>
+                                <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($cotizacion->sub_total, 2) }}</p></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">IGV: S/.</p></td>
+                                <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($cotizacion->total_igv, 2) }}</p></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">TOTAL: S/.</p></td>
                                 <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($cotizacion->total, 2) }}</p></td>
                             </tr>
                         </table>

@@ -507,13 +507,13 @@ class DocumentoController extends Controller
                 $cont = $cont + 1;
             }
         }
-
         $cotizacion = '';
         $detalles = '';
         $vista = 'create';
         if (CEC() == 'NO') {
             $vista = 'create_new';
         }
+        
         if ($request->get('cotizacion')) {
             //COLECCION DE ERRORES
             $errores = collect();
@@ -521,7 +521,7 @@ class DocumentoController extends Controller
             $cotizacion = Cotizacion::findOrFail($request->get('cotizacion'));
             $detalles = CotizacionDetalle::where('cotizacion_id', $request->get('cotizacion'))->get();
             $lotes = self::cotizacionLote($detalles);
-
+            dd($lotes);
             $nuevoDetalle = collect();
             if (count($lotes) === 0) {
                 $coll = new Collection();
@@ -602,6 +602,7 @@ class DocumentoController extends Controller
             ]);
         }
     }
+
     public function ObtenerCotizacionForVenta(Request $request){
         
     }
