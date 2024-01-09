@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Almacenes;
 
+use App\Almacenes\Color; 
+use App\Almacenes\Talla; 
+use App\Almacenes\Modelo; 
 use App\Almacenes\DetalleNotaIngreso;
 use App\Almacenes\LoteProducto;
 use App\Almacenes\MovimientoNota;
@@ -50,6 +53,7 @@ class NotaIngresoController extends Controller
      */
     public function create()
     {
+
         $this->authorize('haveaccess','nota_ingreso.index');
         $fecha_hoy = Carbon::now()->toDateString();
         $fecha = Carbon::createFromFormat('Y-m-d', $fecha_hoy);
@@ -66,6 +70,9 @@ class NotaIngresoController extends Controller
         $usuarios = User::get();
         $productos = Producto::where('estado', 'ACTIVO')->get();
         $monedas =  tipos_moneda();
+        $modelos = Modelo::where('estado','ACTIVO')->get();
+        $tallas = Talla::where('estado','ACTIVO')->get();
+        $colores =  Color::where('estado','ACTIVO')->get();
         return view('almacenes.nota_ingresos.create', [
             "fecha_hoy" => $fecha_hoy,
             "fecha_actual" => $fecha_actual,
@@ -73,7 +80,10 @@ class NotaIngresoController extends Controller
             "origenes" => $origenes, 'destinos' => $destinos,
             'ngenerado' => $ngenerado, 'usuarios' => $usuarios,
             'productos' => $productos, 'lotes' => $lotes,
-            'monedas' => $monedas
+            'monedas' => $monedas,
+            'modelos' => $modelos,
+            'colores' => $colores,
+            'tallas' => $tallas
         ]);
     }
     public function getProductos(Request $request)
