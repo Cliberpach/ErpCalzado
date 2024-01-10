@@ -22,17 +22,21 @@ class CreateDetalleNotaIngresoTable extends Migration
 
             $table->unsignedInteger('producto_id')->unsigned();
             $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
-            $table->string('lote');
-            $table->unsignedInteger('lote_id')->unsigned()->nullable();
-            $table->foreign('lote_id')->references('id')->on('lote_productos')->onDelete('cascade');
+            $table->unsignedInteger('color_id')->unsigned();
+            $table->foreign('color_id')->references('id')->on('colores')->onDelete('cascade');
+            $table->unsignedInteger('talla_id')->unsigned();
+            $table->foreign('talla_id')->references('id')->on('tallas')->onDelete('cascade');
+            // $table->string('lote');
+            // $table->unsignedInteger('lote_id')->unsigned()->nullable();
+            // $table->foreign('lote_id')->references('id')->on('lote_productos')->onDelete('cascade');
             $table->unsignedDecimal('cantidad', 15,2);
-            $table->date("fecha_vencimiento");
-            $table->unsignedDecimal('costo', 15,4)->nullable();
-            $table->unsignedDecimal('costo_soles', 15,4)->nullable();
-            $table->unsignedDecimal('costo_dolares', 15,4)->nullable();
-            $table->unsignedDecimal('costo_mas_igv_soles', 15,4)->nullable();
-            $table->unsignedDecimal('costo_mas_igv_dolares', 15,4)->nullable();
-            $table->unsignedDecimal('valor_ingreso', 15,4)->nullable();
+            //$table->date("fecha_vencimiento");
+            // $table->unsignedDecimal('costo', 15,4)->nullable();
+            // $table->unsignedDecimal('costo_soles', 15,4)->nullable();
+            // $table->unsignedDecimal('costo_dolares', 15,4)->nullable();
+            // $table->unsignedDecimal('costo_mas_igv_soles', 15,4)->nullable();
+            // $table->unsignedDecimal('costo_mas_igv_dolares', 15,4)->nullable();
+            // $table->unsignedDecimal('valor_ingreso', 15,4)->nullable();
             $table->timestamps();
         });
     }

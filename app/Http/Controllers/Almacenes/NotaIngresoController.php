@@ -114,28 +114,28 @@ class NotaIngresoController extends Controller
             'destino' => 'nullable',
             'origen' => 'required',
             'notadetalle_tabla' => 'required',
-            'moneda' => 'required',
+            //'moneda' => 'required',
         ];
         $message = [
 
             'fecha.required' => 'El campo fecha  es Obligatorio',
             'origen.required' => 'El campo origen  es Obligatorio',
-            'moneda.required' => 'El campo moneda  es Obligatorio',
+            //'moneda.required' => 'El campo moneda  es Obligatorio',
             'notadetalle_tabla.required' => 'No hay detalles',
         ];
 
         Validator::make($data, $rules, $message)->validate();
 
-        $dolar_aux = json_encode(precio_dolar(), true);
-        $dolar_aux = json_decode($dolar_aux, true);
+        // $dolar_aux = json_encode(precio_dolar(), true);
+        // $dolar_aux = json_decode($dolar_aux, true);
 
-        $dolar = (float)$dolar_aux['original']['venta'];
+        // $dolar = (float)$dolar_aux['original']['venta'];
 
 
-        //$registro_sanitario = new RegistroSanitario();
-        $notaingreso = new NotaIngreso();
-        $notaingreso->numero = $fecha . (DB::table('nota_ingreso')->count() + 1);
-        $notaingreso->fecha = $request->get('fecha');
+        // //$registro_sanitario = new RegistroSanitario();
+         $notaingreso = new NotaIngreso();
+         $notaingreso->numero = $fecha . (DB::table('nota_ingreso')->count() + 1);
+         $notaingreso->fecha = $request->get('fecha');
        if($request->destino)
        {
             $destino = DB::table('tabladetalles')->where('id', $request->destino)->first();
@@ -144,50 +144,51 @@ class NotaIngresoController extends Controller
         $origen = DB::table('tabladetalles')->where('id', $request->origen)->first();
         $notaingreso->origen = $origen->descripcion;
         $notaingreso->usuario = Auth()->user()->usuario;
-        $notaingreso->total = $request->get('monto_total');
-        $notaingreso->moneda = $request->get('moneda');
-        $notaingreso->tipo_cambio = $dolar;
-        $notaingreso->dolar = $dolar;
-        if($request->get('moneda') == 'DOLARES')
-        {
-            $notaingreso->total_soles = (float) $request->get('monto_total') * (float) $dolar;
+        // $notaingreso->total = $request->get('monto_total');
+        // $notaingreso->moneda = $request->get('moneda');
+        // $notaingreso->tipo_cambio = $dolar;
+        // $notaingreso->dolar = $dolar;
+        // if($request->get('moneda') == 'DOLARES')
+        // {
+        //     $notaingreso->total_soles = (float) $request->get('monto_total') * (float) $dolar;
 
-            $notaingreso->total_dolares = (float) $request->get('monto_total');
-        }
-        else
-        {
-            $notaingreso->total_soles = (float) $request->get('monto_total');
+        //     $notaingreso->total_dolares = (float) $request->get('monto_total');
+        // }
+        // else
+        // {
+        //     $notaingreso->total_soles = (float) $request->get('monto_total');
 
-            $notaingreso->total_dolares = (float) $request->get('monto_total') / $dolar;
-        }
+        //     $notaingreso->total_dolares = (float) $request->get('monto_total') / $dolar;
+        // }
         $notaingreso->save();
 
         $articulosJSON = $request->get('notadetalle_tabla');
         $notatabla = json_decode($articulosJSON[0]);
-
         foreach ($notatabla as $fila) {
-            if($request->get('moneda') == 'DOLARES')
-            {
-                $costo_soles = (float) $fila->costo * (float) $dolar;
+            // if($request->get('moneda') == 'DOLARES')
+            // {
+            //     $costo_soles = (float) $fila->costo * (float) $dolar;
 
-                $costo_dolares = (float) $fila->costo;
-            }
-            else
-            {
-                $costo_soles = (float) $fila->costo;
+            //     $costo_dolares = (float) $fila->costo;
+            // }
+            // else
+            // {
+            //     $costo_soles = (float) $fila->costo;
 
-                $costo_dolares = (float) $fila->costo / (float) $dolar;
-            }
+            //     $costo_dolares = (float) $fila->costo / (float) $dolar;
+            // }
             DetalleNotaIngreso::create([
                 'nota_ingreso_id' => $notaingreso->id,
-                'lote' => $fila->lote,
-                'cantidad' => $fila->cantidad,
+                // 'lote' => $fila->lote,
                 'producto_id' => $fila->producto_id,
-                'fecha_vencimiento' => $fila->fechavencimiento,
-                'costo' => $fila->costo,
-                'costo_soles' => $costo_soles,
-                'costo_dolares' => $costo_dolares,
-                'valor_ingreso' => $fila->valor_ingreso,
+                'color_id' => $fila->color_id,
+                'talla_id' => $fila->talla_id,
+                'cantidad' => $fila->cantidad,
+                // 'fecha_vencimiento' => $fila->fechavencimiento,
+                // 'costo' => $fila->costo,
+                // 'costo_soles' => $costo_soles,
+                // 'costo_dolares' => $costo_dolares,
+                // 'valor_ingreso' => $fila->valor_ingreso,
             ]);
         }
 
@@ -313,26 +314,40 @@ class NotaIngresoController extends Controller
         $notaingreso = NotaIngreso::findOrFail($id);
         $data = array();
         $detallenotaingreso = DB::table('detalle_nota_ingreso')->where('nota_ingreso_id', $notaingreso->id)->get();
+
         foreach ($detallenotaingreso as $fila) {
-            $lote = LoteProducto::where('codigo_lote', $fila->lote)->first();
+            //$lote = LoteProducto::where('codigo_lote', $fila->lote)->first();
             $producto = DB::table('productos')->where('id', $fila->producto_id)->first();
+            $color = DB::table('colores')->where('id', $fila->color_id)->first();
+            $talla = DB::table('tallas')->where('id', $fila->talla_id)->first();
+
+
             array_push($data, array(
                 'producto_id' => $fila->producto_id,
+                'color_id'    => $fila->color_id,
+                'talla_id'    => $fila->talla_id,
                 'id' => $fila->id,
                 'cantidad' => $fila->cantidad,
-                'lote' => $lote->codigo_lote,
-                'producto' => $producto->nombre,
-                'fechavencimiento' => $fila->fecha_vencimiento,
-                'costo' => $fila->costo,
-                'valor_ingreso' => $fila->valor_ingreso,
+                // 'lote' => $lote->codigo_lote,
+                'producto_nombre' => $producto->nombre,
+                'talla_nombre' => $talla->descripcion,
+                'color_nombre' => $color->descripcion,
+                // 'fechavencimiento' => $fila->fecha_vencimiento,
+                // 'costo' => $fila->costo,
+                // 'valor_ingreso' => $fila->valor_ingreso,
             ));
         }
+
         $origenes =  General::find(28)->detalles;
         $destinos =  General::find(29)->detalles;
-        $lotes = DB::table('lote_productos')->get();
+        //$lotes = DB::table('lote_productos')->get();
         $usuarios = User::get();
         $productos = Producto::where('estado', 'ACTIVO')->get();
         $monedas =  tipos_moneda();
+        $modelos = Modelo::where('estado','ACTIVO')->get();
+        $tallas = Talla::where('estado','ACTIVO')->get();
+        $colores =  Color::where('estado','ACTIVO')->get();
+
         return view('almacenes.nota_ingresos.edit', [
             "fecha_hoy" => $fecha_hoy,
             "fecha_actual" => $fecha_actual,
@@ -341,10 +356,13 @@ class NotaIngresoController extends Controller
             'destinos' => $destinos,
             'usuarios' => $usuarios,
             'productos' => $productos,
-            'lotes' => $lotes,
+            //'lotes' => $lotes,
             'monedas' => $monedas,
             'notaingreso' => $notaingreso,
-            'detalle' => json_encode($data)
+            'detalle' => json_encode($data),
+            'modelos' => $modelos,
+            'colores' => $colores,
+            'tallas' => $tallas
         ]);
     }
 

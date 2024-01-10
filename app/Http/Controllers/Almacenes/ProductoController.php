@@ -161,6 +161,7 @@ class ProductoController extends Controller
                 $color_talla->producto_id = $producto->id;
                 $color_talla->talla_id = $talla_id;
                 $color_talla->stock = $stockColorTalla?$stockColorTalla:0;
+                $color_talla->stock_logico = $stockColorTalla?$stockColorTalla:0;
                 $color_talla->save();
 
             }
@@ -324,10 +325,14 @@ class ProductoController extends Controller
             
 
              DB::table('producto_color_tallas')
-            ->where('producto_id', $id)
-            ->where('color_id', $color_id)
-            ->where('talla_id', $talla_id)
-            ->update(['stock' => $stockColorTalla ?: 0]);
+             ->where('producto_id', $id)
+             ->where('color_id', $color_id)
+             ->where('talla_id', $talla_id)
+             ->update([
+                 'stock' => $stockColorTalla ?: 0,
+                 'stock_logico' => $stockColorTalla ?: 0,
+             ]);
+         
 
          }
 
@@ -522,7 +527,7 @@ class ProductoController extends Controller
                                         on p.id = pct.producto_id
                                         inner join colores as c
                                         on c.id = pct.color_id
-                                        where p.modelo_id = ? AND pct.stock!=0
+                                        where p.modelo_id = ? 
                                         group by p.id,p.nombre,c.id,c.descripcion
                                         order by p.id,c.id',[$modelo_id]);
 

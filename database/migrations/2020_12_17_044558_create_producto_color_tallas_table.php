@@ -23,6 +23,7 @@ class CreateProductoColorTallasTable extends Migration
             $table->foreign('talla_id')->references('id')->on('tallas');
 
             $table->bigInteger('stock');
+            $table->bigInteger('stock_logico');
 
             $table->timestamps();
             $table->primary(['producto_id', 'color_id','talla_id']); 

@@ -14,7 +14,9 @@ class StorageProcedureSpUpdatenumeraciondocumento extends Migration
      */
     public function up()
     {
-        $procedure = "CREATE PROCEDURE `sp_updateserializacion`(
+        $procedure = "
+        DROP PROCEDURE IF EXISTS sp_updateserializacion;
+        CREATE PROCEDURE `sp_updateserializacion`(
             IN `documento_id` INT,
             IN `idserializacion` INT
         )

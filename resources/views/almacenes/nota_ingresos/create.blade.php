@@ -123,7 +123,6 @@
                                     </div>
                                 </div>
                                 <input type="hidden" id="notadetalle_tabla" name="notadetalle_tabla[]">
-                                <input type="hidden" id="monto_total" name="monto_total">
                             </form>
                         </div>
                     </div>
@@ -679,6 +678,7 @@
     })
 
     function events(){
+        //========= EVENTO AGREGAR DETALLE ============
         btnAgregarDetalle.addEventListener('click',()=>{
             const inputsCantidad = document.querySelectorAll('.inputCantidad');
             inputsCantidad.forEach((ic)=>{
@@ -707,20 +707,21 @@
                   
             })
             reordenarCarrito();
-            pintarDetalleCotizacion(carrito);
+            pintarDetalleNotaIngreso(carrito);
             
         })
 
-
+        //======== EVENTO ELIMINAR PRODUCTO DEL CARRITO ============
         document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('delete-product')){
                 const productoId = e.target.getAttribute('data-producto');
                 const colorId = e.target.getAttribute('data-color');
                 eliminarProducto(productoId,colorId);
-                pintarDetalleCotizacion(carrito);
+                pintarDetalleNotaIngreso(carrito);
             }
         })
 
+        //============ EVENTO ENVIAR FORMULARIO =============
         formNotaIngreso.addEventListener('submit',(e)=>{
             e.preventDefault();
             inputProductos.value=JSON.stringify(carrito);
@@ -728,16 +729,25 @@
              formData.forEach((valor, clave) => {
                  console.log(`${clave}: ${valor}`);
              });
-            //formCotizacion.submit();
+            formNotaIngreso.submit();
+        })
+
+        //============== EVENTO VALIDACIÓN INPUT CANTIDADES ==========
+        document.addEventListener('input',(e)=>{
+            if(e.target.classList.contains('inputCantidad')){
+                e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
+            }
         })
     }
 
+    //========= FUNCIÓN ELIMINAR PRODUCTO DEL CARRITO =============
     const eliminarProducto = (productoId,colorId)=>{
         carrito = carrito.filter((p)=>{
             return !(p.producto_id == productoId && p.color_id == colorId);
         })
     }
 
+    //============== FUNCIÓN OBTENER PRODUCTOS DE UN MODELO ==============
     function getProductosByModelo(e){
         modelo_id = e.value;
         btnAgregarDetalle.disabled=true;
@@ -766,7 +776,7 @@
         }
     }
 
-
+    //============ REORDENAR CARRITO ===============
     const reordenarCarrito= ()=>{
         carrito.sort(function(a, b) {
             if (a.producto_id === b.producto_id) {
@@ -777,6 +787,7 @@
         });
     }
 
+    //=============== FORMAR OBJETO PRODUCTO PARA INSERTAR EN EL CARRITO POSTERIORMENTE =============
     const formarProducto = (ic)=>{
         const producto_id = ic.getAttribute('data-producto-id');
         const producto_nombre = ic.getAttribute('data-producto-nombre');
@@ -790,7 +801,7 @@
         return producto;
     }
 
-
+    //============ RENDERIZAR TABLA DE CANTIDADES ============
     const pintarTableStocks = (stocks,tallas,producto_colores)=>{
         let options =``;
         let producto_color_procesados=[];
@@ -830,13 +841,15 @@
         btnAgregarDetalle.disabled = false;
     }
 
+    //================== LIMPIAR TABLA DETALLE ===============
     function clearDetalleCotizacion(){
         while (bodyTablaDetalle.firstChild) {
             bodyTablaDetalle.removeChild(bodyTablaDetalle.firstChild);
         }
     }
 
-    function pintarDetalleCotizacion(carrito){
+    //====== RENDERIZAR TABLA DETALLE NOTA INGRESO ==============
+    function pintarDetalleNotaIngreso(carrito){
         let fila= ``;
         let htmlTallas= ``;
         const producto_color_procesado=[];
@@ -870,7 +883,5 @@
             }
         })
     }
-
-
 </script>
 @endpush
