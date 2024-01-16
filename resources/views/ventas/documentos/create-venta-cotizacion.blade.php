@@ -394,19 +394,26 @@
                                                     <th></th>
                                                     <th class="text-center"><i class="fa fa-dashboard"></i></th>
                                                     <th class="text-center">CANT</th>
+                                                    <th class="text-center">PRODUCTO</th>
+                                                    <th class="text-center">P. UNITARIO</th>
+                                                    <th class="text-center">IMPORTE</th>
+
+                                                    {{-- <th></th>
+                                                    <th class="text-center"><i class="fa fa-dashboard"></i></th>
+                                                    <th class="text-center">CANT</th>
                                                     <th class="text-center">UM</th>
                                                     <th class="text-center">PRODUCTO</th>
                                                     <th class="text-center">V. UNITARIO</th>
                                                     <th class="text-center">P. UNITARIO</th>
                                                     <th class="text-center">DESCUENTO</th>
                                                     <th class="text-center">P. NUEVO</th>
-                                                    <th class="text-center">TOTAL</th>
+                                                    <th class="text-center">TOTAL</th> --}}
                                                 </tr>
                                             </thead>
                                             <tbody>
 
                                             </tbody>
-                                            <tfoot>
+                                            {{-- <tfoot>
                                                 <tr>
                                                     <th class="text-right" colspan="10"></th>
                                                 </tr>
@@ -425,7 +432,7 @@
                                                     <th class="text-center"><span id="total">@if (!empty($cotizacion)) {{ $cotizacion->total }} @else 0.0 @endif</span>
                                                     </th>
                                                 </tr>
-                                            </tfoot>
+                                            </tfoot> --}}
                                         </table>
                                     </div>
                                 </div>
@@ -464,6 +471,8 @@
         </div>
     </div>
 </div>
+
+
 @include('ventas.documentos.modal')
 @include('ventas.documentos.modalLote')
 @include('ventas.documentos.modalCliente')
@@ -504,6 +513,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
 <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
 <script>
+    const l= @json($lotes);
+    console.log(JSON.stringify(l));
+</script>
+
+ <script>
 
     //PRUEBA
     var clientes_global = [];
@@ -709,59 +723,75 @@
                     "searchable": false
                 },
                 {
-                    searchable: false,
-                    "targets": [1],
-                    data: null,
-
-                    render: function(data, type, row) {
-                        @if (!empty($cotizacion))
-                            return "-";
-                        @else
-                            return "<div class='btn-group'>" +
-                                "<a class='btn btn-sm btn-warning btn-edit' style='color:white'>"+ "<i class='fa fa-pencil'></i>"+"</a>" +
-                                "<a class='btn btn-sm btn-danger btn-delete' style='color:white'>"+"<i class='fa fa-trash'></i>"+"</a>"+
-                                "</div>";
-                        @endif
-                    }
-
+                    "targets" : [1],
                 },
                 {
-                    "targets": [2],
+                    "targets" : [2],
                 },
                 {
-                    "targets": [3],
+                    "targets" : [3],
                 },
                 {
-                    "targets": [4],
+                    "targets" : [4],
                 },
                 {
-                    "targets": [5],
-                    'visible': false
-                },
-                {
-                    "targets": [6],
-                },
-                {
-                    "targets": [7],
-                },
-                {
-                    "targets": [8],
-                },
-                {
-                    "targets": [9],
-                },
-                {
-                    "targets": [10],
-                    'visible': false
-                },
-                {
-                    "targets": [11],
-                    'visible': false
-                },
-                {
-                    "targets": [12],
-                    'visible': false
+                    "targets" : [5],
                 }
+                
+                // {
+                //     searchable: false,
+                //     "targets": [1],
+                //     data: null,
+
+                //     // render: function(data, type, row) {
+                //     //     @if (!empty($cotizacion))
+                //     //         return "-";
+                //     //     @else
+                //     //         return "<div class='btn-group'>" +
+                //     //             "<a class='btn btn-sm btn-warning btn-edit' style='color:white'>"+ "<i class='fa fa-pencil'></i>"+"</a>" +
+                //     //             "<a class='btn btn-sm btn-danger btn-delete' style='color:white'>"+"<i class='fa fa-trash'></i>"+"</a>"+
+                //     //             "</div>";
+                //     //     @endif
+                //     // }
+
+                // },
+                // // {
+                // //     "targets": [2],
+                // // },
+                // {
+                //     "targets": [3],
+                // },
+                // {
+                //     "targets": [4],
+                // },
+                // {
+                //     "targets": [5],
+                //     'visible': false
+                // },
+                // {
+                //     "targets": [6],
+                // },
+                // {
+                //     "targets": [7],
+                // },
+                // {
+                //     "targets": [8],
+                // },
+                // {
+                //     "targets": [9],
+                // },
+                // {
+                //     "targets": [10],
+                //     'visible': false
+                // },
+                // {
+                //     "targets": [11],
+                //     'visible': false
+                // },
+                // {
+                //     "targets": [12],
+                //     'visible': false
+                // }
             ],
             'bAutoWidth': false,
             'aoColumns': [{
@@ -780,36 +810,36 @@
                     sClass: 'text-center'
                 },
                 {
-                    sWidth: '40%',
+                    sWidth: '10%',
                     sClass: 'text-left'
                 },
                 {
                     sWidth: '10%',
                     sClass: 'text-center'
                 },
-                {
-                    sWidth: '10%',
-                    sClass: 'text-center'
-                },
-                {
-                    sWidth: '10%',
-                    sClass: 'text-center'
-                },
-                {
-                    sWidth: '10%',
-                },
-                {
-                    sWidth: '0%',
-                },
-                {
-                    sWidth: '0%',
-                },
-                {
-                    sWidth: '0%',
-                },
-                {
-                    sWidth: '0%',
-                },
+                // {
+                //     sWidth: '10%',
+                //     sClass: 'text-center'
+                // },
+                // {
+                //     sWidth: '10%',
+                //     sClass: 'text-center'
+                // },
+                // {
+                //     sWidth: '10%',
+                // },
+                // {
+                //     sWidth: '0%',
+                // },
+                // {
+                //     sWidth: '0%',
+                // },
+                // {
+                //     sWidth: '0%',
+                // },
+                // {
+                //     sWidth: '0%',
+                // },
             ],
             "language": {
                 url: "{{ asset('Spanish.json') }}"
@@ -1471,23 +1501,16 @@
         @if (!empty($cotizacion))
             @foreach ($lotes as $lote)
                 t.row.add([
-                "{{ $lote->producto_id }}",
-                '',
-                "{{ $lote->cantidad }}",
-                "{{ $lote->unidad }}",
-                "{{ $lote->descripcion_producto }}",
-                "{{ $lote->valor_unitario }}",
-                "{{ $lote->precio_unitario }}",
-                "{{ $lote->dinero }}",
-                "{{ $lote->precio_nuevo }}",
-                "{{ $lote->valor_venta }}",
-                "{{ $lote->precio_inicial }}",
-                "{{ $lote->descuento }}",
-                "{{ $lote->precio_nuevo }}",
+                     '',
+                     '',
+                    "{{ $lote->cantidad }}",
+                    "{{ $lote->producto_id }}",
+                    "{{ $lote->precio_unitario }}",
+                    "{{ $lote->importe }}",
                 ])
             @endforeach
             //SUMATORIA TOTAL
-            sumaTotal()
+            //sumaTotal()
         @endif
     }
 
@@ -1785,5 +1808,5 @@
         return null;
     }
     */
-</script>
+</script> 
 @endpush

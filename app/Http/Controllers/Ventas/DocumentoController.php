@@ -47,6 +47,9 @@ use App\Ventas\Documento\Pago\Transferencia;
 use App\Notifications\FacturacionNotification;
 use App\Mantenimiento\Tabla\Detalle as TablaDetalle;
 
+use App\Almacenes\ProductoColorTalla;
+
+
 class DocumentoController extends Controller
 {
     public function index()
@@ -481,6 +484,7 @@ class DocumentoController extends Controller
 
     public function create(Request $request)
     {
+        
         $this->authorize('haveaccess', 'documento_venta.index');
         $empresas = Empresa::where('estado', 'ACTIVO')->get();
         $clientes = Cliente::where('estado', 'ACTIVO')->get();
@@ -513,15 +517,18 @@ class DocumentoController extends Controller
         if (CEC() == 'NO') {
             $vista = 'create_new';
         }
-        
+       
+
         if ($request->get('cotizacion')) {
             //COLECCION DE ERRORES
             $errores = collect();
             $devolucion = false;
             $cotizacion = Cotizacion::findOrFail($request->get('cotizacion'));
-            $detalles = CotizacionDetalle::where('cotizacion_id', $request->get('cotizacion'))->get();
+            $detalles = CotizacionDetalle::where('cotizacion_id', $request->get('cotizacion'))
+                        ->with('producto', 'color', 'talla')->get();
+            
             $lotes = self::cotizacionLote($detalles);
-            dd($lotes);
+            //dd($lotes);
             $nuevoDetalle = collect();
             if (count($lotes) === 0) {
                 $coll = new Collection();
@@ -543,38 +550,70 @@ class DocumentoController extends Controller
                 ]);
             }
             //COMPROBACION DE LOTES SI LAS CANTIDADES ENVIADAS SON IGUALES A LAS SOLICITADAS
+            //dd($detalles);
+            //dd($lotes);
             foreach ($detalles as $detalle) {
-                $cantidadDetalle = $lotes->where('producto', $detalle->producto_id)->sum('cantidad');
-                if ($cantidadDetalle != $detalle->cantidad) {
-                    $devolucion = true;
-                    $devolucionLotes = $lotes->where('producto', $detalle->producto_id);
-                    //LLENAR ERROR CANTIDAD SOLICITADA MAYOR AL STOCK
-                    $coll = new Collection();
-                    $coll->producto = $devolucionLotes[0]->descripcion_producto;
-                    $coll->cantidad = $detalle->cantidad;
-                    $errores->push($coll);
-                    self::devolverCantidad($lotes->where('producto', $detalle->producto_id));
-                } else {
-                    $nuevoSindevoluciones = $lotes->where('producto', $detalle->producto_id);
-                    foreach ($nuevoSindevoluciones as $devolucion) {
-                        $coll = new Collection();
-                        $coll->producto_id = $devolucion->producto_id;
-                        $coll->cantidad = $devolucion->cantidad;
-                        $coll->precio_unitario = $devolucion->precio_unitario;
-                        $coll->precio_inicial = $devolucion->precio_inicial;
-                        $coll->precio_nuevo = $devolucion->precio_nuevo;
-                        $coll->descuento = $devolucion->descuento;
-                        $coll->dinero = $devolucion->dinero;
-                        $coll->valor_unitario = $devolucion->valor_unitario;
-                        $coll->valor_venta = $devolucion->valor_venta;
-                        $coll->unidad = $devolucion->unidad;
-                        $coll->descripcion_producto = $devolucion->descripcion_producto;
-                        $coll->presentacion = $devolucion->presentacion;
-                        $coll->producto = $devolucion->producto;
-                        $nuevoDetalle->push($coll);
-                    }
-                }
+                //$cantidadDetalle = $lotes->where('producto', $detalle->producto_id)->sum('cantidad');
+                $cantidadDetalle   = [];
+                $cantidadDetalle = $lotes->where('producto', $detalle->producto_id)
+                                ->where('color', $detalle->color_id)
+                                ->where('talla', $detalle->talla_id)
+                                ->first();
+              
+
+                //dd($cantidadDetalle);
+                
+                if ($cantidadDetalle->cantidad != $detalle->cantidad) {
+                //     //dd(' != '. $cantidadDetalle[0]->cantidad);
+                     $devolucion = true;
+                     // $devolucionLotes = $lotes->where('producto', $detalle->producto_id);
+                     $devolucionLotes = $lotes->where('producto',$detalle->producto_id)
+                                                 ->where('color',$detalle->color_id)
+                                                 ->where('talla',$detalle->talla_id)
+                                                 ->first();
+                     //dd($devolucionLotes);
+                     //LLENAR ERROR CANTIDAD SOLICITADA MAYOR AL STOCK
+                     $coll = new Collection();
+                     $coll->producto = $devolucionLotes->descripcion_producto;
+                     $coll->cantidad = $detalle->cantidad;
+                     $errores->push($coll);
+                     self::devolverCantidad($lotes->where('producto',$detalle->producto_id)
+                                                     ->where('color',$detalle->color_id)
+                                                     ->where('talla',$detalle->talla_id)
+                                                    ->first());
+                 } else {
+                     $nuevoSindevoluciones = $lotes->where('producto',$detalle->producto_id)
+                                                ->where('color',$detalle->color_id)
+                                                ->where('talla',$detalle->talla_id)
+                                                ->first();
+                        
+                        //dd($nuevoSindevoluciones);
+                         $coll = new Collection();
+                         // $coll->producto_id = $devolucion->producto_id;
+
+                         $coll->producto_id = $nuevoSindevoluciones->producto;
+                         $coll->color_id = $nuevoSindevoluciones->color;
+                         $coll->talla_id = $nuevoSindevoluciones->talla;
+                         $coll->cantidad = $nuevoSindevoluciones->cantidad;
+                         $coll->precio_unitario   = $nuevoSindevoluciones->precio_unitario;
+                         $coll->importe           = $nuevoSindevoluciones->importe;
+                         // $coll->precio_unitario = $devolucion->precio_unitario;
+                         // $coll->precio_inicial = $devolucion->precio_inicial;
+                         // $coll->precio_nuevo = $devolucion->precio_nuevo;
+                         // $coll->descuento = $devolucion->descuento;
+                         // $coll->dinero = $devolucion->dinero;
+                         // $coll->valor_unitario = $devolucion->valor_unitario;
+                         // $coll->valor_venta = $devolucion->valor_venta;
+                         // $coll->unidad = $devolucion->unidad;
+                         $coll->descripcion_producto = $nuevoSindevoluciones->descripcion_producto;
+                         //$coll->presentacion = $devolucion->presentacion;
+                         //$coll->producto = $devolucion->producto;
+                         $nuevoDetalle->push($coll);
+                     
+                 }
+
             }
+           //dd($nuevoDetalle);
 
             return view('ventas.documentos.create-venta-cotizacion', [
                 'cotizacion' => $cotizacion,
@@ -582,7 +621,7 @@ class DocumentoController extends Controller
                 'clientes' => $clientes,
                 'productos' => $productos,
                 'condiciones' => $condiciones,
-                'lotes' => $nuevoDetalle,
+                'lotes' =>  $nuevoDetalle,
                 'errores' => $errores,
                 'fecha_hoy' => $fecha_hoy,
                 'fullaccess' => $fullaccess,
@@ -670,12 +709,23 @@ class DocumentoController extends Controller
     public function devolverCantidad($devoluciones)
     {
         foreach ($devoluciones as $devolucion) {
-            if ($devolucion->producto_id != 0) {
-                $lote = LoteProducto::findOrFail($devolucion->producto_id);
-                $lote->cantidad_logica = $lote->cantidad_logica + $devolucion->cantidad;
-                $lote->cantidad = $lote->cantidad_logica;
-                $lote->estado = '1';
-                $lote->update();
+            // if ($devolucion->producto_id != 0) {
+                
+            if ($devolucion->producto != 0) {
+                //$lote = LoteProducto::findOrFail($devolucion->producto_id);
+                $lote = ProductoColorTalla::where('producto_id', $devolucion->producto)
+                                        ->where('color_id', $devolucion->color)
+                                        ->where('talla_id', $devolucion->talla)
+                                        ->firstOrFail();                
+                // $lote->cantidad_logica = $lote->cantidad_logica + $devolucion->cantidad;
+                // $lote->cantidad = $lote->cantidad_logica;
+                // $lote->estado = '1';
+                // $lote->update();
+                $lote->stock_logico = $lote->stock_logico + $devolucion->cantidad;
+                $lote->stock = $lote->stok_logico;
+
+                // Guardar los cambios en la base de datos
+                $lote->save();
             }
         }
     }
@@ -683,114 +733,272 @@ class DocumentoController extends Controller
     public function cotizacionLote($detalles)
     {
         $nuevoDetalle = collect();
-        foreach ($detalles as $detalle) {
-            $lotes = LoteProducto::where('producto_id', $detalle->producto_id)
-                ->where('estado', '1')
-                ->where('cantidad_logica', '>', 0)
-                ->orderBy('fecha_vencimiento', 'asc')
-                ->get();
-            //INICIO CON LA CANTIDAD DEL DETALLE
+        //dd($detalles);
+        foreach ($detalles as  $detalle) {
+            $producto_existencia = DB::select('select pct.*,p.nombre as producto_nombre,
+                                    c.descripcion as color_nombre,t.descripcion as talla_nombre
+                                    from producto_color_tallas as pct
+                                    inner join productos as p
+                                    on p.id = pct.producto_id
+                                    inner join colores as c
+                                    on c.id = pct.color_id
+                                    inner join tallas as t
+                                    on t.id = pct.talla_id
+                                    where producto_id = ? and color_id = ? and talla_id = ?'
+                                    ,[$detalle->producto_id,$detalle->color_id,$detalle->talla_id]);    
+            
             $cantidadSolicitada = $detalle->cantidad;
-
-            if (count($lotes) > 0) {
-                foreach ($lotes as $lote) {
-                    //SE OBTUVO LA CANTIDAD SOLICITADA DEL LOTE
-                    if ($cantidadSolicitada > 0) {
-                        //CANTIDAD LOGICA DEL LOTE ES IGUAL A LA CANTIDAD SOLICITADA
-                        $cantidadLogica = $lote->cantidad_logica;
-                        if ($cantidadLogica == $cantidadSolicitada) {
+            if(count($producto_existencia) > 0 ){
+                $producto_existencia = $producto_existencia[0];
+                if($cantidadSolicitada > 0){
+                    $cantidadLogica     = $producto_existencia->stock_logico;
+                
+                    if($cantidadLogica == $cantidadSolicitada){
+                        $coll = new Collection();
+                        //$coll->producto_id = $lote->id;
+                        $coll->cantidad         =   $cantidadSolicitada;
+                        $coll->precio_unitario  =   $detalle->precio;  //precio_unitario
+                        $coll->importe          =   $detalle->importe;
+                        $coll->producto         =   $detalle->producto_id;
+                        $coll->color            =   $detalle->color_id;
+                        $coll->talla            =   $detalle->talla_id;
+                        //$coll->precio_inicial = $detalle->precio_inicial;
+                        //$coll->precio_nuevo = $detalle->precio_nuevo;
+                        //$coll->descuento = $detalle->descuento;
+                        //$coll->dinero = $detalle->dinero;
+                        //$coll->valor_unitario = $detalle->valor_unitario;
+                        //$coll->valor_venta = $detalle->valor_venta;
+                        //$coll->unidad = $lote->producto->medidaCompleta();
+                        //$coll->descripcion_producto = $lote->producto->nombre . ' - ' . $lote->codigo_lote;
+                        $coll->descripcion_producto = $producto_existencia->producto_nombre . ' - ' . $producto_existencia->color_nombre;
+                        //$coll->presentacion = $lote->producto->medida;
+                        //$coll->producto = $lote->producto->id;
+                        $nuevoDetalle->push($coll);
+                        //$nuevoDetalle->push($coll);
+                        //ACTUALIZAMOS EL LOTE
+                        //$lote->cantidad_logica = $lote->cantidad_logica - $cantidadSolicitada;
+                        //REDUCIMOS LA CANTIDAD SOLICITADA
+                        $cantidadSolicitada = 0;
+                        //$producto_existencia->update();
+                        DB::table('producto_color_tallas')
+                            ->where('producto_id', $detalle->producto_id)
+                            ->where('color_id', $detalle->color_id)
+                            ->where('talla_id', $detalle->talla_id)
+                            ->update([
+                                'stock_logico' => DB::raw('stock_logico - ' . $cantidadSolicitada)
+                        ]);
+                    }else{
+                        if($cantidadLogica < $cantidadSolicitada){
                             //CREAMOS EL NUEVO DETALLE
                             $coll = new Collection();
-                            $coll->producto_id = $lote->id;
-                            $coll->cantidad = $cantidadSolicitada;
-                            $coll->precio_unitario = $detalle->precio_unitario;
-                            $coll->precio_inicial = $detalle->precio_inicial;
-                            $coll->precio_nuevo = $detalle->precio_nuevo;
-                            $coll->descuento = $detalle->descuento;
-                            $coll->dinero = $detalle->dinero;
-                            $coll->valor_unitario = $detalle->valor_unitario;
-                            $coll->valor_venta = $detalle->valor_venta;
-                            $coll->unidad = $lote->producto->medidaCompleta();
-                            $coll->descripcion_producto = $lote->producto->nombre . ' - ' . $lote->codigo_lote;
-                            $coll->presentacion = $lote->producto->medida;
-                            $coll->producto = $lote->producto->id;
+            //              $coll->producto_id = $lote->id;
+                            $coll->cantidad         =   $producto_existencia->stock_logico;
+                            $coll->precio_unitario  =   $detalle->precio;          //precio_unitario
+                            $coll->importe          =   $detalle->importe;
+                            $coll->producto         =   $detalle->producto_id;
+                            $coll->color            =   $detalle->color_id;
+                            $coll->talla            =   $detalle->talla_id;
+            //              $coll->precio_inicial = $detalle->precio_inicial;
+            //              $coll->precio_nuevo = $detalle->precio_nuevo;
+            //              $coll->descuento = $detalle->descuento;
+            //              $coll->dinero = $detalle->dinero;
+            //              $coll->valor_unitario = $detalle->valor_unitario;
+            //              $coll->valor_venta = $detalle->valor_venta;
+            //              $coll->unidad = $lote->producto->medidaCompleta();
+                            //$coll->descripcion_producto = $lote->producto->nombre . ' - ' . $lote->codigo_lote;
+                            $coll->descripcion_producto = $producto_existencia->producto_nombre . ' - ' . $producto_existencia->color_nombre;
+                            //$coll->presentacion = $lote->producto->medida;
+            //              $coll->producto = $lote->producto->id;
                             $nuevoDetalle->push($coll);
-                            //ACTUALIZAMOS EL LOTE
-                            $lote->cantidad_logica = $lote->cantidad_logica - $cantidadSolicitada;
-                            //REDUCIMOS LA CANTIDAD SOLICITADA
+            //              //REDUCIMOS LA CANTIDAD SOLICITADA
+                            $cantidadSolicitada = $cantidadSolicitada - $cantidadLogica;
+            //              //ACTUALIZAMOS EL LOTE
+            //              $lote->cantidad_logica = 0;
+            //              $lote->update();
+                            DB::table('producto_color_tallas')
+                                ->where('producto_id', $detalle->producto_id)
+                                ->where('color_id', $detalle->color_id)
+                                ->where('talla_id', $detalle->talla_id)
+                                ->update([
+                                    'stock_logico' => 0
+                            ]);
+
+                        }
+
+                        if($cantidadLogica > $cantidadSolicitada){
+                            //CREAMOS EL NUEVO DETALLE
+                            $coll = new Collection();
+                //          $coll->producto_id = $lote->id;
+                            $coll->cantidad = $cantidadSolicitada;
+                            $coll->precio_unitario  =   $detalle->precio;  //precio_unitario
+                            $coll->importe          =   $detalle->importe;
+                            $coll->producto         =   $detalle->producto_id;
+                            $coll->color            =   $detalle->color_id;
+                            $coll->talla            =   $detalle->talla_id;
+            //              $coll->precio_unitario = $detalle->precio_unitario;
+            //              $coll->precio_inicial = $detalle->precio_inicial;
+            //              $coll->precio_nuevo = $detalle->precio_nuevo;
+            //              $coll->descuento = $detalle->descuento;
+            //              $coll->dinero = $detalle->dinero;
+            //              $coll->valor_unitario = $detalle->valor_unitario;
+            //              $coll->valor_venta = $detalle->valor_venta;
+            //              $coll->unidad = $lote->producto->medidaCompleta();
+                            //$coll->descripcion_producto = $lote->producto->nombre . ' - ' . $lote->codigo_lote;
+                            $coll->descripcion_producto = $producto_existencia->producto_nombre . ' - ' . $producto_existencia->color_nombre;
+                            //$coll->presentacion = $lote->producto->medida;
+            //              $coll->producto = $lote->producto->id;
+                            $nuevoDetalle->push($coll);
+            //              //ACTUALIZAMOS EL LOTE
+                            //$lote->cantidad_logica = $lote->cantidad_logica - $cantidadSolicitada;
+            //              //REDUCIMOS LA CANTIDAD SOLICITADA
+                            //$cantidadSolicitada = 0;
+            //              $lote->update();
+                                DB::table('producto_color_tallas')
+                                ->where('producto_id', $detalle->producto_id)
+                                ->where('color_id', $detalle->color_id)
+                                ->where('talla_id', $detalle->talla_id)
+                                ->update([
+                                    'stock_logico' => DB::raw('stock_logico - ' . $cantidadSolicitada)
+                                ]);
                             $cantidadSolicitada = 0;
-                            $lote->update();
-                        } else {
-                            if ($lote->cantidad_logica < $cantidadSolicitada) {
-                                //CREAMOS EL NUEVO DETALLE
-                                $coll = new Collection();
-                                $coll->producto_id = $lote->id;
-                                $coll->cantidad = $lote->cantidad_logica;
-                                $coll->precio_unitario = $detalle->precio_unitario;
-                                $coll->precio_inicial = $detalle->precio_inicial;
-                                $coll->precio_nuevo = $detalle->precio_nuevo;
-                                $coll->descuento = $detalle->descuento;
-                                $coll->dinero = $detalle->dinero;
-                                $coll->valor_unitario = $detalle->valor_unitario;
-                                $coll->valor_venta = $detalle->valor_venta;
-                                $coll->unidad = $lote->producto->medidaCompleta();
-                                $coll->descripcion_producto = $lote->producto->nombre . ' - ' . $lote->codigo_lote;
-                                $coll->presentacion = $lote->producto->medida;
-                                $coll->producto = $lote->producto->id;
-                                $nuevoDetalle->push($coll);
-                                //REDUCIMOS LA CANTIDAD SOLICITADA
-                                $cantidadSolicitada = $cantidadSolicitada - $lote->cantidad_logica;
-                                //ACTUALIZAMOS EL LOTE
-                                $lote->cantidad_logica = 0;
-                                $lote->update();
-                            } else {
-                                if ($lote->cantidad_logica > $cantidadSolicitada) {
-                                    //CREAMOS EL NUEVO DETALLE
-                                    $coll = new Collection();
-                                    $coll->producto_id = $lote->id;
-                                    $coll->cantidad = $cantidadSolicitada;
-                                    $coll->precio_unitario = $detalle->precio_unitario;
-                                    $coll->precio_inicial = $detalle->precio_inicial;
-                                    $coll->precio_nuevo = $detalle->precio_nuevo;
-                                    $coll->descuento = $detalle->descuento;
-                                    $coll->dinero = $detalle->dinero;
-                                    $coll->valor_unitario = $detalle->valor_unitario;
-                                    $coll->valor_venta = $detalle->valor_venta;
-                                    $coll->unidad = $lote->producto->medidaCompleta();
-                                    $coll->descripcion_producto = $lote->producto->nombre . ' - ' . $lote->codigo_lote;
-                                    $coll->presentacion = $lote->producto->medida;
-                                    $coll->producto = $lote->producto->id;
-                                    $nuevoDetalle->push($coll);
-                                    //ACTUALIZAMOS EL LOTE
-                                    $lote->cantidad_logica = $lote->cantidad_logica - $cantidadSolicitada;
-                                    //REDUCIMOS LA CANTIDAD SOLICITADA
-                                    $cantidadSolicitada = 0;
-                                    $lote->update();
-                                }
-                            }
                         }
                     }
+                }else{
+                    $coll = new Collection();
+                    //$coll->producto_id = 0;
+                    $coll->cantidad = 0;
+                    $coll->precio_unitario  =   $detalle->precio; //precio_unitario
+                    $coll->importe          =   $detalle->importe;
+                    $coll->producto         =   $detalle->producto_id;
+                    $coll->color            =   $detalle->color_id;
+                    $coll->talla            =   $detalle->talla_id;
+                    //$coll->precio_inicial = $detalle->precio_inicial;
+                    //$coll->precio_nuevo = $detalle->precio_nuevo;
+                    //$coll->descuento = $detalle->descuento;
+                    //$coll->dinero = $detalle->dinero;
+                    //$ coll->valor_unitario = $detalle->valor_unitario;
+                    //$coll->valor_venta = $detalle->valor_venta;
+                    //$coll->unidad = '';
+                    $coll->descripcion_producto = $producto_existencia->producto_nombre . ' - ' . $producto_existencia->color_nombre;
+                    //$coll->presentacion = "";
+                    //$coll->producto = $detalle->producto->id;
+                    $nuevoDetalle->push($coll);
                 }
-            } else {
-                $coll = new Collection();
-                $coll->producto_id = 0;
-                $coll->cantidad = 0;
-                $coll->precio_unitario = $detalle->precio_unitario;
-                $coll->precio_inicial = $detalle->precio_inicial;
-                $coll->precio_nuevo = $detalle->precio_nuevo;
-                $coll->descuento = $detalle->descuento;
-                $coll->dinero = $detalle->dinero;
-                $coll->valor_unitario = $detalle->valor_unitario;
-                $coll->valor_venta = $detalle->valor_venta;
-                $coll->unidad = '';
-                $coll->descripcion_producto = $detalle->producto->nombre;
-                $coll->presentacion = "";
-                $coll->producto = $detalle->producto->id;
-                $nuevoDetalle->push($coll);
-            }
+                
+            }   
         }
-
         return $nuevoDetalle;
+
+
+        // $nuevoDetalle = collect();
+        // foreach ($detalles as $detalle) {
+        //     $lotes = LoteProducto::where('producto_id', $detalle->producto_id)
+        //         ->where('estado', '1')
+        //         ->where('cantidad_logica', '>', 0)
+        //         ->orderBy('fecha_vencimiento', 'asc')
+        //         ->get();
+        //     //INICIO CON LA CANTIDAD DEL DETALLE
+        //     $cantidadSolicitada = $detalle->cantidad;
+
+        //     if (count($lotes) > 0) {
+        //         foreach ($lotes as $lote) {
+        //             //SE OBTUVO LA CANTIDAD SOLICITADA DEL LOTE
+        //             if ($cantidadSolicitada > 0) {
+        //                 //CANTIDAD LOGICA DEL LOTE ES IGUAL A LA CANTIDAD SOLICITADA
+        //                 $cantidadLogica = $lote->cantidad_logica;
+        //                 if ($cantidadLogica == $cantidadSolicitada) {
+        //                     //CREAMOS EL NUEVO DETALLE
+        //                     $coll = new Collection();
+        //                     $coll->producto_id = $lote->id;
+        //                     $coll->cantidad = $cantidadSolicitada;
+        //                     $coll->precio_unitario = $detalle->precio_unitario;
+        //                     $coll->precio_inicial = $detalle->precio_inicial;
+        //                     $coll->precio_nuevo = $detalle->precio_nuevo;
+        //                     $coll->descuento = $detalle->descuento;
+        //                     $coll->dinero = $detalle->dinero;
+        //                     $coll->valor_unitario = $detalle->valor_unitario;
+        //                     $coll->valor_venta = $detalle->valor_venta;
+        //                     $coll->unidad = $lote->producto->medidaCompleta();
+        //                     $coll->descripcion_producto = $lote->producto->nombre . ' - ' . $lote->codigo_lote;
+        //                     $coll->presentacion = $lote->producto->medida;
+        //                     $coll->producto = $lote->producto->id;
+        //                     $nuevoDetalle->push($coll);
+        //                     //ACTUALIZAMOS EL LOTE
+        //                     $lote->cantidad_logica = $lote->cantidad_logica - $cantidadSolicitada;
+        //                     //REDUCIMOS LA CANTIDAD SOLICITADA
+        //                     $cantidadSolicitada = 0;
+        //                     $lote->update();
+        //                 } else {
+        //                     if ($lote->cantidad_logica < $cantidadSolicitada) {
+        //                         //CREAMOS EL NUEVO DETALLE
+        //                         $coll = new Collection();
+        //                         $coll->producto_id = $lote->id;
+        //                         $coll->cantidad = $lote->cantidad_logica;
+        //                         $coll->precio_unitario = $detalle->precio_unitario;
+        //                         $coll->precio_inicial = $detalle->precio_inicial;
+        //                         $coll->precio_nuevo = $detalle->precio_nuevo;
+        //                         $coll->descuento = $detalle->descuento;
+        //                         $coll->dinero = $detalle->dinero;
+        //                         $coll->valor_unitario = $detalle->valor_unitario;
+        //                         $coll->valor_venta = $detalle->valor_venta;
+        //                         $coll->unidad = $lote->producto->medidaCompleta();
+        //                         $coll->descripcion_producto = $lote->producto->nombre . ' - ' . $lote->codigo_lote;
+        //                         $coll->presentacion = $lote->producto->medida;
+        //                         $coll->producto = $lote->producto->id;
+        //                         $nuevoDetalle->push($coll);
+        //                         //REDUCIMOS LA CANTIDAD SOLICITADA
+        //                         $cantidadSolicitada = $cantidadSolicitada - $lote->cantidad_logica;
+        //                         //ACTUALIZAMOS EL LOTE
+        //                         $lote->cantidad_logica = 0;
+        //                         $lote->update();
+        //                     } else {
+        //                         if ($lote->cantidad_logica > $cantidadSolicitada) {
+        //                             //CREAMOS EL NUEVO DETALLE
+        //                             $coll = new Collection();
+        //                             $coll->producto_id = $lote->id;
+        //                             $coll->cantidad = $cantidadSolicitada;
+        //                             $coll->precio_unitario = $detalle->precio_unitario;
+        //                             $coll->precio_inicial = $detalle->precio_inicial;
+        //                             $coll->precio_nuevo = $detalle->precio_nuevo;
+        //                             $coll->descuento = $detalle->descuento;
+        //                             $coll->dinero = $detalle->dinero;
+        //                             $coll->valor_unitario = $detalle->valor_unitario;
+        //                             $coll->valor_venta = $detalle->valor_venta;
+        //                             $coll->unidad = $lote->producto->medidaCompleta();
+        //                             $coll->descripcion_producto = $lote->producto->nombre . ' - ' . $lote->codigo_lote;
+        //                             $coll->presentacion = $lote->producto->medida;
+        //                             $coll->producto = $lote->producto->id;
+        //                             $nuevoDetalle->push($coll);
+        //                             //ACTUALIZAMOS EL LOTE
+        //                             $lote->cantidad_logica = $lote->cantidad_logica - $cantidadSolicitada;
+        //                             //REDUCIMOS LA CANTIDAD SOLICITADA
+        //                             $cantidadSolicitada = 0;
+        //                             $lote->update();
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }else {
+        //         $coll = new Collection();
+        //         $coll->producto_id = 0;
+        //         $coll->cantidad = 0;
+        //         $coll->precio_unitario = $detalle->precio_unitario;
+        //         $coll->precio_inicial = $detalle->precio_inicial;
+        //         $coll->precio_nuevo = $detalle->precio_nuevo;
+        //         $coll->descuento = $detalle->descuento;
+        //         $coll->dinero = $detalle->dinero;
+        //         $ coll->valor_unitario = $detalle->valor_unitario;
+        //         $coll->valor_venta = $detalle->valor_venta;
+        //         $coll->unidad = '';
+        //         $coll->descripcion_producto = $detalle->producto->nombre;
+        //         $coll->presentacion = "";
+        //         $coll->producto = $detalle->producto->id;
+        //         $nuevoDetalle->push($coll);
+        //     }
+        // }
+
+        // return $nuevoDetalle;
     }
 
     public function storeNuevo(Request $request){
