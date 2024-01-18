@@ -47,7 +47,11 @@ use App\Ventas\Documento\Pago\Transferencia;
 use App\Notifications\FacturacionNotification;
 use App\Mantenimiento\Tabla\Detalle as TablaDetalle;
 
+
 use App\Almacenes\ProductoColorTalla;
+use App\Almacenes\Talla;
+use App\Almacenes\Color;
+
 
 
 class DocumentoController extends Controller
@@ -530,6 +534,7 @@ class DocumentoController extends Controller
             $lotes = self::cotizacionLote($detalles);
             //dd($lotes);
             $nuevoDetalle = collect();
+            $detalleValidado = [];
             if (count($lotes) === 0) {
                 $coll = new Collection();
                 $coll->producto = '. No hay stock para ninguno de los productos';
@@ -589,6 +594,7 @@ class DocumentoController extends Controller
                         
                         //dd($nuevoSindevoluciones);
                          $coll = new Collection();
+                         $col  = [];
                          // $coll->producto_id = $devolucion->producto_id;
 
                          $coll->producto_id = $nuevoSindevoluciones->producto;
@@ -597,6 +603,18 @@ class DocumentoController extends Controller
                          $coll->cantidad = $nuevoSindevoluciones->cantidad;
                          $coll->precio_unitario   = $nuevoSindevoluciones->precio_unitario;
                          $coll->importe           = $nuevoSindevoluciones->importe;
+
+                         $col = [
+                            'producto_id' => $nuevoSindevoluciones->producto,
+                            'color_id' => $nuevoSindevoluciones->color,
+                            'talla_id' => $nuevoSindevoluciones->talla,
+                            'cantidad' => $nuevoSindevoluciones->cantidad,
+                            'precio_unitario' => $nuevoSindevoluciones->precio_unitario,
+                            'importe' => $nuevoSindevoluciones->importe,
+                            'producto_nombre'   =>  Producto::where('id', $nuevoSindevoluciones->producto)->first()->nombre,
+                            'color_nombre'      =>  Color::where('id',  $nuevoSindevoluciones->producto)->first()->descripcion,
+                        ];   
+
                          // $coll->precio_unitario = $devolucion->precio_unitario;
                          // $coll->precio_inicial = $devolucion->precio_inicial;
                          // $coll->precio_nuevo = $devolucion->precio_nuevo;
@@ -609,11 +627,14 @@ class DocumentoController extends Controller
                          //$coll->presentacion = $devolucion->presentacion;
                          //$coll->producto = $devolucion->producto;
                          $nuevoDetalle->push($coll);
-                     
+                        
+                         $detalleValidado[] = $col;
                  }
 
             }
-           //dd($nuevoDetalle);
+           
+            //dd($detalleValidado);
+            $tallas = Talla::all();
 
             return view('ventas.documentos.create-venta-cotizacion', [
                 'cotizacion' => $cotizacion,
@@ -621,11 +642,13 @@ class DocumentoController extends Controller
                 'clientes' => $clientes,
                 'productos' => $productos,
                 'condiciones' => $condiciones,
-                'lotes' =>  $nuevoDetalle,
+                // 'lotes' =>  $nuevoDetalle,
                 'errores' => $errores,
                 'fecha_hoy' => $fecha_hoy,
                 'fullaccess' => $fullaccess,
                 'dolar' => $dolar,
+                'detalle'     => $detalleValidado,
+                'tallas'    =>  $tallas,
             ]);
         }
 

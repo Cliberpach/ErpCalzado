@@ -1158,8 +1158,7 @@
                 subtotal=0;
                 producto_color_procesados.push(`${p.producto_id}-${p.color_id}`);
             }
-        })
-        
+        })  
     }
 
     const reordenarCarrito= ()=>{

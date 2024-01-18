@@ -385,7 +385,11 @@
                                     @endif
 
 
-                                    <div class="table-responsive">
+                                    @include('ventas.documentos.table-detalle',[
+                                        'carrito' => 'carrito'
+                                    ])
+
+                                     {{-- <div class="table-responsive">
                                         <table
                                             class="table dataTables-detalle-documento table-striped table-bordered table-hover"
                                             style="text-transform:uppercase">
@@ -398,7 +402,7 @@
                                                     <th class="text-center">P. UNITARIO</th>
                                                     <th class="text-center">IMPORTE</th>
 
-                                                    {{-- <th></th>
+                                                     <th></th>
                                                     <th class="text-center"><i class="fa fa-dashboard"></i></th>
                                                     <th class="text-center">CANT</th>
                                                     <th class="text-center">UM</th>
@@ -407,13 +411,13 @@
                                                     <th class="text-center">P. UNITARIO</th>
                                                     <th class="text-center">DESCUENTO</th>
                                                     <th class="text-center">P. NUEVO</th>
-                                                    <th class="text-center">TOTAL</th> --}}
+                                                    <th class="text-center">TOTAL</th> 
                                                 </tr>
                                             </thead>
                                             <tbody>
 
                                             </tbody>
-                                            {{-- <tfoot>
+                                             <tfoot>
                                                 <tr>
                                                     <th class="text-right" colspan="10"></th>
                                                 </tr>
@@ -432,9 +436,9 @@
                                                     <th class="text-center"><span id="total">@if (!empty($cotizacion)) {{ $cotizacion->total }} @else 0.0 @endif</span>
                                                     </th>
                                                 </tr>
-                                            </tfoot> --}}
+                                            </tfoot> 
                                         </table>
-                                    </div>
+                                    </div>  --}}
                                 </div>
                             </div>
                         </div>
@@ -513,11 +517,115 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
 <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
 <script>
-    const l= @json($lotes);
-    console.log(JSON.stringify(l));
+    let carrito = @json($detalle);
+    const tallas    = @json($tallas);
+    const tableDetalleBody = document.querySelector('#table-detalle tbody');
+    
+
+    document.addEventListener('DOMContentLoaded',()=>{
+        console.log(carrito);
+        calcularSubTotal();
+        reordenarCarrito(carrito);
+        pintarDetalleCotizacion(carrito);
+    })
+
+
+    function events(){
+
+    }
+
+
+    const reordenarCarrito= ()=>{
+        carrito.sort(function(a, b) {
+            if (a.producto_id === b.producto_id) {
+                return a.color_id - b.color_id;
+            } else {
+                return a.producto_id - b.producto_id;
+            }
+        });
+    }
+
+    const calcularSubTotal=()=>{
+        let subtotal = 0;
+        const producto_color_procesados=[];
+
+        carrito.forEach((p)=>{
+            if(!producto_color_procesados.includes(`${p.producto_id}-${p.color_id}`)){
+                tallas.forEach((t)=>{
+                  const producto =  carrito.filter((ct)=>{
+                       return  ct.producto_id==p.producto_id && ct.color_id==p.color_id && ct.talla_id==t.id
+                    })
+
+                    if(producto.length!=0){
+                        subtotal+= parseFloat(producto[0].precio_unitario)*parseFloat(producto[0].cantidad);
+                    }
+                })
+                carrito.forEach((c)=>{
+                    if(c.producto_id==p.producto_id && c.color_id==p.color_id){
+                        c.subtotal=subtotal;
+                    }
+                })
+                subtotal=0;
+                producto_color_procesados.push(`${p.producto_id}-${p.color_id}`);
+            }
+        })  
+    }
+
+
+    function clearDetalleTable(){
+        while (tableDetalleBody.firstChild) {
+            tableDetalleBody.removeChild(tableDetalleBody.firstChild);
+        }
+    }
+
+    function pintarDetalleCotizacion(carrito){
+            let fila= ``;
+            let htmlTallas= ``;
+            const producto_color_procesado=[];
+            clearDetalleTable();
+
+            carrito.forEach((c)=>{
+                htmlTallas=``;
+                if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
+                    fila+= `<tr>   
+                                <td>
+                                    <i class="fas fa-trash-alt btn btn-primary delete-product"
+                                    data-producto="${c.producto_id}" data-color="${c.color_id}">
+                                    </i>                            
+                                </td>
+                                <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
+
+                    //tallas
+                    tallas.forEach((t)=>{
+                        let cantidad = carrito.filter((ct)=>{
+                            return ct.producto_id==c.producto_id && ct.color_id==c.color_id && t.id==ct.talla_id;
+                        });
+                        cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
+                        htmlTallas += `<td>${cantidad}</td>`; 
+                    })
+
+
+                    htmlTallas+=`   <td>${c.precio_unitario}</td>
+                                    <td class="td-subtotal">${c.subtotal}</td>
+                                </tr>`;
+
+                    fila+=htmlTallas;
+                    tableDetalleBody.innerHTML=fila;
+                    producto_color_procesado.push(`${c.producto_id}-${c.color_id}`)
+                }
+            })
+    }
+
+    @if (!empty($errores))
+        $('#asegurarCierre').val(1)
+        @foreach ($errores as $error)
+            toastr.error('La cantidad solicitada '+"{{ $error->cantidad }}"+' excede al stock del producto '+"{{ $error->producto }}", 'Error');
+        @endforeach
+    @endif
+
 </script>
 
- <script>
+ {{-- <script>
 
     //PRUEBA
     var clientes_global = [];
@@ -1808,5 +1916,5 @@
         return null;
     }
     */
-</script> 
+</script>  --}}
 @endpush
