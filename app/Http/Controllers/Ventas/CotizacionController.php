@@ -120,7 +120,7 @@ class CotizacionController extends Controller
 
         $cotizacion->user_id = Auth::id();
         //$cotizacion->igv = $request->get('igv');
-        $cotizacion->igv = "SI";
+        $cotizacion->igv = "18";
         //if ($request->get('igv_check') == "on") {
             $cotizacion->igv_check = "1";
         //}
@@ -136,7 +136,7 @@ class CotizacionController extends Controller
                 'color_id'  => $producto->color_id,
                 'talla_id' => $producto->talla_id,
                 'cantidad' => $producto->cantidad,
-                'precio' => $producto->precio_venta,
+                'precio_unitario' => $producto->precio_venta,
                 'importe' => $producto->cantidad*$producto->precio_venta,
 
                 //'descuento'=> $producto->descuento,

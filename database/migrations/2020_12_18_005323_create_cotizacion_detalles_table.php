@@ -25,7 +25,7 @@ class CreateCotizacionDetallesTable extends Migration
             $table->foreign('talla_id')->references('id')->on('tallas')->onDelete('cascade');
             
             $table->unsignedDecimal('cantidad');
-            $table->unsignedDecimal('precio');
+            $table->unsignedDecimal('precio_unitario');
             $table->unsignedDecimal('importe');
 
             // $table->unsignedDecimal('precio_inicial', 15, 4);

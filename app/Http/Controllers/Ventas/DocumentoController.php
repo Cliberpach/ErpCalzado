@@ -634,6 +634,7 @@ class DocumentoController extends Controller
             }
            
             //dd($detalleValidado);
+            //dd($cotizacion);
             $tallas = Talla::all();
 
             return view('ventas.documentos.create-venta-cotizacion', [
@@ -780,7 +781,7 @@ class DocumentoController extends Controller
                         $coll = new Collection();
                         //$coll->producto_id = $lote->id;
                         $coll->cantidad         =   $cantidadSolicitada;
-                        $coll->precio_unitario  =   $detalle->precio;  //precio_unitario
+                        $coll->precio_unitario  =   $detalle->precio_unitario;  //precio_unitario
                         $coll->importe          =   $detalle->importe;
                         $coll->producto         =   $detalle->producto_id;
                         $coll->color            =   $detalle->color_id;
@@ -816,7 +817,7 @@ class DocumentoController extends Controller
                             $coll = new Collection();
             //              $coll->producto_id = $lote->id;
                             $coll->cantidad         =   $producto_existencia->stock_logico;
-                            $coll->precio_unitario  =   $detalle->precio;          //precio_unitario
+                            $coll->precio_unitario  =   $detalle->precio_unitario;          //precio_unitario
                             $coll->importe          =   $detalle->importe;
                             $coll->producto         =   $detalle->producto_id;
                             $coll->color            =   $detalle->color_id;
@@ -853,7 +854,7 @@ class DocumentoController extends Controller
                             $coll = new Collection();
                 //          $coll->producto_id = $lote->id;
                             $coll->cantidad = $cantidadSolicitada;
-                            $coll->precio_unitario  =   $detalle->precio;  //precio_unitario
+                            $coll->precio_unitario  =   $detalle->precio_unitario;  //precio_unitario
                             $coll->importe          =   $detalle->importe;
                             $coll->producto         =   $detalle->producto_id;
                             $coll->color            =   $detalle->color_id;
@@ -890,7 +891,7 @@ class DocumentoController extends Controller
                     $coll = new Collection();
                     //$coll->producto_id = 0;
                     $coll->cantidad = 0;
-                    $coll->precio_unitario  =   $detalle->precio; //precio_unitario
+                    $coll->precio_unitario  =   $detalle->precio_unitario; //precio_unitario
                     $coll->importe          =   $detalle->importe;
                     $coll->producto         =   $detalle->producto_id;
                     $coll->color            =   $detalle->color_id;
@@ -1244,6 +1245,7 @@ class DocumentoController extends Controller
         }
        
     }
+
     public function store(Request $request)
     {
         $this->authorize('haveaccess', 'documento_venta.index');
@@ -1291,16 +1293,20 @@ class DocumentoController extends Controller
                 ]);
             }
 
+
+
             $documento = new Documento();
             $documento->fecha_documento = $request->get('fecha_documento_campo');
             $documento->fecha_atencion = $request->get('fecha_atencion_campo');
             $documento->fecha_vencimiento = $request->get('fecha_vencimiento_campo');
+
             //EMPRESA
             $empresa = Empresa::findOrFail($request->get('empresa_id'));
             $documento->ruc_empresa = $empresa->ruc;
             $documento->empresa = $empresa->razon_social;
             $documento->direccion_fiscal_empresa = $empresa->direccion_fiscal;
             $documento->empresa_id = $request->get('empresa_id'); //OBTENER NUMERACION DE LA EMPRESA
+
             //CLIENTE
             $cliente = Cliente::findOrFail($request->get('cliente_id'));
             $documento->tipo_documento_cliente = $cliente->tipo_documento;
@@ -1309,12 +1315,14 @@ class DocumentoController extends Controller
             $documento->cliente = $cliente->nombre;
             $documento->cliente_id = $request->get('cliente_id'); //OBTENER TIENDA DEL CLIENTE
 
-            $documento->tipo_venta = $request->get('tipo_venta');
+            $documento->tipo_venta = $request->get('tipo_venta');   //boleta,factura,nota_venta
 
-            //CONDICION
+            //CONDICION(TIPO DE PAGO: CONTADO O CREDITO)
             $cadena = explode('-', $request->get('condicion_id'));
             $condicion = Condicion::findOrFail($cadena[0]);
             $documento->condicion_id = $condicion->id;
+
+           
 
             $documento->observacion = $request->get('observacion');
             $documento->user_id = auth()->user()->id;
@@ -1328,132 +1336,148 @@ class DocumentoController extends Controller
             $documento->importe = $request->get('importe');
             $documento->efectivo = $request->get('efectivo');
 
+       
+
             if ($request->convertir) {
                 $documento->convertir = $request->convertir;
             } else {
-                $documento->convertir = null;
+                 $documento->convertir = null;
             }
 
             if (!empty($request->get('tipo_pago_id')) && $condicion->descripcion == 'CONTADO') {
-                $documento->estado_pago = 'PAGADA';
+                 $documento->estado_pago = 'PAGADA';
             }
 
             if ($request->get('igv_check') == "on" || $request->get('igv_check') == true) {
-                $documento->igv_check = "1";
+                 $documento->igv_check = "1";
             };
 
-            $documento->cotizacion_venta = $request->get('cotizacion_id');
-            $documento->save();
+            $documento->cotizacion_venta = $request->get('cotizacion_id'); //correcto
 
+            //$documento->save();
+            
+            //NUMERO DE DOC DE VENTA
             $numero_doc = $documento->id;
             $documento->numero_doc = 'VENTA-' . $numero_doc;
-            $documento->update();
+            //$documento->update();
+
+            
+            //DETALLE DEL DOCUMENTO
+
             //Llenado de los articulos
             $productosJSON = $request->get('productos_tabla');
             $productotabla = json_decode($productosJSON);
-            if ($request->convertir) {
-                foreach ($productotabla as $producto) {
-                    $lote = LoteProducto::findOrFail($producto->producto_id);
-                    $lote->cantidad = $lote->cantidad + $producto->cantidad;
-                    $lote->update();
-                }
-            }
+
+            // if ($request->convertir) {
+            //      foreach ($productotabla as $producto) {
+            //          $lote = LoteProducto::findOrFail($producto->producto_id);
+            //          $lote->cantidad = $lote->cantidad + $producto->cantidad;
+            //          $lote->update();
+            //      }
+            // }
 
             foreach ($productotabla as $producto) {
-                $lote = LoteProducto::findOrFail($producto->producto_id);
+                $lote = ProductoColorTalla::where('producto_id', $producto->producto_id)
+                                        ->where('color_id', $producto->color_id)
+                                        ->where('talla_id', $producto->talla_id)
+                                        ->firstOrFail();
+
+                //$lote = LoteProducto::findOrFail($producto->producto_id);
                 Detalle::create([
                     'documento_id' => $documento->id,
                     'lote_id' => $producto->producto_id, //LOTE
                     'codigo_producto' => $lote->producto->codigo,
-                    'unidad' => $lote->producto->getMedida(),
-                    'nombre_producto' => $lote->producto->nombre,
-                    'codigo_lote' => $lote->codigo_lote,
-                    'cantidad' => $producto->cantidad,
-                    'precio_unitario' => $producto->precio_unitario,
-                    'precio_inicial' => $producto->precio_inicial,
-                    'precio_nuevo' => $producto->precio_nuevo,
-                    'dinero' => $producto->dinero,
-                    'descuento' => $producto->descuento,
-                    'valor_unitario' => $producto->valor_unitario,
-                    'valor_venta' => $producto->valor_venta,
+                    //'unidad' => $lote->producto->getMedida(),
+                     'nombre_producto' => $lote->producto->nombre,
+                     'codigo_lote' => $lote->codigo_lote,
+                     'cantidad' => $producto->cantidad,
+                     'precio_unitario' => $producto->precio_unitario,
+                     'precio_inicial' => $producto->precio_inicial,
+                     'precio_nuevo' => $producto->precio_nuevo,
+                     'dinero' => $producto->dinero,
+                     'descuento' => $producto->descuento,
+                     'valor_unitario' => $producto->valor_unitario,
+                     'valor_venta' => $producto->valor_venta,
                 ]);
 
-                $lote->cantidad = $lote->cantidad - $producto->cantidad;
-                if ($lote->cantidad == 0) {
-                    $lote->estado = '0';
-                }
-                $lote->update();
-            }
-
-            if ($request->convertir) {
-                $doc_a_convertir = Documento::find($request->convertir);
-                $doc_a_convertir->convertir = $documento->id;
-                $doc_a_convertir->update();
-
-                $documento = Documento::find($documento->id);
-                $documento->estado = $doc_a_convertir->estado;
-                $documento->estado_pago = $doc_a_convertir->estado_pago;
-                $documento->fecha_documento = Carbon::now()->toDateString();
-                $documento->convertir = $doc_a_convertir->id;
-                $documento->importe = $doc_a_convertir->importe;
-                $documento->efectivo = $doc_a_convertir->efectivo;
-                $documento->tipo_pago_id = $doc_a_convertir->tipo_pago_id;
-
-                $documento->update();
-            }
-
-            $detalle = new DetalleMovimientoVentaCaja();
-            $detalle->cdocumento_id = $documento->id;
-            $detalle->mcaja_id = movimientoUser()->id;
             
-            $detalle->save();
-            $envio_prev =$this->ObtenerCorrelativoVentas($documento);
-            // $envio_prev = self::sunat($documento->id);
-            if (!$envio_prev['success']) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'mensaje' => $envio_prev['mensaje'],
-                ]);
-            }
 
-            if ($request->tipo_venta == '127' && $cliente->agente_retencion == '1' && $documento->total >= $cliente->monto_mayor) {
-                self::generarComprobanteRetencion($documento->id);
-            }
+            //     $lote->cantidad = $lote->cantidad - $producto->cantidad;
+            //     if ($lote->cantidad == 0) {
+            //         $lote->estado = '0';
+            //     }
+            //     $lote->update();
+            // }
 
-            $documento = Documento::find($documento->id);
-            $documento->nombre_comprobante_archivo = $documento->serie . '-' . $documento->correlativo . '.pdf';
-            $documento->update();
+            // if ($request->convertir) {
+            //     $doc_a_convertir = Documento::find($request->convertir);
+            //     $doc_a_convertir->convertir = $documento->id;
+            //     $doc_a_convertir->update();
 
-            //Registro de actividad
-            $descripcion = "SE AGREGÓ EL DOCUMENTO DE VENTA CON LA FECHA: " . Carbon::parse($documento->fecha_documento)->format('d/m/y');
-            $gestion = "DOCUMENTO DE VENTA";
-            crearRegistro($documento, $descripcion, $gestion);
+            //     $documento = Documento::find($documento->id);
+            //     $documento->estado = $doc_a_convertir->estado;
+            //     $documento->estado_pago = $doc_a_convertir->estado_pago;
+            //     $documento->fecha_documento = Carbon::now()->toDateString();
+            //     $documento->convertir = $doc_a_convertir->id;
+            //     $documento->importe = $doc_a_convertir->importe;
+            //     $documento->efectivo = $doc_a_convertir->efectivo;
+            //     $documento->tipo_pago_id = $doc_a_convertir->tipo_pago_id;
 
-            if ((int) $documento->tipo_venta == 127 || (int) $documento->tipo_venta == 128) {
-                $dato = 'Actualizar';
-                broadcast(new VentasCajaEvent($dato));
-                DB::commit();
-                if ($request->envio_sunat) {
-                    $envio_ = self::sunat_valida($documento->id);
-                }
-                Session::flash('success', 'Documento de venta creado.');
+            //     $documento->update();
+            // }
 
-                return response()->json([
-                    'success' => true,
-                    'documento_id' => $documento->id,
-                ]);
-            } else {
-                $dato = 'Actualizar';
-                broadcast(new VentasCajaEvent($dato));
-                DB::commit();
-                //$vp = self::venta_comprobante($documento->id);
-                //$ve = self::venta_email($documento->id);
-                // Session::flash('success', 'Documento de venta creado.');
-                return response()->json([
-                    'success' => true,
-                    'documento_id' => $documento->id,
-                ]);
+            // $detalle = new DetalleMovimientoVentaCaja();
+            // $detalle->cdocumento_id = $documento->id;
+            // $detalle->mcaja_id = movimientoUser()->id;
+            
+            // $detalle->save();
+            // $envio_prev =$this->ObtenerCorrelativoVentas($documento);
+            // // $envio_prev = self::sunat($documento->id);
+            // if (!$envio_prev['success']) {
+            //     DB::rollBack();
+            //     return response()->json([
+            //         'success' => false,
+            //         'mensaje' => $envio_prev['mensaje'],
+            //     ]);
+            // }
+
+            // if ($request->tipo_venta == '127' && $cliente->agente_retencion == '1' && $documento->total >= $cliente->monto_mayor) {
+            //     self::generarComprobanteRetencion($documento->id);
+            // }
+
+            // $documento = Documento::find($documento->id);
+            // $documento->nombre_comprobante_archivo = $documento->serie . '-' . $documento->correlativo . '.pdf';
+            // $documento->update();
+
+            // //Registro de actividad
+            // $descripcion = "SE AGREGÓ EL DOCUMENTO DE VENTA CON LA FECHA: " . Carbon::parse($documento->fecha_documento)->format('d/m/y');
+            // $gestion = "DOCUMENTO DE VENTA";
+            // crearRegistro($documento, $descripcion, $gestion);
+
+            // if ((int) $documento->tipo_venta == 127 || (int) $documento->tipo_venta == 128) {
+            //     $dato = 'Actualizar';
+            //     broadcast(new VentasCajaEvent($dato));
+            //     DB::commit();
+            //     if ($request->envio_sunat) {
+            //         $envio_ = self::sunat_valida($documento->id);
+            //     }
+            //     Session::flash('success', 'Documento de venta creado.');
+
+            //     return response()->json([
+            //         'success' => true,
+            //         'documento_id' => $documento->id,
+            //     ]);
+            // } else {
+            //     $dato = 'Actualizar';
+            //     broadcast(new VentasCajaEvent($dato));
+            //     DB::commit();
+            //     //$vp = self::venta_comprobante($documento->id);
+            //     //$ve = self::venta_email($documento->id);
+            //     // Session::flash('success', 'Documento de venta creado.');
+            //     return response()->json([
+            //         'success' => true,
+            //         'documento_id' => $documento->id,
+            //     ]);
             }
         } catch (Exception $e) {
             DB::rollBack();
