@@ -27,6 +27,8 @@ class CreateProductoColorTallasTable extends Migration
 
             $table->timestamps();
             $table->primary(['producto_id', 'color_id','talla_id']); 
+            $table->enum('estado',['0','1'])->default('0');
+
         });
     }
 

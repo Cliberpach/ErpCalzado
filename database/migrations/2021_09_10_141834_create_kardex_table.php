@@ -17,6 +17,10 @@ class CreateKardexTable extends Migration
             $table->id();
             $table->unsignedInteger('producto_id');
             $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
+            $table->unsignedInteger('color_id');
+            $table->foreign('color_id')->references('id')->on('colores')->onDelete('cascade');
+            $table->unsignedInteger('talla_id');
+            $table->foreign('talla_id')->references('id')->on('tallas')->onDelete('cascade');
             $table->text('origen')->nullable();
             $table->text('numero_doc')->nullable();
             $table->date('fecha')->nullable();

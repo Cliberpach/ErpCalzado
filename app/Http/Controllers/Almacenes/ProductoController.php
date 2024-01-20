@@ -157,11 +157,12 @@ class ProductoController extends Controller
                
 
                 $color_talla = new ProductoColorTalla();
-                $color_talla->color_id = $color_id;
-                $color_talla->producto_id = $producto->id;
-                $color_talla->talla_id = $talla_id;
-                $color_talla->stock = $stockColorTalla?$stockColorTalla:0;
-                $color_talla->stock_logico = $stockColorTalla?$stockColorTalla:0;
+                $color_talla->color_id      = $color_id;
+                $color_talla->producto_id   = $producto->id;
+                $color_talla->talla_id      = $talla_id;
+                $color_talla->stock         = $stockColorTalla?$stockColorTalla:0;
+                $color_talla->stock_logico  = $stockColorTalla?$stockColorTalla:0;
+                $color_talla->estado        =   '1';
                 $color_talla->save();
 
             }

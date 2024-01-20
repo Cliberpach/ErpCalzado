@@ -708,14 +708,14 @@
                             {
                                 toastr.success('¡Documento de venta creado!','Exito')
 
-                                // let id = result.value.documento_id;
-                                // var url_open_pdf = '{{ route("ventas.documento.comprobante", ":id")}}';
-                                // url_open_pdf = url_open_pdf.replace(':id',id+'-80');
-                                // window.open(url_open_pdf,'Comprobante SISCOM','location=1, status=1, scrollbars=1,width=900, height=600');
+                                let id = result.value.documento_id;
+                                var url_open_pdf = '{{ route("ventas.documento.comprobante", ":id")}}';
+                                url_open_pdf = url_open_pdf.replace(':id',id+'-80');
+                                window.open(url_open_pdf,'Comprobante SISCOM','location=1, status=1, scrollbars=1,width=900, height=600');
 
-                                // $('#asegurarCierre').val(2);
+                                $('#asegurarCierre').val(2);
 
-                                //  location = "{{ route('ventas.documento.index') }}";
+                                location = "{{ route('ventas.documento.index') }}";
                              }
                             //  else
                             //  {

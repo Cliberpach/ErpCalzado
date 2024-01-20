@@ -10,6 +10,8 @@ class Kardex extends Model
     protected $fillable =[
         'id', 
         'producto_id',
+        'color_id',
+        'talla_id',
         'origen',
         'numero_doc',
         'fecha',
@@ -24,5 +26,18 @@ class Kardex extends Model
     public function producto()
     {
         return $this->belongsTo(Producto::class,'producto_id','id');
+    }
+
+    public function productoColorTalla()
+    {
+        return $this->belongsTo(ProductoColorTalla::class, [
+            'producto_id',
+            'color_id',
+            'talla_id',
+        ], [
+            'producto_id',
+            'color_id',
+            'talla_id',
+        ]);
     }
 }

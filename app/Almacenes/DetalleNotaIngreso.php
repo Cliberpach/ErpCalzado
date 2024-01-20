@@ -52,7 +52,8 @@ class DetalleNotaIngreso extends Model
                             ->where('talla_id', $detalleNotaIngreso->talla_id)
                             ->update([
                                 'stock' => DB::raw("stock + $cantidadProductos"),
-                                'stock_logico' => DB::raw("stock_logico + $cantidadProductos"),
+                                'stock_logico'  =>  DB::raw("stock_logico + $cantidadProductos"),
+                                'estado'        =>  '1',  
                             ]);
         });
         

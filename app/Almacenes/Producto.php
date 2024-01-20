@@ -118,4 +118,9 @@ class Producto extends Model
     {
         return $this->hasMany(Detalle::class, 'producto_id', 'id');
     }
+
+    public function productos()
+    {
+        return $this->hasMany('App\Almacenes\ProductoColorTalla');
+    }
 }

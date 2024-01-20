@@ -1354,14 +1354,14 @@ class DocumentoController extends Controller
 
             $documento->cotizacion_venta = $request->get('cotizacion_id'); //correcto
 
-            //$documento->save();
+            $documento->save();
             
             //NUMERO DE DOC DE VENTA
             $numero_doc = $documento->id;
             $documento->numero_doc = 'VENTA-' . $numero_doc;
-            //$documento->update();
+            $documento->update();
 
-            
+           
             //DETALLE DEL DOCUMENTO
 
             //Llenado de los articulos
@@ -1377,37 +1377,61 @@ class DocumentoController extends Controller
             // }
 
             foreach ($productotabla as $producto) {
+                 
                 $lote = ProductoColorTalla::where('producto_id', $producto->producto_id)
-                                        ->where('color_id', $producto->color_id)
-                                        ->where('talla_id', $producto->talla_id)
-                                        ->firstOrFail();
-
+                        ->where('color_id', $producto->color_id)
+                        ->where('talla_id', $producto->talla_id)
+                        ->with('producto')
+                        ->firstOrFail();
+                       
+                      
                 //$lote = LoteProducto::findOrFail($producto->producto_id);
-                Detalle::create([
-                    'documento_id' => $documento->id,
-                    'lote_id' => $producto->producto_id, //LOTE
-                    'codigo_producto' => $lote->producto->codigo,
-                    //'unidad' => $lote->producto->getMedida(),
-                     'nombre_producto' => $lote->producto->nombre,
-                     'codigo_lote' => $lote->codigo_lote,
-                     'cantidad' => $producto->cantidad,
-                     'precio_unitario' => $producto->precio_unitario,
-                     'precio_inicial' => $producto->precio_inicial,
-                     'precio_nuevo' => $producto->precio_nuevo,
-                     'dinero' => $producto->dinero,
-                     'descuento' => $producto->descuento,
-                     'valor_unitario' => $producto->valor_unitario,
-                     'valor_venta' => $producto->valor_venta,
-                ]);
+               
+                    Detalle::create([
+                        'documento_id' => $documento->id,
+                        // 'lote_id' => $producto->producto_id, //LOTE
+                        'producto_id'   =>  $producto->producto_id,
+                        'color_id'      =>  $producto->color_id,
+                        'talla_id'      =>  $producto->talla_id,
+                        'codigo_producto' => $lote->producto->codigo,
+                        //'unidad' => $lote->producto->getMedida(),
+                        'nombre_producto' => $lote->producto->nombre,
+                        //'codigo_lote' => $lote->codigo_lote,
+                        'cantidad' => floatval($producto->cantidad),
+                        'precio_unitario' => floatval($producto->precio_unitario),
+                        'importe'          =>  floatval($producto->cantidad) * floatval($producto->precio_unitario)
+                        //  'precio_inicial' => $producto->precio_inicial,
+                        //  'precio_nuevo' => $producto->precio_nuevo,
+                        //  'dinero' => $producto->dinero,
+                        //  'descuento' => $producto->descuento,
+                        //  'valor_unitario' => $producto->valor_unitario,
+                        //  'valor_venta' => $producto->valor_venta,
+                    ]);
+                
+            //      $lote->cantidad = $lote->cantidad - $producto->cantidad;
+                    //$lote->stock = $lote->stock - $producto->cantidad;
+            //ACTUALIZANDO STOCK...
+            DB::update('UPDATE producto_color_tallas 
+            SET stock = stock - ? 
+            WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
+            [$producto->cantidad, $producto->producto_id, $producto->color_id, $producto->talla_id]);
 
-            
 
-            //     $lote->cantidad = $lote->cantidad - $producto->cantidad;
-            //     if ($lote->cantidad == 0) {
+            //if ($lote->cantidad == 0) {
             //         $lote->estado = '0';
             //     }
             //     $lote->update();
             // }
+
+                if ($lote->stock == 0) {
+                    DB::update('UPDATE producto_color_tallas 
+                    SET estado = ? 
+                    WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
+                    ['0', $producto->producto_id, $producto->color_id, $producto->talla_id]);        
+                    //$lote->estado = '0';
+                }
+                //$lote->update();
+            }
 
             // if ($request->convertir) {
             //     $doc_a_convertir = Documento::find($request->convertir);
@@ -1426,59 +1450,66 @@ class DocumentoController extends Controller
             //     $documento->update();
             // }
 
-            // $detalle = new DetalleMovimientoVentaCaja();
-            // $detalle->cdocumento_id = $documento->id;
-            // $detalle->mcaja_id = movimientoUser()->id;
+            $detalle = new DetalleMovimientoVentaCaja();
+            $detalle->cdocumento_id = $documento->id;
+            $detalle->mcaja_id = movimientoUser()->id;
             
-            // $detalle->save();
-            // $envio_prev =$this->ObtenerCorrelativoVentas($documento);
-            // // $envio_prev = self::sunat($documento->id);
-            // if (!$envio_prev['success']) {
-            //     DB::rollBack();
-            //     return response()->json([
-            //         'success' => false,
-            //         'mensaje' => $envio_prev['mensaje'],
-            //     ]);
-            // }
+            $detalle->save();
+            $envio_prev =$this->ObtenerCorrelativoVentas($documento);
+            $envio_prev = self::sunat($documento->id);
+            if (!$envio_prev['success']) {
+                 DB::rollBack();
+                 return response()->json([
+                     'success' => false,
+                     'mensaje' => $envio_prev['mensaje'],
+                 ]);
+            }
 
             // if ($request->tipo_venta == '127' && $cliente->agente_retencion == '1' && $documento->total >= $cliente->monto_mayor) {
-            //     self::generarComprobanteRetencion($documento->id);
+            //      self::generarComprobanteRetencion($documento->id);
             // }
 
-            // $documento = Documento::find($documento->id);
-            // $documento->nombre_comprobante_archivo = $documento->serie . '-' . $documento->correlativo . '.pdf';
-            // $documento->update();
+            $documento = Documento::find($documento->id);
+            $documento->nombre_comprobante_archivo = $documento->serie . '-' . $documento->correlativo . '.pdf';
+            $documento->update();
 
-            // //Registro de actividad
-            // $descripcion = "SE AGREGÓ EL DOCUMENTO DE VENTA CON LA FECHA: " . Carbon::parse($documento->fecha_documento)->format('d/m/y');
-            // $gestion = "DOCUMENTO DE VENTA";
-            // crearRegistro($documento, $descripcion, $gestion);
+            //Registro de actividad
+            $descripcion = "SE AGREGÓ EL DOCUMENTO DE VENTA CON LA FECHA: " . Carbon::parse($documento->fecha_documento)->format('d/m/y');
+            $gestion = "DOCUMENTO DE VENTA";
+            crearRegistro($documento, $descripcion, $gestion);
 
-            // if ((int) $documento->tipo_venta == 127 || (int) $documento->tipo_venta == 128) {
-            //     $dato = 'Actualizar';
-            //     broadcast(new VentasCajaEvent($dato));
-            //     DB::commit();
-            //     if ($request->envio_sunat) {
-            //         $envio_ = self::sunat_valida($documento->id);
-            //     }
-            //     Session::flash('success', 'Documento de venta creado.');
+            if ((int) $documento->tipo_venta == 127 || (int) $documento->tipo_venta == 128) {
+                $dato = 'Actualizar';
+                broadcast(new VentasCajaEvent($dato));
+                DB::commit();
+                if ($request->envio_sunat) {
+                    $envio_ = self::sunat_valida($documento->id);
+                }
+                Session::flash('success', 'Documento de venta creado.');
 
-            //     return response()->json([
-            //         'success' => true,
-            //         'documento_id' => $documento->id,
-            //     ]);
-            // } else {
-            //     $dato = 'Actualizar';
-            //     broadcast(new VentasCajaEvent($dato));
-            //     DB::commit();
-            //     //$vp = self::venta_comprobante($documento->id);
-            //     //$ve = self::venta_email($documento->id);
-            //     // Session::flash('success', 'Documento de venta creado.');
-            //     return response()->json([
-            //         'success' => true,
-            //         'documento_id' => $documento->id,
-            //     ]);
+                return response()->json([
+                    'success' => true,
+                    'documento_id' => $documento->id,
+                ]);
+            } else {
+                 $dato = 'Actualizar';
+                 broadcast(new VentasCajaEvent($dato));
+                 DB::commit();
+                 //$vp = self::venta_comprobante($documento->id);
+                 //$ve = self::venta_email($documento->id);
+                 // Session::flash('success', 'Documento de venta creado.');
+                 return response()->json([
+                     'success' => true,
+                     'documento_id' => $documento->id,
+                 ]);
+            
+            //DB::commit();
             }
+            return response()->json([
+                'success' => false,
+                    'mensaje' => "exito",
+            ]);
+            
         } catch (Exception $e) {
             DB::rollBack();
             Log::info($e);
