@@ -587,7 +587,7 @@ class DocumentoController extends Controller
                                                      ->where('talla',$detalle->talla_id)
                                                     ->first());
                  } else {
-                     $nuevoSindevoluciones = $lotes->where('producto',$detalle->producto_id)
+                        $nuevoSindevoluciones = $lotes->where('producto',$detalle->producto_id)
                                                 ->where('color',$detalle->color_id)
                                                 ->where('talla',$detalle->talla_id)
                                                 ->first();
@@ -612,7 +612,7 @@ class DocumentoController extends Controller
                             'precio_unitario' => $nuevoSindevoluciones->precio_unitario,
                             'importe' => $nuevoSindevoluciones->importe,
                             'producto_nombre'   =>  Producto::where('id', $nuevoSindevoluciones->producto)->first()->nombre,
-                            'color_nombre'      =>  Color::where('id',  $nuevoSindevoluciones->producto)->first()->descripcion,
+                            'color_nombre'      =>  Color::where('id',  $nuevoSindevoluciones->color)->first()->descripcion,
                         ];   
 
                          // $coll->precio_unitario = $devolucion->precio_unitario;
@@ -770,7 +770,7 @@ class DocumentoController extends Controller
                                     on t.id = pct.talla_id
                                     where producto_id = ? and color_id = ? and talla_id = ?'
                                     ,[$detalle->producto_id,$detalle->color_id,$detalle->talla_id]);    
-            
+
             $cantidadSolicitada = $detalle->cantidad;
             if(count($producto_existencia) > 0 ){
                 $producto_existencia = $producto_existencia[0];
@@ -1382,24 +1382,29 @@ class DocumentoController extends Controller
                         ->where('color_id', $producto->color_id)
                         ->where('talla_id', $producto->talla_id)
                         ->with('producto')
+                        ->with('color')
+                        ->with('talla')
                         ->firstOrFail();
                        
                       
                 //$lote = LoteProducto::findOrFail($producto->producto_id);
                
                     Detalle::create([
-                        'documento_id' => $documento->id,
+                        'documento_id'      =>  $documento->id,
                         // 'lote_id' => $producto->producto_id, //LOTE
-                        'producto_id'   =>  $producto->producto_id,
-                        'color_id'      =>  $producto->color_id,
-                        'talla_id'      =>  $producto->talla_id,
-                        'codigo_producto' => $lote->producto->codigo,
+                        'producto_id'       =>  $producto->producto_id,
+                        'color_id'          =>  $producto->color_id,
+                        'talla_id'          =>  $producto->talla_id,
+                        'codigo_producto'   =>  $lote->producto->codigo,
                         //'unidad' => $lote->producto->getMedida(),
-                        'nombre_producto' => $lote->producto->nombre,
+                        'nombre_producto'   =>  $lote->producto->nombre,
+                        'nombre_color'      =>  $lote->color->descripcion,
+                        'nombre_talla'      =>  $lote->talla->descripcion,
+                        'nombre_modelo'     =>  $lote->producto->modelo->descripcion,
                         //'codigo_lote' => $lote->codigo_lote,
-                        'cantidad' => floatval($producto->cantidad),
-                        'precio_unitario' => floatval($producto->precio_unitario),
-                        'importe'          =>  floatval($producto->cantidad) * floatval($producto->precio_unitario)
+                        'cantidad'          =>  floatval($producto->cantidad),
+                        'precio_unitario'   =>  floatval($producto->precio_unitario),
+                        'importe'           =>  floatval($producto->cantidad) * floatval($producto->precio_unitario)
                         //  'precio_inicial' => $producto->precio_inicial,
                         //  'precio_nuevo' => $producto->precio_nuevo,
                         //  'dinero' => $producto->dinero,
@@ -1868,6 +1873,7 @@ class DocumentoController extends Controller
             $detalles = Detalle::where('documento_id', $id)->where('eliminado', '0')->get();
             if ((int) $documento->tipo_venta == 127 || (int) $documento->tipo_venta == 128) {
                 if ($documento->sunat == '0' || $documento->sunat == '2') {
+
                     //ARREGLO COMPROBANTE
                     $arreglo_comprobante = array(
                         "tipoOperacion" => $documento->tipoOperacion(),
@@ -1905,6 +1911,7 @@ class DocumentoController extends Controller
                     );
 
                     $comprobante = json_encode($arreglo_comprobante);
+
                     $data = generarComprobanteapi($comprobante, $documento->empresa_id);
                     $name = $documento->id . '.pdf';
                     $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes' . DIRECTORY_SEPARATOR . $name);
@@ -2234,20 +2241,23 @@ class DocumentoController extends Controller
         $detalles = Detalle::where('documento_id', $id)->where('eliminado', '0')->where('estado', 'ACTIVO')->get();
         $arrayProductos = array();
         for ($i = 0; $i < count($detalles); $i++) {
-
+           
             $arrayProductos[] = array(
                 "codProducto" => $detalles[$i]->codigo_producto,
                 "unidad" => $detalles[$i]->unidad,
                 "descripcion" => $detalles[$i]->nombre_producto . ' - ' . $detalles[$i]->codigo_lote,
+                "descripcion" => 'y dale U',
                 "cantidad" => (float) $detalles[$i]->cantidad,
-                "mtoValorUnitario" => (float) ($detalles[$i]->precio_nuevo / 1.18),
+                // // "mtoValorUnitario" => (float) ($detalles[$i]->precio_nuevo / 1.18),
+                "mtoValorUnitario" => (float) ($detalles[$i]->precio_unitario / 1.18),
                 "mtoValorVenta" => (float) ($detalles[$i]->valor_venta / 1.18),
                 "mtoBaseIgv" => (float) ($detalles[$i]->valor_venta / 1.18),
                 "porcentajeIgv" => 18,
                 "igv" => (float) ($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
                 "tipAfeIgv" => 10,
                 "totalImpuestos" => (float) ($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
-                "mtoPrecioUnitario" => (float) $detalles[$i]->precio_nuevo,
+                // // "mtoPrecioUnitario" => (float) $detalles[$i]->precio_nuevo,
+                "mtoPrecioUnitario" => (float) $detalles[$i]->precio_unitario,
 
             );
         }

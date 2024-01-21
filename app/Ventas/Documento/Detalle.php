@@ -54,6 +54,8 @@ class Detalle extends Model
         return $this->belongsTo('App\Almacenes\LoteProducto', 'lote_id');
     }
 
+ 
+
     // public function productoColorTalla()
     // {
     //     return $this->belongsTo('App\Almacenes\ProductoColorTalla', ['producto_id', 'color_id', 'talla_id'], ['producto_id', 'color_id', 'talla_id']);

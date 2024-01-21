@@ -29,6 +29,9 @@ class CreateCotizacionDocumentoDetallesTable extends Migration
             $table->string('codigo_producto')->nullable();
             $table->string('unidad')->default('NIU'); //NIU-BIENES
             $table->string('nombre_producto');
+            $table->string('nombre_color');
+            $table->string('nombre_talla');
+            $table->string('nombre_modelo');
             //$table->string('codigo_lote');
             $table->unsignedDecimal('cantidad', 15, 4);
             $table->unsignedDecimal('precio_unitario', 15, 4);

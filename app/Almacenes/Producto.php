@@ -123,4 +123,9 @@ class Producto extends Model
     {
         return $this->hasMany('App\Almacenes\ProductoColorTalla');
     }
+
+    public function modelo()
+    {
+        return $this->belongsTo('App\Almacenes\Modelo');
+    }
 }
