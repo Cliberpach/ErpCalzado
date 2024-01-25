@@ -41,7 +41,7 @@ function events(){
                     if(t.value){
                         const idColor       =   t.getAttribute('id').split('_')[1];
                         const spanAviso     =   document.querySelector(`.aviso_${idColor}`);
-                        spanAviso.innerHTML =   '<i class="fas fa-vote-yea fa-spin fa-lg" style="color: #0579d1;"></i>';      
+                        spanAviso.innerHTML =   '<i class="fas fa-vote-yea fa-lg" style="color: #0579d1;"></i>';      
                     }
                 })
             }else{
