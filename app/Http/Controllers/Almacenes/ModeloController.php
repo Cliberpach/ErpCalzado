@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
+use Illuminate\Validation\Rule; 
 
 class ModeloController extends Controller
 {
@@ -39,14 +40,28 @@ class ModeloController extends Controller
         $data = $request->all();
 
         $rules = [
-            'descripcion_guardar' => 'required',
+            'descripcion_guardar' => [
+                'required',
+                Rule::unique('modelos', 'descripcion')->where(function ($query) {
+                    return $query->where('estado', 'ACTIVO');
+                }),
+            ],
         ];
         
-        $message = [
-            'descripcion_guardar.required' => 'El campo Descripción es obligatorio.',
+        $messages = [
+            'descripcion_guardar.required'    => 'El campo Descripción es obligatorio.',
+            'descripcion_guardar.unique'      =>  'El modelo ya existe',
         ];
 
-        Validator::make($data, $rules, $message)->validate();
+        $validator = Validator::make($data, $rules ,$messages);
+
+        if($request->get('fetch') && $request->get('fetch')=='SI'){
+            if ($validator->fails()) {
+                return response()->json(['message' => 'error','data'=>$validator->errors()]);
+            }
+        }else{
+            $validator->validate();
+        }
 
         $modelo = new Modelo();
         $modelo->descripcion = $request->get('descripcion_guardar');
@@ -56,6 +71,11 @@ class ModeloController extends Controller
         $descripcion = "SE AGREGÓ EL MODELO CON LA DESCRIPCION: ". $modelo->descripcion;
         $gestion = "MODELO";
         crearRegistro($modelo, $descripcion , $gestion);
+
+        if($request->has('fetch') && $request->input('fetch') == 'SI'){
+            $update_modelos  =   Modelo::all();
+            return response()->json(['message' => 'success',    'data'=>$update_modelos]);        
+        }
 
         Session::flash('success','Modelo creado.');
         return redirect()->route('almacenes.modelos.index')->with('guardar', 'success');

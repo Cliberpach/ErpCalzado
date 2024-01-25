@@ -36,28 +36,42 @@ class CategoriaController extends Controller
     public function store(Request $request){
         $this->authorize('haveaccess','categoria.index');
         $data = $request->all();
+    
+ 
+            $rules = [
+                'descripcion_guardar' => 'required',
+            ];
+            $messages = [
+                'descripcion_guardar.required' => 'El campo Descripción es obligatorio.',
+            ];
 
-        $rules = [
-            'descripcion_guardar' => 'required',
-        ];
-        
-        $message = [
-            'descripcion_guardar.required' => 'El campo Descripción es obligatorio.',
-        ];
+            $validator = Validator::make($data, $rules ,$messages);
 
-        Validator::make($data, $rules, $message)->validate();
+            if($request->get('fetch') && $request->get('fetch')=='SI'){
+                if ($validator->fails()) {
+                    return response()->json(['message' => 'error','data'=>$validator->errors()]);
+                }
+            }else{
+                $validator->validate();
+            }
+    
+            $categoria = new Categoria();
+            $categoria->descripcion = $request->get('descripcion_guardar');
+            $categoria->save();
 
-        $categoria = new Categoria();
-        $categoria->descripcion = $request->get('descripcion_guardar');
-        $categoria->save();
+            //Registro de actividad
+            $descripcion = "SE AGREGÓ LA CATEGORIA CON LA DESCRIPCION: ". $categoria->descripcion;
+            $gestion = "CATEGORIA";
+            crearRegistro($categoria, $descripcion , $gestion);
 
-        //Registro de actividad
-        $descripcion = "SE AGREGÓ LA CATEGORIA CON LA DESCRIPCION: ". $categoria->descripcion;
-        $gestion = "CATEGORIA";
-        crearRegistro($categoria, $descripcion , $gestion);
 
-        Session::flash('success','Categoria creada.');
-        return redirect()->route('almacenes.categorias.index')->with('guardar', 'success');
+            if($request->has('fetch') && $request->input('fetch') == 'SI'){
+                $update_categorias  =   Categoria::all();
+                return response()->json(['message' => 'success',    'data'=>$update_categorias]);        
+            }
+
+            Session::flash('success','Categoria creada.');
+            return redirect()->route('almacenes.categorias.index')->with('guardar', 'success');
     }
 
     public function update(Request $request){

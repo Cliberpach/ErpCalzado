@@ -234,4 +234,80 @@
         $("#modal_file").modal("show");
     });
 </script>
+
+
+
+<script>
+    $(document).ready(function() {
+        $("#marca_guardar").on("change", validarNombre);
+    })
+
+
+    $('#crear_marca').submit(function(e) {
+        e.preventDefault();
+        const swalWithBootstrapButtons = Swal.mixin({
+            customClass: {
+                container: 'my-swal',
+                confirmButton: 'btn btn-success',
+                cancelButton: 'btn btn-danger',
+            },
+            buttonsStyling: false
+        })
+
+        if ($('#marca_existe').val() == '0') {
+            Swal.fire({
+                customClass: {
+                    container: 'my-swal'
+                },
+                title: 'Opción Guardar',
+                text: "¿Seguro que desea guardar cambios?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: "#1ab394",
+                confirmButtonText: 'Si, Confirmar',
+                cancelButtonText: "No, Cancelar",
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    this.submit();
+
+                } else if (
+                    /* Read more about handling dismissals below */
+                    result.dismiss === Swal.DismissReason.cancel
+                ) {
+                    swalWithBootstrapButtons.fire(
+                        'Cancelado',
+                        'La Solicitud se ha cancelado.',
+                        'error'
+                    )
+                }
+            })
+        }
+
+
+
+    })
+
+    function validarNombre() {
+        // Consultamos nuestra BBDD
+        $.ajax({
+            dataType: 'json',
+            type: 'post',
+            url: '{{ route('almacenes.marcas.exist') }}',
+            data: {
+                '_token': $('input[name=_token]').val(),
+                'marca': $(this).val(),
+                'id': null
+            }
+        }).done(function(result) {
+            if (result.existe == true) {
+                toastr.error('La marca ya se encuentra registrada', 'Error');
+                $(this).focus();
+                $('#marca_existe').val('1')
+            } else {
+                $('#marca_existe').val('0')
+            }
+        });
+    }
+</script>
 @endpush

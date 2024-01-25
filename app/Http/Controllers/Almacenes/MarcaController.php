@@ -39,16 +39,23 @@ class MarcaController extends Controller
         $data = $request->all();
 
         $rules = [
-            'marca_guardar' => 'required',
-
+            'marca_guardar' => 'required|unique:marcas,marca',
         ];
 
-        $message = [
-            'marca_guardar.required' => 'El campo Marca es obligatorio.',
-
+        $messages = [
+            'marca_guardar.required'    =>  'El campo Marca es obligatorio.',
+            'marca_guardar.unique'      =>  'La marca ya existe',
         ];
 
-        Validator::make($data, $rules, $message)->validate();
+        $validator = Validator::make($data, $rules ,$messages);
+
+        if($request->get('fetch') && $request->get('fetch')=='SI'){
+            if ($validator->fails()) {
+                return response()->json(['message' => 'error','data'=>$validator->errors()->toArray()]);
+            }
+        }else{
+            $validator->validate();
+        }
 
         $marca = new Marca();
         $marca->marca = $request->get('marca_guardar');
@@ -59,6 +66,11 @@ class MarcaController extends Controller
         $descripcion = "SE AGREGÓ LA MARCA CON EL NOMBRE: ". $marca->marca;
         $gestion = "MARCA PT";
         crearRegistro($marca, $descripcion , $gestion);
+
+        if($request->has('fetch') && $request->input('fetch') == 'SI'){
+            $update_marcas  =   Marca::all();
+            return response()->json(['message' => 'success',    'data'=>$update_marcas]);        
+        }
 
         Session::flash('success','Marca creada.');
         return redirect()->route('almacenes.marcas.index')->with('guardar', 'success');

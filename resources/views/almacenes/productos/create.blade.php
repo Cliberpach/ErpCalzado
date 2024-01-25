@@ -1,6 +1,9 @@
 @extends('layout') @section('content')
 @section('almacenes-active', 'active')
 @section('producto-active', 'active')
+@include('almacenes.categorias.create')
+@include('almacenes.marcas.create')
+@include('almacenes.modelos.create')
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
@@ -110,7 +113,10 @@
                                     </div> 
                                     <div class="col-lg-6 col-12">
                                         <div class="form-group">
-                                            <label class="required">Categoria</label>
+                                            <label class="required">Categoria</label>  
+                                            <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_categoria"  class="btn btn-primary" href="#">
+                                                <i class="fas fa-plus"></i>    
+                                            </a> 
                                             <select id="categoria" name="categoria" class="select2_form form-control {{ $errors->has('familia') ? ' is-invalid' : '' }}">
                                                 <option></option>
                                                 @foreach($categorias as $categoria)
@@ -127,6 +133,9 @@
                                     <div class="col-lg-6 col-12">
                                         <div class="form-group">
                                             <label class="required">Marca</label>
+                                            <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_marca"  class="btn btn-primary" href="#">
+                                                <i class="fas fa-plus"></i>    
+                                            </a> 
                                             <select id="marca" name="marca" class="select2_form form-control {{ $errors->has('marca') ? ' is-invalid' : '' }}" required value="{{old('marca')}}">
                                                 <option></option>
                                                 @foreach($marcas as $marca)
@@ -150,6 +159,9 @@
                                     <div class="col-lg-6 col-12">
                                         <div class="form-group">
                                             <label class="required">Modelo</label>
+                                            <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_modelo"  class="btn btn-primary" href="#">
+                                                <i class="fas fa-plus"></i>    
+                                            </a> 
                                             <select id="modelo" name="modelo" class="select2_form form-control {{ $errors->has('familia') ? ' is-invalid' : '' }}">
                                                 <option></option>
                                                 @foreach($modelos as $modelo)
@@ -431,6 +443,7 @@
 @endpush
 
 @push('scripts')
+    <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
     <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
     <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
     <script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
@@ -838,10 +851,6 @@
             });
             return existe
         }
-
-       
-
-        
     </script>
-    <script src="{{asset('js/products-stocks.js')}}"></script>
+    <script src="{{asset('js/products-create.js')}}"></script>
 @endpush
