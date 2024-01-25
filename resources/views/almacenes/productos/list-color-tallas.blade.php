@@ -4,7 +4,7 @@
         @foreach ($colores as $color)
             <div class="form-check">
                 <input type="checkbox" class="form-check-input color" id="{{$color->id}}">
-                <label class="form-check-label" for="{{$color->id}}">{{$color->descripcion}}</label>
+                <label class="form-check-label" for="{{$color->id}}">{{$color->descripcion}} <span class="aviso_{{$color->id}} span-aviso"></span></label>
             </div>
         @endforeach
     </div>

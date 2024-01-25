@@ -12,23 +12,49 @@ const selectCategorias          =   document.querySelector('#categoria');
 const selectMarcas              =   document.querySelector('#marca');
 const selectModelos              =   document.querySelector('#modelo');
 
+const tallas    =   document.querySelectorAll('.talla');
+
 //solo marcar un color a la vez
 document.addEventListener('DOMContentLoaded',()=>{
     events();
+    tallas.forEach((t)=>{
+        console.log(t);
+    })
 })
 function events(){
+
+    //============ MOSTRAR INPUTS TALLAS PARA COLOR SELECCIONADO ========================
     document.addEventListener('click',(e)=>{
         if(e.target.classList.contains('color')){
             const idColorCheckSelected= e.target.getAttribute('id');
+            seleccionActual=e.target;
+
             if(e.target.checked){
                 clearChecksColores(idColorCheckSelected);
                 showColorTallas(idColorCheckSelected);
+
+                const spansAvisos   =   document.querySelectorAll('.span-aviso');
+                spansAvisos.forEach((span)=>{
+                    span.innerHTML  =   '';
+                })
+                tallas.forEach((t)=>{
+                    if(t.value){
+                        const idColor       =   t.getAttribute('id').split('_')[1];
+                        const spanAviso     =   document.querySelector(`.aviso_${idColor}`);
+                        spanAviso.innerHTML =   '<i class="fas fa-vote-yea fa-spin fa-lg" style="color: #0579d1;"></i>';      
+                    }
+                })
             }else{
                 hiddenDivColorTallas(0);
             }
+
+         
+
         }
     })
 
+
+    //============ FETCH CREAR CATEGORIA ==========================
     formCrearCategoria.addEventListener('submit',(e)=>{
         e.preventDefault();
         const url           =   '/almacenes/categorias/store';
@@ -55,6 +81,7 @@ function events(){
             .catch(error => console.error('Error:', error));
     })
 
+    //=================== FETCH CREAR MARCA =================================
     formCrearMarca.addEventListener('submit',(e)=>{
         e.preventDefault();
         const url           =   '/almacenes/marcas/store';
@@ -81,6 +108,7 @@ function events(){
             .catch(error => console.error('Error:', error));
     })
 
+    //==================== FETCH CREAR MODELO ==========================
     formCrearModelo.addEventListener('submit',(e)=>{
         e.preventDefault();
         const url           =   '/almacenes/modelos/store';
@@ -107,6 +135,9 @@ function events(){
             .catch(error => console.error('Error:', error));
     })
 }
+
+
+//=============== DESMARCAR CHECKS COLORES ==========================
 const clearChecksColores=(idColorCheckSelected)=>{
     checkColores.forEach((cc)=>{
         if(cc.getAttribute('id') != idColorCheckSelected){
@@ -114,12 +145,16 @@ const clearChecksColores=(idColorCheckSelected)=>{
         }
     })
 }
+
+//================ MOSTRAR INPUTS TALLAS PARA LLENAR STOCKS ================
 const showColorTallas=(idColorCheckSelected)=>{
     const idDivColorTallas=`#color_tallas_${idColorCheckSelected}`;
     hiddenDivColorTallas(idDivColorTallas);
     const divColorTallas= document.querySelector(idDivColorTallas);
     divColorTallas.hidden=false;
 }
+
+//================= OCULTAR CONTENEDOR DE TALLAS =======================
 const hiddenDivColorTallas=(idDivColorTallas)=>{
     divsColorTallas.forEach((dct)=>{
         if(dct.getAttribute('id') != idDivColorTallas){
