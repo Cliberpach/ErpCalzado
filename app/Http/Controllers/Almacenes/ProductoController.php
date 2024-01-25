@@ -33,7 +33,13 @@ class ProductoController extends Controller
         $this->authorize('haveaccess','producto.index');
         $colores = Color::where('estado', 'ACTIVO')->get();
         $tallas = Talla::where('estado', 'ACTIVO')->get();
-        $stocks =  ProductoColorTalla::all();
+        $stocks = ProductoColorTalla::join('colores', 'producto_color_tallas.color_id', '=', 'colores.id')
+        ->join('tallas', 'producto_color_tallas.talla_id', '=', 'tallas.id')
+        ->select('producto_color_tallas.*')
+        ->where('colores.estado', 'ACTIVO')
+        ->where('tallas.estado', 'ACTIVO')
+        ->get();
+
 
         
         return view('almacenes.productos.index',compact('colores','tallas','stocks'));
@@ -518,7 +524,8 @@ class ProductoController extends Controller
                                     on c.id = pct.color_id
                                     inner join tallas as t
                                     on t.id = pct.talla_id
-                                    where p.modelo_id=? 
+                                    where p.modelo_id=? AND c.estado="ACTIVO" AND t.estado="ACTIVO"
+                                    AND p.estado="ACTIVO" 
                                     order by p.id,c.id,t.id',[$modelo_id]);
 
         $producto_colores = DB::select('select p.id as producto_id,p.nombre as producto_nombre,
@@ -528,7 +535,8 @@ class ProductoController extends Controller
                                         on p.id = pct.producto_id
                                         inner join colores as c
                                         on c.id = pct.color_id
-                                        where p.modelo_id = ? 
+                                        where p.modelo_id = ? AND c.estado="ACTIVO" 
+                                        AND p.estado="ACTIVO"
                                         group by p.id,p.nombre,c.id,c.descripcion
                                         order by p.id,c.id',[$modelo_id]);
 

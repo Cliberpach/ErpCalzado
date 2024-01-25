@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Almacenes;
 
 use App\Almacenes\Talla;
+use App\Almacenes\ProductoColor;
+use App\Almacenes\ProductoColorTalla;
+
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
+use Illuminate\Support\Facades\DB; 
 
 class TallaController extends Controller
 {
@@ -51,6 +55,9 @@ class TallaController extends Controller
         $talla->descripcion = $request->get('descripcion_guardar');
         $talla->save();
 
+        $this->asociarTallaProductos($talla);
+
+
         //Registro de actividad
         $descripcion = "SE AGREGÓ LA TALLA CON LA DESCRIPCION: ". $talla->descripcion;
         $gestion = "TALLA";
@@ -58,6 +65,36 @@ class TallaController extends Controller
 
         Session::flash('success','Talla creada.');
         return redirect()->route('almacenes.tallas.index')->with('guardar', 'success');
+    }
+
+    public function asociarTallaProductos($talla){
+        // Obtener todos los productos y colores
+        $productosColores = DB::table('producto_color_tallas')
+        ->select('producto_id', 'color_id')
+        ->distinct()
+        ->get();
+
+        // Iterar sobre los productos y colores para asociar la nueva talla
+        foreach ($productosColores as $productoColor) {
+            // Verificar si la talla ya está asociada
+            $existeAsociacion = DB::table('producto_color_tallas')
+                ->where('producto_id', $productoColor->producto_id)
+                ->where('color_id', $productoColor->color_id)
+                ->where('talla_id', $talla->id)
+                ->exists();
+
+            // Si no existe la asociación, agregarla
+            if (!$existeAsociacion) {
+                $producto_color_talla = new ProductoColorTalla();
+                $producto_color_talla->color_id      = $productoColor->color_id;
+                $producto_color_talla->producto_id   = $productoColor->producto_id;
+                $producto_color_talla->talla_id      = $talla->id;
+                $producto_color_talla->stock         = 0;
+                $producto_color_talla->stock_logico  = 0;
+                $producto_color_talla->estado        =   '1';
+                $producto_color_talla->save();
+            }
+        }
     }
 
     public function update(Request $request){

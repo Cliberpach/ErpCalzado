@@ -888,5 +888,6 @@
             inputStock.value = stock.stock;
         })
     </script>
+    <script src="{{asset('js/products-create.js')}}"></script>
 
 @endpush
