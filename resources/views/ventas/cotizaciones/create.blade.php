@@ -129,10 +129,10 @@
                                             <div class="col-12 col-md-4">
                                                 <div class="form-group">
                                                     <label class="">Vendedor</label>
-                                                    <select id="vendedor" name="vendedor" class="select2_form form-control">
+                                                    <select id="vendedor" name="vendedor" class="select2_form form-control" disabled>
                                                         <option value=""></option>
                                                         @foreach (vendedores() as $vendedor)
-                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === 1 ? 'selected' : '' }}>
+                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === Auth::id() ? 'selected' : '' }}>
                                                                 {{ $vendedor->persona->apellido_paterno . ' ' . $vendedor->persona->apellido_materno . ' ' . $vendedor->persona->nombres }}
                                                             </option>
                                                         @endforeach

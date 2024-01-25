@@ -125,7 +125,7 @@
                                             <div class="col-12 col-md-4">
                                                 <div class="form-group">
                                                     <label class="___class_+?40___">Vendedor</label>
-                                                    <select id="vendedor" name="vendedor" class="select2_form form-control">
+                                                    <select disabled id="vendedor" name="vendedor" class="select2_form form-control">
                                                         <option value=""></option>
                                                         @foreach (vendedores() as $vendedor)
                                                             <option value="{{ $vendedor->id }}" {{$cotizacion->vendedor_id==null? '' :($cotizacion->vendedor_id==$vendedor->id ? 'selected' : '')}}>
@@ -1176,7 +1176,7 @@
                 talla_id:productoPrevio.talla_id,
                 talla_nombre:productoPrevio.talla.descripcion,
                 cantidad: parseInt(productoPrevio.cantidad),
-                precio_venta:parseFloat(productoPrevio.precio)
+                precio_venta:parseFloat(productoPrevio.precio_unitario)
             }
             carrito.push(producto);
         })

@@ -109,7 +109,8 @@ class CotizacionController extends Controller
         $cotizacion->empresa_id = $request->get('empresa');
         $cotizacion->cliente_id = $request->get('cliente');
         $cotizacion->condicion_id = $request->get('condicion_id');
-        $cotizacion->vendedor_id = $request->get('vendedor');
+        //$cotizacion->vendedor_id = $request->get('vendedor');
+        $cotizacion->vendedor_id    =   Auth::id();
         $cotizacion->moneda = 4;
         $cotizacion->fecha_documento = $request->get('fecha_documento');
         $cotizacion->fecha_atencion = $request->get('fecha_atencion');
@@ -122,7 +123,7 @@ class CotizacionController extends Controller
         //$cotizacion->igv = $request->get('igv');
         $cotizacion->igv = "18";
         //if ($request->get('igv_check') == "on") {
-            $cotizacion->igv_check = "1";
+        $cotizacion->igv_check = "1";
         //}
         $cotizacion->save();
 
@@ -234,7 +235,8 @@ class CotizacionController extends Controller
         $cotizacion->empresa_id = $request->get('empresa');
         $cotizacion->cliente_id = $request->get('cliente');
         $cotizacion->condicion_id = $request->get('condicion_id');
-        $cotizacion->vendedor_id = $request->get('vendedor');
+        //$cotizacion->vendedor_id = $request->get('vendedor');
+        $cotizacion->vendedor_id    =   Auth::id();
         $cotizacion->fecha_documento = $request->get('fecha_documento');
         $cotizacion->fecha_atencion = $request->get('fecha_atencion');
 
