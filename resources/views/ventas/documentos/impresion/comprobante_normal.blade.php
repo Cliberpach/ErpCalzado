@@ -259,8 +259,11 @@
                             <td style="text-align: left">{{ number_format($item->cantidad - $item->detalles->sum('cantidad'), 2) }}</td>
                             <td style="text-align: left">{{ $item->unidad }}</td>
                             <td style="text-align: left">{{ $item->nombre_producto }}</td>
-                            <td style="text-align: left">{{ $item->precio_nuevo }}</td>
-                            <td style="text-align: right;">{{ number_format(($item->cantidad - $item->detalles->sum('cantidad')) * $item->precio_nuevo, 2) }}</td>
+                            {{-- <td style="text-align: left">{{ $item->precio_nuevo }}</td> --}}
+                            <td style="text-align: left">{{ number_format($item->precio_unitario,2) }}</td>
+                            {{-- <td style="text-align: right;">{{ number_format(($item->cantidad - $item->detalles->sum('cantidad')) * $item->precio_nuevo, 2) }}</td> --}}
+                            <td style="text-align: right">{{ number_format(($item->cantidad - $item->detalles->sum('cantidad')) * $item->precio_unitario, 2) }}</td>
+
                         </tr>
                         @endif
                     @else
@@ -268,8 +271,10 @@
                         <td style="text-align: left">{{ number_format($item->cantidad, 2) }}</td>
                         <td style="text-align: left">{{ $item->unidad }}</td>
                         <td style="text-align: left">{{ $item->nombre_producto }}</td>
-                        <td style="text-align: left">{{ $item->precio_nuevo }}</td>
-                        <td style="text-align: right">{{ $item->valor_venta }}</td>
+                        {{-- <td style="text-align: left">{{ $item->precio_nuevo }}</td> --}}
+                        <td style="text-align: left">{{ number_format($item->precio_unitario, 2) }}</td>
+                        {{-- <td style="text-align: right">{{ $item->valor_venta }}</td> --}}
+                        <td style="text-align: right">{{ number_format($item->importe, 2) }}</td>
                     </tr>
                     @endif
                     @endforeach
