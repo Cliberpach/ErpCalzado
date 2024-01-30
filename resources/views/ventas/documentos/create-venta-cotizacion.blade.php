@@ -957,13 +957,7 @@
             carrito.forEach((c)=>{
                 htmlTallas=``;
                 if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
-                    /*fila+= `<tr>   
-                                <td>
-                                    <i class="fas fa-trash-alt btn btn-primary delete-product"
-                                    data-producto="${c.producto_id}" data-color="${c.color_id}">
-                                    </i>                            
-                                </td>
-                                <th>${c.producto_nombre} - ${c.color_nombre}</th>`;*/
+                 
                     fila+= `<tr>   
                                 <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
 

@@ -55,7 +55,7 @@ class TallaController extends Controller
         $talla->descripcion = $request->get('descripcion_guardar');
         $talla->save();
 
-        $this->asociarTallaProductos($talla);
+        //$this->asociarTallaProductos($talla);
 
 
         //Registro de actividad

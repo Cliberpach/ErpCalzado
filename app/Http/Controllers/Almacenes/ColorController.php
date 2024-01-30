@@ -55,7 +55,7 @@ class ColorController extends Controller
         $color->save();
 
         
-        $this->asociarColorProductos($color);
+        //$this->asociarColorProductos($color);
 
         //Registro de actividad
         $descripcion = "SE AGREGÓ EL COLOR CON LA DESCRIPCION: ". $color->descripcion;
