@@ -133,8 +133,12 @@
                                 </div>
                             </form>
                             <hr>
-                            <TablaDetallesVue @addProductoDetalle="AddProductoDetalles"
-                                :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto" :parametros="paramsLotes" ref="tablaDetalles" />
+                            <TablaProductos @addProductoDetalle="AddProductoDetalles"
+                                :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto" 
+                                :parametros="paramsLotes"
+                                :modelos="initData.modelos"
+                                :tallas="initData.tallas"
+                            ref="tablaDetalles" />
                             <div class="hr-line-dashed"></div>
                             <div class="form-group row">
 
@@ -175,13 +179,13 @@
 </template>
 <script>
 import ModalClienteVue from '../../../components/ventas/ModalCliente.vue';
-import TablaDetallesVue from '../../../components/ventas/TablaDetalles.vue';
+import TablaProductos from '../../../components/ventas/TablaProductos.vue';
 
 export default {
     name: "VentaCreate",
     components: {
         ModalClienteVue,
-        TablaDetallesVue
+        TablaProductos
     },
     props: {
         ruta: {
@@ -195,6 +199,7 @@ export default {
     },
     data() {
         return {
+            
             initData: {
                 clientes: [],
                 condiciones: [],
@@ -203,7 +208,9 @@ export default {
                 fecha_hoy: "",
                 fullaccess: false,
                 vista: "",
-                tipoVentas: []
+                tipoVentas: [],
+                modelos: [],
+                tallas:[],
             },
             formCreate: {
                 fecha_documento_campo: "",

@@ -50,6 +50,7 @@ use App\Mantenimiento\Tabla\Detalle as TablaDetalle;
 
 use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
+use App\Almacenes\Modelo;
 use App\Almacenes\Color;
 
 
@@ -718,7 +719,9 @@ class DocumentoController extends Controller
                     'fullaccess' => $fullaccess,
                     'dolar' => $dolar,
                     'vista'=>$vista,
-                    "tipoVentas"=>$tipoVentaArray
+                    "tipoVentas"=>$tipoVentaArray,
+                    "modelos"=>Modelo::all(),
+                    "tallas"=>Talla::all()
                 ],
                 "succes"=>true
             ]);

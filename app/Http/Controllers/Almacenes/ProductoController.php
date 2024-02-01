@@ -528,8 +528,19 @@ class ProductoController extends Controller
                                     AND p.estado="ACTIVO" 
                                     order by p.id,c.id,t.id',[$modelo_id]);
 
+        // $productosProcesados=[];
+        // foreach ($stocks as $stock) {
+        //     if(!in_array($stock->producto_id, $productosProcesados)){
+        //         $stock->printPreciosVenta=TRUE;
+        //         array_push($productosProcesados, $stock->producto_id);
+        //     }else{
+        //         $stock->printPreciosVenta=FALSE;
+        //     }
+        // }
+
         $producto_colores = DB::select('select p.id as producto_id,p.nombre as producto_nombre,
-                                        c.id as color_id, c.descripcion as color_nombre
+                                        c.id as color_id, c.descripcion as color_nombre,
+                                        p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
                                         from producto_color_tallas as pct
                                         inner join productos as p
                                         on p.id = pct.producto_id
@@ -537,8 +548,19 @@ class ProductoController extends Controller
                                         on c.id = pct.color_id
                                         where p.modelo_id = ? AND c.estado="ACTIVO" 
                                         AND p.estado="ACTIVO"
-                                        group by p.id,p.nombre,c.id,c.descripcion
+                                        group by p.id,p.nombre,c.id,c.descripcion,
+                                        p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
                                         order by p.id,c.id',[$modelo_id]);
+
+        $productosProcesados=[];
+        foreach ($producto_colores as $pc) {
+             if(!in_array($pc->producto_id, $productosProcesados)){
+                 $pc->printPreciosVenta=TRUE;
+                 array_push($productosProcesados, $pc->producto_id);
+             }else{
+                 $pc->printPreciosVenta=FALSE;
+             }
+        }
 
         return response()->json(["message" => "success" , "stocks" => $stocks 
                                 ,"producto_colores" => $producto_colores ]);
