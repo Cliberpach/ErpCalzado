@@ -2945,19 +2945,59 @@ class DocumentoController extends Controller
     //CAMBIAR CANTIDAD LOGICA DEL LOTE
     public function quantity(Request $request)
     {
-        $data = $request->all();
-        $producto_id = $data['producto_id'];
-        $cantidad = $data['cantidad'];
-        $condicion = $data['condicion'];
+        $data           =   $request->all();
+        $producto_id    =   $data['producto_id'];
+        $color_id       =   $data['color_id'];
+        $talla_id       =   $data['talla_id'];
+        $cantidad       =   $data['cantidad'];
+        $condicion      =   $data['condicion'];
+        $modo           =   $data['modo'];
         $mensaje = '';
-        $lote = LoteProducto::findOrFail($producto_id);
+        //$lote = LoteProducto::findOrFail($producto_id);
+
+        $producto   =     DB::table('producto_color_tallas')
+                            ->where('producto_id', $producto_id)
+                            ->where('color_id', $color_id)
+                            ->where('talla_id', $talla_id)
+                            ->first();
+
+
         //DISMINUIR
-        if ($lote->cantidad_logica >= $cantidad && $condicion == '1') {
-            $nuevaCantidad = $lote->cantidad_logica - $cantidad;
-            $lote->cantidad_logica = $nuevaCantidad;
-            $lote->update();
+        // if ($lote->cantidad_logica >= $cantidad && $condicion == '1') {
+        //     $nuevaCantidad = $lote->cantidad_logica - $cantidad;
+        //     $lote->cantidad_logica = $nuevaCantidad;
+        //     $lote->update();
+        //     $mensaje = 'Cantidad aceptada';
+        // }
+       
+        if ($producto->stock_logico >= $cantidad && $condicion == '1' && $modo=='nuevo') {
+            $nuevaCantidad = $producto->stock_logico - $cantidad;
+            //$producto->stock_logico = $nuevaCantidad;
+            DB::table('producto_color_tallas')
+            ->where('producto_id', $producto->producto_id)
+            ->where('color_id',$producto->color_id)
+            ->where('talla_id',$producto->talla_id)
+            ->update(['stock_logico' => $nuevaCantidad]);
+            //$lote->update();
             $mensaje = 'Cantidad aceptada';
         }
+
+        if($modo == 'editar'){
+            $cantidadAnterior   =   $data['cantidadAnterior'];
+       
+            if($producto->stock_logico >= $cantidad && $condicion == '1'){
+                $nuevaCantidad = $producto->stock_logico + $cantidadAnterior - $cantidad;
+                DB::table('producto_color_tallas')
+                ->where('producto_id', $producto->producto_id)
+                ->where('color_id',$producto->color_id)
+                ->where('talla_id',$producto->talla_id)
+                ->update(['stock_logico' => $nuevaCantidad]);
+                //$lote->update();
+                $mensaje = 'Cantidad actualizada';
+            }
+        }
+
+
         //AUMENTAR
         if ($condicion == '0') {
             $nuevaCantidad = $lote->cantidad_logica + $cantidad;
