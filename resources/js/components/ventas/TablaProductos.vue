@@ -1,3 +1,11 @@
+<style>
+    .inputCantidadValido{
+        border-color:green;
+    }
+    .inputCantidadIncorrecto{
+        border-color: red !important;
+    }
+</style>
 <template>
     <div class="row">
         <div class="col-lg-12">
@@ -93,10 +101,10 @@
                                     <template v-for="t in tallas">
                                         <td>
                                             <span>
-                                                {{ getStock(pc.producto_id, pc.color_id, t.id) }}
+                                                {{ getStockLogico(pc.producto_id, pc.color_id, t.id) }}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td style="width: 8%;">
                                             <input
                                             type="text"
                                             class="form-control inputCantidad"
@@ -106,12 +114,15 @@
                                             :data-talla-nombre="t.descripcion"
                                             :data-color-id="pc.color_id"
                                             :data-talla-id="t.id"
+                                            @blur="validarCantidad($event)"
+                                            @input="validarContenidoInput($event)"
+                                            :disabled="getStockLogico(pc.producto_id, pc.color_id, t.id) === 0"
                                             />
                                         </td>
                                     </template>
-                                   
+                               
                                     <td v-if="pc.printPreciosVenta">
-                                        <select class="form-control" :id="'precioventa-' + pc.producto_id" >
+                                        <select class="form-control" :id="'precio-venta-' + pc.producto_id" >
                                             <option>{{ pc.precio_venta_1 }}</option>    
                                             <option>{{ pc.precio_venta_2 }}</option>    
                                             <option>{{ pc.precio_venta_3 }}</option>    
@@ -123,6 +134,8 @@
                                 
                                 </tr>
                             </tbody>
+
+                           
                             <tfoot>
                                 <!-- <tr>
                                     <th class="text-right" colspan="7">Sub Total:</th>
@@ -152,7 +165,19 @@
                         </table>
                     </div>
 
+                    <div class="form-group row mt-1">
+                        <div class="col-lg-2 col-xs-12">
+                            <button :disabled="deshabilitarBtnAgregar" 
+                            type="button" id="btn_agregar_detalle"
+                            @click="agregarProducto"
+                                class="btn btn-warning btn-block">
+                                <i class="fa fa-plus"></i> AGREGAR
+                            </button>
+                        </div>
+                    </div>
                     <hr>
+
+                    
                     <div class="table-responsive">
                         <!-- <table class="table table-sm table-striped table-bordered table-hover"
                             style="text-transform:uppercase">
@@ -261,6 +286,8 @@ export default {
      "productoTabla", "TotalesObj", 'idcotizacion','modelos','tallas'],
     data() {
         return {
+            carrito: [],
+            deshabilitarBtnAgregar: true,
             productosPorModelo: {},
             modeloSeleccionado:null,
             asegurarCierre: 5,
@@ -440,6 +467,155 @@ export default {
         });
     },
     methods: {
+        calcularSubTotal(){
+            let subtotal = 0;
+            const producto_color_procesados=[];
+            
+            this.carrito.forEach((p)=>{
+                if(!producto_color_procesados.includes(`${p.producto_id}-${p.color_id}`)){
+                    this.$props.tallas.forEach((t)=>{
+                    const producto =  this.carrito.filter((ct)=>{
+                        return  ct.producto_id==p.producto_id && ct.color_id==p.color_id && ct.talla_id==t.id
+                        })
+
+                        if(producto.length!=0){
+                            subtotal+= parseFloat(producto[0].precio_venta)*parseFloat(producto[0].cantidad);
+                        }
+                    })
+                    this.carrito.forEach((c)=>{
+                        if(c.producto_id==p.producto_id && c.color_id==p.color_id){
+                            c.subtotal=subtotal;
+                        }
+                    })
+                    subtotal=0;
+                    producto_color_procesados.push(`${p.producto_id}-${p.color_id}`);
+                }
+            })  
+        },
+        reordenarCarrito(){
+            this.carrito.sort(function(a, b) {
+                if (a.producto_id === b.producto_id) {
+                    return a.color_id - b.color_id;
+                } else {
+                    return a.producto_id - b.producto_id;
+                }
+            });
+        },
+        agregarProducto(){
+            const inputsCantidad = document.querySelectorAll('.inputCantidad');
+            inputsCantidad.forEach((ic)=>{
+                const cantidad = ic.value?ic.value:0;
+                if(cantidad != 0){
+                    const producto = this.formarProducto(ic);
+                    const indiceExiste  = this.carrito.findIndex((p)=>{
+                    return p.producto_id==producto.producto_id && p.color_id==producto.color_id})
+                    
+                    if(indiceExiste == -1){
+                        const objProduct  =   {};
+                        objProduct.producto_id  =   producto.producto_id;
+                        objProduct.color_id     =   producto.color_id;
+                        objProduct.producto_nombre  =   producto.producto_nombre;
+                        objProduct.color_nombre     =   producto.color_nombre;
+                        objProduct.precio_venta     =   producto.precio_venta;
+
+                        const arrayTallasProduct         =   [];
+                        const objTallaProduct            =   {};
+
+                        objTallaProduct.talla_id              =   producto.talla_id;
+                        objTallaProduct.talla_nombre          =   producto.talla_nombre;
+                        objTallaProduct.cantidad              =   producto.cantidad;  
+
+                        arrayTallasProduct.push(objTallaProduct);
+                        objProduct.tallas   =   arrayTallasProduct;
+
+                        this.carrito.push(objProduct);
+                    }else{
+                        const productoModificar = this.carrito[indiceExiste];
+                        //productoModificar.cantidad = producto.cantidad;
+                        productoModificar.precio_venta = producto.precio_venta;
+
+                        //modifcando talla..
+                        const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+                        if(indexTalla !== -1){
+                            productoModificar.tallas[indexTalla].cantidad    =   producto.cantidad; 
+                        }else{
+                            //creando nueva talla para ese producto color
+                            const objTallaProduct    =   {};
+                            objTallaProduct.talla_id        =   producto.talla_id;
+                            objTallaProduct.talla_nombre    =   producto.talla_nombre;
+                            objTallaProduct.cantidad        =   producto.cantidad;
+                            productoModificar.tallas.push(objTallaProduct);
+                        }
+
+                      
+                        this.carrito[indiceExiste] = productoModificar;
+                    }
+                }else{
+                    const producto = this.formarProducto(ic);
+                    const indiceProductoColor  = this.carrito.findIndex((p)=>{
+                    return p.producto_id==producto.producto_id && p.color_id==producto.color_id})
+                    if(indiceProductoColor !== -1){
+                        this.carrito.splice(indiceExiste, 1);
+                    }
+                }
+                  
+            })
+            // this.reordenarCarrito();
+            // this.calcularSubTotal();
+            console.log(this.carrito)
+        },
+        formarProducto(ic){
+            const producto_id = ic.getAttribute('data-producto-id');
+            const producto_nombre = ic.getAttribute('data-producto-nombre');
+            const color_id = ic.getAttribute('data-color-id');
+            const color_nombre = ic.getAttribute('data-color-nombre');
+            const talla_id = ic.getAttribute('data-talla-id');
+            const talla_nombre = ic.getAttribute('data-talla-nombre');
+            const precio_venta = document.querySelector(`#precio-venta-${producto_id}`).value;
+            const cantidad     = ic.value?ic.value:0;
+            const producto = {producto_id,producto_nombre,color_id,color_nombre,
+                                talla_id,talla_nombre,cantidad,precio_venta};
+            return producto;
+        },
+        validarContenidoInput(e){
+            e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
+        },
+        async validarCantidad(event) {
+            const producto_id           =   event.target.getAttribute('data-producto-id');
+            const color_id              =   event.target.getAttribute('data-color-id');
+            const talla_id              =   event.target.getAttribute('data-talla-id');
+            const cantidadSolicitada    =   event.target.value;
+            try {
+                if(cantidadSolicitada !== ''){
+                    const url = `/get-stocklogico/${producto_id}/${color_id}/${talla_id}`;
+                    const response = await axios.get(url);
+                    if(response.data.message=='success'){
+                        const stock_logico  =   response.data.data[0].stock_logico;
+                        if(stock_logico < cantidadSolicitada){
+                            event.target.classList.add('inputCantidadIncorrecto');
+                            event.target.classList.remove('inputCantidadValido');
+                            event.target.focus();
+                            this.deshabilitarBtnAgregar =   true;
+                            toastr.error(`Cantidad solicitada: ${cantidadSolicitada}, debe ser menor o igual
+                            al stock lógico: ${stock_logico}`,"Error");
+                        }else{
+                            event.target.classList.add('inputCantidadValido');
+                            event.target.classList.remove('inputCantidadIncorrecto');
+                            this.deshabilitarBtnAgregar =   false;
+                        }
+                        console.log(response.data.data[0].stock_logico);
+                    }
+                }else{
+                    this.deshabilitarBtnAgregar =   false;
+                    event.target.classList.remove('inputCantidadIncorrecto');
+                    event.target.classList.remove('inputCantidadValido');
+                }   
+            } catch (error) {
+                toastr.error(`El producto no cuenta con registros en esa talla`,"Error");
+                event.target.value='';
+                console.error('Error al obtener stock logico:', error);
+            }
+        },
         async  getProductosByModelo() {
             try {
                 const url = `/get-producto-by-modelo/${this.modeloSeleccionado}`;
@@ -451,9 +627,9 @@ export default {
                 console.error('Error al obtener productos por modelo:', error);
             }
         },
-        getStock(productoId, colorId, tallaId) {
+        getStockLogico(productoId, colorId, tallaId) {
             const stock = this.productosPorModelo.stocks.find(st => st.producto_id === productoId && st.color_id === colorId && st.talla_id === tallaId);
-            return stock ? stock.stock : 0;
+            return stock ? stock.stock_logico : 0;
         },
         
         // },

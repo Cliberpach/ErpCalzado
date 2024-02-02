@@ -516,7 +516,8 @@ class ProductoController extends Controller
         $stocks =  DB::select('select p.id as producto_id, p.nombre as producto_nombre,
                                     p.precio_venta_1,p.precio_venta_2,p.precio_venta_3,
                                     pct.color_id,c.descripcion as color_name,
-                                    pct.talla_id,t.descripcion as talla_name,pct.stock
+                                    pct.talla_id,t.descripcion as talla_name,pct.stock,
+                                    pct.stock_logico
                                     from producto_color_tallas as pct
                                     inner join productos as p
                                     on p.id = pct.producto_id
@@ -564,6 +565,24 @@ class ProductoController extends Controller
 
         return response()->json(["message" => "success" , "stocks" => $stocks 
                                 ,"producto_colores" => $producto_colores ]);
+    }
+
+    public function getStockLogico($producto_id,$color_id,$talla_id){
+
+        try {
+
+            $stock_logico = DB::select('
+                SELECT pct.stock_logico 
+                FROM producto_color_tallas as pct
+                WHERE pct.producto_id = ? AND pct.color_id = ? AND pct.talla_id = ?',
+                [$producto_id, $color_id, $talla_id]
+            );
+
+
+            return response()->json(["message" => "success", "data" => $stock_logico]);
+        } catch (\Exception $e) {
+            return response()->json(["message" => "Error al obtener el stock lógico", "error" => $e->getMessage()], 500);
+        }                    
     }
 
 }
