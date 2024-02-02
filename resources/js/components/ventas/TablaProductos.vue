@@ -1,9 +1,15 @@
 <style>
     .inputCantidadValido{
-        border-color:green;
+        border-color:rgb(59, 63, 255) !important;
     }
     .inputCantidadIncorrecto{
         border-color: red !important;
+    }
+    .inputCantidadColor{
+        border-color: rgb(48, 48, 88);
+    }
+    .colorStockLogico{
+        background-color: rgb(243, 248, 255);
     }
 </style>
 <template>
@@ -81,12 +87,12 @@
                                 <tr>
                                     <th>PRODUCTO</th>
                                     <template  v-for="talla in tallas" >
-                                        <th>
+                                        <th class="colorStockLogico">
                                             {{ talla.descripcion }}
                                         </th>
                                         <th>CANT</th>
                                     </template>
-                                    <th>PRECIO VENTA</th>
+                                    <th class="">PRECIO VENTA</th>
 
                                     <!-- <th v-for="talla in tallas" :key="talla.id">
                                         {{ talla.descripcion }}<th>CANT</th>
@@ -99,25 +105,27 @@
                                     <td>{{ pc.producto_nombre }} - {{ pc.color_nombre }}</td>
                                    
                                     <template v-for="t in tallas">
-                                        <td>
+                                        <td class="colorStockLogico">
                                             <span>
-                                                {{ getStockLogico(pc.producto_id, pc.color_id, t.id) }}
+                                                {{ printStockLogico(pc.producto_id, pc.color_id, t.id) }}
                                             </span>
                                         </td>
-                                        <td style="width: 8%;">
+                                        <td style="width: 8%;" v-if="printStockLogico(pc.producto_id, pc.color_id, t.id) !== 0">
                                             <input
                                             type="text"
-                                            class="form-control inputCantidad"
+                                            class="form-control inputCantidad inputCantidadColor"
                                             :data-producto-id="pc.producto_id"
                                             :data-producto-nombre="pc.producto_nombre"
                                             :data-color-nombre="pc.color_nombre"
                                             :data-talla-nombre="t.descripcion"
                                             :data-color-id="pc.color_id"
                                             :data-talla-id="t.id"
-                                            @blur="validarCantidad($event)"
                                             @input="validarContenidoInput($event)"
-                                            :disabled="getStockLogico(pc.producto_id, pc.color_id, t.id) === 0"
+                                            :disabled="printStockLogico(pc.producto_id, pc.color_id, t.id) === 0"
                                             />
+                                        </td>
+                                        <td v-else>
+
                                         </td>
                                     </template>
                                
@@ -179,6 +187,87 @@
 
                     
                     <div class="table-responsive">
+                        <table class="table table-sm table-striped table-bordered table-hover"
+                            style="text-transform:uppercase">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">
+                                        <i class="fa fa-dashboard"></i>
+                                    </th>
+                                    <th class="text-center">PRODUCTO</th>
+                                    <template v-for="t in tallas">
+                                        <th class="text-center">{{ t.descripcion }}</th>
+                                    </template>
+                                    
+                                    <th class="text-center">P. VENTA</th>
+                                    <!-- <th class="text-center">DESCUENTO</th> -->
+                                    <!-- <th class="text-center">P. NUEVO</th> -->
+                                    <th class="text-center">SUBTOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-if="carrito.length > 0">
+                                    <tr v-for="(item, index) in carrito" :key="index">
+                                        <td class="text-center">
+                                            <div class='btn-group'>
+                                                <!-- <button type="button" class='btn btn-sm btn-warning btn-edit'
+                                                    style='color:white' @click.prevent="EditarItem(item)">
+                                                    <i class='fa fa-pencil'></i>
+                                                </button> -->
+                                                <button type="button" class='btn btn-sm btn-danger btn-delete'
+                                                    style='color:white' @click.prevent="EliminarItem(item, index)">
+                                                    <i class='fa fa-trash'></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">{{ item.producto_nombre }}-{{ item.color_nombre }}</td>
+                                        <td v-for="t in tallas">
+                                            {{ printTallaDetalle(t.id,item) }}
+                                        </td>
+                                        <td>{{ item.precio_venta }}</td>
+                                        <td>{{ item.subtotal }}</td>
+                                        <!-- <td class="text-center">{{ item.unidad }}</td>
+                                        <td class="text-left">{{ item.producto }}</td>
+                                        <td class="text-center">{{ item.precio_unitario }}</td>
+                                        <td class="text-center">{{ item.dinero }}</td>
+                                        <td class="text-center">{{ item.precio_nuevo }}</td>
+                                        <td class="text-center">{{ item.valor_venta }}</td> -->
+                                    </tr>
+                                </template>
+                                <template v-else>
+                                    <tr>
+                                        <td colspan="8" class="text-center"><strong>no hay detalles</strong></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                            <!-- <tfoot>
+                                <tr>
+                                    <th class="text-right" colspan="7">Sub Total:</th>
+                                    <th class="text-center">
+                                        <span id="subtotal">{{ formDetalles.monto_sub_total }}</span>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th class="text-right" colspan="7">IGV <span id="igv_int">{{
+                                            formDetalles.igv_int
+                                    }}</span>:</th>
+                                    <th class="text-center">
+                                        <span id="igv_monto">
+                                            {{ formDetalles.monto_total_igv }}
+                                        </span>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th class="text-right" colspan="7">TOTAL:</th>
+                                    <th class="text-center">
+                                        <span id="total">
+                                            {{ formDetalles.monto_total }}
+                                        </span>
+                                    </th>
+                                </tr>
+                            </tfoot> -->
+                        </table> 
+
                         <!-- <table class="table table-sm table-striped table-bordered table-hover"
                             style="text-transform:uppercase">
                             <thead>
@@ -251,7 +340,7 @@
                                     </th>
                                 </tr>
                             </tfoot>
-                        </table> -->
+                        </table>  -->
                     </div>
                 </div>
             </div>
@@ -467,30 +556,46 @@ export default {
         });
     },
     methods: {
-        calcularSubTotal(){
-            let subtotal = 0;
-            const producto_color_procesados=[];
+        async getStockLogico(inputCantidad){
+            const producto_id           =   inputCantidad.getAttribute('data-producto-id');
+            const color_id              =   inputCantidad.getAttribute('data-color-id');
+            const talla_id              =   inputCantidad.getAttribute('data-talla-id');
             
-            this.carrito.forEach((p)=>{
-                if(!producto_color_procesados.includes(`${p.producto_id}-${p.color_id}`)){
-                    this.$props.tallas.forEach((t)=>{
-                    const producto =  this.carrito.filter((ct)=>{
-                        return  ct.producto_id==p.producto_id && ct.color_id==p.color_id && ct.talla_id==t.id
-                        })
-
-                        if(producto.length!=0){
-                            subtotal+= parseFloat(producto[0].precio_venta)*parseFloat(producto[0].cantidad);
-                        }
-                    })
-                    this.carrito.forEach((c)=>{
-                        if(c.producto_id==p.producto_id && c.color_id==p.color_id){
-                            c.subtotal=subtotal;
-                        }
-                    })
-                    subtotal=0;
-                    producto_color_procesados.push(`${p.producto_id}-${p.color_id}`);
+            try {  
+                const url = `/get-stocklogico/${producto_id}/${color_id}/${talla_id}`;
+                const response = await axios.get(url);
+                if(response.data.message=='success'){
+                    const stock_logico  =   response.data.data[0].stock_logico;
+                    return stock_logico;
                 }
-            })  
+                 
+            } catch (error) {
+                toastr.error(`El producto no cuenta con registros en esa talla`,"Error");
+                event.target.value='';
+                console.error('Error al obtener stock logico:', error);
+                return null;
+            }
+        },
+        printTallaDetalle(talla_id,item){
+          
+            const itemTalla =  item.tallas.find((t)=>  talla_id==t.talla_id);
+            // console.log(itemTalla);
+            const cantidad  =    itemTalla?itemTalla.cantidad:0;
+            
+            return cantidad;
+        },
+        calcularSubTotal(){
+            //======= calculando el subtotal de cada producto color =========
+           this.carrito.forEach((item,index)=>{
+                const precio_venta = item.precio_venta;
+                //===== sumando las cantidades de todas las tallas que tiene el producto color ======
+                let subtotal=0;
+                item.tallas.forEach((talla)=>{
+                    subtotal += (precio_venta * talla.cantidad);
+                })
+                //======= actualizamos el subtotal de ese producto_color
+                this.carrito[index].subtotal=subtotal;
+           })
         },
         reordenarCarrito(){
             this.carrito.sort(function(a, b) {
@@ -501,67 +606,104 @@ export default {
                 }
             });
         },
+        async validarCantidadCarrito(inputCantidad){
+            const stockLogico           = await  this.getStockLogico(inputCantidad);
+            const cantidadSolicitada    =   inputCantidad.value;
+            return stockLogico>=cantidadSolicitada;
+        },
         agregarProducto(){
             const inputsCantidad = document.querySelectorAll('.inputCantidad');
             inputsCantidad.forEach((ic)=>{
-                const cantidad = ic.value?ic.value:0;
-                if(cantidad != 0){
-                    const producto = this.formarProducto(ic);
-                    const indiceExiste  = this.carrito.findIndex((p)=>{
-                    return p.producto_id==producto.producto_id && p.color_id==producto.color_id})
-                    
-                    if(indiceExiste == -1){
-                        const objProduct  =   {};
-                        objProduct.producto_id  =   producto.producto_id;
-                        objProduct.color_id     =   producto.color_id;
-                        objProduct.producto_nombre  =   producto.producto_nombre;
-                        objProduct.color_nombre     =   producto.color_nombre;
-                        objProduct.precio_venta     =   producto.precio_venta;
+                    ic.classList.remove('inputCantidadIncorrecto');
+                    const cantidad = ic.value?ic.value:null;
+                    if(cantidad){
+                        this.validarCantidadCarrito(ic)
+                        .then((cantidadValida) => {
+                             console.log(cantidadValida);
 
-                        const arrayTallasProduct         =   [];
-                        const objTallaProduct            =   {};
+                            if(cantidadValida){
+                                const producto = this.formarProducto(ic);
+                                const indiceExiste  = this.carrito.findIndex((p)=>{
+                                return p.producto_id==producto.producto_id && p.color_id==producto.color_id})
+                                
+                                if(indiceExiste == -1){
+                                    const objProduct  =   {};
+                                    objProduct.producto_id  =   producto.producto_id;
+                                    objProduct.color_id     =   producto.color_id;
+                                    objProduct.producto_nombre  =   producto.producto_nombre;
+                                    objProduct.color_nombre     =   producto.color_nombre;
+                                    objProduct.precio_venta     =   producto.precio_venta;
 
-                        objTallaProduct.talla_id              =   producto.talla_id;
-                        objTallaProduct.talla_nombre          =   producto.talla_nombre;
-                        objTallaProduct.cantidad              =   producto.cantidad;  
+                                    const arrayTallasProduct         =   [];
+                                    const objTallaProduct            =   {};
 
-                        arrayTallasProduct.push(objTallaProduct);
-                        objProduct.tallas   =   arrayTallasProduct;
+                                    objTallaProduct.talla_id              =   producto.talla_id;
+                                    objTallaProduct.talla_nombre          =   producto.talla_nombre;
+                                    objTallaProduct.cantidad              =   producto.cantidad;  
 
-                        this.carrito.push(objProduct);
+                                    arrayTallasProduct.push(objTallaProduct);
+                                    objProduct.tallas   =   arrayTallasProduct;
+
+                                    this.carrito.push(objProduct);
+                                }else{
+                                    const productoModificar = this.carrito[indiceExiste];
+                                    //productoModificar.cantidad = producto.cantidad;
+                                    productoModificar.precio_venta = producto.precio_venta;
+
+                                    //modifcando talla..
+                                    const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+                                    if(indexTalla !== -1){
+                                        productoModificar.tallas[indexTalla].cantidad    =   producto.cantidad; 
+                                    }else{
+                                        //creando nueva talla para ese producto color
+                                        const objTallaProduct    =   {};
+                                        objTallaProduct.talla_id        =   producto.talla_id;
+                                        objTallaProduct.talla_nombre    =   producto.talla_nombre;
+                                        objTallaProduct.cantidad        =   producto.cantidad;
+                                        productoModificar.tallas.push(objTallaProduct);
+                                    }
+
+                                
+                                    this.carrito[indiceExiste] = productoModificar;
+                                }
+                                this.reordenarCarrito();
+                                this.calcularSubTotal();
+                            }else{
+                                ic.classList.add('inputCantidadIncorrecto');
+                            }
+                        }) 
                     }else{
-                        const productoModificar = this.carrito[indiceExiste];
-                        //productoModificar.cantidad = producto.cantidad;
-                        productoModificar.precio_venta = producto.precio_venta;
+                        //========  en caso cantidad del input sea cero ==========
+                        //======= formar el objeto producto con los datos del input ==========
+                        const producto = this.formarProducto(ic);  
+                        //======== buscar el elemento según producto-color
+                        const indiceProductoColor  = this.carrito.findIndex((p)=>{
+                        return p.producto_id==producto.producto_id && p.color_id==producto.color_id})
 
-                        //modifcando talla..
-                        const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
-                        if(indexTalla !== -1){
-                            productoModificar.tallas[indexTalla].cantidad    =   producto.cantidad; 
-                        }else{
-                            //creando nueva talla para ese producto color
-                            const objTallaProduct    =   {};
-                            objTallaProduct.talla_id        =   producto.talla_id;
-                            objTallaProduct.talla_nombre    =   producto.talla_nombre;
-                            objTallaProduct.cantidad        =   producto.cantidad;
-                            productoModificar.tallas.push(objTallaProduct);
+                        //======= en caso el producto color ya exista en el carrito ===========
+                        if(indiceProductoColor !== -1){
+                            //========= buscamos si ya tiene la talla del input ============
+                            const indiceTalla = this.carrito[indiceProductoColor].tallas.findIndex((t)=>{
+                                return t.talla_id == producto.talla_id;
+                            })
+                            //====== en caso la talla ya exista ========
+                            if(indiceTalla !== -1){
+                                //======== la quitamos porque su cantidad nueva será 0 =======
+                                this.carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
+                                //======= verificamos si el producto color se quedó sin tallas =======
+                                const cantidadTallas = this.carrito[indiceProductoColor].tallas.length;
+                                //========= en caso se haya quedado sin tallas ========
+                                if(cantidadTallas==0){
+                                    //======== eliminamos el producto color del carrito ========
+                                    this.carrito.splice(indiceProductoColor,1);
+                                }
+                            }
                         }
-
-                      
-                        this.carrito[indiceExiste] = productoModificar;
                     }
-                }else{
-                    const producto = this.formarProducto(ic);
-                    const indiceProductoColor  = this.carrito.findIndex((p)=>{
-                    return p.producto_id==producto.producto_id && p.color_id==producto.color_id})
-                    if(indiceProductoColor !== -1){
-                        this.carrito.splice(indiceExiste, 1);
-                    }
-                }
-                  
+                 
             })
-            // this.reordenarCarrito();
-            // this.calcularSubTotal();
+            this.reordenarCarrito();
+            this.calcularSubTotal();
             console.log(this.carrito)
         },
         formarProducto(ic){
@@ -579,32 +721,26 @@ export default {
         },
         validarContenidoInput(e){
             e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
+            this.validarCantidadInstantanea(e);
         },
-        async validarCantidad(event) {
-            const producto_id           =   event.target.getAttribute('data-producto-id');
-            const color_id              =   event.target.getAttribute('data-color-id');
-            const talla_id              =   event.target.getAttribute('data-talla-id');
+        
+        async validarCantidadInstantanea(event) {
             const cantidadSolicitada    =   event.target.value;
             try {
                 if(cantidadSolicitada !== ''){
-                    const url = `/get-stocklogico/${producto_id}/${color_id}/${talla_id}`;
-                    const response = await axios.get(url);
-                    if(response.data.message=='success'){
-                        const stock_logico  =   response.data.data[0].stock_logico;
-                        if(stock_logico < cantidadSolicitada){
+                    const stock_logico  =  await this.getStockLogico(event.target);
+                    if(stock_logico < cantidadSolicitada){
                             event.target.classList.add('inputCantidadIncorrecto');
                             event.target.classList.remove('inputCantidadValido');
                             event.target.focus();
                             this.deshabilitarBtnAgregar =   true;
                             toastr.error(`Cantidad solicitada: ${cantidadSolicitada}, debe ser menor o igual
                             al stock lógico: ${stock_logico}`,"Error");
-                        }else{
+                    }else{
                             event.target.classList.add('inputCantidadValido');
                             event.target.classList.remove('inputCantidadIncorrecto');
                             this.deshabilitarBtnAgregar =   false;
-                        }
-                        console.log(response.data.data[0].stock_logico);
-                    }
+                    }                    
                 }else{
                     this.deshabilitarBtnAgregar =   false;
                     event.target.classList.remove('inputCantidadIncorrecto');
@@ -627,7 +763,7 @@ export default {
                 console.error('Error al obtener productos por modelo:', error);
             }
         },
-        getStockLogico(productoId, colorId, tallaId) {
+        printStockLogico(productoId, colorId, tallaId) {
             const stock = this.productosPorModelo.stocks.find(st => st.producto_id === productoId && st.color_id === colorId && st.talla_id === tallaId);
             return stock ? stock.stock_logico : 0;
         },
