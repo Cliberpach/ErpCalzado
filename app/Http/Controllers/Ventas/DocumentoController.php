@@ -2948,19 +2948,13 @@ class DocumentoController extends Controller
         $data           =   $request->all();
         $producto_id    =   $data['producto_id'];
         $color_id       =   $data['color_id'];
-        $talla_id       =   $data['talla_id'];
-        $cantidad       =   $data['cantidad'];
+        $talla_id       =   $request->input('talla_id', null);
+        $cantidad       =   $request->input('cantidad', null);
         $condicion      =   $data['condicion'];
         $modo           =   $data['modo'];
+        $tallas         =   $request->input('tallas', null);
         $mensaje = '';
         //$lote = LoteProducto::findOrFail($producto_id);
-
-        $producto   =     DB::table('producto_color_tallas')
-                            ->where('producto_id', $producto_id)
-                            ->where('color_id', $color_id)
-                            ->where('talla_id', $talla_id)
-                            ->first();
-
 
         //DISMINUIR
         // if ($lote->cantidad_logica >= $cantidad && $condicion == '1') {
@@ -2970,41 +2964,53 @@ class DocumentoController extends Controller
         //     $mensaje = 'Cantidad aceptada';
         // }
        
-        if ($producto->stock_logico >= $cantidad && $condicion == '1' && $modo=='nuevo') {
-            $nuevaCantidad = $producto->stock_logico - $cantidad;
+        if ($condicion == '1' && $modo=='nuevo') {
             //$producto->stock_logico = $nuevaCantidad;
             DB::table('producto_color_tallas')
-            ->where('producto_id', $producto->producto_id)
-            ->where('color_id',$producto->color_id)
-            ->where('talla_id',$producto->talla_id)
-            ->update(['stock_logico' => $nuevaCantidad]);
+            ->where('producto_id', $producto_id)
+            ->where('color_id', $color_id)
+            ->where('talla_id', $talla_id)
+            ->when(DB::raw('stock_logico >= ' . $cantidad), function ($query) use ($cantidad) {
+                $query->decrement('stock_logico', $cantidad);
+            });
             //$lote->update();
             $mensaje = 'Cantidad aceptada';
         }
 
-        if($modo == 'editar'){
+        if($modo == 'editar' && $condicion == '1'){
             $cantidadAnterior   =   $data['cantidadAnterior'];
        
-            if($producto->stock_logico >= $cantidad && $condicion == '1'){
-                $nuevaCantidad = $producto->stock_logico + $cantidadAnterior - $cantidad;
+            DB::table('producto_color_tallas')
+            ->where('producto_id', $producto_id)
+            ->where('color_id', $color_id)
+            ->where('talla_id', $talla_id)
+            ->when(DB::raw('stock_logico >= ' . $cantidad), function ($query) use ($cantidadAnterior, $cantidad) {
+                $query->increment('stock_logico', ($cantidadAnterior - $cantidad));
+            });
+            $mensaje = 'Cantidad editada';
+        }
+
+        //REGRESAR STOCK LOGICO
+        if($condicion == '0' && $modo='eliminar'){
+            //======= devolviendo stock logico ============
+            foreach ($tallas as $talla) {
                 DB::table('producto_color_tallas')
-                ->where('producto_id', $producto->producto_id)
-                ->where('color_id',$producto->color_id)
-                ->where('talla_id',$producto->talla_id)
-                ->update(['stock_logico' => $nuevaCantidad]);
-                //$lote->update();
-                $mensaje = 'Cantidad actualizada';
-            }
+                    ->where('producto_id', $producto_id)
+                    ->where('color_id', $color_id)
+                    ->where('talla_id', $talla['talla_id'])
+                    ->increment('stock_logico', $talla['cantidad']);
+            }            
+            $mensaje = 'Cantidades devuelta';
         }
 
 
         //AUMENTAR
-        if ($condicion == '0') {
-            $nuevaCantidad = $lote->cantidad_logica + $cantidad;
-            $lote->cantidad_logica = $nuevaCantidad;
-            $lote->update();
-            $mensaje = 'Cantidad regresada';
-        }
+        // if ($condicion == '0') {
+        //     $nuevaCantidad = $lote->cantidad_logica + $cantidad;
+        //     $lote->cantidad_logica = $nuevaCantidad;
+        //     $lote->update();
+        //     $mensaje = 'Cantidad regresada';
+        // }
 
         return $mensaje;
     }
@@ -3012,23 +3018,42 @@ class DocumentoController extends Controller
     //DEVOLVER CANTIDAD LOGICA AL CERRAR VENTANA
     public function returnQuantity(Request $request)
     {
-        $data = $request->all();
-        $cantidades = $data['cantidades'];
-        $productosJSON = $cantidades;
-        $productotabla = json_decode($productosJSON);
-        $mensaje = true;
-        foreach ($productotabla as $detalle) {
-            //DEVOLVEMOS CANTIDAD AL LOTE Y AL LOTE LOGICO
-            $lote = LoteProducto::findOrFail($detalle->producto_id);
-            $lote->cantidad_logica = $lote->cantidad_logica + $detalle->cantidad;
-            //$lote->cantidad =  $lote->cantidad_logica;
-            $lote->estado = '1';
-            $lote->update();
-            $mensaje = true;
-        };
+        $data           =   $request->all();
+        $carrito        =   $data['carrito'];
+        $productosJSON  =   json_decode($carrito);
+        $mensaje        =   true;
+
+        foreach ($productosJSON as $producto) {
+            foreach ($producto->tallas as $talla) {
+    
+                DB::table('producto_color_tallas')
+                    ->where('producto_id', $producto->producto_id)
+                    ->where('color_id', $producto->color_id)
+                    ->where('talla_id', $talla->talla_id) 
+                    ->increment('stock_logico', $talla->cantidad); 
+            }
+        }
+
+
+
+        // $cantidades = $data['cantidades'];
+        // $productosJSON = $cantidades;
+        // $productotabla = json_decode($productosJSON);
+        // $mensaje = true;
+        // foreach ($productotabla as $detalle) {
+        //     //DEVOLVEMOS CANTIDAD AL LOTE Y AL LOTE LOGICO
+        //     $lote = LoteProducto::findOrFail($detalle->producto_id);
+        //     $lote->cantidad_logica = $lote->cantidad_logica + $detalle->cantidad;
+        //     //$lote->cantidad =  $lote->cantidad_logica;
+        //     $lote->estado = '1';
+        //     $lote->update();
+        //     $mensaje = true;
+        // };
 
         return $mensaje;
     }
+    
+    
 
     //DEVOLVER LOTE
     public function returnLote(Request $request)

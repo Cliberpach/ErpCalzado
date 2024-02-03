@@ -413,6 +413,7 @@ function(){
         Route::post('obtener/lote', 'Ventas\DocumentoController@returnLote')->name('ventas.documento.obtener.lote');
         Route::post('update/lote', 'Ventas\DocumentoController@updateLote')->name('ventas.documento.update.lote');
 
+
         Route::post('customers','Ventas\DocumentoController@customers')->name('ventas.customers');
         Route::post('customers-all','Ventas\DocumentoController@customers_all')->name('ventas.customers_all');
         Route::get('getLot/{id}/{tipocomprobante}','Ventas\DocumentoController@getLot')->name('ventas.getLot');
