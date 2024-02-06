@@ -588,6 +588,19 @@ export default {
         }
     },
     watch: {
+        carrito:{
+            handler(value){
+                const montos = {
+                    monto_sub_total  :   this.monto_subtotal,
+                    monto_total_igv       :   this.monto_igv,
+                    monto_total     :   this.monto_total
+                };
+                this.$emit('addProductoDetalle', {
+                    detalles:   this.carrito,
+                    totales :   montos
+                });
+            }
+        },
         modeloSeleccionado: {
             handler(value) {
                 console.log('modeloSeleccionado cambió:', value);
@@ -866,7 +879,7 @@ export default {
             this.getProductosByModelo().then(()=>{
                 document.getElementById('overlay').style.display = 'none';
             });
-            console.log(this.carrito);
+            //console.log(this.carrito);
         },
         async actualizarStockLogico(producto,modo,cantidadAnterior){
             modo=="eliminar"?this.asegurarCierre=0:this.asegurarCierre=1;
@@ -936,7 +949,7 @@ export default {
             try {
                 const url = `/get-producto-by-modelo/${this.modeloSeleccionado}`;
                 const response = await axios.get(url);
-                console.log(response.data);
+                //console.log(response.data);
                 this.productosPorModelo = response.data;
                 //this.pintarTableStocks(response.data.stocks,tallas,response.data.producto_colores);
             } catch (error) {

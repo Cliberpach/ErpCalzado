@@ -29,7 +29,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-12 col-md-6" id="fecha_entrega">
+                                            <div class="col-12 col-md-6 d-none" id="fecha_entrega">
                                                 <div class="form-group">
                                                     <label>Placa</label>
 
@@ -359,6 +359,24 @@ export default {
         this.$refs.tablaDetalles.ExecuteDevolverCantidades();
     },
     methods: {
+        formatearDetalle(detalles){
+            if(detalles.length>0){
+                let carritoFormateado   =   []; 
+                detalles.forEach((d)=>{  
+                    d.tallas.forEach((t)=>{
+                        const producto ={};
+                        producto.producto_id        =   d.producto_id;
+                        producto.color_id           =   d.color_id;
+                        producto.talla_id           =   t.talla_id;
+                        producto.cantidad           =   t.cantidad;
+                        producto.precio_unitario    =   d.precio_venta;
+                        carritoFormateado.push(producto);
+                    })
+                })
+                return carritoFormateado;
+            }
+            return null;
+        },
         async ObtenerData() {
             try {
                 this.loading = true;
@@ -387,10 +405,14 @@ export default {
             this.initData.clientes = dataCliente;
             this.cliente_id = cliente;
         },
+        //======= obteniendo carrito del componente hijo TablaProductos.vue ==========
         AddProductoDetalles(value) {
+            
             const { detalles, totales } = value;
-            this.productos_tabla = detalles;
+            this.productos_tabla    =   this.formatearDetalle(detalles);
+            //this.productos_tabla    = detalles;
             this.formCreate = Object.assign(this.formCreate, totales);
+            console.log(this.formCreate);
         },
         Grabar() {
             try {
@@ -404,43 +426,56 @@ export default {
         },
         async EnviarVenta() {
             try {
+
+                //======= spiner de carga =========
                 this.loading = true;
 
+                //======== verificar si existen cajas abiertas ==========
                 const { data } = await this.axios.get(route('Caja.movimiento.verificarestado'));
+                //======= desestructuración de objeto ===========
                 const { success } = data;
+
+                //======== si existen cajas abiertas ===========
                 if (success) {
 
-                    let envio_ok = true;
+                     let envio_ok = true;
 
-                    var tipo = this.validarTipo();
+                     var tipo = this.validarTipo();
 
-                    if (tipo) {
+                     if (!tipo) {
+                         envio_ok = false;
+                     }
 
-                    } else {
-                        envio_ok = false;
-                    }
+                     if (envio_ok) {
+                         const { data } = await this.axios.post(route("ventas.documento.store"), this.formCreate);
+                         const { success, documento_id } = data;
 
-                    if (envio_ok) {
-                        const { data } = await this.axios.post(route("ventas.documento.store"), this.formCreate);
-                        const { success, documento_id } = data;
-                        if (success) {
+
+                         if (success) {
                             
-                            toastr.success('¡Documento de venta creado!', 'Exito');
+                             toastr.success('¡Documento de venta creado!', 'Exito');
                             
-                            var url_open_pdf = route("ventas.documento.comprobante", { id: documento_id +"-80"});
+                             var url_open_pdf = route("ventas.documento.comprobante", { id: documento_id +"-80"});
                             
-                            window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
+                             window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
                             
-                            this.$refs.tablaDetalles.ChangeAsegurarCierre();
+                             this.$refs.tablaDetalles.ChangeAsegurarCierre();
                             
                             this.$emit("update:ruta", "index");
 
-                        } else {
-                            this.loading = false;
-                            toastr.error('Error al crear documento de venta', 'Error');
-                        }
-                    }
+                         } else {
+                             this.loading = false;
+                             toastr.error('Error al crear documento de venta', 'Error');
+                         }
+                     }
                 }
+
+                //======== en caso no existan cajas abiertas ===========
+                if(!success){
+                    toastr.error('Debe aperturar una caja previamente',"Error");
+                    this.loading = false;
+                }
+
             } catch (ex) {
                 this.loading = false;
                 alert("Error en EnviarVentas " + ex);
@@ -458,15 +493,19 @@ export default {
         },
         validarCampos() {
             try {
+                //====== variable para manejar la validación =========
                 let correcto = true;
+                //===== moneda por defecto soles ===========
                 let moneda = this.formCreate.moneda;
                 let observacion = this.formCreate.observacion;
+                //==== contado-credito ========
                 let condicion_id = this.formCreate.condicion_id;
                 let fecha_documento_campo = this.formCreate.fecha_documento_campo;
                 let fecha_atencion_campo = this.formCreate.fecha_atencion_campo;
                 let fecha_vencimiento_campo = this.formCreate.fecha_vencimiento_campo;
                 let empresa_id = this.formCreate.empresa_id;
                 let cliente_id = this.formCreate.cliente_id;
+                //===== 127:factura | 128:boleta | 129:nota_venta =========
                 let tipo_venta = this.formCreate.tipo_venta;
 
                 if (this.productos_tabla.length == 0) {
@@ -496,8 +535,12 @@ export default {
 
                 if (this.initData.clientes.length > 0) {
                     let index = this.initData.clientes.findIndex(cliente => Number(cliente.id) == Number(cliente_id));
+                    //======= si el cliente existe ==============
                     if (index != undefined) {
+                        //========= obtenemos al cliente ===============
                         let cliente = this.initData.clientes[index];
+                        //======== si el cliente existe =============
+                        //======== validación de tipo de comprobantes de venta ===========
                         if (cliente != undefined) {
                             if (convertFloat(tipo_venta) === 127 && cliente.tipo_documento != 'RUC') {
                                 correcto = false;
