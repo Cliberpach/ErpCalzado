@@ -382,6 +382,9 @@ class CotizacionController extends Controller
         $detalles = $cotizacion->detalles->where('estado', 'ACTIVO');
         $empresa = Empresa::first();
         $paper_size = array(0,0,360,360);
+
+        $detalles = $this->formatearArrayDetalle($detalles);
+
         $pdf = PDF::loadview('ventas.cotizaciones.reportes.detalle_nuevo',[
             'cotizacion' => $cotizacion,
             'nombre_completo' => $nombre_completo,
@@ -391,6 +394,48 @@ class CotizacionController extends Controller
             ])->setPaper('a4')->setWarnings(false);
         return $pdf->stream('CO-'.$cotizacion->id.'.pdf');
 
+    }
+
+    public function formatearArrayDetalle($detalles){
+        $detalleFormateado=[];
+        $productosProcesados = [];
+        foreach ($detalles as $detalle) {
+            $cod   =   $detalle->producto_id.'-'.$detalle->color_id;
+            if (!in_array($cod, $productosProcesados)) {
+                $producto=[];
+                //======== obteniendo todas las detalle talla de ese producto_color =================
+                $producto_color_tallas = $detalles->filter(function ($detalleFiltro) use ($detalle) {
+                    return $detalleFiltro->producto_id == $detalle->producto_id && $detalleFiltro->color_id == $detalle->color_id;
+                });
+                
+                $producto['producto_codigo'] = $detalle->producto->codigo;
+                $producto['producto_id'] = $detalle->producto_id;
+                $producto['color_id'] = $detalle->color_id;
+                $producto['producto_nombre'] = $detalle->producto->nombre;
+                $producto['color_nombre'] = $detalle->color->descripcion;
+                $producto['modelo_nombre'] = $detalle->producto->modelo->descripcion;
+                $producto['precio_unitario'] = $detalle->precio_unitario;
+                
+
+                $tallas=[];
+                $subtotal=0.0;
+                foreach ($producto_color_tallas as $producto_color_talla) {
+                   $talla=[];
+                   $talla['talla_id']=$producto_color_talla->talla_id;
+                   $talla['cantidad']=$producto_color_talla->cantidad;
+                   $talla['talla_nombre']=$producto_color_talla->talla->descripcion;
+                   $subtotal+=$talla['cantidad']*$producto['precio_unitario'];
+
+                   array_push($tallas,$talla);
+                }
+                
+                $producto['tallas']=$tallas;
+                $producto['subtotal']=$subtotal;
+                array_push($detalleFormateado,$producto);
+                $productosProcesados[] = $detalle->producto_id.'-'.$detalle->color_id;
+            }
+        }
+        return $detalleFormateado;
     }
 
     public function document($id){

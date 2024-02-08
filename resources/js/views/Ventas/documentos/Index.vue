@@ -465,12 +465,12 @@ export default {
         },
         enviarSunat(id, contingencia) {
             const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                confirmButton: 'btn btn-success',
-                cancelButton: 'btn btn-danger',
-            },
-            buttonsStyling: false
-        })
+                customClass: {
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-danger',
+                },
+                buttonsStyling: false
+            })
 
         Swal.fire({
             title: "Opción Enviar a Sunat",
@@ -490,6 +490,7 @@ export default {
                 if (contingencia == '1') {
                     url = route('ventas.documento.sunat.contingencia',{id});
                 } else {
+                    //===== ENVIAR CUANDO CONTINGENCIA = 0 ===========
                     url = route('ventas.documento.sunat',{id});
                 }
 
