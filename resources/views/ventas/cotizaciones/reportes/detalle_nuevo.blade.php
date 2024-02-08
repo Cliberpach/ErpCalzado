@@ -126,7 +126,8 @@
             .cuerpo{
                 width: 100%;
                 position: relative;
-                border: 1px solid red;
+                /* border: 1px solid red; */
+
             }
 
             .tbl-detalles {
@@ -282,19 +283,24 @@
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">DESCRIPCIÓN</th>
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">P. UNIT.</th>
                         <th style="text-align: right; width: 10%;">TOTAL</th> --}}
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">PRODUCTO</th>
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">DESCRIPCIÓN 
+                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 20%;">PRODUCTO</th>
+                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 50%;">DESCRIPCIÓN 
                             <span>[TALLA/CANT]</span>
                         </th>
                         {{-- @foreach ($tallas as $talla)
                             <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">{{$talla->descripcion}}</th>
                         @endforeach --}}
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">P. UNIT.</th>
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">TOTAL</th>
+                        
+                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">P. UNIT.</th>
+                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">CANT</th>
+                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">TOTAL</th>
 
                     </tr>
                 </thead>
                 <tbody>
+                    @php
+                        $cantidadTotal=0;
+                    @endphp
                     @foreach($detalles as $item)
                     <tr>
                         <td style="text-align: center; border-right: 2px solid #52BE80">{{ $item['producto_codigo'].' - '.$item['modelo_nombre'].' - '.$item['producto_nombre'].' - '.$item['color_nombre'] }}</td>
@@ -311,12 +317,29 @@
                         @endforeach
 
                         <td style="text-align: center; border-right: 2px solid #52BE80">{{ $descripcion }}</td>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">{{ number_format($item['precio_unitario'], 2, ',', '.') }}</td>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">{{ number_format($item['subtotal'], 2, ',', '.') }}</td>
+                        <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['precio_unitario'], 2, ',', '.') }}</td>
+                        <td style="text-align: right; border-right: 2px solid #52BE80">{{ $item['cantidad_total'] }}</td>
+                        <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['subtotal'], 2, ',', '.') }}</td>
 
+                        @php
+                            $cantidadTotal+=$item['cantidad_total'];
+                        @endphp
                     </tr>
                     @endforeach
                 </tbody>
+                <tfoot>
+                    <tr>
+                        
+                        <td></td>
+                        <td></td>
+                        <td ></td>
+                        <!-- Celdas para mostrar el total de "cantidad_total" y "subtotal" -->
+                        <td style="text-align: right; border: 2px solid #52BE80;">{{$cantidadTotal}}</td>
+                       
+                        <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($cotizacion->total, 2) }}</td>
+                      
+                    </tr>
+                </tfoot>
             </table>
         </div><br>
         <div class="info-total-qr">
@@ -333,22 +356,22 @@
                             </tr>
                         </table>
                     </td>
-                    <td style="width: 40%;">
+                    {{-- <td style="width: 40%;">
                         <table class="tbl-total text-uppercase">
-                            {{-- <tr>
+                            <tr>
                                 <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">SUBTOTAL: S/.</p></td>
                                 <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($cotizacion->sub_total, 2) }}</p></td>
                             </tr>
                             <tr>
                                 <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">IGV: S/.</p></td>
                                 <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($cotizacion->total_igv, 2) }}</p></td>
-                            </tr> --}}
+                            </tr>
                             <tr>
                                 <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">TOTAL: S/.</p></td>
                                 <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($cotizacion->total, 2) }}</p></td>
                             </tr>
                         </table>
-                    </td>
+                    </td> --}}
                 </tr>
             </table>
         </div>

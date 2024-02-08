@@ -419,18 +419,20 @@ class CotizacionController extends Controller
 
                 $tallas=[];
                 $subtotal=0.0;
+                $cantidadTotal=0;
                 foreach ($producto_color_tallas as $producto_color_talla) {
-                   $talla=[];
-                   $talla['talla_id']=$producto_color_talla->talla_id;
-                   $talla['cantidad']=$producto_color_talla->cantidad;
-                   $talla['talla_nombre']=$producto_color_talla->talla->descripcion;
-                   $subtotal+=$talla['cantidad']*$producto['precio_unitario'];
-
+                    $talla=[];
+                    $talla['talla_id']=$producto_color_talla->talla_id;
+                    $talla['cantidad']=$producto_color_talla->cantidad;
+                    $talla['talla_nombre']=$producto_color_talla->talla->descripcion;
+                    $subtotal+=$talla['cantidad']*$producto['precio_unitario'];
+                    $cantidadTotal+=$talla['cantidad'];
                    array_push($tallas,$talla);
                 }
                 
                 $producto['tallas']=$tallas;
                 $producto['subtotal']=$subtotal;
+                $producto['cantidad_total']=$cantidadTotal;
                 array_push($detalleFormateado,$producto);
                 $productosProcesados[] = $detalle->producto_id.'-'.$detalle->color_id;
             }
