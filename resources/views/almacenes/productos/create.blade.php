@@ -32,6 +32,7 @@
                         <div class="row">
                             <div class="col-lg-6 col-xs-12 b-r">
                                 <h4><b>Datos Generales</b></h4>
+                                <input class="d-none" type="text" id="stocksJSON" name="stocksJSON">
                                 <div class="row">
                                     <div class="col-lg-6 col-xs-12 d-none">
                                         <div class="form-group">
@@ -394,7 +395,6 @@
 
                                             </table>
                                         </div> --}}
-                             
                                        @include('almacenes.productos.list-color-tallas')
 
                                     </div>
@@ -473,35 +473,35 @@
             $.fn.DataTable.ext.errMode = 'throw';
 
             $("#codigo").on("change", validarCodigo);
-            $('#form_registrar_producto').submit(function(e) {
-                e.preventDefault();
-                Swal.fire({
-                    title: 'Opción Guardar',
-                    text: "¿Seguro que desea guardar cambios?",
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: "#1ab394",
-                    confirmButtonText: 'Si, Confirmar',
-                    cancelButtonText: "No, Cancelar",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.submit();
-                        // var existe = buscarConsumidor()
-                        // if (existe == true) {
-                        //     cargarClientes();
-                        //     
-                        // }else{
-                        //     toastr.error('Es obligatorio el ingreso del Cliente Consumidor Normal y la moneda Soles.', 'Error');
-                        // }
-                    } else if (result.dismiss === Swal.DismissReason.cancel) {
-                        swalWithBootstrapButtons.fire(
-                            'Cancelado',
-                            'La Solicitud se ha cancelado.',
-                            'error'
-                        )
-                    }
-                })
-            });
+            // $('#form_registrar_producto').submit(function(e) {
+            //     e.preventDefault();
+            //     Swal.fire({
+            //         title: 'Opción Guardar',
+            //         text: "¿Seguro que desea guardar cambios?",
+            //         icon: 'question',
+            //         showCancelButton: true,
+            //         confirmButtonColor: "#1ab394",
+            //         confirmButtonText: 'Si, Confirmar',
+            //         cancelButtonText: "No, Cancelar",
+            //     }).then((result) => {
+            //         if (result.isConfirmed) {
+            //             this.submit();
+            //             // var existe = buscarConsumidor()
+            //             // if (existe == true) {
+            //             //     cargarClientes();
+            //             //     
+            //             // }else{
+            //             //     toastr.error('Es obligatorio el ingreso del Cliente Consumidor Normal y la moneda Soles.', 'Error');
+            //             // }
+            //         } else if (result.dismiss === Swal.DismissReason.cancel) {
+            //             swalWithBootstrapButtons.fire(
+            //                 'Cancelado',
+            //                 'La Solicitud se ha cancelado.',
+            //                 'error'
+            //             )
+            //         }
+            //     })
+            // });
 
         });
 

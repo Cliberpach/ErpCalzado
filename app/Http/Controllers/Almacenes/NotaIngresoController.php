@@ -164,6 +164,7 @@ class NotaIngresoController extends Controller
 
         $articulosJSON = $request->get('notadetalle_tabla');
         $notatabla = json_decode($articulosJSON[0]);
+
         foreach ($notatabla as $fila) {
             // if($request->get('moneda') == 'DOLARES')
             // {

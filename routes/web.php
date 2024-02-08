@@ -837,6 +837,8 @@ Route::get('ruta', function () {
     return '<div style="width:100%; height: 100vh;text-align:center;"><h1 style="font-size: 350px;">SISCOM</h1></div';
 });
 
+
 Route::get('/get-producto-by-modelo/{modelo_id}', 'Almacenes\ProductoController@getProductosByModelo');
+Route::get('/get-productos-nota-ingreso/{modelo_id}', 'Almacenes\ProductoController@getProductosNotaIngreso');
 Route::get('/get-stocklogico/{producto_id}/{color_id}/{talla_id}', 'Almacenes\ProductoController@getStockLogico');
 

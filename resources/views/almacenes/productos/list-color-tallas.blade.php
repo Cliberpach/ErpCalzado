@@ -16,7 +16,7 @@
                 @foreach ($tallas as $talla)
                 <div class="form-check p-0 mb-2">
                     <label class="form-check-label" for="{{$color->id}}_{{$talla->id}}">{{$talla->descripcion}}</label>
-                    <input placeholder="Ingresar stock" name="stocks[{{$color->id}}_{{$talla->id}}]" type="number" class="form-control talla" id="input_{{$color->id}}_{{$talla->id}}">
+                    <input data-color-id="{{$color->id}}" data-talla-id="{{$talla->id}}" placeholder="Ingresar stock" name="stocks[{{$color->id}}_{{$talla->id}}]" type="number" class="form-control talla" id="input_{{$color->id}}_{{$talla->id}}">
                 </div>
                 @endforeach
             </div>

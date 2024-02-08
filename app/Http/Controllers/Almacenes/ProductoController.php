@@ -144,31 +144,48 @@ class ProductoController extends Controller
             $producto->save();
 
             //guardando colores_producto
-            $colores = Color::where('estado', 'ACTIVO')->get();
-            foreach ($colores as $color) {
-                $color_producto = new ProductoColor();
-                $color_producto->color_id = $color->id;
-                $color_producto->producto_id = $producto->id;
-                $color_producto->save();
-            }
+            //$colores = Color::where('estado', 'ACTIVO')->get();
+            // foreach ($colores as $color) {
+            //     $color_producto = new ProductoColor();
+            //     $color_producto->color_id = $color->id;
+            //     $color_producto->producto_id = $producto->id;
+            //     $color_producto->save();
+            // }
 
             //guardando stocks por cada talla de cada color
-            $stocksColorTalla = $request->get('stocks');
-            foreach ($stocksColorTalla as $key => $stockColorTalla) {
+            $stocks = json_decode($request->input('stocksJSON'));
 
-                $keySeparated = explode("_", $key);
-                $color_id = $keySeparated[0];
-                $talla_id = $keySeparated[1];
-
-                if($stockColorTalla){
-                    $color_talla = new ProductoColorTalla();
-                    $color_talla->color_id      = $color_id;
-                    $color_talla->producto_id   = $producto->id;
-                    $color_talla->talla_id      = $talla_id;
-                    $color_talla->stock         = $stockColorTalla;
-                    $color_talla->stock_logico  = $stockColorTalla;
-                    $color_talla->estado        =   '1';
-                    $color_talla->save();
+            foreach ($stocks as $stock) {
+                //creamos colores de ese producto
+                $color_producto     = new ProductoColor();
+                $color_producto->color_id = $stock->color_id;
+                $color_producto->producto_id = $producto->id;
+                $color_producto->save();
+                if(count($stock->tallas) > 0){
+                   
+                    //creando tallas
+                    foreach ($stock->tallas as $stockTalla) {
+                        $color_talla                = new ProductoColorTalla();
+                        $color_talla->color_id      = $stockTalla->color_id;
+                        $color_talla->producto_id   = $producto->id;
+                        $color_talla->talla_id      = $stockTalla->talla_id;
+                        $color_talla->stock         = $stockTalla->cantidad;
+                        $color_talla->stock_logico  = $stockTalla->cantidad;
+                        $color_talla->estado        =   '1';
+                        $color_talla->save();
+                    }
+                }else{
+                    $primeraTalla   =   Talla::first();
+                    if($primeraTalla){
+                        $color_talla                = new ProductoColorTalla();
+                        $color_talla->color_id      = $stock->color_id;
+                        $color_talla->producto_id   = $producto->id;
+                        $color_talla->talla_id      = $primeraTalla->id;
+                        $color_talla->stock         = 0;
+                        $color_talla->stock_logico  = 0;
+                        $color_talla->estado        =   '1';
+                        $color_talla->save();
+                    }
                 }
 
             }
@@ -529,16 +546,6 @@ class ProductoController extends Controller
                                     AND p.estado="ACTIVO" 
                                     order by p.id,c.id,t.id',[$modelo_id]);
 
-        // $productosProcesados=[];
-        // foreach ($stocks as $stock) {
-        //     if(!in_array($stock->producto_id, $productosProcesados)){
-        //         $stock->printPreciosVenta=TRUE;
-        //         array_push($productosProcesados, $stock->producto_id);
-        //     }else{
-        //         $stock->printPreciosVenta=FALSE;
-        //     }
-        // }
-
         $producto_colores = DB::select('select p.id as producto_id,p.nombre as producto_nombre,
                                         c.id as color_id, c.descripcion as color_nombre,
                                         p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
@@ -583,6 +590,12 @@ class ProductoController extends Controller
         } catch (\Exception $e) {
             return response()->json(["message" => "Error al obtener el stock lógico", "error" => $e->getMessage()], 500);
         }                    
+    }
+
+
+    public function getProductosNotaIngreso($modelo_id){
+        $productos = Producto::where('modelo_id', $modelo_id)->get();
+        return response()->json(["message" => "success" , "productos" => $productos ]);
     }
 
 }

@@ -4,6 +4,7 @@ const divsColorTallas= document.querySelectorAll('.color-tallas');
 const formCrearCategoria        =   document.querySelector('#crear_categoria');
 const formCrearMarca            =   document.querySelector('#crear_marca');
 const formCrearModelo           =   document.querySelector('#crear_modelo');
+const formRegProducto           =   document.querySelector('#form_registrar_producto');
 
 
 const tokenValue                = document.querySelector('input[name="_token"]').value;
@@ -12,7 +13,11 @@ const selectCategorias          =   document.querySelector('#categoria');
 const selectMarcas              =   document.querySelector('#marca');
 const selectModelos              =   document.querySelector('#modelo');
 
+const inputStocksJSON           =   document.querySelector('#stocksJSON');
+
 const tallas    =   document.querySelectorAll('.talla');
+
+const coloresSeleccionados = [];
 
 //solo marcar un color a la vez
 document.addEventListener('DOMContentLoaded',()=>{
@@ -30,7 +35,8 @@ function events(){
             seleccionActual=e.target;
 
             if(e.target.checked){
-                clearChecksColores(idColorCheckSelected);
+                //clearChecksColores(idColorCheckSelected);
+                addColor(idColorCheckSelected);
                 showColorTallas(idColorCheckSelected);
 
                 const spansAvisos   =   document.querySelectorAll('.span-aviso');
@@ -46,11 +52,39 @@ function events(){
                 })
             }else{
                 hiddenDivColorTallas(0);
+                removeColor(idColorCheckSelected);
+                //clearTallas(idColorCheckSelected);
             }
 
          
 
         }
+    })
+
+    //========== FORM REG PRODUCTO ==============
+    formRegProducto.addEventListener('submit',(e)=>{
+        e.preventDefault();
+        Swal.fire({
+            title: 'Opción Guardar',
+            text: "¿Seguro que desea guardar cambios?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: "#1ab394",
+            confirmButtonText: 'Si, Confirmar',
+            cancelButtonText: "No, Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                cargarStocks();
+                e.target.submit();
+              
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                swalWithBootstrapButtons.fire(
+                    'Cancelado',
+                    'La Solicitud se ha cancelado.',
+                    'error'
+                )
+            }
+        })
     })
 
 
@@ -136,22 +170,84 @@ function events(){
     })
 }
 
+const addColor = (idColorSeleccionado)=>{
+    const indexColor = coloresSeleccionados.findIndex((c)=>{ return c  == idColorSeleccionado  });
+    if(indexColor === -1){
+        coloresSeleccionados.push(idColorSeleccionado);
+    }
+    console.log(coloresSeleccionados);
+}
+
+const removeColor = (idColorSeleccionado)=>{
+    const indexColor = coloresSeleccionados.findIndex((c)=>{ return c  == idColorSeleccionado  });
+    if(indexColor !== -1){
+        coloresSeleccionados.splice(indexColor,1);
+    }
+    console.log(coloresSeleccionados);
+
+}
+
+//=========== cargar stocks ===========
+const cargarStocks = ()=>{
+    const arrayStocks   =   [];
+    coloresSeleccionados.forEach((c)=>{
+        const color={};
+        const tallas    =   document.querySelectorAll(`input[data-color-id="${c}"]`);
+        let arrayTallas =   [];
+
+        color.color_id  =   c;
+        tallas.forEach((t)=>{
+            let talla = {};
+            if(t.value !== ''){
+                const idColor   =   t.getAttribute('data-color-id');
+                const idTalla   =   t.getAttribute('data-talla-id');
+                talla.color_id  =   idColor;
+                talla.talla_id  =   idTalla;
+                talla.cantidad  =   t.value;
+
+                arrayTallas.push(talla);
+            }
+        })
+
+        color.tallas    =   arrayTallas;
+        arrayStocks.push(color);
+    })
+
+    inputStocksJSON.value   =   JSON.stringify(arrayStocks);
+}
+
 
 //=============== DESMARCAR CHECKS COLORES ==========================
 const clearChecksColores=(idColorCheckSelected)=>{
-    checkColores.forEach((cc)=>{
-        if(cc.getAttribute('id') != idColorCheckSelected){
-            cc.checked=false;
-        }
-    })
+    // checkColores.forEach((cc)=>{
+    //     if(cc.getAttribute('id') != idColorCheckSelected){
+    //         cc.checked=false;
+    //     }
+    // })
 }
 
 //================ MOSTRAR INPUTS TALLAS PARA LLENAR STOCKS ================
 const showColorTallas=(idColorCheckSelected)=>{
     const idDivColorTallas=`#color_tallas_${idColorCheckSelected}`;
+    //==== ocultar divs tallas de otros colores diferentes al seleccionado =======
     hiddenDivColorTallas(idDivColorTallas);
+    //===== mostrar tallas del color elegido ===============
     const divColorTallas= document.querySelector(idDivColorTallas);
     divColorTallas.hidden=false;
+    //===== colocar la primera talla de dicho color en 0 solo sí está vacío =======
+   //setFirstTalla(divColorTallas);
+}
+
+
+const setFirstTalla = (divColorTallas)=>{
+    //====== si el color tiene tallas y la primera talla tiene su input =======
+    if(divColorTallas.firstChild && divColorTallas.firstElementChild.children[1]){
+        //======= si ese input está vacío ========
+        if(!divColorTallas.firstElementChild.children[1].value){
+            //======== rellenar con 0 =========
+           divColorTallas.firstElementChild.children[1].value = 0;
+        }
+   }
 }
 
 //================= OCULTAR CONTENEDOR DE TALLAS =======================
@@ -163,6 +259,17 @@ const hiddenDivColorTallas=(idDivColorTallas)=>{
     })
 }
 
+//limpiar el valor del primer input talla al desmarcar un color =======
+function clearTallas(idColorCheckSelected){
+    //========= seleccionando todas las tallas del color ==========
+    const tallas = document.querySelectorAll(`input[id^="input_${idColorCheckSelected}_"]`);
+
+
+    //====== si el color tiene tallas y la primera talla tiene su input =======
+    tallas.forEach((i)=>{
+        i.value = null;
+    })
+}
 
 const pintarErroresMarca    =   (errores_marca)=>{
     let message = '';

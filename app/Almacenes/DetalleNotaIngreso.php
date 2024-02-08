@@ -46,7 +46,7 @@ class DetalleNotaIngreso extends Model
         static::created(function(DetalleNotaIngreso $detalleNotaIngreso){
 
             $cantidadProductos = $detalleNotaIngreso->cantidad;
-
+            
             ProductoColorTalla::where('producto_id', $detalleNotaIngreso->producto_id)
                             ->where('color_id', $detalleNotaIngreso->color_id)
                             ->where('talla_id', $detalleNotaIngreso->talla_id)

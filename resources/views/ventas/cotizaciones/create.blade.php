@@ -149,7 +149,9 @@
                                                         onchange="obtenerTipo(this)" required>
                                                         <option></option>
                                                         @foreach ($clientes as $cliente)
-                                                            <option value="{{ $cliente->id }}"
+                                                            <option @if ($cliente->id == 1)
+                                                                selected
+                                                            @endif value="{{ $cliente->id }}"
                                                                 {{ old('cliente') == $cliente->id ? 'selected' : '' }}>
                                                                 {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
                                                             </option>
@@ -217,7 +219,7 @@
                                                     <label class="required">Modelo</label>
                                                     <select id="modelo"
                                                         class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
-                                                        onchange="getProductosByModelo(this)"  disabled>
+                                                        onchange="getProductosByModelo(this)" >
                                                         <option></option>
                                                         @foreach ($modelos as $modelo)
                                                             <option value="{{ $modelo->id }}"

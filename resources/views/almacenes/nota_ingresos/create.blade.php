@@ -663,6 +663,7 @@
     const selectModelo =  document.querySelector('#modelo');
     const tokenValue = document.querySelector('input[name="_token"]').value;
     const tallas     = @json($tallas);
+    const colores     = @json($colores);
     const bodyTablaProductos  =  document.querySelector('#table-productos tbody');
     const bodyTablaDetalle  =  document.querySelector('#table-detalle tbody');
     const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle');
@@ -675,6 +676,7 @@
 
     document.addEventListener('DOMContentLoaded',()=>{
         events();
+        console.log(colores);
     })
 
     function events(){
@@ -753,7 +755,7 @@
         btnAgregarDetalle.disabled=true;
         
         if(modelo_id){
-            const url = `/get-producto-by-modelo/${modelo_id}`;
+            const url = `/get-productos-nota-ingreso/${modelo_id}`;
             fetch(url, {
                     method: 'GET',
                     headers: {
@@ -764,9 +766,9 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    //console.log(data.stocks);
-                    //console.log(data.producto_colores);
-                    pintarTableStocks(data.stocks,tallas,data.producto_colores);
+                    console.log(data);
+                    
+                    pintarTableStocks(tallas,colores,data.productos);
                 })
 
                 .catch(error => console.error('Error:', error));
@@ -802,39 +804,41 @@
     }
 
     //============ RENDERIZAR TABLA DE CANTIDADES ============
-    const pintarTableStocks = (stocks,tallas,producto_colores)=>{
+    const pintarTableStocks = (tallas,colores,productos)=>{
         let options =``;
         let producto_color_procesados=[];
         
-        producto_colores.forEach((pc)=>{
-            options+=`  <tr>
-                            <th scope="row" data-producto=${pc.producto_id} data-color=${pc.color_id} >
-                                ${pc.producto_nombre} - ${pc.color_nombre}
+        productos.forEach((p)=>{
+            colores.forEach((c)=>{
+                options+=`  <tr>
+                            <th scope="row" data-producto=${p.producto_id} data-color=${c.id} >
+                                ${p.nombre} - ${c.descripcion}
                             </th>
                         `;
 
-            let htmlTallas = ``;
+                        let htmlTallas = ``;
 
-            tallas.forEach((t)=>{
-                const stock =  stocks.filter((st)=>{
-                  return  st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id
-                })[0].stock;
-
-
-                htmlTallas +=   `
-                                    <td width="8%">
-                                        <input type="text" class="form-control inputCantidad" 
-                                        data-producto-id="${pc.producto_id}"
-                                        data-producto-nombre="${pc.producto_nombre}"
-                                        data-color-nombre="${pc.color_nombre}"
-                                        data-talla-nombre="${t.descripcion}"
-                                        data-color-id="${pc.color_id}" data-talla-id="${t.id}"></input>    
-                                    </td>
-                                `;   
+                        tallas.forEach((t)=>{
+                        
+                            htmlTallas +=   `
+                                                <td >
+                                                    <input type="text" class="form-control inputCantidad" 
+                                                    data-producto-id="${p.id}"
+                                                    data-producto-nombre="${p.nombre}"
+                                                    data-color-nombre="${c.descripcion}"
+                                                    data-talla-nombre="${t.descripcion}"
+                                                    data-color-id="${c.id}" data-talla-id="${t.id}"></input>    
+                                                </td>
+                                            `;   
+                        })
+                htmlTallas += `</tr>`;
+                options += htmlTallas;
             })
+           
 
-            htmlTallas += `</tr>`;
-            options += htmlTallas;
+            
+
+            
         })
 
         bodyTablaProductos.innerHTML = options;
