@@ -22,9 +22,11 @@ class CreateMovimientoNotaTable extends Migration
             $table->unsignedInteger('nota_id')->unsigned(); 
             $table->mediumText('observacion');
             $table->unsignedInteger('usuario_id')->unsigned(); 
-            $table->unsignedInteger('lote_id')->unsigned(); 
+            // $table->unsignedInteger('lote_id')->unsigned(); 
             $table->enum('movimiento',['SALIDA','INGRESO']);
             $table->unsignedInteger('producto_id')->unsigned();
+            $table->unsignedInteger('color_id')->unsigned();
+            $table->unsignedInteger('talla_id')->unsigned();
             $table->timestamps();
         });
     }

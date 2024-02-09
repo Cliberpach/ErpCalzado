@@ -291,14 +291,15 @@
 <script>
     const stocks = @json($stocks);
     $('#modal_show_stocks').on('show.bs.modal', function (event) {
+        resetearTabla();
          var button = $(event.relatedTarget) 
          var product_id = button.data('whatever') 
             const product_name = button.data('product-nombre');
          stocks.forEach((stock) => {
              if (stock.producto_id == product_id) {
-                 const tdStock =  document.querySelector(`#stock_${stock.color_id}_${stock.talla_id}`);
-                 tdStock.textContent = stock.stock; 
-                 tdStock.disabled = true;
+                const tdStock =  document.querySelector(`#stock_${stock.color_id}_${stock.talla_id}`);
+                tdStock.textContent = stock.stock; 
+                tdStock.disabled = true;
              }
          });
         
@@ -306,9 +307,15 @@
          modal.find('.modal-title').text('Stocks: ' + product_name)
          modal.find('.product_name').text(product_name);
     })
+
+
+    function resetearTabla(){
+        const elementos = document.querySelectorAll(`[id^="stock_"]`);
+        elementos.forEach((e)=>{
+            e.textContent   =   '';
+        })
+    }
 </script>
 
-
-<script src="{{asset('js/products-stocks.js')}}"></script>
 
 @endpush

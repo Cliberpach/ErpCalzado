@@ -26,8 +26,8 @@ class CreateKardexTable extends Migration
             $table->date('fecha')->nullable();
             $table->unsignedDecimal('cantidad', 15,2);
             $table->text('descripcion')->nullable();
-            $table->unsignedDecimal('precio', 15,2);
-            $table->unsignedDecimal('importe', 15,2);
+            $table->unsignedDecimal('precio', 15,2)->nullable();
+            $table->unsignedDecimal('importe', 15,2)->nullable();
             $table->unsignedDecimal('stock', 15,2); 
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
             $table->timestamps();

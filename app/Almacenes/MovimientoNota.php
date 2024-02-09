@@ -12,13 +12,15 @@ class MovimientoNota extends Model
         'orden_produccion_detalle_id',
         'almacen_inicio_id',
         'almacen_final_id',
-        'lote_id',
+        // 'lote_id',
         'cantidad',
         'observacion',
         'usuario_id',
         'nota_id',
         'movimiento',
-        'producto_id'
+        'producto_id',
+        'color_id',
+        'talla_id'
     ];
     public $timestamps = true;
 }

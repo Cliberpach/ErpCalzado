@@ -18,6 +18,7 @@ const inputStocksJSON           =   document.querySelector('#stocksJSON');
 const tallas    =   document.querySelectorAll('.talla');
 
 const coloresSeleccionados = [];
+const span_color_activo         = document.querySelector('.color_activo');
 
 //solo marcar un color a la vez
 document.addEventListener('DOMContentLoaded',()=>{
@@ -31,35 +32,33 @@ function events(){
     //============ MOSTRAR INPUTS TALLAS PARA COLOR SELECCIONADO ========================
     document.addEventListener('click',(e)=>{
         if(e.target.classList.contains('color')){
-            const idColorCheckSelected= e.target.getAttribute('id');
-            seleccionActual=e.target;
+            const idColorCheckSelected  = e.target.getAttribute('id');
+            const color_nombre          =   e.target.getAttribute('data-color-nombre');
 
             if(e.target.checked){
-                //clearChecksColores(idColorCheckSelected);
                 addColor(idColorCheckSelected);
                 showColorTallas(idColorCheckSelected);
+                pintarBotonEditar(e.target,idColorCheckSelected,color_nombre);
+                span_color_activo.textContent   =   color_nombre;
 
-                const spansAvisos   =   document.querySelectorAll('.span-aviso');
-                spansAvisos.forEach((span)=>{
-                    span.innerHTML  =   '';
-                })
-                tallas.forEach((t)=>{
-                    if(t.value){
-                        const idColor       =   t.getAttribute('id').split('_')[1];
-                        const spanAviso     =   document.querySelector(`.aviso_${idColor}`);
-                        spanAviso.innerHTML =   '<i class="fas fa-vote-yea fa-lg" style="color: #0579d1;"></i>';      
-                    }
-                })
             }else{
                 hiddenDivColorTallas(0);
                 removeColor(idColorCheckSelected);
-                //clearTallas(idColorCheckSelected);
-            }
-
-         
-
+                despintarBotonEditar(e.target);
+                span_color_activo.textContent   =   'SELECCIONAR COLOR';
+            }     
         }
+
+        if(e.target.classList.contains('btn-editar-stocks')){
+            const idColor   =   e.target.getAttribute('data-color-id');
+            const color_nombre  =   e.target.getAttribute('data-color-nombre');
+            showColorTallas(idColor);
+            span_color_activo.textContent   =   color_nombre;
+        }
+
+
     })
+
 
     //========== FORM REG PRODUCTO ==============
     formRegProducto.addEventListener('submit',(e)=>{
@@ -170,6 +169,27 @@ function events(){
     })
 }
 
+
+//============= PINTAR BOTÓN EDITAR STOCKS ===========
+const pintarBotonEditar = (checkColorSeleccionado,idColor,color_nombre)=>{
+   const form_check = checkColorSeleccionado.parentElement;
+   const iconoEditar = document.createElement('i');
+   iconoEditar.className = 'fas fa-edit btn btn-primary btn-editar-stocks'; 
+   iconoEditar.style.margin = '0 0 0 10px';
+   iconoEditar.setAttribute('data-color-id', idColor);
+   iconoEditar.setAttribute('data-color-nombre', color_nombre);
+
+
+   form_check.appendChild(iconoEditar);
+}
+
+//========= DESPINTAR BOTÓN EDITAR STOCKS ============
+const despintarBotonEditar = (checkColorSeleccionado)=>{
+    const form_check = checkColorSeleccionado.parentElement;
+    
+   form_check? form_check.children[2].remove():unset;
+ }
+
 const addColor = (idColorSeleccionado)=>{
     const indexColor = coloresSeleccionados.findIndex((c)=>{ return c  == idColorSeleccionado  });
     if(indexColor === -1){
@@ -216,15 +236,6 @@ const cargarStocks = ()=>{
     inputStocksJSON.value   =   JSON.stringify(arrayStocks);
 }
 
-
-//=============== DESMARCAR CHECKS COLORES ==========================
-const clearChecksColores=(idColorCheckSelected)=>{
-    // checkColores.forEach((cc)=>{
-    //     if(cc.getAttribute('id') != idColorCheckSelected){
-    //         cc.checked=false;
-    //     }
-    // })
-}
 
 //================ MOSTRAR INPUTS TALLAS PARA LLENAR STOCKS ================
 const showColorTallas=(idColorCheckSelected)=>{
