@@ -17,6 +17,7 @@
                                 <option></option>
                                 @foreach (tipos_documento() as $tipo_documento)
                                     <option value="{{ $tipo_documento->simbolo }}"
+                                        {{$tipo_documento->simbolo == 'DNI'? 'selected':''}}
                                         {{ old('tipo_documento') ? (old('tipo_documento') == $tipo_documento->simbolo ? 'selected' : '') : ($cliente->tipo_documento == $tipo_documento->simbolo ? 'selected' : '') }}>
                                         {{ $tipo_documento->simbolo }}</option>
                                 @endforeach
@@ -52,7 +53,7 @@
                     </div>
 
 
-                    <div class="form-group">
+                    <div class="form-group d-none">
                         <div class="border p-4 align-items-center">
                             <div class="form-group">
                                 <label> <input type="checkbox" id="check_retencion" class="i-checks" value="1" disabled> <b class="text-danger">¿Es agente de retención?</b> </label>
@@ -80,6 +81,7 @@
                                 <option></option>
                                 @foreach (tipo_clientes() as $tipo_cliente)
                                     <option value="{{ $tipo_cliente->id }}"
+                                        {{$tipo_cliente->descripcion == "NORMAL"?'selected':''}}
                                         {{ old('tipo_cliente') ? (old('tipo_cliente') == $tipo_cliente->id ? 'selected' : '') : ($cliente->tabladetalles_id == $tipo_cliente->id ? 'selected' : '') }}>
                                         {{ $tipo_cliente->descripcion }}</option>
                                 @endforeach
@@ -173,6 +175,7 @@
                                 <option></option>
                                 @foreach (departamentos() as $departamento)
                                     <option value="{{ $departamento->id }}"
+                                        {{$departamento->nombre == 'LA LIBERTAD'?'selected':''}}
                                         {{ old('departamento') ? (old('departamento') == $departamento->id ? 'selected' : '') : ($cliente->departamento_id == $departamento->id ? 'selected' : '') }}>
                                         {{ $departamento->nombre }}</option>
                                 @endforeach
@@ -191,6 +194,7 @@
                                 <option></option>
                                 @foreach (provincias() as $provincia)
                                     <option value="{{ $provincia->id }}"
+                                        {{$provincia->nombre == 'TRUJILLO'?'selected':''}}
                                         {{ old('provincia') ? (old('provincia') == $provincia->id ? 'selected' : '') : ($cliente->provincia_id == $provincia->id ? 'selected' : '') }}>
                                         {{ $provincia->nombre }}</option>
                                 @endforeach
@@ -213,6 +217,7 @@
                                 <option></option>
                                 @foreach (distritos() as $distrito)
                                     <option value="{{ $distrito->id }}"
+                                        {{$distrito->nombre == 'TRUJILLO'?'selected':''}}
                                         {{ old('distrito') ? (old('distrito') == $distrito->id ? 'selected' : '') : ($cliente->distrito_id == $distrito->id ? 'selected' : '') }}>
                                         {{ $distrito->nombre }}</option>
                                 @endforeach

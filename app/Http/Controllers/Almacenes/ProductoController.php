@@ -266,6 +266,10 @@ class ProductoController extends Controller
     public function update(Request $request, $id)
     {
         $this->authorize('haveaccess','producto.index');
+
+           //===== obteniendo todos los colores asociados al producto
+           
+      
         $data = $request->all();
         $rules = [
             // 'codigo' => ['required','string', 'max:50', Rule::unique('productos','codigo')->where(function ($query) {
@@ -338,27 +342,54 @@ class ProductoController extends Controller
             file_put_contents($pathToFile, $data_code);
         }
 
-         //editando stocks por cada talla de cada color
-         $stocksColorTalla = $request->get('stocks');
-         foreach ($stocksColorTalla as $key => $stockColorTalla) {
+        //editando stocks por cada talla de cada color
+        $stocks = json_decode($request->input('stocksJSON'));
 
-             $keySeparated = explode("_", $key);
-             $color_id = $keySeparated[0];
-             $talla_id = $keySeparated[1];
+        //eliminando todos los productos_colores del producto
+        DB::table('producto_colores')
+        ->where('producto_id', $id)
+        ->delete();
 
-            
+        //eliminando todos los producto_color_tallas del producto
+        DB::table('producto_color_tallas')
+        ->where('producto_id', $id)
+        ->delete();
 
-             DB::table('producto_color_tallas')
-             ->where('producto_id', $id)
-             ->where('color_id', $color_id)
-             ->where('talla_id', $talla_id)
-             ->update([
-                 'stock' => $stockColorTalla ?: 0,
-                 'stock_logico' => $stockColorTalla ?: 0,
-             ]);
-         
+        //===== registrando nuevos stocks ==============
+        foreach ($stocks as $stock) {
+            //creamos colores de ese producto
+            $color_producto     = new ProductoColor();
+            $color_producto->color_id = $stock->color_id;
+            $color_producto->producto_id = $producto->id;
+            $color_producto->save();
+            if(count($stock->tallas) > 0){
+               
+                //creando tallas
+                foreach ($stock->tallas as $stockTalla) {
+                    $color_talla                = new ProductoColorTalla();
+                    $color_talla->color_id      = $stockTalla->color_id;
+                    $color_talla->producto_id   = $producto->id;
+                    $color_talla->talla_id      = $stockTalla->talla_id;
+                    $color_talla->stock         = $stockTalla->cantidad;
+                    $color_talla->stock_logico  = $stockTalla->cantidad;
+                    $color_talla->estado        =   '1';
+                    $color_talla->save();
+                }
+            }else{
+                $primeraTalla   =   Talla::first();
+                if($primeraTalla){
+                    $color_talla                = new ProductoColorTalla();
+                    $color_talla->color_id      = $stock->color_id;
+                    $color_talla->producto_id   = $producto->id;
+                    $color_talla->talla_id      = $primeraTalla->id;
+                    $color_talla->stock         = 0;
+                    $color_talla->stock_logico  = 0;
+                    $color_talla->estado        =   '1';
+                    $color_talla->save();
+                }
+            }
 
-         }
+        }
 
          
         // $clientesJSON = $request->get('clientes_tabla');

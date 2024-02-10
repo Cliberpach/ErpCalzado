@@ -852,5 +852,5 @@
             return existe
         }
     </script>
-    <script src="{{asset('js/products-create.js')}}"></script>
+    <script src="{{asset('js/products.js')}}"></script>
 @endpush

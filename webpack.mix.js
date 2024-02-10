@@ -20,7 +20,8 @@ mix.js('resources/js/appNotify.js', 'public/js')
     mix.js('resources/js/appPages.js', 'public/js')
     .sass('resources/sass/appPages.scss', 'public/css');
     mix.js('resources/js/utilidades.js', 'public/js');
-mix.webpackConfig({
+    mix.js('resources/js/modal_cliente.js', 'public/js');
+    mix.webpackConfig({
     resolve: {
         alias: {
             '@sass': path.resolve(__dirname, 'resources/sass'),

@@ -1121,13 +1121,34 @@
 
         formCotizacion.addEventListener('submit',(e)=>{
             e.preventDefault();
-            inputProductos.value=JSON.stringify(carrito);
-            // const formData = new FormData(formCotizacion);
-            // formData.append("carrito", JSON.stringify(carrito));
-            // formData.forEach((valor, clave) => {
-            //     console.log(`${clave}: ${valor}`);
-            // });
-            formCotizacion.submit();
+            const enviar    =   validaciones();
+
+            if (enviar) {
+                Swal.fire({
+                    title: 'Opción Guardar',
+                    text: "¿Seguro que desea guardar cambios?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: "#1ab394",
+                    confirmButtonText: 'Si, Confirmar',
+                    cancelButtonText: "No, Cancelar",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        //====== guardamos el carrito en JSON en el form ==========
+                        saveCarritoJSON();
+                        formCotizacion.submit();
+
+                    } else if (
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire(
+                            'Cancelado',
+                            'La Solicitud se ha cancelado.',
+                            'error'
+                        )
+                    }
+                })
+            }
         })
        
         btnAgregarDetalle.addEventListener('click',()=>{
@@ -1163,6 +1184,38 @@
             pintarDetalleCotizacion(carrito);
             calcularMontos();
         })
+    }
+
+    //======= validaciones para el formulario ============
+    const validaciones  =   ()=>{
+        
+        let enviar = true;
+        
+        //======= validar fechas =============
+        if ($('#fecha_documento').val() == '') {
+            toastr.error('Ingrese Fecha de Documento.', 'Error');
+            $("#fecha_documento").focus();
+            enviar = false;
+        }
+
+        if ($('#fecha_atencion').val() == '') {
+            toastr.error('Ingrese Fecha de Atención.', 'Error');
+            $("#fecha_atencion").focus();
+            enviar = false;
+        }
+
+        //============= validar carrito =============
+        if (carrito.length == 0) {
+            toastr.error('Ingrese al menos 1 Producto.', 'Error');
+            enviar = false;
+        }
+
+        return enviar
+    }
+
+    //====== guardar el carrito en el form ===========
+    const saveCarritoJSON = ()=>{
+        inputProductos.value=JSON.stringify(carrito);
     }
 
     const cargarProductosPrevios=()=>{
@@ -1301,8 +1354,8 @@
                 })
 
 
-                htmlTallas+=`   <td>${c.precio_venta}</td>
-                                <td class="td-subtotal">${c.subtotal}</td>
+                htmlTallas+=`   <td style="text-align: right;">${c.precio_venta}</td>
+                                <td class="td-subtotal" style="text-align: right;">${c.subtotal}</td>
                             </tr>`;
 
                 fila+=htmlTallas;
@@ -1354,9 +1407,8 @@
             let htmlTallas = ``;
 
             tallas.forEach((t)=>{
-                const stock =  stocks.filter((st)=>{
-                  return  st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id
-                })[0].stock;
+                const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id)[0]?.stock || 0;
+
 
                 let cantidadPrevia = (carrito.filter((producto) => producto.producto_id == pc.producto_id && producto.color_id == pc.color_id && producto.talla_id == t.id)[0]?.cantidad) || '';
 
@@ -1364,7 +1416,7 @@
                 htmlTallas +=   `
                                     <td>${stock}</td>
                                     <td width="8%">
-                                        <input type="text" class="form-control inputCantidad" 
+                                        <input style="width: 45px;" type="text" class="form-control inputCantidad" 
                                         data-producto-id="${pc.producto_id}"
                                         data-producto-nombre="${pc.producto_nombre}"
                                         data-color-nombre="${pc.color_nombre}"
@@ -1381,7 +1433,7 @@
                 })[0];
                 htmlTallas+=`
                     <td>
-                        <select class="select2_form form-control" id="precio-venta-${pc.producto_id}">
+                        <select style="width: 95px;" class="select2_form form-control" id="precio-venta-${pc.producto_id}">
                             <option>${preciosVenta.precio_venta_1}</option>    
                             <option>${preciosVenta.precio_venta_2}</option>    
                             <option>${preciosVenta.precio_venta_3}</option>    

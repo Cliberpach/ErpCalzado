@@ -18,6 +18,7 @@ class CreateProductoColoresTable extends Migration
             $table->unsignedInteger('color_id'); 
             $table->foreign('producto_id')->references('id')->on('productos');
             $table->foreign('color_id')->references('id')->on('colores');
+            $table->enum('estado',['0','1'])->default('1');
             $table->timestamps();
             $table->primary(['producto_id', 'color_id']); 
 

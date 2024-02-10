@@ -71,6 +71,22 @@ class DetalleNotaIngreso extends Model
             } else {
             //========= el producto no existe =============
             //================== crearlo =========================
+
+                //========= verificando si ya existe registro en la tabla producto_color =========
+                $existeColor = ProductoColor::where('producto_id', $detalleNotaIngreso->producto_id)
+                                ->where('color_id', $detalleNotaIngreso->color_id)
+                                ->exists();
+                
+                //======== registrar en caso no exista el color para el producto =======
+                //===== cuando se reciba varias tallas por color esto evitará color_id duplicado =====
+                if(!$existeColor){
+                    $producto_color                 =   new ProductoColor();
+                    $producto_color->producto_id    =   $detalleNotaIngreso->producto_id;
+                    $producto_color->color_id       =   $detalleNotaIngreso->color_id;
+                    $producto_color->save(); 
+                }  
+
+                //====== registrar el stock de producto_color_talla ============
                 $producto               =    new ProductoColorTalla();
                 $producto->producto_id  =   $detalleNotaIngreso->producto_id;
                 $producto->color_id     =   $detalleNotaIngreso->color_id;

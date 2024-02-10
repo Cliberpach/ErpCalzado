@@ -5,5 +5,6 @@
     "/css/appPages.css": "/css/appPages.css",
     "/js/appNotify.js": "/js/appNotify.js",
     "/js/appPages.js": "/js/appPages.js",
+    "/js/modal_cliente.js": "/js/modal_cliente.js",
     "/js/utilidades.js": "/js/utilidades.js"
 }

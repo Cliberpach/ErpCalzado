@@ -1,5 +1,6 @@
 @extends('layout') @section('content')
-    @include('ventas.cotizaciones.edit-detalle')
+    {{-- @include('ventas.cotizaciones.edit-detalle') --}}
+    
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
 @csrf
@@ -17,10 +18,14 @@
                 <strong>Registrar</strong>
             </li>
         </ol>
+
     </div>
 </div>
 
+
+
 <div class="wrapper wrapper-content animated fadeInRight">
+      
     <div class="row">
         <div class="col-lg-12">
             <div class="ibox">
@@ -140,10 +145,16 @@
                                                 </div>
                                             </div>
                                         </div>
+                                       
                                         <div class="row">
                                             <div class="col-12 col-md-6 select-required">
                                                 <div class="form-group">
-                                                    <label class="required">Cliente</label>
+                                                    <label class="required">Cliente:
+                                                        <button type="button" class="btn btn-outline btn-primary"
+                                                            onclick="openModalCliente()">
+                                                            Registrar
+                                                        </button>
+                                                    </label>
                                                     <select id="cliente" name="cliente"
                                                         class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}"
                                                         onchange="obtenerTipo(this)" required>
@@ -357,7 +368,9 @@
         </div>
     </div>
 </div>
-
+<div id="reg_clientes">
+    <modal-cliente></modal-cliente>
+</div>
 @stop
 
 @push('styles')
@@ -370,8 +383,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/dist/toastr.min.css">
 
 @endpush
-
+@push('scripts-vue-js')
+    <script src="{{'/js/modal_cliente.js?v='.rand() }}"></script>
+@endpush
 @push('scripts')
+
 <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
@@ -529,7 +545,7 @@
         $('#codigo_nombre_producto_editar').val(data[4]);
         $('#medida_editar').val(data[7]);
         $('#cantidad_editar').val(data[2]);
-        $('#modal_editar_detalle').modal('show');
+        // $('#modal_editar_detalle').modal('show');
     })
 
     //Borrar registro de Producto
@@ -1019,6 +1035,7 @@
 
     })
 </script>
+
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <script>
     const selectModelo =  document.querySelector('#modelo');
@@ -1064,13 +1081,34 @@
 
         formCotizacion.addEventListener('submit',(e)=>{
             e.preventDefault();
-            inputProductos.value=JSON.stringify(carrito);
-            // const formData = new FormData(formCotizacion);
-            // formData.append("carrito", JSON.stringify(carrito));
-            // formData.forEach((valor, clave) => {
-            //     console.log(`${clave}: ${valor}`);
-            // });
-            formCotizacion.submit();
+            const enviar    =   validaciones();
+
+            if (enviar) {
+                Swal.fire({
+                    title: 'Opción Guardar',
+                    text: "¿Seguro que desea guardar cambios?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: "#1ab394",
+                    confirmButtonText: 'Si, Confirmar',
+                    cancelButtonText: "No, Cancelar",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        //====== guardamos el carrito en JSON en el form ==========
+                        saveCarritoJSON();
+                        formCotizacion.submit();
+
+                    } else if (
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire(
+                            'Cancelado',
+                            'La Solicitud se ha cancelado.',
+                            'error'
+                        )
+                    }
+                })
+            }
         })
        
         btnAgregarDetalle.addEventListener('click',()=>{
@@ -1106,6 +1144,38 @@
             pintarDetalleCotizacion(carrito);
             calcularMontos();
         })
+    }
+
+    //======= validaciones para el formulario ============
+    const validaciones  =   ()=>{
+        
+        let enviar = true;
+        
+        //======= validar fechas =============
+        if ($('#fecha_documento').val() == '') {
+            toastr.error('Ingrese Fecha de Documento.', 'Error');
+            $("#fecha_documento").focus();
+            enviar = false;
+        }
+
+        if ($('#fecha_atencion').val() == '') {
+            toastr.error('Ingrese Fecha de Atención.', 'Error');
+            $("#fecha_atencion").focus();
+            enviar = false;
+        }
+
+        //============= validar carrito =============
+        if (carrito.length == 0) {
+            toastr.error('Ingrese al menos 1 Producto.', 'Error');
+            enviar = false;
+        }
+
+        return enviar
+    }
+
+
+    const saveCarritoJSON = ()=>{
+        inputProductos.value=JSON.stringify(carrito);
     }
 
     const calcularMontos = ()=>{
@@ -1220,8 +1290,8 @@
                 })
 
 
-                htmlTallas+=`   <td>${c.precio_venta}</td>
-                                <td class="td-subtotal">${c.subtotal}</td>
+                htmlTallas+=`   <td style="text-align: right;">${c.precio_venta}</td>
+                                <td class="td-subtotal" style="text-align: right;">${c.subtotal}</td>
                             </tr>`;
 
                 fila+=htmlTallas;
@@ -1275,11 +1345,10 @@
             tallas.forEach((t)=>{
                 const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id)[0]?.stock || 0;
 
-
                 htmlTallas +=   `
                                     <td>${stock}</td>
-                                    <td width="8%">
-                                        <input type="text" class="form-control inputCantidad" 
+                                    <td>
+                                        <input style="width: 45px;" type="text" class="form-control inputCantidad" 
                                         data-producto-id="${pc.producto_id}"
                                         data-producto-nombre="${pc.producto_nombre}"
                                         data-color-nombre="${pc.color_nombre}"
@@ -1295,7 +1364,7 @@
                 })[0];
                 htmlTallas+=`
                     <td>
-                        <select class="select2_form form-control" id="precio-venta-${pc.producto_id}">
+                        <select style="width: 95px;" class="select2_form form-control" id="precio-venta-${pc.producto_id}">
                             <option>${preciosVenta.precio_venta_1}</option>    
                             <option>${preciosVenta.precio_venta_2}</option>    
                             <option>${preciosVenta.precio_venta_3}</option>    
@@ -1313,8 +1382,17 @@
         tableStocksBody.innerHTML = options;
         btnAgregarDetalle.disabled = false;
     }
+
+
+    const openModalCliente = ()=>{
+        $("#modal_cliente").modal("show");
+    }
+
 </script>
+
 @endpush
+
+
 
 
 
