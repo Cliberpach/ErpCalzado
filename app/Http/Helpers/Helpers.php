@@ -705,15 +705,19 @@ if (!function_exists('eliminarRegistro')) {
 //LOGUEO
 // GENERAR TOKEN
 if (!function_exists('obtenerTokenapi')) {
+    
     function obtenerTokenapi()
     {
         $parametro = Parametro::findOrFail(3);
+        
+        
         $response = Http::post('https://facturacion.apisperu.com/api/v1/auth/login', [
             'username' => $parametro->usuario_proveedor,
             'password' => $parametro->contra_proveedor,
         ]);
+
         $estado = $response->getStatusCode();
-        // dd($response);
+        
         if ($estado == '200') {
 
             $resultado = $response->getBody()->getContents();
@@ -1024,6 +1028,7 @@ if (!function_exists('pdfGuiaapi')) {
         $url = "https://facturacion.apisperu.com/api/v1/despatch/pdf";
         $client = new \GuzzleHttp\Client(['verify'=>false]);
         $token = obtenerTokenapi();
+        //$token = tokenEmpresa(1);
         $response = $client->post($url, [
             'headers' => [
                 'Content-Type' => 'application/json',

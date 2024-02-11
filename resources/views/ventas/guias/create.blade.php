@@ -405,25 +405,49 @@
                                         <div class="table-responsive">
                                             <table
                                                 class="table dataTables-detalle-documento table-striped table-bordered table-hover"
-                                                style="text-transform:uppercase">
+                                                style="text-transform:uppercase;width:100%">
                                                 <thead>
                                                     <tr>
-                                                        <th></th>
+                                                        {{-- <th></th>
                                                         <th class="text-center">ACCIONES</th>
                                                         <th class="text-center">CANTIDAD</th>
                                                         <th class="text-center">UNIDAD DE MEDIDA</th>
                                                         <th class="text-center">PESO (KG)</th>
                                                         <th class="text-center">DESCRIPCION DEL PRODUCTO</th>
                                                         <th class="text-center">PRECIO</th>
-                                                        <th class="text-center">TOTAL</th>
+                                                        <th class="text-center">TOTAL</th> --}}
+
+                                                        <th style="width: 5%;" class="text-center">ACCIONES</th>
+                                                        <th style="width: 5%;" class="text-center">CANT</th>
+                                                        <th style="width: 20%;" class="text-center">DESCRIPCION DEL PRODUCTO</th>
+                                                        <th style="width: 60%;" class="text-center">DESCRIPCION(TALLA/CANT)</th>
+                                                        <th style="width: 10%;" class="text-center">PESO (KG)</th>
+                                                        {{-- <th class="text-center">DESCRIPCION DEL PRODUCTO</th>
+                                                        <th class="text-center">PRECIO</th>
+                                                        <th class="text-center">TOTAL</th> --}}
 
                                                     </tr>
                                                 </thead>
                                                 <tbody>
 
-                                                    @foreach($detalles as $detalle)
+                                                    @foreach($detalles as $producto)
                                                         <tr>
+                                                            <td >-</td>
+                                                            <td style="text-align: center">{{$producto['cantidad_total']}}</td>
+                                                            <td style="text-align: start">{{$producto['producto_codigo'].' - '.$producto['modelo_nombre'].' - '.$producto['producto_nombre'].' - '.$producto['color_nombre']}}</td>
+                                                            @php
+                                                                $descripcion = '';
+                                                            @endphp
+                                                            @foreach ($producto['tallas'] as $talla)
+                                                                @php
+                                                                    $descripcion .= '['.$talla['talla_nombre'].'/'.intval($talla['cantidad']).']';
+                                                                @endphp                                                           
+                                                            @endforeach
+                                                            <td style="text-align: center">{{$descripcion}}</td>
+                                                            <td style="text-align: center">00.00</td>
 
+                                                        </tr>
+                                                        {{-- <tr>
                                                             <td>{{ $detalle->lote->producto->id }}</td>
                                                             <td>-</td>
                                                             <td>{{ $detalle->cantidad }}</td>
@@ -433,8 +457,8 @@
                                                             <td>{{ $detalle->precio_nuevo }}</td>
                                                             <td>{{ number_format($detalle->precio_nuevo *  $detalle->cantidad,2 , '.', '') }}</td>
                                                             <td>{{ $detalle->lote->producto->medida }}</td>
-                                                        </tr>
-                                                    @endforeach
+                                                        </tr> --}}
+                                                    @endforeach 
 
                                                 </tbody>
                                                 <tfoot style="display: none">
@@ -661,71 +685,76 @@
             this.value = this.value.replace(/[^0-9]/g, '');
         });
 
-        $(document).ready(function() {
+         $(document).ready(function() {
 
 
-            //DATATABLE - COTIZACION
-            table = $('.dataTables-detalle-documento').DataTable({
-                "dom": 'lTfgitp',
-                "bPaginate": true,
-                "bLengthChange": true,
-                "responsive": true,
-                "bFilter": true,
-                "bInfo": false,
-                "columnDefs": [
-                    {
-                        "targets": 0,
-                        "visible": false,
-                        "searchable": false
-                    },
+             //DATATABLE - COTIZACION
+             table = $('.dataTables-detalle-documento').DataTable({
+                 "dom": 'lTfgitp',
+                 "bPaginate": true,
+                 "bLengthChange": true,
+                 "responsive": true,
+                 "bFilter": true,
+                 "bInfo": false,
+                 "columnDefs": [
+                    //  {
+                    //    "targets": 0,
+                    //      "visible": false,
+                    //      "searchable": false
+                    //  },
                     {
                         searchable: false,
-                        "targets": [1],
-                        "className": 'text-center'
-                    },
-                    {
-                        "targets": [2],
-                        "className": 'text-center'
-                    },
-                    {
-                        "targets": [3],
-                        "className": 'text-center'
-                    },
-                    {
-                        "targets": [4],
-                        "className": 'text-center'
-                    },
-                    {
-                        "targets": [5],
-                    },
-                    {
-                        "targets": [6],
-                        "className": 'text-center',
-                        "visible": false,
-                    },
-                    {
-                        "targets": [7],
-                        "className": 'text-center',
-                        "visible": false,
-                    },
-                    {
-                        "targets": [8],
-                        "visible": false,
-                        "className": 'text-center'
-                    },
-                ],
-                'bAutoWidth': false,
-                "language": {
-                    url: "{{asset('Spanish.json')}}"
-                },
-                "order": [[ 0, "desc" ]],
-            });
+                         "targets": [0],
+                         "className": 'text-center'
+                     },
+                     {
+                         searchable: false,
+                         "targets": [1],
+                         "className": 'text-center'
+                     },
+                     {
+                         "targets": [2],
+                         "className": 'text-center'
+                     },
+                     {
+                         "targets": [3],
+                         "className": 'text-center'
+                     },
+                     {
+                         "targets": [4],
+                         "className": 'text-center'
+                     },
+                    //   {
+                    //       "targets": [5],
+                    //   },
+                    //   {
+                    //       "targets": [6],
+                    //       "className": 'text-center',
+                    //      "visible": false,
+                    //   },
+                    //  {
+                    //      "targets": [7],
+                    //      "className": 'text-center',
+                    //      "visible": false,
+                    //  },
+                    //  {
+                    //      "targets": [8],
+                    //      "visible": false,
+                    //      "className": 'text-center'
+                    //  },
+                 ],
+                 'bAutoWidth': false,
+                 "language": {
+                     url: "{{asset('Spanish.json')}}"
+                 },
+                 "order": [[ 0, "desc" ]],
+             });
 
-            //DIRECCION DE LA TIENDA OLD
+             //DIRECCION DE LA TIENDA OLD
 
-            //Controlar Error
-            $.fn.DataTable.ext.errMode = 'throw';
-        });
+             //Controlar Error
+             $.fn.DataTable.ext.errMode = 'throw';
+         });
 
         function limpiarErrores() {
             $('#cantidad').removeClass("is-invalid")

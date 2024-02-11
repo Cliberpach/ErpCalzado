@@ -681,14 +681,14 @@ export default {
         this.ObtenerCodigoPrecioMenor();
         //============= en caso la ventanta se cierre ===============
         window.addEventListener('beforeunload', async () => {
-            // if (this.asegurarCierre == 1) {
-            //     await this.DevolverCantidades();
-            //     this.asegurarCierre = 10;
-            // } else {
-            //     console.log("beforeunload", this.asegurarCierre);
-            // }
-            await this.DevolverCantidades();
-            this.asegurarCierre = 10;
+            if (this.asegurarCierre == 1) {
+                 await this.DevolverCantidades();
+                 this.asegurarCierre = 10;
+            } else {
+                 console.log("beforeunload", this.asegurarCierre);
+            }
+            // await this.DevolverCantidades();
+            //this.asegurarCierre = 10;
         });
     },
     methods: {
@@ -818,6 +818,7 @@ export default {
                                 };
 
                                 this.carrito.push(objProduct);
+                                this.asegurarCierre = 1;
                                 await this.actualizarStockLogico(producto, "nuevo");
                                 
                             } else {
@@ -829,6 +830,7 @@ export default {
                                     const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
                                     productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
                                     this.carrito[indiceExiste] = productoModificar;
+                                    this.asegurarCierre = 1;
                                    await this.actualizarStockLogico(producto, "editar", cantidadAnterior);
                                 } else {
                                     const objTallaProduct = {
@@ -838,6 +840,7 @@ export default {
                                     };
                                     productoModificar.tallas.push(objTallaProduct);
                                     this.carrito[indiceExiste] = productoModificar;
+                                    this.asegurarCierre = 1;
                                     await this.actualizarStockLogico(producto, "nuevo");
                                 }
                             }
@@ -860,6 +863,7 @@ export default {
                         if (indiceTalla !== -1) {
                             const cantidadAnterior = this.carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
                             this.carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
+                            this.asegurarCierre = 1;
                             await this.actualizarStockLogico(producto, "editar", cantidadAnterior);
 
 
@@ -879,6 +883,7 @@ export default {
             this.getProductosByModelo().then(()=>{
                 document.getElementById('overlay').style.display = 'none';
             });
+            console.log(this.asegurarCierre);
             //console.log(this.carrito);
         },
         async actualizarStockLogico(producto,modo,cantidadAnterior){

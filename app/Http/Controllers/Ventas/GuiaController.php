@@ -41,13 +41,14 @@ class GuiaController extends Controller
 
     public function create($id)
     {
-
+        
         $empresas = Empresa::where('estado','ACTIVO')->get();
         $documento = Documento::findOrFail($id);
         $detalles = Detalle::where('documento_id',$id)->get();
         $clientes = Cliente::where('estado', 'ACTIVO')->get();
         $productos = Producto::where('estado', 'ACTIVO')->get();
         $direccion_empresa = Empresa::findOrFail($documento->empresa_id);
+
 
         /*$pesos_productos =  DB::table('cotizacion_documento_detalles')
                     ->join('lote_productos','lote_productos.id','=','cotizacion_documento_detalles.lote_id')
@@ -56,13 +57,15 @@ class GuiaController extends Controller
                     ->where('cotizacion_documento_detalles.documento_id','=',$id)
                     ->sum("productos.peso_producto");*/
         $pesos_productos = 0.00;
-        foreach($detalles as $detalle)
-        {
-            $peso_item = $detalle->cantidad * $detalle->lote->producto->peso_producto;
-            $pesos_productos = $pesos_productos + $peso_item;
-        }
+        // foreach($detalles as $detalle)
+        // {
+        //     $peso_item = $detalle->cantidad * $detalle->lote->producto->peso_producto;
+        //     $pesos_productos = $pesos_productos + $peso_item;
+        // }
 
 
+      $detalles = $this->formatearArrayDetalle($detalles);
+      
         $cantidad_productos =  DB::table('cotizacion_documento_detalles')
                     ->where('cotizacion_documento_detalles.documento_id','=',$id)
                     ->sum("cotizacion_documento_detalles.cantidad");
@@ -82,6 +85,50 @@ class GuiaController extends Controller
 
 
 
+    }
+
+    public function formatearArrayDetalle($detalles){
+        $detalleFormateado=[];
+        $productosProcesados = [];
+        foreach ($detalles as $detalle) {
+            $cod   =   $detalle->producto_id.'-'.$detalle->color_id;
+            if (!in_array($cod, $productosProcesados)) {
+                $producto=[];
+                //======== obteniendo todas las detalle talla de ese producto_color =================
+                $producto_color_tallas = $detalles->filter(function ($detalleFiltro) use ($detalle) {
+                    return $detalleFiltro->producto_id == $detalle->producto_id && $detalleFiltro->color_id == $detalle->color_id;
+                });
+                
+                $producto['producto_codigo'] = $detalle->codigo_producto;
+                $producto['producto_id'] = $detalle->producto_id;
+                $producto['color_id'] = $detalle->color_id;
+                $producto['producto_nombre'] = $detalle->nombre_producto;
+                $producto['color_nombre'] = $detalle->nombre_color;
+                $producto['modelo_nombre'] = $detalle->nombre_modelo;
+                $producto['precio_unitario'] = $detalle->precio_unitario;
+                
+
+                $tallas=[];
+                $subtotal=0.0;
+                $cantidadTotal=0;
+                foreach ($producto_color_tallas as $producto_color_talla) {
+                    $talla=[];
+                    $talla['talla_id']=$producto_color_talla->talla_id;
+                    $talla['cantidad']=$producto_color_talla->cantidad;
+                    $talla['talla_nombre']=$producto_color_talla->nombre_talla;
+                    $subtotal+=$talla['cantidad']*$producto['precio_unitario'];
+                    $cantidadTotal+=$talla['cantidad'];
+                   array_push($tallas,$talla);
+                }
+                
+                $producto['tallas']=$tallas;
+                $producto['subtotal']=$subtotal;
+                $producto['cantidad_total']=$cantidadTotal;
+                array_push($detalleFormateado,$producto);
+                $productosProcesados[] = $detalle->producto_id.'-'.$detalle->color_id;
+            }
+        }
+        return $detalleFormateado;
     }
 
     public function create_new()
@@ -171,7 +218,7 @@ class GuiaController extends Controller
             Validator::make($data, $rules, $message)->validate();
 
             if($request->documento_id)
-            {
+            {   
                 $guia = Guia::where('documento_id',$request->get('documento_id'))->get();
                 $documento = Documento::find($request->get('documento_id'));
                 if (count($guia) == 0) {
@@ -218,19 +265,27 @@ class GuiaController extends Controller
                     {
                         DetalleGuia::create([
                             'guia_id' => $guia->id,
-                            'producto_id' => $detalle->lote->producto_id,
-                            'lote_id' => $detalle->lote_id,
-                            'codigo_producto' => $detalle->codigo_producto,
-                            'nombre_producto' => $detalle->nombre_producto,
-                            'unidad' => $detalle->unidad,
+                            'producto_id'   =>  $detalle->producto_id,
+                            'color_id'      =>  $detalle->color_id,
+                            'talla_id'      =>  $detalle->talla_id,
+                            // 'producto_id' => $detalle->lote->producto_id,
+                            // 'lote_id' => $detalle->lote_id,
+                            'codigo_producto'   =>  $detalle->codigo_producto,
+                            'nombre_producto'   =>  $detalle->nombre_producto,
+                            'nombre_modelo'     =>  $detalle->nombre_modelo,
+                            'nombre_color'      =>  $detalle->nombre_color,
+                            'nombre_talla'      =>  $detalle->nombre_talla,
+                            // 'unidad' => $detalle->unidad,
                             'cantidad' => $detalle->cantidad,
                         ]);
                     }
+
 
                     $envio_prev = self::sunat_prev($guia->id);
 
                     if(!$envio_prev['success'])
                     {
+
                         DB::rollBack();
                         Session::flash('error',$envio_prev['mensaje']);
                         return back()->with('sunat_error', 'error');
@@ -239,7 +294,7 @@ class GuiaController extends Controller
 
                     DB::commit();
                     //$envio_post = self::sunat_post($guia->id);
-                    $guia_pdf = self::guia_pdf($guia->id);
+                    //$guia_pdf = self::guia_pdf($guia->id);
                     Session::flash('success','Guia de Remision creada.');
                     return redirect()->route('ventas.guiasremision.index')->with('guardar', 'success');
                 }else{
@@ -400,7 +455,7 @@ class GuiaController extends Controller
             $arrayProductos[] = array(
                 "codigo" => $detalles[$i]->codigo_producto,
                 "unidad" => $detalles[$i]->unidad,
-                "descripcion"=> $detalles[$i]->nombre_producto,
+                "descripcion"=> $detalles[$i]->nombre_modelo.'-'.$detalles[$i]->nombre_producto.'-'.$detalles[$i]->nombre_color.'-'.$detalles[$i]->nombre_talla,
                 "cantidad" => $detalles[$i]->cantidad,
                 "codProdSunat" => '10',
             );
@@ -433,8 +488,10 @@ class GuiaController extends Controller
     }
 
     public function show($id)
-    {
-        $guia = Guia::with(['documento','detalles','detalles.lote','detalles.lote.producto'])->findOrFail($id);
+    {   
+        // $guia = Guia::with(['documento','detalles','detalles.lote','detalles.lote.producto'])->findOrFail($id);
+        $guia = Guia::with(['documento','detalles'])->findOrFail($id);
+        
         if ($guia->sunat == '0' || $guia->sunat == '2' ) {
             //ARREGLO GUIA
             $arreglo_guia = array(
@@ -693,13 +750,16 @@ class GuiaController extends Controller
     }
 
     public function sunat_prev($id)
-    {
+    {               
+
         try
         {
             $guia = Guia::findOrFail($id);
             //OBTENER CORRELATIVO DE LA GUIA DE REMISION
             $existe = event(new NumeracionGuiaRemision($guia));
+
             if($existe[0]){
+
                 if ($existe[0]->get('existe') == true) {
                     return array('success' => true,'mensaje' => 'Guia validada.');
                 }else{
@@ -714,6 +774,7 @@ class GuiaController extends Controller
                     // return redirect()->route('ventas.guiasremision.index')->with('sunat_existe', 'error');
                 }
             }else{
+
                 $errorGuia = new ErrorGuia();
                 $errorGuia->guia_id = $guia->id;
                 $errorGuia->tipo = 'sunat-existe';
