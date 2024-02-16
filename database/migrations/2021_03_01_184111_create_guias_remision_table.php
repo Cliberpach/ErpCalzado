@@ -20,7 +20,7 @@ class CreateGuiasRemisionTable extends Migration
             $table->unsignedInteger('nota_salida_id')->nullable();
             $table->foreign('nota_salida_id')->references('id')->on('nota_salidad')->onDelete('cascade');
             $table->unsignedDecimal('cantidad_productos', 15, 2);
-            $table->unsignedDecimal('peso_productos', 15, 2);
+            $table->unsignedDecimal('peso_productos', 15, 3);
             $table->text('tienda')->nullable();
 
             $table->string('ruc_transporte_oficina')->nullable();

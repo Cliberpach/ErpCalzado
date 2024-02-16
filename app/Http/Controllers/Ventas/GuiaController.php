@@ -29,6 +29,21 @@ use Barryvdh\DomPDF\Facade as PDF;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use stdClass;
+use Illuminate\Support\Facades\File;
+
+
+use Greenter\Model\Client\Client;
+use Greenter\Model\Despatch\Despatch;
+use Greenter\Model\Despatch\DespatchDetail;
+use Greenter\Model\Despatch\Direction;
+use Greenter\Model\Despatch\Shipment;
+use Greenter\Model\Despatch\Transportist;
+use Greenter\Model\Response\CdrResponse;
+use Greenter\Model\Response\SummaryResult;
+use Greenter\Ws\Services\SunatEndpoints;
+use App\Greenter\Utils\Util;
+
+require __DIR__ . '/../../../../vendor/autoload.php';
 
 class GuiaController extends Controller
 {
@@ -441,7 +456,7 @@ class GuiaController extends Controller
         $fecha_emision = date('Y-m-d', $date);
         $hora_emision = date('H:i:s', $date);
         $fecha = $fecha_emision.'T'.$hora_emision.'-05:00';
-
+        
         return $fecha;
     }
 
@@ -456,8 +471,8 @@ class GuiaController extends Controller
                 "codigo" => $detalles[$i]->codigo_producto,
                 "unidad" => $detalles[$i]->unidad,
                 "descripcion"=> $detalles[$i]->nombre_modelo.'-'.$detalles[$i]->nombre_producto.'-'.$detalles[$i]->nombre_color.'-'.$detalles[$i]->nombre_talla,
-                "cantidad" => $detalles[$i]->cantidad,
-                "codProdSunat" => '10',
+                "cantidad" => intval($detalles[$i]->cantidad)
+                // "codProdSunat" => '10',
             );
         }
 
@@ -543,6 +558,7 @@ class GuiaController extends Controller
                     "details" =>  self::obtenerProductos($guia),
             );
 
+    
 
             $numeracion= json_encode($arreglo_guia);
             $data = pdfGuiaapi($numeracion);
@@ -586,16 +602,38 @@ class GuiaController extends Controller
 
     }
 
+
+    // public function array_to_xml($array, &$xmlObject) {
+    //     foreach ($array as $key => $value) {
+    //         if (is_array($value)) {
+    //             if (!is_numeric($key)) {
+    //                 $subnode = $xmlObject->addChild("$key");
+    //                 $this->array_to_xml($value, $subnode);
+    //             } else {
+    //                 $this->array_to_xml($value, $xmlObject);
+    //             }
+    //         } else {
+    //             $xmlObject->addChild("$key", htmlspecialchars("$value"));
+    //         }
+    //     }
+    // }
+
+    public function testeando_guia(){
+    }
+
     public function sunat($id)
     {
         $guia = Guia::findOrFail($id);
+        
         //OBTENER CORRELATIVO DE LA GUIA DE REMISION
         $existe = event(new NumeracionGuiaRemision($guia));
+        
         if($existe[0]){
             if ($existe[0]->get('existe') == true) {
                 if ($guia->sunat != '1') {
                     //ARREGLO GUIA
                     $arreglo_guia = array(
+                            "version"   => 2022,
                             "tipoDoc" => "09",
                             "serie" => $existe[0]->get('numeracion')->serie,
                             "correlativo"=> $guia->correlativo,
@@ -604,6 +642,7 @@ class GuiaController extends Controller
                             "company" => array(
                                 "ruc" => $guia->ruc_empresa,
                                 "razonSocial" => $guia->empresa,
+                                "nombreComercial"   =>  $guia->empresa,
                                 "address" => array(
                                     "direccion" => $guia->direccion_empresa,
                                 )),
@@ -613,9 +652,9 @@ class GuiaController extends Controller
                                 "tipoDoc" =>  $guia->codTraslado() == "04" ? "6" : $guia->tipoDocumentoCliente(),
                                 "numDoc" =>  $guia->codTraslado() == "04" ? $guia->ruc_empresa : $guia->documento_cliente,
                                 "rznSocial" =>  $guia->codTraslado() == "04" ? $guia->empresa : $guia->cliente,
-                                "address" => array(
-                                    "direccion" =>  $guia->codTraslado() == "04" ? $guia->direccion_empresa : $guia->direccion_cliente,
-                                )
+                                // "address" => array(
+                                //     "direccion" =>  $guia->codTraslado() == "04" ? $guia->direccion_empresa : $guia->direccion_cliente,
+                                // )
                             ),
 
                             "observacion" => $guia->observacion,
@@ -645,11 +684,94 @@ class GuiaController extends Controller
                             "details" =>  self::obtenerProductos($guia),
                     );
 
-                    $data = enviarGuiaapi(json_encode($arreglo_guia));
-                    //RESPUESTA DE LA SUNAT EN JSON
-                    $json_sunat = json_decode($data);
+                    $data_transportista =   self::condicionReparto($guia);
 
-                    if ($json_sunat->sunatResponse->success == true) {
+                    $util = Util::getInstance();
+                    //========== Transportista ===========
+                    $transp = new Transportist();
+                    $transp->setTipoDoc($data_transportista['tipoDoc'])
+                         ->setNumDoc($data_transportista['numDoc'])
+                         ->setRznSocial($data_transportista['rznSocial'])
+                         ->setNroMtc($data_transportista['placa'])
+                         ->setplaca($data_transportista['placa'])
+                        ->setchoferTipoDoc($data_transportista['choferTipoDoc'])
+                        ->setchoferDoc($data_transportista['choferDoc']);
+
+                    //=========== Envío ================
+                    $envio = new Shipment();
+                    $envio
+                         ->setCodTraslado($guia->codTraslado()) // Cat.20 - Venta
+                         ->setdesTraslado($guia->desTraslado())
+                         ->setindTransbordo(false)
+                         ->setnumContenedor('XD-2232')
+                         ->setModTraslado('01') // Cat.18 - Transp. Publico
+                         ->setFecTraslado(new \DateTime(self::obtenerFecha($guia)))
+                         ->setPesoTotal(0)
+                         ->setUndPesoTotal('KGM')
+                        ->setNumBultos($guia->cantidad_productos) // Solo válido para importaciones
+                         ->setLlegada(new Direction($guia->ubigeo_llegada, self::limitarDireccion($guia->direccion_llegada,50,"...")))
+                         ->setPartida(new Direction($guia->ubigeo_partida, self::limitarDireccion($guia->direccion_empresa,50,"...")))
+                         ->setTransportista($transp);
+
+
+                    //===== despacho =======
+                         $despatch = new Despatch();
+                         $despatch->setVersion('2022')
+                             ->setTipoDoc('09')
+                             ->setSerie($existe[0]->get('numeracion')->serie)
+                             ->setCorrelativo($guia->correlativo)
+                             ->setFechaEmision(new \DateTime(self::obtenerFecha($guia)))
+                             ->setCompany($util->getGRECompany())
+                             ->setDestinatario((new Client())
+                                 ->setTipoDoc('6')
+                                 ->setNumDoc('20000000002')
+                                 ->setRznSocial('EMPRESA DEST 1'))
+                             ->setEnvio($envio);
+                         
+                    //===== llenando detalle =======
+                   
+                    
+                    $productos= self::obtenerProductos($guia);
+                    $detalles   =   [];
+                    foreach ($productos as $producto) {
+                        $detail = new DespatchDetail();
+                        $detail->setCantidad($producto['cantidad'])
+                             ->setUnidad($producto['unidad'])
+                             ->setDescripcion($producto['descripcion'])
+                             ->setCodigo($producto['codigo']);
+                        $detalles[] =   $detail;
+                        //$despatch->setDetails([$detail]);
+                    }
+                    $despatch->setDetails($detalles);
+                    //dd((float)$guia->peso_productos);
+                    //dd($despatch);
+                    //===== enviando a SUNAT ==========
+                        $api = $util->getSeeApi();
+                        
+                        $res = $api->send($despatch);
+                       
+                        $util->writeXml($despatch, $api->getLastXml());
+                        // if (!$res->isSuccess()) {
+                        //      dd($util->getErrorResponse($res->getError()));
+                        //      return;
+                        // }
+
+                       
+                    //$data = enviarGuiaapi(json_encode($arreglo_guia));
+                    
+                    //RESPUESTA DE LA SUNAT EN JSON
+                    //$json_sunat = json_decode($data);
+
+                    //============ ANALIZANDO RESPUESTA DE LA SUNAT ============
+
+                    // if ($json_sunat->sunatResponse->success == true) {
+                    if($res->isSuccess()){
+                        //==== ticket ====
+                        $ticket = $res->getTicket();
+                        //==== analizando status del ticket ========
+                        $res = $api->getStatus($ticket);
+                        
+                        dd($res);
                         if($json_sunat->sunatResponse->cdrResponse->code == "0") {
                             $guia->sunat = '1';
                             $respuesta_cdr = json_encode($json_sunat->sunatResponse->cdrResponse, true);
