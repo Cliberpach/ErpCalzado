@@ -27,7 +27,7 @@ class ParametroSeeder extends Seeder
          //TOKEN LOGUEO
          $parametro = new Parametro();
          $parametro->usuario_proveedor = 'lester';
-         $parametro->contra_proveedor =  'perinango123';
+         $parametro->contra_proveedor =  'P@chekito321';
          $parametro->save();
     }
 }

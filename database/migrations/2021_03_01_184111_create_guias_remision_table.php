@@ -20,7 +20,7 @@ class CreateGuiasRemisionTable extends Migration
             $table->unsignedInteger('nota_salida_id')->nullable();
             $table->foreign('nota_salida_id')->references('id')->on('nota_salidad')->onDelete('cascade');
             $table->unsignedDecimal('cantidad_productos', 15, 2);
-            $table->unsignedDecimal('peso_productos', 15, 3);
+            $table->unsignedDecimal('peso_productos', 15, 3)->default(1);
             $table->text('tienda')->nullable();
 
             $table->string('ruc_transporte_oficina')->nullable();
@@ -66,6 +66,11 @@ class CreateGuiasRemisionTable extends Migration
             $table->json('getCdrResponse')->nullable();
             $table->json('getRegularizeResponse')->nullable();
             $table->enum('regularize', ['0', '1'])->default('0');
+            $table->enum('estado_sunat',['98','0','99'])->nullable();
+            $table->text('ticket')->nullable();
+            $table->text('cdrzip_name')->nullable();
+            $table->text('ruta_cdrzip')->nullable();
+
             $table->timestamps();
         });
     }

@@ -20,10 +20,10 @@ class EmpresaSeeder extends Seeder
         //Agroensancha S.R.L
         /*En Local*/
         $empresa = new Empresa();
-        $empresa->ruc = '10802398307';
-        $empresa->razon_social = 'SISCOM FAC';
-        $empresa->razon_social_abreviada = 'SISCOM FAC';
-        $empresa->direccion_fiscal = 'AV ESPAÑA 1319';
+        $empresa->ruc = '20611904020';
+        $empresa->razon_social = 'MERRIS CALZADO E.I.R.L.';
+        $empresa->razon_social_abreviada = 'MERRIS CALZADO E.I.R.L.';
+        $empresa->direccion_fiscal = 'AV. ESPAÑA NRO. 152';
         $empresa->direccion_llegada = 'TRUJILLO';
         $empresa->dni_representante = '70004110';
         $empresa->nombre_representante = 'NOMBRE APELLIDOPAT APELLIDOMAT';
@@ -36,13 +36,13 @@ class EmpresaSeeder extends Seeder
 
         $facturacion = new Facturacion();
         $facturacion->empresa_id = $empresa->id; //RELACION CON LA EMPRESA
-        $facturacion->fe_id = 1095; //ID EMPRESA API
-        $facturacion->sol_user = 'CLIBERPA';
-        $facturacion->sol_pass = 'P1lester';
+        $facturacion->fe_id = 3254; //ID EMPRESA API
+        $facturacion->sol_user = 'SISCOMFA';
+        $facturacion->sol_pass = 'Merry321';
         $facturacion->plan = 'free';
         $facturacion->ambiente = 'beta';
         $facturacion->certificado =  null;
-        $facturacion->token_code =  'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE2MzM0NjcxMzgsImV4cCI6NDc4NzA2NzEzOCwidXNlcm5hbWUiOiJMZXN0ZXIiLCJjb21wYW55IjoiMTA4MDIzOTgzMDcifQ.YjQK8uvUFn8glmKHwDdPXfhqCIBUU51Rl5hF1OKZ9BC0QDcbPFelunk_mXws9k6wqrXvISitKwVltlpdPfrbx9NoU0sygEhIyr4EanYYdthvtRj18X_bki_fk90sRi1AKf0rXHObVGeXZtdAYIwvYQRy_PmUORJlmJf_K6EYpO6tFib529Eqzs0DaiOVR4k21nCI3u7RDUFlABJMv75IpS24jL9WmtwptkswuskpotC4tbr6FUll7Yk1lG3kniFqf60G0nA30HUpctmjQY7oPCjEySLsjGYqnE78l7r5bdHi9TTUaRr3U4gsdvO39Uzw_TmOm9PxArYd2z19iBoQ3eoF-pYBk3V8xjUCy3-zXzE_2aq3jzZvMoUy7L89iXw2zODca3JcszM_BM2gxx97ulTm62lGPYiPLW1hLath3HvwyYNGH6Xihd9I-xNNwK3MGiNnbbmNqKh5FPGK-DIBLfnm4y0QJil0lM89jXjaaTeNOHuN8By45mKrzG6jZSxY8pG-YoncHMRMRwzMXu6SxjQgWuDvXk53BMnw3xOtvA1QwslJmnhblpiG9-_AAWDSQuQXmz4mQaK375aSGLc8QHXjarKuq6ToXVoF29hBh9CWuXt7F_5wa54Xbq6J_EPNtu4vdG3vrul_Q2zSuMMQRZygjDIJd8mT37200Ft3CLc';
+        $facturacion->token_code =  'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1c2VybmFtZSI6Ikxlc3RlciIsImNvbXBhbnkiOiIyMDYxMTkwNDAyMCIsImlhdCI6MTcwNzQwNjY0MCwiZXhwIjo4MDE0NjA2NjQwfQ.CNauN64no74E8iPxH54N9c21JbIr8lP_-jrp59mGMS1hFsxVSffzVnEXBtBtxJbokoV38j_d-pYx5nDUn4aAv6Ju4DKbAcZUjcu5smBxiBiIGXonY11tK9D7tucRotVPlFjBUnp7xFHyr3VXigeUse3GicdbrTOrOUq9DRfHfgn0uIi9bR-5jjQE0F-4bvGyTuNKsVtJKGWR1uDfFJI4Ch6MmU3qtptiAuptmEWYREKsY-5dLc_Y_C41I3MgYlCnQhzK3AVSMFXSsTqFk8Cw8x40djz6iMRIcgLpRO-nKhMPXcmfa_0o-TuN-dQXD_ZY-6GS1zP-1ZdxQAcTX8rRUT1MN6l3JaWbFQTspsNitAD0H0L80Ez5_EjFKyIZWUg2ISOV0N0Dd3Qnd-dtQU3EfOgZxxpf6LP9LS7Nd0iRl4ALf0Mm4H0d1QpiieLAGB2c3XWLDA5jo7shdPf8TyuKQ5TNrM6JDA-6hFmvd4ddFYokrWnay_vkwy1y9D00C51JToYWAkJ78junriYBrx28GfOVI3auK8m3r67OWnxP_Mio59bEWEim4_M3SQevmP9PFK_akPoZLTSmlr6CeR8dkvhvnHJz9Wz54i6sHu83a8NZKzCiX_kF6Xrlyqvi-eHRjIcJoAklyTZzfSzU3wRPmjlrZNY4-7i8PI7l4R9PiUQ';
         $facturacion->save();
 
 

@@ -457,6 +457,7 @@ function(){
         Route::get('reporte/{id}','Ventas\GuiaController@report')->name('ventas.guiasremision.reporte');
         Route::get('tiendaDireccion/{id}', 'Ventas\GuiaController@tiendaDireccion')->name('ventas.guiasremision.tienda_direccion');
         Route::get('sunat/guia/{id}','Ventas\GuiaController@sunat')->name('ventas.guiasremision.sunat');
+        Route::get('consulta_ticket/guia/{id}','Ventas\GuiaController@consulta_ticket')->name('ventas.guiasremision.consulta.ticket');
 
         
         // Route::get('tipoPago/{id}','Ventas\GuiaController@TypePay')->name('ventas.documento.tipo_pago.existente');

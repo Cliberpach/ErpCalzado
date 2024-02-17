@@ -111,21 +111,27 @@ HTML;
 
     public function writeXml(DocumentInterface $document, ?string $xml): void
     {
-        $this->writeFile($document->getName().'.xml', $xml);
+        $this->writeFile($document->getName().'.xml', $xml,"xml");
     }
 
     public function writeCdr(DocumentInterface $document, ?string $zip): void
     {
-        $this->writeFile('R-'.$document->getName().'.zip', $zip);
+        $this->writeFile('R-'.$document->getName().'.zip', $zip,"zip");
     }
 
-    public function writeFile(?string $filename, ?string $content): void
+    public function writeFile(?string $filename, ?string $content,?string $typeFile): void
     {
         if (getenv('GREENTER_NO_FILES')) {
             return;
         }
 
-        $fileDir = __DIR__.'/../files';
+        if($typeFile    ==  "zip"){
+            $fileDir = __DIR__.'/../files/guias_remision_cdr';
+        }
+        if($typeFile    ==  "xml"){
+            $fileDir = __DIR__.'/../files/guias_remision_xml';
+        }
+
 
         if (!file_exists($fileDir)) {
             mkdir($fileDir, 0777, true);
