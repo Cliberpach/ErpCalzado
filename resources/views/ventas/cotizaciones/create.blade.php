@@ -128,7 +128,7 @@
                                             </div> --}}
                                             <div class="col-12 col-md-4">
                                                 <div class="form-group">
-                                                    <label class="">Vendedor</label>
+                                                    <label class="">Vendedor : {{Auth::id()}}</label>
                                                     <select id="vendedor" name="vendedor" class="select2_form form-control" disabled>
                                                         <option value=""></option>
                                                         @foreach (vendedores() as $vendedor)
