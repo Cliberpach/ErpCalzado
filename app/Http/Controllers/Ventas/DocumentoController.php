@@ -64,7 +64,7 @@ class DocumentoController extends Controller
         $dato = "Message";
         broadcast(new NotifySunatEvent($dato));
        
-        dd(Cache::get('ultimo'));
+        //dd(Cache::get('ultimo'));
         return view('ventas.documentos.index');
     }
     public function indexAntiguo()
