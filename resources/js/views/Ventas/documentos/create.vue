@@ -355,9 +355,9 @@ export default {
         this.formCreate.fecha_vencimiento_campo = this.$fechaActual;
         this.ObtenerData();
     },
-    beforeDestroy() {
-        this.$refs.tablaDetalles.ExecuteDevolverCantidades();
-    },
+    // beforeDestroy() {
+    //     this.$refs.tablaDetalles.ExecuteDevolverCantidades();
+    // },
     methods: {
         formatearDetalle(detalles){
             if(detalles.length>0){

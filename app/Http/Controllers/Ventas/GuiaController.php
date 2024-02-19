@@ -6,6 +6,8 @@ use App\Almacenes\DetalleNotaSalidad;
 use App\Almacenes\LoteProducto;
 use App\Almacenes\NotaSalidad;
 use App\Almacenes\Producto;
+use App\Almacenes\Talla;
+use App\Almacenes\Modelo;
 use App\Events\GuiaRegistrado;
 use App\Events\NotifySunatEvent;
 use App\Events\NumeracionGuiaRemision;
@@ -30,6 +32,12 @@ use Exception;
 use Illuminate\Support\Facades\Auth;
 use stdClass;
 use Illuminate\Support\Facades\File;
+use PhpZip\ZipFile;
+
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 
 
 use Greenter\Model\Client\Client;
@@ -42,6 +50,8 @@ use Greenter\Model\Response\CdrResponse;
 use Greenter\Model\Response\SummaryResult;
 use Greenter\Ws\Services\SunatEndpoints;
 use App\Greenter\Utils\Util;
+
+
 
 require __DIR__ . '/../../../../vendor/autoload.php';
 
@@ -63,8 +73,7 @@ class GuiaController extends Controller
         $clientes = Cliente::where('estado', 'ACTIVO')->get();
         $productos = Producto::where('estado', 'ACTIVO')->get();
         $direccion_empresa = Empresa::findOrFail($documento->empresa_id);
-
-
+        
         /*$pesos_productos =  DB::table('cotizacion_documento_detalles')
                     ->join('lote_productos','lote_productos.id','=','cotizacion_documento_detalles.lote_id')
                     ->join('productos','productos.id','=','lote_productos.producto_id')
@@ -94,8 +103,7 @@ class GuiaController extends Controller
             'clientes' => $clientes,
             'productos' => $productos,
             'pesos_productos' => $pesos_productos,
-            'cantidad_productos' => $cantidad_productos
-
+            'cantidad_productos' => $cantidad_productos,
         ]);
 
 
@@ -149,11 +157,12 @@ class GuiaController extends Controller
     public function create_new()
     {
 
-        $empresas = Empresa::where('estado','ACTIVO')->get();
-        $clientes = Cliente::where('estado', 'ACTIVO')->get();
-        $empresa = Empresa::first();
-        $hoy = Carbon::now()->toDateString();
-
+        $empresas           = Empresa::where('estado','ACTIVO')->get();
+        $clientes           = Cliente::where('estado', 'ACTIVO')->get();
+        $empresa            = Empresa::first();
+        $hoy                = Carbon::now()->toDateString();
+        $tallas             =   Talla::where('estado','ACTIVO')->get();
+        $modelos            =   Modelo::all();
         $fullaccess = false;
 
         if (count(Auth::user()->roles) > 0) {
@@ -173,6 +182,8 @@ class GuiaController extends Controller
             'clientes' => $clientes,
             'hoy' => $hoy,
             'fullaccess' => $fullaccess,
+            'tallas'    =>  $tallas,
+            'modelos'   =>  $modelos
         ]);
 
 
@@ -755,6 +766,7 @@ class GuiaController extends Controller
                     //============ ANALIZANDO RESPUESTA DE LA SUNAT ============
                         //===== guía enviada ========
                     if($res->isSuccess()){
+                         
                         //==== ticket ====
                         $ticket = $res->getTicket();
                         //==== consulta de estado del ticket ========
@@ -780,12 +792,64 @@ class GuiaController extends Controller
                             $guia->estado_sunat     =   $code_estado;           // 0
                             $guia->getCdrResponse   =   json_encode($cdrZip);   //guardando cdrZip  en la bd
                             $guia->ticket           =   $ticket;
+                            $guia->despatch_name    =   $despatch->getName();
+                            
+
                             //====== guardando cdrzip como archivo =========  
                             $util->writeCdr($despatch, $cdrZip);
                             //====== guardando name del cdrzip  ===========
                             $guia->cdrzip_name      =   'R-'.$despatch->getName().'.zip';
                             $guia->ruta_cdrzip      =   __DIR__.'/../../../Greenter/files/guias_remision_cdr/'.$guia->cdrzip_name;
                             
+                        
+                    
+                            // Crear una instancia de PhpZip ZipFile
+                            $zipFile = new ZipFile();
+                            // Cargar el archivo ZIP desde la cadena de datos
+                            $zip_open   =   $zipFile->openFromString($cdrZip);
+                             // Obtener la lista de nombres de archivos en el archivo ZIP
+                            $nombresArchivos = $zipFile->getListFiles();
+                            //acceder al nombre del xml de la guia de remision 
+                            $nombreXml  =   $nombresArchivos[0];
+                            // Obtener el contenido del archivo XML
+                            $contenidoXml = $zipFile->getEntryContents($nombreXml);
+                             // Cerrar el archivo ZIP
+                            $zipFile->close();
+
+                            // Si el contenido XML está vacío, retornar null
+                            if (!empty($contenidoXml)) {
+                                // Cargar el contenido XML en un objeto SimpleXMLElement
+                                $xml = new \SimpleXMLElement($contenidoXml);
+                                // Buscar todos los elementos que coincidan con el nombre de la etiqueta
+                                $elementos = $xml->xpath("//cbc:DocumentDescription");
+                                // Inicializar una variable para almacenar el enlace
+                                $enlaceFinal = null;
+
+                                // Iterar sobre los elementos encontrados
+                                foreach ($elementos as $elemento) {
+                                    // Obtener el contenido del elemento
+                                    $contenido = (string)$elemento;
+
+                                    // Verificar si el contenido parece ser un enlace válido
+                                    if (filter_var($contenido, FILTER_VALIDATE_URL)) {
+                                        // Asignar el enlace encontrado y salir del bucle
+                                        $enlaceFinal = $contenido;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            //=== QR ========
+                            $rutaQrsGuia    =   storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs' . 
+                            DIRECTORY_SEPARATOR . 'guia');
+                            if (!file_exists($rutaQrsGuia)) {
+                                mkdir($rutaQrsGuia);
+                            }
+                            
+                            \QrCode::generate($enlaceFinal,$rutaQrsGuia. DIRECTORY_SEPARATOR . $despatch->getName().'.svg');
+                            $qrLinkSunat = \QrCode::generate($enlaceFinal);
+                            
+
                             // $respuesta_cdr = json_encode($json_sunat->sunatResponse->cdrResponse, true);
                             // $respuesta_cdr = json_decode($respuesta_cdr, true);
                             // $guia->getCdrResponse = $respuesta_cdr;
@@ -802,6 +866,7 @@ class GuiaController extends Controller
                             //file_put_contents($pathToFile, $data);
                             $empresa = Empresa::first();
                             PDF::loadview('ventas.guias.reportes.guia', [
+                                'qr_guia'   =>  $qrLinkSunat,
                                 'guia' => $guia,
                                 'empresa' => $empresa,
                             ])->setPaper('a4')->setWarnings(false)
@@ -811,14 +876,8 @@ class GuiaController extends Controller
                             $guia->nombre_comprobante_archivo   = $name;
                             $guia->ruta_comprobante_archivo     = $pathToFile;
 
-                            try {
-                                $guia->update();
-                            } catch (Exception $e) {
-                                dd('Excepción capturada: ',  $e->getMessage(), "\n");
-                                
-                            }
+                            $guia->update();
                             
-
                             //Registro de actividad
                             $descripcion = "SE AGREGÓ LA GUIA DE REMISION ELECTRONICA: " . $existe[0]->get('numeracion')->serie . "-" . $guia->correlativo;
                             $gestion = "GUIA DE REMISION ELECTRONICA";
@@ -840,7 +899,9 @@ class GuiaController extends Controller
                             $guia->sunat            =   '1';
                             $guia->estado_sunat     =   $code_estado;           // 98
                             $guia->ticket           =   $ticket;
-                           
+                            //=== guardamos el despatch name para generar el cdr cuando se acepte la guía === 
+                            $guia->despatch_name    =   $despatch->getName();
+
                             // $id_sunat = $json_sunat->sunatResponse->cdrResponse->code;
                             // $descripcion_sunat = $json_sunat->sunatResponse->cdrResponse->description;
 
@@ -869,6 +930,7 @@ class GuiaController extends Controller
                             $guia->estado_sunat     =   $code_estado;           // 99
                             $guia->getCdrResponse   =   json_encode($cdrZip);   //guardando cdrZip  en la bd
                             
+
                             //====== guardando cdrzip como archivo =========  
                             $util->writeCdr($despatch, $cdrZip);
                             //====== guardando name del cdrzip  ===========
@@ -899,8 +961,7 @@ class GuiaController extends Controller
                             $guia->estado_sunat     =   $code_estado;           // 99
                             $guia->regularize       =   '1';                    //regularizar luego
 
-                            //====== guardando cdrzip como archivo =========  
-                            $util->writeCdr($despatch, $cdrZip);
+                          
                            
                             // $id_sunat = $json_sunat->sunatResponse->cdrResponse->code;
                             // $descripcion_sunat = $json_sunat->sunatResponse->cdrResponse->description;
@@ -985,17 +1046,40 @@ class GuiaController extends Controller
                 $cdr_response   =   $res->getCdrResponse();
                 $descripcion    =   null;
                 if($code_estado == '0'){
-                    $descripcion    =   'ACEPTADA';
+                    $descripcion            =   'ACEPTADA';
+                    $guia->sunat            = '1';
+                    $guia->regularize       = '0';
+                    $guia->estado_sunat     =   $code_estado;
+                     //==== obteniendo crdzip =====
+                     $cdrZip                     =   $res->getCdrZip();
+                     $cdr_response_id            =   $cdr_response->getId();
+                     $cdr_response_code          =   $cdr_response->getCode();
+                     $cdr_response_description   =   $cdr_response->getDescription();
+                    //====== guardando name del cdrzip  =========== 
+                    $cdrzip_name            =   'R-'.$guia->despatch_name.'.zip';   
+                    $guia->cdrzip_name      =   $cdrzip_name;
+                    $guia->ruta_cdrzip      =   base_path('Greenter/files/guias_remision_cdr/').$cdrzip_name;
+                     
+                    $guia->update();
                 }
+
                 if($code_estado == '98'){
                     $descripcion    =   'EN PROCESO';
+                    $guia->sunat            = '1';
+                    $guia->regularize       = '0';
+                    $guia->estado_sunat     =   $code_estado;
+                    $guia->update();
                 }
+
                 if($code_estado == '99' && $cdr_response){
                     $descripcion    =   'ENVÍO CON ERROR CON GENERACIÓN DE CDR';
                 }
+
                 if($code_estado == '99' && !$cdr_response){
                     $descripcion    =   'ENVÍO CON ERROR SIN GENERACIÓN DE CDR';
                 }
+           
+
 
                 $response = [   'code_estado'   =>  $code_estado,
                                 'cdr'           =>  $cdr_response?1:0,

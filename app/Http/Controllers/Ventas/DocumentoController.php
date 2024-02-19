@@ -52,6 +52,7 @@ use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
 use App\Almacenes\Modelo;
 use App\Almacenes\Color;
+use Illuminate\Support\Facades\Cache;
 
 
 
@@ -62,6 +63,8 @@ class DocumentoController extends Controller
         $this->authorize('haveaccess', 'documento_venta.index');
         $dato = "Message";
         broadcast(new NotifySunatEvent($dato));
+       
+        dd(Cache::get('ultimo'));
         return view('ventas.documentos.index');
     }
     public function indexAntiguo()
@@ -2980,6 +2983,7 @@ class DocumentoController extends Controller
             });
             //$lote->update();
             $mensaje = 'Cantidad aceptada';
+            Cache::put('ultimo', $producto_id.' - '.$color_id.' - '.$talla_id.'---'.$mensaje, 100); 
         }
 
         if($modo == 'editar' && $condicion == '1'){
@@ -2993,6 +2997,7 @@ class DocumentoController extends Controller
                 $query->increment('stock_logico', ($cantidadAnterior - $cantidad));
             });
             $mensaje = 'Cantidad editada';
+            Cache::put('ultimo', $producto_id.' - '.$color_id.' - '.$talla_id.'---'.$mensaje, 100); 
         }
 
         //REGRESAR STOCK LOGICO

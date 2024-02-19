@@ -79,8 +79,10 @@ final class Util
                 'debug' => true,
                 'cache' => false,
             ])
-            ->setApiCredentials('test-85e5b0ae-255c-4891-a595-0b98c65c9854', 'test-Hty/M6QshYvPgItX2P0+Kw==')
-            ->setClaveSOL('20161515648', 'MODDATOS', 'MODDATOS')
+             ->setApiCredentials('test-85e5b0ae-255c-4891-a595-0b98c65c9854', 'test-Hty/M6QshYvPgItX2P0+Kw==')
+             ->setClaveSOL('20161515648', 'MODDATOS', 'MODDATOS')
+            // ->setApiCredentials('9e8eaf55-cf1d-4bf0-9837-0c3d897c08d5', '3xSHGqcy5mglRIJzxx6eZw==')
+            // ->setClaveSOL('20611904020', 'SISCOMFA', 'Merry321')
             ->setCertificate($certificate);
     }
 

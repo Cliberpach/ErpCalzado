@@ -1021,7 +1021,6 @@
 </script>
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <script>
-    const selectModelo =  document.querySelector('#modelo');
     const tableStocksBody  =  document.querySelector('#table-stocks tbody');
     const tableDetalleBody = document.querySelector('#table-detalle tbody');
     const tokenValue = document.querySelector('input[name="_token"]').value;

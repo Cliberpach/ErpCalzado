@@ -70,7 +70,7 @@ class CreateGuiasRemisionTable extends Migration
             $table->text('ticket')->nullable();
             $table->text('cdrzip_name')->nullable();
             $table->text('ruta_cdrzip')->nullable();
-
+            $table->string('despatch_name')->nullable();
             $table->timestamps();
         });
     }
