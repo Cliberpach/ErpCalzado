@@ -57,6 +57,12 @@ class CotizacionController extends Controller
         $lotes = Producto::where('estado','ACTIVO')->get();
         $modelos = Modelo::where('estado','ACTIVO')->get();
         $tallas = Talla::where('estado','ACTIVO')->get();
+        $vendedor_actual    =   DB::select('select c.id from user_persona as up
+                                inner join colaboradores  as c
+                                on c.persona_id=up.persona_id
+                                where up.user_id = ?',[Auth::id()]);
+        
+        dd($vendedor_actual);
         return view('ventas.cotizaciones.create', compact('tallas','modelos','empresas', 'clientes', 'fecha_hoy', 'lotes', 'condiciones'));
     }
 
