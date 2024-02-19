@@ -1276,7 +1276,7 @@
 
 
                 htmlTallas +=   `
-                                    <td>${stock}</td>
+                                    <td style="background-color: rgb(210, 242, 242);>${stock}</td>
                                     <td width="8%">
                                         <input type="text" class="form-control inputCantidad" 
                                         data-producto-id="${pc.producto_id}"
