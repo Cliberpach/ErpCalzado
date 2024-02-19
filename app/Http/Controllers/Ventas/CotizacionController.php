@@ -22,6 +22,8 @@ use Yajra\DataTables\Facades\DataTables;
 
 use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
+
 
 class CotizacionController extends Controller
 {
