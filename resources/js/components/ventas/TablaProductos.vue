@@ -477,7 +477,7 @@
 import { Empresa } from "../../interfaces/Empresa.js";
 import ModalCodigoPrecioMenorVue from './ModalCodigoPrecioMenor.vue';
 import { RedondearDecimales } from "../../helpers.js";
-// import ModalEditaDetalleVue from "./ModalEditDetalle.vue";
+import ModalEditaDetalleVue from "./ModalEditDetalle.vue";
 import TablaProductos from "./TablaProductos.vue";
 import axios from "axios";
 
