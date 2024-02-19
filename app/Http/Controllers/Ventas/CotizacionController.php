@@ -64,8 +64,8 @@ class CotizacionController extends Controller
                                 on c.persona_id=up.persona_id
                                 where up.user_id = ?',[Auth::id()]);
         $vendedor_actual    =   $vendedor_actual?$vendedor_actual[0]->id:null;
-        dd($vendedor_actual);
-        return view('ventas.cotizaciones.create', compact('tallas','modelos','empresas', 'clientes', 'fecha_hoy', 'lotes', 'condiciones'));
+        
+        return view('ventas.cotizaciones.create', compact('vendedor_actual','tallas','modelos','empresas', 'clientes', 'fecha_hoy', 'lotes', 'condiciones'));
     }
 
     public function store(Request $request)
@@ -118,7 +118,7 @@ class CotizacionController extends Controller
         $cotizacion->cliente_id = $request->get('cliente');
         $cotizacion->condicion_id = $request->get('condicion_id');
         //$cotizacion->vendedor_id = $request->get('vendedor');
-        $cotizacion->vendedor_id    =   Auth::id();
+        $cotizacion->vendedor_id    =   $request->get('vendedor');
         $cotizacion->moneda = 4;
         $cotizacion->fecha_documento = $request->get('fecha_documento');
         $cotizacion->fecha_atencion = $request->get('fecha_atencion');

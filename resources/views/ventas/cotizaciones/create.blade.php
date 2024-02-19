@@ -132,7 +132,7 @@
                                                     <select id="vendedor" name="vendedor" class="select2_form form-control" disabled>
                                                         <option value=""></option>
                                                         @foreach (vendedores() as $vendedor)
-                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === Auth::id() ? 'selected' : '' }}>
+                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === $vendedor_actual ? 'selected' : '' }}>
                                                                 {{ $vendedor->persona->apellido_paterno . ' ' . $vendedor->persona->apellido_materno . ' ' . $vendedor->persona->nombres }}
                                                             </option>
                                                         @endforeach
