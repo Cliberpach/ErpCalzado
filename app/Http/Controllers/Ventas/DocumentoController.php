@@ -724,7 +724,7 @@ class DocumentoController extends Controller
                     'vista'=>$vista,
                     "tipoVentas"=>$tipoVentaArray,
                     "modelos"=>Modelo::all(),
-                    "tallas"=>Talla::all()
+                    "tallas"=>Talla::where('estado','ACTIVO')
                 ],
                 "succes"=>true
             ]);
