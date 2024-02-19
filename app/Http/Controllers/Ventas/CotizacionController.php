@@ -63,7 +63,7 @@ class CotizacionController extends Controller
                                 inner join colaboradores  as c
                                 on c.persona_id=up.persona_id
                                 where up.user_id = ?',[Auth::id()]);
-        
+        $vendedor_actual    =   $vendedor_actual?$vendedor_actual[0]->id:null;
         dd($vendedor_actual);
         return view('ventas.cotizaciones.create', compact('tallas','modelos','empresas', 'clientes', 'fecha_hoy', 'lotes', 'condiciones'));
     }
