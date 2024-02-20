@@ -599,7 +599,9 @@ class ProductoController extends Controller
 
 
     public function getProductosNotaIngreso($modelo_id){
-        $productos = Producto::where('modelo_id', $modelo_id)->get();
+        $productos = Producto::where('modelo_id', $modelo_id)
+                                ->where('estado','ACTIVO')
+                                ->get();
         return response()->json(["message" => "success" , "productos" => $productos ]);
     }
 
