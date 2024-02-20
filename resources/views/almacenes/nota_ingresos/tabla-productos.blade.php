@@ -1,5 +1,5 @@
 <div class="table-responsive overflow-x-auto">
-  <table class="table table-hover" @if (!isset($carrito))  id="table-productos" @else id="table-detalle" @endif>
+  <table class="table table-hover"  class="display" style="width:100%" @if (!isset($carrito))  id="table-productos" @else id="table-detalle" @endif>
       <thead>
         <tr>
           @if (isset($carrito))

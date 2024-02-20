@@ -1,6 +1,9 @@
 @extends('layout') @section('content')
 @section('almacenes-active', 'active')
 @section('producto-active', 'active')
+@include('almacenes.categorias.create')
+@include('almacenes.marcas.create')
+@include('almacenes.modelos.create')
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
@@ -24,11 +27,12 @@
         <div class="col-lg-12">
             <div class="ibox">
                 <div class="ibox-content">
-                    <form action="{{ route('almacenes.producto.update', $producto->id) }}" method="POST" id="form_actualizar_producto">
+                    <form action="{{ route('almacenes.producto.update', $producto->id) }}" method="POST" id="form_registrar_producto">
                         @csrf @method('PUT')
                         <div class="row">
                             <div class="col-lg-6 col-xs-12 b-r">
                                 <h4><b>Datos Generales</b></h4>
+                                <input class="d-none" type="text" id="stocksJSON" name="stocksJSON">
                                 <div class="form-group row">
                                     <div class="col-lg-6 col-xs-12 d-none">
                                         <div class="form-group">
@@ -121,6 +125,9 @@
                                 <div class="form-group row">
                                     <div class="col-lg-6 col-12">
                                         <label class="required">Marca</label>
+                                        <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_marca"  class="btn btn-primary" href="#">
+                                            <i class="fas fa-plus"></i>    
+                                        </a> 
                                         <select id="marca" name="marca" class="select2_form form-control {{ $errors->has('marca') ? ' is-invalid' : '' }}" required value="{{old('marca',$producto->marca_id)}}">
                                             <option></option>
                                             @foreach($marcas as $marca)
@@ -136,6 +143,9 @@
                                     <div class="col-lg-6 col-12">
                                         
                                             <label class="required">Categoria</label>
+                                            <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_categoria"  class="btn btn-primary" href="#">
+                                                <i class="fas fa-plus"></i>    
+                                            </a> 
                                             <select id="categoria" name="categoria" value="{{old('categoria', $producto->categoria_id)}}"class="select2_form form-control {{ $errors->has('categoria') ? ' is-invalid' : '' }}">
                                                 <option></option>
                                                 @foreach($categorias as $categoria)
@@ -249,6 +259,9 @@
                                     </div>
                                     <div class="col-lg-6 col-12 mb-3">
                                         <label class="required">Modelo</label>
+                                        <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_modelo"  class="btn btn-primary" href="#">
+                                            <i class="fas fa-plus"></i>    
+                                        </a>
                                         <select id="modelo" name="modelo" value="{{old('modelo', $producto->modelo_id)}}"class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}">
                                             <option></option>
                                             @foreach($modelos as $modelo)
@@ -300,24 +313,24 @@
                         </div>
                         <hr>
 
-                        <div class="row">
+                        {{-- <div class="row">
 
                             <div class="col-lg-12">
                                 <div class="panel panel-primary">
-                                    {{-- <div class="panel-heading">
+                                    <div class="panel-heading">
                                         <h4 class=""><b>Detalle Segun el tipo de cliente</b></h4>
-                                    </div> --}}
+                                    </div> 
                                     <div class="panel-heading">
                                         <h4 class=""><b>Stocks</b></h4>
                                     </div>
                                     <div class="panel-body">
-                                        @include('almacenes.productos.list-color-tallas')
+                                         @include('almacenes.productos.list-color-tallas') 
 
 
                                         <div class="row">
 
 
-                                            {{-- <div class="col-md-4">
+                                             <div class="col-md-4">
                                                 <label class="required">Cliente</label>
                                                 <select class="select2_form form-control"
                                                     style="text-transform: uppercase; width:100%" name="cliente"
@@ -345,16 +358,16 @@
                                                 <label class="required">Porcentaje</label>
                                                 <input type="text" id="porcentaje" name="porcentaje" class="form-control">
                                                 <div class="invalid-feedback"><b><span id="error-porcentaje"></span></b></div>
-                                            </div> --}}
+                                            </div> 
 
-                                            {{-- <div class="col-md-3">
+                                             <div class="col-md-3">
                                                 <label class="">&nbsp;</label>
                                                 <a class="btn btn-block btn-warning enviar_cliente" style='color:white;'> <i class="fa fa-plus"></i> AGREGAR</a>
-                                            </div> --}}
+                                            </div> 
 
 
                                         </div>
-                                        {{-- <input type="hidden" id="clientes_tabla" name="clientes_tabla[]">
+                                         <input type="hidden" id="clientes_tabla" name="clientes_tabla[]">
 
                                         <hr>
 
@@ -377,7 +390,7 @@
                                                 </tbody>
 
                                             </table>
-                                        </div> --}}
+                                        </div> 
 
 
 
@@ -388,7 +401,7 @@
                                 </div>
                             </div>
 
-                        </div>
+                        </div> --}}
 
 
 
@@ -435,6 +448,7 @@
 @endpush
 
 @push('scripts')
+    <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
     <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
     <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
     <script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
@@ -462,35 +476,35 @@
             $.fn.DataTable.ext.errMode = 'throw';
 
             $("#codigo").on("change", validarCodigo);
-            $('#form_actualizar_producto').submit(function(e) {
-                e.preventDefault();
-                Swal.fire({
-                    title: 'Opción Guardar',
-                    text: "¿Seguro que desea guardar cambios?",
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: "#1ab394",
-                    confirmButtonText: 'Si, Confirmar',
-                    cancelButtonText: "No, Cancelar",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.submit();
-                        // var existe = buscarConsumidor()
-                        // if (existe == true) {
-                        //     cargarClientes();
-                        // //     this.submit();
-                        // }else{
-                        //     toastr.error('Es obligatorio el ingreso del Consumidor Normal y la moneda Soles.', 'Error');
-                        // }
-                    } else if (result.dismiss === Swal.DismissReason.cancel) {
-                        swalWithBootstrapButtons.fire(
-                            'Cancelado',
-                            'La Solicitud se ha cancelado.',
-                            'error'
-                        )
-                    }
-                })
-            });
+            // $('#form_actualizar_producto').submit(function(e) {
+            //     e.preventDefault();
+            //     Swal.fire({
+            //         title: 'Opción Guardar',
+            //         text: "¿Seguro que desea guardar cambios?",
+            //         icon: 'question',
+            //         showCancelButton: true,
+            //         confirmButtonColor: "#1ab394",
+            //         confirmButtonText: 'Si, Confirmar',
+            //         cancelButtonText: "No, Cancelar",
+            //     }).then((result) => {
+            //         if (result.isConfirmed) {
+            //             this.submit();
+            //             // var existe = buscarConsumidor()
+            //             // if (existe == true) {
+            //             //     cargarClientes();
+            //             // //     this.submit();
+            //             // }else{
+            //             //     toastr.error('Es obligatorio el ingreso del Consumidor Normal y la moneda Soles.', 'Error');
+            //             // }
+            //         } else if (result.dismiss === Swal.DismissReason.cancel) {
+            //             swalWithBootstrapButtons.fire(
+            //                 'Cancelado',
+            //                 'La Solicitud se ha cancelado.',
+            //                 'error'
+            //             )
+            //         }
+            //     })
+            // });
 
             //OBTENER DATA DE EDITAR
             // var id = "{{$producto->familia_id}}"
@@ -880,14 +894,15 @@
         }
 
     </script>
-    <script src="{{asset('js/products-stocks.js')}}"></script>
-    <script>
-        const stocks = @json($stocks);
-        stocks.forEach((stock)=>{
+    
+    {{-- <script>
+        const stocks_previos = @json($stocks);
+        stocks_previos.forEach((stock)=>{
             const inputStock =  document.querySelector(`#input_${stock.color_id}_${stock.talla_id}`);
             inputStock.value = stock.stock;
         })
-    </script>
-    <script src="{{asset('js/products-create.js')}}"></script>
+    </script> --}}
+
+    {{-- <script src="{{asset('js/products-create.js')}}"></script> --}}
 
 @endpush

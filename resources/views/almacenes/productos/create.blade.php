@@ -395,7 +395,7 @@
 
                                             </table>
                                         </div> --}}
-                                       @include('almacenes.productos.list-color-tallas')
+                                       {{-- @include('almacenes.productos.list-color-tallas') --}}
 
                                     </div>
                                 </div>
@@ -852,5 +852,5 @@
             return existe
         }
     </script>
-    <script src="{{asset('js/products-create.js')}}"></script>
+    {{-- <script src="{{asset('js/products-create.js')}}"></script> --}}
 @endpush

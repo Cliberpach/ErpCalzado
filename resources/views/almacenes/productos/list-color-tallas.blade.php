@@ -3,8 +3,8 @@
         <h4 class=""><b>Colores</b></h4>
         @foreach ($colores as $color)
             <div class="form-check d-flex mt-2 align-items-center">
-                <input data-color-nombre="{{$color->descripcion}}" style="flex:0.5;" type="checkbox" class="form-check-input color" id="{{$color->id}}">
-                <label style="flex:0.2;" class="form-check-label" for="{{$color->id}}">{{$color->descripcion}} <span class="aviso_{{$color->id}} span-aviso"></span></label>
+                <input data-color-nombre="{{$color->descripcion}}" style="flex:0.5;" type="checkbox" class="form-check-input color" id="checkColor_{{$color->id}}">
+                <label style="flex:0.2;" class="form-check-label" for="checkColor_{{$color->id}}">{{$color->descripcion}} <span class="aviso_{{$color->id}} span-aviso"></span></label>
             </div>
         @endforeach
     </div>
