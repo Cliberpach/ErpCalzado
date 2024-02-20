@@ -1466,8 +1466,8 @@ class DocumentoController extends Controller
             $detalle->mcaja_id = movimientoUser()->id;
             
             $detalle->save();
-            $envio_prev =$this->ObtenerCorrelativoVentas($documento);
-            $envio_prev = self::sunat($documento->id);
+            $envio_prev =   $this->ObtenerCorrelativoVentas($documento);
+            $envio_prev =   self::sunat($documento->id);
             if (!$envio_prev['success']) {
                  DB::rollBack();
                  return response()->json([

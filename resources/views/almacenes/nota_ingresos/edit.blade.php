@@ -127,7 +127,7 @@
                                     <h4 class=""><b>Detalle de la Nota de Ingreso</b></h4>
                                 </div>
                                 <div class="panel-body">
-                                    <div class="row">
+                                    {{-- <div class="row">
                                         <div class="col-lg-12">
                                             <div class="form-group row">
                                                 <div class="col-lg-3 col-xs-12">
@@ -160,7 +160,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> --}}
                                     <div class="row m-t-sm" style="text-transform:uppercase">
                                         <div class="col-lg-12">
                                             @include('almacenes.nota_ingresos.tabla-productos',[
@@ -258,9 +258,9 @@
                                 class="btn btn-w-m btn-default">
                                 <i class="fa fa-arrow-left"></i> Regresar
                             </a>
-                            <button type="submit" id="btn_grabar" form="enviar_ingresos" class="btn btn-w-m btn-primary">
+                            {{-- <button type="submit" id="btn_grabar" form="enviar_ingresos" class="btn btn-w-m btn-primary">
                                 <i class="fa fa-save"></i> Grabar
-                            </button>
+                            </button> --}}
                         </div>
                     </div>
                 </div>
