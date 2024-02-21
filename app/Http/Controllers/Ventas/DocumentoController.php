@@ -1466,7 +1466,7 @@ class DocumentoController extends Controller
             $detalle->mcaja_id = movimientoUser()->id;
             
             $detalle->save();
-            $envio_prev =   $this->ObtenerCorrelativoVentas($documento);
+            //$envio_prev =   $this->ObtenerCorrelativoVentas($documento);
             $envio_prev =   self::sunat($documento->id);
             if (!$envio_prev['success']) {
                  DB::rollBack();
@@ -1483,6 +1483,7 @@ class DocumentoController extends Controller
             $documento = Documento::find($documento->id);
             $documento->nombre_comprobante_archivo = $documento->serie . '-' . $documento->correlativo . '.pdf';
             $documento->update();
+            
 
             //Registro de actividad
             $descripcion = "SE AGREGÓ EL DOCUMENTO DE VENTA CON LA FECHA: " . Carbon::parse($documento->fecha_documento)->format('d/m/y');
