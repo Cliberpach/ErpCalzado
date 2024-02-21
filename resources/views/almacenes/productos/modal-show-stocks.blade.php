@@ -1,5 +1,5 @@
 <div class="modal inmodal" id="modal_show_stocks" tabindex="-1" role="dialog" aria-hidden="true" >
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg" style="max-width: 94%;">
       <div class="modal-content animated bounceInRight">
           <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal">
@@ -10,7 +10,7 @@
               <h4 class="modal-title">Stocks</h4>
               <small class="font-bold">Listado de stocks por color y talla.</small>
           </div>
-          <div class="modal-body" style="height: 50vh;overflow-y: auto;">
+          <div class="modal-body" style="height: 60vh;overflow-y: auto;">
            
             @include('almacenes.productos.table-color-tallas')
 
