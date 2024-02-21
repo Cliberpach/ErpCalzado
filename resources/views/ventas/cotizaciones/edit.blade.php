@@ -1354,9 +1354,7 @@
             let htmlTallas = ``;
 
             tallas.forEach((t)=>{
-                const stock =  stocks.filter((st)=>{
-                  return  st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id
-                })[0].stock;
+                const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id)[0]?.stock || 0;
 
                 let cantidadPrevia = (carrito.filter((producto) => producto.producto_id == pc.producto_id && producto.color_id == pc.color_id && producto.talla_id == t.id)[0]?.cantidad) || '';
 

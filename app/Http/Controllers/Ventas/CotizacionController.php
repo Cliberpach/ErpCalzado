@@ -273,7 +273,7 @@ class CotizacionController extends Controller
                     'color_id'  => $producto->color_id,
                     'talla_id' => $producto->talla_id,
                     'cantidad' => $producto->cantidad,
-                    'precio' => $producto->precio_venta,
+                    'precio_unitario' => $producto->precio_venta,
                     'importe' => $producto->cantidad*$producto->precio_venta,    
                 ]);
             }

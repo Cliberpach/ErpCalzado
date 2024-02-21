@@ -594,38 +594,6 @@ $(".select2_form").select2({
     })
 
     function events(){
-        //========= EVENTO AGREGAR DETALLE ============
-        btnAgregarDetalle.addEventListener('click',()=>{
-            const inputsCantidad = document.querySelectorAll('.inputCantidad');
-            inputsCantidad.forEach((ic)=>{
-                const cantidad = ic.value?ic.value:0;
-                if(cantidad != 0){
-                    const producto = formarProducto(ic);
-                    const indiceExiste  = carrito.findIndex((p)=>{
-                    return p.producto_id==producto.producto_id && p.color_id==producto.color_id && p.talla_id==producto.talla_id})
-                    
-                    if(indiceExiste == -1){
-                        carrito.push(producto);
-                    }else{
-                        const productoModificar = carrito[indiceExiste];
-                        productoModificar.cantidad = producto.cantidad;
-                        carrito[indiceExiste] = productoModificar;
-                    
-                    }
-                }else{
-                    const producto = formarProducto(ic);
-                    const indiceExiste  = carrito.findIndex((p)=>{
-                    return p.producto_id==producto.producto_id && p.color_id==producto.color_id && p.talla_id==producto.talla_id})
-                    if(indiceExiste !== -1){
-                        carrito.splice(indiceExiste, 1);
-                    }
-                }
-                  
-            })
-            reordenarCarrito();
-            pintarDetalleNotaIngreso(carrito);
-            
-        })
 
         //======== EVENTO ELIMINAR PRODUCTO DEL CARRITO ============
         document.addEventListener('click',(e)=>{
@@ -669,34 +637,6 @@ $(".select2_form").select2({
         })
     }
 
-    //============== FUNCIÓN OBTENER PRODUCTOS DE UN MODELO ==============
-    function getProductosByModelo(e){
-        modelo_id = e.value;
-        btnAgregarDetalle.disabled=true;
-        
-        if(modelo_id){
-            const url = `/get-producto-by-modelo/${modelo_id}`;
-            fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': tokenValue,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                    },
-                })
-                .then(response => response.json())
-                .then(data => {
-                    //console.log(data.stocks);
-                    //console.log(data.producto_colores);
-                    pintarTableStocks(data.stocks,tallas,data.producto_colores);
-                })
-
-                .catch(error => console.error('Error:', error));
-            
-        }else{
-            tableStocksBody.innerHTML = ``;
-        }
-    }
 
     //============ REORDENAR CARRITO ===============
     const reordenarCarrito= ()=>{
@@ -723,46 +663,6 @@ $(".select2_form").select2({
         return producto;
     }
 
-    //============ RENDERIZAR TABLA DE CANTIDADES ============
-    const pintarTableStocks = (stocks,tallas,producto_colores)=>{
-        let options =``;
-        let producto_color_procesados=[];
-        
-        producto_colores.forEach((pc)=>{
-            options+=`  <tr>
-                            <th scope="row" data-producto=${pc.producto_id} data-color=${pc.color_id} >
-                                ${pc.producto_nombre} - ${pc.color_nombre}
-                            </th>
-                        `;
-
-            let htmlTallas = ``;
-
-            tallas.forEach((t)=>{
-                const stock =  stocks.filter((st)=>{
-                  return  st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id
-                })[0].stock;
-
-
-                htmlTallas +=   `
-                                    <td width="8%">
-                                        <input type="text" class="form-control inputCantidad" 
-                                        data-producto-id="${pc.producto_id}"
-                                        data-producto-nombre="${pc.producto_nombre}"
-                                        data-color-nombre="${pc.color_nombre}"
-                                        data-talla-nombre="${t.descripcion}"
-                                        data-color-id="${pc.color_id}" data-talla-id="${t.id}"></input>    
-                                    </td>
-                                `;   
-            })
-
-            htmlTallas += `</tr>`;
-            options += htmlTallas;
-        })
-
-        bodyTablaProductos.innerHTML = options;
-        btnAgregarDetalle.disabled = false;
-    }
-
     //================== LIMPIAR TABLA DETALLE ===============
     function clearDetalleCotizacion(){
         while (bodyTablaDetalle.firstChild) {
@@ -781,11 +681,7 @@ $(".select2_form").select2({
             htmlTallas=``;
             if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
                 fila+= `<tr>   
-                            <td>
-                                <i class="fas fa-trash-alt btn btn-primary delete-product"
-                                data-producto="${c.producto_id}" data-color="${c.color_id}">
-                                </i>                            
-                            </td>
+                            <td>                          </td>
                             <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
 
                 //tallas
