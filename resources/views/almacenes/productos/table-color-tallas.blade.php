@@ -1,5 +1,5 @@
 <div class="table-responsive">
-    <table class="table table-hover">
+    <table class="table table-hover" id="tableShowStocks">
         <thead>
           <tr>
             <th scope="col" class="product_name">

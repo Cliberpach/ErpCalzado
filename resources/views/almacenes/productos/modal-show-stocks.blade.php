@@ -10,7 +10,7 @@
               <h4 class="modal-title">Stocks</h4>
               <small class="font-bold">Listado de stocks por color y talla.</small>
           </div>
-          <div class="modal-body" style="height: 40vh;overflow-y: auto;">
+          <div class="modal-body" style="height: 50vh;overflow-y: auto;">
            
             @include('almacenes.productos.table-color-tallas')
 

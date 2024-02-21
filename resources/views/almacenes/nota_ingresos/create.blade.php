@@ -922,13 +922,6 @@
         if(tableStocks.children[1]){
             tableStocks.children[1].remove();
         }
-        //  const headDataTable    =   document.querySelector('.dt-layout-row');
-        //  const headNotaIngreso  =   document.querySelector('.head-nota-ingreso');
-         
-        //  headNotaIngreso.appendChild(headDataTable);
-        //  headDataTable.classList.add('col-12','row','mt-3','justify-content-between');
-        //  headDataTable.children[0].classList.add('col-lg-4');
-        //  headDataTable.children[1].classList.add('col-lg-5');
     }
 
 </script>

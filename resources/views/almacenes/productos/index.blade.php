@@ -87,6 +87,8 @@
 @endpush
 
 @push('scripts')
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
+<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
 <!-- DataTable -->
 <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
@@ -288,9 +290,16 @@
     });
 </script>
 
+
 <script>
     const stocks = @json($stocks);
+    let table   =null;
+    //const tableShowStocks   =   document.querySelector('#modal_show_stocks');
+
     $('#modal_show_stocks').on('show.bs.modal', function (event) {
+        if(table){
+            table.destroy();
+        }
         resetearTabla();
          var button = $(event.relatedTarget) 
          var product_id = button.data('whatever') 
@@ -302,10 +311,10 @@
                 tdStock.disabled = true;
              }
          });
-        
          var modal = $(this)
          modal.find('.modal-title').text('Stocks: ' + product_name)
          modal.find('.product_name').text(product_name);
+         cargarDataTables();
     })
 
 
@@ -315,7 +324,43 @@
             e.textContent   =   '';
         })
     }
+
+
+    function cargarDataTables(){
+        table = new DataTable('#tableShowStocks',
+        {
+            language: {
+                processing:     "Traitement en cours...",
+                search:         "BUSCAR: ",
+                lengthMenu:    "MOSTRAR _MENU_ PRODUCTOS",
+                info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ PRODUCTOS",
+                infoEmpty:      "MOSTRANDO 0 ELEMENTOS",
+                infoFiltered:   "(FILTRADO de _MAX_ PRODUCTOS)",
+                infoPostFix:    "",
+                loadingRecords: "CARGA EN CURSO",
+                zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+                emptyTable:     "NO HAY PRODUCTOS DISPONIBLES",
+                paginate: {
+                    first:      "PRIMERO",
+                    previous:   "ANTERIOR",
+                    next:       "SIGUIENTE",
+                    last:       "ÚLTIMO"
+                },
+                aria: {
+                    sortAscending:  ": activer pour trier la colonne par ordre croissant",
+                    sortDescending: ": activer pour trier la colonne par ordre décroissant"
+                }
+            }
+        });
+        
+        // const tableStocks   = document.querySelector('#table-productos');
+        // if(tableStocks.children[1]){
+        //     tableStocks.children[1].remove();
+        // }
+    }
 </script>
+
+
 
 
 @endpush
