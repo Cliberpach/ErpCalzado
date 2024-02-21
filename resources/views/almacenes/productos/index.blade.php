@@ -332,8 +332,8 @@
             language: {
                 processing:     "Traitement en cours...",
                 search:         "BUSCAR: ",
-                lengthMenu:    "MOSTRAR _MENU_ PRODUCTOS",
-                info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ PRODUCTOS",
+                lengthMenu:    "MOSTRAR _MENU_ ELEMENTOS",
+                info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ ELEMENTOS",
                 infoEmpty:      "MOSTRANDO 0 ELEMENTOS",
                 infoFiltered:   "(FILTRADO de _MAX_ PRODUCTOS)",
                 infoPostFix:    "",
