@@ -535,7 +535,7 @@
                         <div class="col-lg-12">
                             <div class="panel panel-primary" id="panel_detalle">
                                 <div class="panel-heading">
-                                    <h4 class=""><b>Detalle de la Guia de Remision</b></h4>
+                                    <h4 class=""><b>Seleccionar productos</b></h4>
                                 </div>
                                 <div class="panel-body ibox-content">
                                     <div class="sk-spinner sk-spinner-wave">
@@ -563,15 +563,30 @@
                                         </div>
                                         <div class="col-12 mb-5">
                                             @include('ventas.guias.table-stocks')
-                                        </div>
-                                        
+                                        </div>           
                                         <div class="col-lg-2 col-xs-12">
                                             <button  type="button" id="btn_agregar_detalle"
                                                 class="btn btn-warning btn-block">
                                                     <i class="fa fa-plus"></i> AGREGAR
                                                 </button>
                                         </div>
-                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="panel panel-primary" id="panel_detalle">
+                                <div class="panel-heading">
+                                    <h4 class=""><b>Detalle de la Guia de Remision</b></h4>
+                                </div>
+                                <div class="panel-body ibox-content">
+                                    <div class="row">
+                                        <div class="col-12 mb-5">
+                                            @include('ventas.guias.table-detalle')
+                                        </div>
                                         {{-- <div class="col-12">
                                             <form id="agregar_producto">
                                                 <div class="row align-items-end">
@@ -645,7 +660,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
                     <div class="hr-line-dashed"></div>
@@ -1253,16 +1267,18 @@
         });
     })
 </script>
+<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <script>
-    const tallas            =   @json($tallas);
-    const tableStocksBody   =  document.querySelector('#table-stocks tbody');
-    const tokenValue        = document.querySelector('input[name="_token"]').value;
-    const btnAgregarDetalle =   document.querySelector('#btn_agregar_detalle');
+    const tallas                =   @json($tallas);
+    const tableStocksBody       =   document.querySelector('#table-stocks tbody');
+    const tokenValue            =   document.querySelector('input[name="_token"]').value;
+    const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
+    const tableDetalleBody      =   document.querySelector('#table-detalle-guia tbody');      
+    const tfoot_cantidadTotal   =   document.querySelector('#tfoot_cantidadTotal');   
 
     let modelo_id       = null;
     let carrito         = [];
     let asegurarCierre  = 5;
-
 
     document.addEventListener('DOMContentLoaded',()=>{
         events();
@@ -1277,6 +1293,19 @@
 
         btnAgregarDetalle.addEventListener('click',()=>{
             this.agregarProducto();
+        })
+
+        document.addEventListener('click',(e)=>{
+            if(e.target.classList.contains('delete-product')){
+                const producto_id   =   e.target.getAttribute('data-producto');
+                const color_id      =   e.target.getAttribute('data-color');
+
+                const item          =   carrito.filter((p)=>{
+                    return p.producto_id==producto_id && p.color_id==color_id;
+                })
+                
+                //eliminarItem();
+            }
         })
 
     }
@@ -1298,33 +1327,6 @@
         }else{
             tableStocksBody.innerHTML = ``;
         }
-        
-
-       
-        
-        
-        // if(modelo_id){
-        //     const url = `/get-producto-by-modelo/${modelo_id}`;
-        //     fetch(url, {
-        //             method: 'GET',
-        //             headers: {
-        //                 'X-CSRF-TOKEN': tokenValue,
-        //                 'Content-Type': 'application/json',
-        //                 'Accept': 'application/json',
-        //             },
-        //         })
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             console.log(data.stocks);
-        //             console.log(data.producto_colores);
-        //             pintarTableStocks(data.stocks,tallas,data.producto_colores);
-        //         })
-
-        //         .catch(error => console.error('Error:', error));
-            
-        // }else{
-        //     tableStocksBody.innerHTML = ``;
-        // }
     }
 
     const pintarTableStocks = (stocks,tallas,producto_colores)=>{
@@ -1346,13 +1348,13 @@
                 htmlTallas +=   `
                                     <td style="background-color: rgb(210, 242, 242);font-weight:bold;">${stock}</td>
                                     <td width="8%">
-                                        <input ${stock==0? 'disabled' : ''}
-                                        type="text" class="form-control inputCantidad inputCantidadColor" 
-                                        data-producto-id="${pc.producto_id}"
-                                        data-producto-nombre="${pc.producto_nombre}"
-                                        data-color-nombre="${pc.color_nombre}"
-                                        data-talla-nombre="${t.descripcion}"
-                                        data-color-id="${pc.color_id}" data-talla-id="${t.id}"></input>    
+                                        ${stock !== 0 ? `
+                                            <input type="text" class="form-control inputCantidad inputCantidadColor" 
+                                            data-producto-id="${pc.producto_id}"
+                                            data-producto-nombre="${pc.producto_nombre}"
+                                            data-color-nombre="${pc.color_nombre}"
+                                            data-talla-nombre="${t.descripcion}"
+                                            data-color-id="${pc.color_id}" data-talla-id="${t.id}"></input>` : ''}
                                     </td>
                                 `;   
             })
@@ -1516,55 +1518,151 @@
             // this.calcularMontos();
             this.getProductosByModelo(modelo_id).then(()=>{
                 document.getElementById('overlay').style.display = 'none';
+                cargarCarritoPrevio ();
+                reordenarCarrito();
+                pintarDetalle();
             });
-            console.log(this.asegurarCierre);
-            //console.log(this.carrito);
+            console.log(asegurarCierre);
+            console.log(carrito);
+    }
+
+    //========== CARGAR CARRITO PREVIO ===============
+    function cargarCarritoPrevio (){
+        //======= obteniendo inputs del modelo actual =======
+        //============ colocando cantidades ========
+        carrito.forEach((p)=>{
+            p.tallas.forEach((t)=>{
+                const selector = `input[data-producto-id="${p.producto_id}"][data-color-id="${p.color_id}"][data-talla-id="${t.talla_id}"]`;
+                const inputSeleccionado = document.querySelector(selector);
+                if(inputSeleccionado){
+                    inputSeleccionado.value =   t.cantidad;
+                }
+            })
+        })
+    }
+
+    //============  REORDENAR CARRITO ============
+    function reordenarCarrito(){
+            carrito.sort(function(a, b) {
+                if (a.producto_id === b.producto_id) {
+                    return a.color_id - b.color_id;
+                } else {
+                    return a.producto_id - b.producto_id;
+                }
+            });
+        }
+
+
+    //============== VALIDAR CANTIDAD CARRITO =============
+    async function validarCantidadCarrito(inputCantidad){
+        const stockLogico           = await  this.getStockLogico(inputCantidad);
+        const cantidadSolicitada    =   inputCantidad.value;
+        return stockLogico>=cantidadSolicitada;
     }
 
 
-        //============== VALIDAR CANTIDAD CARRITO =============
-        async function validarCantidadCarrito(inputCantidad){
-            const stockLogico           = await  this.getStockLogico(inputCantidad);
-            const cantidadSolicitada    =   inputCantidad.value;
-            return stockLogico>=cantidadSolicitada;
-        }
-
-
-        //============== formar objeto producto ================
-        function formarProducto(ic){
-            const producto_id = ic.getAttribute('data-producto-id');
-            const producto_nombre = ic.getAttribute('data-producto-nombre');
-            const color_id = ic.getAttribute('data-color-id');
-            const color_nombre = ic.getAttribute('data-color-nombre');
-            const talla_id = ic.getAttribute('data-talla-id');
-            const talla_nombre = ic.getAttribute('data-talla-nombre');
-            const cantidad     = ic.value?ic.value:0;
-            const producto = {producto_id,producto_nombre,color_id,color_nombre,
+    //============== formar objeto producto ================
+    function formarProducto(ic){
+        const producto_id = ic.getAttribute('data-producto-id');
+        const producto_nombre = ic.getAttribute('data-producto-nombre');
+        const color_id = ic.getAttribute('data-color-id');
+        const color_nombre = ic.getAttribute('data-color-nombre');
+        const talla_id = ic.getAttribute('data-talla-id');
+        const talla_nombre = ic.getAttribute('data-talla-nombre');
+        const cantidad     = ic.value?ic.value:0;
+        const producto = {producto_id,producto_nombre,color_id,color_nombre,
                                 talla_id,talla_nombre,cantidad};
-            return producto;
-        }
+        return producto;
+    }
 
-        //============= ACTUALIZAR STOCK LOGICO ==============
-        async function actualizarStockLogico(producto,modo,cantidadAnterior){
-            modo=="eliminar"?this.asegurarCierre=0:this.asegurarCierre=1;
-            try {
-                await this.axios.post(route('ventas.documento.cantidad'), {
-                    'producto_id'   :   producto.producto_id,
-                    'color_id'      :   producto.color_id,
-                    'talla_id'      :   producto.talla_id,
-                    'cantidad'      :   producto.cantidad,
-                    'condicion'     :   asegurarCierre,
-                    'modo'          :   modo,
-                    'cantidadAnterior'    :   cantidadAnterior,
-                    'tallas'        :   producto.tallas,
-                });
+    //============= ACTUALIZAR STOCK LOGICO ==============
+     async function actualizarStockLogico(producto,modo,cantidadAnterior){
+         modo=="eliminar"?this.asegurarCierre=0:this.asegurarCierre=1;
+        try {
+            await this.axios.post(route('ventas.documento.cantidad'), {
+                'producto_id'   :   producto.producto_id,
+                'color_id'      :   producto.color_id,
+                'talla_id'      :   producto.talla_id,
+                'cantidad'      :   producto.cantidad,
+                'condicion'     :   asegurarCierre,
+                'modo'          :   modo,
+                'cantidadAnterior'    :   cantidadAnterior,
+                'tallas'        :   producto.tallas,
+            });
                 
-            } catch (ex) {
+        } catch (ex) {
 
-            }
         }
+    }
 
-      
+    //=========== CALCULAR LA CANTIDAD DE PRODUCTOS ===============
+    function calcularCantidad(lista){
+        if(lista.length!==0){
+            let cantidadTotal =   0;
+            lista.forEach((p)=>{
+                p.tallas.forEach((t)=>{
+                    cantidadTotal += parseInt(t.cantidad);                
+                })
+            })
+            return cantidadTotal;
+        }else{
+            return 0;
+        }
+    }
+
+    //============== PINTAR DETALLE ===========
+    function pintarDetalle(){
+        let fila            =   ``;
+        let cantidadTotal   =   calcularCantidad(carrito);
+        
+        carrito.forEach((p)=>{
+            const carritoFiltrado = carrito.filter((c) => {
+                return c.producto_id == p.producto_id && c.color_id == p.color_id;
+            });
+
+            const cantidadColor =   calcularCantidad(carritoFiltrado);
+            fila += `   
+                        <tr>
+                            <th scope="row"> 
+                                <i class="fas fa-trash-alt btn btn-primary delete-product"
+                                data-producto="${p.producto_id}" data-color="${p.color_id}"></i>
+                            </th>
+                            <td>${cantidadColor}</td>
+                            <td>${p.producto_nombre} - ${p.color_nombre}</td> 
+                    `;
+            let descripcion =   ``;
+            p.tallas.forEach((t)=>{
+                descripcion += `[${t.talla_nombre}/${t.cantidad}]`
+            })
+
+            fila+=  `
+                            <td>${descripcion}</td>
+                            <td>0.0</td>
+                        </tr>
+                    `;
+        })
+        tableDetalleBody.innerHTML          =   fila;
+        tfoot_cantidadTotal.textContent     =   cantidadTotal;
+    }
+
+
+    function eliminarItem(item,index) {
+           try {
+               //==== devolvemos el stock logico separado ========
+               this.actualizarStockLogico(item, "eliminar");
+               //====== obtenemos los stocks logicos actualizados de la bd ========
+               //======== renderizamos la tabla de stocks ==============
+               this.getProductosByModelo();
+               //========== eliminar el item del carrito ========
+               //============ renderizamos la tabla detalle =======
+               this.carrito.splice(index, 1);
+               //======= alerta ======================
+               toastr.success('Producto eliminado',"Cantidad devuelta")
+           } catch (error) {
+               console.error("Error en Eliminar item:", error);
+               alert("Error en Eliminar item: " + error);
+           } 
+    }
 
 </script>
 @endpush
