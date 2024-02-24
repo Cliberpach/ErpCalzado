@@ -536,7 +536,7 @@ class DocumentoController extends Controller
                         ->with('producto', 'color', 'talla')->get();
             
             $lotes = self::cotizacionLote($detalles);
-            //dd($lotes);
+            
             $nuevoDetalle = collect();
             $detalleValidado = [];
             if (count($lotes) === 0) {
@@ -560,7 +560,7 @@ class DocumentoController extends Controller
             }
             //COMPROBACION DE LOTES SI LAS CANTIDADES ENVIADAS SON IGUALES A LAS SOLICITADAS
             //dd($detalles);
-            //dd($lotes);
+            
             foreach ($detalles as $detalle) {
                 //$cantidadDetalle = $lotes->where('producto', $detalle->producto_id)->sum('cantidad');
                 $cantidadDetalle   = [];
@@ -586,6 +586,7 @@ class DocumentoController extends Controller
                      $coll->producto = $devolucionLotes->descripcion_producto;
                      $coll->cantidad = $detalle->cantidad;
                      $errores->push($coll);
+                    
                      self::devolverCantidad($lotes->where('producto',$detalle->producto_id)
                                                      ->where('color',$detalle->color_id)
                                                      ->where('talla',$detalle->talla_id)
@@ -736,28 +737,40 @@ class DocumentoController extends Controller
             ]);
         }
     }
-    public function devolverCantidad($devoluciones)
-    {
-        foreach ($devoluciones as $devolucion) {
+    public function devolverCantidad($devolucion)
+    {                 
+        
+       
             // if ($devolucion->producto_id != 0) {
                 
             if ($devolucion->producto != 0) {
                 //$lote = LoteProducto::findOrFail($devolucion->producto_id);
-                $lote = ProductoColorTalla::where('producto_id', $devolucion->producto)
-                                        ->where('color_id', $devolucion->color)
-                                        ->where('talla_id', $devolucion->talla)
-                                        ->firstOrFail();                
+                // $lote = ProductoColorTalla::where('producto_id', $devolucion->producto)
+                //                         ->where('color_id', $devolucion->color)
+                //                         ->where('talla_id', $devolucion->talla)
+                //                         ->firstOrFail();                
                 // $lote->cantidad_logica = $lote->cantidad_logica + $devolucion->cantidad;
                 // $lote->cantidad = $lote->cantidad_logica;
                 // $lote->estado = '1';
                 // $lote->update();
-                $lote->stock_logico = $lote->stock_logico + $devolucion->cantidad;
-                $lote->stock = $lote->stok_logico;
+                //$stock_logico_repuesto  =   $lote->stock_logico + $devolucion->cantidad;  
+                // $lote->stock_logico     =   $stock_logico_repuesto;
+                // $lote->stock            = $stock_logico_repuesto;
 
                 // Guardar los cambios en la base de datos
-                $lote->save();
+                DB::table('producto_color_tallas')
+                ->where('producto_id', $devolucion->producto)
+                ->where('color_id', $devolucion->color)
+                ->where('talla_id', $devolucion->talla)
+                ->update([
+                    'stock_logico' => DB::raw('stock_logico + ' . $devolucion->cantidad),
+                    'stock' => DB::raw('stock_logico')
+                ]);
+                
             }
-        }
+        
+        
+        
     }
 
     public function cotizacionLote($detalles)
@@ -852,10 +865,8 @@ class DocumentoController extends Controller
                                 ->update([
                                     'stock_logico' => 0
                             ]);
-
-                        }
-
-                        if($cantidadLogica > $cantidadSolicitada){
+                        }else if($cantidadLogica    >   $cantidadSolicitada)
+                        {
                             //CREAMOS EL NUEVO DETALLE
                             $coll = new Collection();
                 //          $coll->producto_id = $lote->id;
