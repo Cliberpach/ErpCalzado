@@ -808,7 +808,6 @@ class DocumentoController extends Controller
                         //ACTUALIZAMOS EL LOTE
                         //$lote->cantidad_logica = $lote->cantidad_logica - $cantidadSolicitada;
                         //REDUCIMOS LA CANTIDAD SOLICITADA
-                        $cantidadSolicitada = 0;
                         //$producto_existencia->update();
                         DB::table('producto_color_tallas')
                             ->where('producto_id', $detalle->producto_id)
@@ -817,6 +816,7 @@ class DocumentoController extends Controller
                             ->update([
                                 'stock_logico' => DB::raw('stock_logico - ' . $cantidadSolicitada)
                         ]);
+                        $cantidadSolicitada = 0;
                     }else{
                         if($cantidadLogica < $cantidadSolicitada){
                             //CREAMOS EL NUEVO DETALLE
