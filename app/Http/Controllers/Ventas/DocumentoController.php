@@ -569,7 +569,7 @@ class DocumentoController extends Controller
                 ]);
             }
 
-            dd($detalles);
+            dd($lotes);
 
             foreach ($detalles as $detalle) {
               
