@@ -575,12 +575,12 @@ class DocumentoController extends Controller
                 //$cantidadDetalle = $lotes->where('producto', $detalle->producto_id)->sum('cantidad');
                 $cantidadDetalle   = [];
                 $cantidadDetalle = $lotes->where('producto', $detalle->producto_id)
-                                ->where('color', $detalle->color_id)
-                                ->where('talla', $detalle->talla_id)
-                                ->first();
+                                    ->where('color', $detalle->color_id)
+                                    ->where('talla', $detalle->talla_id)
+                                    ->first();
               
 
-                //dd($cantidadDetalle);
+                dd($cantidadDetalle);
                 
                 if ($cantidadDetalle->cantidad != $detalle->cantidad) {
                 //     //dd(' != '. $cantidadDetalle[0]->cantidad);
