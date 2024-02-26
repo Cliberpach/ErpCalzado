@@ -1034,7 +1034,8 @@
     //================ devolver cantidades ===============
     async function DevolverCantidades() {
             await this.axios.post(route('ventas.documento.devolver.cantidades'), {
-                carrito: JSON.stringify(carritoFormateado)
+                carrito: JSON.stringify(carritoFormateado),
+                vista: 'create-venta-cotizacion'
             });
     }
 

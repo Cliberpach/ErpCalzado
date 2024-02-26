@@ -3127,22 +3127,28 @@ class DocumentoController extends Controller
     //DEVOLVER CANTIDAD LOGICA AL CERRAR VENTANA
     public function returnQuantity(Request $request)
     {
-        // $data           =   $request->all();
-        // $carrito        =   $data['carrito'];
-        // $productosJSON  =   json_decode($carrito);
+        
         $mensaje        =   false;
 
-        // foreach ($productosJSON as $producto) {
-        //     $mensaje=true;
-        //     foreach ($producto->tallas as $talla) {
-    
-        //         DB::table('producto_color_tallas')
-        //             ->where('producto_id', $producto->producto_id)
-        //             ->where('color_id', $producto->color_id)
-        //             ->where('talla_id', $talla->talla_id) 
-        //             ->increment('stock_logico', $talla->cantidad); 
-        //     }
-        // }
+        if($request->has('vista') && $request->has('carrito')){
+            $data           =   $request->all();
+            $carrito        =   $data['carrito'];
+            $productosJSON  =   json_decode($carrito);
+
+            foreach ($productosJSON as $producto) {
+                $mensaje=true;
+                foreach ($producto->tallas as $talla) {
+        
+                    DB::table('producto_color_tallas')
+                        ->where('producto_id', $producto->producto_id)
+                        ->where('color_id', $producto->color_id)
+                        ->where('talla_id', $talla->talla_id) 
+                        ->increment('stock_logico', $talla->cantidad); 
+                }
+            }
+        }
+
+       
 
         $carrito=null;
 
