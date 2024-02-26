@@ -580,7 +580,7 @@ class DocumentoController extends Controller
                                     ->first();
               
 
-                dd($cantidadDetalle);
+                dd($cantidadDetalle->cantidad);
                 
                 if ($cantidadDetalle->cantidad != $detalle->cantidad) {
                 //     //dd(' != '. $cantidadDetalle[0]->cantidad);
