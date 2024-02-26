@@ -569,7 +569,7 @@ class DocumentoController extends Controller
                 ]);
             }
 
-            
+            dd($detalles);
 
             foreach ($detalles as $detalle) {
               
@@ -579,6 +579,7 @@ class DocumentoController extends Controller
                                     ->where('color', $detalle->color_id)
                                     ->where('talla', $detalle->talla_id)
                                     ->first();
+                
               
 
                 if ($cantidadDetalle->cantidad != $detalle->cantidad) {
@@ -646,7 +647,7 @@ class DocumentoController extends Controller
                          $detalleValidado[] = $col;
                 }
             }
-            dd('a');
+            
            
             //dd($detalleValidado);
             //dd($cotizacion);
