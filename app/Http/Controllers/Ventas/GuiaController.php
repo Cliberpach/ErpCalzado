@@ -50,6 +50,7 @@ use Greenter\Model\Response\CdrResponse;
 use Greenter\Model\Response\SummaryResult;
 use Greenter\Ws\Services\SunatEndpoints;
 use App\Greenter\Utils\Util;
+use Illuminate\Support\Facades\Cache;
 
 
 
@@ -59,6 +60,11 @@ class GuiaController extends Controller
 {
     public function index()
     {
+        //Cache::forget('productos');
+
+        // $allCachedItems = Cache::get('productos');
+        // //$allCachedItems = Cache::get('hay_productos?');
+        // dd($allCachedItems);
         $dato = "Message";
         broadcast(new NotifySunatEvent($dato));
         return view('ventas.guias.index');
@@ -219,6 +225,7 @@ class GuiaController extends Controller
 
     public function store(Request $request)
     {
+        
         try
         {
             DB::beginTransaction();

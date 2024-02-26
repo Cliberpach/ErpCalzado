@@ -591,6 +591,9 @@ export default {
     watch: {
         carrito:{
             handler(value){
+                if(this.carrito.length>0){
+                    this.asegurarCierre=1;
+                }
                 const montos = {
                     monto_sub_total  :   this.monto_subtotal,
                     monto_total_igv       :   this.monto_igv,
@@ -894,8 +897,6 @@ export default {
             //console.log(this.carrito);
         },
         async actualizarStockLogico(producto,modo,cantidadAnterior){
-            localStorage.setItem('ultimo', JSON.stringify(producto));
-            this.flujo.push(JSON.stringify(producto))
 
             modo=="eliminar"?this.asegurarCierre=0:this.asegurarCierre=1;
 
@@ -910,6 +911,7 @@ export default {
                     'cantidadAnterior'    :   cantidadAnterior,
                     'tallas'        :   producto.tallas,
                 });
+                
                 
             } catch (ex) {
 
@@ -985,12 +987,12 @@ export default {
         //     }
         // }
         async DevolverCantidades() {
-            localStorage.setItem('flujo', JSON.stringify(this.carrito));
-
-            await this.axios.post(route('ventas.documento.devolver.cantidades'), {
-                // cantidades: JSON.stringify(this.tablaDetalles)
-                carrito: JSON.stringify(this.carrito)
-            });
+            while(true){
+                await this.axios.post(route('ventas.documento.devolver.cantidades'), {
+                    // cantidades: JSON.stringify(this.tablaDetalles)
+                    //carrito: JSON.stringify(this.carrito)
+                });
+            } 
         },
         async ObtenerCodigoPrecioMenor() {
             

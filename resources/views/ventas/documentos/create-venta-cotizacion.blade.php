@@ -518,9 +518,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
 <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
 <script>
-    let carrito             =   @json($detalle);
+    let   carrito           =   @json($detalle);
     const tallas            =   @json($tallas);
     const cotizacion        =   @json($cotizacion);
+    const erroresJS         =   @json($errores);           
     const tableDetalleBody  =   document.querySelector('#table-detalle tbody');
     const tableDetalleFoot  =   document.querySelector('#table-detalle tfoot');
     const tableSubtotal     =   document.querySelector('.subtotal');
@@ -528,10 +529,12 @@
     const tableIgv          =   document.querySelector('.igv');
     const formDocumento         =   document.querySelector('#enviar_documento');
     let clientes_global;
+    let carritoFormateado   =   [];
 
     document.addEventListener('DOMContentLoaded',()=>{
         console.log(carrito);
-        
+        $('#asegurarCierre').val(1)
+        formataearCarrito();
         getClientes();
         cargarChecks();
         cargarSelect2();
@@ -540,6 +543,7 @@
         pintarDetalleCotizacion(carrito);
         pintarMontos();
         events();
+        console.log(carritoFormateado);
     })
 
 
@@ -586,6 +590,35 @@
         })
     }
 
+    function formataearCarrito(){
+        const producto_color_procesados =   [];
+        carrito.forEach((p)=>{
+            const llave =   `${p.producto_id}-${p.color_id}`;
+            if(!producto_color_procesados.includes(llave)){
+                const producto  =   {
+                    producto_id:p.producto_id,
+                    color_id   :p.color_id,
+                    producto_nombre:p.producto_nombre,
+                    color_nombre:p.color_nombre
+                }
+                const tallas_producto   =   carrito.filter((c)=>{
+                   return c.producto_id==p.producto_id && c.color_id==p.color_id;
+                })
+                const tallas = [];
+                tallas_producto.forEach((t)=>{
+                    const talla={
+                        talla_id:t.talla_id,
+                        cantidad:t.cantidad
+                    }
+                    tallas.push(talla);
+                })
+                producto.tallas=tallas;
+                carritoFormateado.push(producto);
+                producto_color_procesados.push(llave);
+            }
+        })
+    }
+
     //========== VALIDAR TIPO ===============
     function validarTipo() {
         var enviar = true
@@ -624,7 +657,7 @@
                     document.getElementById("cliente_id").disabled = false;
                     document.getElementById("condicion_id").disabled = false;
                     //HABILITAR EL CARGAR PAGINA
-                    //$('#asegurarCierre').val(2)
+                    $('#asegurarCierre').val(2)
                     //$('#enviar_documento').submit();
                 }
                 else
@@ -717,7 +750,7 @@
                                 $('#asegurarCierre').val(2);
 
                                 location = "{{ route('ventas.documento.index') }}";
-                             }
+                            }
                             //  else
                             //  {
                             //      $('#asegurarCierre').val(1);
@@ -981,6 +1014,28 @@
                     producto_color_procesado.push(`${c.producto_id}-${c.color_id}`)
                 }
             })
+    }
+
+    //============= devolver stock logico, ya que hay errores en la cotización ===================
+    window.addEventListener('beforeunload', async () => {
+
+        const asegurarCierre    =   document.querySelector('#asegurarCierre');
+            if (asegurarCierre.value == 1) {
+                localStorage.setItem('devuelto', asegurarCierre.value);
+
+                 await this.DevolverCantidades();
+                 asegurarCierre.value = 10;
+            } else {
+                 console.log("beforeunload", asegurarCierre);
+                 localStorage.setItem('no devuelto', asegurarCierre.value);
+            }
+    });
+
+    //================ devolver cantidades ===============
+    async function DevolverCantidades() {
+            await this.axios.post(route('ventas.documento.devolver.cantidades'), {
+                carrito: JSON.stringify(carritoFormateado)
+            });
     }
 
    

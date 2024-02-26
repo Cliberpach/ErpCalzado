@@ -25,16 +25,16 @@
       @if (isset($carrito))
         <tfoot>
           <tr>
-            <td colspan="7" style="font-weight: bold;text-align:end;">MONTO SUBTOTAL:</td>
-            <td class="subtotal" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
+            <td colspan="{{count($tallas)}}+3" style="font-weight: bold;text-align:end;">MONTO SUBTOTAL:</td>
+            <td class="subtotal" colspan="{{count($tallas)}}+3" style="font-weight: bold;text-align:end;">S/. 00.00</td>
           </tr>
           <tr>
-            <td colspan="7" style="font-weight: bold;text-align:end;">IGV:</td>
-            <td class="igv" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
+            <td colspan="{{count($tallas)}}+3" style="font-weight: bold;text-align:end;">IGV:</td>
+            <td class="igv" colspan="{{count($tallas)}}+3" style="font-weight: bold;text-align:end;">S/. 00.00</td>
           </tr>
           <tr>
-            <td colspan="7" style="font-weight: bold;text-align:end;">MONTO TOTAL:</td>
-            <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
+            <td colspan="{{count($tallas)}}+3" style="font-weight: bold;text-align:end;">MONTO TOTAL:</td>
+            <td  class="total" colspan="{{count($tallas)}}+3" style="font-weight: bold;text-align:end;">S/. 00.00</td>
           </tr>
         </tfoot>
       @endif

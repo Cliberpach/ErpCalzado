@@ -1302,9 +1302,14 @@
 
                 const item          =   carrito.filter((p)=>{
                     return p.producto_id==producto_id && p.color_id==color_id;
+                })[0];
+
+                const index_item    =   carrito.findIndex((p)=> {
+                    return p.producto_id==producto_id && p.color_id==color_id; 
                 })
+                console.log(item);
                 
-                //eliminarItem();
+                eliminarItem(item,index_item);
             }
         })
 
@@ -1421,110 +1426,109 @@
 
     //============== AGREGAR PRODUCTOS AL CARRITO ===================
     async function agregarProducto() {
-            document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('overlay').style.display = 'flex';
 
-            const inputsCantidad = document.querySelectorAll('.inputCantidad:not([disabled])');
+        const inputsCantidad = document.querySelectorAll('.inputCantidad:not([disabled])');
 
-            
-            for (const ic of inputsCantidad) {
-                ic.classList.remove('inputCantidadIncorrecto');
-                const cantidad = ic.value ? ic.value : null;
-                
-                if (cantidad) {
-                    try {
-                        const cantidadValida = await this.validarCantidadCarrito(ic);
-                       
+        for (const ic of inputsCantidad) {
+            ic.classList.remove('inputCantidadIncorrecto');
+            const cantidad = ic.value ? ic.value : null;
 
-                        if (cantidadValida) {
-                            const producto = this.formarProducto(ic);
-                            const indiceExiste = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
-                            
+            if (cantidad) {
+                try {
+                    console.log('Validando cantidad del producto...');
+                    const cantidadValida = await validarCantidadCarrito(ic);
+                    console.log('Cantidad válida:', cantidadValida);
 
-                            if (indiceExiste == -1) {
-                                const objProduct = {
-                                    producto_id: producto.producto_id,
-                                    color_id: producto.color_id,
-                                    producto_nombre: producto.producto_nombre,
-                                    color_nombre: producto.color_nombre,
-                                    tallas: [{
-                                        talla_id: producto.talla_id,
-                                        talla_nombre: producto.talla_nombre,
-                                        cantidad: producto.cantidad
-                                    }]
-                                };
+                    if (cantidadValida) {
+                        const producto = this.formarProducto(ic);
+                        const indiceExiste = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+                        
+                        if (indiceExiste == -1) {
+                            console.log('Producto no encontrado en el carrito. Agregando nuevo producto...');
+                            const objProduct = {
+                                producto_id: producto.producto_id,
+                                color_id: producto.color_id,
+                                producto_nombre: producto.producto_nombre,
+                                color_nombre: producto.color_nombre,
+                                tallas: [{
+                                    talla_id: producto.talla_id,
+                                    talla_nombre: producto.talla_nombre,
+                                    cantidad: producto.cantidad
+                                }]
+                            };
 
-                                carrito.push(objProduct);
-                                asegurarCierre = 1;
-                                await this.actualizarStockLogico(producto, "nuevo");
-                                
-                                
-                            } else {
-                                const productoModificar = carrito[indiceExiste];
-
-                                const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
-                                if (indexTalla !== -1) {
-                                    const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
-                                    productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
-                                    carrito[indiceExiste] = productoModificar;
-                                    asegurarCierre = 1;
-                                    await this.actualizarStockLogico(producto, "editar", cantidadAnterior);
-                                } else {
-                                    const objTallaProduct = {
-                                        talla_id: producto.talla_id,
-                                        talla_nombre: producto.talla_nombre,
-                                        cantidad: producto.cantidad
-                                    };
-                                    productoModificar.tallas.push(objTallaProduct);
-                                    carrito[indiceExiste] = productoModificar;
-                                    asegurarCierre = 1;
-                                    await this.actualizarStockLogico(producto, "nuevo");
-                                }
-                            }
-
-                        } else {
-                            ic.classList.add('inputCantidadIncorrecto');
-                        }
-
-                    } catch (error) {
-                        console.error("Error:", error);
-                    }
-
-                } else {
-                    const producto = this.formarProducto(ic);
-                    const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
-
-                    if (indiceProductoColor !== -1) {
-                        const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
-
-                        if (indiceTalla !== -1) {
-                            const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
-                            carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
+                            carrito.push(objProduct);
                             asegurarCierre = 1;
-                            await this.actualizarStockLogico(producto, "editar", cantidadAnterior);
+                            await this.actualizarStockLogico(producto, "nuevo");
+                            console.log('Producto agregado al carrito:', objProduct);
+                        } else {
+                            console.log('Producto encontrado en el carrito. Modificando existente...');
+                            const productoModificar = carrito[indiceExiste];
+                            const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
 
-
-                            const cantidadTallas = carrito[indiceProductoColor].tallas.length;
-
-                            if (cantidadTallas == 0) {
-                                carrito.splice(indiceProductoColor, 1);
+                            if (indexTalla !== -1) {
+                                const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
+                                productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
+                                carrito[indiceExiste] = productoModificar;
+                                asegurarCierre = 1;
+                                await actualizarStockLogico(producto, "editar", cantidadAnterior);
+                                console.log('Producto modificado:', productoModificar);
+                            } else {
+                                console.log('Talla del producto no encontrada. Agregando nueva talla...');
+                                const objTallaProduct = {
+                                    talla_id: producto.talla_id,
+                                    talla_nombre: producto.talla_nombre,
+                                    cantidad: producto.cantidad
+                                };
+                                productoModificar.tallas.push(objTallaProduct);
+                                carrito[indiceExiste] = productoModificar;
+                                asegurarCierre = 1;
+                                await actualizarStockLogico(producto, "nuevo");
+                                console.log('Nueva talla agregada:', objTallaProduct);
                             }
+                        }
+                    } else {
+                        ic.classList.add('inputCantidadIncorrecto');
+                        console.log('Cantidad no válida. Marcando como incorrecto.');
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                }
+            } else {
+                const producto = this.formarProducto(ic);
+                const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+                if (indiceProductoColor !== -1) {
+                    const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                    if (indiceTalla !== -1) {
+                        const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
+                        carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
+                        asegurarCierre = 1;
+                        await actualizarStockLogico(producto, "editar", cantidadAnterior);
+                        console.log('Talla del producto eliminada:', producto);
+                        
+                        const cantidadTallas = carrito[indiceProductoColor].tallas.length;
+
+                        if (cantidadTallas == 0) {
+                            carrito.splice(indiceProductoColor, 1);
+                            console.log('Producto eliminado del carrito:', producto);
                         }
                     }
                 }
-            }
-
-            // this.reordenarCarrito();
-            // this.calcularSubTotal();
-            // this.calcularMontos();
-            this.getProductosByModelo(modelo_id).then(()=>{
-                document.getElementById('overlay').style.display = 'none';
-                cargarCarritoPrevio ();
-                reordenarCarrito();
-                pintarDetalle();
-            });
-            console.log(asegurarCierre);
-            console.log(carrito);
+        }
     }
+
+    await this.getProductosByModelo(modelo_id);
+    console.log('Proceso de agregar producto completado.');
+    document.getElementById('overlay').style.display = 'none';
+    cargarCarritoPrevio();
+    reordenarCarrito();
+    pintarDetalle();
+}
+
+
 
     //========== CARGAR CARRITO PREVIO ===============
     function cargarCarritoPrevio (){
@@ -1555,7 +1559,7 @@
 
     //============== VALIDAR CANTIDAD CARRITO =============
     async function validarCantidadCarrito(inputCantidad){
-        const stockLogico           = await  this.getStockLogico(inputCantidad);
+        const stockLogico           =   await  this.getStockLogico(inputCantidad);
         const cantidadSolicitada    =   inputCantidad.value;
         return stockLogico>=cantidadSolicitada;
     }
@@ -1577,7 +1581,7 @@
 
     //============= ACTUALIZAR STOCK LOGICO ==============
      async function actualizarStockLogico(producto,modo,cantidadAnterior){
-         modo=="eliminar"?this.asegurarCierre=0:this.asegurarCierre=1;
+         modo=="eliminar"?asegurarCierre=0:asegurarCierre=1;
         try {
             await this.axios.post(route('ventas.documento.cantidad'), {
                 'producto_id'   :   producto.producto_id,
@@ -1645,23 +1649,55 @@
         tfoot_cantidadTotal.textContent     =   cantidadTotal;
     }
 
-
+    //============= eliminar item producto_color del carrito ===============
     function eliminarItem(item,index) {
+        document.getElementById('overlay').style.display = 'flex';
            try {
                //==== devolvemos el stock logico separado ========
                this.actualizarStockLogico(item, "eliminar");
                //====== obtenemos los stocks logicos actualizados de la bd ========
                //======== renderizamos la tabla de stocks ==============
-               this.getProductosByModelo();
-               //========== eliminar el item del carrito ========
-               //============ renderizamos la tabla detalle =======
-               this.carrito.splice(index, 1);
-               //======= alerta ======================
-               toastr.success('Producto eliminado',"Cantidad devuelta")
+               this.getProductosByModelo(modelo_id).then(()=>{
+                    
+                    //========== actualizamos el carrito =======
+                    carrito.splice(index, 1);
+                    carrito.length>0?asegurarCierre=1:0;
+                    //======= reordenamos el carrito =======
+                    reordenarCarrito();
+                    //====== pintamos el carrito ==========
+                    pintarDetalle();
+                    //==== retiramos el overlay ======
+                    document.getElementById('overlay').style.display = 'none';
+                    //======= alerta ==========
+                    toastr.success('Producto eliminado',"Cantidad devuelta")
+                });               
            } catch (error) {
+                //==== retiramos el overlay ======
+                document.getElementById('overlay').style.display = 'none';
                console.error("Error en Eliminar item:", error);
                alert("Error en Eliminar item: " + error);
            } 
+    }
+
+     //============= devolver stock logico, ya que hay errores en la cotización ===================
+     window.addEventListener('beforeunload', async () => {
+        if (asegurarCierre == 1) {
+            localStorage.setItem('devuelto', asegurarCierre);
+
+            await this.DevolverCantidades();
+            asegurarCierre = 10;
+        } else {
+            console.log("beforeunload", asegurarCierre);
+            localStorage.setItem('no devuelto', asegurarCierre);
+        }
+    });
+
+    //================ devolver cantidades ===============
+    async function DevolverCantidades() {
+        while(true){
+            await this.axios.post(route('ventas.documento.devolver.cantidades'), {
+            });
+        }
     }
 
 </script>
