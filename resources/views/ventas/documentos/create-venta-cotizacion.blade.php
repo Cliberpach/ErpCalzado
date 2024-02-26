@@ -1042,11 +1042,22 @@
    
 
     @if (!empty($errores))
-        $('#asegurarCierre').val(1)
+        $('#asegurarCierre').val(1);
         @foreach ($errores as $error)
-            toastr.error('La cantidad solicitada '+"{{ $error->cantidad }}"+' excede al stock del producto '+"{{ $error->producto }}", 'Error');
+            @if ($error->tipo == 'stocklogico') 
+                toastr.error('La cantidad solicitada {{ $error->cantidad }} excede al stock del producto {{ $error->producto }}', 'Error', {
+                    timeOut: 0, 
+                    extendedTimeOut: 0 
+                });            
+            @elseif($error->tipo == 'producto_no_existe')
+                toastr.error('No existe color ni la talla para el producto {{ $error->producto }}', 'Error',{
+                    timeOut: 0, 
+                    extendedTimeOut: 0 
+                });            
+            @endif
         @endforeach
     @endif
+
 
 </script>
 

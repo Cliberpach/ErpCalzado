@@ -569,10 +569,10 @@ class DocumentoController extends Controller
                 ]);
             }
 
-            dd($lotes);
+            
 
             foreach ($detalles as $detalle) {
-              
+           
                 //$cantidadDetalle = $lotes->where('producto', $detalle->producto_id)->sum('cantidad');
                 $cantidadDetalle   = [];
                 $cantidadDetalle = $lotes->where('producto', $detalle->producto_id)
@@ -581,76 +581,81 @@ class DocumentoController extends Controller
                                     ->first();
                 
               
-
-                if ($cantidadDetalle->cantidad != $detalle->cantidad) {
-                    
-                //     //dd(' != '. $cantidadDetalle[0]->cantidad);
-                     $devolucion = true;
-                     // $devolucionLotes = $lotes->where('producto', $detalle->producto_id);
-                     $devolucionLotes = $lotes->where('producto',$detalle->producto_id)
-                                                 ->where('color',$detalle->color_id)
-                                                 ->where('talla',$detalle->talla_id)
-                                                 ->first();
-                     //dd($devolucionLotes);
-                     //LLENAR ERROR CANTIDAD SOLICITADA MAYOR AL STOCK
-                     $coll = new Collection();
-                     $coll->producto = $devolucionLotes->descripcion_producto;
-                     $coll->cantidad = $detalle->cantidad;
-                     $errores->push($coll);
-                    
-                     self::devolverCantidad($lotes->where('producto',$detalle->producto_id)
-                                                     ->where('color',$detalle->color_id)
-                                                     ->where('talla',$detalle->talla_id)
-                                                    ->first());
-                } else {
-                        $nuevoSindevoluciones = $lotes->where('producto',$detalle->producto_id)
-                                                ->where('color',$detalle->color_id)
-                                                ->where('talla',$detalle->talla_id)
-                                                ->first();
+                if($cantidadDetalle){
+                    if ($cantidadDetalle->cantidad != $detalle->cantidad) {
                         
-                        //dd($nuevoSindevoluciones);
-                         $coll = new Collection();
-                         $col  = [];
-                         // $coll->producto_id = $devolucion->producto_id;
-
-                         $coll->producto_id = $nuevoSindevoluciones->producto;
-                         $coll->color_id = $nuevoSindevoluciones->color;
-                         $coll->talla_id = $nuevoSindevoluciones->talla;
-                         $coll->cantidad = $nuevoSindevoluciones->cantidad;
-                         $coll->precio_unitario   = $nuevoSindevoluciones->precio_unitario;
-                         $coll->importe           = $nuevoSindevoluciones->importe;
-
-                         $col = [
-                            'producto_id' => $nuevoSindevoluciones->producto,
-                            'color_id' => $nuevoSindevoluciones->color,
-                            'talla_id' => $nuevoSindevoluciones->talla,
-                            'cantidad' => $nuevoSindevoluciones->cantidad,
-                            'precio_unitario' => $nuevoSindevoluciones->precio_unitario,
-                            'importe' => $nuevoSindevoluciones->importe,
-                            'producto_nombre'   =>  Producto::where('id', $nuevoSindevoluciones->producto)->first()->nombre,
-                            'color_nombre'      =>  Color::where('id',  $nuevoSindevoluciones->color)->first()->descripcion,
-                        ];   
-
-                         // $coll->precio_unitario = $devolucion->precio_unitario;
-                         // $coll->precio_inicial = $devolucion->precio_inicial;
-                         // $coll->precio_nuevo = $devolucion->precio_nuevo;
-                         // $coll->descuento = $devolucion->descuento;
-                         // $coll->dinero = $devolucion->dinero;
-                         // $coll->valor_unitario = $devolucion->valor_unitario;
-                         // $coll->valor_venta = $devolucion->valor_venta;
-                         // $coll->unidad = $devolucion->unidad;
-                         $coll->descripcion_producto = $nuevoSindevoluciones->descripcion_producto;
-                         //$coll->presentacion = $devolucion->presentacion;
-                         //$coll->producto = $devolucion->producto;
-                         $nuevoDetalle->push($coll);
+                    //     //dd(' != '. $cantidadDetalle[0]->cantidad);
+                        $devolucion = true;
+                        // $devolucionLotes = $lotes->where('producto', $detalle->producto_id);
+                        $devolucionLotes = $lotes->where('producto',$detalle->producto_id)
+                                                    ->where('color',$detalle->color_id)
+                                                    ->where('talla',$detalle->talla_id)
+                                                    ->first();
+                        //dd($devolucionLotes);
+                        //LLENAR ERROR CANTIDAD SOLICITADA MAYOR AL STOCK
+                        $coll = new Collection();
+                        $coll->producto = $devolucionLotes->descripcion_producto;
+                        $coll->tipo     =   'stocklogico';
+                        $coll->cantidad = $detalle->cantidad;
+                        $errores->push($coll);
                         
-                         $detalleValidado[] = $col;
+                        self::devolverCantidad($lotes->where('producto',$detalle->producto_id)
+                                                        ->where('color',$detalle->color_id)
+                                                        ->where('talla',$detalle->talla_id)
+                                                        ->first());
+                    } else {
+                            $nuevoSindevoluciones = $lotes->where('producto',$detalle->producto_id)
+                                                    ->where('color',$detalle->color_id)
+                                                    ->where('talla',$detalle->talla_id)
+                                                    ->first();
+                            
+                            //dd($nuevoSindevoluciones);
+                            $coll = new Collection();
+                            $col  = [];
+                            // $coll->producto_id = $devolucion->producto_id;
+
+                            $coll->producto_id = $nuevoSindevoluciones->producto;
+                            $coll->color_id = $nuevoSindevoluciones->color;
+                            $coll->talla_id = $nuevoSindevoluciones->talla;
+                            $coll->cantidad = $nuevoSindevoluciones->cantidad;
+                            $coll->precio_unitario   = $nuevoSindevoluciones->precio_unitario;
+                            $coll->importe           = $nuevoSindevoluciones->importe;
+
+                            $col = [
+                                'producto_id' => $nuevoSindevoluciones->producto,
+                                'color_id' => $nuevoSindevoluciones->color,
+                                'talla_id' => $nuevoSindevoluciones->talla,
+                                'cantidad' => $nuevoSindevoluciones->cantidad,
+                                'precio_unitario' => $nuevoSindevoluciones->precio_unitario,
+                                'importe' => $nuevoSindevoluciones->importe,
+                                'producto_nombre'   =>  Producto::where('id', $nuevoSindevoluciones->producto)->first()->nombre,
+                                'color_nombre'      =>  Color::where('id',  $nuevoSindevoluciones->color)->first()->descripcion,
+                            ];   
+
+                            // $coll->precio_unitario = $devolucion->precio_unitario;
+                            // $coll->precio_inicial = $devolucion->precio_inicial;
+                            // $coll->precio_nuevo = $devolucion->precio_nuevo;
+                            // $coll->descuento = $devolucion->descuento;
+                            // $coll->dinero = $devolucion->dinero;
+                            // $coll->valor_unitario = $devolucion->valor_unitario;
+                            // $coll->valor_venta = $devolucion->valor_venta;
+                            // $coll->unidad = $devolucion->unidad;
+                            $coll->descripcion_producto = $nuevoSindevoluciones->descripcion_producto;
+                            //$coll->presentacion = $devolucion->presentacion;
+                            //$coll->producto = $devolucion->producto;
+                            $nuevoDetalle->push($coll);
+                            
+                            $detalleValidado[] = $col;
+                    }
+                }else{
+                    $coll           = new Collection();
+                    $coll->producto = $detalle->producto->nombre.' - '.$detalle->color->descripcion.' - '.$detalle->talla->descripcion;
+                    $coll->tipo     =   'producto_no_existe';
+                    $errores->push($coll);
                 }
             }
-            
            
-            //dd($detalleValidado);
-            //dd($cotizacion);
+            
             $tallas = Talla::all();
 
             return view('ventas.documentos.create-venta-cotizacion', [
