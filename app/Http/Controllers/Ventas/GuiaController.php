@@ -63,7 +63,7 @@ class GuiaController extends Controller
         //Cache::forget('productos');
 
         // $allCachedItems = Cache::get('productos');
-        // //$allCachedItems = Cache::get('hay_productos?');
+        // $allCachedItems = Cache::get('hay_productos?');
         // dd($allCachedItems);
         $dato = "Message";
         broadcast(new NotifySunatEvent($dato));
