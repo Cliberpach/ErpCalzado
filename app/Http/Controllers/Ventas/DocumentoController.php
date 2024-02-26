@@ -572,6 +572,7 @@ class DocumentoController extends Controller
             
 
             foreach ($detalles as $detalle) {
+              
                 //$cantidadDetalle = $lotes->where('producto', $detalle->producto_id)->sum('cantidad');
                 $cantidadDetalle   = [];
                 $cantidadDetalle = $lotes->where('producto', $detalle->producto_id)
@@ -580,7 +581,7 @@ class DocumentoController extends Controller
                                     ->first();
               
 
-                dd($detalle->cantidad);
+                dd($cantidadDetalle->cantidad != $detalle->cantidad);
                 
                 if ($cantidadDetalle->cantidad != $detalle->cantidad) {
                 //     //dd(' != '. $cantidadDetalle[0]->cantidad);
