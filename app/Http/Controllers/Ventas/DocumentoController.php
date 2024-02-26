@@ -582,7 +582,7 @@ class DocumentoController extends Controller
               
 
                 if ($cantidadDetalle->cantidad != $detalle->cantidad) {
-                    dd('test');
+                    
                 //     //dd(' != '. $cantidadDetalle[0]->cantidad);
                      $devolucion = true;
                      // $devolucionLotes = $lotes->where('producto', $detalle->producto_id);
@@ -646,6 +646,7 @@ class DocumentoController extends Controller
                          $detalleValidado[] = $col;
                 }
             }
+            dd('a');
            
             //dd($detalleValidado);
             //dd($cotizacion);
