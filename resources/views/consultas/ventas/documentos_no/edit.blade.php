@@ -261,7 +261,9 @@
                                         <div class="sk-rect5"></div>
                                     </div>
 
-                                    <div class="row">
+                                    @include('consultas.ventas.documentos_no.table-detalle')
+
+                                    {{-- <div class="row">
                                         <div class="col-lg-6 col-xs-12">
                                             <label class="col-form-label required">Producto:</label>
                                             <div class="input-group">
@@ -297,30 +299,25 @@
                                             </div>
                                         </div>
 
-
-
                                         <div class="col-lg-2 col-xs-12">
-
                                             <div class="form-group">
                                                 <label class="col-form-label" for="amount">&nbsp;</label>
                                                 <button type=button class="btn btn-block btn-warning" style='color:white;'
                                                     id="btn_agregar_detalle" disabled> <i class="fa fa-plus"></i>
                                                     AGREGAR</button>
                                             </div>
-
                                         </div>
+                                    </div> --}}
 
-
-
-                                    </div>
-                                    <div class="row">
+                                    {{-- <div class="row">
                                         <div class="col-12">
                                             <button  type="button" class="btn btn-info" id="buscarLotesRecientes"
                                             data-toggle="modal" data-target="#modal_lote_recientes">Buscar lotes recientes</button>
                                         </div>
-                                    </div>
+                                    </div> --}}
+
                                     <hr>
-                                    <div class="row">
+                                    {{-- <div class="row">
                                         <div class="col-12">
                                             <div class="table-responsive">
                                                 <table
@@ -363,7 +360,8 @@
                                                 </table>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> --}}
+
                                 </div>
                             </div>
                         </div>
@@ -432,9 +430,226 @@
 <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
-
+<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 
 <script>
+    const tableDetalleBody      =   document.querySelector('#table-detalle-docno tbody');      
+    const detalles              =   @json($detalles);
+    const tallasBD              =   @json($tallas);
+    const tfootSubtotal         =   document.querySelector('.subtotal');
+    const tfootIgv              =   document.querySelector('.igv');
+    const tfootTotal            =   document.querySelector('.total');
+
+    let igv=0;
+    let subtotal=0;
+    let total=0;
+
+    let carrito = [];
+
+    document.addEventListener('DOMContentLoaded',()=>{
+        events();
+        cargarClientes();   //===== CARGADO DE CLIENTES ========
+        formatearDetalle(); //======== FORMATEAR DETALLE ==============
+        pintarTablaDetalle();  
+        calcularMontos();     //========== CARGAR MONTOS =========
+        console.log(carrito);
+    })
+
+    function events(){
+        
+    }
+
+    //====== CARGAR MONTOS =========
+    function calcularMontos(){
+        let aux_subtotal=0;
+        let aux_igv=0;
+        let aux_total=0;
+
+        carrito.forEach((p)=>{
+            aux_total+=p.subtotal;
+        })
+
+        aux_igv= 0.18*aux_total;
+        aux_subtotal=aux_total-aux_igv;
+
+        const aux_subtotal_formateado = 'S/' + parseFloat(aux_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        const aux_igv_formateado = 'S/' + parseFloat(aux_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        const aux_total_formateado = 'S/' + parseFloat(aux_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+        tfootSubtotal.textContent = aux_subtotal_formateado;
+        tfootIgv.textContent = aux_igv_formateado;
+        tfootTotal.textContent = aux_total_formateado;
+    }
+
+    //========= formatear carrito ==============
+    const formatearDetalle = ()=>{
+        const producto_color_procesados=[];
+        detalles.forEach((p)=>{
+            const llave =   `${p.producto_id}-${p.color_id}`;
+            if(!producto_color_procesados.includes(llave)){
+                const producto = {
+                    producto_id :       p.producto_id,
+                    color_id    :       p.color_id,
+                    producto_nombre :   p.nombre_producto,
+                    color_nombre    :   p.nombre_color,
+                    modelo_nombre   :   p.nombre_modelo,
+                    precio_venta    :   parseFloat(p.precio_unitario).toFixed(2),
+                }
+
+                const tallasProducto = detalles.filter((c)=>{
+                    return c.producto_id==p.producto_id && c.color_id==p.color_id; 
+                })
+                const tallas=[];
+                tallasProducto.forEach((t)=>{
+                    const talla={
+                        talla_id:t.talla_id,
+                        cantidad:parseInt(t.cantidad),
+                        talla_nombre:t.nombre_talla
+                    }
+                    tallas.push(talla);
+                })
+                producto.tallas=tallas;
+                carrito.push(producto);
+                producto_color_procesados.push(llave);
+            }
+        })
+        cargarSubTotal();
+    }
+
+    //======== CARGAR SUBTOTAL =======
+    function cargarSubTotal(){
+        carrito.forEach((p)=>{
+            let cantidadTallas=0;
+            p.tallas.forEach((t)=>{
+                cantidadTallas += t.cantidad;
+            })
+            p.subtotal=cantidadTallas*p.precio_venta;
+        })
+    }
+
+    //========== CARGAR CLIENTES ==========
+    function cargarClientes(){
+        changeFormaPago();
+        $(".select2_form").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            width: '100%',
+        });
+        obtenerClientes();
+    }
+
+    //============= OBTENER CLIENTES ===========
+    function obtenerClientes() {
+        clientes_global = [];
+        $("#cliente_id").empty().trigger('change');
+        $("#cliente_id").removeAttr('onchange', 'obtenerTipocliente(this.value)');
+        $('#panel_detalle').children('.ibox-content').toggleClass('sk-loading');
+        axios.post('{{ route('ventas.customers_all') }}',{'_token': $('input[name=_token]').val(), 'tipo_id': $('#tipo_venta').val()}).then(response => {
+
+            let data = response.data;
+            clientes_global = data.clientes;
+            if (data.clientes.length > 0) {
+                $('#cliente_id').append('<option></option>').trigger('change');
+                for(var i = 0;i < data.clientes.length; i++)
+                {
+                    var newOption = '';
+                    if(data.clientes[i].id == '{{$documento->cliente_id}}')
+                    {
+                        newOption = '<option value="'+data.clientes[i].id+'" selected tabladetalle="'+data.clientes[i].tabladetalles_id+'">'+data.clientes[i].tipo_documento + ': ' + data.clientes[i].documento + ' - ' + data.clientes[i].nombre+'</option>'
+                    }
+                    else
+                    {
+                        newOption = '<option value="'+data.clientes[i].id+'" tabladetalle="'+data.clientes[i].tabladetalles_id+'">'+data.clientes[i].tipo_documento + ': ' + data.clientes[i].documento + ' - ' + data.clientes[i].nombre+'</option>'
+                    }
+                    $('#cliente_id').append(newOption).trigger('change');
+                }
+
+            } else {
+                toastr.error('Clientes no encontrados.', 'Error');
+            }
+            $('#tipo_cliente_documento').val(data.tipo);
+            $("#cliente_id").attr('onchange', 'obtenerTipocliente(this.value)');
+            obtenerTipocliente(1)
+            $('#panel_detalle').children('.ibox-content').toggleClass('sk-loading');
+        })
+    }
+
+
+    //===== forma de pago =========
+    function changeFormaPago()
+    {
+        let condicion_id = $('#condicion_id').val();
+        if(condicion_id)
+        {
+            let cadena = condicion_id.split('-');
+            let dias = convertFloat($('#condicion_id option:selected').data('dias')) + 1
+            let fecha = new Date('{{ $fecha_hoy }}')
+
+            fecha.setDate(fecha.getDate() + dias)
+
+            let month = (fecha.getMonth() + 1).toString().length > 1 ? (fecha.getMonth() + 1) : '0' + (fecha.getMonth() + 1)
+            let day = (fecha.getDate()).toString().length > 1 ? (fecha.getDate()) : '0' + (fecha.getDate())
+            let resultado = fecha.getFullYear() + '-' + month + '-' + day
+            $("#fecha_vencimiento_campo").val(resultado);
+            if(cadena[1] == 'CONTADO')
+            {
+                $('#fecha_vencimiento').addClass('d-none');
+            }
+            else
+            {
+                $('#fecha_vencimiento').removeClass('d-none');
+            }
+        }
+        else
+        {
+            $('#fecha_vencimiento').addClass('d-none');
+            $("#fecha_vencimiento_campo").val('{{ $fecha_hoy }}');
+        }
+    }
+
+    //============== OBTENER TIPO CLIENTE ==========
+    function obtenerTipocliente(cliente_id) {
+        if (cliente_id != '') {
+            $('#buscarLotes').prop("disabled", false)
+        }
+        else{
+            $('#buscarLotes').prop("disabled", true)
+        }
+    }
+
+
+    //======= PINTAR TABLA DETALLES ===========
+    const pintarTablaDetalle = ()=>{
+      
+        let fila            =   ``;
+     
+        carrito.forEach((p)=>{
+            fila += `   
+                        <tr>
+                            <th scope="row"> 
+                                <i class="fas fa-trash-alt btn btn-primary delete-product"
+                                data-producto="${p.producto_id}" data-color="${p.color_id}"></i>
+                            </th>
+                            <td>${p.modelo_nombre} - ${p.producto_nombre} - ${p.color_nombre}</td> 
+                    `;
+            let descripcion =   ``;
+            tallasBD.forEach((t)=>{
+                let cantidad =    p.tallas.filter((pt)=>{return pt.talla_id==t.id});
+                cantidad.length>0? cantidad = cantidad[0].cantidad: cantidad =0;
+                fila+= `<td>${cantidad}</td>`;
+            })
+           
+            fila+=  `       <td>${p.precio_venta}</td>
+                            <td>${p.subtotal}</td>
+                        </tr>
+                    `;
+        })
+        tableDetalleBody.innerHTML          =   fila;    
+    }
+
+</script>
+
+{{-- <script>
     //PRUEBA
     var clientes_global = [];
     const swalWithBootstrapButtons = Swal.mixin({
@@ -601,15 +816,7 @@
         })
     });
 
-    $(document).ready(function() {
-        changeFormaPago();
-        $(".select2_form").select2({
-            placeholder: "SELECCIONAR",
-            allowClear: true,
-            width: '100%',
-        });
-        obtenerClientes();
-    });
+ 
 
     function obtenerProducto(id) {
         // Consultamos nuestra BBDD
@@ -753,36 +960,7 @@
         $.fn.DataTable.ext.errMode = 'throw';
     });
 
-    function changeFormaPago()
-    {
-        let condicion_id = $('#condicion_id').val();
-        if(condicion_id)
-        {
-            let cadena = condicion_id.split('-');
-            let dias = convertFloat($('#condicion_id option:selected').data('dias')) + 1
-            let fecha = new Date('{{ $fecha_hoy }}')
-
-            fecha.setDate(fecha.getDate() + dias)
-
-            let month = (fecha.getMonth() + 1).toString().length > 1 ? (fecha.getMonth() + 1) : '0' + (fecha.getMonth() + 1)
-            let day = (fecha.getDate()).toString().length > 1 ? (fecha.getDate()) : '0' + (fecha.getDate())
-            let resultado = fecha.getFullYear() + '-' + month + '-' + day
-            $("#fecha_vencimiento_campo").val(resultado);
-            if(cadena[1] == 'CONTADO')
-            {
-                $('#fecha_vencimiento').addClass('d-none');
-            }
-            else
-            {
-                $('#fecha_vencimiento').removeClass('d-none');
-            }
-        }
-        else
-        {
-            $('#fecha_vencimiento').addClass('d-none');
-            $("#fecha_vencimiento_campo").val('{{ $fecha_hoy }}');
-        }
-    }
+    
 
     function limpiarErrores() {
         $('#cantidad').removeClass("is-invalid")
@@ -1330,49 +1508,8 @@
         //obtenerClientes()
     }
 
-    function obtenerClientes() {
-        clientes_global = [];
-        $("#cliente_id").empty().trigger('change');
-        $("#cliente_id").removeAttr('onchange', 'obtenerTipocliente(this.value)');
-        $('#panel_detalle').children('.ibox-content').toggleClass('sk-loading');
-        axios.post('{{ route('ventas.customers_all') }}',{'_token': $('input[name=_token]').val(), 'tipo_id': $('#tipo_venta').val()}).then(response => {
-
-            let data = response.data;
-            clientes_global = data.clientes;
-            if (data.clientes.length > 0) {
-                $('#cliente_id').append('<option></option>').trigger('change');
-                for(var i = 0;i < data.clientes.length; i++)
-                {
-                    var newOption = '';
-                    if(data.clientes[i].id == '{{$documento->cliente_id}}')
-                    {
-                        newOption = '<option value="'+data.clientes[i].id+'" selected tabladetalle="'+data.clientes[i].tabladetalles_id+'">'+data.clientes[i].tipo_documento + ': ' + data.clientes[i].documento + ' - ' + data.clientes[i].nombre+'</option>'
-                    }
-                    else
-                    {
-                        newOption = '<option value="'+data.clientes[i].id+'" tabladetalle="'+data.clientes[i].tabladetalles_id+'">'+data.clientes[i].tipo_documento + ': ' + data.clientes[i].documento + ' - ' + data.clientes[i].nombre+'</option>'
-                    }
-                    $('#cliente_id').append(newOption).trigger('change');
-                }
-
-            } else {
-                toastr.error('Clientes no encontrados.', 'Error');
-            }
-            $('#tipo_cliente_documento').val(data.tipo);
-            $("#cliente_id").attr('onchange', 'obtenerTipocliente(this.value)');
-            obtenerTipocliente(1)
-            $('#panel_detalle').children('.ibox-content').toggleClass('sk-loading');
-        })
-    }
-
-    function obtenerTipocliente(cliente_id) {
-        if (cliente_id != '') {
-            $('#buscarLotes').prop("disabled", false)
-        }
-        else{
-            $('#buscarLotes').prop("disabled", true)
-        }
-    }
+    
+  
 
     function enviarVenta()
     {
@@ -1543,5 +1680,5 @@
             }
         }
     }
-</script>
+</script> --}}
 @endpush

@@ -22,6 +22,10 @@ use Illuminate\Support\Facades\Validator;
 use Luecano\NumeroALetras\NumeroALetras;
 use Yajra\DataTables\Facades\DataTables;
 
+use App\Almacenes\ProductoColorTalla;
+use App\Almacenes\Talla;
+use App\Almacenes\Modelo;
+use App\Almacenes\Color;
 class NoEnviadosController extends Controller
 {
     public function index()
@@ -332,6 +336,8 @@ class NoEnviadosController extends Controller
         $condiciones = Condicion::where('estado', 'ACTIVO')->get();
         $fullaccess = false;
         $fecha_hoy = Carbon::now()->toDateString();
+        $tallas = Talla::where('estado','ACTIVO')->get();
+
 
         if (count(Auth::user()->roles) > 0) {
             $cont = 0;
@@ -352,6 +358,7 @@ class NoEnviadosController extends Controller
             'condiciones' => $condiciones,
             'fullaccess' => $fullaccess,
             'fecha_hoy' => $fecha_hoy,
+            'tallas'=>$tallas
         ]);
     }
 

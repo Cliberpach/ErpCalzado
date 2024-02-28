@@ -27,7 +27,7 @@ class CreateGuiaDetallesTable extends Migration
             $table->string('nombre_color');
             $table->string('nombre_talla');
             $table->unsignedDecimal('cantidad', 15, 2);
-            $table->text('unidad')->default('NIU');
+            $table->string('unidad')->default('NIU');
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
             $table->timestamps();
         });
