@@ -41,14 +41,24 @@ class ColorController extends Controller
         $data = $request->all();
 
         $rules = [
-            'descripcion_guardar' => 'required',
+            'descripcion_guardar' => 'required|unique:colores,descripcion',
         ];
         
-        $message = [
+        $messages = [
             'descripcion_guardar.required' => 'El campo Descripción es obligatorio.',
+            'descripcion_guardar.unique'      =>  'El color ya existe',
         ];
 
-        Validator::make($data, $rules, $message)->validate();
+        $validator = Validator::make($data, $rules ,$messages);
+
+        if($request->get('fetch') && $request->get('fetch')=='SI'){
+            if ($validator->fails()) {
+                return response()->json(['message' => 'error','data'=>$validator->errors()->toArray()]);
+            }
+        }else{
+            $validator->validate();
+        }
+
 
         $color = new Color();
         $color->descripcion = $request->get('descripcion_guardar');
@@ -61,6 +71,10 @@ class ColorController extends Controller
         $descripcion = "SE AGREGÓ EL COLOR CON LA DESCRIPCION: ". $color->descripcion;
         $gestion = "COLOR";
         crearRegistro($color, $descripcion , $gestion);
+
+        if($request->has('fetch') && $request->input('fetch') == 'SI'){
+            return response()->json(['message' => 'success',    'data'=>$color]);        
+        }
 
         Session::flash('success','Color creado.');
         return redirect()->route('almacenes.colores.index')->with('guardar', 'success');

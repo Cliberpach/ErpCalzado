@@ -39,10 +39,12 @@ class CategoriaController extends Controller
     
  
             $rules = [
-                'descripcion_guardar' => 'required',
+                'descripcion_guardar' => 'required|unique:categorias,descripcion',
             ];
+
             $messages = [
                 'descripcion_guardar.required' => 'El campo Descripción es obligatorio.',
+                'descripcion_guardar.unique'      =>  'La categoría ya existe',
             ];
 
             $validator = Validator::make($data, $rules ,$messages);
