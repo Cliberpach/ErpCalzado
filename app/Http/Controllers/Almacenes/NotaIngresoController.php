@@ -43,6 +43,40 @@ class NotaIngresoController extends Controller
     public function gettable()
     {
         $data = DB::table("nota_ingreso as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
+        $detalles = DB::select('select distinct p.nombre as producto_nombre,ni.id as nota_ingreso_id 
+                from nota_ingreso as ni 
+                inner join detalle_nota_ingreso as dni
+                on ni.id=dni.nota_ingreso_id
+                inner join productos as p
+                on p.id=dni.producto_id');
+
+        foreach ($data as $notaIngreso) {
+            
+            $detallesFiltrados = array_filter($detalles, function($detalle) use ($notaIngreso) {
+                return $detalle->nota_ingreso_id == $notaIngreso->id;
+            });
+
+            $cadenaDetalles = '';
+            $caracteresAcumulados = 0;
+        
+            foreach ($detallesFiltrados as $detalle) {
+                $nombreProducto = $detalle->producto_nombre;
+                $longitudNombre = strlen($nombreProducto);
+        
+                // Verificar si agregar el nombre del producto superará los 200 caracteres
+                if ($caracteresAcumulados + $longitudNombre <= 200) {
+                    $cadenaDetalles .= $nombreProducto . ', ';
+                    $caracteresAcumulados += $longitudNombre;
+                } else {
+                    // Si supera los 200 caracteres, terminar el bucle
+                    break;
+                }
+            }
+
+            // Añadir la cadena de detalles como un nuevo campo en la nota de ingreso
+            $notaIngreso->cadena_detalles = rtrim($cadenaDetalles, ', '); // Eliminar la última coma
+        }
+
         return DataTables::of($data)->make(true);
     }
 

@@ -37,9 +37,10 @@
                         style="text-transform:uppercase">
                             <thead>
                                 <tr>
-                                    <th class="text-center">Numero</th>
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">Usuario</th>
                                     <th class="text-center">Fecha Registro</th>
-                                    <th class="text-center">Origen</th>
+                                    <th class="text-center">Productos</th>
                                     <th class="text-center">ACCIONES</th>
                                 </tr>
                             </thead>
@@ -97,6 +98,10 @@ $(document).ready(function() {
             {
                 "targets": [2],
                 className: "text-center",
+            },
+            {
+                "targets": [3],
+                className: "text-center",
             }
         ],
 
@@ -133,11 +138,10 @@ $(document).ready(function() {
         "ajax": "{{ route('almacenes.nota_ingreso.data')}}",
         "columns": [
             //ingreso_mercaderia INTERNA
-            //{ data: 'id',className: "text-center"},
-
-            { data: 'numero',className: "text-center"},
-            { data: 'fecha',className: "text-center"},
-            { data: 'origen',className: "text-center"},
+            { data: 'id',className: "text-center"},
+            { data: 'usuario',className: "text-center"},
+            { data: 'created_at',className: "text-center"},
+            { data: 'cadena_detalles',className: "text-center"},
             {
                 data: null,
                 className: "text-center",

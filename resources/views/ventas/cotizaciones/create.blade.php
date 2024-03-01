@@ -209,7 +209,7 @@
                         <div class="col-lg-12 col-xs-12">
                             <div class="panel panel-primary">
                                 <div class="panel-heading">
-                                    <h4><b>Detalle de la Cotización</b></h4>
+                                    <h4><b>Seleccionar productos</b></h4>
                                 </div>
                                 <div class="panel-body">
                                     <div class="row">
@@ -272,11 +272,9 @@
                                             </div>
                                         </div>
                                     </div>
+
                                     <div class="row m-t-sm" style="text-transform:uppercase">
                                         <div class="col-lg-12">
-                                            @include('ventas.cotizaciones.table-stocks',[
-                                                "carrito" => "carrito"
-                                            ])
                                             {{-- <div class="table-responsive">
                                                 <table
                                                     class="table table-hover" id="table-detalle-cotizacion">
@@ -320,9 +318,23 @@
                                                 </table>
                                             </div> --}}
                                         </div>
-
-
                                     </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="panel panel-primary">
+                                <div class="panel-heading">
+                                    <h4><b>Detalle de la Cotización</b></h4>
+                                </div>
+                                <div class="panel-body">
+                                    @include('ventas.cotizaciones.table-stocks',[
+                                        "carrito" => "carrito"
+                                    ])
                                 </div>
                             </div>
                         </div>
@@ -1107,6 +1119,8 @@
         })
     }
 
+
+    //=========== calcular montos =======
     const calcularMontos = ()=>{
         const subtotales= document.querySelectorAll('.td-subtotal');
         let total=0;
@@ -1249,6 +1263,7 @@
                     console.log(data.stocks);
                     console.log(data.producto_colores);
                     pintarTableStocks(data.stocks,tallas,data.producto_colores);
+                    loadCarrito();
                 })
 
                 .catch(error => console.error('Error:', error));
@@ -1260,8 +1275,7 @@
 
     const pintarTableStocks = (stocks,tallas,producto_colores)=>{
         let options =``;
-        let producto_color_procesados=[];
-        
+
         producto_colores.forEach((pc)=>{
             options+=`  <tr>
                             <th scope="row" data-producto=${pc.producto_id} data-color=${pc.color_id} >
@@ -1278,7 +1292,8 @@
                 htmlTallas +=   `
                                     <td style="background-color: rgb(210, 242, 242);">${stock}</td>
                                     <td width="8%">
-                                        <input type="text" class="form-control inputCantidad" 
+                                        <input type="text" class="form-control inputCantidad"
+                                        id="inputCantidad_${pc.producto_id}_${pc.color_id}_${t.id}" 
                                         data-producto-id="${pc.producto_id}"
                                         data-producto-nombre="${pc.producto_nombre}"
                                         data-color-nombre="${pc.color_nombre}"
@@ -1288,19 +1303,15 @@
                                 `;   
             })
 
-            if(!producto_color_procesados.includes(`${pc.producto_id}`)){
-                const preciosVenta = stocks.filter((st)=>{
-                    return  st.producto_id == pc.producto_id
-                })[0];
+            if(pc.printPreciosVenta){
                 htmlTallas+=`
                     <td>
                         <select class="select2_form form-control" id="precio-venta-${pc.producto_id}">
-                            <option>${preciosVenta.precio_venta_1}</option>    
-                            <option>${preciosVenta.precio_venta_2}</option>    
-                            <option>${preciosVenta.precio_venta_3}</option>    
+                            <option>${pc.precio_venta_1}</option>    
+                            <option>${pc.precio_venta_2}</option>    
+                            <option>${pc.precio_venta_3}</option>    
                         </select>
                     </td>`;
-                producto_color_procesados.push(`${pc.producto_id}`);
             }else{
                 htmlTallas+=`<td></td>`;
             }
@@ -1312,6 +1323,19 @@
         tableStocksBody.innerHTML = options;
         btnAgregarDetalle.disabled = false;
     }
+
+
+    //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
+    function loadCarrito(){
+        carrito.forEach((c)=>{
+            const inputLoad = document.querySelector(`#inputCantidad_${c.producto_id}_${c.color_id}_${c.talla_id}`);
+            if(inputLoad){
+                inputLoad.value = c.cantidad;
+            }
+        })
+    }
+
+
 </script>
 @endpush
 

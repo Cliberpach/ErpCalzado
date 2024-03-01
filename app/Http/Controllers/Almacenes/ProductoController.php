@@ -521,11 +521,11 @@ class ProductoController extends Controller
         $producto_colores = DB::select('select p.id as producto_id,p.nombre as producto_nombre,
                                         c.id as color_id, c.descripcion as color_nombre,
                                         p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
-                                        from producto_color_tallas as pct
+                                        from producto_colores as pc
                                         inner join productos as p
-                                        on p.id = pct.producto_id
+                                        on p.id = pc.producto_id
                                         inner join colores as c
-                                        on c.id = pct.color_id
+                                        on c.id = pc.color_id
                                         where p.modelo_id = ? AND c.estado="ACTIVO" 
                                         AND p.estado="ACTIVO"
                                         group by p.id,p.nombre,c.id,c.descripcion,
