@@ -41,7 +41,7 @@ class ColorController extends Controller
         $data = $request->all();
 
         $rules = [
-            'descripcion_guardar' => 'required|unique:colores,descripcion',
+            'descripcion_guardar' => 'required|unique:colores,descripcion,NULL,id,estado,ACTIVO',
         ];
         
         $messages = [

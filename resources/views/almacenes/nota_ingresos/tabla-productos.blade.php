@@ -5,6 +5,12 @@
           @if (isset($carrito))
               <th></th>
           @endif
+          @if (!isset($carrito))
+            <th scope="col" class="color_name">
+              COLOR
+            </th>
+          @endif
+          
           <th scope="col" class="product_name">
             PRODUCTO
           </th>

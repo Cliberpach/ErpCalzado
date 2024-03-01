@@ -730,12 +730,18 @@
         //============ EVENTO ENVIAR FORMULARIO =============
         formNotaIngreso.addEventListener('submit',(e)=>{
             e.preventDefault();
-            inputProductos.value=JSON.stringify(carrito);
-             const formData = new FormData(formNotaIngreso);
-             formData.forEach((valor, clave) => {
-                 console.log(`${clave}: ${valor}`);
-             });
-            formNotaIngreso.submit();
+
+            if(carrito.length>0){
+                inputProductos.value=JSON.stringify(carrito);
+                const formData = new FormData(formNotaIngreso);
+                formData.forEach((valor, clave) => {
+                    console.log(`${clave}: ${valor}`);
+                });
+                formNotaIngreso.submit();
+            }else{
+                toastr.error('El detalle de la nota de ingreso está vacío!!!')
+            }
+           
         })
 
         //============== EVENTO VALIDACIÓN INPUT CANTIDADES ==========
@@ -758,7 +764,7 @@
     function getProductosByModelo(e){
         modelo_id = e.value;
         btnAgregarDetalle.disabled=true;
-        
+       
         if(modelo_id){
             const url = `/get-productos-nota-ingreso/${modelo_id}`;
                 fetch(url, {
@@ -775,14 +781,14 @@
                     if (table) {
                         table.destroy();
                     }
-                    pintarTableStocks(tallas,colores,data.productos);
+                    pintarTableStocks(tallas,data.productos);
                     cargarDataTables();
                 })
 
                 .catch(error => console.error('Error:', error));
             
         }else{
-            tableStocksBody.innerHTML = ``;
+            bodyTablaProductos.innerHTML = ``;
         }
     }
 
@@ -812,16 +818,18 @@
     }
 
     //============ RENDERIZAR TABLA DE CANTIDADES ============
-    const pintarTableStocks = (tallas,colores,productos)=>{
+    const pintarTableStocks = (tallas,productos)=>{
         let options =``;
-        let producto_color_procesados=[];
-        
+
         productos.forEach((p)=>{
-            colores.forEach((c)=>{
+           
                 options+=`  <tr>
-                            <th scope="row" data-producto=${p.producto_id} data-color=${c.id} >
-                                ${p.nombre} - ${c.descripcion}
-                            </th>
+                                <th scope="row"  data-color=${p.color_id} >
+                                    ${p.color_nombre} 
+                                </th>
+                                <th scope="row" data-producto=${p.producto_id}>
+                                    ${p.producto_nombre} 
+                                </th>
                         `;
 
                         let htmlTallas = ``;
@@ -831,17 +839,17 @@
                             htmlTallas +=   `
                                                 <td >
                                                     <input type="text" class="form-control inputCantidad" 
-                                                    data-producto-id="${p.id}"
-                                                    data-producto-nombre="${p.nombre}"
-                                                    data-color-nombre="${c.descripcion}"
+                                                    data-producto-id="${p.producto_id}"
+                                                    data-producto-nombre="${p.producto_nombre}"
+                                                    data-color-nombre="${p.color_nombre}"
                                                     data-talla-nombre="${t.descripcion}"
-                                                    data-color-id="${c.id}" data-talla-id="${t.id}"></input>    
+                                                    data-color-id="${p.color_id}" data-talla-id="${t.id}"></input>    
                                                 </td>
                                             `;   
                         })
                 htmlTallas += `</tr>`;
                 options += htmlTallas;
-            })
+           
         })
 
         bodyTablaProductos.innerHTML = options;

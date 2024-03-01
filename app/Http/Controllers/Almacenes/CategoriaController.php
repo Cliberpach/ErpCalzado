@@ -39,7 +39,7 @@ class CategoriaController extends Controller
     
  
             $rules = [
-                'descripcion_guardar' => 'required|unique:categorias,descripcion',
+                'descripcion_guardar' => 'required|unique:categorias,descripcion,NULL,id,estado,ACTIVO',
             ];
 
             $messages = [

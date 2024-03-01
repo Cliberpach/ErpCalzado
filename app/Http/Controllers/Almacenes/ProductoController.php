@@ -31,7 +31,13 @@ class ProductoController extends Controller
     public function index()
     {
         $this->authorize('haveaccess','producto.index');
-        $colores = Color::where('estado', 'ACTIVO')->get();
+        $colores = DB::select('select c.id as color_id,c.descripcion as color_nombre,
+                    p.id as producto_id,p.nombre as producto_nombre 
+                    from producto_colores as pc
+                    inner join colores as c on c.id=pc.color_id
+                    inner join productos as p on p.id=pc.producto_id
+                    where c.estado="ACTIVO" and p.estado="ACTIVO" ');
+
         $tallas = Talla::where('estado', 'ACTIVO')->get();
         $stocks = ProductoColorTalla::join('colores', 'producto_color_tallas.color_id', '=', 'colores.id')
         ->join('tallas', 'producto_color_tallas.talla_id', '=', 'tallas.id')
@@ -40,7 +46,7 @@ class ProductoController extends Controller
         ->where('tallas.estado', 'ACTIVO')
         ->get();
 
-
+      
         
         return view('almacenes.productos.index',compact('colores','tallas','stocks'));
     }
@@ -559,9 +565,16 @@ class ProductoController extends Controller
 
 
     public function getProductosNotaIngreso($modelo_id){
-        $productos = Producto::where('modelo_id', $modelo_id)
-                                ->where('estado','ACTIVO')
-                                ->get();
+        $productos = DB::select('select p.id as producto_id,c.id as color_id,m.id as modelo_id,
+                    p.nombre as producto_nombre,c.descripcion as color_nombre,m.descripcion as modelo_nombre    
+                    from productos as p
+                    inner join producto_colores as pc on pc.producto_id=p.id
+                    inner join colores as c on c.id=pc.color_id
+                    inner join modelos as m on m.id=p.modelo_id
+                    where m.id=? and c.estado="ACTIVO" and p.estado="ACTIVO" 
+                    and m.estado="ACTIVO" and pc.estado="ACTIVO"',
+                    [$modelo_id]);
+
         return response()->json(["message" => "success" , "productos" => $productos ]);
     }
 

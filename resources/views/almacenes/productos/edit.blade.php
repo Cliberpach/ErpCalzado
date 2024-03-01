@@ -1209,13 +1209,17 @@
 
         //========= marcamos los colores que ya tenía asignado el producto ===========
         const marcarColoresPrevios = ()=>{
+            //===== obtener todas las filas del datatable colores como jquery formato =========
             const rows = datatableColores.rows().nodes().to$();
-
-            coloresAsignados.forEach((ca)=>{
-                const checkColor = rows[ca-1].children[1].children[0].children[0].checked = true;
-
-            })
-           
+            //======= recorrer las filas =========
+            rows.each(function() {
+                //========= obtener el data-color-id de cada checkbox y convertirlo a number =========
+                const idColorCheck = parseInt($(this).children().eq(1).children().eq(0).children().eq(0).attr('data-color-id'));
+                //======= si está incluido en el array de colores asignados previos entonces marcalo ========
+                if (coloresAsignados.includes(idColorCheck)) {
+                    $(this).children().eq(1).children().eq(0).children().eq(0).prop('checked', true);
+                }
+            });
         }
 
 
