@@ -678,7 +678,7 @@
     let table = null;
 
     document.addEventListener('DOMContentLoaded',()=>{
-        // events();
+        events();
         cargarDataTables();
     })
 

@@ -54,7 +54,7 @@
                                             <th class="text-center">CÓDIGO</th>
                                             <th class="text-center">CÓDIGO BARRA</th>
                                             <th class="text-center">NOMBRE</th>
-                                            <th class="text-center">ALMACEN</th>
+                                            <th class="text-center">MODELO</th>
                                             <th class="text-center">MARCA</th>
                                             <th class="text-center">CATEGORIA</th>
                                             <th class="text-center">STOCK</th>
@@ -158,9 +158,9 @@
                     name:"productos.nombre"
                 },
                 {
-                    data: 'almacen',
+                    data: 'modelo',
                     className: "text-left",
-                    name:"almacenes.descripcion"
+                    name:"modelos.descripcion"
                 },
                 {
                     data: 'marca',

@@ -61,7 +61,8 @@ class ProductoController extends Controller
             ->join('almacenes','almacenes.id','=','productos.almacen_id')
             ->join('categorias','categorias.id','=','productos.categoria_id')
             ->join('tabladetalles','tabladetalles.id','=','productos.medida')
-            ->select('categorias.descripcion as categoria','almacenes.descripcion as almacen','marcas.marca','productos.*')
+            ->join('modelos','modelos.id','=','productos.modelo_id')
+            ->select('categorias.descripcion as categoria','almacenes.descripcion as almacen','modelos.descripcion as modelo','marcas.marca','productos.*')
             ->orderBy('productos.id','DESC')
             ->where('productos.estado', 'ACTIVO')
         )->toJson();
