@@ -1075,13 +1075,19 @@
 
         formCotizacion.addEventListener('submit',(e)=>{
             e.preventDefault();
-            inputProductos.value=JSON.stringify(carrito);
+            if(carrito.length>0){
+                document.querySelector('#btn_grabar').disabled = true;
+                inputProductos.value=JSON.stringify(carrito);
+                formCotizacion.submit();
+            }else{
+                toastr.error('Debe tener almenos un producto en el detalle','ERROR');
+            }
+            
             // const formData = new FormData(formCotizacion);
             // formData.append("carrito", JSON.stringify(carrito));
             // formData.forEach((valor, clave) => {
             //     console.log(`${clave}: ${valor}`);
             // });
-            formCotizacion.submit();
         })
        
         btnAgregarDetalle.addEventListener('click',()=>{
