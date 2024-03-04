@@ -1488,11 +1488,11 @@ class DocumentoController extends Controller
                 
             //      $lote->cantidad = $lote->cantidad - $producto->cantidad;
                     //$lote->stock = $lote->stock - $producto->cantidad;
-            //ACTUALIZANDO STOCK...
-            DB::update('UPDATE producto_color_tallas 
-            SET stock = stock - ? 
-            WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
-            [$producto->cantidad, $producto->producto_id, $producto->color_id, $producto->talla_id]);
+                    //ACTUALIZANDO STOCK...
+                    DB::update('UPDATE producto_color_tallas 
+                    SET stock = stock - ? 
+                    WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
+                    [$producto->cantidad, $producto->producto_id, $producto->color_id, $producto->talla_id]);
 
 
             //if ($lote->cantidad == 0) {
@@ -3070,13 +3070,13 @@ class DocumentoController extends Controller
 
         if($modo == 'editar' && $condicion == '1'){
             $cantidadAnterior   =   $data['cantidadAnterior'];
-            $cantidadEdit       =   ($cantidadAnterior - $cantidad);   
+           
             DB::table('producto_color_tallas')
             ->where('producto_id', $producto_id)
             ->where('color_id', $color_id)
             ->where('talla_id', $talla_id)
             ->when(DB::raw('stock_logico >= ' . $cantidad), function ($query) use ($cantidadAnterior, $cantidad) {
-                $query->increment('stock_logico', $cantidadEdit);
+                $query->increment('stock_logico', ($cantidadAnterior - $cantidad));
             });
             $mensaje = 'Cantidad editada';
 

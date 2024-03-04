@@ -50,6 +50,7 @@ class CreateProductosTable extends Migration
 
             //$table->unsignedDecimal('porcentaje_normal', 15, 2)->default(0);
             //$table->unsignedDecimal('porcentaje_distribuidor', 15, 2)->default(0);
+            $table->unsignedDecimal('costo', 15, 2)->default(0);
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
             $table->timestamps();
         });

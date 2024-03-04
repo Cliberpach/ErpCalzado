@@ -427,6 +427,9 @@ export default {
         async EnviarVenta() {
             try {
 
+                //=== desactivar botón grabar ======
+                document.querySelector('#btn_grabar').disabled=true;
+
                 //======= spiner de carga =========
                 this.loading = true;
 
@@ -464,6 +467,7 @@ export default {
                             this.$emit("update:ruta", "index");
 
                          } else {
+                             document.querySelector('#btn_grabar').disabled=false;
                              this.loading = false;
                              toastr.error('Error al crear documento de venta', 'Error');
                          }
@@ -472,11 +476,13 @@ export default {
 
                 //======== en caso no existan cajas abiertas ===========
                 if(!success){
+                    document.querySelector('#btn_grabar').disabled=false;
                     toastr.error('Debe aperturar una caja previamente',"Error");
                     this.loading = false;
                 }
 
             } catch (ex) {
+                document.querySelector('#btn_grabar').disabled=false;
                 this.loading = false;
                 alert("Error en EnviarVentas " + ex);
             }
