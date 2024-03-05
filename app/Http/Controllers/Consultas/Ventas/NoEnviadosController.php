@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Controllers\Consultas\Ventas;
+use Illuminate\Support\Facades\Cache;
 
+use App\Classes\StockMov;
 use App\Almacenes\LoteProducto;
 use App\Almacenes\Producto;
 use App\Http\Controllers\Controller;
@@ -744,12 +746,15 @@ class NoEnviadosController extends Controller
         $talla_id       =   $request->get('talla_id');
         $cantidad       =   $request->get('cantidad');
 
+        
         if($modo == 'nuevo'){
             DB::table('producto_color_tallas')
             ->where('producto_id', $producto_id)
             ->where('color_id', $color_id)
             ->where('talla_id', $talla_id)
             ->update(['stock_logico' => DB::raw('stock_logico - ' . $cantidad)]);
+
+            $this->saveCache($producto_id,$color_id,$talla_id,$cantidad);
         }
 
         if($modo == 'editar'){
@@ -793,7 +798,22 @@ class NoEnviadosController extends Controller
         //     $mensaje = 'Cantidad regresada';
         // }
 
-        return $tallas;
+        return 'completado';
+    }
+
+
+    public function saveCache($producto_id,$color_id,$talla_id,$cantidad){
+
+        $stockMov = new StockMov($producto_id,$color_id,$talla_id,$cantidad);
+        $productos = [];
+
+        if (Cache::has('productos')) {
+            $productos = Cache::get('productos');
+        }
+
+        $productos[] = $stockMov;
+        Cache::forever('productos',$productos);
+    
     }
 
     //DEVOLVER CANTIDAD LOGICA AL CERRAR VENTANA

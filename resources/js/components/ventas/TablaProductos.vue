@@ -987,12 +987,10 @@ export default {
         //     }
         // }
         async DevolverCantidades() {
-            while(true){
                 await this.axios.post(route('ventas.documento.devolver.cantidades'), {
                     // cantidades: JSON.stringify(this.tablaDetalles)
-                    //carrito: JSON.stringify(this.carrito)
-                });
-            } 
+                    carrito: JSON.stringify(this.carrito)
+                });  
         },
         async ObtenerCodigoPrecioMenor() {
             
