@@ -62,9 +62,8 @@ class GuiaController extends Controller
     {
         //Cache::forget('productos');
 
-        // $allCachedItems = Cache::get('productos');
-        // $allCachedItems = Cache::get('hay_productos?');
-        // dd($allCachedItems);
+        $allCachedItems = Cache::get('productos');
+        dd($allCachedItems);
         $dato = "Message";
         broadcast(new NotifySunatEvent($dato));
         return view('ventas.guias.index');
