@@ -136,7 +136,7 @@
                                 <div class="panel-body">
                                     <div class="row">
                                         <div class="col-lg-12">
-                                            <div class="form-group row">
+                                            <div class="form-group row head-nota-ingreso">
                                                 <div class="col-lg-3 col-xs-12">
                                                     <label class="required">Modelo</label>
                                                     <select id="modelo"
@@ -395,66 +395,66 @@
     // })
 
 
-    // $(document).ready(function() {
+    //  $(document).ready(function() {
 
     //     $('#lote').val('LT-{{ $fecha_actual }}');
     //     $('#fechavencimiento').val('{{$fecha_5}}');
 
-    //     // DataTables
-    //     table = $('.dataTables-ingreso').DataTable({
-    //         "dom": '<"html5buttons"B>lTfgitp',
-    //         "buttons": [
+         // DataTables
+    //      table = $('#table-productos').DataTable({
+    //          "dom": '<"html5buttons"B>lTfgitp',
+    //          "buttons": [
     //         ],
-    //         "bPaginate": true,
-    //         "bLengthChange": true,
-    //         "bFilter": true,
-    //         "bInfo": true,
-    //         "bAutoWidth": false,
-    //         "language": {
-    //             "url": "{{asset('Spanish.json')}}"
-    //         },
+    //          "bPaginate": true,
+    //          "bLengthChange": true,
+    //          "bFilter": true,
+    //          "bInfo": true,
+    //          "bAutoWidth": false,
+    //          "language": {
+    //              "url": "{{asset('Spanish.json')}}"
+    //          },
 
-    //         "columnDefs": [{
-    //                 "targets": [0],
-    //                 "visible": false,
-    //                 "searchable": false
-    //             },
-    //             {
+    //          "columnDefs": [{
+    //                  "targets": [0],
+    //                  "visible": false,
+    //                  "searchable": false
+    //              },
+    //              {
 
-    //                 "targets": [1],
-    //                 className: "text-center",
-    //                 render: function(data, type, row) {
-    //                     return "<div class='btn-group'>" +
-    //                         "<a class='btn btn-warning btn-sm modificarDetalle btn-edit'  style='color:white;' title='Modificar'><i class='fa fa-edit'></i></a>" +
-    //                         "<a class='btn btn-danger btn-sm' id='borrar_detalle' style='color:white;' title='Eliminar'><i class='fa fa-trash'></i></a>" +
-    //                         "</div>";
-    //                 }
-    //             },
-    //             {
-    //                 "targets": [2],
-    //             },
-    //             {
+    //                  "targets": [1],
+    //                  className: "text-center",
+    //                  render: function(data, type, row) {
+    //                      return "<div class='btn-group'>" +
+    //                          "<a class='btn btn-warning btn-sm modificarDetalle btn-edit'  style='color:white;' title='Modificar'><i class='fa fa-edit'></i></a>" +
+    //                          "<a class='btn btn-danger btn-sm' id='borrar_detalle' style='color:white;' title='Eliminar'><i class='fa fa-trash'></i></a>" +
+    //                          "</div>";
+    //                  }
+    //              },
+    //              {
+    //                  "targets": [2],
+    //              },
+    //              {
     //                 "targets": [3],
-    //                 className: "text-center",
-    //                 "visible": false,
-    //             },
-    //             {
-    //                 "targets": [4],
-    //                 className: "text-center",
-    //             },
-    //             {
-    //                 "targets": [5],
-    //                 className: "text-center",
-    //                 "visible": false,
-    //             },
-    //             {
-    //                 "targets": [6],
-    //                 className: "text-center"
-    //             },
-    //             {
-    //                 "targets": [7],
-    //                 className: "text-center"
-    //             }
+    //                  className: "text-center",
+    //                  "visible": false,
+    //              },
+    //              {
+    //                  "targets": [4],
+    //                  className: "text-center",
+    //              },
+    //              {
+    //                  "targets": [5],
+    //                  className: "text-center",
+    //                  "visible": false,
+    //              },
+    //              {
+    //                  "targets": [6],
+    //                  className: "text-center"
+    //              },
+    //              {
+    //                  "targets": [7],
+    //                  className: "text-center"
+    //              }
 
     //         ],
 
@@ -658,6 +658,8 @@
 
 </script>
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
+<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
 
 <script>
     const selectModelo =  document.querySelector('#modelo');
@@ -673,15 +675,17 @@
 
     let modelo_id   = null;
     let carrito = [];
+    let table = null;
 
     document.addEventListener('DOMContentLoaded',()=>{
         events();
-        console.log(colores);
+        cargarDataTables();
     })
 
     function events(){
         //========= EVENTO AGREGAR DETALLE ============
         btnAgregarDetalle.addEventListener('click',()=>{
+            
             const inputsCantidad = document.querySelectorAll('.inputCantidad');
             inputsCantidad.forEach((ic)=>{
                 const cantidad = ic.value?ic.value:0;
@@ -726,12 +730,18 @@
         //============ EVENTO ENVIAR FORMULARIO =============
         formNotaIngreso.addEventListener('submit',(e)=>{
             e.preventDefault();
-            inputProductos.value=JSON.stringify(carrito);
-             const formData = new FormData(formNotaIngreso);
-             formData.forEach((valor, clave) => {
-                 console.log(`${clave}: ${valor}`);
-             });
-            formNotaIngreso.submit();
+
+            if(carrito.length>0){
+                inputProductos.value=JSON.stringify(carrito);
+                const formData = new FormData(formNotaIngreso);
+                formData.forEach((valor, clave) => {
+                    console.log(`${clave}: ${valor}`);
+                });
+                formNotaIngreso.submit();
+            }else{
+                toastr.error('El detalle de la nota de ingreso está vacío!!!')
+            }
+           
         })
 
         //============== EVENTO VALIDACIÓN INPUT CANTIDADES ==========
@@ -750,13 +760,14 @@
     }
 
     //============== FUNCIÓN OBTENER PRODUCTOS DE UN MODELO ==============
+     
     function getProductosByModelo(e){
         modelo_id = e.value;
         btnAgregarDetalle.disabled=true;
-        
+       
         if(modelo_id){
             const url = `/get-productos-nota-ingreso/${modelo_id}`;
-            fetch(url, {
+                fetch(url, {
                     method: 'GET',
                     headers: {
                         'X-CSRF-TOKEN': tokenValue,
@@ -766,15 +777,18 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data);
-                    
-                    pintarTableStocks(tallas,colores,data.productos);
+                    //console.log(data);
+                    if (table) {
+                        table.destroy();
+                    }
+                    pintarTableStocks(tallas,data.productos);
+                    cargarDataTables();
                 })
 
                 .catch(error => console.error('Error:', error));
             
         }else{
-            tableStocksBody.innerHTML = ``;
+            bodyTablaProductos.innerHTML = ``;
         }
     }
 
@@ -804,16 +818,18 @@
     }
 
     //============ RENDERIZAR TABLA DE CANTIDADES ============
-    const pintarTableStocks = (tallas,colores,productos)=>{
+    const pintarTableStocks = (tallas,productos)=>{
         let options =``;
-        let producto_color_procesados=[];
-        
+
         productos.forEach((p)=>{
-            colores.forEach((c)=>{
+           
                 options+=`  <tr>
-                            <th scope="row" data-producto=${p.producto_id} data-color=${c.id} >
-                                ${p.nombre} - ${c.descripcion}
-                            </th>
+                                <th scope="row"  data-color=${p.color_id} >
+                                    ${p.color_nombre} 
+                                </th>
+                                <th scope="row" data-producto=${p.producto_id}>
+                                    ${p.producto_nombre} 
+                                </th>
                         `;
 
                         let htmlTallas = ``;
@@ -823,22 +839,17 @@
                             htmlTallas +=   `
                                                 <td >
                                                     <input type="text" class="form-control inputCantidad" 
-                                                    data-producto-id="${p.id}"
-                                                    data-producto-nombre="${p.nombre}"
-                                                    data-color-nombre="${c.descripcion}"
+                                                    data-producto-id="${p.producto_id}"
+                                                    data-producto-nombre="${p.producto_nombre}"
+                                                    data-color-nombre="${p.color_nombre}"
                                                     data-talla-nombre="${t.descripcion}"
-                                                    data-color-id="${c.id}" data-talla-id="${t.id}"></input>    
+                                                    data-color-id="${p.color_id}" data-talla-id="${t.id}"></input>    
                                                 </td>
                                             `;   
                         })
                 htmlTallas += `</tr>`;
                 options += htmlTallas;
-            })
            
-
-            
-
-            
         })
 
         bodyTablaProductos.innerHTML = options;
@@ -887,5 +898,40 @@
             }
         })
     }
+
+    function cargarDataTables(){
+        table = new DataTable('#table-productos',
+        {
+            language: {
+                processing:     "Traitement en cours...",
+                search:         "BUSCAR: ",
+                lengthMenu:    "MOSTRAR _MENU_ PRODUCTOS",
+                info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ PRODUCTOS",
+                infoEmpty:      "MOSTRANDO 0 ELEMENTOS",
+                infoFiltered:   "(FILTRADO de _MAX_ PRODUCTOS)",
+                infoPostFix:    "",
+                loadingRecords: "CARGA EN CURSO",
+                zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+                emptyTable:     "NO HAY PRODUCTOS DISPONIBLES",
+                paginate: {
+                    first:      "PRIMERO",
+                    previous:   "ANTERIOR",
+                    next:       "SIGUIENTE",
+                    last:       "ÚLTIMO"
+                },
+                aria: {
+                    sortAscending:  ": activer pour trier la colonne par ordre croissant",
+                    sortDescending: ": activer pour trier la colonne par ordre décroissant"
+                }
+            }
+        });
+        
+        const tableStocks   = document.querySelector('#table-productos');
+        if(tableStocks.children[1]){
+            tableStocks.children[1].remove();
+        }
+    }
+
 </script>
+
 @endpush

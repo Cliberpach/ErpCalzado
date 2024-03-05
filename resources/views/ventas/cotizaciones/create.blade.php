@@ -137,7 +137,7 @@
                                                     <select id="vendedor" name="vendedor" class="select2_form form-control" disabled>
                                                         <option value=""></option>
                                                         @foreach (vendedores() as $vendedor)
-                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === Auth::id() ? 'selected' : '' }}>
+                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === $vendedor_actual ? 'selected' : '' }}>
                                                                 {{ $vendedor->persona->apellido_paterno . ' ' . $vendedor->persona->apellido_materno . ' ' . $vendedor->persona->nombres }}
                                                             </option>
                                                         @endforeach
@@ -220,7 +220,7 @@
                         <div class="col-lg-12 col-xs-12">
                             <div class="panel panel-primary">
                                 <div class="panel-heading">
-                                    <h4><b>Detalle de la Cotización</b></h4>
+                                    <h4><b>Seleccionar productos</b></h4>
                                 </div>
                                 <div class="panel-body">
                                     <div class="row">
@@ -283,11 +283,9 @@
                                             </div>
                                         </div>
                                     </div>
+
                                     <div class="row m-t-sm" style="text-transform:uppercase">
                                         <div class="col-lg-12">
-                                            @include('ventas.cotizaciones.table-stocks',[
-                                                "carrito" => "carrito"
-                                            ])
                                             {{-- <div class="table-responsive">
                                                 <table
                                                     class="table table-hover" id="table-detalle-cotizacion">
@@ -331,9 +329,23 @@
                                                 </table>
                                             </div> --}}
                                         </div>
-
-
                                     </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="panel panel-primary">
+                                <div class="panel-heading">
+                                    <h4><b>Detalle de la Cotización</b></h4>
+                                </div>
+                                <div class="panel-body">
+                                    @include('ventas.cotizaciones.table-stocks',[
+                                        "carrito" => "carrito"
+                                    ])
                                 </div>
                             </div>
                         </div>
@@ -1038,7 +1050,6 @@
 
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <script>
-    const selectModelo =  document.querySelector('#modelo');
     const tableStocksBody  =  document.querySelector('#table-stocks tbody');
     const tableDetalleBody = document.querySelector('#table-detalle tbody');
     const tokenValue = document.querySelector('input[name="_token"]').value;
@@ -1081,34 +1092,19 @@
 
         formCotizacion.addEventListener('submit',(e)=>{
             e.preventDefault();
-            const enviar    =   validaciones();
-
-            if (enviar) {
-                Swal.fire({
-                    title: 'Opción Guardar',
-                    text: "¿Seguro que desea guardar cambios?",
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: "#1ab394",
-                    confirmButtonText: 'Si, Confirmar',
-                    cancelButtonText: "No, Cancelar",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        //====== guardamos el carrito en JSON en el form ==========
-                        saveCarritoJSON();
-                        formCotizacion.submit();
-
-                    } else if (
-                        result.dismiss === Swal.DismissReason.cancel
-                    ) {
-                        swalWithBootstrapButtons.fire(
-                            'Cancelado',
-                            'La Solicitud se ha cancelado.',
-                            'error'
-                        )
-                    }
-                })
+            if(carrito.length>0){
+                document.querySelector('#btn_grabar').disabled = true;
+                inputProductos.value=JSON.stringify(carrito);
+                formCotizacion.submit();
+            }else{
+                toastr.error('Debe tener almenos un producto en el detalle','ERROR');
             }
+            
+            // const formData = new FormData(formCotizacion);
+            // formData.append("carrito", JSON.stringify(carrito));
+            // formData.forEach((valor, clave) => {
+            //     console.log(`${clave}: ${valor}`);
+            // });
         })
        
         btnAgregarDetalle.addEventListener('click',()=>{
@@ -1146,38 +1142,8 @@
         })
     }
 
-    //======= validaciones para el formulario ============
-    const validaciones  =   ()=>{
-        
-        let enviar = true;
-        
-        //======= validar fechas =============
-        if ($('#fecha_documento').val() == '') {
-            toastr.error('Ingrese Fecha de Documento.', 'Error');
-            $("#fecha_documento").focus();
-            enviar = false;
-        }
 
-        if ($('#fecha_atencion').val() == '') {
-            toastr.error('Ingrese Fecha de Atención.', 'Error');
-            $("#fecha_atencion").focus();
-            enviar = false;
-        }
-
-        //============= validar carrito =============
-        if (carrito.length == 0) {
-            toastr.error('Ingrese al menos 1 Producto.', 'Error');
-            enviar = false;
-        }
-
-        return enviar
-    }
-
-
-    const saveCarritoJSON = ()=>{
-        inputProductos.value=JSON.stringify(carrito);
-    }
-
+    //=========== calcular montos =======
     const calcularMontos = ()=>{
         const subtotales= document.querySelectorAll('.td-subtotal');
         let total=0;
@@ -1320,6 +1286,7 @@
                     console.log(data.stocks);
                     console.log(data.producto_colores);
                     pintarTableStocks(data.stocks,tallas,data.producto_colores);
+                    loadCarrito();
                 })
 
                 .catch(error => console.error('Error:', error));
@@ -1331,8 +1298,7 @@
 
     const pintarTableStocks = (stocks,tallas,producto_colores)=>{
         let options =``;
-        let producto_color_procesados=[];
-        
+
         producto_colores.forEach((pc)=>{
             options+=`  <tr>
                             <th scope="row" data-producto=${pc.producto_id} data-color=${pc.color_id} >
@@ -1346,9 +1312,10 @@
                 const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id)[0]?.stock || 0;
 
                 htmlTallas +=   `
-                                    <td>${stock}</td>
-                                    <td>
-                                        <input style="width: 45px;" type="text" class="form-control inputCantidad" 
+                                    <td style="background-color: rgb(210, 242, 242);">${stock}</td>
+                                    <td width="8%">
+                                        <input type="text" class="form-control inputCantidad"
+                                        id="inputCantidad_${pc.producto_id}_${pc.color_id}_${t.id}" 
                                         data-producto-id="${pc.producto_id}"
                                         data-producto-nombre="${pc.producto_nombre}"
                                         data-color-nombre="${pc.color_nombre}"
@@ -1358,19 +1325,15 @@
                                 `;   
             })
 
-            if(!producto_color_procesados.includes(`${pc.producto_id}`)){
-                const preciosVenta = stocks.filter((st)=>{
-                    return  st.producto_id == pc.producto_id
-                })[0];
+            if(pc.printPreciosVenta){
                 htmlTallas+=`
                     <td>
-                        <select style="width: 95px;" class="select2_form form-control" id="precio-venta-${pc.producto_id}">
-                            <option>${preciosVenta.precio_venta_1}</option>    
-                            <option>${preciosVenta.precio_venta_2}</option>    
-                            <option>${preciosVenta.precio_venta_3}</option>    
+                        <select class="select2_form form-control" id="precio-venta-${pc.producto_id}">
+                            <option>${pc.precio_venta_1}</option>    
+                            <option>${pc.precio_venta_2}</option>    
+                            <option>${pc.precio_venta_3}</option>    
                         </select>
                     </td>`;
-                producto_color_procesados.push(`${pc.producto_id}`);
             }else{
                 htmlTallas+=`<td></td>`;
             }
@@ -1384,9 +1347,16 @@
     }
 
 
-    const openModalCliente = ()=>{
-        $("#modal_cliente").modal("show");
+    //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
+    function loadCarrito(){
+        carrito.forEach((c)=>{
+            const inputLoad = document.querySelector(`#inputCantidad_${c.producto_id}_${c.color_id}_${c.talla_id}`);
+            if(inputLoad){
+                inputLoad.value = c.cantidad;
+            }
+        })
     }
+
 
 </script>
 

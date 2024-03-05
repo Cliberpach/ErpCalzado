@@ -11,10 +11,15 @@ class DetalleGuia extends Model
     protected $fillable = [
         'guia_id',
         'producto_id',
+        'color_id',
+        'talla_id',
         'lote_id',
         'codigo_producto',
         'cantidad',
         'nombre_producto',
+        'nombre_modelo',
+        'nombre_color',
+        'nombre_talla',
         'unidad',
     ];
 

@@ -359,7 +359,7 @@
                                 </template>
                                 <template v-else>
                                     <tr>
-                                        <td :colspan="tallas.length + 4" class="text-center"><strong>no hay detalles</strong></td>
+                                        <td :colspan="tallas.length + 4" class="text-center"><strong>No hay detalles</strong></td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -466,9 +466,9 @@
             :tipoComprobante="paramsLotes.tipocomprobante" @selectedProductos="ProductoSeleccionado" /> -->
         <!-- <ModalLotesVue :dataLotes="Lotes" :fullAccess="fullaccessTable" :searchInput.sync="searchInput"
             @selectedProductos="ProductoSeleccionado" /> -->
-        <ModalCodigoPrecioMenorVue :estadoPrecioMenor="estadoPrecioMenor"
+        <!-- <ModalCodigoPrecioMenorVue :estadoPrecioMenor="estadoPrecioMenor"
             @addCodigoPrecioMenor="SaveCodigoPrecioMenor" />
-        <ModalEditaDetalleVue :item.sync="itemLote" :detalles.sync="tablaDetalles" />
+        <ModalEditaDetalleVue :item.sync="itemLote" :detalles.sync="tablaDetalles" /> -->
     </div>
 </template>
 <script>
@@ -493,6 +493,7 @@ export default {
      "productoTabla", "TotalesObj", 'idcotizacion','modelos','tallas'],
     data() {
         return {
+            flujo:[],
             monto_subtotal:0,
             monto_igv:0,
             monto_total:0,
@@ -590,6 +591,9 @@ export default {
     watch: {
         carrito:{
             handler(value){
+                if(this.carrito.length>0){
+                    this.asegurarCierre=1;
+                }
                 const montos = {
                     monto_sub_total  :   this.monto_subtotal,
                     monto_total_igv       :   this.monto_igv,
@@ -599,7 +603,8 @@ export default {
                     detalles:   this.carrito,
                     totales :   montos
                 });
-            }
+            },
+            deep: true,
         },
         modeloSeleccionado: {
             handler(value) {
@@ -681,14 +686,14 @@ export default {
         this.ObtenerCodigoPrecioMenor();
         //============= en caso la ventanta se cierre ===============
         window.addEventListener('beforeunload', async () => {
-            // if (this.asegurarCierre == 1) {
-            //     await this.DevolverCantidades();
-            //     this.asegurarCierre = 10;
-            // } else {
-            //     console.log("beforeunload", this.asegurarCierre);
-            // }
-            await this.DevolverCantidades();
-            this.asegurarCierre = 10;
+            if (this.asegurarCierre == 1) {
+                 await this.DevolverCantidades();
+                 this.asegurarCierre = 10;
+            } else {
+                 console.log("beforeunload", this.asegurarCierre);
+            }
+            // await this.DevolverCantidades();
+            //this.asegurarCierre = 10;
         });
     },
     methods: {
@@ -782,15 +787,16 @@ export default {
             });
         },
         async validarCantidadCarrito(inputCantidad){
-            const stockLogico           = await  this.getStockLogico(inputCantidad);
+            const stockLogico           =   await  this.getStockLogico(inputCantidad);
             const cantidadSolicitada    =   inputCantidad.value;
             return stockLogico>=cantidadSolicitada;
         },
         async agregarProducto() {
+            
             document.getElementById('overlay').style.display = 'flex';
 
             const inputsCantidad = document.querySelectorAll('.inputCantidad');
-
+            
             for (const ic of inputsCantidad) {
                 ic.classList.remove('inputCantidadIncorrecto');
                 const cantidad = ic.value ? ic.value : null;
@@ -800,8 +806,8 @@ export default {
                         const cantidadValida = await this.validarCantidadCarrito(ic);
 
                         if (cantidadValida) {
-                            const producto = this.formarProducto(ic);
-                            const indiceExiste = this.carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+                            const producto      = this.formarProducto(ic);
+                            const indiceExiste  = this.carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
 
                             if (indiceExiste == -1) {
                                 const objProduct = {
@@ -817,31 +823,38 @@ export default {
                                     }]
                                 };
 
-                                this.carrito.push(objProduct);
+                                await this.carrito.push(objProduct);
+                                this.asegurarCierre = 1;
                                 await this.actualizarStockLogico(producto, "nuevo");
-                                
                             } else {
                                 const productoModificar = this.carrito[indiceExiste];
                                 productoModificar.precio_venta = producto.precio_venta;
 
                                 const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+
                                 if (indexTalla !== -1) {
                                     const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
                                     productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
                                     this.carrito[indiceExiste] = productoModificar;
-                                   await this.actualizarStockLogico(producto, "editar", cantidadAnterior);
+                                    this.asegurarCierre = 1;
+                                    await this.actualizarStockLogico(producto, "editar", cantidadAnterior);
                                 } else {
                                     const objTallaProduct = {
                                         talla_id: producto.talla_id,
                                         talla_nombre: producto.talla_nombre,
                                         cantidad: producto.cantidad
                                     };
-                                    productoModificar.tallas.push(objTallaProduct);
-                                    this.carrito[indiceExiste] = productoModificar;
+                                    console.log(`${productoModificar.producto_nombre} - ${productoModificar.color_nombre}`);
+                                    this.carrito[indiceExiste].tallas.push(objTallaProduct);
+                                    console.log(this.carrito);
+                                    // productoModificar.tallas.push(objTallaProduct);
+                                    //this.carrito[indiceExiste] = productoModificar;
+                                    //this.carrito.splice(indiceExiste, 1, productoModificar);
+                                    this.asegurarCierre = 1;
                                     await this.actualizarStockLogico(producto, "nuevo");
                                 }
                             }
-
+                            
                         } else {
                             ic.classList.add('inputCantidadIncorrecto');
                         }
@@ -860,8 +873,9 @@ export default {
                         if (indiceTalla !== -1) {
                             const cantidadAnterior = this.carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
                             this.carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
+                            
+                            this.asegurarCierre = 1;
                             await this.actualizarStockLogico(producto, "editar", cantidadAnterior);
-
 
                             const cantidadTallas = this.carrito[indiceProductoColor].tallas.length;
 
@@ -879,10 +893,13 @@ export default {
             this.getProductosByModelo().then(()=>{
                 document.getElementById('overlay').style.display = 'none';
             });
+            console.log(this.asegurarCierre);
             //console.log(this.carrito);
         },
         async actualizarStockLogico(producto,modo,cantidadAnterior){
+
             modo=="eliminar"?this.asegurarCierre=0:this.asegurarCierre=1;
+
             try {
                 await this.axios.post(route('ventas.documento.cantidad'), {
                     'producto_id'   :   producto.producto_id,
@@ -894,6 +911,7 @@ export default {
                     'cantidadAnterior'    :   cantidadAnterior,
                     'tallas'        :   producto.tallas,
                 });
+                
                 
             } catch (ex) {
 
@@ -959,22 +977,25 @@ export default {
         printStockLogico(productoId, colorId, tallaId) {
             const stock = this.productosPorModelo.stocks.find(st => st.producto_id === productoId && st.color_id === colorId && st.talla_id === tallaId);
             return stock ? stock.stock_logico : 0;
-        },
-        async ExecuteDevolverCantidades() {
-            if (this.asegurarCierre == 1) {
-                await this.DevolverCantidades();
-                this.asegurarCierre = 10;
-            } else {
-                console.log("ExecuteDevolverCantidades", this.asegurarCierre);
-            }
-        },
+         },
+        // async ExecuteDevolverCantidades() {
+        //     if (this.asegurarCierre == 1) {
+        //         await this.DevolverCantidades();
+        //         this.asegurarCierre = 10;
+        //     } else {
+        //         console.log("ExecuteDevolverCantidades", this.asegurarCierre);
+        //     }
+        // }
         async DevolverCantidades() {
-            await this.axios.post(route('ventas.documento.devolver.cantidades'), {
-                // cantidades: JSON.stringify(this.tablaDetalles)
-                carrito: JSON.stringify(this.carrito)
-            });
+            while(true){
+                await this.axios.post(route('ventas.documento.devolver.cantidades'), {
+                    // cantidades: JSON.stringify(this.tablaDetalles)
+                    //carrito: JSON.stringify(this.carrito)
+                });
+            } 
         },
         async ObtenerCodigoPrecioMenor() {
+            
             try {
                 const { data } = await this.axios.get(route("consulta.ajax.getCodigoPrecioMenor"));
                 this.dataEmpresa = data;
@@ -991,7 +1012,7 @@ export default {
         //         console.log("error en ModalLotes ", ex);
         //     }
         // },
-        async ObtenerLotes() {
+        //async ObtenerLotes() {
             // try {
             //     const { data } = await this.axios.post(route("ventas.getLoteProductos"), this.paramsLotes);
             //     const { lotes } = data;
@@ -999,7 +1020,7 @@ export default {
             // } catch (ex) {
             //     console.log("error en ObtenerLotes ", ex);
             // }
-        },
+        //},
         evaluarPrecioigv(producto) {
             if (producto.precio_compra == null) {
                 let cambio = convertFloat(producto.dolar_ingreso);
@@ -1212,6 +1233,7 @@ export default {
             }
         },
         async CambiarCantidadLogica(detalle) {
+            
             try {
                 await this.axios.post(route('ventas.documento.cantidad'), {
                     'producto_id': detalle.producto_id,

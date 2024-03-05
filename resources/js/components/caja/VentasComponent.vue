@@ -3,7 +3,7 @@
         <div class="row wrapper border-bottom white-bg page-heading">
             <div class="col-12">
                 <h2 style="text-transform:uppercase">
-                    <b>Listado de Documentos de Venta de Hoy</b>
+                    <b>Listado de Documentos de Venta de Hoy </b>
                 </h2>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">

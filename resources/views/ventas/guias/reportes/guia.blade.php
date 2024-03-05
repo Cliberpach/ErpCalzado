@@ -301,5 +301,8 @@
                 </tbody>
             </table>
         </div>
+        <div class="comprobante-aux">
+            {{$qr_guia}}
+        </div>
     </body>
 </html>

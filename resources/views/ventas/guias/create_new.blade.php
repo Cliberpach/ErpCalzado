@@ -3,6 +3,141 @@
 @section('ventas-active', 'active')
 @section('guias-remision-active', 'active')
 
+<style>
+    .inputCantidadValido{
+        border-color:rgb(59, 63, 255) !important;
+    }
+    .inputCantidadIncorrecto{
+        border-color: red !important;
+    }
+    .inputCantidadColor{
+        border-color: rgb(48, 48, 88);
+    }
+    .colorStockLogico{
+        background-color: rgb(243, 248, 255);
+    }
+
+    .overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    }
+
+    .fulfilling-bouncing-circle-spinner, .fulfilling-bouncing-circle-spinner * {
+      box-sizing: border-box;
+    }
+
+    .fulfilling-bouncing-circle-spinner {
+      height: 60px;
+      width: 60px;
+      position: relative;
+      animation: fulfilling-bouncing-circle-spinner-animation infinite 4000ms ease;
+    }
+
+    .fulfilling-bouncing-circle-spinner .orbit {
+      height: 60px;
+      width: 60px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      border-radius: 50%;
+      border: calc(60px * 0.03) solid #ff1d5e;
+      animation: fulfilling-bouncing-circle-spinner-orbit-animation infinite 4000ms ease;
+    }
+
+    .fulfilling-bouncing-circle-spinner .circle {
+      height: 60px;
+      width: 60px;
+      color: #ff1d5e;
+      display: block;
+      border-radius: 50%;
+      position: relative;
+      border: calc(60px * 0.1) solid #ff1d5e;
+      animation: fulfilling-bouncing-circle-spinner-circle-animation infinite 4000ms ease;
+      transform: rotate(0deg) scale(1);
+    }
+
+    @keyframes fulfilling-bouncing-circle-spinner-animation {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes fulfilling-bouncing-circle-spinner-orbit-animation {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1);
+      }
+      62.5% {
+        transform: scale(0.8);
+      }
+      75% {
+        transform: scale(1);
+      }
+      87.5% {
+        transform: scale(0.8);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes fulfilling-bouncing-circle-spinner-circle-animation {
+      0% {
+        transform: scale(1);
+        border-color: transparent;
+        border-top-color: inherit;
+      }
+      16.7% {
+        border-color: transparent;
+        border-top-color: initial;
+        border-right-color: initial;
+      }
+      33.4% {
+        border-color: transparent;
+        border-top-color: inherit;
+        border-right-color: inherit;
+        border-bottom-color: inherit;
+      }
+      50% {
+        border-color: inherit;
+        transform: scale(1);
+      }
+      62.5% {
+        border-color: inherit;
+        transform: scale(1.4);
+      }
+      75% {
+        border-color: inherit;
+        transform: scale(1);
+        opacity: 1;
+      }
+      87.5% {
+        border-color: inherit;
+        transform: scale(1.4);
+      }
+      100% {
+        border-color: transparent;
+        border-top-color: inherit;
+        transform: scale(1);
+      }
+    }
+    
+</style>
+
 <div class="row wrapper border-bottom white-bg page-heading">
 
     <div class="col-lg-12">
@@ -400,7 +535,7 @@
                         <div class="col-lg-12">
                             <div class="panel panel-primary" id="panel_detalle">
                                 <div class="panel-heading">
-                                    <h4 class=""><b>Detalle de la Guia de Remision</b></h4>
+                                    <h4 class=""><b>Seleccionar productos</b></h4>
                                 </div>
                                 <div class="panel-body ibox-content">
                                     <div class="sk-spinner sk-spinner-wave">
@@ -411,7 +546,48 @@
                                         <div class="sk-rect5"></div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-12">
+                                        <div class="col-lg-3 col-xs-12 mb-3">
+                                            <label class="required">Modelo</label>
+                                            <select id="modelo"
+                                                class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
+                                                onchange="getProductosByModelo(this.value)" >
+                                                <option></option>
+                                                @foreach ($modelos as $modelo)
+                                                    <option value="{{ $modelo->id }}"
+                                                        {{ old('modelo') == $modelo->id ? 'selected' : '' }}>
+                                                        {{ $modelo->descripcion }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div class="invalid-feedback"><b><span
+                                                        id="error-producto"></span></b></div>
+                                        </div>
+                                        <div class="col-12 mb-5">
+                                            @include('ventas.guias.table-stocks')
+                                        </div>           
+                                        <div class="col-lg-2 col-xs-12">
+                                            <button  type="button" id="btn_agregar_detalle"
+                                                class="btn btn-warning btn-block">
+                                                    <i class="fa fa-plus"></i> AGREGAR
+                                                </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="panel panel-primary" id="panel_detalle">
+                                <div class="panel-heading">
+                                    <h4 class=""><b>Detalle de la Guia de Remision</b></h4>
+                                </div>
+                                <div class="panel-body ibox-content">
+                                    <div class="row">
+                                        <div class="col-12 mb-5">
+                                            @include('ventas.guias.table-detalle')
+                                        </div>
+                                        {{-- <div class="col-12">
                                             <form id="agregar_producto">
                                                 <div class="row align-items-end">
                                                     <div class="col-12 col-md-6">
@@ -458,8 +634,8 @@
                                                         id="cantidad_actual_form">
                                                 </div>
                                             </form>
-                                        </div>
-                                        <div class="col-12">
+                                        </div> --}}
+                                        {{-- <div class="col-12">
                                             <div class="table-responsive">
                                                 <table
                                                     class="table dataTables-detalle-documento table-striped table-bordered table-hover"
@@ -479,12 +655,11 @@
                                                     </tbody>
                                                 </table>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
                     <div class="hr-line-dashed"></div>
@@ -507,12 +682,15 @@
                                 <i class="fa fa-save"></i> Grabar
                             </button>
                         </div>
-
                     </div>
-
                 </div>
+            </div>
 
-
+            <div id="overlay" class="overlay">
+                <div class="fulfilling-bouncing-circle-spinner">
+                    <div class="circle"></div>
+                    <div class="orbit"></div>
+                </div>
             </div>
         </div>
 
@@ -550,7 +728,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
 <script>
     $(document).ready(function() {
-        obtenerLotesproductos();
+        //obtenerLotesproductos();
         $(".select2_form").select2({
             placeholder: "SELECCIONAR",
             allowClear: true,
@@ -672,388 +850,388 @@
         this.value = this.value.replace(/[^0-9]/g, '');
     });
 
-    $(document).ready(function() {
-        //DATATABLE - COTIZACION
-        table = $('.dataTables-detalle-documento').DataTable({
-            "dom": 'lTfgitp',
-            "bPaginate": true,
-            "bLengthChange": true,
-            "responsive": true,
-            "bFilter": true,
-            "bInfo": false,
-            "columnDefs": [
-                {
-                    "targets": 0,
-                    "visible": false,
-                    "searchable": false
-                },
-                {
-                    searchable: false,
-                    "targets": [1],
-                    "className": 'text-center',
-                    render: function(data){
-                        return "<button type='button' class='btn btn-danger btn-delete'><i class='fa fa-trash'></i></button>"
-                    }
-                },
-                {
-                    "targets": [2],
-                    "className": 'text-center'
-                },
-                {
-                    "targets": [3],
-                    "className": 'text-center'
-                },
-                {
-                    "targets": [4],
-                    "className": 'text-center'
-                },
-                {
-                    "targets": [5],
-                },
-                {
-                    "targets": [6],
-                    "visible": false
-                },
-            ],
-            'bAutoWidth': false,
-            "language": {
-                url: "{{asset('Spanish.json')}}"
-            },
-            "order": [[ 0, "desc" ]],
-        });
+    // $(document).ready(function() {
+    //     //DATATABLE - COTIZACION
+    //     table = $('.dataTables-detalle-documento').DataTable({
+    //         "dom": 'lTfgitp',
+    //         "bPaginate": true,
+    //         "bLengthChange": true,
+    //         "responsive": true,
+    //         "bFilter": true,
+    //         "bInfo": false,
+    //         "columnDefs": [
+    //             {
+    //                 "targets": 0,
+    //                 "visible": false,
+    //                 "searchable": false
+    //             },
+    //             {
+    //                 searchable: false,
+    //                 "targets": [1],
+    //                 "className": 'text-center',
+    //                 render: function(data){
+    //                     return "<button type='button' class='btn btn-danger btn-delete'><i class='fa fa-trash'></i></button>"
+    //                 }
+    //             },
+    //             {
+    //                 "targets": [2],
+    //                 "className": 'text-center'
+    //             },
+    //             {
+    //                 "targets": [3],
+    //                 "className": 'text-center'
+    //             },
+    //             {
+    //                 "targets": [4],
+    //                 "className": 'text-center'
+    //             },
+    //             {
+    //                 "targets": [5],
+    //             },
+    //             {
+    //                 "targets": [6],
+    //                 "visible": false
+    //             },
+    //         ],
+    //         'bAutoWidth': false,
+    //         "language": {
+    //             url: "{{asset('Spanish.json')}}"
+    //         },
+    //         "order": [[ 0, "desc" ]],
+    //     });
 
-        //DIRECCION DE LA TIENDA OLD
+    //     //DIRECCION DE LA TIENDA OLD
 
-        //Controlar Error
-        $.fn.DataTable.ext.errMode = 'throw';
-    });
+    //     //Controlar Error
+    //     $.fn.DataTable.ext.errMode = 'throw';
+    // });
 
-    $('#cantidad_form').on('input', function() {
-        let max= convertFloat(this.max);
-        let valor = convertFloat(this.value);
-        if(valor>max){
-            toastr.error('La cantidad ingresada supera al stock del producto Max('+max+').', 'Error');
-            this.value = max;
-        }
-    });
+    // $('#cantidad_form').on('input', function() {
+    //     let max= convertFloat(this.max);
+    //     let valor = convertFloat(this.value);
+    //     if(valor>max){
+    //         toastr.error('La cantidad ingresada supera al stock del producto Max('+max+').', 'Error');
+    //         this.value = max;
+    //     }
+    // });
 
-    $('#agregar_producto').on('submit', function(e){
-        e.preventDefault();
-        let enviar = false;
-        let cantidad = $('#cantidad_form').val();
-        let lote = $('#lote_form').val();
-        let producto = $('#producto_form').val();
-        let producto_lote = $('#producto_lote_form').val();
-        let unidad = $('#unidad_form').val();
-        let peso = $('#peso_form').val();
-
-
-        let cantidad_actual = convertFloat($('#cantidad_actual_form').val());
+    // $('#agregar_producto').on('submit', function(e){
+    //     e.preventDefault();
+    //     let enviar = false;
+    //     let cantidad = $('#cantidad_form').val();
+    //     let lote = $('#lote_form').val();
+    //     let producto = $('#producto_form').val();
+    //     let producto_lote = $('#producto_lote_form').val();
+    //     let unidad = $('#unidad_form').val();
+    //     let peso = $('#peso_form').val();
 
 
-        if(convertFloat(cantidad) > cantidad_actual)
-        {
-            toastr.warning('La cantidad debe ser menor o igual al stock actual: ' + cantidad_actual);
+    //     let cantidad_actual = convertFloat($('#cantidad_actual_form').val());
 
-            enviar=true;
-        }
 
-        if(convertFloat(cantidad) <= 0)
-        {
-            toastr.warning('La cantidad debe ser mayor a 0.');
+    //     if(convertFloat(cantidad) > cantidad_actual)
+    //     {
+    //         toastr.warning('La cantidad debe ser menor o igual al stock actual: ' + cantidad_actual);
 
-            enviar=true;
-        }
+    //         enviar=true;
+    //     }
 
-        if(cantidad.length == 0 || lote.length == 0 || producto.length == 0 || producto_lote.length == 0 || peso.length == 0 || unidad.length == 0)
-        {
-            toastr.error('Ingrese datos', 'Error');
-            enviar=true;
-        }
-        else {
-            var existe = buscarProducto($('#lote_form').val())
-            if (existe == true) {
-                toastr.error('Producto ya se encuentra ingresado.', 'Error');
-                enviar = true;
-            }
-        }
+    //     if(convertFloat(cantidad) <= 0)
+    //     {
+    //         toastr.warning('La cantidad debe ser mayor a 0.');
 
-        if (enviar != true) {
-            const swalWithBootstrapButtons = Swal.mixin({
-                customClass: {
-                    confirmButton: 'btn btn-success',
-                    cancelButton: 'btn btn-danger',
-                },
-                buttonsStyling: false
-            })
+    //         enviar=true;
+    //     }
 
-            Swal.fire({
-                title: 'Opción Agregar',
-                text: "¿Seguro que desea agregar Producto?",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: "#1ab394",
-                confirmButtonText: 'Si, Confirmar',
-                cancelButtonText: "No, Cancelar",
-            }).then((result) => {
-                if (result.isConfirmed) {
+    //     if(cantidad.length == 0 || lote.length == 0 || producto.length == 0 || producto_lote.length == 0 || peso.length == 0 || unidad.length == 0)
+    //     {
+    //         toastr.error('Ingrese datos', 'Error');
+    //         enviar=true;
+    //     }
+    //     else {
+    //         var existe = buscarProducto($('#lote_form').val())
+    //         if (existe == true) {
+    //             toastr.error('Producto ya se encuentra ingresado.', 'Error');
+    //             enviar = true;
+    //         }
+    //     }
 
-                    var detalle = {
-                        cantidad: cantidad,
-                        lote_id: lote,
-                        producto_id: producto,
-                        unidad: unidad,
-                        peso: peso,
-                        descripcion: $('#producto_lote_form').val()
-                    }
-                    agregarTabla(detalle);
-                    cambiarCantidad(detalle,'1');
-                    $('#asegurarCierre').val(1)
-                } else if (
-                    /* Read more about handling dismissals below */
-                    result.dismiss === Swal.DismissReason.cancel
-                ) {
-                    swalWithBootstrapButtons.fire(
-                        'Cancelado',
-                        'La Solicitud se ha cancelado.',
-                        'error'
-                    )
-                }
-            })
-        }
-    })
+    //     if (enviar != true) {
+    //         const swalWithBootstrapButtons = Swal.mixin({
+    //             customClass: {
+    //                 confirmButton: 'btn btn-success',
+    //                 cancelButton: 'btn btn-danger',
+    //             },
+    //             buttonsStyling: false
+    //         })
 
-    function buscarProducto(id) {
-        var existe = false;
-        var t = $('.dataTables-detalle-documento').DataTable();
-        t.rows().data().each(function(el, index) {
-            if (el[0] == id) {
-                existe = true
-            }
-        });
-        return existe
-    }
+    //         Swal.fire({
+    //             title: 'Opción Agregar',
+    //             text: "¿Seguro que desea agregar Producto?",
+    //             icon: 'question',
+    //             showCancelButton: true,
+    //             confirmButtonColor: "#1ab394",
+    //             confirmButtonText: 'Si, Confirmar',
+    //             cancelButtonText: "No, Cancelar",
+    //         }).then((result) => {
+    //             if (result.isConfirmed) {
+
+    //                 var detalle = {
+    //                     cantidad: cantidad,
+    //                     lote_id: lote,
+    //                     producto_id: producto,
+    //                     unidad: unidad,
+    //                     peso: peso,
+    //                     descripcion: $('#producto_lote_form').val()
+    //                 }
+    //                 agregarTabla(detalle);
+    //                 cambiarCantidad(detalle,'1');
+    //                 $('#asegurarCierre').val(1)
+    //             } else if (
+    //                 /* Read more about handling dismissals below */
+    //                 result.dismiss === Swal.DismissReason.cancel
+    //             ) {
+    //                 swalWithBootstrapButtons.fire(
+    //                     'Cancelado',
+    //                     'La Solicitud se ha cancelado.',
+    //                     'error'
+    //                 )
+    //             }
+    //         })
+    //     }
+    // })
+
+    // function buscarProducto(id) {
+    //     var existe = false;
+    //     var t = $('.dataTables-detalle-documento').DataTable();
+    //     t.rows().data().each(function(el, index) {
+    //         if (el[0] == id) {
+    //             existe = true
+    //         }
+    //     });
+    //     return existe
+    // }
 
     //AGREGAR EL DETALLE A LA TABLA
-    function agregarTabla($detalle) {
-        var t = $('.dataTables-detalle-documento').DataTable();
-        t.row.add([
-            $detalle.lote_id,
-            '',
-            $detalle.cantidad,
-            $detalle.unidad,
-            $detalle.peso,
-            $detalle.descripcion,
-            $detalle.producto_id,
-        ]).draw(false);
-        limpiarErrores();
-        limpiarDetalle();
-        cargarDetalle();
-        $('#peso_productos').val(sumaPesos().toFixed(2))
-        $('#cantidad_productos').val(registrosProductos().toFixed(2))
-    }
+    // function agregarTabla($detalle) {
+    //     var t = $('.dataTables-detalle-documento').DataTable();
+    //     t.row.add([
+    //         $detalle.lote_id,
+    //         '',
+    //         $detalle.cantidad,
+    //         $detalle.unidad,
+    //         $detalle.peso,
+    //         $detalle.descripcion,
+    //         $detalle.producto_id,
+    //     ]).draw(false);
+    //     limpiarErrores();
+    //     limpiarDetalle();
+    //     cargarDetalle();
+    //     $('#peso_productos').val(sumaPesos().toFixed(2))
+    //     $('#cantidad_productos').val(registrosProductos().toFixed(2))
+    // }
 
-    function cargarDetalle() {
-        var notadetalle = [];
-        var table = $('.dataTables-detalle-documento').DataTable();
-        var data = table.rows().data();
-        data.each(function(value, index) {
-            let fila = {
-                lote_id: value[0],
-                cantidad: value[2],                
-                producto_id: value[6],
-            };
+    // function cargarDetalle() {
+    //     var notadetalle = [];
+    //     var table = $('.dataTables-detalle-documento').DataTable();
+    //     var data = table.rows().data();
+    //     data.each(function(value, index) {
+    //         let fila = {
+    //             lote_id: value[0],
+    //             cantidad: value[2],                
+    //             producto_id: value[6],
+    //         };
 
-            notadetalle.push(fila);
+    //         notadetalle.push(fila);
 
-        });
-        $('#productos_tabla').val(JSON.stringify(notadetalle))
-    }
+    //     });
+    //     $('#productos_tabla').val(JSON.stringify(notadetalle))
+    // }
 
     //CAMBIAR LA CANTIDAD LOGICA DEL PRODUCTO
-    function cambiarCantidad(detalle, condicion) {
-        $.ajax({
-            type : 'POST',
-            url : '{{ route('almacenes.nota_salidad.cantidad') }}',
-            data : {
-                '_token' : $('input[name=_token]').val(),
-                'producto_id' : detalle.lote_id,
-                'cantidad' : detalle.cantidad,
-                'condicion' : condicion,
-            }
-        }).done(function (result){
-            //alert('REVISAR')
-        });
-    }
+    // function cambiarCantidad(detalle, condicion) {
+    //     $.ajax({
+    //         type : 'POST',
+    //         url : '{{ route('almacenes.nota_salidad.cantidad') }}',
+    //         data : {
+    //             '_token' : $('input[name=_token]').val(),
+    //             'producto_id' : detalle.lote_id,
+    //             'cantidad' : detalle.cantidad,
+    //             'condicion' : condicion,
+    //         }
+    //     }).done(function (result){
+    //         //alert('REVISAR')
+    //     });
+    // }
 
-    function limpiarErrores() {
-        $('#cantidad_form').removeClass("is-invalid")
-        $('#error-cantidad_form').text('')
+    // function limpiarErrores() {
+    //     $('#cantidad_form').removeClass("is-invalid")
+    //     $('#error-cantidad_form').text('')
 
-        $('#producto_lote_form').removeClass("is-invalid")
-        $('#error-producto_lote_form').text('')
-    }
+    //     $('#producto_lote_form').removeClass("is-invalid")
+    //     $('#error-producto_lote_form').text('')
+    // }
 
-    function limpiarDetalle() {
-        $('#producto_lote_form').val('');
-        $('#producto_form').val('');
-        $('#peso_form').val('');
-        $('#unidad_form').val('');
-        $('#cantidad_actual_form').val('');
-        $('#cantidad_form').val('');
-    }
-
-
-    function registrosProductos() {
-        var t = $('.dataTables-detalle-documento').DataTable();
-        let total = 0.00;
-        t.rows().data().each(function(el, index) {
-            total = Number(el[2]) + total
-        });
-
-        return total
-    }
+    // function limpiarDetalle() {
+    //     $('#producto_lote_form').val('');
+    //     $('#producto_form').val('');
+    //     $('#peso_form').val('');
+    //     $('#unidad_form').val('');
+    //     $('#cantidad_actual_form').val('');
+    //     $('#cantidad_form').val('');
+    // }
 
 
-    function validarFecha() {
-        var enviar = false
-        var productos = registrosProductos()
-        if ($('#fecha_documento_campo').val() == '') {
-            toastr.error('Ingrese Fecha de Documento.', 'Error');
-            $("#fecha_documento_campo").focus();
-            enviar = true;
-        }
+    // function registrosProductos() {
+    //     var t = $('.dataTables-detalle-documento').DataTable();
+    //     let total = 0.00;
+    //     t.rows().data().each(function(el, index) {
+    //         total = Number(el[2]) + total
+    //     });
 
-        if ($('#fecha_atencion_campo').val() == '') {
-            toastr.error('Ingrese Fecha de Atención.', 'Error');
-            $("#fecha_atencion_campo").focus();
-            enviar = true;
-        }
+    //     return total
+    // }
 
-        if (productos == 0) {
-            toastr.error('Ingrese al menos 1 Producto.', 'Error');
-            enviar = true;
-        }
-        return enviar
-    }
 
-    function sumaPesos()
-    {
-        var t = $('.dataTables-detalle-documento').DataTable();
-        let total = 0.00;
-        t.rows().data().each(function(el, index) {
-            total=Number(el[4] * el[2]) + total
-        });
+    // function validarFecha() {
+    //     var enviar = false
+    //     var productos = registrosProductos()
+    //     if ($('#fecha_documento_campo').val() == '') {
+    //         toastr.error('Ingrese Fecha de Documento.', 'Error');
+    //         $("#fecha_documento_campo").focus();
+    //         enviar = true;
+    //     }
 
-        return total
-    }
+    //     if ($('#fecha_atencion_campo').val() == '') {
+    //         toastr.error('Ingrese Fecha de Atención.', 'Error');
+    //         $("#fecha_atencion_campo").focus();
+    //         enviar = true;
+    //     }
 
-    $('#enviar_documento').submit(function(e) {
-        e.preventDefault();
-        const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                confirmButton: 'btn btn-success',
-                cancelButton: 'btn btn-danger',
-            },
-            buttonsStyling: false
-        })
+    //     if (productos == 0) {
+    //         toastr.error('Ingrese al menos 1 Producto.', 'Error');
+    //         enviar = true;
+    //     }
+    //     return enviar
+    // }
 
-        Swal.fire({
-            title: 'Opción Guardar',
-            text: "¿Seguro que desea guardar cambios?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: "#1ab394",
-            confirmButtonText: 'Si, Confirmar',
-            cancelButtonText: "No, Cancelar",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                if(registrosProductos() > 0)
-                {
-                    cargarDetalle();
-                    $('#asegurarCierre').val('2');
-                    this.submit();
-                }
-                else
-                {
-                    toastr.error('Debe tener al menos un detalle')
-                }
-            } else if (
-                /* Read more about handling dismissals below */
-                result.dismiss === Swal.DismissReason.cancel
-            ) {
-                swalWithBootstrapButtons.fire(
-                    'Cancelado',
-                    'La Solicitud se ha cancelado.',
-                    'error'
-                )
-            }
-        })
-    })
+    // function sumaPesos()
+    // {
+    //     var t = $('.dataTables-detalle-documento').DataTable();
+    //     let total = 0.00;
+    //     t.rows().data().each(function(el, index) {
+    //         total=Number(el[4] * el[2]) + total
+    //     });
+
+    //     return total
+    // }
+
+    // $('#enviar_documento').submit(function(e) {
+    //     e.preventDefault();
+    //     const swalWithBootstrapButtons = Swal.mixin({
+    //         customClass: {
+    //             confirmButton: 'btn btn-success',
+    //             cancelButton: 'btn btn-danger',
+    //         },
+    //         buttonsStyling: false
+    //     })
+
+    //     Swal.fire({
+    //         title: 'Opción Guardar',
+    //         text: "¿Seguro que desea guardar cambios?",
+    //         icon: 'question',
+    //         showCancelButton: true,
+    //         confirmButtonColor: "#1ab394",
+    //         confirmButtonText: 'Si, Confirmar',
+    //         cancelButtonText: "No, Cancelar",
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+    //             if(registrosProductos() > 0)
+    //             {
+    //                 cargarDetalle();
+    //                 $('#asegurarCierre').val('2');
+    //                 this.submit();
+    //             }
+    //             else
+    //             {
+    //                 toastr.error('Debe tener al menos un detalle')
+    //             }
+    //         } else if (
+    //             /* Read more about handling dismissals below */
+    //             result.dismiss === Swal.DismissReason.cancel
+    //         ) {
+    //             swalWithBootstrapButtons.fire(
+    //                 'Cancelado',
+    //                 'La Solicitud se ha cancelado.',
+    //                 'error'
+    //             )
+    //         }
+    //     })
+    // })
 
     //Borrar registro de articulos
-    $(".dataTables-detalle-documento").on('click','.btn-delete',function(){
+    // $(".dataTables-detalle-documento").on('click','.btn-delete',function(){
 
-        const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                confirmButton: 'btn btn-success',
-                cancelButton: 'btn btn-danger',
-            },
-            buttonsStyling: false
-        })
+    //     const swalWithBootstrapButtons = Swal.mixin({
+    //         customClass: {
+    //             confirmButton: 'btn btn-success',
+    //             cancelButton: 'btn btn-danger',
+    //         },
+    //         buttonsStyling: false
+    //     })
 
-        Swal.fire({
-            title: 'Opción Eliminar',
-            text: "¿Seguro que desea eliminar Producto?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: "#1ab394",
-            confirmButtonText: 'Si, Confirmar',
-            cancelButtonText: "No, Cancelar",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                var table = $('.dataTables-detalle-documento').DataTable();
-                var data = table.row($(this).parents('tr')).data();
-                var detalle = {
-                    lote_id: data[0],
-                    cantidad: data[2],
-                }
-                //DEVOLVER LA CANTIDAD LOGICA
-                cambiarCantidad(detalle,'0')
-                table.row($(this).parents('tr')).remove().draw();
-                $('#peso_productos').val(sumaPesos().toFixed(2))
-                $('#cantidad_productos').val(registrosProductos().toFixed(2))
+    //     Swal.fire({
+    //         title: 'Opción Eliminar',
+    //         text: "¿Seguro que desea eliminar Producto?",
+    //         icon: 'question',
+    //         showCancelButton: true,
+    //         confirmButtonColor: "#1ab394",
+    //         confirmButtonText: 'Si, Confirmar',
+    //         cancelButtonText: "No, Cancelar",
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+    //             var table = $('.dataTables-detalle-documento').DataTable();
+    //             var data = table.row($(this).parents('tr')).data();
+    //             var detalle = {
+    //                 lote_id: data[0],
+    //                 cantidad: data[2],
+    //             }
+    //             //DEVOLVER LA CANTIDAD LOGICA
+    //             cambiarCantidad(detalle,'0')
+    //             table.row($(this).parents('tr')).remove().draw();
+    //             $('#peso_productos').val(sumaPesos().toFixed(2))
+    //             $('#cantidad_productos').val(registrosProductos().toFixed(2))
 
-            } else if (
-                /* Read more about handling dismissals below */
-                result.dismiss === Swal.DismissReason.cancel
-            ) {
-                swalWithBootstrapButtons.fire(
-                    'Cancelado',
-                    'La Solicitud se ha cancelado.',
-                    'error'
-                )
-            }
-        })
-    });
+    //         } else if (
+    //             /* Read more about handling dismissals below */
+    //             result.dismiss === Swal.DismissReason.cancel
+    //         ) {
+    //             swalWithBootstrapButtons.fire(
+    //                 'Cancelado',
+    //                 'La Solicitud se ha cancelado.',
+    //                 'error'
+    //             )
+    //         }
+    //     })
+    // });
 
     //DEVOLVER CANTIDADES A LOS LOTES
-    function devolverCantidades() {
-        //CARGAR PRODUCTOS PARA DEVOLVER LOTE
-        cargarDetalle()
-        return $.ajax({
-            dataType : 'json',
-            type : 'post',
-            url : '{{ route('almacenes.nota_salidad.devolver.cantidades') }}',
-            data : {
-                '_token' : $('input[name=_token]').val(),
-                'cantidades' :  $('#productos_tabla').val(),
-            },
-            async: true
-        }).responseText()
-    }
+    // function devolverCantidades() {
+    //     //CARGAR PRODUCTOS PARA DEVOLVER LOTE
+    //     cargarDetalle()
+    //     return $.ajax({
+    //         dataType : 'json',
+    //         type : 'post',
+    //         url : '{{ route('almacenes.nota_salidad.devolver.cantidades') }}',
+    //         data : {
+    //             '_token' : $('input[name=_token]').val(),
+    //             'cantidades' :  $('#productos_tabla').val(),
+    //         },
+    //         async: true
+    //     }).responseText()
+    // }
 </script>
-<script>
+{{-- <script>
     window.onbeforeunload = () => {
         if ($('#asegurarCierre').val() == 1) {
             while (true) {
@@ -1061,8 +1239,7 @@
             }
         }
     }
-
-</script>
+</script> --}}
 <script>
     $(function(){
         $("#cliente_id").on("change", function(){
@@ -1086,5 +1263,439 @@
             });
         });
     })
+</script>
+<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
+<script>
+    const tallas                =   @json($tallas);
+    const tableStocksBody       =   document.querySelector('#table-stocks tbody');
+    const tokenValue            =   document.querySelector('input[name="_token"]').value;
+    const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
+    const tableDetalleBody      =   document.querySelector('#table-detalle-guia tbody');      
+    const tfoot_cantidadTotal   =   document.querySelector('#tfoot_cantidadTotal');   
+
+    let modelo_id       = null;
+    let carrito         = [];
+    let asegurarCierre  = 5;
+
+    document.addEventListener('DOMContentLoaded',()=>{
+        events();
+    })
+
+    function events(){
+        document.addEventListener('input',(e)=>{
+            if(e.target.classList.contains('inputCantidad')){
+                validarCantidadInstantanea(e);
+            }
+        })
+
+        btnAgregarDetalle.addEventListener('click',()=>{
+            this.agregarProducto();
+        })
+
+        document.addEventListener('click',(e)=>{
+            if(e.target.classList.contains('delete-product')){
+                const producto_id   =   e.target.getAttribute('data-producto');
+                const color_id      =   e.target.getAttribute('data-color');
+
+                const item          =   carrito.filter((p)=>{
+                    return p.producto_id==producto_id && p.color_id==color_id;
+                })[0];
+
+                const index_item    =   carrito.findIndex((p)=> {
+                    return p.producto_id==producto_id && p.color_id==color_id; 
+                })
+                console.log(item);
+                
+                eliminarItem(item,index_item);
+            }
+        })
+
+    }
+
+    async function getProductosByModelo(idModelo){
+        modelo_id = idModelo;
+        btnAgregarDetalle.disabled=true;
+
+        if(modelo_id){
+            try {
+                const url = `/get-producto-by-modelo/${modelo_id}`;
+                const response = await axios.get(url);
+                    //console.log(response.data);
+                //this.productosPorModelo = response.data;
+                pintarTableStocks(response.data.stocks,tallas,response.data.producto_colores);
+            } catch (error) {
+                console.error('Error al obtener productos por modelo:', error);
+            }
+        }else{
+            tableStocksBody.innerHTML = ``;
+        }
+    }
+
+    const pintarTableStocks = (stocks,tallas,producto_colores)=>{
+        let options =``;
+        let producto_color_procesados=[];
+        
+        producto_colores.forEach((pc)=>{
+            options+=`  <tr>
+                            <th scope="row" data-producto=${pc.producto_id} data-color=${pc.color_id} >
+                                ${pc.producto_nombre} - ${pc.color_nombre}
+                            </th>
+                        `;
+
+            let htmlTallas = ``;
+
+            tallas.forEach((t)=>{
+                const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id)[0]?.stock_logico || 0;
+
+                htmlTallas +=   `
+                                    <td style="background-color: rgb(210, 242, 242);font-weight:bold;">${stock}</td>
+                                    <td width="8%">
+                                        ${stock !== 0 ? `
+                                            <input type="text" class="form-control inputCantidad inputCantidadColor" 
+                                            data-producto-id="${pc.producto_id}"
+                                            data-producto-nombre="${pc.producto_nombre}"
+                                            data-color-nombre="${pc.color_nombre}"
+                                            data-talla-nombre="${t.descripcion}"
+                                            data-color-id="${pc.color_id}" data-talla-id="${t.id}"></input>` : ''}
+                                    </td>
+                                `;   
+            })
+
+            htmlTallas += `</tr>`;
+            options += htmlTallas;
+        })
+
+        tableStocksBody.innerHTML = options;
+        btnAgregarDetalle.disabled = false;
+    }
+
+    
+    async function validarCantidadInstantanea(event) {
+            const cantidadSolicitada    =   event.target.value;
+            try {
+                if(cantidadSolicitada !== ''){
+                    const stock_logico  =  await this.getStockLogico(event.target);
+                    if(stock_logico < cantidadSolicitada){
+                            event.target.classList.add('inputCantidadIncorrecto');
+                            event.target.classList.remove('inputCantidadValido');
+                            event.target.focus();
+                            this.deshabilitarBtnAgregar =   true;
+                            toastr.error(`Cantidad solicitada: ${cantidadSolicitada}, debe ser menor o igual
+                            al stock lógico: ${stock_logico}`,"Error");
+                    }else{
+                            event.target.classList.add('inputCantidadValido');
+                            event.target.classList.remove('inputCantidadIncorrecto');
+                            this.deshabilitarBtnAgregar =   false;
+                    }                    
+                }else{
+                    this.deshabilitarBtnAgregar =   false;
+                    event.target.classList.remove('inputCantidadIncorrecto');
+                    event.target.classList.remove('inputCantidadValido');
+                }   
+            } catch (error) {
+                toastr.error(`El producto no cuenta con registros en esa talla`,"Error");
+                event.target.value='';
+                console.error('Error al obtener stock logico:', error);
+            }
+    }
+       
+    async function getStockLogico(inputCantidad){
+            const producto_id           =   inputCantidad.getAttribute('data-producto-id');
+            const color_id              =   inputCantidad.getAttribute('data-color-id');
+            const talla_id              =   inputCantidad.getAttribute('data-talla-id');
+            
+            try {  
+                const url = `/get-stocklogico/${producto_id}/${color_id}/${talla_id}`;
+                const response = await axios.get(url);
+                if(response.data.message=='success'){
+                    const stock_logico  =   response.data.data[0].stock_logico;
+                    return stock_logico;
+                }
+                 
+            } catch (error) {
+                toastr.error(`El producto no cuenta con registros en esa talla`,"Error");
+                event.target.value='';
+                console.error('Error al obtener stock logico:', error);
+                return null;
+            }
+    }
+
+
+    //============== AGREGAR PRODUCTOS AL CARRITO ===================
+    async function agregarProducto() {
+        document.getElementById('overlay').style.display = 'flex';
+
+        const inputsCantidad = document.querySelectorAll('.inputCantidad:not([disabled])');
+
+        for (const ic of inputsCantidad) {
+                ic.classList.remove('inputCantidadIncorrecto');
+                const cantidad = ic.value ? ic.value : null;
+
+                if (cantidad) {
+                    try {
+                        console.log('Validando cantidad del producto...');
+                        const cantidadValida = await validarCantidadCarrito(ic);
+                        console.log('Cantidad válida:', cantidadValida);
+
+                        if (cantidadValida) {
+                            const producto = this.formarProducto(ic);
+                            const indiceExiste = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+                            
+                            if (indiceExiste == -1) {
+                                console.log('Producto no encontrado en el carrito. Agregando nuevo producto...');
+                                const objProduct = {
+                                    producto_id: producto.producto_id,
+                                    color_id: producto.color_id,
+                                    producto_nombre: producto.producto_nombre,
+                                    color_nombre: producto.color_nombre,
+                                    tallas: [{
+                                        talla_id: producto.talla_id,
+                                        talla_nombre: producto.talla_nombre,
+                                        cantidad: producto.cantidad
+                                    }]
+                                };
+
+                                carrito.push(objProduct);
+                                asegurarCierre = 1;
+                                await this.actualizarStockLogico(producto, "nuevo");
+                                console.log('Producto agregado al carrito:', objProduct);
+                            } else {
+                                console.log('Producto encontrado en el carrito. Modificando existente...');
+                                const productoModificar = carrito[indiceExiste];
+                                const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                                if (indexTalla !== -1) {
+                                    const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
+                                    productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
+                                    carrito[indiceExiste] = productoModificar;
+                                    asegurarCierre = 1;
+                                    await actualizarStockLogico(producto, "editar", cantidadAnterior);
+                                    console.log('Producto modificado:', productoModificar);
+                                } else {
+                                    console.log('Talla del producto no encontrada. Agregando nueva talla...');
+                                    const objTallaProduct = {
+                                        talla_id: producto.talla_id,
+                                        talla_nombre: producto.talla_nombre,
+                                        cantidad: producto.cantidad
+                                    };
+                                    productoModificar.tallas.push(objTallaProduct);
+                                    carrito[indiceExiste] = productoModificar;
+                                    asegurarCierre = 1;
+                                    await actualizarStockLogico(producto, "nuevo");
+                                    console.log('Nueva talla agregada:', objTallaProduct);
+                                }
+                            }
+                        } else {
+                            ic.classList.add('inputCantidadIncorrecto');
+                            console.log('Cantidad no válida. Marcando como incorrecto.');
+                        }
+                    } catch (error) {
+                        console.error("Error:", error);
+                    }
+                } else {
+                    const producto = this.formarProducto(ic);
+                    const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+                    if (indiceProductoColor !== -1) {
+                        const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                        if (indiceTalla !== -1) {
+                            const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
+                            carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
+                            asegurarCierre = 1;
+                            await actualizarStockLogico(producto, "editar", cantidadAnterior);
+                            console.log('Talla del producto eliminada:', producto);
+                            
+                            const cantidadTallas = carrito[indiceProductoColor].tallas.length;
+
+                            if (cantidadTallas == 0) {
+                                carrito.splice(indiceProductoColor, 1);
+                                console.log('Producto eliminado del carrito:', producto);
+                            }
+                        }
+                    }
+            }
+        }
+
+        await this.getProductosByModelo(modelo_id);
+        console.log('Proceso de agregar producto completado.');
+        document.getElementById('overlay').style.display = 'none';
+        cargarCarritoPrevio();
+        reordenarCarrito();
+        pintarDetalle();
+    }
+
+
+
+    //========== CARGAR CARRITO PREVIO ===============
+    function cargarCarritoPrevio (){
+        //======= obteniendo inputs del modelo actual =======
+        //============ colocando cantidades ========
+        carrito.forEach((p)=>{
+            p.tallas.forEach((t)=>{
+                const selector = `input[data-producto-id="${p.producto_id}"][data-color-id="${p.color_id}"][data-talla-id="${t.talla_id}"]`;
+                const inputSeleccionado = document.querySelector(selector);
+                if(inputSeleccionado){
+                    inputSeleccionado.value =   t.cantidad;
+                }
+            })
+        })
+    }
+
+    //============  REORDENAR CARRITO ============
+    function reordenarCarrito(){
+            carrito.sort(function(a, b) {
+                if (a.producto_id === b.producto_id) {
+                    return a.color_id - b.color_id;
+                } else {
+                    return a.producto_id - b.producto_id;
+                }
+            });
+        }
+
+
+    //============== VALIDAR CANTIDAD CARRITO =============
+    async function validarCantidadCarrito(inputCantidad){
+        const stockLogico           =   await  this.getStockLogico(inputCantidad);
+        const cantidadSolicitada    =   inputCantidad.value;
+        return stockLogico>=cantidadSolicitada;
+    }
+
+
+    //============== formar objeto producto ================
+    function formarProducto(ic){
+        const producto_id = ic.getAttribute('data-producto-id');
+        const producto_nombre = ic.getAttribute('data-producto-nombre');
+        const color_id = ic.getAttribute('data-color-id');
+        const color_nombre = ic.getAttribute('data-color-nombre');
+        const talla_id = ic.getAttribute('data-talla-id');
+        const talla_nombre = ic.getAttribute('data-talla-nombre');
+        const cantidad     = ic.value?ic.value:0;
+        const producto = {producto_id,producto_nombre,color_id,color_nombre,
+                                talla_id,talla_nombre,cantidad};
+        return producto;
+    }
+
+    //============= ACTUALIZAR STOCK LOGICO ==============
+     async function actualizarStockLogico(producto,modo,cantidadAnterior){
+         modo=="eliminar"?asegurarCierre=0:asegurarCierre=1;
+        try {
+            await this.axios.post(route('ventas.documento.cantidad'), {
+                'producto_id'   :   producto.producto_id,
+                'color_id'      :   producto.color_id,
+                'talla_id'      :   producto.talla_id,
+                'cantidad'      :   producto.cantidad,
+                'condicion'     :   asegurarCierre,
+                'modo'          :   modo,
+                'cantidadAnterior'    :   cantidadAnterior,
+                'tallas'        :   producto.tallas,
+            });
+                
+        } catch (ex) {
+
+        }
+    }
+
+    //=========== CALCULAR LA CANTIDAD DE PRODUCTOS ===============
+    function calcularCantidad(lista){
+        if(lista.length!==0){
+            let cantidadTotal =   0;
+            lista.forEach((p)=>{
+                p.tallas.forEach((t)=>{
+                    cantidadTotal += parseInt(t.cantidad);                
+                })
+            })
+            return cantidadTotal;
+        }else{
+            return 0;
+        }
+    }
+
+    //============== PINTAR DETALLE ===========
+    function pintarDetalle(){
+        let fila            =   ``;
+        let cantidadTotal   =   calcularCantidad(carrito);
+        
+        carrito.forEach((p)=>{
+            const carritoFiltrado = carrito.filter((c) => {
+                return c.producto_id == p.producto_id && c.color_id == p.color_id;
+            });
+
+            const cantidadColor =   calcularCantidad(carritoFiltrado);
+            fila += `   
+                        <tr>
+                            <th scope="row"> 
+                                <i class="fas fa-trash-alt btn btn-primary delete-product"
+                                data-producto="${p.producto_id}" data-color="${p.color_id}"></i>
+                            </th>
+                            <td>${cantidadColor}</td>
+                            <td>${p.producto_nombre} - ${p.color_nombre}</td> 
+                    `;
+            let descripcion =   ``;
+            p.tallas.forEach((t)=>{
+                descripcion += `[${t.talla_nombre}/${t.cantidad}]`
+            })
+
+            fila+=  `
+                            <td>${descripcion}</td>
+                            <td>0.0</td>
+                        </tr>
+                    `;
+        })
+        tableDetalleBody.innerHTML          =   fila;
+        tfoot_cantidadTotal.textContent     =   cantidadTotal;
+    }
+
+    //============= eliminar item producto_color del carrito ===============
+    function eliminarItem(item,index) {
+        document.getElementById('overlay').style.display = 'flex';
+           try {
+               //==== devolvemos el stock logico separado ========
+               this.actualizarStockLogico(item, "eliminar");
+               //====== obtenemos los stocks logicos actualizados de la bd ========
+               //======== renderizamos la tabla de stocks ==============
+               this.getProductosByModelo(modelo_id).then(()=>{
+                    
+                    //========== actualizamos el carrito =======
+                    carrito.splice(index, 1);
+                    carrito.length>0?asegurarCierre=1:0;
+                    //======= reordenamos el carrito =======
+                    reordenarCarrito();
+                    //====== pintamos el carrito ==========
+                    pintarDetalle();
+                    //==== retiramos el overlay ======
+                    document.getElementById('overlay').style.display = 'none';
+                    //======= alerta ==========
+                    toastr.success('Producto eliminado',"Cantidad devuelta")
+                });               
+           } catch (error) {
+                //==== retiramos el overlay ======
+                document.getElementById('overlay').style.display = 'none';
+               console.error("Error en Eliminar item:", error);
+               alert("Error en Eliminar item: " + error);
+           } 
+    }
+
+     //============= devolver stock logico, ya que hay errores en la cotización ===================
+     window.addEventListener('beforeunload', async () => {
+        if (asegurarCierre == 1) {
+            localStorage.setItem('devuelto', asegurarCierre);
+
+            await this.DevolverCantidades();
+            asegurarCierre = 10;
+        } else {
+            console.log("beforeunload", asegurarCierre);
+            localStorage.setItem('no devuelto', asegurarCierre);
+        }
+    });
+
+    //================ devolver cantidades ===============
+    async function DevolverCantidades() {
+        while(true){
+            await this.axios.post(route('ventas.documento.devolver.cantidades'), {
+            });
+        }
+    }
+
 </script>
 @endpush

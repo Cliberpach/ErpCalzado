@@ -7,7 +7,7 @@
         @endif
         <th  scope="col">PRODUCTO</th>
         @foreach ($tallas as $talla)
-            <th scope="col" data-talla={{$talla->id}}>{{$talla->descripcion}}</th>
+            <th style="background-color: rgb(210, 242, 242);"  scope="col" data-talla={{$talla->id}}>{{$talla->descripcion}}</th>
             @if (!isset($carrito))
               <th >CANT</th>
             @endif
@@ -25,15 +25,15 @@
     @if (isset($carrito))
       <tfoot>
         <tr>
-          <td colspan="{{count($tallas) + 3}}" style="font-weight: bold;text-align:end;">MONTO SUBTOTAL:</td>
+          <td colspan="{{count($tallas) + 3 }}" style="font-weight: bold;text-align:end;">MONTO SUBTOTAL:</td>
           <td class="subtotal" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
         </tr>
         <tr>
-          <td colspan="{{count($tallas) + 3}}" style="font-weight: bold;text-align:end;">IGV:</td>
+          <td  colspan="{{count($tallas) + 3}}" style="font-weight: bold;text-align:end;">IGV:</td>
           <td class="igv" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
         </tr>
         <tr>
-          <td colspan="{{count($tallas) + 3}}" style="font-weight: bold;text-align:end;">MONTO TOTAL:</td>
+          <td  colspan="{{count($tallas) + 3 }}" style="font-weight: bold;text-align:end;">MONTO TOTAL:</td>
           <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
         </tr>
       </tfoot>

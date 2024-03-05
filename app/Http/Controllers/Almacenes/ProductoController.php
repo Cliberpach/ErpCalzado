@@ -31,7 +31,13 @@ class ProductoController extends Controller
     public function index()
     {
         $this->authorize('haveaccess','producto.index');
-        $colores = Color::where('estado', 'ACTIVO')->get();
+        $colores = DB::select('select c.id as color_id,c.descripcion as color_nombre,
+                    p.id as producto_id,p.nombre as producto_nombre 
+                    from producto_colores as pc
+                    inner join colores as c on c.id=pc.color_id
+                    inner join productos as p on p.id=pc.producto_id
+                    where c.estado="ACTIVO" and p.estado="ACTIVO" ');
+
         $tallas = Talla::where('estado', 'ACTIVO')->get();
         $stocks = ProductoColorTalla::join('colores', 'producto_color_tallas.color_id', '=', 'colores.id')
         ->join('tallas', 'producto_color_tallas.talla_id', '=', 'tallas.id')
@@ -40,7 +46,7 @@ class ProductoController extends Controller
         ->where('tallas.estado', 'ACTIVO')
         ->get();
 
-
+      
         
         return view('almacenes.productos.index',compact('colores','tallas','stocks'));
     }
@@ -55,7 +61,8 @@ class ProductoController extends Controller
             ->join('almacenes','almacenes.id','=','productos.almacen_id')
             ->join('categorias','categorias.id','=','productos.categoria_id')
             ->join('tabladetalles','tabladetalles.id','=','productos.medida')
-            ->select('categorias.descripcion as categoria','almacenes.descripcion as almacen','marcas.marca','productos.*')
+            ->join('modelos','modelos.id','=','productos.modelo_id')
+            ->select('categorias.descripcion as categoria','almacenes.descripcion as almacen','modelos.descripcion as modelo','marcas.marca','productos.*')
             ->orderBy('productos.id','DESC')
             ->where('productos.estado', 'ACTIVO')
         )->toJson();
@@ -77,6 +84,7 @@ class ProductoController extends Controller
 
     public function store(Request $request)
     {
+       
         $this->authorize('haveaccess','producto.index');
         $data = $request->all();
         $rules = [
@@ -143,52 +151,17 @@ class ProductoController extends Controller
             // $producto->facturacion = $request->get('facturacion_producto');
             $producto->save();
 
-            //guardando colores_producto
-            //$colores = Color::where('estado', 'ACTIVO')->get();
-            // foreach ($colores as $color) {
-            //     $color_producto = new ProductoColor();
-            //     $color_producto->color_id = $color->id;
-            //     $color_producto->producto_id = $producto->id;
-            //     $color_producto->save();
-            // }
 
-            //guardando stocks por cada talla de cada color
-            $stocks = json_decode($request->input('stocksJSON'));
+            //======= guardamos los colores asignados al producto ========
+            $coloresAsignados = json_decode($request->get('coloresJSON'));
 
-            foreach ($stocks as $stock) {
-                //creamos colores de ese producto
-                $color_producto     = new ProductoColor();
-                $color_producto->color_id = $stock->color_id;
-                $color_producto->producto_id = $producto->id;
-                $color_producto->save();
-                if(count($stock->tallas) > 0){
-                   
-                    //creando tallas
-                    foreach ($stock->tallas as $stockTalla) {
-                        $color_talla                = new ProductoColorTalla();
-                        $color_talla->color_id      = $stockTalla->color_id;
-                        $color_talla->producto_id   = $producto->id;
-                        $color_talla->talla_id      = $stockTalla->talla_id;
-                        $color_talla->stock         = $stockTalla->cantidad;
-                        $color_talla->stock_logico  = $stockTalla->cantidad;
-                        $color_talla->estado        =   '1';
-                        $color_talla->save();
-                    }
-                }else{
-                    $primeraTalla   =   Talla::first();
-                    if($primeraTalla){
-                        $color_talla                = new ProductoColorTalla();
-                        $color_talla->color_id      = $stock->color_id;
-                        $color_talla->producto_id   = $producto->id;
-                        $color_talla->talla_id      = $primeraTalla->id;
-                        $color_talla->stock         = 0;
-                        $color_talla->stock_logico  = 0;
-                        $color_talla->estado        =   '1';
-                        $color_talla->save();
-                    }
-                }
-
+            foreach ($coloresAsignados as $color_id) {
+                $producto_color =  new ProductoColor();
+                $producto_color->producto_id    =   $producto->id;
+                $producto_color->color_id       =   $color_id;
+                $producto_color->save();     
             }
+
 
             $producto->codigo = 1000 + $producto->id;
             $producto->update();
@@ -239,16 +212,20 @@ class ProductoController extends Controller
 
     public function edit($id)
     {
+
         $this->authorize('haveaccess','producto.index');
-        $producto = Producto::findOrFail($id);
-        $marcas = Marca::where('estado', 'ACTIVO')->get();
-        $clientes = TipoCliente::where('estado','ACTIVO')->where('producto_id',$id)->get();
-        $categorias = Categoria::where('estado', 'ACTIVO')->get();
-        $almacenes = Almacen::where('estado', 'ACTIVO')->get();
-        $modelos = Modelo::where('estado','ACTIVO')->get();
-        $colores = Color::where('estado','ACTIVO')->get();
-        $tallas =  Talla::where('estado','ACTIVO')->get();
-        $stocks = ProductoColorTalla::where('producto_id',$id)->get();
+        $producto   =   Producto::findOrFail($id);
+        $marcas     =   Marca::where('estado', 'ACTIVO')->get();
+        $clientes   =   TipoCliente::where('estado','ACTIVO')->where('producto_id',$id)->get();
+        $categorias =   Categoria::where('estado', 'ACTIVO')->get();
+        $almacenes  =   Almacen::where('estado', 'ACTIVO')->get();
+        $modelos    =   Modelo::where('estado','ACTIVO')->get();
+        $colores    =   Color::where('estado','ACTIVO')->get();
+        $tallas     =   Talla::where('estado','ACTIVO')->get();
+        $colores_asignados     =   DB::select('select * from producto_colores as pc
+                        inner join colores  as c on c.id = pc.color_id
+                        where c.estado = "ACTIVO" and pc.producto_id = ?',
+                        [$id]);       
 
         return view('almacenes.productos.edit', [
             'producto' => $producto,
@@ -259,12 +236,13 @@ class ProductoController extends Controller
             'modelos' => $modelos,
             'colores' => $colores,
             'tallas'   => $tallas,
-            'stocks'   => $stocks,
+            'colores_asignados'   => $colores_asignados,
         ]);
     }
 
     public function update(Request $request, $id)
     {
+
         $this->authorize('haveaccess','producto.index');
 
            //===== obteniendo todos los colores asociados al producto
@@ -342,53 +320,20 @@ class ProductoController extends Controller
             file_put_contents($pathToFile, $data_code);
         }
 
-        //editando stocks por cada talla de cada color
-        $stocks = json_decode($request->input('stocksJSON'));
-
-        //eliminando todos los productos_colores del producto
+        //=========== EDITAMOS LOS COLORES DEL PRODUCTO ==========
+        $coloresAsignados = json_decode($request->get('coloresJSON'));
+        
+        //==== borrando colores anteriores del producto ======
         DB::table('producto_colores')
         ->where('producto_id', $id)
         ->delete();
 
-        //eliminando todos los producto_color_tallas del producto
-        DB::table('producto_color_tallas')
-        ->where('producto_id', $id)
-        ->delete();
-
-        //===== registrando nuevos stocks ==============
-        foreach ($stocks as $stock) {
-            //creamos colores de ese producto
-            $color_producto     = new ProductoColor();
-            $color_producto->color_id = $stock->color_id;
-            $color_producto->producto_id = $producto->id;
-            $color_producto->save();
-            if(count($stock->tallas) > 0){
-               
-                //creando tallas
-                foreach ($stock->tallas as $stockTalla) {
-                    $color_talla                = new ProductoColorTalla();
-                    $color_talla->color_id      = $stockTalla->color_id;
-                    $color_talla->producto_id   = $producto->id;
-                    $color_talla->talla_id      = $stockTalla->talla_id;
-                    $color_talla->stock         = $stockTalla->cantidad;
-                    $color_talla->stock_logico  = $stockTalla->cantidad;
-                    $color_talla->estado        =   '1';
-                    $color_talla->save();
-                }
-            }else{
-                $primeraTalla   =   Talla::first();
-                if($primeraTalla){
-                    $color_talla                = new ProductoColorTalla();
-                    $color_talla->color_id      = $stock->color_id;
-                    $color_talla->producto_id   = $producto->id;
-                    $color_talla->talla_id      = $primeraTalla->id;
-                    $color_talla->stock         = 0;
-                    $color_talla->stock_logico  = 0;
-                    $color_talla->estado        =   '1';
-                    $color_talla->save();
-                }
-            }
-
+        //==== asignando nuevos colores ======
+        foreach ($coloresAsignados as $color_id) {
+            $producto_color                 =  new ProductoColor();
+            $producto_color->producto_id    =   $producto->id;
+            $producto_color->color_id       =   $color_id;
+            $producto_color->save();     
         }
 
          
@@ -580,11 +525,11 @@ class ProductoController extends Controller
         $producto_colores = DB::select('select p.id as producto_id,p.nombre as producto_nombre,
                                         c.id as color_id, c.descripcion as color_nombre,
                                         p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
-                                        from producto_color_tallas as pct
+                                        from producto_colores as pc
                                         inner join productos as p
-                                        on p.id = pct.producto_id
+                                        on p.id = pc.producto_id
                                         inner join colores as c
-                                        on c.id = pct.color_id
+                                        on c.id = pc.color_id
                                         where p.modelo_id = ? AND c.estado="ACTIVO" 
                                         AND p.estado="ACTIVO"
                                         group by p.id,p.nombre,c.id,c.descripcion,
@@ -625,7 +570,16 @@ class ProductoController extends Controller
 
 
     public function getProductosNotaIngreso($modelo_id){
-        $productos = Producto::where('modelo_id', $modelo_id)->get();
+        $productos = DB::select('select p.id as producto_id,c.id as color_id,m.id as modelo_id,
+                    p.nombre as producto_nombre,c.descripcion as color_nombre,m.descripcion as modelo_nombre    
+                    from productos as p
+                    inner join producto_colores as pc on pc.producto_id=p.id
+                    inner join colores as c on c.id=pc.color_id
+                    inner join modelos as m on m.id=p.modelo_id
+                    where m.id=? and c.estado="ACTIVO" and p.estado="ACTIVO" 
+                    and m.estado="ACTIVO" and pc.estado="ACTIVO"',
+                    [$modelo_id]);
+
         return response()->json(["message" => "success" , "productos" => $productos ]);
     }
 

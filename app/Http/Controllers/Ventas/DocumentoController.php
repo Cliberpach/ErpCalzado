@@ -52,6 +52,7 @@ use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
 use App\Almacenes\Modelo;
 use App\Almacenes\Color;
+use Illuminate\Support\Facades\Cache;
 
 
 
@@ -62,6 +63,8 @@ class DocumentoController extends Controller
         $this->authorize('haveaccess', 'documento_venta.index');
         $dato = "Message";
         broadcast(new NotifySunatEvent($dato));
+       
+        //dd(Cache::get('ultimo'));
         return view('ventas.documentos.index');
     }
     public function indexAntiguo()
@@ -532,11 +535,21 @@ class DocumentoController extends Controller
             $detalles = CotizacionDetalle::where('cotizacion_id', $request->get('cotizacion'))
                         ->with('producto', 'color', 'talla')->get();
             
+            //================ VALIDANDO STOCKS_LOGICOS Y CANTIDADES SOLICITADAS =====================
+            // $validaciones = self::validacionStockCantidad($detalles);
+            // $cantidad_no_valido =   $validaciones->where('tipo', 'NO_VALIDO')->count();
+            // $cantidad_valido    =   $validaciones->where('tipo', 'VALIDO')->count();
+            // $cantidad_total     =   $validaciones->count();
+
             $lotes = self::cotizacionLote($detalles);
-            //dd($lotes);
+            
             $nuevoDetalle = collect();
             $detalleValidado = [];
+           
+            
+            //================= EN CASO TODOS LOS PRODUCTOS SEAN NO VALIDOS(stock_logico<cantidadSolicitada) ===============
             if (count($lotes) === 0) {
+            // if ($cantidad_no_valido === $cantidad_total) {
                 $coll = new Collection();
                 $coll->producto = '. No hay stock para ninguno de los productos';
                 $coll->cantidad = '.';
@@ -548,94 +561,101 @@ class DocumentoController extends Controller
                     'clientes' => $clientes,
                     'productos' => $productos,
                     'condiciones' => $condiciones,
-                    'lotes' => $nuevoDetalle,
+                    //'lotes' => $nuevoDetalle,
                     'errores' => $errores,
                     'fecha_hoy' => $fecha_hoy,
                     'fullaccess' => $fullaccess,
                     'dolar' => $dolar,
                 ]);
             }
-            //COMPROBACION DE LOTES SI LAS CANTIDADES ENVIADAS SON IGUALES A LAS SOLICITADAS
-            //dd($detalles);
-            //dd($lotes);
+
+            
+
             foreach ($detalles as $detalle) {
+           
                 //$cantidadDetalle = $lotes->where('producto', $detalle->producto_id)->sum('cantidad');
                 $cantidadDetalle   = [];
                 $cantidadDetalle = $lotes->where('producto', $detalle->producto_id)
-                                ->where('color', $detalle->color_id)
-                                ->where('talla', $detalle->talla_id)
-                                ->first();
-              
-
-                //dd($cantidadDetalle);
+                                    ->where('color', $detalle->color_id)
+                                    ->where('talla', $detalle->talla_id)
+                                    ->first();
                 
-                if ($cantidadDetalle->cantidad != $detalle->cantidad) {
-                //     //dd(' != '. $cantidadDetalle[0]->cantidad);
-                     $devolucion = true;
-                     // $devolucionLotes = $lotes->where('producto', $detalle->producto_id);
-                     $devolucionLotes = $lotes->where('producto',$detalle->producto_id)
-                                                 ->where('color',$detalle->color_id)
-                                                 ->where('talla',$detalle->talla_id)
-                                                 ->first();
-                     //dd($devolucionLotes);
-                     //LLENAR ERROR CANTIDAD SOLICITADA MAYOR AL STOCK
-                     $coll = new Collection();
-                     $coll->producto = $devolucionLotes->descripcion_producto;
-                     $coll->cantidad = $detalle->cantidad;
-                     $errores->push($coll);
-                     self::devolverCantidad($lotes->where('producto',$detalle->producto_id)
-                                                     ->where('color',$detalle->color_id)
-                                                     ->where('talla',$detalle->talla_id)
-                                                    ->first());
-                 } else {
-                        $nuevoSindevoluciones = $lotes->where('producto',$detalle->producto_id)
-                                                ->where('color',$detalle->color_id)
-                                                ->where('talla',$detalle->talla_id)
-                                                ->first();
+              
+                if($cantidadDetalle){
+                    if ($cantidadDetalle->cantidad != $detalle->cantidad) {
                         
-                        //dd($nuevoSindevoluciones);
-                         $coll = new Collection();
-                         $col  = [];
-                         // $coll->producto_id = $devolucion->producto_id;
-
-                         $coll->producto_id = $nuevoSindevoluciones->producto;
-                         $coll->color_id = $nuevoSindevoluciones->color;
-                         $coll->talla_id = $nuevoSindevoluciones->talla;
-                         $coll->cantidad = $nuevoSindevoluciones->cantidad;
-                         $coll->precio_unitario   = $nuevoSindevoluciones->precio_unitario;
-                         $coll->importe           = $nuevoSindevoluciones->importe;
-
-                         $col = [
-                            'producto_id' => $nuevoSindevoluciones->producto,
-                            'color_id' => $nuevoSindevoluciones->color,
-                            'talla_id' => $nuevoSindevoluciones->talla,
-                            'cantidad' => $nuevoSindevoluciones->cantidad,
-                            'precio_unitario' => $nuevoSindevoluciones->precio_unitario,
-                            'importe' => $nuevoSindevoluciones->importe,
-                            'producto_nombre'   =>  Producto::where('id', $nuevoSindevoluciones->producto)->first()->nombre,
-                            'color_nombre'      =>  Color::where('id',  $nuevoSindevoluciones->color)->first()->descripcion,
-                        ];   
-
-                         // $coll->precio_unitario = $devolucion->precio_unitario;
-                         // $coll->precio_inicial = $devolucion->precio_inicial;
-                         // $coll->precio_nuevo = $devolucion->precio_nuevo;
-                         // $coll->descuento = $devolucion->descuento;
-                         // $coll->dinero = $devolucion->dinero;
-                         // $coll->valor_unitario = $devolucion->valor_unitario;
-                         // $coll->valor_venta = $devolucion->valor_venta;
-                         // $coll->unidad = $devolucion->unidad;
-                         $coll->descripcion_producto = $nuevoSindevoluciones->descripcion_producto;
-                         //$coll->presentacion = $devolucion->presentacion;
-                         //$coll->producto = $devolucion->producto;
-                         $nuevoDetalle->push($coll);
+                    //     //dd(' != '. $cantidadDetalle[0]->cantidad);
+                        $devolucion = true;
+                        // $devolucionLotes = $lotes->where('producto', $detalle->producto_id);
+                        $devolucionLotes = $lotes->where('producto',$detalle->producto_id)
+                                                    ->where('color',$detalle->color_id)
+                                                    ->where('talla',$detalle->talla_id)
+                                                    ->first();
+                        //dd($devolucionLotes);
+                        //LLENAR ERROR CANTIDAD SOLICITADA MAYOR AL STOCK
+                        $coll = new Collection();
+                        $coll->producto = $devolucionLotes->descripcion_producto;
+                        $coll->tipo     =   'stocklogico';
+                        $coll->cantidad = $detalle->cantidad;
+                        $errores->push($coll);
                         
-                         $detalleValidado[] = $col;
-                 }
+                        self::devolverCantidad($lotes->where('producto',$detalle->producto_id)
+                                                        ->where('color',$detalle->color_id)
+                                                        ->where('talla',$detalle->talla_id)
+                                                        ->first());
+                    } else {
+                            $nuevoSindevoluciones = $lotes->where('producto',$detalle->producto_id)
+                                                    ->where('color',$detalle->color_id)
+                                                    ->where('talla',$detalle->talla_id)
+                                                    ->first();
+                            
+                            //dd($nuevoSindevoluciones);
+                            $coll = new Collection();
+                            $col  = [];
+                            // $coll->producto_id = $devolucion->producto_id;
 
+                            $coll->producto_id = $nuevoSindevoluciones->producto;
+                            $coll->color_id = $nuevoSindevoluciones->color;
+                            $coll->talla_id = $nuevoSindevoluciones->talla;
+                            $coll->cantidad = $nuevoSindevoluciones->cantidad;
+                            $coll->precio_unitario   = $nuevoSindevoluciones->precio_unitario;
+                            $coll->importe           = $nuevoSindevoluciones->importe;
+
+                            $col = [
+                                'producto_id' => $nuevoSindevoluciones->producto,
+                                'color_id' => $nuevoSindevoluciones->color,
+                                'talla_id' => $nuevoSindevoluciones->talla,
+                                'cantidad' => $nuevoSindevoluciones->cantidad,
+                                'precio_unitario' => $nuevoSindevoluciones->precio_unitario,
+                                'importe' => $nuevoSindevoluciones->importe,
+                                'producto_nombre'   =>  Producto::where('id', $nuevoSindevoluciones->producto)->first()->nombre,
+                                'color_nombre'      =>  Color::where('id',  $nuevoSindevoluciones->color)->first()->descripcion,
+                            ];   
+
+                            // $coll->precio_unitario = $devolucion->precio_unitario;
+                            // $coll->precio_inicial = $devolucion->precio_inicial;
+                            // $coll->precio_nuevo = $devolucion->precio_nuevo;
+                            // $coll->descuento = $devolucion->descuento;
+                            // $coll->dinero = $devolucion->dinero;
+                            // $coll->valor_unitario = $devolucion->valor_unitario;
+                            // $coll->valor_venta = $devolucion->valor_venta;
+                            // $coll->unidad = $devolucion->unidad;
+                            $coll->descripcion_producto = $nuevoSindevoluciones->descripcion_producto;
+                            //$coll->presentacion = $devolucion->presentacion;
+                            //$coll->producto = $devolucion->producto;
+                            $nuevoDetalle->push($coll);
+                            
+                            $detalleValidado[] = $col;
+                    }
+                }else{
+                    $coll           = new Collection();
+                    $coll->producto = $detalle->producto->nombre.' - '.$detalle->color->descripcion.' - '.$detalle->talla->descripcion;
+                    $coll->tipo     =   'producto_no_existe';
+                    $errores->push($coll);
+                }
             }
            
-            //dd($detalleValidado);
-            //dd($cotizacion);
+            
             $tallas = Talla::all();
 
             return view('ventas.documentos.create-venta-cotizacion', [
@@ -721,7 +741,7 @@ class DocumentoController extends Controller
                     'vista'=>$vista,
                     "tipoVentas"=>$tipoVentaArray,
                     "modelos"=>Modelo::all(),
-                    "tallas"=>Talla::all()
+                    "tallas"=>Talla::where('estado', 'ACTIVO')->get()
                 ],
                 "succes"=>true
             ]);
@@ -733,34 +753,86 @@ class DocumentoController extends Controller
             ]);
         }
     }
-    public function devolverCantidad($devoluciones)
-    {
-        foreach ($devoluciones as $devolucion) {
+    public function devolverCantidad($devolucion)
+    {                 
+        
+       
             // if ($devolucion->producto_id != 0) {
                 
             if ($devolucion->producto != 0) {
                 //$lote = LoteProducto::findOrFail($devolucion->producto_id);
-                $lote = ProductoColorTalla::where('producto_id', $devolucion->producto)
-                                        ->where('color_id', $devolucion->color)
-                                        ->where('talla_id', $devolucion->talla)
-                                        ->firstOrFail();                
+                // $lote = ProductoColorTalla::where('producto_id', $devolucion->producto)
+                //                         ->where('color_id', $devolucion->color)
+                //                         ->where('talla_id', $devolucion->talla)
+                //                         ->firstOrFail();                
                 // $lote->cantidad_logica = $lote->cantidad_logica + $devolucion->cantidad;
                 // $lote->cantidad = $lote->cantidad_logica;
                 // $lote->estado = '1';
                 // $lote->update();
-                $lote->stock_logico = $lote->stock_logico + $devolucion->cantidad;
-                $lote->stock = $lote->stok_logico;
+                //$stock_logico_repuesto  =   $lote->stock_logico + $devolucion->cantidad;  
+                // $lote->stock_logico     =   $stock_logico_repuesto;
+                // $lote->stock            = $stock_logico_repuesto;
 
                 // Guardar los cambios en la base de datos
-                $lote->save();
+                DB::table('producto_color_tallas')
+                ->where('producto_id', $devolucion->producto)
+                ->where('color_id', $devolucion->color)
+                ->where('talla_id', $devolucion->talla)
+                ->update([
+                    'stock_logico' => DB::raw('stock_logico + ' . $devolucion->cantidad),
+                    'stock' => DB::raw('stock_logico')
+                ]);
+                
+            }
+        
+        
+        
+    }
+
+
+    public function validacionStockCantidad($detalles){
+        $validaciones = collect();
+        //======== recorriendo cada producto del detalle de la cotización ===========
+        foreach ($detalles as $detalle) {
+            //=========== obteniendo stock_logico de un producto =============
+            $stock_logico   =   DB::select('select stock_logico from producto_color_tallas as pct
+                                where pct.producto_id=? and pct.color_id=? and pct.talla_id=?',
+                                [$detalle->producto_id,$detalle->color_id,$detalle->talla_id])[0]->stock_logico;
+            
+            if($stock_logico<$detalle->cantidad){
+                $registro               =   new Collection();
+                $registro->producto_id  =   $detalle->producto_id;
+                $registro->color_id     =   $detalle->color_id;
+                $registro->talla_id     =   $detalle->talla_id;
+                $registro->stock_logico =   $stock_logico;
+                $registro->cantidad     =   $detalle->cantidad;
+                $registro->tipo         =   'NO_VALIDO';
+                $validaciones->push($registro);      
+                //dd('stock es menor');
+            }else{
+                $registro               =   new Collection();
+                $registro->producto_id  =   $detalle->producto_id;
+                $registro->color_id     =   $detalle->color_id;
+                $registro->talla_id     =   $detalle->talla_id;
+                $registro->stock_logico =   $stock_logico;
+                $registro->cantidad     =   $detalle->cantidad;
+                $registro->tipo         =   'VALIDO';
+                $validaciones->push($registro);  
+               
+                //dd('stock es mayor o igual');
             }
         }
+
+        return $validaciones;
+        dd($validaciones);
+
     }
 
     public function cotizacionLote($detalles)
     {
+        
         $nuevoDetalle = collect();
-        //dd($detalles);
+        
         foreach ($detalles as  $detalle) {
             $producto_existencia = DB::select('select pct.*,p.nombre as producto_nombre,
                                     c.descripcion as color_nombre,t.descripcion as talla_nombre
@@ -805,7 +877,6 @@ class DocumentoController extends Controller
                         //ACTUALIZAMOS EL LOTE
                         //$lote->cantidad_logica = $lote->cantidad_logica - $cantidadSolicitada;
                         //REDUCIMOS LA CANTIDAD SOLICITADA
-                        $cantidadSolicitada = 0;
                         //$producto_existencia->update();
                         DB::table('producto_color_tallas')
                             ->where('producto_id', $detalle->producto_id)
@@ -814,6 +885,7 @@ class DocumentoController extends Controller
                             ->update([
                                 'stock_logico' => DB::raw('stock_logico - ' . $cantidadSolicitada)
                         ]);
+                        $cantidadSolicitada = 0;
                     }else{
                         if($cantidadLogica < $cantidadSolicitada){
                             //CREAMOS EL NUEVO DETALLE
@@ -849,10 +921,8 @@ class DocumentoController extends Controller
                                 ->update([
                                     'stock_logico' => 0
                             ]);
-
-                        }
-
-                        if($cantidadLogica > $cantidadSolicitada){
+                        }else if($cantidadLogica    >   $cantidadSolicitada)
+                        {
                             //CREAMOS EL NUEVO DETALLE
                             $coll = new Collection();
                 //          $coll->producto_id = $lote->id;
@@ -1418,11 +1488,11 @@ class DocumentoController extends Controller
                 
             //      $lote->cantidad = $lote->cantidad - $producto->cantidad;
                     //$lote->stock = $lote->stock - $producto->cantidad;
-            //ACTUALIZANDO STOCK...
-            DB::update('UPDATE producto_color_tallas 
-            SET stock = stock - ? 
-            WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
-            [$producto->cantidad, $producto->producto_id, $producto->color_id, $producto->talla_id]);
+                    //ACTUALIZANDO STOCK...
+                    DB::update('UPDATE producto_color_tallas 
+                    SET stock = stock - ? 
+                    WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
+                    [$producto->cantidad, $producto->producto_id, $producto->color_id, $producto->talla_id]);
 
 
             //if ($lote->cantidad == 0) {
@@ -1463,8 +1533,8 @@ class DocumentoController extends Controller
             $detalle->mcaja_id = movimientoUser()->id;
             
             $detalle->save();
-            $envio_prev =$this->ObtenerCorrelativoVentas($documento);
-            $envio_prev = self::sunat($documento->id);
+            //$envio_prev =   $this->ObtenerCorrelativoVentas($documento);
+            $envio_prev =   self::sunat($documento->id);
             if (!$envio_prev['success']) {
                  DB::rollBack();
                  return response()->json([
@@ -1480,6 +1550,7 @@ class DocumentoController extends Controller
             $documento = Documento::find($documento->id);
             $documento->nombre_comprobante_archivo = $documento->serie . '-' . $documento->correlativo . '.pdf';
             $documento->update();
+            
 
             //Registro de actividad
             $descripcion = "SE AGREGÓ EL DOCUMENTO DE VENTA CON LA FECHA: " . Carbon::parse($documento->fecha_documento)->format('d/m/y');
@@ -2958,7 +3029,12 @@ class DocumentoController extends Controller
         $condicion      =   $data['condicion'];
         $modo           =   $data['modo'];
         $tallas         =   $request->input('tallas', null);
-        $mensaje = '';
+        $mensaje        = '';
+
+        $productos  =   collect();
+        if(Cache::has('productos')){
+            $productos  =   Cache::get('productos');
+        }
         //$lote = LoteProducto::findOrFail($producto_id);
 
         //DISMINUIR
@@ -2979,12 +3055,22 @@ class DocumentoController extends Controller
                 $query->decrement('stock_logico', $cantidad);
             });
             //$lote->update();
-            $mensaje = 'Cantidad aceptada';
+            $mensaje    = 'Cantidad aceptada';
+
+            $item= new Collection();
+            $item->producto_id  =   $producto_id;
+            $item->color_id     =   $color_id;
+            $item->talla_id     =   $talla_id;
+            $item->cantidad     =   $cantidad;
+
+            $productos->push($item);
+
+            Cache::forever('productos', $productos);
         }
 
         if($modo == 'editar' && $condicion == '1'){
             $cantidadAnterior   =   $data['cantidadAnterior'];
-       
+           
             DB::table('producto_color_tallas')
             ->where('producto_id', $producto_id)
             ->where('color_id', $color_id)
@@ -2993,6 +3079,15 @@ class DocumentoController extends Controller
                 $query->increment('stock_logico', ($cantidadAnterior - $cantidad));
             });
             $mensaje = 'Cantidad editada';
+
+            $item= new Collection();
+            $item->producto_id  =   $producto_id;
+            $item->color_id     =   $color_id;
+            $item->talla_id     =   $talla_id;
+            $item->cantidad     =   $cantidad;
+
+            $productos->push($item);
+            Cache::forever('productos', $productos);
         }
 
         //REGRESAR STOCK LOGICO
@@ -3004,6 +3099,22 @@ class DocumentoController extends Controller
                     ->where('color_id', $color_id)
                     ->where('talla_id', $talla['talla_id'])
                     ->increment('stock_logico', $talla['cantidad']);
+                
+                $idTalla= $talla['talla_id'];
+                // Eliminar el elemento del carrito
+                if (Cache::has('productos')) {
+                    $carrito = Cache::get('productos');
+
+                    // Filtrar el carrito para eliminar el elemento con los criterios especificados
+                    $carrito = $carrito->reject(function ($item) use ($producto_id, $color_id, $idTalla) {
+                        return $item->producto_id == $producto_id
+                            && $item->color_id == $color_id
+                            && $item->talla_id == $idTalla;
+                    });
+
+                    // Guardar el carrito filtrado de nuevo en la cache
+                    Cache::forever('productos', $carrito);
+                }
             }            
             $mensaje = 'Cantidades devuelta';
         }
@@ -3023,22 +3134,55 @@ class DocumentoController extends Controller
     //DEVOLVER CANTIDAD LOGICA AL CERRAR VENTANA
     public function returnQuantity(Request $request)
     {
-        $data           =   $request->all();
-        $carrito        =   $data['carrito'];
-        $productosJSON  =   json_decode($carrito);
-        $mensaje        =   true;
+        
+        $mensaje        =   false;
 
-        foreach ($productosJSON as $producto) {
-            foreach ($producto->tallas as $talla) {
-    
-                DB::table('producto_color_tallas')
-                    ->where('producto_id', $producto->producto_id)
-                    ->where('color_id', $producto->color_id)
-                    ->where('talla_id', $talla->talla_id) 
-                    ->increment('stock_logico', $talla->cantidad); 
+        if($request->has('vista') && $request->has('carrito')){
+            $data           =   $request->all();
+            $carrito        =   $data['carrito'];
+            $productosJSON  =   json_decode($carrito);
+
+            foreach ($productosJSON as $producto) {
+                $mensaje=true;
+                foreach ($producto->tallas as $talla) {
+        
+                    DB::table('producto_color_tallas')
+                        ->where('producto_id', $producto->producto_id)
+                        ->where('color_id', $producto->color_id)
+                        ->where('talla_id', $talla->talla_id) 
+                        ->increment('stock_logico', $talla->cantidad); 
+                }
             }
         }
 
+       
+
+        $carrito=null;
+
+        while (Cache::has('productos')) {
+            try {
+                $carrito = Cache::get('productos');
+                $carrito->each(function ($producto) {
+                    // Procesa cada producto individualmente
+                    DB::table('producto_color_tallas')
+                        ->where('producto_id', $producto->producto_id)
+                        ->where('color_id', $producto->color_id)
+                        ->where('talla_id', $producto->talla_id)
+                        ->increment('stock_logico', $producto->cantidad);
+                });
+                
+                // Eliminar la colección de la caché después de procesarla
+                Cache::forget('productos');
+
+            } catch (\Exception $e) {
+                // Manejo de errores
+                $errorMessage = 'Error durante el procesamiento del carrito: ' . $e->getMessage();
+                // Guardar el error en la caché
+                Cache::put('error_procesamiento_carrito', $errorMessage, now()->addHours(24));
+            }
+        }
+        
+        Cache::put('hay_productos?',Cache::has('productos'), now()->addHours(24));
 
 
         // $cantidades = $data['cantidades'];

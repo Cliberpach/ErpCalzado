@@ -217,7 +217,15 @@
 
     <script>
     @if(Session::has('success'))
-    toastr.success("{{ Session::get('success') }}")
+        toastr.success("{{ Session::get('success') }}")
+    @endif
+
+    @if(Session::has('GUIA_ENVIO_ESTADO'))
+         toastr.success("{{ Session::get('GUIA_ENVIO_ESTADO') }}")
+    @endif
+
+    @if(Session::has('GUIA_ID_SUNAT'))
+         toastr.success("{{ Session::get('GUIA_ID_SUNAT') }}")
     @endif
 
     @if(Session::has('error'))

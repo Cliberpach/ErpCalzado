@@ -1395,7 +1395,6 @@
 
     const pintarTableStocks = (stocks,tallas,producto_colores)=>{
         let options =``;
-        let producto_color_procesados=[];
         
         producto_colores.forEach((pc)=>{
             options+=`  <tr>
@@ -1408,7 +1407,6 @@
 
             tallas.forEach((t)=>{
                 const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id)[0]?.stock || 0;
-
 
                 let cantidadPrevia = (carrito.filter((producto) => producto.producto_id == pc.producto_id && producto.color_id == pc.color_id && producto.talla_id == t.id)[0]?.cantidad) || '';
 
@@ -1427,23 +1425,18 @@
                                 `;   
             })
 
-            if(!producto_color_procesados.includes(`${pc.producto_id}`)){
-                const preciosVenta = stocks.filter((st)=>{
-                    return  st.producto_id == pc.producto_id
-                })[0];
+            if(pc.printPreciosVenta){
                 htmlTallas+=`
                     <td>
-                        <select style="width: 95px;" class="select2_form form-control" id="precio-venta-${pc.producto_id}">
-                            <option>${preciosVenta.precio_venta_1}</option>    
-                            <option>${preciosVenta.precio_venta_2}</option>    
-                            <option>${preciosVenta.precio_venta_3}</option>    
+                        <select class="select2_form form-control" id="precio-venta-${pc.producto_id}">
+                            <option>${pc.precio_venta_1}</option>    
+                            <option>${pc.precio_venta_2}</option>    
+                            <option>${pc.precio_venta_3}</option>    
                         </select>
                     </td>`;
-                producto_color_procesados.push(`${pc.producto_id}`);
             }else{
                 htmlTallas+=`<td></td>`;
             }
-
             htmlTallas += `</tr>`;
             options += htmlTallas;
         })

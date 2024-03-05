@@ -22,6 +22,10 @@ use Illuminate\Support\Facades\Validator;
 use Luecano\NumeroALetras\NumeroALetras;
 use Yajra\DataTables\Facades\DataTables;
 
+use App\Almacenes\ProductoColorTalla;
+use App\Almacenes\Talla;
+use App\Almacenes\Modelo;
+use App\Almacenes\Color;
 class NoEnviadosController extends Controller
 {
     public function index()
@@ -332,6 +336,9 @@ class NoEnviadosController extends Controller
         $condiciones = Condicion::where('estado', 'ACTIVO')->get();
         $fullaccess = false;
         $fecha_hoy = Carbon::now()->toDateString();
+        $tallas = Talla::where('estado','ACTIVO')->get();
+        $modelos =  Modelo::where('estado','ACTIVO')->get();
+        
 
         if (count(Auth::user()->roles) > 0) {
             $cont = 0;
@@ -352,6 +359,8 @@ class NoEnviadosController extends Controller
             'condiciones' => $condiciones,
             'fullaccess' => $fullaccess,
             'fecha_hoy' => $fecha_hoy,
+            'tallas'=>$tallas,
+            'modelos' => $modelos
         ]);
     }
 
@@ -432,104 +441,169 @@ class NoEnviadosController extends Controller
             $documento->cliente_id = $request->get('cliente_id');
 
             $documento->observacion = $request->get('observacion');
-            $documento->sub_total = $request->get('monto_sub_total');
-            $documento->total_igv = $request->get('monto_total_igv');
-            $documento->total = $request->get('monto_total');
+            $documento->sub_total = str_replace('S/', '', $request->get('monto_sub_total'));
+            $documento->total_igv = str_replace('S/', '', $request->get('monto_total_igv'));
+            $documento->total = str_replace('S/', '', $request->get('monto_total'));
             $documento->igv = $request->get('igv') ? $request->get('igv') : 18;
             $documento->moneda = 1;
 
             if ($monto != $request->get('monto_total')) {
-                $documento->tipo_pago_id = $request->get('tipo_pago_id');
-                $documento->importe = $request->get('importe');
-                $documento->efectivo = $request->get('efectivo');
-                $documento->estado_pago = 'PENDIENTE';
+                 $documento->tipo_pago_id = $request->get('tipo_pago_id');
+                 $documento->importe = $request->get('importe');
+                 $documento->efectivo = $request->get('efectivo');
+                 $documento->estado_pago = 'PENDIENTE';
             }
 
             if ($request->get('igv_check') == "on") {
-                $documento->igv_check = "1";
+                 $documento->igv_check = "1";
             }
 
             $numero_doc = $documento->id;
             $documento->numero_doc = 'VENTA-' . $numero_doc;
             $documento->update();
+
             //Llenado de los articulos
             $productosJSON = $request->get('productos_tabla');
             $productotabla = json_decode($productosJSON);
 
             $detalles = Detalle::where('eliminado', '0')->where('estado','ACTIVO')->where('documento_id', $id)->get();
-            foreach ($detalles as $item) {
-                $lote = LoteProducto::findOrFail($item->lote_id);
-                $lote->cantidad =  $lote->cantidad + $item->cantidad;
-                $lote->cantidad_logica =  $lote->cantidad_logica + $item->cantidad;
-                $lote->estado = '1';
-                $lote->update();
-                $item->eliminado = '1';
-                $item->update();
+
+            //========= ELIMINAR DETALLE ANTERIOR ====
+            foreach ($detalles as $detalle) {
+
+               //==== reponer stock de producto_color_tallas =====
+               //====== NOTA: EL STOCK_LOGICO se actualizó en la vista =======
+               DB::table('producto_color_tallas')
+               ->where('producto_id', $detalle->producto_id)
+               ->where('color_id', $detalle->color_id)
+               ->where('talla_id', $detalle->talla_id)
+               ->update(['stock' => DB::raw('stock + ' . $detalle->cantidad)]);
+           
             }
 
+            //========== eliminar detalles ======
+            DB::table('cotizacion_documento_detalles')
+             ->where('documento_id', $id)
+             ->delete();
+
+            //===== GRABAR EL NUEVO DETALLE ========
+            //==== actualizamos solo stock, ya que el stock logico ya está actualizado =======
             foreach ($productotabla as $producto) {
-                if ($producto->detalle_id != 0) {
-                    $lote = LoteProducto::findOrFail($producto->lote_id);
-                    $detalle = Detalle::find($producto->detalle_id);
-                    $cantidad = $detalle->cantidad;
-                    $detalle->codigo_producto = $lote->producto->codigo;
-                    $detalle->unidad = $lote->producto->getMedida();
-                    $detalle->nombre_producto = $lote->producto->nombre;
-                    $detalle->codigo_lote = $lote->codigo_lote;
-                    $detalle->cantidad = $producto->cantidad;
-                    $detalle->precio_unitario = $producto->precio_unitario;
-                    $detalle->precio_inicial = $producto->precio_inicial;
-                    $detalle->precio_nuevo = $producto->precio_nuevo;
-                    $detalle->dinero = $producto->dinero;
-                    $detalle->descuento = $producto->descuento;
-                    $detalle->valor_unitario = $producto->valor_unitario;
-                    $detalle->valor_venta = $producto->valor_venta;
-                    $detalle->estado = 'ACTIVO';
-                    $detalle->eliminado = '0';
-                    $detalle->update();
+                foreach ($producto->tallas as $talla) {
+                       
+                    $lote = ProductoColorTalla::where('producto_id', $producto->producto_id)
+                    ->where('color_id', $producto->color_id)
+                    ->where('talla_id', $talla->talla_id)
+                    ->with('producto')
+                    ->with('color')
+                    ->with('talla')
+                    ->firstOrFail();
 
-                    $lote->cantidad = $lote->cantidad - $cantidad;
-                    $lote->cantidad_logica = $lote->cantidad_logica - $cantidad;
-                    if ($cantidad >= $producto->cantidad) {
-                        $cant_aux = $cantidad - $producto->cantidad;
-                        $lote->cantidad =  $lote->cantidad + $cant_aux;
-                    } else {
-                        $cant_aux = $producto->cantidad - $cantidad;
-                        $lote->cantidad =  $lote->cantidad - $cant_aux;
-                    }
-
-                    if ($cantidad >= $producto->cantidad) {
-                        $cant_aux = $cantidad - $producto->cantidad;
-                        $lote->cantidad_logica =  $lote->cantidad_logica + $cant_aux;
-                    }
-                    $lote->update();
-                } else {
-                    $lote = LoteProducto::findOrFail($producto->lote_id);
                     Detalle::create([
-                        'documento_id' => $documento->id,
-                        'lote_id' => $producto->lote_id, //LOTE
-                        'codigo_producto' => $lote->producto->codigo,
-                        'unidad' => $lote->producto->getMedida(),
-                        'nombre_producto' => $lote->producto->nombre,
-                        'codigo_lote' => $lote->codigo_lote,
-                        'cantidad' => $producto->cantidad,
-                        'precio_unitario' => $producto->precio_unitario,
-                        'precio_inicial' => $producto->precio_inicial,
-                        'precio_nuevo' => $producto->precio_nuevo,
-                        'dinero' => $producto->dinero,
-                        'descuento' => $producto->descuento,
-                        'valor_unitario' => $producto->valor_unitario,
-                        'valor_venta' => $producto->valor_venta,
+                        'documento_id'      =>  $documento->id,
+                        'producto_id'       =>  $producto->producto_id,
+                        'color_id'          =>  $producto->color_id,
+                        'talla_id'          =>  $talla->talla_id,
+                        'codigo_producto'   =>  $lote->producto->codigo,
+                        'nombre_producto'   =>  $lote->producto->nombre,
+                        'nombre_color'      =>  $lote->color->descripcion,
+                        'nombre_talla'      =>  $lote->talla->descripcion,
+                        'nombre_modelo'     =>  $lote->producto->modelo->descripcion,
+                        'cantidad'          =>  floatval($talla->cantidad),
+                        'precio_unitario'   =>  floatval($producto->precio_venta),
+                        'importe'           =>  floatval($talla->cantidad) * floatval($producto->precio_venta)
                     ]);
 
-                    if ($lote->cantidad - $producto->cantidad == 0) {
-                        $lote->cantidad_logica =  0;
-                    }
+                    //ACTUALIZANDO STOCK...
+                    DB::update('UPDATE producto_color_tallas 
+                    SET stock = stock - ? 
+                    WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
+                    [$talla->cantidad, $producto->producto_id, $producto->color_id, $talla->talla_id]);
 
-                    $lote->cantidad =  $lote->cantidad - $producto->cantidad;
-                    $lote->update();
-                }
+                    if ($lote->stock == 0) {
+                        DB::update('UPDATE producto_color_tallas 
+                        SET estado = ? 
+                        WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
+                        ['0', $producto->producto_id, $producto->color_id, $talla->talla_id]);        
+                    }
+                }  
             }
+
+           
+
+            // foreach ($detalles as $item) {
+            //     $lote = LoteProducto::findOrFail($item->lote_id);
+            //     $lote->cantidad =  $lote->cantidad + $item->cantidad;
+            //     $lote->cantidad_logica =  $lote->cantidad_logica + $item->cantidad;
+            //     $lote->estado = '1';
+            //     $lote->update();
+            //     $item->eliminado = '1';
+            //     $item->update();
+            // }
+
+            // foreach ($productotabla as $producto) {
+            //     if ($producto->detalle_id != 0) {
+            //         $lote = LoteProducto::findOrFail($producto->lote_id);
+            //         $detalle = Detalle::find($producto->detalle_id);
+            //         $cantidad = $detalle->cantidad;
+            //         $detalle->codigo_producto = $lote->producto->codigo;
+            //         $detalle->unidad = $lote->producto->getMedida();
+            //         $detalle->nombre_producto = $lote->producto->nombre;
+            //         $detalle->codigo_lote = $lote->codigo_lote;
+            //         $detalle->cantidad = $producto->cantidad;
+            //         $detalle->precio_unitario = $producto->precio_unitario;
+            //         $detalle->precio_inicial = $producto->precio_inicial;
+            //         $detalle->precio_nuevo = $producto->precio_nuevo;
+            //         $detalle->dinero = $producto->dinero;
+            //         $detalle->descuento = $producto->descuento;
+            //         $detalle->valor_unitario = $producto->valor_unitario;
+            //         $detalle->valor_venta = $producto->valor_venta;
+            //         $detalle->estado = 'ACTIVO';
+            //         $detalle->eliminado = '0';
+            //         $detalle->update();
+
+            //         $lote->cantidad = $lote->cantidad - $cantidad;
+            //         $lote->cantidad_logica = $lote->cantidad_logica - $cantidad;
+            //         if ($cantidad >= $producto->cantidad) {
+            //             $cant_aux = $cantidad - $producto->cantidad;
+            //             $lote->cantidad =  $lote->cantidad + $cant_aux;
+            //         } else {
+            //             $cant_aux = $producto->cantidad - $cantidad;
+            //             $lote->cantidad =  $lote->cantidad - $cant_aux;
+            //         }
+
+            //         if ($cantidad >= $producto->cantidad) {
+            //             $cant_aux = $cantidad - $producto->cantidad;
+            //             $lote->cantidad_logica =  $lote->cantidad_logica + $cant_aux;
+            //         }
+            //         $lote->update();
+            //     } else {
+            //         $lote = LoteProducto::findOrFail($producto->lote_id);
+            //         Detalle::create([
+            //             'documento_id' => $documento->id,
+            //             'lote_id' => $producto->lote_id, //LOTE
+            //             'codigo_producto' => $lote->producto->codigo,
+            //             'unidad' => $lote->producto->getMedida(),
+            //             'nombre_producto' => $lote->producto->nombre,
+            //             'codigo_lote' => $lote->codigo_lote,
+            //             'cantidad' => $producto->cantidad,
+            //             'precio_unitario' => $producto->precio_unitario,
+            //             'precio_inicial' => $producto->precio_inicial,
+            //             'precio_nuevo' => $producto->precio_nuevo,
+            //             'dinero' => $producto->dinero,
+            //             'descuento' => $producto->descuento,
+            //             'valor_unitario' => $producto->valor_unitario,
+            //             'valor_venta' => $producto->valor_venta,
+            //         ]);
+
+            //         if ($lote->cantidad - $producto->cantidad == 0) {
+            //             $lote->cantidad_logica =  0;
+            //         }
+
+            //         $lote->cantidad =  $lote->cantidad - $producto->cantidad;
+            //         $lote->update();
+            //     }
+            // }
 
 
             $documento = Documento::find($documento->id);
@@ -663,28 +737,63 @@ class NoEnviadosController extends Controller
     //CAMBIAR CANTIDAD LOGICA DEL LOTE
     public function quantity(Request $request)
     {
-        $data = $request->all();
-        $producto_id = $data['lote_id'];
-        $cantidad = $data['cantidad'];
-        $condicion = $data['condicion'];
-        $mensaje = '';
-        $lote = LoteProducto::findOrFail($producto_id);
-        //DISMINUIR
-        if ($lote->cantidad_logica >= $cantidad && $condicion == '1') {
-            $nuevaCantidad = $lote->cantidad_logica - $cantidad;
-            $lote->cantidad_logica = $nuevaCantidad;
-            $lote->update();
-            $mensaje = 'Cantidad aceptada';
-        }
-        //AUMENTAR
-        if ($condicion == '0') {
-            $nuevaCantidad = $lote->cantidad_logica + $cantidad;
-            $lote->cantidad_logica = $nuevaCantidad;
-            $lote->update();
-            $mensaje = 'Cantidad regresada';
+        $data           =   $request->all();
+        $modo           =   $request->get('modo');
+        $producto_id    =   $request->get('producto_id');
+        $color_id       =   $request->get('color_id');
+        $talla_id       =   $request->get('talla_id');
+        $cantidad       =   $request->get('cantidad');
+
+        if($modo == 'nuevo'){
+            DB::table('producto_color_tallas')
+            ->where('producto_id', $producto_id)
+            ->where('color_id', $color_id)
+            ->where('talla_id', $talla_id)
+            ->update(['stock_logico' => DB::raw('stock_logico - ' . $cantidad)]);
         }
 
-        return $mensaje;
+        if($modo == 'editar'){
+            $cantidadAnterior   =   $request->get('cantidadAnterior');
+            DB::table('producto_color_tallas')
+            ->where('producto_id', $producto_id)
+            ->where('color_id', $color_id)
+            ->where('talla_id', $talla_id)
+            ->update(['stock_logico' => DB::raw('stock_logico + ' . ($cantidadAnterior-$cantidad) )]);
+        }
+
+        if($modo == 'eliminar'){
+            $tallas = $request->get('tallas');
+            foreach ($tallas as $talla) {
+                DB::table('producto_color_tallas')
+                ->where('producto_id', $producto_id)
+                ->where('color_id', $color_id)
+                ->where('talla_id', $talla['talla_id'])
+                ->update(['stock_logico' => DB::raw('stock_logico + ' . $talla['cantidad'] )]);
+            }
+        }
+
+        // $data = $request->all();
+        // $producto_id = $data['lote_id'];
+        // $cantidad = $data['cantidad'];
+        // $condicion = $data['condicion'];
+        // $mensaje = '';
+        // $lote = LoteProducto::findOrFail($producto_id);
+        // //DISMINUIR
+        // if ($lote->cantidad_logica >= $cantidad && $condicion == '1') {
+        //     $nuevaCantidad = $lote->cantidad_logica - $cantidad;
+        //     $lote->cantidad_logica = $nuevaCantidad;
+        //     $lote->update();
+        //     $mensaje = 'Cantidad aceptada';
+        // }
+        // //AUMENTAR
+        // if ($condicion == '0') {
+        //     $nuevaCantidad = $lote->cantidad_logica + $cantidad;
+        //     $lote->cantidad_logica = $nuevaCantidad;
+        //     $lote->update();
+        //     $mensaje = 'Cantidad regresada';
+        // }
+
+        return $tallas;
     }
 
     //DEVOLVER CANTIDAD LOGICA AL CERRAR VENTANA

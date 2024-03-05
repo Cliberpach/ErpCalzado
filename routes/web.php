@@ -408,7 +408,7 @@ function(){
         Route::post('/updatePago', 'Ventas\DocumentoController@updatePago')->name('ventas.documento.updatePago');
         Route::post('/getCuentas', 'Ventas\DocumentoController@getCuentas')->name('ventas.documento.getCuentas');
 
-        Route::post('cantidad', 'Ventas\DocumentoController@quantity')->name('ventas.documento.cantidad');
+        Route::post('quantity', 'Ventas\DocumentoController@quantity')->name('ventas.documento.cantidad');
         Route::post('devolver/cantidad', 'Ventas\DocumentoController@returnQuantity')->name('ventas.documento.devolver.cantidades');
         Route::post('obtener/lote', 'Ventas\DocumentoController@returnLote')->name('ventas.documento.obtener.lote');
         Route::post('update/lote', 'Ventas\DocumentoController@updateLote')->name('ventas.documento.update.lote');
@@ -457,6 +457,9 @@ function(){
         Route::get('reporte/{id}','Ventas\GuiaController@report')->name('ventas.guiasremision.reporte');
         Route::get('tiendaDireccion/{id}', 'Ventas\GuiaController@tiendaDireccion')->name('ventas.guiasremision.tienda_direccion');
         Route::get('sunat/guia/{id}','Ventas\GuiaController@sunat')->name('ventas.guiasremision.sunat');
+        Route::get('consulta_ticket/guia/{id}','Ventas\GuiaController@consulta_ticket')->name('ventas.guiasremision.consulta.ticket');
+
+        
         // Route::get('tipoPago/{id}','Ventas\GuiaController@TypePay')->name('ventas.documento.tipo_pago.existente');
         // Route::get('comprobante/{id}','Ventas\GuiaController@voucher')->name('ventas.documento.comprobante');
         // Route::get('sunat/comprobante/{id}','Ventas\GuiaController@sunat')->name('ventas.documento.sunat');

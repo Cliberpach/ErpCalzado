@@ -54,7 +54,7 @@
                                             <th class="text-center">CÓDIGO</th>
                                             <th class="text-center">CÓDIGO BARRA</th>
                                             <th class="text-center">NOMBRE</th>
-                                            <th class="text-center">ALMACEN</th>
+                                            <th class="text-center">MODELO</th>
                                             <th class="text-center">MARCA</th>
                                             <th class="text-center">CATEGORIA</th>
                                             <th class="text-center">STOCK</th>
@@ -87,6 +87,8 @@
 @endpush
 
 @push('scripts')
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
+<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
 <!-- DataTable -->
 <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
@@ -94,8 +96,20 @@
 <script>
     $(document).ready(function() {
 
-        // DataTables
-        $('.dataTables-producto').DataTable({
+    });
+</script>
+
+
+<script>
+    const stocks = @json($stocks);
+    const tallas = @json($tallas);
+    const colores = @json($colores);
+    let table   =null;
+    const bodyTableShowStocks = document.querySelector('#tableShowStocks tbody');
+
+    document.addEventListener('DOMContentLoaded',()=>{
+           // DataTables
+           $('.dataTables-producto').DataTable({
             "dom": '<"html5buttons"B>lTfgitp',
             "buttons": [
                 {
@@ -144,9 +158,9 @@
                     name:"productos.nombre"
                 },
                 {
-                    data: 'almacen',
+                    data: 'modelo',
                     className: "text-left",
-                    name:"almacenes.descripcion"
+                    name:"modelos.descripcion"
                 },
                 {
                     data: 'marca',
@@ -166,7 +180,7 @@
                     render: function(data,type,row) {
                        
 
-                        return `<a data-product-nombre="${row.nombre}"  data-whatever="${data}" data-toggle="modal" data-target="#modal_show_stocks" data-id=${data} class='btn btn-primary' href='javascript:void(0);' title='STOCKS'><i class='fa fa-eye'></i> Ver</a>`;
+                        return `<a  data-product-nombre="${row.nombre}"  data-whatever="${data}" data-toggle="modal" data-target="#modal_show_stocks" data-id=${data} class='btn btn-primary ver-stocks-producto' href='javascript:void(0);' title='STOCKS'><i class='fa fa-eye ver-stocks-producto'></i> Ver</a>`;
                     }
                 },
                 {
@@ -215,7 +229,7 @@
 
         // Eventos
         $('#btn_añadir_producto').on('click', añadirProducto);
-    });
+    })
 
     $(".dataTables-producto").on('click','.nuevo-ingreso',function(){
         var data = $(".dataTables-producto").dataTable().fnGetData($(this).closest('tr'));
@@ -283,39 +297,97 @@
             }
         })
     }
+
     $(".btn-modal-file").on('click', function() {
         $("#modal_file").modal("show");
     });
-</script>
 
-<script>
-    const stocks = @json($stocks);
+
     $('#modal_show_stocks').on('show.bs.modal', function (event) {
+       
+        if(table){
+            table.destroy();
+        }
         resetearTabla();
-         var button = $(event.relatedTarget) 
-         var product_id = button.data('whatever') 
-            const product_name = button.data('product-nombre');
-         stocks.forEach((stock) => {
-             if (stock.producto_id == product_id) {
-                const tdStock =  document.querySelector(`#stock_${stock.color_id}_${stock.talla_id}`);
-                tdStock.textContent = stock.stock; 
-                tdStock.disabled = true;
-             }
-         });
-        
+
+        var button = $(event.relatedTarget) 
+        var product_id = button.data('whatever') 
+        const product_name = button.data('product-nombre');
+
+        let filas = ``;
+
+        const colores_producto = colores.filter((c)=>{
+            return c.producto_id==product_id;
+        })
+
+        colores_producto.forEach((color)=>{
+            filas +=    `
+                            <tr>
+                                <th scope="row">${color.color_nombre}</th>
+                        `;
+            tallas.forEach((t)=>{
+                let stock = stocks.filter((s) => {
+                    return s.producto_id == product_id && s.color_id == color.color_id && s.talla_id == t.id;
+                });
+
+                stock = stock.length > 0 ? stock[0].stock : 0;
+                filas +=    `
+                                <td><span style="font-weight: ${stock > 0 ? 'bold' : 'normal'}">${stock}</span></td>
+                            `;
+
+            })
+            filas+=`</tr>`;
+        })
+
+        bodyTableShowStocks.innerHTML= filas;
+       
          var modal = $(this)
          modal.find('.modal-title').text('Stocks: ' + product_name)
          modal.find('.product_name').text(product_name);
+         cargarDataTables();
     })
 
 
     function resetearTabla(){
-        const elementos = document.querySelectorAll(`[id^="stock_"]`);
-        elementos.forEach((e)=>{
-            e.textContent   =   '';
-        })
+       bodyTableShowStocks.innerHTML = '';
+    }
+
+
+    function cargarDataTables(){
+        table = new DataTable('#tableShowStocks',
+        {
+            language: {
+                processing:     "Traitement en cours...",
+                search:         "BUSCAR: ",
+                lengthMenu:    "MOSTRAR _MENU_ ELEMENTOS",
+                info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ ELEMENTOS",
+                infoEmpty:      "MOSTRANDO 0 ELEMENTOS",
+                infoFiltered:   "(FILTRADO de _MAX_ PRODUCTOS)",
+                infoPostFix:    "",
+                loadingRecords: "CARGA EN CURSO",
+                zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+                emptyTable:     "NO HAY PRODUCTOS DISPONIBLES",
+                paginate: {
+                    first:      "PRIMERO",
+                    previous:   "ANTERIOR",
+                    next:       "SIGUIENTE",
+                    last:       "ÚLTIMO"
+                },
+                aria: {
+                    sortAscending:  ": activer pour trier la colonne par ordre croissant",
+                    sortDescending: ": activer pour trier la colonne par ordre décroissant"
+                }
+            }
+        });
+        
+        // const tableStocks   = document.querySelector('#table-productos');
+        // if(tableStocks.children[1]){
+        //     tableStocks.children[1].remove();
+        // }
     }
 </script>
+
+
 
 
 @endpush

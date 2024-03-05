@@ -1,4 +1,5 @@
-const divsColorTallas           = document.querySelectorAll('.color-tallas');
+const checkColores              =   document.querySelectorAll('.color');
+const divsColorTallas           =   document.querySelectorAll('.color-tallas');
 
 const formCrearCategoria        =   document.querySelector('#crear_categoria');
 const formCrearMarca            =   document.querySelector('#crear_marca');
@@ -6,32 +7,34 @@ const formCrearModelo           =   document.querySelector('#crear_modelo');
 const formRegProducto           =   document.querySelector('#form_registrar_producto');
 
 
-const tokenValue                = document.querySelector('input[name="_token"]').value;
+const tokenValue                =   document.querySelector('input[name="_token"]').value;
 
 const selectCategorias          =   document.querySelector('#categoria');
 const selectMarcas              =   document.querySelector('#marca');
-const selectModelos              =   document.querySelector('#modelo');
+const selectModelos             =   document.querySelector('#modelo');
 
 const inputStocksJSON           =   document.querySelector('#stocksJSON');
 
-const tallas    =   document.querySelectorAll('.talla');
+const tallas                    =   document.querySelectorAll('.talla');
 
-const coloresSeleccionados = [];
-const span_color_activo         = document.querySelector('.color_activo');
+const coloresSeleccionados      =   [];
+const span_color_activo         =   document.querySelector('.color_activo');
 
-//solo marcar un color a la vez
+
+
+
 document.addEventListener('DOMContentLoaded',()=>{
     events();
-    if(typeof stocks != 'undefined'){
-        cargarVistaEdit();
-    }
+    cargarColoresPrevios();
 })
+
 function events(){
 
     //============ MOSTRAR INPUTS TALLAS PARA COLOR SELECCIONADO ========================
     document.addEventListener('click',(e)=>{
         if(e.target.classList.contains('color')){
-            const idColorCheckSelected  =   e.target.getAttribute('data-color-id');
+            const idColorCheckSelected  =   e.target.getAttribute('id').split("_")[1];
+            
             const color_nombre          =   e.target.getAttribute('data-color-nombre');
 
             if(e.target.checked){
@@ -161,7 +164,7 @@ function events(){
                     toastr.success('Modelo creado.', 'Éxito');
                     formCrearModelo.reset();
                 }else if(data.message=='error'){
-                    toastr.error(pintarErroresMarca(data.data.descripcion_guardar), 'Error');
+                    toastr.error(pintarErroresModelo(data.data.descripcion_guardar), 'Error');
                 }
             })
             .catch(error => console.error('Error:', error));
@@ -209,6 +212,7 @@ const removeColor = (idColorSeleccionado)=>{
 //=========== cargar stocks ===========
 const cargarStocks = ()=>{
     const arrayStocks   =   [];
+    alert('cargando stocks');
     coloresSeleccionados.forEach((c)=>{
         const color={};
         const tallas    =   document.querySelectorAll(`[id^=input_${c}]`);
@@ -292,6 +296,7 @@ const pintarErroresMarca    =   (errores_marca)=>{
     return message;
 }
 
+
 const pintarErroresModelo    =   (errores_modelo)=>{
     let message = '';
     errores_modelo.forEach((m, index) => {
@@ -303,6 +308,7 @@ const pintarErroresModelo    =   (errores_modelo)=>{
     return message;
 }
 
+//==== actualizar select de categorías ============
 const updateSelectCategorias    =   (categorias_actualizadas)=>{
     let items                  = '<option></option>';
     categorias_actualizadas.forEach((c)=>{
@@ -311,6 +317,7 @@ const updateSelectCategorias    =   (categorias_actualizadas)=>{
     selectCategorias.innerHTML  =   items;
 }
 
+//====== actualizar select de marcas =========
 const updateSelectMarcas    =   (marcas_actualizadas)=>{
     let items                  = '<option></option>';
     marcas_actualizadas.forEach((m)=>{
@@ -319,6 +326,7 @@ const updateSelectMarcas    =   (marcas_actualizadas)=>{
     selectMarcas.innerHTML  =   items;
 }
 
+//========= actualizar select de modelos ===========
 const updateSelectModelos    =   (modelos_actualizados)=>{
     let items                  = '<option></option>';
     modelos_actualizados.forEach((m)=>{
@@ -327,28 +335,24 @@ const updateSelectModelos    =   (modelos_actualizados)=>{
     selectModelos.innerHTML  =   items;
 }
 
-//============ cargar vista edit ==============
-const cargarVistaEdit = ()=>{
-    //========= para ejecutar acciones una vez por color ===========
-    const colores_procesados = [];
-    //========= recorremos toda la información de stocks ===========
-    stocks.forEach((stock)=>{
-        //=========== acceder al input de stock respectivo  y colocarle la cantidad ==========
-        const inputStock =  document.querySelector(`#input_${stock.color_id}_${stock.talla_id}`);
-        inputStock.value = stock.stock;
-        
-        //=========== realizar esto 1 vez por color =========
-        if(!colores_procesados.includes(stock.color_id)){
-            //====== marcar el checkbox del color respectivo =========
-            const checkColor    =   document.querySelector(`#color_${stock.color_id}`);
-            checkColor.checked = true;
-            //========= pintar su botón para editar stocks ==========
-            pintarBotonEditar(checkColor,stock.color_id,checkColor.getAttribute('data-color-nombre'));
-        }
-        //======== añadir al array de colores seleccionados ======
-        //========== este método ya maneja el control de colores repetidos =======
-        addColor(stock.color_id);
-        //=========== registrando el color como procesado ==========
-        colores_procesados.push(stock.color_id);
-    })
+//========== cargar colores seleccionados previamente ============
+const cargarColoresPrevios = ()=>{
+    if (typeof stocks_previos !== 'undefined'   && stocks_previos.length !== 0) {
+        //====== la variable está definida VISTA EDIT ===========
+        //======== array para manejar los colores del producto sin repetirlos ===========
+        const producto_color_procesados = [];
+        stocks_previos.forEach((sp)=>{
+            if(!producto_color_procesados.includes(sp.color_id)){
+                addColor(sp.color_id);
+                //==== obtener el check del color =========
+                const checkColor    =   document.querySelector(`#checkColor_${sp.color_id}`);
+                //======== marcando check =======
+                checkColor.checked  =   true;
+                //========= dibujando botón de edición =======
+                pintarBotonEditar(checkColor,sp.color_id,checkColor.getAttribute('data-color-nombre'));
+                //===== agregando color como procesado ======
+                producto_color_procesados.push(sp.color_id);
+            }
+        })
+    } 
 }

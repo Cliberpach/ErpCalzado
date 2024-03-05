@@ -1,0 +1,46 @@
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h4><b>ASIGNAR COLORES</b></h4>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-lg-12">
+               
+              <div class="table-responsive">
+                <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_color"  class="btn btn-primary" href="#">
+                  NUEVO COLOR  <i class="fas fa-plus"></i>    
+                </a> 
+              
+                <table class="table table-striped table-hover" id="table-colores">
+                    <thead>
+                      <tr>
+                        <th scope="col" style="text-align: left;">#</th>
+                        <th scope="col">NOMBRE</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @foreach ($colores as $color)
+                        <tr>
+                          <th style="text-align: left;" scope="row">{{$color->id}}</th>
+                     
+                          <td>
+                            <div class="form-check">
+                              <input class="form-check-input checkColor" type="checkbox" value="" id="checkColor_{{$color->id}}" data-color-id="{{$color->id}}">
+                              <label class="form-check-label" for="checkColor_{{$color->id}}">
+                                {{$color->descripcion}}
+                              </label>
+                            </div>
+                          </td>
+                          
+                        </tr>
+                      @endforeach
+                      
+                    </tbody>
+                </table>
+              </div> 
+            </div>
+        </div>
+    </div>
+
+</div>
+

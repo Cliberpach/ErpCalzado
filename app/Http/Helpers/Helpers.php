@@ -705,21 +705,62 @@ if (!function_exists('eliminarRegistro')) {
 //LOGUEO
 // GENERAR TOKEN
 if (!function_exists('obtenerTokenapi')) {
+    
     function obtenerTokenapi()
     {
-        $parametro = Parametro::findOrFail(3);
-        $response = Http::post('https://facturacion.apisperu.com/api/v1/auth/login', [
-            'username' => $parametro->usuario_proveedor,
-            'password' => $parametro->contra_proveedor,
-        ]);
-        $estado = $response->getStatusCode();
-        // dd($response);
-        if ($estado == '200') {
 
-            $resultado = $response->getBody()->getContents();
-            $resultado = json_decode($resultado);
-            return $resultado->token;
-        }
+        // $client = new \GuzzleHttp\Client(['verify'=>false]);
+
+        // $client_id = "9e8eaf55-cf1d-4bf0-9837-0c3d897c08d5"; // Reemplaza esto con tu client_id
+        // $client_secret = "3xSHGqcy5mglRIJzxx6eZw=="; // Reemplaza esto con tu client_secret
+        // $numero_ruc = "20611904020"; // Reemplaza esto con tu número de RUC
+        // $usuario_sol = "SISCOMFA"; // Reemplaza esto con tu usuario SOL
+        // $contraseña_sol = "Merry321"; // Reemplaza esto con tu contraseña SOL
+
+        
+        // $body = [
+        //       'grant_type' => 'password',
+        //       'scope' => 'https://api-cpe.sunat.gob.pe',
+        //       'client_id' => $client_id,
+        //       'client_secret' => $client_secret,
+        //       'username' => $numero_ruc . $usuario_sol,
+        //       'password' => $contraseña_sol
+        // ];
+
+        // try {
+           
+        // // Realizar la solicitud POST
+        //      $response = $client->post("https://api-seguridad.sunat.gob.pe/v1/clientessol/{$client_id}/oauth2/token/", [
+        //          'form_params' => $body
+        //      ]);
+        
+        //      // Manejar la respuesta aquí
+        //      $statusCode = $response->getStatusCode();
+        //      $body = json_decode($response->getBody(), true);
+        //      $token_sunat    = $body['access_token'] ;
+        //      dd($token_sunat);
+        //      return $token_sunat;
+             
+        // } catch (Exception $e) {
+        //      echo $e->getMessage();
+        // }
+
+        $parametro = Parametro::findOrFail(3);
+        
+        
+        $response = Http::post('https://facturacion.apisperu.com/api/v1/auth/login', [
+              'username' => "$parametro->usuario_proveedor",
+              'password' => $parametro->contra_proveedor,
+         ]);
+
+         $estado = $response->getStatusCode();
+        
+         if ($estado == '200') {
+
+              $resultado = $response->getBody()->getContents();
+              $resultado = json_decode($resultado);
+              return $resultado->token;
+         }
     }
 }
 
@@ -792,6 +833,7 @@ if (!function_exists('modificarEmpresaapi')) {
 
             $resultado = $response->getBody()->getContents();
             // json_decode($resultado);
+           // dd($resultado);
             return $resultado;
         }
     }
@@ -1021,29 +1063,32 @@ if (!function_exists('generarXmlRetencion')) {
 if (!function_exists('pdfGuiaapi')) {
     function pdfGuiaapi($guia)
     {
+
+        
         $url = "https://facturacion.apisperu.com/api/v1/despatch/pdf";
+
         $client = new \GuzzleHttp\Client(['verify'=>false]);
         $token = obtenerTokenapi();
         $response = $client->post($url, [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'Authorization' => "Bearer {$token}"
-            ],
-            'body'    => $guia
+             'headers' => [
+                 'Content-Type' => 'application/json',
+                 'Accept' => 'application/json',
+                 'Authorization' => "Bearer {$token}"
+             ],
+             'body'    => $guia
         ]);
 
         $estado = $response->getStatusCode();
 
-        // dd($estado);
+        //dd( json_decode($response->getBody()->getContents()));
 
-        // return $response->getBody()->getContents();
+        return $response->getBody()->getContents();
 
         if ($estado == '200') {
 
-            $resultado = $response->getBody()->getContents();
-            json_decode($resultado);
-            return $resultado;
+             $resultado = $response->getBody()->getContents();
+             json_decode($resultado);
+             return $resultado;
         }
     }
 }
@@ -1051,20 +1096,28 @@ if (!function_exists('pdfGuiaapi')) {
 if (!function_exists('enviarGuiaapi')) {
     function enviarGuiaapi($guia)
     {
+        
         $url = "https://facturacion.apisperu.com/api/v1/despatch/send";
         $client = new \GuzzleHttp\Client(['verify'=>false]);
         $token = obtenerTokenapi();
-        $response = $client->post($url, [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'Authorization' => "Bearer {$token}"
-            ],
-            'body'    => $guia
-        ]);
+        try {
+            $response = $client->post($url, [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'Authorization' => "Bearer {$token}"
+                ],
+                'body'    => $guia
+            ]);
+        
+            // Manejar la respuesta aquí
+            dd($response->getBody()->getContents());
+        } catch (RequestException $e) {
+            dd($e->getMessage(), $e->getTraceAsString());
+        }
 
         $estado = $response->getStatusCode();
-
+        
         if ($estado == '200') {
             $resultado = $response->getBody()->getContents();
             json_decode($resultado);

@@ -4,6 +4,7 @@
 @section('guias-remision-active', 'active')
 
 <div class="row wrapper border-bottom white-bg page-heading">
+    @csrf
     <div class="col-lg-10 col-md-10">
        <h2  style="text-transform:uppercase"><b>Listado de Guias de Remision</b></h2>
         <ol class="breadcrumb">
@@ -69,12 +70,15 @@
 @push('styles')
 <!-- DataTable -->
 <link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/dist/toastr.min.css">
+
 @endpush
 
 @push('scripts')
 <!-- DataTable -->
 <script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4"></script>
 
 <script>
 $(document).ready(function() {
@@ -145,12 +149,15 @@ $(document).ready(function() {
                 data: null,
                 className: "text-center",
                 render: function(data) {
-                    switch (data.sunat) {
-                        case "1":
+                    switch (data.estado_sunat) {
+                        case "0":
                             return "<span class='badge badge-warning' d-block>ACEPTADO</span>";
                             break;
-                        case "2":
-                            return "<span class='badge badge-danger' d-block>NULA</span>";
+                        case "98":
+                            return "<span class='badge badge-danger' d-block>EN PROCESO</span>";
+                            break;
+                        case "99":
+                            return "<span class='badge badge-danger' d-block>CON ERRORES</span>";
                             break;
                         default:
                             return "<span class='badge badge-success' d-block>REGISTRADO</span>";
@@ -188,6 +195,7 @@ $(document).ready(function() {
                         "<li><a class='dropdown-item' onclick='detalle(" +data.id+ ")' title='Detalle'><b><i class='fa fa-eye'></i> Detalle</a></b></li>" +
                         "<li class='dropdown-divider'></li>" +
                         "<li><a class='dropdown-item' onclick='enviarSunat(" +data.id+ ")'  title='Enviar Sunat'><b><i class='fa fa-file'></i> Enviar Sunat</a></b></li>" +
+                        "<li><a class='dropdown-item' onclick='consultarSunat(" +data.id+ ")'  title='Consultar Sunat'><b><i class='fa fa-file'></i> Consultar Sunat</a></b></li>" +
                         "<li><a class='dropdown-item' href='" +url_eliminar+ "'  title='Eliminar'><b><i class='fa fa-trash'></i> Eliminar</a></b></li>"
 
                     "</ul></div>"
@@ -253,6 +261,37 @@ function detalle(id) {
     url = url.replace(':id',id);
 
     window.open(url, "Comprobante SISCOM", "width=900, height=600")
+}
+function consultarSunat(id , sunat) {
+    const url= `consulta_ticket/guia/${id}`;
+    const tokenValue = document.querySelector('input[name="_token"]').value;
+    toastr.info('Consultando envío...',"CONSULTANDO");
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': tokenValue,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        })
+        .then(response => response.json())
+        .then(data => {
+            toastr.remove()
+            const type      =   data.type;
+            const message   =   data.message;
+            if(type === 'success'){
+                toastr.options.closeDuration = 400;
+                toastr.options.progressBar = true;
+                toastr.success(`GUIA: ${id} | ESTADO: ${message.descripcion}`, 'Consulta completa');
+            }
+            if(type === 'error'){
+                toastr.options.closeDuration = 400;
+                toastr.options.progressBar = true;
+                toastr.error(`GUIA: ${id} | ESTADO: ${message}`, 'Error');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+
 }
 
 function enviarSunat(id , sunat) {

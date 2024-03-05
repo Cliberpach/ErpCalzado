@@ -22,6 +22,8 @@ use Yajra\DataTables\Facades\DataTables;
 
 use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
+
 
 class CotizacionController extends Controller
 {
@@ -57,7 +59,13 @@ class CotizacionController extends Controller
         $lotes = Producto::where('estado','ACTIVO')->get();
         $modelos = Modelo::where('estado','ACTIVO')->get();
         $tallas = Talla::where('estado','ACTIVO')->get();
-        return view('ventas.cotizaciones.create', compact('tallas','modelos','empresas', 'clientes', 'fecha_hoy', 'lotes', 'condiciones'));
+        $vendedor_actual    =   DB::select('select c.id from user_persona as up
+                                inner join colaboradores  as c
+                                on c.persona_id=up.persona_id
+                                where up.user_id = ?',[Auth::id()]);
+        $vendedor_actual    =   $vendedor_actual?$vendedor_actual[0]->id:null;
+        
+        return view('ventas.cotizaciones.create', compact('vendedor_actual','tallas','modelos','empresas', 'clientes', 'fecha_hoy', 'lotes', 'condiciones'));
     }
 
     public function store(Request $request)
@@ -110,7 +118,7 @@ class CotizacionController extends Controller
         $cotizacion->cliente_id = $request->get('cliente');
         $cotizacion->condicion_id = $request->get('condicion_id');
         //$cotizacion->vendedor_id = $request->get('vendedor');
-        $cotizacion->vendedor_id    =   Auth::id();
+        $cotizacion->vendedor_id    =   $request->get('vendedor');
         $cotizacion->moneda = 4;
         $cotizacion->fecha_documento = $request->get('fecha_documento');
         $cotizacion->fecha_atencion = $request->get('fecha_atencion');
