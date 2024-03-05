@@ -746,6 +746,7 @@ class NoEnviadosController extends Controller
         $talla_id       =   $request->get('talla_id');
         $cantidad       =   $request->get('cantidad');
 
+        
         if($modo == 'nuevo'){
             DB::table('producto_color_tallas')
             ->where('producto_id', $producto_id)

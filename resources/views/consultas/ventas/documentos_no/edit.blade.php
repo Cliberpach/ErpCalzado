@@ -1481,6 +1481,10 @@
         })
     } 
 
+
+    //========= devolver stocks al cerrar la ventana ========
+    
+
 </script>
 
 {{-- <script>
