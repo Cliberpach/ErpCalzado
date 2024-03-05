@@ -5,7 +5,7 @@
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
-        <h2 style="text-transform:uppercase"><b>EDITAR DOCUMENTO DE VENTA</b></h2>
+        <h2 style="text-transform:uppercase"><b>CONVERTIR DOCUMENTO DE VENTA</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{ route('home') }}">Panel de Control</a>
@@ -309,7 +309,8 @@
                                     <hr>
                                     <div class="row">
                                         <div class="col-12">
-                                            <div class="table-responsive">
+                                            @include('consultas.documentos.table-detalle')
+                                            {{-- <div class="table-responsive">
                                                 <table
                                                     class="table dataTables-detalle-documento table-striped table-bordered table-hover"
                                                     style="text-transform:uppercase">
@@ -348,7 +349,7 @@
                                                         </tr>
                                                     </tfoot>
                                                 </table>
-                                            </div>
+                                            </div> --}}
                                         </div>
                                     </div>
                                 </div>
@@ -617,134 +618,134 @@
         });
     }
 
-    $(document).ready(function() {
-        table = $('.dataTables-detalle-documento').DataTable({
-            "dom": 'lTfgitp',
-            "bPaginate": true,
-            "bLengthChange": true,
-            "responsive": true,
-            "bFilter": true,
-            "bInfo": false,
-            "columnDefs": [{
-                    "targets": 0,
-                    "visible": false,
-                    "searchable": false
-                },
-                {
-                    searchable: false,
-                    "targets": [1],
-                    data: null,
+    // $(document).ready(function() {
+    //     table = $('.dataTables-detalle-documento').DataTable({
+    //         "dom": 'lTfgitp',
+    //         "bPaginate": true,
+    //         "bLengthChange": true,
+    //         "responsive": true,
+    //         "bFilter": true,
+    //         "bInfo": false,
+    //         "columnDefs": [{
+    //                 "targets": 0,
+    //                 "visible": false,
+    //                 "searchable": false
+    //             },
+    //             {
+    //                 searchable: false,
+    //                 "targets": [1],
+    //                 data: null,
 
-                    render: function(data, type, row) {
-                        return "-";
-                    }
+    //                 render: function(data, type, row) {
+    //                     return "-";
+    //                 }
 
-                },
-                {
-                    "targets": [2],
-                },
-                {
-                    "targets": [3],
-                },
-                {
-                    "targets": [4],
-                },
-                {
-                    "targets": [5],
-                    'visible': false
-                },
-                {
-                    "targets": [6],
-                },
-                {
-                    "targets": [7],
-                },
-                {
-                    "targets": [8],
-                },
-                {
-                    "targets": [9],
-                },
-                {
-                    "targets": [10],
-                    'visible': false
-                },
-                {
-                    "targets": [11],
-                    'visible': false
-                },
-                {
-                    "targets": [12],
-                    'visible': false
-                }
-            ],
-            'bAutoWidth': false,
-            'aoColumns': [{
-                    sWidth: '0%'
-                },
-                {
-                    sWidth: '15%',
-                    sClass: 'text-center'
-                },
-                {
-                    sWidth: '15%',
-                    sClass: 'text-center'
-                },
-                {
-                    sWidth: '15%',
-                    sClass: 'text-center'
-                },
-                {
-                    sWidth: '25%',
-                    sClass: 'text-left'
-                },
-                {
-                    sWidth: '15%',
-                    sClass: 'text-center'
-                },
-                {
-                    sWidth: '15%',
-                    sClass: 'text-center'
-                },
-                {
-                    sWidth: '15%',
-                    sClass: 'text-center'
-                },
-            ],
-            "language": {
-                url: "{{ asset('Spanish.json') }}"
-            },
-            "order": [
-                [0, "desc"]
-            ],
-        });
+    //             },
+    //             {
+    //                 "targets": [2],
+    //             },
+    //             {
+    //                 "targets": [3],
+    //             },
+    //             {
+    //                 "targets": [4],
+    //             },
+    //             {
+    //                 "targets": [5],
+    //                 'visible': false
+    //             },
+    //             {
+    //                 "targets": [6],
+    //             },
+    //             {
+    //                 "targets": [7],
+    //             },
+    //             {
+    //                 "targets": [8],
+    //             },
+    //             {
+    //                 "targets": [9],
+    //             },
+    //             {
+    //                 "targets": [10],
+    //                 'visible': false
+    //             },
+    //             {
+    //                 "targets": [11],
+    //                 'visible': false
+    //             },
+    //             {
+    //                 "targets": [12],
+    //                 'visible': false
+    //             }
+    //         ],
+    //         'bAutoWidth': false,
+    //         'aoColumns': [{
+    //                 sWidth: '0%'
+    //             },
+    //             {
+    //                 sWidth: '15%',
+    //                 sClass: 'text-center'
+    //             },
+    //             {
+    //                 sWidth: '15%',
+    //                 sClass: 'text-center'
+    //             },
+    //             {
+    //                 sWidth: '15%',
+    //                 sClass: 'text-center'
+    //             },
+    //             {
+    //                 sWidth: '25%',
+    //                 sClass: 'text-left'
+    //             },
+    //             {
+    //                 sWidth: '15%',
+    //                 sClass: 'text-center'
+    //             },
+    //             {
+    //                 sWidth: '15%',
+    //                 sClass: 'text-center'
+    //             },
+    //             {
+    //                 sWidth: '15%',
+    //                 sClass: 'text-center'
+    //             },
+    //         ],
+    //         "language": {
+    //             url: "{{ asset('Spanish.json') }}"
+    //         },
+    //         "order": [
+    //             [0, "desc"]
+    //         ],
+    //     });
 
-        @if ($documento->igv_check == '1')
-            $('#igv').prop('disabled', false)
-            $("#igv_check").prop('checked',true)
+    //     @if ($documento->igv_check == '1')
+    //         $('#igv').prop('disabled', false)
+    //         $("#igv_check").prop('checked',true)
 
-            $('#igv_requerido').addClass("required")
-            $('#igv').prop('required', true)
-            var igv = ($('#igv').val()) + ' %'
-            $('#igv_int').text(igv)
-        @else
-            if ($("#igv_check").prop('checked')) {
-                $('#igv').attr('disabled', false)
-                $('#igv_requerido').addClass("required")
-            } else {
-                $('#igv').attr('disabled', true)
-                $('#igv_requerido').removeClass("required")
-            }
-        @endif
+    //         $('#igv_requerido').addClass("required")
+    //         $('#igv').prop('required', true)
+    //         var igv = ($('#igv').val()) + ' %'
+    //         $('#igv_int').text(igv)
+    //     @else
+    //         if ($("#igv_check").prop('checked')) {
+    //             $('#igv').attr('disabled', false)
+    //             $('#igv_requerido').addClass("required")
+    //         } else {
+    //             $('#igv').attr('disabled', true)
+    //             $('#igv_requerido').removeClass("required")
+    //         }
+    //     @endif
 
-        @if ($detalles)
-            obtenerTabla()
-        @endif
+    //     @if ($detalles)
+    //         obtenerTabla()
+    //     @endif
 
 
-        //Controlar Error
-        $.fn.DataTable.ext.errMode = 'throw';
-    });
+    //     //Controlar Error
+    //     $.fn.DataTable.ext.errMode = 'throw';
+    // });
 
     function changeFormaPago()
     {
@@ -985,21 +986,21 @@
         });
     }
     //DEVOLVER CANTIDADES A LOS LOTES
-    function devolverCantidades() {
-        //CARGAR PRODUCTOS PARA DEVOLVER LOTE
-        cargarProductos()
-        return $.ajax({
-            dataType: 'json',
-            type: 'post',
-            url: '{{ route('consultas.ventas.documento.no.devolver.cantidades') }}',
-            data: {
-                '_token': $('input[name=_token]').val(),
-                'cantidades': $('#productos_tabla').val(),
-                'detalles' : $("#productos_detalle").val()
-            },
-            async: true
-        }).responseText();
-    }
+    // function devolverCantidades() {
+    //     //CARGAR PRODUCTOS PARA DEVOLVER LOTE
+    //     cargarProductos()
+    //     return $.ajax({
+    //         dataType: 'json',
+    //         type: 'post',
+    //         url: '{{ route('consultas.ventas.documento.no.devolver.cantidades') }}',
+    //         data: {
+    //             '_token': $('input[name=_token]').val(),
+    //             'cantidades': $('#productos_tabla').val(),
+    //             'detalles' : $("#productos_detalle").val()
+    //         },
+    //         async: true
+    //     }).responseText();
+    // }
 
     function sumaTotal() {
         var t = $('.dataTables-detalle-documento').DataTable();
@@ -1099,37 +1100,37 @@
 
     }
 
-    $('#btn_grabar').click(function(e) {
-        e.preventDefault();
-        cargarProductos();
-        let correcto = validarCampos();
+    // $('#btn_grabar').click(function(e) {
+    //     e.preventDefault();
+    //     cargarProductos();
+    //     let correcto = validarCampos();
 
-        $('#monto_sub_total').val($('#subtotal').text())
-        $('#monto_total_igv').val($('#igv_monto').text())
-        $('#monto_total').val($('#total').text())
+    //     $('#monto_sub_total').val($('#subtotal').text())
+    //     $('#monto_total_igv').val($('#igv_monto').text())
+    //     $('#monto_total').val($('#total').text())
 
-        if (correcto) {
-            let total = $('#monto_total').val();
-            $('#monto_venta').val(total);
-            $('#importe_venta').val(total);
-            let condicion_id = $('#condicion_id').val();
-            let cadena = condicion_id.split('-');
-            if(cadena[1] != 'CONTADO')
-            {
-                $('#importe_form').val(0.00);
-                $('#efectivo_form').val(0.00);
-                $('#tipo_pago_id').val('');
-                enviarVenta();
-            }
-            else
-            {
-                $('#importe_form').val(0.00);
-                $('#efectivo_form').val(0.00);
-                $('#tipo_pago_id').val('');
-                enviarVenta();
-            }
-        }
-    });
+    //     if (correcto) {
+    //         let total = $('#monto_total').val();
+    //         $('#monto_venta').val(total);
+    //         $('#importe_venta').val(total);
+    //         let condicion_id = $('#condicion_id').val();
+    //         let cadena = condicion_id.split('-');
+    //         if(cadena[1] != 'CONTADO')
+    //         {
+    //             $('#importe_form').val(0.00);
+    //             $('#efectivo_form').val(0.00);
+    //             $('#tipo_pago_id').val('');
+    //             enviarVenta();
+    //         }
+    //         else
+    //         {
+    //             $('#importe_form').val(0.00);
+    //             $('#efectivo_form').val(0.00);
+    //             $('#tipo_pago_id').val('');
+    //             enviarVenta();
+    //         }
+    //     }
+    // });
 
     $('#btn_grabar_pago').click(function(e) {
         e.preventDefault();
@@ -1367,6 +1368,119 @@
         }
     }
 
+
+    function modalCliente() {
+        document.getElementById('frmCliente').reset();
+        $('#departamento').val("13").trigger("change");
+        $('#tipo_cliente_id').val("121").trigger("change");
+        $('#tipo_documento').val("").trigger("change");
+        $('#direccion').val('Direccion Trujillo');
+        $('#telefono_movil').val('999999999');
+        $('#modal_cliente').modal('show');
+    }
+
+    function nextFocus(event, inputS) {
+        if (event.keyCode == 13) {
+
+            setTimeout(function() { $('#'+inputS).focus() }, 10);
+            document.getElementById(inputS).focus();
+        }
+    }
+
+    //background-color: #00f;
+</script>
+
+<script>
+    /*window.onbeforeunload = function() {
+        if ($('#asegurarCierre').val() == 1) {
+            while (true) {
+                devolverCantidades()
+            }
+        }
+    };*/
+</script>
+
+
+<script>
+    const tallasBD  =   @json($tallas);
+    const detalles  =   @json($detalles);
+    const tableDetalleBody      =   document.querySelector('#table-detalle-conv tbody');   
+    const tfootSubtotal         =   document.querySelector('.subtotal');
+    const tfootIgv              =   document.querySelector('.igv');
+    const tfootTotal            =   document.querySelector('.total');
+    const btnGrabar             =   document.querySelector('#btn_grabar');
+
+    let carrito             = [];
+    let carritoFormateadoBD   = [];
+
+    document.addEventListener('DOMContentLoaded',()=>{
+        formatearDetalle();
+        pintarDetalle();
+        calcularMontos();
+        
+        console.log(carrito);
+        events();
+
+    })
+
+
+    function events(){
+        //========= GRABAR ========
+        btnGrabar.addEventListener('click',(e)=>{
+            e.preventDefault();
+            formatearDetalleDB();
+            cargarProductos();
+            let correcto = validarCampos();
+
+            $('#monto_sub_total').val($('.subtotal').text())
+            $('#monto_total_igv').val($('.igv').text())
+            $('#monto_total').val($('.total').text())
+
+
+
+            if (correcto) {
+                let total = $('#monto_total').val();
+                $('#monto_venta').val(total);
+                $('#importe_venta').val(total);
+                let condicion_id = $('#condicion_id').val();
+                let cadena = condicion_id.split('-');
+                if(cadena[1] != 'CONTADO')
+                {
+                    $('#importe_form').val(0.00);
+                    $('#efectivo_form').val(0.00);
+                    $('#tipo_pago_id').val('');
+                    enviarVenta();
+                }
+                else
+                {
+                    $('#importe_form').val(0.00);
+                    $('#efectivo_form').val(0.00);
+                    $('#tipo_pago_id').val('');
+                    enviarVenta();
+                }
+            }
+        })
+    }
+
+    //====== APLICAR FORMATO DE BD AL CARRITO =======
+    //==== TODO EN FILAS PRODUCTO_ID COLOR_ID TALLA_ID ====
+    function formatearDetalleDB(){
+            if(carrito.length>0){
+                carrito.forEach((d)=>{  
+                    d.tallas.forEach((t)=>{
+                        const producto ={};
+                        producto.producto_id        =   d.producto_id;
+                        producto.color_id           =   d.color_id;
+                        producto.talla_id           =   t.talla_id;
+                        producto.cantidad           =   t.cantidad;
+                        producto.precio_unitario    =   d.precio_venta;
+                        carritoFormateadoBD.push(producto);
+                    })
+                }) 
+            }  
+    }
+
+    //========= ENVIAR VENTA ===========
     function enviarVenta()
     {
         axios.get("{{ route('Caja.movimiento.verificarestado') }}").then((value) => {
@@ -1381,9 +1495,9 @@
                 if (tipo == false) {
                     cargarProductos();
                     //CARGAR DATOS TOTAL
-                    $('#monto_sub_total').val($('#subtotal').text())
-                    $('#monto_total_igv').val($('#igv_monto').text())
-                    $('#monto_total').val($('#total').text())
+                    $('#monto_sub_total').val($('.subtotal').text())
+                    $('#monto_total_igv').val($('.igv').text())
+                    $('#monto_total').val($('.total').text())
 
                     document.getElementById("moneda").disabled = false;
                     document.getElementById("observacion").disabled = false;
@@ -1407,6 +1521,8 @@
                     formData.forEach(function(value, key){
                         object[key] = value;
                     });
+
+                    console.log(object);
 
                     //var json = JSON.stringify(object);
 
@@ -1508,34 +1624,120 @@
         })
     }
 
-    function modalCliente() {
-        document.getElementById('frmCliente').reset();
-        $('#departamento').val("13").trigger("change");
-        $('#tipo_cliente_id').val("121").trigger("change");
-        $('#tipo_documento').val("").trigger("change");
-        $('#direccion').val('Direccion Trujillo');
-        $('#telefono_movil').val('999999999');
-        $('#modal_cliente').modal('show');
+    //======== CARGAR PRODUCTOS ======
+    function cargarProductos() {
+        $('#productos_tabla').val(JSON.stringify(carritoFormateadoBD));
     }
 
-    function nextFocus(event, inputS) {
-        if (event.keyCode == 13) {
+    //====== CARGAR MONTOS =========
+    function calcularMontos(){
+        let aux_subtotal=0;
+        let aux_igv=0;
+        let aux_total=0;
 
-            setTimeout(function() { $('#'+inputS).focus() }, 10);
-            document.getElementById(inputS).focus();
-        }
+        carrito.forEach((p)=>{
+            aux_total+=p.subtotal;
+        })
+
+        aux_igv= 0.18*aux_total;
+        aux_subtotal=aux_total-aux_igv;
+
+        const aux_subtotal_formateado = 'S/' + parseFloat(aux_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        const aux_igv_formateado = 'S/' + parseFloat(aux_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        const aux_total_formateado = 'S/' + parseFloat(aux_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+        tfootSubtotal.textContent = aux_subtotal_formateado;
+        tfootIgv.textContent = aux_igv_formateado;
+        tfootTotal.textContent = aux_total_formateado;
     }
 
-    //background-color: #00f;
-</script>
 
-<script>
-    /*window.onbeforeunload = function() {
-        if ($('#asegurarCierre').val() == 1) {
-            while (true) {
-                devolverCantidades()
+     //========= FORMATEAR CARRITO COMO JSON ==============
+     //====== PRODUCTO - COLOR [TALLAS []] =======
+     const formatearDetalle = ()=>{
+        const producto_color_procesados=[];
+        detalles.forEach((p)=>{
+            const llave =   `${p.producto_id}-${p.color_id}`;
+            if(!producto_color_procesados.includes(llave)){
+                const producto = {
+                    producto_id :       p.producto_id,
+                    color_id    :       p.color_id,
+                    producto_nombre :   p.nombre_producto,
+                    color_nombre    :   p.nombre_color,
+                    modelo_nombre   :   p.nombre_modelo,
+                    precio_venta    :   parseFloat(p.precio_unitario).toFixed(2),
+                }
+
+                const tallasProducto = detalles.filter((c)=>{
+                    return c.producto_id==p.producto_id && c.color_id==p.color_id; 
+                })
+                const tallas=[];
+                tallasProducto.forEach((t)=>{
+                    const talla={
+                        talla_id:t.talla_id,
+                        cantidad:parseInt(t.cantidad),
+                        talla_nombre:t.nombre_talla
+                    }
+                    tallas.push(talla);
+                })
+                producto.tallas=tallas;
+                carrito.push(producto);
+                producto_color_procesados.push(llave);
             }
-        }
-    };*/
+        })
+        cargarSubTotal();
+    }
+
+    //======== CARGAR SUBTOTAL =======
+    function cargarSubTotal(){
+        carrito.forEach((p)=>{
+            let cantidadTallas=0;
+            p.tallas.forEach((t)=>{
+                cantidadTallas += t.cantidad;
+            })
+            p.subtotal=cantidadTallas* parseFloat(p.precio_venta);
+        })
+    }
+
+
+    //============== PINTAR DETALLE ===========
+    function pintarDetalle(){
+        let fila            =   ``;
+        
+        carrito.forEach((p)=>{
+            const carritoFiltrado = carrito.filter((c) => {
+                return c.producto_id == p.producto_id && c.color_id == p.color_id;
+            });
+
+            fila += `   
+                        <tr>
+                           
+                            <td>${p.producto_nombre} - ${p.color_nombre}</td> 
+                    `;
+            let descripcion =   ``;
+
+            tallasBD.forEach((tb)=>{
+                const indexTalla = p.tallas.findIndex((pt)=>{
+                        return pt.talla_id == tb.id;
+                });
+
+                if(indexTalla !== -1){
+                        fila += `<td>${p.tallas[indexTalla].cantidad}</td> `; 
+                }else{
+                        fila += `<td></td>`;
+                }
+            })
+           
+
+            fila+=  `
+                            <td>${p.precio_venta}</td>
+                            <td>${p.subtotal}</td>
+                        </tr>
+                    `;
+        })
+        tableDetalleBody.innerHTML          =   fila;
+    }
+
+
 </script>
 @endpush

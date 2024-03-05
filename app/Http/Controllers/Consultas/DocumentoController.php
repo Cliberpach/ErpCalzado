@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Consultas;
 
+use App\Almacenes\Talla;
 use App\Almacenes\LoteProducto;
 use App\Almacenes\Producto;
 use App\Exports\DocumentosExport;
@@ -27,7 +28,8 @@ class DocumentoController extends Controller
 {
     public function index()
     {
-        $auxs = Persona::where('estado','ACTIVO')->get();
+        $auxs       = Persona::where('estado','ACTIVO')->get();
+      
         $users = [];
         foreach($auxs as $user)
         {
@@ -277,6 +279,8 @@ class DocumentoController extends Controller
         $detalles = Detalle::where('documento_id',$id)->where('estado','ACTIVO')->with(['lote','lote.producto'])->get();
         $condiciones = Condicion::where('estado','ACTIVO')->get();
         $fecha_hoy = Carbon::now()->toDateString();
+        $tallas     =   Talla::where('estado','ACTIVO')->get();
+
         $fullaccess = false;
 
         if(count(Auth::user()->roles)>0)
@@ -300,7 +304,8 @@ class DocumentoController extends Controller
             'productos' => $productos,
             'fecha_hoy' => $fecha_hoy,
             'fullaccess' => $fullaccess,
-            'condiciones' => $condiciones
+            'condiciones' => $condiciones,
+            'tallas'    => $tallas
         ]);
     }
 

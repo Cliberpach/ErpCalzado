@@ -1398,12 +1398,12 @@ class DocumentoController extends Controller
            
 
             $documento->observacion = $request->get('observacion');
-            $documento->user_id = auth()->user()->id;
-            $documento->sub_total = $request->get('monto_sub_total');
-            $documento->total_igv = $request->get('monto_total_igv');
-            $documento->total = $request->get('monto_total');
-            $documento->igv = $request->get('igv') ? $request->get('igv') : 18;
-            $documento->moneda = 1;
+            $documento->user_id     = auth()->user()->id;
+            $documento->sub_total   = str_replace('S/', '', $request->get('monto_sub_total'));
+            $documento->total_igv   = str_replace('S/', '', $request->get('monto_total_igv'));
+            $documento->total       = str_replace('S/', '', $request->get('monto_total'));
+            $documento->igv         = $request->get('igv') ? $request->get('igv') : 18;
+            $documento->moneda      = 1;
 
             $documento->tipo_pago_id = $request->get('tipo_pago_id');
             $documento->importe = $request->get('importe');
