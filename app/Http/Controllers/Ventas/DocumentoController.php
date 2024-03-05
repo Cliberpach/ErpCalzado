@@ -3157,32 +3157,32 @@ class DocumentoController extends Controller
 
        
 
-        $carrito=null;
+        // $carrito=null;
 
-        while (Cache::has('productos')) {
-            try {
-                $carrito = Cache::get('productos');
-                $carrito->each(function ($producto) {
-                    // Procesa cada producto individualmente
-                    DB::table('producto_color_tallas')
-                        ->where('producto_id', $producto->producto_id)
-                        ->where('color_id', $producto->color_id)
-                        ->where('talla_id', $producto->talla_id)
-                        ->increment('stock_logico', $producto->cantidad);
-                });
+        // while (Cache::has('productos')) {
+        //     try {
+        //         $carrito = Cache::get('productos');
+        //         $carrito->each(function ($producto) {
+        //             // Procesa cada producto individualmente
+        //             DB::table('producto_color_tallas')
+        //                 ->where('producto_id', $producto->producto_id)
+        //                 ->where('color_id', $producto->color_id)
+        //                 ->where('talla_id', $producto->talla_id)
+        //                 ->increment('stock_logico', $producto->cantidad);
+        //         });
                 
-                // Eliminar la colección de la caché después de procesarla
-                Cache::forget('productos');
+        //         // Eliminar la colección de la caché después de procesarla
+        //         Cache::forget('productos');
 
-            } catch (\Exception $e) {
-                // Manejo de errores
-                $errorMessage = 'Error durante el procesamiento del carrito: ' . $e->getMessage();
-                // Guardar el error en la caché
-                Cache::put('error_procesamiento_carrito', $errorMessage, now()->addHours(24));
-            }
-        }
+        //     } catch (\Exception $e) {
+        //         // Manejo de errores
+        //         $errorMessage = 'Error durante el procesamiento del carrito: ' . $e->getMessage();
+        //         // Guardar el error en la caché
+        //         Cache::put('error_procesamiento_carrito', $errorMessage, now()->addHours(24));
+        //     }
+        // }
         
-        Cache::put('hay_productos?',Cache::has('productos'), now()->addHours(24));
+        // Cache::put('hay_productos?',Cache::has('productos'), now()->addHours(24));
 
 
         // $cantidades = $data['cantidades'];
