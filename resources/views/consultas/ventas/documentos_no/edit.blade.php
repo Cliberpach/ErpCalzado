@@ -716,8 +716,6 @@
             color_id       : color_id,
             tallas         :   item[0].tallas
         }
-      
-        asegurarCierre = 0;
 
          //===== eliminando del carrito ===
          carrito = carrito.filter((c)=>{
@@ -841,7 +839,7 @@
                                 let mensaje = sHtmlErrores(result.value.data.mensajes);
                                 toastr.error(mensaje);
 
-                                $('#asegurarCierre').val(1);
+                                asegurarCierre = 1;
                                 document.getElementById("moneda").disabled = true;
                                 document.getElementById("observacion").disabled = true;
                                 document.getElementById("fecha_documento_campo").disabled = true;
@@ -854,7 +852,7 @@
                             {
                                 toastr.success('¡Documento de venta modificado!','Exito')
                                 console.log(result);
-                                $('#asegurarCierre').val(2);
+                                asegurarCierre = 5;
 
                                 location = "{{ route('consultas.ventas.documento.no.index') }}";
                             }
@@ -1143,8 +1141,8 @@
 
     //============= ACTUALIZAR STOCK LOGICO ==============
     async function actualizarStockLogico(producto,modo,cantidadAnterior){
-        modo=="eliminar"?asegurarCierre=0:asegurarCierre=1;
-        carrito.length>0?asegurarCierre=1:0;
+        //modo=="eliminar"?asegurarCierre=0:asegurarCierre=1;
+        //carrito.length>0?asegurarCierre=1:0;
         try {
             const res= await this.axios.post(route('consultas.ventas.documento.no.cantidad'), {
                 'producto_id'   :   producto.producto_id,
@@ -1491,9 +1489,7 @@
     //========= evento al cerrar la ventana ========
     window.onbeforeunload = () => {
         if (asegurarCierre == 1) {
-            
-                devolverCantidades()
-            
+            devolverCantidades()
         }
     }
 

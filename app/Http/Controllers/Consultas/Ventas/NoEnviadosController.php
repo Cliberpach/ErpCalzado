@@ -826,33 +826,30 @@ class NoEnviadosController extends Controller
         $detalles       =   json_decode($request->get('detalles'));
         $detallesColeccion = collect($detalles);
 
+
+        
+        //====== devolvemos stock (increment) ==========
         foreach($productosTabla as $producto){
             foreach($producto->tallas as $talla){
-                
-
-                //========= buscar el producto en el detalle previo ==========
-               
-                $itemDetalle = $detallesColeccion->filter(function ($detalle) use ($producto, $talla) {
-                    return $detalle->producto_id == $producto->producto_id &&
-                           $detalle->color_id == $producto->color_id &&
-                           $detalle->talla_id == $talla->talla_id;
-                });
-        
-                //========= cantidad previa =======
-                $cantidadPrevia = 0;
-                if ($itemDetalle->count() > 0) {
-                    $cantidadPrevia = floatval($itemDetalle->first()->cantidad);
-                }
-         
                 //======= update en DB =======
                 DB::table('producto_color_tallas')
                 ->where('producto_id', $producto->producto_id)
                 ->where('color_id', $producto->color_id)
                 ->where('talla_id', $talla->talla_id) 
-                ->increment('stock_logico', $talla->cantidad - $cantidadPrevia); 
-
+                ->increment('stock_logico', $talla->cantidad); 
             }
             $mensaje    = true;
+        }
+
+
+        //=========== quitamos stock previo ===========
+        foreach ($detalles as $detalle) {
+            DB::table('producto_color_tallas')
+            ->where('producto_id', $detalle->producto_id)
+            ->where('color_id', $detalle->color_id)
+            ->where('talla_id', $detalle->talla_id) 
+            ->decrement('stock_logico', floatval($detalle->cantidad));    
+            $mensaje    = true;    
         }
          
         
