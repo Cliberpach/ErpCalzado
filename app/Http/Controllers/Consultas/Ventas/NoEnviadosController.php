@@ -754,7 +754,7 @@ class NoEnviadosController extends Controller
             ->where('talla_id', $talla_id)
             ->update(['stock_logico' => DB::raw('stock_logico - ' . $cantidad)]);
 
-            $this->saveCache($producto_id,$color_id,$talla_id,$cantidad);
+            //$this->saveCache($producto_id,$color_id,$talla_id,$cantidad);
         }
 
         if($modo == 'editar'){
@@ -819,49 +819,87 @@ class NoEnviadosController extends Controller
     //DEVOLVER CANTIDAD LOGICA AL CERRAR VENTANA
     public function returnQuantity(Request $request)
     {
-        $data = $request->all();
-        $cantidades = $data['cantidades'];
-        $productosJSON = $cantidades;
-        $productotabla = json_decode($productosJSON);
+        $mensaje = false;
 
-        $detalles_aux = $data['detalles'];
-        $productos = $detalles_aux;
-        $detalles = json_decode($productos);
+        $data           =   $request->all();
+        $productosTabla =   json_decode($request->get('carrito'));
+        $detalles       =   json_decode($request->get('detalles'));
+        $detallesColeccion = collect($detalles);
 
-        $mensaje = true;
-        foreach ($productotabla as $detalle) {
-            $cont = 0;
-            $existe = false;
-            $indice =  -1;
-            while ($cont < count($detalles)) {
-                if ($detalles[$cont]->id == $detalle->detalle_id) {
-                    $existe = true;
-                    $indice = $cont;
-                    $cont = count($detalles);
+        foreach($productosTabla as $producto){
+            foreach($producto->tallas as $talla){
+                
+
+                //========= buscar el producto en el detalle previo ==========
+               
+                $itemDetalle = $detallesColeccion->filter(function ($detalle) use ($producto, $talla) {
+                    return $detalle->producto_id == $producto->producto_id &&
+                           $detalle->color_id == $producto->color_id &&
+                           $detalle->talla_id == $talla->talla_id;
+                });
+        
+                //========= cantidad previa =======
+                $cantidadPrevia = 0;
+                if ($itemDetalle->count() > 0) {
+                    $cantidadPrevia = floatval($itemDetalle->first()->cantidad);
                 }
-                $cont = $cont + 1;
-            }
+         
+                //======= update en DB =======
+                DB::table('producto_color_tallas')
+                ->where('producto_id', $producto->producto_id)
+                ->where('color_id', $producto->color_id)
+                ->where('talla_id', $talla->talla_id) 
+                ->increment('stock_logico', $talla->cantidad - $cantidadPrevia); 
 
-            if ($existe) {
-                if ($indice >= 0) {
-                    $lot = $detalles[$indice];
-
-                    if ($detalle->cantidad - $lot->cantidad > 0) {
-                        $lote = LoteProducto::findOrFail($lot->lote_id);
-                        $lote->cantidad_logica = $lote->cantidad_logica + ($detalle->cantidad - $lot->cantidad);
-                        $lote->estado = '1';
-                        $lote->update();
-                    }
-                }
-            } else {
-                //DEVOLVEMOS CANTIDAD AL LOTE Y AL LOTE LOGICO
-                $lote = LoteProducto::findOrFail($detalle->lote_id);
-                $lote->cantidad_logica = $lote->cantidad_logica + $detalle->cantidad;
-                $lote->estado = '1';
-                $lote->update();
             }
-            $mensaje = true;
-        };
+            $mensaje    = true;
+        }
+         
+        
+        
+        // $data = $request->all();
+        // $cantidades = $data['cantidades'];
+        // $productosJSON = $cantidades;
+        // $productotabla = json_decode($productosJSON);
+
+        // $detalles_aux = $data['detalles'];
+        // $productos = $detalles_aux;
+        // $detalles = json_decode($productos);
+
+        // $mensaje = true;
+        // foreach ($productotabla as $detalle) {
+        //     $cont = 0;
+        //     $existe = false;
+        //     $indice =  -1;
+        //     while ($cont < count($detalles)) {
+        //         if ($detalles[$cont]->id == $detalle->detalle_id) {
+        //             $existe = true;
+        //             $indice = $cont;
+        //             $cont = count($detalles);
+        //         }
+        //         $cont = $cont + 1;
+        //     }
+
+        //     if ($existe) {
+        //         if ($indice >= 0) {
+        //             $lot = $detalles[$indice];
+
+        //             if ($detalle->cantidad - $lot->cantidad > 0) {
+        //                 $lote = LoteProducto::findOrFail($lot->lote_id);
+        //                 $lote->cantidad_logica = $lote->cantidad_logica + ($detalle->cantidad - $lot->cantidad);
+        //                 $lote->estado = '1';
+        //                 $lote->update();
+        //             }
+        //         }
+        //     } else {
+        //         //DEVOLVEMOS CANTIDAD AL LOTE Y AL LOTE LOGICO
+        //         $lote = LoteProducto::findOrFail($detalle->lote_id);
+        //         $lote->cantidad_logica = $lote->cantidad_logica + $detalle->cantidad;
+        //         $lote->estado = '1';
+        //         $lote->update();
+        //     }
+        //     $mensaje = true;
+        // };
 
         return $mensaje;
     }

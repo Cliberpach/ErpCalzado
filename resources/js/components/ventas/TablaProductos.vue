@@ -591,6 +591,7 @@ export default {
     watch: {
         carrito:{
             handler(value){
+                //======== si aún quedan items en el carrito , asegurar cierre será 1 =========
                 if(this.carrito.length>0){
                     this.asegurarCierre=1;
                 }

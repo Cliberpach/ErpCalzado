@@ -1488,11 +1488,15 @@ class DocumentoController extends Controller
                 
             //      $lote->cantidad = $lote->cantidad - $producto->cantidad;
                     //$lote->stock = $lote->stock - $producto->cantidad;
-                    //ACTUALIZANDO STOCK...
-                    DB::update('UPDATE producto_color_tallas 
-                    SET stock = stock - ? 
-                    WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
-                    [$producto->cantidad, $producto->producto_id, $producto->color_id, $producto->talla_id]);
+
+                    if(!$request->has('convertir')){
+                         //===== ACTUALIZANDO STOCK ===========
+                        DB::update('UPDATE producto_color_tallas 
+                        SET stock = stock - ? 
+                        WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
+                        [$producto->cantidad, $producto->producto_id, $producto->color_id, $producto->talla_id]);
+                    }
+                   
 
 
             //if ($lote->cantidad == 0) {

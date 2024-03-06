@@ -636,10 +636,12 @@
 
     let carrito = [];
     let modelo_id;
+    let asegurarCierre=5;
 
     document.addEventListener('DOMContentLoaded',()=>{
       
         events();
+        asegurarCierre=1;
         cargarClientes();   //===== CARGADO DE CLIENTES ========
         formatearDetalle(); //======== FORMATEAR DETALLE ==============
         pintarTablaDetalle();  
@@ -655,6 +657,7 @@
         //===== ELIMINAR PRODUCTO-COLOR DEL CARRITO =========
         document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('delete-product')){
+                console.log(e.target);
                eliminarProductoColor(e.target);
             }
         })
@@ -699,32 +702,34 @@
        //========== obteniendo producto_id color_id ======
        const producto_id    =   pc.getAttribute('data-producto');
        const color_id       =   pc.getAttribute('data-color');
-       
+    
+
        //===== obteniendo el item del carrito ========
-       const item = carrito.filter((c)=>{
-        return c.producto_id == producto_id && c.color_id == color_id;
-       })
+        const item = carrito.filter((c)=>{
+            return c.producto_id == producto_id && c.color_id == color_id;
+        })
 
     
-       //=== formando objeto ====
-        const producto = {
-         producto_id    : producto_id,
-         color_id       : color_id,
-         tallas         :   item[0].tallas
+        //=== formando objeto ====
+         const producto = {
+            producto_id    : producto_id,
+            color_id       : color_id,
+            tallas         :   item[0].tallas
         }
       
         asegurarCierre = 0;
 
-        //===== eliminando del carrito ===
-        carrito = carrito.filter((c)=>{
-             return c.producto_id != producto_id && c.color_id != color_id;
-        })
+         //===== eliminando del carrito ===
+         carrito = carrito.filter((c)=>{
+              return !(c.producto_id == producto_id && c.color_id == color_id);
+         })
+
 
         this.actualizarStockLogico(producto,'eliminar')
 
 
         this.getProductosByModelo(modelo_id);
-        pintarDetalle();
+         pintarDetalle();
        
     }
 
@@ -1138,7 +1143,8 @@
 
     //============= ACTUALIZAR STOCK LOGICO ==============
     async function actualizarStockLogico(producto,modo,cantidadAnterior){
-         modo=="eliminar"?asegurarCierre=0:asegurarCierre=1;
+        modo=="eliminar"?asegurarCierre=0:asegurarCierre=1;
+        carrito.length>0?asegurarCierre=1:0;
         try {
             const res= await this.axios.post(route('consultas.ventas.documento.no.cantidad'), {
                 'producto_id'   :   producto.producto_id,
@@ -1482,8 +1488,24 @@
     } 
 
 
-    //========= devolver stocks al cerrar la ventana ========
-    
+    //========= evento al cerrar la ventana ========
+    window.onbeforeunload = () => {
+        if (asegurarCierre == 1) {
+            
+                devolverCantidades()
+            
+        }
+    }
+
+    //======== devolver cantidades =========
+    async function devolverCantidades(){
+
+        await this.axios.post(route('consultas.ventas.documento.no.devolver.cantidades'), {
+            detalles: JSON.stringify(detalles),
+            carrito: JSON.stringify(carrito)
+        });  
+        
+    }
 
 </script>
 

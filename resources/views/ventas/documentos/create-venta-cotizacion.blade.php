@@ -1050,7 +1050,7 @@
                     extendedTimeOut: 0 
                 });            
             @elseif($error->tipo == 'producto_no_existe')
-                toastr.error('No existe color ni la talla para el producto {{ $error->producto }}', 'Error',{
+                toastr.error('No existe stock para el producto: {{ $error->producto }}', 'Error',{
                     timeOut: 0, 
                     extendedTimeOut: 0 
                 });            
