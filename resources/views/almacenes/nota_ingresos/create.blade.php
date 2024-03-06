@@ -671,7 +671,7 @@
     const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle');
     const inputProductos=document.querySelector('#notadetalle_tabla');
     const formNotaIngreso= document.querySelector('#enviar_ingresos');
-
+    const btnGrabar     =   document.querySelector('#btn_grabar');
 
     let modelo_id   = null;
     let carrito = [];
@@ -730,6 +730,7 @@
         //============ EVENTO ENVIAR FORMULARIO =============
         formNotaIngreso.addEventListener('submit',(e)=>{
             e.preventDefault();
+            btnGrabar.disabled=true;
 
             if(carrito.length>0){
                 inputProductos.value=JSON.stringify(carrito);
@@ -740,6 +741,7 @@
                 formNotaIngreso.submit();
             }else{
                 toastr.error('El detalle de la nota de ingreso está vacío!!!')
+                btnGrabar.disabled = false;
             }
            
         })
