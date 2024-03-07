@@ -528,12 +528,14 @@
     const tableTotal        =   document.querySelector('.total');
     const tableIgv          =   document.querySelector('.igv');
     const formDocumento         =   document.querySelector('#enviar_documento');
+    const btnRegresar       =   document.querySelector('#btn_cancelar');
     let clientes_global;
     let carritoFormateado   =   [];
+    let asegurarCierre      =   1;
 
     document.addEventListener('DOMContentLoaded',()=>{
         console.log(carrito);
-        $('#asegurarCierre').val(1)
+        
         formataearCarrito();
         getClientes();
         cargarChecks();
@@ -548,6 +550,12 @@
 
 
     function events(){
+
+        //======== evitando doble click en regresar =========
+        btnRegresar.addEventListener('click',()=>{
+            btnRegresar.disabled = true;
+        })
+
         formDocumento.addEventListener('submit',(e)=>{
             e.preventDefault();
             cargarProductos();
@@ -657,7 +665,8 @@
                     document.getElementById("cliente_id").disabled = false;
                     document.getElementById("condicion_id").disabled = false;
                     //HABILITAR EL CARGAR PAGINA
-                    $('#asegurarCierre').val(2)
+                    // $('#asegurarCierre').val(2)
+                    asegurarCierre = 2;
                     //$('#enviar_documento').submit();
                 }
                 else
@@ -728,7 +737,8 @@
                             {
                                 let mensaje = sHtmlErrores("result.value.data.mensajes");
                                 toastr.error(mensaje);
-                                 $('#asegurarCierre').val(1);
+                                //  $('#asegurarCierre').val(1);
+                                asegurarCierre = 1;
                                  document.getElementById("moneda").disabled = true;
                                  document.getElementById("observacion").disabled = true;
                                  document.getElementById("fecha_documento_campo").disabled = true;
@@ -747,7 +757,8 @@
                                 url_open_pdf = url_open_pdf.replace(':id',id+'-80');
                                 window.open(url_open_pdf,'Comprobante SISCOM','location=1, status=1, scrollbars=1,width=900, height=600');
 
-                                $('#asegurarCierre').val(2);
+                                // $('#asegurarCierre').val(2);
+                                asegurarCierre = 2;
 
                                 location = "{{ route('ventas.documento.index') }}";
                             }
@@ -1019,15 +1030,15 @@
     //============= devolver stock logico, ya que hay errores en la cotización ===================
     window.addEventListener('beforeunload', async () => {
 
-        const asegurarCierre    =   document.querySelector('#asegurarCierre');
-            if (asegurarCierre.value == 1) {
-                localStorage.setItem('devuelto', asegurarCierre.value);
+        // const asegurarCierre    =   document.querySelector('#asegurarCierre');
+            if (asegurarCierre == 1) {
+                // localStorage.setItem('devuelto', asegurarCierre.value);
 
                  await this.DevolverCantidades();
-                 asegurarCierre.value = 10;
+                 asegurarCierre = 10;
             } else {
                  console.log("beforeunload", asegurarCierre);
-                 localStorage.setItem('no devuelto', asegurarCierre.value);
+                //  localStorage.setItem('no devuelto', asegurarCierre.value);
             }
     });
 
@@ -1042,7 +1053,8 @@
    
 
     @if (!empty($errores))
-        $('#asegurarCierre').val(1);
+        // $('#asegurarCierre').val(1);
+        asegurarCierre = 1;
         @foreach ($errores as $error)
             @if ($error->tipo == 'stocklogico') 
                 toastr.error('La cantidad solicitada {{ $error->cantidad }} excede al stock del producto {{ $error->producto }}', 'Error', {
