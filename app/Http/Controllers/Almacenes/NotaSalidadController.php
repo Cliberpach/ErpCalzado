@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Almacenes;
 
+use App\Almacenes\Modelo;
+use App\Almacenes\Talla;
 use App\Almacenes\Almacen;
 use App\Almacenes\DetalleNotaSalidad;
 use App\Almacenes\LoteProducto;
@@ -22,6 +24,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
 use Barryvdh\DomPDF\Facade as PDF;
+
 
 class NotaSalidadController extends Controller
 {
@@ -57,14 +60,16 @@ class NotaSalidadController extends Controller
         $fecha=str_replace("-", "", $fecha);
         $fecha=str_replace(" ", "", $fecha);
         $fecha=str_replace(":", "", $fecha);
-        $origenes=  General::find(28)->detalles;
-        $destinos=  General::find(29)->detalles;
-        $lotes=DB::table('lote_productos')->get();
-        $ngenerado=$fecha.(DB::table('nota_salidad')->count()+1);
-        $usuarios=User::get();
-        $productos=Producto::where('estado','ACTIVO')->get();
-        $almacenes = Almacen::all();
-        $fullaccess = false;
+        $origenes   =   General::find(28)->detalles;
+        $destinos   =   General::find(29)->detalles;
+        $lotes      =   DB::table('lote_productos')->get();
+        $ngenerado  =   $fecha.(DB::table('nota_salidad')->count()+1);
+        $usuarios   =   User::get();
+        $productos  =   Producto::where('estado','ACTIVO')->get();
+        $almacenes  =   Almacen::all();
+        $tallas     =   Talla::where('estado','ACTIVO')->get();
+        $fullaccess =   false;
+        $modelos    =   Modelo::where('estado','ACTIVO')->get();
 
         if(count(Auth::user()->roles)>0)
         {
@@ -80,6 +85,7 @@ class NotaSalidadController extends Controller
             }
         }
         return view('almacenes.nota_salidad.create',["fecha_hoy"=>$fecha_hoy,
+        'tallas' => $tallas, 'modelos' => $modelos,
         "origenes"=>$origenes,'destinos'=>$destinos,
         'ngenerado'=>$ngenerado,'usuarios'=>$usuarios,
         "almacenes"=>$almacenes,
@@ -619,5 +625,25 @@ class NotaSalidadController extends Controller
             ]);
         }
     }
+
+
+    public function getStock($producto_id,$color_id,$talla_id){
+
+        try {
+
+            $stock_logico = DB::select('
+                SELECT pct.stock 
+                FROM producto_color_tallas as pct
+                WHERE pct.producto_id = ? AND pct.color_id = ? AND pct.talla_id = ?',
+                [$producto_id, $color_id, $talla_id]
+            );
+
+
+            return response()->json(["message" => "success", "data" => $stock_logico]);
+        } catch (\Exception $e) {
+            return response()->json(["message" => "Error al obtener el stock", "error" => $e->getMessage()], 500);
+        }                    
+    }
+
 
 }
