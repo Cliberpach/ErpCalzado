@@ -301,7 +301,8 @@
                         </div>
 
                         @if(!empty($cotizacion))
-                            <input type="hidden" name="igv" id="igv" value="{{ $cotizacion->igv }}">
+                            {{-- <input type="hidden" name="igv" id="igv" value="{{ $cotizacion->igv }}"> --}}
+                            <input type="hidden" name="igv" id="igv" value="18">
                         @else
                             <input type="hidden" name="igv" id="igv" value="18">
                         @endif

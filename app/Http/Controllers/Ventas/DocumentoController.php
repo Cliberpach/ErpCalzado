@@ -617,9 +617,9 @@ class DocumentoController extends Controller
                             $coll->producto_id = $nuevoSindevoluciones->producto;
                             $coll->color_id = $nuevoSindevoluciones->color;
                             $coll->talla_id = $nuevoSindevoluciones->talla;
-                            $coll->cantidad = $nuevoSindevoluciones->cantidad;
-                            $coll->precio_unitario   = $nuevoSindevoluciones->precio_unitario;
-                            $coll->importe           = $nuevoSindevoluciones->importe;
+                            $coll->cantidad             = $nuevoSindevoluciones->cantidad;
+                            $coll->precio_unitario      = $nuevoSindevoluciones->precio_unitario;
+                            $coll->importe              = $nuevoSindevoluciones->importe;
 
                             $col = [
                                 'producto_id' => $nuevoSindevoluciones->producto,
