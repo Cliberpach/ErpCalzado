@@ -456,7 +456,7 @@
 
                         <div class="col-md-6 text-right">
 
-                            <a href="{{ route('ventas.documento.index') }}" id="btn_cancelar" class="btn btn-w-m btn-default">
+                            <a href="javascript:void(0)" onclick="regresarClick(event)"  id="btn_cancelar" class="btn btn-w-m btn-default">
                                 <i class="fa fa-arrow-left"></i> Regresar
                             </a>
                             @if (empty($errores))
@@ -530,6 +530,7 @@
     const tableIgv          =   document.querySelector('.igv');
     const formDocumento         =   document.querySelector('#enviar_documento');
     const btnRegresar       =   document.querySelector('#btn_cancelar');
+    const btnGrabar         =   document.querySelector('#btn_grabar');
     let clientes_global;
     let carritoFormateado   =   [];
     let asegurarCierre      =   1;
@@ -559,6 +560,7 @@
 
         formDocumento.addEventListener('submit',(e)=>{
             e.preventDefault();
+            btnGrabar.disabled = true;
             cargarProductos();
             let correcto = validarCampos();
 
@@ -586,6 +588,8 @@
                     $('#tipo_pago_id').val('');
                     enviarVenta();
                 }
+            }else{
+                btnGrabar.disabled = false;
             }
             console.log(correcto);
 
@@ -597,6 +601,17 @@
 
             // console.log(formObject);
         })
+
+    }
+
+    //======= EVITAR DOBLE CLICK EN REGRESAR =========
+    function regresarClick(event){
+            event.preventDefault(); // Prevenir el comportamiento predeterminado del enlace
+            var btnCancelar = document.getElementById("btn_cancelar");
+            if (!btnCancelar.classList.contains("disabled")) { // Verificar si el botón no está deshabilitado
+                btnCancelar.classList.add("disabled"); // Deshabilitar el botón
+                window.location.href = '{{ route('ventas.documento.index') }}'; // Redirigir a la URL
+            }
     }
 
     function formataearCarrito(){
@@ -646,6 +661,7 @@
             let data = value.data;
             if (!data.success) {
                 toastr.error(data.mensaje);
+                btnGrabar.disabled = false;
             } else {
                 let envio_ok = true;
 
