@@ -1,3 +1,5 @@
+
+
 <template>
     <div class="">
         <div class="wrapper wrapper-content animated fadeInRight content-create" :class="{'sk__loading':loading}">
@@ -131,6 +133,35 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="panel panel-primary d-none">
+                                    <div class="panel-heading">  
+                                        <h4><b>Embalaje y envío</b></h4> 
+                                    </div>
+                                    <div class="panel-body ibox-content">
+                                        <div class="row">
+                                            <div class="col-3">
+                                                <div class="form-check d-flex align-items-center">
+                                                    <input class="form-check-input mt-0" type="checkbox" value="" id="flexCheckDefault">
+                                                    <label class="form-check-label" for="flexCheckDefault" style="font-weight: bold;">
+                                                        ACTIVAR
+
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="input-group mb-3">
+                                                    
+                                                    <span class="input-group-text" id="basic-addon1"></span>
+                                                    <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                               
+
                             </form>
                             <hr>
                             <TablaProductos @addProductoDetalle="AddProductoDetalles"
@@ -141,9 +172,8 @@
                             ref="tablaDetalles" />
                             <div class="hr-line-dashed"></div>
                             <div class="form-group row">
-
-                                <div class="col-md-6 text-left" style="color:#fcbc6c">
-                                    <i class="fa fa-exclamation-circle"></i> <small>Los campos marcados con asterisco
+                                    <div class="col-md-6 text-left" style="color:#fcbc6c">
+                                    <small>Los campos marcados con asterisco
                                         (<label class="required"></label>) son obligatorios.</small>
                                 </div>
 
@@ -177,6 +207,7 @@
         <ModalClienteVue @newCliente="formAddCliente" />
     </div>
 </template>
+
 <script>
 import ModalClienteVue from '../../../components/ventas/ModalCliente.vue';
 import TablaProductos from '../../../components/ventas/TablaProductos.vue';
