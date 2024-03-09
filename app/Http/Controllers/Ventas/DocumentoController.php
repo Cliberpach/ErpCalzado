@@ -105,6 +105,7 @@ class DocumentoController extends Controller
                 'documento_cliente',
                 DB::raw('json_unquote(json_extract(getRegularizeResponse, "$.code")) as code'),
                 'total',
+                'total_pagar',
                 DB::raw('DATEDIFF( now(),fecha_documento) as dias'),
                 DB::raw('(select count(id) from nota_electronica where documento_id = cotizacion_documento.id) as notas'),
             ])
@@ -166,6 +167,7 @@ class DocumentoController extends Controller
                 'documento_cliente' => $value->documento_cliente,
                 'code' => $value->code,
                 'total' => $value->total,
+                'total_pagar' =>$value->total_pagar,
                 'dias' => $value->dias,
                 'notas' => $value->notas,
                 "condicion"=>$value->condicion->descripcion,
