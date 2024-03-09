@@ -723,12 +723,16 @@ export default {
            
         },
         calcularMontos(){
-            let subtotal,igv,total = 0;
+            let subtotal    = 0;
+            let igv         = 0;
+            let total       = 0;
+
             this.carrito.forEach((producto)=>{
                 total += producto.subtotal;
             })
-            igv = 0.18*total;
-            subtotal = total-igv;
+
+            subtotal    =   total/1.18;
+            igv         =   total-subtotal;
             
 
             this.monto_subtotal=subtotal;
