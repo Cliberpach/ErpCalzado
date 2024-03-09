@@ -136,10 +136,10 @@
                             </form>
                             <hr>
                             <TablaProductos @addProductoDetalle="AddProductoDetalles"
-                                :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto" 
+                                :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto"
                                 :parametros="paramsLotes"
                                 :modelos="initData.modelos"
-                                :tallas="initData.tallas" :precio_envio="formCreate.precio_envio" 
+                                :tallas="initData.tallas" :precio_envio="formCreate.precio_envio"
                                 :precio_despacho="formCreate.precio_despacho"
                             ref="tablaDetalles" />
 
@@ -366,8 +366,8 @@ export default {
     methods: {
         formatearDetalle(detalles){
             if(detalles.length>0){
-                let carritoFormateado   =   []; 
-                detalles.forEach((d)=>{  
+                let carritoFormateado   =   [];
+                detalles.forEach((d)=>{
                     d.tallas.forEach((t)=>{
                         const producto ={};
                         producto.producto_id        =   d.producto_id;
@@ -412,7 +412,7 @@ export default {
         },
         //======= obteniendo carrito del componente hijo TablaProductos.vue ==========
         AddProductoDetalles(value) {
-            
+
             const { detalles, totales } = value;
             this.productos_tabla    =   this.formatearDetalle(detalles);
             //this.productos_tabla    = detalles;
@@ -460,15 +460,15 @@ export default {
 
 
                          if (success) {
-                            
+
                              toastr.success('¡Documento de venta creado!', 'Exito');
-                            
+
                              var url_open_pdf = route("ventas.documento.comprobante", { id: documento_id +"-80"});
-                            
+
                              window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
-                            
+
                              this.$refs.tablaDetalles.ChangeAsegurarCierre();
-                            
+
                             this.$emit("update:ruta", "index");
 
                          } else {
