@@ -1154,8 +1154,9 @@
             total+=parseFloat(subtotal.textContent);
         })
         
-        igv = 0.18*total;
-        subtotal = total-igv;
+        subtotal    =   total/1.18;
+        igv         =   total - subtotal;
+       
         tfootTotal.textContent='S/. ' + total.toFixed(2);
         tfootIgv.textContent='S/. ' + igv.toFixed(2);
         tfootSubtotal.textContent='S/. ' + subtotal.toFixed(2);
