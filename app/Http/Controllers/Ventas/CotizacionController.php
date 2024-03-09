@@ -108,8 +108,10 @@ class CotizacionController extends Controller
             foreach ($productos as $producto) {
                 $monto_total+=($producto->cantidad*$producto->precio_venta);
             }
-            $monto_igv=$monto_total*0.18;
-            $monto_subtotal=$monto_total-$monto_igv;
+
+        $monto_subtotal= $monto_total/1.18;
+
+        $monto_igv=$monto_total-$monto_subtotal;
         
         
 
