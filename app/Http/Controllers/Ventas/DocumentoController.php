@@ -1401,15 +1401,39 @@ class DocumentoController extends Controller
 
             $documento->observacion = $request->get('observacion');
             $documento->user_id     = auth()->user()->id;
+
+            $monto_sub_total    =   0;
+            $monto_embalaje     =   0;
+            $monto_envio        =   0;
+            $monto_total        =   0;
+            $monto_total_igv    =   0;
+            $monto_total_pagar  =   0;
+
+            if ($request->has('cot_doc')) {
+                $monto_sub_total    =   $request->get('monto_total');
+                $monto_embalaje     =   0;
+                $monto_envio        =   0;
+                $monto_total_pagar  =   $monto_sub_total;
+                $monto_total        =   $monto_total_pagar/1.18;
+                $monto_total_igv    =   $monto_total_pagar - $monto_total;
+            }else{
+                $monto_sub_total    =   str_replace('S/', '', $request->get('monto_sub_total'));
+                $monto_embalaje     =   str_replace('S/', '', $request->get('monto_embalaje') ?? 0);
+                $monto_envio        =   str_replace('S/', '', $request->get('monto_envio') ?? 0);
+                $monto_total        =   str_replace('S/', '', $request->get('monto_total'));
+                $monto_total_igv    =   str_replace('S/', '', $request->get('monto_total_igv'));
+                $monto_total_pagar  =   str_replace('S/', '', $request->get('monto_total_pagar'));            
+            }
+             
             
-            $documento->sub_total       = str_replace('S/', '', $request->get('monto_sub_total'));
-            $documento->monto_embalaje   = str_replace('S/', '', $request->get('monto_embalaje'));  
-            $documento->monto_envio      = str_replace('S/', '', $request->get('monto_envio'));  
-            $documento->total           = str_replace('S/', '', $request->get('monto_total'));  
-            $documento->total_igv       = str_replace('S/', '', $request->get('monto_total_igv'));
-            $documento->total_pagar     = str_replace('S/', '', $request->get('monto_total_pagar'));  
-            $documento->igv             = $request->get('igv') ? $request->get('igv') : 18;
-            $documento->moneda          = 1;
+            $documento->sub_total           = $monto_sub_total;
+            $documento->monto_embalaje      = $monto_embalaje;  
+            $documento->monto_envio         = $monto_envio;  
+            $documento->total               = $monto_total;  
+            $documento->total_igv           = $monto_total_igv;
+            $documento->total_pagar         = $monto_total_pagar;  
+            $documento->igv                 = $request->get('igv') ? $request->get('igv') : 18;
+            $documento->moneda              = 1;
 
             $documento->tipo_pago_id = $request->get('tipo_pago_id');
             $documento->importe = $request->get('importe');
