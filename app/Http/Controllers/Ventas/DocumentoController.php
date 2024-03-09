@@ -1399,11 +1399,15 @@ class DocumentoController extends Controller
 
             $documento->observacion = $request->get('observacion');
             $documento->user_id     = auth()->user()->id;
-            $documento->sub_total   = str_replace('S/', '', $request->get('monto_sub_total'));
-            $documento->total_igv   = str_replace('S/', '', $request->get('monto_total_igv'));
-            $documento->total       = str_replace('S/', '', $request->get('monto_total'));
-            $documento->igv         = $request->get('igv') ? $request->get('igv') : 18;
-            $documento->moneda      = 1;
+            
+            $documento->sub_total       = str_replace('S/', '', $request->get('monto_sub_total'));
+            $documento->monto_embalaje   = str_replace('S/', '', $request->get('monto_embalaje'));  
+            $documento->monto_envio      = str_replace('S/', '', $request->get('monto_envio'));  
+            $documento->total           = str_replace('S/', '', $request->get('monto_total'));  
+            $documento->total_igv       = str_replace('S/', '', $request->get('monto_total_igv'));
+            $documento->total_pagar     = str_replace('S/', '', $request->get('monto_total_pagar'));  
+            $documento->igv             = $request->get('igv') ? $request->get('igv') : 18;
+            $documento->moneda          = 1;
 
             $documento->tipo_pago_id = $request->get('tipo_pago_id');
             $documento->importe = $request->get('importe');

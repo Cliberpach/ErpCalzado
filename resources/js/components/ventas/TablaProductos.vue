@@ -619,25 +619,72 @@ export default {
         }
     },
     watch: {
-        monto_envio:{
-            handler(value){
-                console.log(value)
-                if(value.toString().trim().length===0){
+        monto_envio: {
+            handler(value) {
+                let valor = value;
+                if (typeof valor !== 'string') {
+                    valor = ''; // Si valor no es una cadena, se establece como cadena vacía
+                }
+                if (valor.toString().trim().length === 0) {
                     this.monto_envio = 0;
+                } else {
+                    // Expresión regular para permitir números enteros o decimales con un máximo de un punto decimal
+                    valor = valor.replace(/^0+/, '0'); // Reemplazar ceros a la izquierda solo con uno
+                    valor = valor.replace(/[^\d.]/g, ''); // Eliminar caracteres no numéricos excepto el punto decimal
+                    // Asegurar que solo haya un punto decimal
+                    valor = valor.replace(/(\..*)\./g, '$1');
+                    this.monto_envio = valor;
                 }
+
                 this.calcularMontos();
+                const montos = {
+                    monto_sub_total: parseFloat(this.monto_subtotal),
+                    monto_total_igv: parseFloat(this.monto_igv),
+                    monto_total: parseFloat(this.monto_total),
+                    monto_embalaje: parseFloat(this.monto_embalaje),
+                    monto_envio: parseFloat(this.monto_envio),
+                    monto_total_pagar: parseFloat(this.monto_total_pagar)
+                };
+
+                this.$emit('addProductoDetalle', {
+                    detalles:   this.carrito,
+                    totales :   montos
+                });
             },
-            deep: true,  
+            deep: true
         },
-        monto_embalaje:{
-            handler(value){
-                console.log(value)
-                if(value.toString().trim().length===0){
-                    this.monto_embalaje = 0;
+        monto_embalaje: {
+            handler(value) {
+                let valor = value;
+                if (typeof valor !== 'string') {
+                    valor = ''; // Si valor no es una cadena, se establece como cadena vacía
                 }
+                if (valor.toString().trim().length === 0) {
+                    this.monto_embalaje = 0;
+                } else {
+                    // Expresión regular para permitir números enteros o decimales con un máximo de un punto decimal
+                    valor = valor.replace(/^0+/, '0'); // Reemplazar ceros a la izquierda solo con uno
+                    valor = valor.replace(/[^\d.]/g, ''); // Eliminar caracteres no numéricos excepto el punto decimal
+                    // Asegurar que solo haya un punto decimal
+                    valor = valor.replace(/(\..*)\./g, '$1');
+                    this.monto_embalaje = valor;
+                }
+
                 this.calcularMontos();
+                const montos = {
+                    monto_sub_total: parseFloat(this.monto_subtotal),
+                    monto_total_igv: parseFloat(this.monto_igv),
+                    monto_total: parseFloat(this.monto_total),
+                    monto_embalaje: parseFloat(this.monto_embalaje),
+                    monto_envio: parseFloat(this.monto_envio),
+                    monto_total_pagar: parseFloat(this.monto_total_pagar)
+                };
+                this.$emit('addProductoDetalle', {
+                    detalles:   this.carrito,
+                    totales :   montos
+                });
             },
-            deep: true,  
+            deep: true
         },
         carrito:{
             handler(value){
@@ -646,9 +693,12 @@ export default {
                     this.asegurarCierre=1;
                 }
                 const montos = {
-                    monto_sub_total     :   this.monto_subtotal,
-                    monto_total_igv     :   this.monto_igv,
-                    monto_total         :   this.monto_total
+                    monto_sub_total: parseFloat(this.monto_subtotal),
+                    monto_total_igv: parseFloat(this.monto_igv),
+                    monto_total: parseFloat(this.monto_total),
+                    monto_embalaje: parseFloat(this.monto_embalaje),
+                    monto_envio: parseFloat(this.monto_envio),
+                    monto_total_pagar: parseFloat(this.monto_total_pagar)
                 };
                 this.$emit('addProductoDetalle', {
                     detalles:   this.carrito,
@@ -773,22 +823,24 @@ export default {
            
         },
         calcularMontos(){
-            let subtotal    =   0;
-            let total       =   0;
-            let igv         =   0;
-            let totalPagar  =   0;
+            let subtotal            =   0;
+            let totalSinIgv         =   0;
+            let igv                 =   0;
+            let totalConIgv         =   0;
 
             this.carrito.forEach((producto)=>{
-                subtotal += producto.subtotal;
+                subtotal += producto.subtotal;   //====== suma de todos los productos del carrito =======
             })
 
-            totalPagar  =   subtotal + parseFloat(this.monto_embalaje)+parseFloat(this.monto_envio);
-            igv         =   0.18*totalPagar;
-            total       =   totalPagar-igv;
+            //========= precio de productos en el carrito + embalaje + envío =============
+            totalConIgv     =   subtotal + parseFloat(this.monto_embalaje)+parseFloat(this.monto_envio);
+            totalSinIgv     =   totalConIgv/1.18
+            igv             =   totalConIgv-totalSinIgv;
+            
 
-            this.monto_total_pagar  =   totalPagar;
+            this.monto_total_pagar  =   totalConIgv;
             this.monto_igv          =   igv;
-            this.monto_total        =   total;
+            this.monto_total        =   totalSinIgv;
             this.monto_subtotal     =   subtotal;
 
         },

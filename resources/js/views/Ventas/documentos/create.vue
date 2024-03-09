@@ -239,9 +239,7 @@ export default {
                 monto_total_igv: 0,
                 monto_total: 0,
                 tipo_cliente_documento: null,
-                moneda: "SOLES",
-                precio_embalaje:0,
-                precio_envio:0
+                moneda: "SOLES"
             },
             tipo_venta: "",
             condicion_id: "",
@@ -276,7 +274,7 @@ export default {
     watch: {
         productos_tabla:{
            handler(value){
-                this.formCreate.productos_tabla = value.length > 0 ? JSON.stringify(value) : "";
+                this.formCreate.productos_tabla = JSON.stringify(value);
            },
            deep:true
         },
@@ -382,7 +380,7 @@ export default {
                 })
                 return carritoFormateado;
             }
-            return null;
+            return [];
         },
         async ObtenerData() {
             try {
