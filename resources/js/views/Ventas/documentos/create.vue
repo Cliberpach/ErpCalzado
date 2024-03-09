@@ -133,43 +133,16 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <div class="panel panel-primary d-none">
-                                    <div class="panel-heading">  
-                                        <h4><b>Embalaje y envío</b></h4> 
-                                    </div>
-                                    <div class="panel-body ibox-content">
-                                        <div class="row">
-                                            <div class="col-3">
-                                                <div class="form-check d-flex align-items-center">
-                                                    <input class="form-check-input mt-0" type="checkbox" value="" id="flexCheckDefault">
-                                                    <label class="form-check-label" for="flexCheckDefault" style="font-weight: bold;">
-                                                        ACTIVAR
-
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            <div class="col-4">
-                                                <div class="input-group mb-3">
-                                                    
-                                                    <span class="input-group-text" id="basic-addon1"></span>
-                                                    <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                               
-
                             </form>
                             <hr>
                             <TablaProductos @addProductoDetalle="AddProductoDetalles"
                                 :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto" 
                                 :parametros="paramsLotes"
                                 :modelos="initData.modelos"
-                                :tallas="initData.tallas"
+                                :tallas="initData.tallas" :precio_envio="formCreate.precio_envio" 
+                                :precio_despacho="formCreate.precio_despacho"
                             ref="tablaDetalles" />
+
                             <div class="hr-line-dashed"></div>
                             <div class="form-group row">
                                     <div class="col-md-6 text-left" style="color:#fcbc6c">
@@ -230,7 +203,8 @@ export default {
     },
     data() {
         return {
-            
+            checkDespacho: false,
+            checkEnvio: false,
             initData: {
                 clientes: [],
                 condiciones: [],
@@ -265,7 +239,9 @@ export default {
                 monto_total_igv: 0,
                 monto_total: 0,
                 tipo_cliente_documento: null,
-                moneda: "SOLES"
+                moneda: "SOLES",
+                precio_embalaje:0,
+                precio_envio:0
             },
             tipo_venta: "",
             condicion_id: "",
