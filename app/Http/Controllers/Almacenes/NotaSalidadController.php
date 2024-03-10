@@ -33,7 +33,7 @@ class NotaSalidadController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index() 
     {
         $this->authorize('haveaccess','nota_salida.index');
         return view('almacenes.nota_salidad.index');
@@ -41,8 +41,20 @@ class NotaSalidadController extends Controller
     public function gettable()
     {
         $this->authorize('haveaccess','nota_salida.index');
-        $data=DB::table("nota_salidad as n")
-        ->select('n.*',)->where('n.estado','ACTIVO')->get();
+    //    $data=NotaSalidad::select('nota_salidad.id','nota_salidad.created_at','nota_salidad.usuario','p.nombre')
+    //    ->join('detalle_nota_salidad as dns','nota_salidad.id','=','dns.nota_salidad_id')
+    //    ->join('productos as p','p.id','=','dns.producto_id')
+    //    ->groupBy('nota_salidad.id')
+    //    ->distinct()
+    //    ->get();
+        $data=DB::select('select t.id, t.created_at ,t.usuario ,t.nombre  from (select distinct  ni.id, ni.created_at ,ni.usuario ,p.nombre,count(p.id)  from nota_ingreso ni 
+inner join detalle_nota_ingreso dni 
+on ni.id =dni.nota_ingreso_id 
+inner join productos p 
+on p.id=dni.producto_id 
+group by  ni.id, ni.created_at ,ni.usuario ,p.nombre) as t
+');
+        
         return DataTables::of($data)->make(true);
     }
 

@@ -32,10 +32,10 @@
                         style="text-transform:uppercase">
                             <thead>
                                 <tr>
-                                    <th class="text-center">Numero</th>
-                                    <th class="text-center">Fecha</th>
-                                    <th class="text-center">Origen</th>
-                                    <th class="text-center">Destino</th>
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">Usuario</th>
+                                    <th class="text-center">Fecha Registro</th>
+                                    <th class="text-center">Producto</th>
                                     <th class="text-center">ACCIONES</th>
                                 </tr>
                             </thead>
@@ -98,11 +98,10 @@ $(document).ready(function() {
             //ingreso_mercaderia INTERNA
             //{ data: 'id',className: "text-center"},
             
-            { data: 'numero',className: "text-center"},
-            { data: 'fecha',className: "text-center"},
-            { data: 'origen',className: "text-center"},
-            { data: 'destino',className: "text-center"},
-            { data: 'fecha',className: "text-center"},
+            { data: 'id',className: "text-center"},
+            { data: 'created_at',className: "text-center"},
+            { data: 'usuario',className: "text-center"},
+            { data: 'nombre',className: "text-center"},
             {
                 data: null,
                 className: "text-center",
