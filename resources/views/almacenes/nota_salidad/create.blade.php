@@ -196,7 +196,7 @@
                                         <h4 class=""><b>Detalle de la nota de salida</b></h4>
                                     </div>
                                     <div class="panel-body">
-
+                                        @include('almacenes.nota_salidad.table-detalles')
                                     </div>
                                 </div>
                             </div>
@@ -642,7 +642,8 @@ $('#enviar_nota_salida').submit(function(e) {
     const tallasBD              =   @json($tallas);
     const tableStocksBody       =   document.querySelector('#table-stocks-notasalida tbody');   
     const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
-
+    const  bodyTablaDetalle = document.querySelector('#table-detalle-notasalida tbody');
+    const detallesSalida=[];
     let modelo_id   =   null;
 
     document.addEventListener('DOMContentLoaded', ()=>{
@@ -650,6 +651,18 @@ $('#enviar_nota_salida').submit(function(e) {
     })
 
     function events(){
+
+        btnAgregarDetalle.addEventListener('click',()=>{
+            let inputsCantidad=document.querySelectorAll('.inputCantidad');
+            inputsCantidad.forEach((ic)=>{
+                let producto =formarProducto(ic);
+                detallesSalida.push(producto);
+            })
+
+            pintarDetallesSalida(detallesSalida);
+        })
+        /////////////
+
 
         //======= validar el contenido input cantidad =======
         document.addEventListener('input',(e)=>{
@@ -662,10 +675,53 @@ $('#enviar_nota_salida').submit(function(e) {
 
     }
 
+
+    function pintarDetallesSalida(detallesSalida){
+        let fila=``;
+        let htmlTallas=``;
+        const producto_color_procesado=[];
+        cleanDetailsSale();
+        detallesSalida.forEach((c)=>{
+            htmlTallas=``;
+            if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
+                fila+= `<tr>   
+                            <td>
+                                <i class="fas fa-trash-alt btn btn-primary delete-product"
+                                data-producto="${c.producto_id}" data-color="${c.color_id}">
+                                </i>                            
+                            </td>
+                            <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
+
+                //tallas
+                tallasBD.forEach((t)=>{
+                    let cantidad = detallesSalida.filter((ct)=>{
+                        return ct.producto_id==c.producto_id && ct.color_id==c.color_id && t.id==ct.talla_id;
+                    });
+                    cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
+                    htmlTallas += `<td>${cantidad}</td>`; 
+                })
+
+
+            
+                fila+=htmlTallas;
+                bodyTablaDetalle.innerHTML=fila;
+                producto_color_procesado.push(`${c.producto_id}-${c.color_id}`)
+            }
+        })
+    }
+
+
+    // LIMPIAR TABLA DETALLE SALIDA
+    function cleanDetailsSale(){
+        while (bodyTablaDetalle.firstChild) {
+            bodyTablaDetalle.removeChild(bodyTablaDetalle.firstChild);
+        }
+    }
+
      //======= CARGAR STOCKS LOGICOS DE PRODUCTOS POR MODELO =======
      async function getProductosByModelo(idModelo){
         modelo_id = idModelo;
-        // btnAgregarDetalle.disabled=true;
+         btnAgregarDetalle.disabled=false;
 
         if(modelo_id){
             try {
@@ -709,6 +765,22 @@ $('#enviar_nota_salida').submit(function(e) {
             event.target.value='';
             console.error('Error al obtener stock logico:', error);
         }
+    }
+
+
+
+        //=============== Da forma de objeto a los datos obtenidos de la tabla salida =============
+        const formarProducto = (ic)=>{
+        const producto_id = ic.getAttribute('data-producto-id');
+        const producto_nombre = ic.getAttribute('data-producto-nombre');
+        const color_id = ic.getAttribute('data-color-id');
+        const color_nombre = ic.getAttribute('data-color-nombre');
+        const talla_id = ic.getAttribute('data-talla-id');
+        const talla_nombre = ic.getAttribute('data-talla-nombre');
+        const cantidad     = ic.value?ic.value:0;
+        const producto = {producto_id,producto_nombre,color_id,color_nombre,
+                            talla_id,talla_nombre,cantidad};
+        return producto;
     }
 
     //=========== OBTENER STOCK LOGICO DESDE LA BD =======
