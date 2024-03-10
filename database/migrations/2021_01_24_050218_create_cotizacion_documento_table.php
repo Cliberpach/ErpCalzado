@@ -32,9 +32,15 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->date('fecha_atencion')->nullable();
 
             $table->string('tipo_venta');
+
             $table->unsignedDecimal('sub_total', 15, 2);
-            $table->unsignedDecimal('total_igv', 15, 2);
+            $table->unsignedDecimal('monto_embalaje',15,2);
+            $table->unsignedDecimal('monto_envio',15,2);
             $table->unsignedDecimal('total', 15, 2);
+            $table->unsignedDecimal('total_igv', 15, 2);
+            $table->unsignedDecimal('total_pagar', 15, 2);
+
+
 
             $table->unsignedInteger('tipo_pago_id')->nullable();
             $table->foreign('tipo_pago_id')->references('id')->on('tipos_pago')->onDelete('cascade');

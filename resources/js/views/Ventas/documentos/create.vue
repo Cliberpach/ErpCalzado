@@ -133,43 +133,16 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <div class="panel panel-primary d-none">
-                                    <div class="panel-heading">  
-                                        <h4><b>Embalaje y envío</b></h4> 
-                                    </div>
-                                    <div class="panel-body ibox-content">
-                                        <div class="row">
-                                            <div class="col-3">
-                                                <div class="form-check d-flex align-items-center">
-                                                    <input class="form-check-input mt-0" type="checkbox" value="" id="flexCheckDefault">
-                                                    <label class="form-check-label" for="flexCheckDefault" style="font-weight: bold;">
-                                                        ACTIVAR
-
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            <div class="col-4">
-                                                <div class="input-group mb-3">
-                                                    
-                                                    <span class="input-group-text" id="basic-addon1"></span>
-                                                    <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                               
-
                             </form>
                             <hr>
                             <TablaProductos @addProductoDetalle="AddProductoDetalles"
-                                :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto" 
+                                :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto"
                                 :parametros="paramsLotes"
                                 :modelos="initData.modelos"
-                                :tallas="initData.tallas"
+                                :tallas="initData.tallas" :precio_envio="formCreate.precio_envio"
+                                :precio_despacho="formCreate.precio_despacho"
                             ref="tablaDetalles" />
+
                             <div class="hr-line-dashed"></div>
                             <div class="form-group row">
                                     <div class="col-md-6 text-left" style="color:#fcbc6c">
@@ -230,7 +203,8 @@ export default {
     },
     data() {
         return {
-            
+            checkDespacho: false,
+            checkEnvio: false,
             initData: {
                 clientes: [],
                 condiciones: [],
@@ -300,7 +274,7 @@ export default {
     watch: {
         productos_tabla:{
            handler(value){
-                this.formCreate.productos_tabla = value.length > 0 ? JSON.stringify(value) : "";
+                this.formCreate.productos_tabla = JSON.stringify(value);
            },
            deep:true
         },
@@ -392,8 +366,8 @@ export default {
     methods: {
         formatearDetalle(detalles){
             if(detalles.length>0){
-                let carritoFormateado   =   []; 
-                detalles.forEach((d)=>{  
+                let carritoFormateado   =   [];
+                detalles.forEach((d)=>{
                     d.tallas.forEach((t)=>{
                         const producto ={};
                         producto.producto_id        =   d.producto_id;
@@ -406,7 +380,7 @@ export default {
                 })
                 return carritoFormateado;
             }
-            return null;
+            return [];
         },
         async ObtenerData() {
             try {
@@ -438,7 +412,7 @@ export default {
         },
         //======= obteniendo carrito del componente hijo TablaProductos.vue ==========
         AddProductoDetalles(value) {
-            
+
             const { detalles, totales } = value;
             this.productos_tabla    =   this.formatearDetalle(detalles);
             //this.productos_tabla    = detalles;
@@ -486,15 +460,15 @@ export default {
 
 
                          if (success) {
-                            
+
                              toastr.success('¡Documento de venta creado!', 'Exito');
-                            
+
                              var url_open_pdf = route("ventas.documento.comprobante", { id: documento_id +"-80"});
-                            
+
                              window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
-                            
+
                              this.$refs.tablaDetalles.ChangeAsegurarCierre();
-                            
+
                             this.$emit("update:ruta", "index");
 
                          } else {

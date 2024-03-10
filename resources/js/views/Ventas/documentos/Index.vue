@@ -67,7 +67,7 @@
                                                                 {{ item.cliente }}
                                                             </div>
                                                         </td>
-                                                        <td class="letrapequeña text-center">{{ item.total }}</td>
+                                                        <td class="letrapequeña text-center">{{ item.total_pagar }}</td>
                                                         <td class="letrapequeña text-center">
                                                             {{ item.dias > 4 ? 0 : 4 - item.dias }}
                                                         </td>

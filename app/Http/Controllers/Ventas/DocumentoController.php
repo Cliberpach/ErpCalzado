@@ -105,6 +105,7 @@ class DocumentoController extends Controller
                 'documento_cliente',
                 DB::raw('json_unquote(json_extract(getRegularizeResponse, "$.code")) as code'),
                 'total',
+                'total_pagar',
                 DB::raw('DATEDIFF( now(),fecha_documento) as dias'),
                 DB::raw('(select count(id) from nota_electronica where documento_id = cotizacion_documento.id) as notas'),
             ])
@@ -166,6 +167,7 @@ class DocumentoController extends Controller
                 'documento_cliente' => $value->documento_cliente,
                 'code' => $value->code,
                 'total' => $value->total,
+                'total_pagar' =>$value->total_pagar,
                 'dias' => $value->dias,
                 'notas' => $value->notas,
                 "condicion"=>$value->condicion->descripcion,
@@ -1399,11 +1401,39 @@ class DocumentoController extends Controller
 
             $documento->observacion = $request->get('observacion');
             $documento->user_id     = auth()->user()->id;
-            $documento->sub_total   = str_replace('S/', '', $request->get('monto_sub_total'));
-            $documento->total_igv   = str_replace('S/', '', $request->get('monto_total_igv'));
-            $documento->total       = str_replace('S/', '', $request->get('monto_total'));
-            $documento->igv         = $request->get('igv') ? $request->get('igv') : 18;
-            $documento->moneda      = 1;
+
+            $monto_sub_total    =   0;
+            $monto_embalaje     =   0;
+            $monto_envio        =   0;
+            $monto_total        =   0;
+            $monto_total_igv    =   0;
+            $monto_total_pagar  =   0;
+
+            if ($request->has('cot_doc')) {
+                $monto_sub_total    =   $request->get('monto_total');
+                $monto_embalaje     =   0;
+                $monto_envio        =   0;
+                $monto_total_pagar  =   $monto_sub_total;
+                $monto_total        =   $monto_total_pagar/1.18;
+                $monto_total_igv    =   $monto_total_pagar - $monto_total;
+            }else{
+                $monto_sub_total    =   str_replace('S/', '', $request->get('monto_sub_total'));
+                $monto_embalaje     =   str_replace('S/', '', $request->get('monto_embalaje') ?? 0);
+                $monto_envio        =   str_replace('S/', '', $request->get('monto_envio') ?? 0);
+                $monto_total        =   str_replace('S/', '', $request->get('monto_total'));
+                $monto_total_igv    =   str_replace('S/', '', $request->get('monto_total_igv'));
+                $monto_total_pagar  =   str_replace('S/', '', $request->get('monto_total_pagar'));            
+            }
+             
+            
+            $documento->sub_total           = $monto_sub_total;
+            $documento->monto_embalaje      = $monto_embalaje;  
+            $documento->monto_envio         = $monto_envio;  
+            $documento->total               = $monto_total;  
+            $documento->total_igv           = $monto_total_igv;
+            $documento->total_pagar         = $monto_total_pagar;  
+            $documento->igv                 = $request->get('igv') ? $request->get('igv') : 18;
+            $documento->moneda              = 1;
 
             $documento->tipo_pago_id = $request->get('tipo_pago_id');
             $documento->importe = $request->get('importe');
@@ -1569,6 +1599,7 @@ class DocumentoController extends Controller
                     $envio_ = self::sunat_valida($documento->id);
                 }
                 Session::flash('success', 'Documento de venta creado.');
+
 
                 return response()->json([
                     'success' => true,
@@ -2304,7 +2335,8 @@ class DocumentoController extends Controller
     public function obtenerLeyenda($documento)
     {
         $formatter = new NumeroALetras();
-        $convertir = $formatter->toInvoice($documento->total, 2, 'SOLES');
+        // $convertir = $formatter->toInvoice($documento->total, 2, 'SOLES');
+        $convertir = $formatter->toInvoice($documento->total_pagar, 2, 'SOLES');
 
         //CREAR LEYENDA DEL COMPROBANTE
         $arrayLeyenda = array();
@@ -2317,10 +2349,12 @@ class DocumentoController extends Controller
 
     public function obtenerProductos($id)
     {
+        
         $detalles = Detalle::where('documento_id', $id)->where('eliminado', '0')->where('estado', 'ACTIVO')->get();
+        $documento = Documento::findOrFail($id);
         $arrayProductos = array();
+
         for ($i = 0; $i < count($detalles); $i++) {
-           
             $arrayProductos[] = array(
                 "codProducto" => $detalles[$i]->codigo_producto,
                 "unidad" => $detalles[$i]->unidad,
@@ -2341,9 +2375,59 @@ class DocumentoController extends Controller
                 "totalImpuestos" => (float) ($detalles[$i]->importe - ($detalles[$i]->importe / 1.18)),
                 // // "mtoPrecioUnitario" => (float) $detalles[$i]->precio_nuevo,
                 "mtoPrecioUnitario" => (float) $detalles[$i]->precio_unitario,
-
             );
         }
+
+        //======== agregando embalaje y envío como productos ===========
+        if($documento->monto_embalaje!=0){
+            $arrayProductos[] = array(
+                "codProducto" => 'PE00',
+                "unidad" => 'NIU',
+                // "descripcion" => $detalles[$i]->nombre_producto . ' - ' . $detalles[$i]->codigo_lote,
+                "descripcion" => 'EMBALAJE',
+                "cantidad" => (float) 1,
+                // // "mtoValorUnitario" => (float) ($detalles[$i]->precio_nuevo / 1.18),
+                "mtoValorUnitario" => (float) ($documento->monto_embalaje / 1.18),
+                // "mtoValorVenta" => (float) ($detalles[$i]->valor_venta / 1.18),
+                // "mtoBaseIgv" => (float) ($detalles[$i]->valor_venta / 1.18),
+                "mtoValorVenta" => (float) ($documento->monto_embalaje / 1.18),
+                "mtoBaseIgv" => (float) ($documento->monto_embalaje / 1.18),
+                "porcentajeIgv" => 18,
+                // "igv" => (float) ($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
+                "igv" => (float) ($documento->monto_embalaje - ($documento->monto_embalaje / 1.18)),
+                "tipAfeIgv" => 10,
+                // "totalImpuestos" => (float) ($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
+                "totalImpuestos" => (float) ($documento->monto_embalaje - ($documento->monto_embalaje / 1.18)),
+                // // "mtoPrecioUnitario" => (float) $detalles[$i]->precio_nuevo,
+                "mtoPrecioUnitario" => (float) $documento->monto_embalaje,
+            );
+        }
+       
+        if($documento->monto_envio!=0){
+            $arrayProductos[] = array(
+                "codProducto" => 'PE01',
+                "unidad" => 'NIU',
+                // "descripcion" => $detalles[$i]->nombre_producto . ' - ' . $detalles[$i]->codigo_lote,
+                "descripcion" => 'ENVIO',
+                "cantidad" => (float) 1,
+                // // "mtoValorUnitario" => (float) ($detalles[$i]->precio_nuevo / 1.18),
+                "mtoValorUnitario" => (float) ($documento->monto_envio / 1.18),
+                // "mtoValorVenta" => (float) ($detalles[$i]->valor_venta / 1.18),
+                // "mtoBaseIgv" => (float) ($detalles[$i]->valor_venta / 1.18),
+                "mtoValorVenta" => (float) ($documento->monto_envio / 1.18),
+                "mtoBaseIgv" => (float) ($documento->monto_envio / 1.18),
+                "porcentajeIgv" => 18,
+                // "igv" => (float) ($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
+                "igv" => (float) ($documento->monto_envio - ($documento->monto_envio / 1.18)),
+                "tipAfeIgv" => 10,
+                // "totalImpuestos" => (float) ($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
+                "totalImpuestos" => (float) ($documento->monto_envio - ($documento->monto_envio / 1.18)),
+                // // "mtoPrecioUnitario" => (float) $detalles[$i]->precio_nuevo,
+                "mtoPrecioUnitario" => (float) $documento->monto_envio,
+            );
+        }
+        
+
 
         return $arrayProductos;
     }

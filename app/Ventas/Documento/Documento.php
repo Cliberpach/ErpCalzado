@@ -13,61 +13,65 @@ use App\Ventas\RetencionDetalle;
 class Documento extends Model
 {
     protected $table = 'cotizacion_documento';
-    protected $fillable = [
-        //DATOS DE LA EMPRESA
-        'ruc_empresa',
-        'empresa',
-        'direccion_fiscal_empresa',
-        'empresa_id',
-        //CLIENTE
-        'tipo_documento_cliente',
-        'documento_cliente',
-        'direccion_cliente',
-        'cliente',
-        'cliente_id',
-        'condicion_id',
-        'moneda',
-        'numero_doc',
-        'fecha_documento',
-        'fecha_atencion',
-        'fecha_vencimiento',
-        'sub_total',
-        'total_igv',
-        'total',
-        'user_id',
-        'igv',
-        'igv_check',
-        'tipo_venta',
-        'cotizacion_venta',
-        'sunat',
-        'envio_sunat',
+    protected $guarded = [];
+    // protected $fillable = [
+    //     //DATOS DE LA EMPRESA
+    //     'ruc_empresa',
+    //     'empresa',
+    //     'direccion_fiscal_empresa',
+    //     'empresa_id',
+    //     //CLIENTE
+    //     'tipo_documento_cliente',
+    //     'documento_cliente',
+    //     'direccion_cliente',
+    //     'cliente',
+    //     'cliente_id',
+    //     'condicion_id',
+    //     'moneda',
+    //     'numero_doc',
+    //     'fecha_documento',
+    //     'fecha_atencion',
+    //     'fecha_vencimiento',
+    //     'sub_total',
+    //     'monto_embalaje',
+    //     'monto_envio',
+    //     'total',
+    //     'total_igv',
+    //     'total_pagar',
+    //     'user_id',
+    //     'igv',
+    //     'igv_check',
+    //     'tipo_venta',
+    //     'cotizacion_venta',
+    //     'sunat',
+    //     'envio_sunat',
 
-        'importe',
-        'efectivo',
-        'tipo_pago_id',
+    //     'importe',
+    //     'efectivo',
+    //     'tipo_pago_id',
 
-        'getCdrResponse',
-        'regularize',
-        'getRegularizeResponse',
+    //     'getCdrResponse',
+    //     'regularize',
+    //     'getRegularizeResponse',
         
-        'correlativo',
-        'banco_empresa_id',
-        'serie',
-        'ruta_comprobante_archivo',
-        'nombre_comprobante_archivo',
+    //     'correlativo',
+    //     'banco_empresa_id',
+    //     'serie',
+    //     'ruta_comprobante_archivo',
+    //     'nombre_comprobante_archivo',
 
-        'estado',
-        'estado_pago',
-        'ruta_pago',
+    //     'estado',
+    //     'estado_pago',
+    //     'ruta_pago',
 
-        'convertir',
+    //     'convertir',
 
-        'contingencia',
-        'correlativo_contingencia',
-        'serie_contingencia',
-        'getCdrResponse_contingencia',
-        'getRegularizeResponse_contingencia'
-    ];
+    //     'contingencia',
+    //     'correlativo_contingencia',
+    //     'serie_contingencia',
+    //     'getCdrResponse_contingencia',
+    //     'getRegularizeResponse_contingencia'
+    // ];
 
     public function retencion()
     {
