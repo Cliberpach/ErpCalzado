@@ -40,20 +40,40 @@ class NotaSalidadController extends Controller
     }
     public function gettable()
     {
-        $this->authorize('haveaccess','nota_salida.index');
-    //    $data=NotaSalidad::select('nota_salidad.id','nota_salidad.created_at','nota_salidad.usuario','p.nombre')
-    //    ->join('detalle_nota_salidad as dns','nota_salidad.id','=','dns.nota_salidad_id')
-    //    ->join('productos as p','p.id','=','dns.producto_id')
-    //    ->groupBy('nota_salidad.id')
-    //    ->distinct()
-    //    ->get();
-        $data=DB::select('select t.id, t.created_at ,t.usuario ,t.nombre  from (select distinct  ni.id, ni.created_at ,ni.usuario ,p.nombre,count(p.id)  from nota_ingreso ni 
-inner join detalle_nota_ingreso dni 
-on ni.id =dni.nota_ingreso_id 
-inner join productos p 
-on p.id=dni.producto_id 
-group by  ni.id, ni.created_at ,ni.usuario ,p.nombre) as t
-');
+        $data = DB::table("nota_salidad as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
+        $detalles = DB::select('select distinct p.nombre as producto_nombre,ni.id as nota_ingreso_id 
+        from nota_salidad as ni 
+        inner join detalle_nota_salidad  as dni
+        on ni.id=dni.nota_salidad_id 
+        inner join productos as p
+        on p.id=dni.producto_id');
+
+        foreach ($data as $notaIngreso) {
+            
+            $detallesFiltrados = array_filter($detalles, function($detalle) use ($notaIngreso) {
+                return $detalle->nota_ingreso_id == $notaIngreso->id;
+            });
+
+            $cadenaDetalles = '';
+            $caracteresAcumulados = 0;
+        
+            foreach ($detallesFiltrados as $detalle) {
+                $nombreProducto = $detalle->producto_nombre;
+                $longitudNombre = strlen($nombreProducto);
+        
+                // Verificar si agregar el nombre del producto superará los 200 caracteres
+                if ($caracteresAcumulados + $longitudNombre <= 200) {
+                    $cadenaDetalles .= $nombreProducto . ', ';
+                    $caracteresAcumulados += $longitudNombre;
+                } else {
+                    // Si supera los 200 caracteres, terminar el bucle
+                    break;
+                }
+            }
+
+            // Añadir la cadena de detalles como un nuevo campo en la nota de ingreso
+            $notaIngreso->cadena_detalles = rtrim($cadenaDetalles, ', '); // Eliminar la última coma
+        }
         
         return DataTables::of($data)->make(true);
     }
