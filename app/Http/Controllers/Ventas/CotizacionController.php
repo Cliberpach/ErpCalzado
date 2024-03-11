@@ -72,7 +72,7 @@ class CotizacionController extends Controller
     {
         $data = $request->all();
         $productos = json_decode($request->input('productos_tabla')[0]);
-        dd($data);
+        
         $rules = [
             'empresa' => 'required',
             'cliente' => 'required',
