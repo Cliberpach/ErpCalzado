@@ -24,6 +24,10 @@ use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 
+use App\Mantenimiento\Ubigeo\Departamento;
+use App\Mantenimiento\Ubigeo\Distrito;
+use App\Mantenimiento\Ubigeo\Provincia;
+
 
 class CotizacionController extends Controller
 {
@@ -52,20 +56,26 @@ class CotizacionController extends Controller
 
     public function create()
     {
-        $empresas = Empresa::where('estado', 'ACTIVO')->get();
-        $clientes = Cliente::where('estado', 'ACTIVO')->get();
-        $fecha_hoy = Carbon::now()->toDateString();
-        $condiciones = Condicion::where('estado','ACTIVO')->get();
-        $lotes = Producto::where('estado','ACTIVO')->get();
-        $modelos = Modelo::where('estado','ACTIVO')->get();
-        $tallas = Talla::where('estado','ACTIVO')->get();
+        $tipos_documento    =   tipos_documento();
+        $departamentos      =   departamentos();
+        $tipo_clientes      =   tipo_clientes();
+
+        $empresas           = Empresa::where('estado', 'ACTIVO')->get();
+        $clientes           = Cliente::where('estado', 'ACTIVO')->get();
+        $fecha_hoy          = Carbon::now()->toDateString();
+        $condiciones        = Condicion::where('estado','ACTIVO')->get();
+        $lotes              = Producto::where('estado','ACTIVO')->get();
+        $modelos            = Modelo::where('estado','ACTIVO')->get();
+        $tallas             = Talla::where('estado','ACTIVO')->get();
         $vendedor_actual    =   DB::select('select c.id from user_persona as up
                                 inner join colaboradores  as c
                                 on c.persona_id=up.persona_id
                                 where up.user_id = ?',[Auth::id()]);
         $vendedor_actual    =   $vendedor_actual?$vendedor_actual[0]->id:null;
+
         
-        return view('ventas.cotizaciones.create', compact('vendedor_actual','tallas','modelos','empresas', 'clientes', 'fecha_hoy', 'lotes', 'condiciones'));
+        return view('ventas.cotizaciones.create', compact('vendedor_actual','tallas','modelos','empresas',
+         'clientes', 'fecha_hoy', 'lotes', 'condiciones','tipos_documento','departamentos','tipo_clientes'));
     }
 
     public function store(Request $request)
@@ -299,7 +309,7 @@ class CotizacionController extends Controller
         }
 
         //Registro de actividad
-        $descripcion = "SE MODIFICÓ LA COTIZACION CON LA FECHA: ". Carbon::parse($cotizacion->fecha_documento)->format('d/m/y');;
+        $descripcion = "SE MODIFICÓ LA COTIZACION CON LA FECHA: ". Carbon::parse($cotizacion->fecha_documento)->format('d/m/y');
         $gestion = "COTIZACION";
         modificarRegistro($cotizacion, $descripcion , $gestion);
 

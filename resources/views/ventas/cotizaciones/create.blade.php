@@ -1,5 +1,6 @@
 @extends('layout') @section('content')
     {{-- @include('ventas.cotizaciones.edit-detalle') --}}
+@include('ventas.cotizaciones.modal-cliente')
     
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
@@ -1404,6 +1405,11 @@
                 selectPrecioVenta.value =   c.precio_venta.toString();
             }
         }) 
+    }
+
+    //============= ABRIR MODAL CLIENTE =============
+    function openModalCliente(){
+        $("#modal_cliente").modal("show");
     }
 
 
