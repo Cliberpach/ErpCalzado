@@ -207,11 +207,14 @@
 
                                     </div>
                                 </div>
-                                <input type="hidden" name="monto_sub_total" id="monto_sub_total"
-                                    value="{{ old('monto_sub_total') }}">
-                                <input type="hidden" name="monto_igv" id="monto_igv"
-                                    value="{{ old('monto_total_igv') }}">
+
+                                <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
+                                <input type="hidden" name="monto_embalaje" id="monto_embalaje" value="{{ old('monto_embalaje') }}">
+                                <input type="hidden" name="monto_envio" id="monto_envio" value="{{ old('monto_envio') }}">
+                                <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
                                 <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}">
+                                <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ old('monto_total_pagar') }}">
+
                             </form>
                         </div>
                     </div>
@@ -1050,35 +1053,65 @@
 
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <script>
-    const tableStocksBody  =  document.querySelector('#table-stocks tbody');
-    const tableDetalleBody = document.querySelector('#table-detalle tbody');
-    const tokenValue = document.querySelector('input[name="_token"]').value;
-    const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle');
-    const formCotizacion= document.querySelector('#form-cotizacion');
-    const tfootTotal=document.querySelector('.total');
-    const tfootIgv=document.querySelector('.igv');
-    const tfootSubtotal=document.querySelector('.subtotal');
-    const inputSubTotal= document.querySelector('#monto_sub_total');
-    const inputIgv=document.querySelector('#monto_igv');
-    const inputTotal=document.querySelector('#monto_total');
-    const inputProductos=document.querySelector('#productos_tabla');
-    const tallas     = @json($tallas);
+    const tableStocksBody       =   document.querySelector('#table-stocks tbody');
+    const tableDetalleBody      =   document.querySelector('#table-detalle tbody');
+    const tokenValue            =   document.querySelector('input[name="_token"]').value;
+    const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
+    const formCotizacion        =   document.querySelector('#form-cotizacion');
+
+    const tfootSubtotal         =   document.querySelector('.subtotal');
+    const tfootEmbalaje         =   document.querySelector('.embalaje');
+    const tfootEnvio            =   document.querySelector('.envio');
+    const tfootTotal            =   document.querySelector('.total');
+    const tfootIgv              =   document.querySelector('.igv');
+    const tfootTotalPagar       =   document.querySelector('.total-pagar');
+    
+    const inputSubTotal         =   document.querySelector('#monto_sub_total');
+    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
+    const inputEnvio            =   document.querySelector('#monto_envio');
+    const inputTotal            =   document.querySelector('#monto_total');
+    const inputIgv              =   document.querySelector('#monto_total_igv');
+    const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
+
+    const inputProductos        =   document.querySelector('#productos_tabla');
+    const tallas                =   @json($tallas);
 
     let modelo_id   = null;
     let carrito     = [];
    
     document.addEventListener('DOMContentLoaded',()=>{
-        console.log(tableStocksBody)
         events();
     })
 
     function events(){
         
+        //===== VALIDAR CONTENIDO DE INPUTS CANTIDAD ========
+        //===== VALIDAR TFOOTS EMBALAJE Y ENVIO ======
         document.addEventListener('input',(e)=>{
+
             if(e.target.classList.contains('inputCantidad')){
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
             }
+
+            if (e.target.classList.contains('embalaje') || e.target.classList.contains('envio')) {
+                // Eliminar ceros a la izquierda, excepto si es el único carácter en el campo o si es seguido por un punto decimal y al menos un dígito
+                e.target.value = e.target.value.replace(/^0+(?=\d)|(?<=\D)0+(?=\d)|(?<=\d)0+(?=\.)|^0+(?=[1-9])/g, '');
+
+                // Evitar que el primer carácter sea un punto
+                e.target.value = e.target.value.replace(/^(\.)/, '');
+
+                // Reemplazar todo excepto los dígitos y el punto decimal
+                e.target.value = e.target.value.replace(/[^\d.]/g, '');
+
+                // Reemplazar múltiples puntos decimales con uno solo
+                e.target.value = e.target.value.replace(/(\..*)\./g, '$1');
+
+                calcularMontos();
+            }
+
         })
+
+
 
         document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('delete-product')){
@@ -1146,24 +1179,33 @@
     //=========== calcular montos =======
     const calcularMontos = ()=>{
         const subtotales= document.querySelectorAll('.td-subtotal');
-        let total=0;
-        let igv=0;
-        let subtotal=0;
+        let subtotal    =   0;
+        let embalaje    =   tfootEmbalaje.value?parseFloat(tfootEmbalaje.value):0;
+        let envio       =   tfootEnvio.value?parseFloat(tfootEnvio.value):0;
+        let total       =   0;
+        let igv         =   0;
+        let total_pagar =   0;
         
-        subtotales.forEach((subtotal)=>{
-            total+=parseFloat(subtotal.textContent);
+        //====== subtotal es la suma de todos los productos ======
+        subtotales.forEach((st)=>{
+            subtotal    +=  parseFloat(st.textContent);
         })
-        
-        subtotal    =   total/1.18;
-        igv         =   total - subtotal;
+
+        total_pagar =   subtotal + embalaje + envio;
+        total       =   total_pagar/1.18;
+        igv         =   total_pagar - total;
        
-        tfootTotal.textContent='S/. ' + total.toFixed(2);
-        tfootIgv.textContent='S/. ' + igv.toFixed(2);
-        tfootSubtotal.textContent='S/. ' + subtotal.toFixed(2);
+        tfootTotalPagar.textContent =   'S/. ' + total_pagar.toFixed(2);
+        tfootIgv.textContent        =   'S/. ' + igv.toFixed(2);
+        tfootTotal.textContent      =   'S/. ' + total.toFixed(2);
+        tfootSubtotal.textContent   =   'S/. ' + subtotal.toFixed(2);
         
-        inputTotal.value=total.toFixed(2);
-        inputIgv.value=igv.toFixed(2);
-        inputSubTotal.value=subtotal.toFixed(2);
+        inputTotalPagar.value       =   total_pagar.toFixed(2);
+        inputIgv.value              =   igv.toFixed(2);
+        inputTotal.value            =   total.toFixed(2);
+        inputEmbalaje.value         =   embalaje.toFixed(2);
+        inputEnvio.value            =   envio.toFixed(2);
+        inputSubTotal.value         =   subtotal.toFixed(2);
     }
 
     
@@ -1355,7 +1397,13 @@
             if(inputLoad){
                 inputLoad.value = c.cantidad;
             }
-        })
+
+            //==== ubicando precios venta seleccionados ======
+            const selectPrecioVenta =   document.querySelector(`#precio-venta-${c.producto_id}`);
+            if(selectPrecioVenta){
+                selectPrecioVenta.value =   c.precio_venta.toString();
+            }
+        }) 
     }
 
 

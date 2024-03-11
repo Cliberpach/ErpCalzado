@@ -112,7 +112,7 @@
                     className: "text-center"
                 },
                 {
-                    data: 'total',
+                    data: 'total_pagar',
                     className: "text-center"
                 },
 

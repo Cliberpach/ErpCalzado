@@ -42,7 +42,7 @@ class CotizacionController extends Controller
                 'empresa' => $cotizacion->empresa->razon_social,
                 'cliente' => $cotizacion->cliente->nombre,
                 'fecha_documento' => Carbon::parse($cotizacion->fecha_documento)->format( 'd/m/Y'),
-                'total' => $cotizacion->total,
+                'total_pagar' => $cotizacion->total_pagar,
                 'estado' => $cotizacion->estado,
                 'documento' => $cotizacion->documento ? '1' : '0'
             ]);
@@ -72,7 +72,7 @@ class CotizacionController extends Controller
     {
         $data = $request->all();
         $productos = json_decode($request->input('productos_tabla')[0]);
-        
+        dd($data);
         $rules = [
             'empresa' => 'required',
             'cliente' => 'required',
@@ -101,33 +101,40 @@ class CotizacionController extends Controller
         // $total_igv = $total - $sub_total;
 
 
-        //calculando montos
-        $monto_total=0.0;
-        $monto_igv=0.0;
-        $monto_subtotal=0.0;
-            foreach ($productos as $producto) {
-                $monto_total+=($producto->cantidad*$producto->precio_venta);
-            }
+        //======= CALCULANDO MONTOS ========
+        $monto_subtotal     =   0.0;
+        $monto_embalaje     =   $request->get('monto_embalaje')??0;
+        $monto_envio        =   $request->get('monto_envio')??0;
+        $monto_total        =   0.0;
+        $monto_igv          =   0.0;
+        $monto_total_pagar  =   0.0;
 
-        $monto_subtotal= $monto_total/1.18;
+        foreach ($productos as $producto) {
+            $monto_subtotal +=  ($producto->cantidad*$producto->precio_venta);
+        }
 
-        $monto_igv=$monto_total-$monto_subtotal;
+        $monto_total_pagar  =   $monto_subtotal+$monto_embalaje+$monto_envio;
+        $monto_total        =   $monto_total_pagar/1.18;
+        $monto_igv          =   $monto_total_pagar-$monto_total;
         
         
 
         $cotizacion = new Cotizacion();
-        $cotizacion->empresa_id = $request->get('empresa');
-        $cotizacion->cliente_id = $request->get('cliente');
-        $cotizacion->condicion_id = $request->get('condicion_id');
+        $cotizacion->empresa_id         = $request->get('empresa');
+        $cotizacion->cliente_id         = $request->get('cliente');
+        $cotizacion->condicion_id       = $request->get('condicion_id');
         //$cotizacion->vendedor_id = $request->get('vendedor');
-        $cotizacion->vendedor_id    =   $request->get('vendedor');
-        $cotizacion->moneda = 4;
-        $cotizacion->fecha_documento = $request->get('fecha_documento');
-        $cotizacion->fecha_atencion = $request->get('fecha_atencion');
+        $cotizacion->vendedor_id        =   $request->get('vendedor');
+        $cotizacion->moneda             = 4;
+        $cotizacion->fecha_documento    = $request->get('fecha_documento');
+        $cotizacion->fecha_atencion     = $request->get('fecha_atencion');
 
-        $cotizacion->sub_total = $monto_subtotal;
-        $cotizacion->total_igv = $monto_igv;
-        $cotizacion->total = $monto_total;
+        $cotizacion->sub_total          = $monto_subtotal;
+        $cotizacion->monto_embalaje     = $monto_embalaje;
+        $cotizacion->monto_envio        = $monto_envio;
+        $cotizacion->total_igv          = $monto_igv;
+        $cotizacion->total              = $monto_total;
+        $cotizacion->total_pagar        = $monto_total_pagar;  
 
         $cotizacion->user_id = Auth::id();
         //$cotizacion->igv = $request->get('igv');
@@ -184,6 +191,7 @@ class CotizacionController extends Controller
         $modelos = Modelo::where('estado','ACTIVO')->get();
         $tallas = Talla::where('estado','ACTIVO')->get();
 
+
         return view('ventas.cotizaciones.edit', [
             'cotizacion' => $cotizacion,
             'empresas' => $empresas,
@@ -202,7 +210,7 @@ class CotizacionController extends Controller
         $data = $request->all();
         $productos = json_decode($request->input('productos_tabla')[0]);
 
-        //dd($data);
+       
         $rules = [
             'empresa' => 'required',
             'cliente' => 'required',
@@ -230,15 +238,21 @@ class CotizacionController extends Controller
         // $sub_total = $total / (1 + ($igv/100));
         // $total_igv = $total - $sub_total;
 
-         //calculando montos
-         $monto_total=0.0;
-         $monto_igv=0.0;
-         $monto_subtotal=0.0;
-             foreach ($productos as $producto) {
-                 $monto_total+=($producto->cantidad*$producto->precio_venta);
-             }
-             $monto_igv=$monto_total*0.18;
-             $monto_subtotal=$monto_total-$monto_igv;
+        //======= CALCULANDO MONTOS ========
+        $monto_subtotal     =   0.0;
+        $monto_embalaje     =   $request->get('monto_embalaje')??0;
+        $monto_envio        =   $request->get('monto_envio')??0;
+        $monto_total        =   0.0;
+        $monto_igv          =   0.0;
+        $monto_total_pagar  =   0.0;
+  
+        foreach ($productos as $producto) {
+            $monto_subtotal +=  ($producto->cantidad*$producto->precio_venta);
+        }
+  
+        $monto_total_pagar  =   $monto_subtotal+$monto_embalaje+$monto_envio;
+        $monto_total        =   $monto_total_pagar/1.18;
+        $monto_igv          =   $monto_total_pagar-$monto_total;
         
              
         $cotizacion =  Cotizacion::findOrFail($id);
@@ -250,13 +264,16 @@ class CotizacionController extends Controller
         $cotizacion->fecha_documento = $request->get('fecha_documento');
         $cotizacion->fecha_atencion = $request->get('fecha_atencion');
 
-        $cotizacion->sub_total = $monto_subtotal;
-        $cotizacion->total_igv = $monto_igv;
-        $cotizacion->total = $monto_total;
+        $cotizacion->sub_total          = $monto_subtotal;
+        $cotizacion->monto_embalaje     = $monto_embalaje;
+        $cotizacion->monto_envio        = $monto_envio;
+        $cotizacion->total_igv          = $monto_igv;
+        $cotizacion->total              = $monto_total;
+        $cotizacion->total_pagar        = $monto_total_pagar; 
 
         $cotizacion->user_id = Auth::id();
          //$cotizacion->igv = $request->get('igv');
-         $cotizacion->igv = "SI";
+         $cotizacion->igv = "18";
          //if ($request->get('igv_check') == "on") {
             $cotizacion->igv_check = "1";
          //}
