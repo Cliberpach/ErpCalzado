@@ -830,7 +830,6 @@ $(".select2_form").select2({
                         event.target.value = stock_logico;
                         toastr.error(`Cantidad de salida: ${cantidadSolicitada}, debe ser menor o igual
                         al stock : ${stock_logico}`,"Error");
-                        btnAgregarDetalle.disabled  =   false;
                 }else{
                         event.target.classList.add('inputCantidadValido');
                         event.target.classList.remove('inputCantidadIncorrecto');
@@ -838,12 +837,12 @@ $(".select2_form").select2({
             }else{
                 event.target.classList.remove('inputCantidadIncorrecto');
                 event.target.classList.remove('inputCantidadValido');
-                btnAgregarDetalle.disabled  =   false;
             }   
         } catch (error) {
             toastr.error(`El producto no cuenta con registros en esa talla`,"Error");
             event.target.value='';
             console.error('Error al obtener stock logico:', error);
+        }finally{
             btnAgregarDetalle.disabled  =   false;
         }
     }
