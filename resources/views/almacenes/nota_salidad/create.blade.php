@@ -35,6 +35,7 @@
                 <div class="ibox-content">
                     <input type="hidden" id='asegurarCierre' >
                     <form action="{{route('almacenes.nota_salidad.store')}}" method="POST" id="enviar_nota_salida">
+                        <input type="hidden" id="notadetalle_tabla" name="notadetalle_tabla[]">
                         {{csrf_field()}}
 
 
@@ -93,7 +94,7 @@
                             </div>
 
 
-                            <input type="hidden" id="notadetalle_tabla" name="notadetalle_tabla[]">
+                          
 
                         <hr>
                         <div class="row">
@@ -213,7 +214,7 @@
                                     class="btn btn-w-m btn-default">
                                     <i class="fa fa-arrow-left"></i> Regresar
                                 </a>
-                                <button type="submit" id="btn_grabar" class="btn btn-w-m btn-primary">
+                                <button type="submit" id="btn_grabar" class="btn btn-w-m btn-primary" form="enviar_nota_salida">
                                     <i class="fa fa-save"></i> Grabar
                                 </button>
                             </div>
@@ -224,7 +225,7 @@
         </div>
 
     </div>
-
+   
 </div>
 @include('almacenes.nota_salidad.modal')
 @include('almacenes.nota_salidad.modalLote')
@@ -269,50 +270,50 @@ $(".select2_form").select2({
 });
 
 
-$('#enviar_nota_salida').submit(function(e) {
-    e.preventDefault();
-    let correcto = true;
-    cargarDetalle();
-    let detalles = JSON.parse($('#notadetalle_tabla').val());
-    if (detalles.length < 1) {
-        correcto = false;
-        toastr.error('El documento debe tener almenos un producto de salida.');
-    }
-    console.log(detalles.length);
-    if (correcto) {
-        const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                confirmButton: 'btn btn-success',
-                cancelButton: 'btn btn-danger',
-            },
-            buttonsStyling: false
-        })
+// $('#enviar_nota_salida').submit(function(e) {
+//     e.preventDefault();
+//     let correcto = true;
+//     cargarDetalle();
+//     let detalles = JSON.parse($('#notadetalle_tabla').val());
+//     if (detalles.length < 1) {
+//         correcto = false;
+//         toastr.error('El documento debe tener almenos un producto de salida.');
+//     }
+//     console.log(detalles.length);
+//     if (correcto) {
+//         const swalWithBootstrapButtons = Swal.mixin({
+//             customClass: {
+//                 confirmButton: 'btn btn-success',
+//                 cancelButton: 'btn btn-danger',
+//             },
+//             buttonsStyling: false
+//         })
 
-        Swal.fire({
-            title: 'Opción Guardar',
-            text: "¿Seguro que desea guardar cambios?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: "#1ab394",
-            confirmButtonText: 'Si, Confirmar',
-            cancelButtonText: "No, Cancelar",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                //HABILITAR EL CARGAR PAGINA
-                $('#asegurarCierre').val(2)
-                this.submit();
-            } else if (
-                result.dismiss === Swal.DismissReason.cancel
-            ) {
-                swalWithBootstrapButtons.fire(
-                    'Cancelado',
-                    'La Solicitud se ha cancelado.',
-                    'error'
-                )
-            }
-        })
-    }
-})
+//         Swal.fire({
+//             title: 'Opción Guardar',
+//             text: "¿Seguro que desea guardar cambios?",
+//             icon: 'question',
+//             showCancelButton: true,
+//             confirmButtonColor: "#1ab394",
+//             confirmButtonText: 'Si, Confirmar',
+//             cancelButtonText: "No, Cancelar",
+//         }).then((result) => {
+//             if (result.isConfirmed) {
+//                 //HABILITAR EL CARGAR PAGINA
+//                 $('#asegurarCierre').val(2)
+//                 this.submit();
+//             } else if (
+//                 result.dismiss === Swal.DismissReason.cancel
+//             ) {
+//                 swalWithBootstrapButtons.fire(
+//                     'Cancelado',
+//                     'La Solicitud se ha cancelado.',
+//                     'error'
+//                 )
+//             }
+//         })
+//     }
+// })
 
 
 // $(document).ready(function() {
@@ -643,7 +644,11 @@ $('#enviar_nota_salida').submit(function(e) {
     const tableStocksBody       =   document.querySelector('#table-stocks-notasalida tbody');   
     const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
     const  bodyTablaDetalle = document.querySelector('#table-detalle-notasalida tbody');
-    const detallesSalida=[];
+    let detallesSalida=[];
+    let formNotaSalida= document.querySelector('#enviar_nota_salida');//boton que hace de formulario para enviar los registros salida
+    const btnGrabar =document.querySelector('#btn_grabar');// boton que guardar los registros de salida
+    const inputProductos=document.querySelector('#notadetalle_tabla');
+   // let inputProductos= document.querySelector('#');
     let modelo_id   =   null;
 
     document.addEventListener('DOMContentLoaded', ()=>{
@@ -651,18 +656,68 @@ $('#enviar_nota_salida').submit(function(e) {
     })
 
     function events(){
-
+        
+        //Agrega los datos que son de salida
         btnAgregarDetalle.addEventListener('click',()=>{
             let inputsCantidad=document.querySelectorAll('.inputCantidad');
             inputsCantidad.forEach((ic)=>{
-                let producto =formarProducto(ic);
-                detallesSalida.push(producto);
+                const cantidad= ic.value?ic.value:0;
+                if(cantidad != 0){
+                    const producto= formarProducto(ic);
+                    const indiceExiste= detallesSalida.findIndex((p)=>{
+                        return p.producto_id==producto.producto_id && p.color_id==producto.color_id && p.talla_id==producto.talla_id
+                    })
+                    if(indiceExiste == -1){
+                        detallesSalida.push(producto);
+                    }else{
+                        const productoModificar= detallesSalida[indiceExiste];
+                        productoModificar.cantidad= producto.cantidad;
+                        detallesSalida[indiceExiste]= productoModificar;
+                    }
+                }else{
+                    const producto= formarProducto(ic);
+                    const indiceExiste= detallesSalida.findIndex((p)=>{
+                        return p.producto_id ==producto.producto_id && p.color_id == producto.color_id && p.talla_id == producto.talla_id})
+                    if(indiceExiste !== -1){
+                        detallesSalida.splice(indiceExiste,1);
+                    }
+                }
+                // let producto =formarProducto(ic);
+                // detallesSalida.push(producto);
             })
 
+            reordenarDetallesSalida();
             pintarDetallesSalida(detallesSalida);
         })
         /////////////
+        document.addEventListener('click',(e)=>{
+            if(e.target.classList.contains('delete-product')){
+                const productoId = e.target.getAttribute('data-producto');
+                const colorId = e.target.getAttribute('data-color');
+                eliminarProducto(productoId,colorId);
+                pintarDetallesSalida(detallesSalida);
+            }
+        })
 
+         //============ EVENTO ENVIAR FORMULARIO =============
+         formNotaSalida.addEventListener('submit',(e)=>{
+            e.preventDefault();
+            btnGrabar.disabled=true;
+            console.log(detallesSalida);
+            if(detallesSalida.length>0){
+                inputProductos.value=JSON.stringify(detallesSalida);
+                console.log(inputProductos);
+                const formData = new FormData(formNotaSalida);
+                formData.forEach((valor, clave) => {
+                    console.log(`${clave}: ${valor}`);
+                });
+                formNotaSalida.submit();
+            }else{
+                toastr.error('El detalle de la nota de ingreso está vacío!!!')
+                btnGrabar.disabled = false;
+            }
+           
+        })
 
         //======= validar el contenido input cantidad =======
         document.addEventListener('input',(e)=>{
@@ -675,12 +730,24 @@ $('#enviar_nota_salida').submit(function(e) {
 
     }
 
+       //============ REORDENAR CARRITO ===============
+       const reordenarDetallesSalida= ()=>{
+        detallesSalida.sort(function(a, b) {
+            if (a.producto_id === b.producto_id) {
+                return a.color_id - b.color_id;
+            } else {
+                return a.producto_id - b.producto_id;
+            }
+        });
+    }
+
 
     function pintarDetallesSalida(detallesSalida){
         let fila=``;
         let htmlTallas=``;
         const producto_color_procesado=[];
         cleanDetailsSale();
+
         detallesSalida.forEach((c)=>{
             htmlTallas=``;
             if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
@@ -709,6 +776,16 @@ $('#enviar_nota_salida').submit(function(e) {
             }
         })
     }
+
+      //========= FUNCIÓN ELIMINAR PRODUCTO DEL CARRITO =============
+   const eliminarProducto= (productoId,colorId)=>{
+    console.log(detallesSalida);
+    detallesSalida= detallesSalida.filter((p)=>{
+        return !(p.producto_id == productoId && p.color_id == colorId);
+    }
+
+    )
+   }
 
 
     // LIMPIAR TABLA DETALLE SALIDA
@@ -808,7 +885,7 @@ $('#enviar_nota_salida').submit(function(e) {
      //========= PINTAR TABLA STOCKS ==========
      const pintarTableStocks = (stocks,tallas,producto_colores)=>{
         let options =``;
-
+console.log(stocks);
         producto_colores.forEach((pc)=>{
             options+=`  <tr>
                             <th scope="row"  data-color=${pc.color_id} >
@@ -820,9 +897,9 @@ $('#enviar_nota_salida').submit(function(e) {
                         `;
 
             let htmlTallas = ``;
-
+           
             tallas.forEach((t)=>{
-                const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id)[0]?.stock_logico || 0;
+                const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id)[0]?.stock || 0;
                 
                 htmlTallas +=   `
                                     <td style="background-color: rgb(210, 242, 242);">${stock}</td>
@@ -834,7 +911,8 @@ $('#enviar_nota_salida').submit(function(e) {
                                             data-producto-nombre="${pc.producto_nombre}"
                                             data-color-nombre="${pc.color_nombre}"
                                             data-talla-nombre="${t.descripcion}"
-                                            data-color-id="${pc.color_id}" data-talla-id="${t.id}"></input>    
+                                            data-color-id="${pc.color_id}" data-talla-id="${t.id}"
+                                            data-lote-id="${t.id}"></input>    
                                         ` : ''}
                                     </td>
                                 `;   

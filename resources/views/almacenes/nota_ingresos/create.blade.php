@@ -670,6 +670,7 @@
     const bodyTablaDetalle  =  document.querySelector('#table-detalle tbody');
     const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle');
     const inputProductos=document.querySelector('#notadetalle_tabla');
+   
     const formNotaIngreso= document.querySelector('#enviar_ingresos');
     const btnGrabar     =   document.querySelector('#btn_grabar');
 
@@ -731,7 +732,7 @@
         formNotaIngreso.addEventListener('submit',(e)=>{
             e.preventDefault();
             btnGrabar.disabled=true;
-
+            console.log(inputProductos);
             if(carrito.length>0){
                 inputProductos.value=JSON.stringify(carrito);
                 const formData = new FormData(formNotaIngreso);
@@ -739,6 +740,7 @@
                     console.log(`${clave}: ${valor}`);
                 });
                 formNotaIngreso.submit();
+                console.log(inputProductos);
             }else{
                 toastr.error('El detalle de la nota de ingreso está vacío!!!')
                 btnGrabar.disabled = false;
@@ -756,6 +758,7 @@
 
     //========= FUNCIÓN ELIMINAR PRODUCTO DEL CARRITO =============
     const eliminarProducto = (productoId,colorId)=>{
+        console.log(carrito);
         carrito = carrito.filter((p)=>{
             return !(p.producto_id == productoId && p.color_id == colorId);
         })

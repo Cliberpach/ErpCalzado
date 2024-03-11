@@ -40,7 +40,7 @@ class DetalleNotaIngreso extends Model
     public function loteProducto()
     {
         return $this->belongsTo('App\Almacenes\LoteProducto', 'lote_id');
-    }
+    } 
 
      protected static function booted()
      {
@@ -181,5 +181,9 @@ class DetalleNotaIngreso extends Model
     //         $kardex->stock = $detalle->producto->stock;
     //         $kardex->save();
     //     });
-     }
+    }
+
+
+
+
 }

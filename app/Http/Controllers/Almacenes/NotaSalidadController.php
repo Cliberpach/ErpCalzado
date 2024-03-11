@@ -41,7 +41,8 @@ class NotaSalidadController extends Controller
     public function gettable()
     {
         $data = DB::table("nota_salidad as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
-        $detalles = DB::select('select distinct p.nombre as producto_nombre,ni.id as nota_ingreso_id 
+        $detalles = DB::select(
+        'select distinct p.nombre as producto_nombre,ni.id as nota_ingreso_id ,ni.destino
         from nota_salidad as ni 
         inner join detalle_nota_salidad  as dni
         on ni.id=dni.nota_salidad_id 
@@ -132,7 +133,15 @@ class NotaSalidadController extends Controller
      */
     public function store(Request $request)
     {
+        
         $this->authorize('haveaccess','nota_salida.index');
+       $fecha_hoy= Carbon::now()->toDateString();
+       $fecha=Carbon::createFromFormat('Y-m-d',$fecha_hoy);
+       $fecha = str_replace("-", "", $fecha);
+       $fecha = str_replace(" ", "", $fecha);
+       $fecha = str_replace(":", "", $fecha);
+       $destino= Almacen::find($request->destino);
+    
         $data = $request->all();
 
         $rules = [
@@ -153,9 +162,9 @@ class NotaSalidadController extends Controller
         Validator::make($data, $rules, $message)->validate();
 
         $notasalidad=new NotaSalidad();
-        $notasalidad->numero=$request->get('numero');
-        $notasalidad->fecha=$request->get('fecha');
-        $destino=DB::table('tabladetalles')->where('id',$request->destino)->first();
+        $notasalidad->numero=$request->numero;
+        $notasalidad->fecha=$request->fecha;
+        // $destino=DB::table('tabladetalles')->where('id',$request->destino)->first();
         $notasalidad->destino=$destino->descripcion;
         $notasalidad->origen=$request->origen;
         $notasalidad->observacion=$request->observacion;
@@ -164,15 +173,18 @@ class NotaSalidadController extends Controller
 
         $articulosJSON = $request->get('notadetalle_tabla');
         $notatabla = json_decode($articulosJSON[0]);
-
+     
         foreach ($notatabla as $fila) {
            DetalleNotaSalidad::create([
                 'nota_salidad_id' => $notasalidad->id,
-                'lote_id' => $fila->lote_id,
+                // 'lote_id' => $fila->lote_id,
+                'color_id' => $fila->color_id,
+                'talla_id' => $fila->talla_id,
                 'cantidad' => $fila->cantidad,
                 'producto_id'=> $fila->producto_id,
             ]);
         }
+      
         $descripcion = "SE AGREGÓ LA NOTA DE SALIDAD";
         $gestion = "ALMACEN / NOTA SALIDAD";
         crearRegistro($notasalidad, $descripcion , $gestion);
@@ -325,11 +337,13 @@ class NotaSalidadController extends Controller
                 $lote_producto->cantidad_logica = $lote_producto->cantidad + $cantidadmovimiento;
                 $lote_producto->update();
 
-                MovimientoNota::where('lote_id',$fila->lote_id)->where('producto_id',$fila->producto_id)->where('nota_id',$id)->where('movimiento','SALIDA')->delete();
+                // MovimientoNota::where('lote_id',$fila->lote_id)->where('producto_id',$fila->producto_id)->where('nota_id',$id)->where('movimiento','SALIDA')->delete();
 
                 DetalleNotaSalidad::create([
                     'nota_salidad_id' => $id,
-                    'lote_id' => $fila->lote_id,
+                    'color_id' => $fila->color_id,
+                    'talla_id' => $fila->talla_id,
+                    // 'lote_id' => $fila->lote_id,
                     'cantidad' => $fila->cantidad,
                     'producto_id'=> $fila->producto_id,
                 ]);

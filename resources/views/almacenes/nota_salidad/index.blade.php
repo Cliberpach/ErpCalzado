@@ -35,6 +35,7 @@
                                     <th class="text-center">#</th>
                                     <th class="text-center">Usuario</th>
                                     <th class="text-center">Fecha Registro</th>
+                                    <th class="text-center">Destino</th>
                                     <th class="text-center">Producto</th>
                                     <th class="text-center">ACCIONES</th>
                                 </tr>
@@ -97,11 +98,13 @@ $(document).ready(function() {
         "columns": [
             //ingreso_mercaderia INTERNA
             //{ data: 'id',className: "text-center"},
-            
+             
             { data: 'id',className: "text-center"},
-            { data: 'created_at',className: "text-center"},
             { data: 'usuario',className: "text-center"},
-            { data: 'nombre',className: "text-center"},
+            { data: 'created_at',className: "text-center"},
+            { data: 'destino',className: "text-center"},
+           
+            { data: 'cadena_detalles',className: "text-center"},
             {
                 data: null,
                 className: "text-center",
