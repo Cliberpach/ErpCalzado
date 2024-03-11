@@ -302,30 +302,54 @@
                         $cantidadTotal=0;
                     @endphp
                     @foreach($detalles as $item)
-                    <tr>
-                        <td style="text-align: right; border-right: 2px solid #52BE80">{{ $item['cantidad_total'] }}</td>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">{{ $item['producto_codigo'].' - '.$item['modelo_nombre'].' - '.$item['producto_nombre'].' - '.$item['color_nombre'] }}</td>
-                        @php
-                            $tallas = $item['tallas'];
-                            $descripcion = '';
-                            $subtotal = 0;
-                        @endphp
-                        @foreach ($tallas as $talla)
-                             @php
-                                $descripcion .= '[' . $talla['talla_nombre'] . '/' . intval($talla['cantidad']) . ']';
-                                $subtotal+=$subtotal+(intval($talla['cantidad'])*$item['precio_unitario']);
-                             @endphp  
-                        @endforeach
+                        <tr>
+                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ $item['cantidad_total'] }}</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">{{ $item['producto_codigo'].' - '.$item['modelo_nombre'].' - '.$item['producto_nombre'].' - '.$item['color_nombre'] }}</td>
+                            @php
+                                $tallas = $item['tallas'];
+                                $descripcion = '';
+                                $subtotal = 0;
+                            @endphp
+                            @foreach ($tallas as $talla)
+                                @php
+                                    $descripcion .= '[' . $talla['talla_nombre'] . '/' . intval($talla['cantidad']) . ']';
+                                    $subtotal+=$subtotal+(intval($talla['cantidad'])*$item['precio_unitario']);
+                                @endphp  
+                            @endforeach
 
-                        <td style="text-align: center; border-right: 2px solid #52BE80">{{ $descripcion }}</td>
-                        <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['precio_unitario'], 2, ',', '.') }}</td>
-                        <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['subtotal'], 2, ',', '.') }}</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">{{ $descripcion }}</td>
+                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['precio_unitario'], 2, ',', '.') }}</td>
+                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['subtotal'], 2, ',', '.') }}</td>
 
-                        @php
-                            $cantidadTotal+=$item['cantidad_total'];
-                        @endphp
-                    </tr>
+                            @php
+                                $cantidadTotal+=$item['cantidad_total'];
+                            @endphp
+                        </tr>
                     @endforeach
+                    @if($cotizacion->monto_embalaje!=0)
+                        @php
+                            $cantidadTotal+=1;
+                        @endphp
+                        <tr>
+                            <td style="text-align: right; border-right: 2px solid #52BE80">1</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">EMBALAJE</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">-</td>
+                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($cotizacion->monto_embalaje, 2, ',', '.') }}</td>
+                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($cotizacion->monto_embalaje, 2, ',', '.') }}</td>
+                        </tr>
+                    @endif
+                    @if($cotizacion->monto_envio!=0)
+                        @php
+                            $cantidadTotal+=1;
+                        @endphp
+                        <tr>
+                            <td style="text-align: right; border-right: 2px solid #52BE80">1</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">ENVÍO</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">-</td>
+                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($cotizacion->monto_envio, 2, ',', '.') }}</td>
+                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($cotizacion->monto_envio, 2, ',', '.') }}</td>
+                        </tr>
+                    @endif
                 </tbody>
                 <tfoot>
                     <tr>
@@ -334,9 +358,8 @@
                         <td></td>
                         <td></td>
                         <td ></td>
-                        <!-- Celdas para mostrar el total de "cantidad_total" y "subtotal" -->
                        
-                        <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($cotizacion->total, 2) }}</td>
+                        <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($cotizacion->total_pagar, 2) }}</td>
                       
                     </tr>
                 </tfoot>
