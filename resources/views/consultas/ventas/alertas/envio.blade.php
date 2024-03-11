@@ -257,13 +257,14 @@ function loadTable()
                     let cadena = "";
 
                     var dias = data.dias > 4 ? 0 : 4 - data.dias;
-                
-
                     cadena = cadena + `
-                         <button type='button' class='btn btn-sm btn-danger m-1' onclick='anularVenta(${data.id})'
-                            title='ANULAR'>
-                            <i class='fa fa-times'></i> ANULAR
-                        </button>`;
+                        `;
+
+                    // cadena = cadena + `
+                    //      <button type='button' class='btn btn-sm btn-danger m-1' onclick='anularVenta(${data.id})'
+                    //         title='ANULAR'>
+                    //         <i class='fa fa-times'></i> ANULAR
+                    //     </button>`;
 
                     if(data.code != '1033' && dias > 0)
                     {

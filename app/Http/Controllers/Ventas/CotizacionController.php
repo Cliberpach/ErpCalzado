@@ -299,7 +299,7 @@ class CotizacionController extends Controller
         }
 
         //Registro de actividad
-        $descripcion = "SE MODIFICÓ LA COTIZACION CON LA FECHA: ". Carbon::parse($cotizacion->fecha_documento)->format('d/m/y');;
+        $descripcion = "SE MODIFICÓ LA COTIZACION CON LA FECHA: ". Carbon::parse($cotizacion->fecha_documento)->format('d/m/y');
         $gestion = "COTIZACION";
         modificarRegistro($cotizacion, $descripcion , $gestion);
 
