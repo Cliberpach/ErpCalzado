@@ -307,9 +307,15 @@
                             <input type="hidden" name="igv" id="igv" value="18">
                         @endif
 
+
                         <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
-                        <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
+                        <input type="hidden" name="monto_embalaje" id="monto_embalaje" value="{{ old('monto_embalaje') }}">
+                        <input type="hidden" name="monto_envio" id="monto_envio" value="{{ old('monto_envio') }}">
                         <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}">
+                        <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
+                        <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ old('monto_total_pagar') }}">
+
+                        
                         <input type="hidden" name="cot_doc" id="cot_doc" value="SI">
 
 
@@ -519,25 +525,45 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
 <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
+
 <script>
     let   carrito           =   @json($detalle);
     const tallas            =   @json($tallas);
     const cotizacion        =   @json($cotizacion);
-    const erroresJS         =   @json($errores);           
+    const erroresJS         =   @json($errores);  
+
     const tableDetalleBody  =   document.querySelector('#table-detalle tbody');
     const tableDetalleFoot  =   document.querySelector('#table-detalle tfoot');
+
     const tableSubtotal     =   document.querySelector('.subtotal');
     const tableTotal        =   document.querySelector('.total');
     const tableIgv          =   document.querySelector('.igv');
-    const formDocumento         =   document.querySelector('#enviar_documento');
+
+    const inputSubTotal         =   document.querySelector('#monto_sub_total');
+    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
+    const inputEnvio            =   document.querySelector('#monto_envio');
+    const inputTotal            =   document.querySelector('#monto_total');
+    const inputIgv              =   document.querySelector('#monto_total_igv');
+    const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
+
+    const tfootSubtotal         =   document.querySelector('.subtotal');
+    const tfootEmbalaje         =   document.querySelector('.embalaje');
+    const tfootEnvio            =   document.querySelector('.envio');
+    const tfootTotal            =   document.querySelector('.total');
+    const tfootIgv              =   document.querySelector('.igv');
+    const tfootTotalPagar       =   document.querySelector('.total-pagar');
+
+    const formDocumento     =   document.querySelector('#enviar_documento');
     const btnRegresar       =   document.querySelector('#btn_cancelar');
     const btnGrabar         =   document.querySelector('#btn_grabar');
+
     let clientes_global;
     let carritoFormateado   =   [];
     let asegurarCierre      =   1;
 
     document.addEventListener('DOMContentLoaded',()=>{
-        console.log(carrito);
+        //console.log(carrito);
         
         formataearCarrito();
         getClientes();
@@ -548,7 +574,7 @@
         pintarDetalleCotizacion(carrito);
         pintarMontos();
         events();
-        console.log(carritoFormateado);
+        //console.log(carritoFormateado);
     })
 
 
@@ -565,12 +591,15 @@
             cargarProductos();
             let correcto = validarCampos();
 
-            document.querySelector('#monto_sub_total').value    =   tableDetalleFoot.querySelector('.subtotal').textContent;   
-            document.querySelector('#monto_total_igv').value    =   tableDetalleFoot.querySelector('.igv').textContent;   
-            document.querySelector('#monto_total').value        =   tableDetalleFoot.querySelector('.total').textContent;   
+            inputSubTotal.value     =   tfootSubtotal.textContent;   
+            inputEmbalaje.value     =   tfootEmbalaje.value;
+            inputEnvio.value        =   tfootEnvio.value;  
+            inputTotal.value        =   tfootTotal.textContent;
+            inputIgv.value          =   tfootIgv.textContent;
+            inputTotalPagar.value   =   tfootTotalPagar.textContent;
 
             if (correcto) {
-                let total = $('#monto_total').val();
+                let total = $('#monto_total_pagar').val();
                 $('#monto_venta').val(total);
                 $('#importe_venta').val(total);
                 let condicion_id = $('#condicion_id').val();
@@ -670,10 +699,7 @@
 
                 if (tipo) {
                     cargarProductos();
-                    //CARGAR DATOS TOTAL
-                    document.querySelector('#monto_sub_total').value    =   tableDetalleFoot.querySelector('.subtotal').textContent;   
-                    document.querySelector('#monto_total_igv').value    =   tableDetalleFoot.querySelector('.igv').textContent;   
-                    document.querySelector('#monto_total').value        =   tableDetalleFoot.querySelector('.total').textContent;   
+                    
 
                     document.getElementById("moneda").disabled = false;
                     document.getElementById("observacion").disabled = false;
@@ -960,9 +986,12 @@
 
     //=================== PINTAR MONTOS ==============
     const pintarMontos = ()=>{
-        tableSubtotal.textContent   =   cotizacion.sub_total;
-        tableTotal.textContent      =   cotizacion.total;
-        tableIgv.textContent        =   cotizacion.total_igv;
+        tfootSubtotal.textContent   =   cotizacion.sub_total;
+        tfootEmbalaje.value         =   cotizacion.monto_embalaje;
+        tfootEnvio.value            =   cotizacion.monto_envio;      
+        tfootTotal.textContent      =   cotizacion.total;
+        tfootIgv.textContent        =   cotizacion.total_igv;
+        tfootTotalPagar.textContent =   cotizacion.total_pagar;
     }
 
     //================== REORDENAR CARRITO ==================

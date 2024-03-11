@@ -185,11 +185,14 @@
                                         <input type="hidden" id="productos_tabla" name="productos_tabla[]">
                                     </div>
                                 </div>
-                                <input type="hidden" name="monto_sub_total" id="monto_sub_total"
-                                    value="{{ old('monto_sub_total',$cotizacion->sub_total) }}">
-                                <input type="hidden" name="monto_igv" id="monto_igv"
-                                    value="{{ old('monto_igv',$cotizacion->total_igv) }}">
-                                <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total',$cotizacion->total) }}">
+
+                                <input type="hidden" name="monto_sub_total" id="monto_sub_total"    value="{{$cotizacion->sub_total}}">
+                                <input type="hidden" name="monto_embalaje" id="monto_embalaje"      value="{{$cotizacion->monto_embalaje}}">
+                                <input type="hidden" name="monto_envio" id="monto_envio"            value="{{$cotizacion->monto_envio}}">
+                                <input type="hidden" name="monto_total_igv" id="monto_total_igv"                value="{{$cotizacion->total_igv}}">
+                                <input type="hidden" name="monto_total" id="monto_total"            value="{{$cotizacion->total}}">
+                                <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{$cotizacion->total_pagar}}">
+
                             </form>
                         </div>
                     </div>
@@ -1075,21 +1078,30 @@
 
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <script>
-    const selectModelo =  document.querySelector('#modelo');
-    const tableStocksBody  =  document.querySelector('#table-stocks tbody');
-    const tableDetalleBody = document.querySelector('#table-detalle tbody');
-    const tokenValue = document.querySelector('input[name="_token"]').value;
-    const btnAgregarDetalle = document.querySelector('#btn_agregar');
-    const formCotizacion= document.querySelector('#form-cotizacion');
-    const tfootTotal=document.querySelector('.total');
-    const tfootIgv=document.querySelector('.igv');
-    const tfootSubtotal=document.querySelector('.subtotal');
-    const inputSubTotal= document.querySelector('#monto_sub_total');
-    const inputIgv=document.querySelector('#monto_igv');
-    const inputTotal=document.querySelector('#monto_total');
-    const inputProductos=document.querySelector('#productos_tabla');
-    const tallas     = @json($tallas);
-    const productosPrevios = @json($detalles);
+    const selectModelo          =   document.querySelector('#modelo');
+    const tableStocksBody       =   document.querySelector('#table-stocks tbody');
+    const tableDetalleBody      =   document.querySelector('#table-detalle tbody');
+    const tokenValue            =   document.querySelector('input[name="_token"]').value;
+    const btnAgregarDetalle     =   document.querySelector('#btn_agregar');
+    const formCotizacion        =   document.querySelector('#form-cotizacion');
+
+    const tfootSubtotal         =   document.querySelector('.subtotal');
+    const tfootEmbalaje         =   document.querySelector('.embalaje');
+    const tfootEnvio            =   document.querySelector('.envio');
+    const tfootTotal            =   document.querySelector('.total');
+    const tfootIgv              =   document.querySelector('.igv');
+    const tfootTotalPagar       =   document.querySelector('.total-pagar');
+    
+    const inputSubTotal         =   document.querySelector('#monto_sub_total');
+    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
+    const inputEnvio            =   document.querySelector('#monto_envio');
+    const inputTotal            =   document.querySelector('#monto_total');
+    const inputIgv              =   document.querySelector('#monto_total_igv');
+    const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
+
+    const inputProductos        =   document.querySelector('#productos_tabla');
+    const tallas                =   @json($tallas);
+    const productosPrevios      =   @json($detalles);
 
     let modelo_id   = null;
     let carrito     = [];
@@ -1106,6 +1118,22 @@
         document.addEventListener('input',(e)=>{
             if(e.target.classList.contains('inputCantidad')){
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
+            }
+
+            if (e.target.classList.contains('embalaje') || e.target.classList.contains('envio')) {
+                // Eliminar ceros a la izquierda, excepto si es el único carácter en el campo o si es seguido por un punto decimal y al menos un dígito
+                e.target.value = e.target.value.replace(/^0+(?=\d)|(?<=\D)0+(?=\d)|(?<=\d)0+(?=\.)|^0+(?=[1-9])/g, '');
+
+                // Evitar que el primer carácter sea un punto
+                e.target.value = e.target.value.replace(/^(\.)/, '');
+
+                // Reemplazar todo excepto los dígitos y el punto decimal
+                e.target.value = e.target.value.replace(/[^\d.]/g, '');
+
+                // Reemplazar múltiples puntos decimales con uno solo
+                e.target.value = e.target.value.replace(/(\..*)\./g, '$1');
+
+                calcularMontos();
             }
         })
 
@@ -1229,7 +1257,7 @@
                 talla_id:productoPrevio.talla_id,
                 talla_nombre:productoPrevio.talla.descripcion,
                 cantidad: parseInt(productoPrevio.cantidad),
-                precio_venta:parseFloat(productoPrevio.precio_unitario)
+                precio_venta:productoPrevio.precio_unitario
             }
             carrito.push(producto);
         })
@@ -1237,32 +1265,43 @@
         calcularSubTotal();
         //cargando tabla detalle
         pintarDetalleCotizacion(carrito);
+        //cargando embalaje y envío previo
+        cargarEmbalajeEnvioPrevios();
         //pintando montos
         calcularMontos();
     }
 
-    const calcularMontos = ()=>{
+     //=========== calcular montos =======
+     const calcularMontos = ()=>{
         const subtotales= document.querySelectorAll('.td-subtotal');
-        let total=0;
-        let igv=0;
-        let subtotal=0;
+        let subtotal    =   0;
+        let embalaje    =   tfootEmbalaje.value?parseFloat(tfootEmbalaje.value):0;
+        let envio       =   tfootEnvio.value?parseFloat(tfootEnvio.value):0;
+        let total       =   0;
+        let igv         =   0;
+        let total_pagar =   0;
         
-        subtotales.forEach((subtotal)=>{
-            total+=parseFloat(subtotal.textContent);
+        //====== subtotal es la suma de todos los productos ======
+        subtotales.forEach((st)=>{
+            subtotal    +=  parseFloat(st.textContent);
         })
-        
-        igv = 0.18*total;
-        subtotal = total-igv;
-        tfootTotal.textContent='S/. ' + total.toFixed(2);
-        tfootIgv.textContent='S/. ' + igv.toFixed(2);
-        tfootSubtotal.textContent='S/. ' + subtotal.toFixed(2);
-        
-        inputTotal.value = total.toFixed(2);
-        inputIgv.value = igv.toFixed(2);
-        inputSubTotal.value=subtotal.toFixed(2);
-    }
 
-    
+        total_pagar =   subtotal + embalaje + envio;
+        total       =   total_pagar/1.18;
+        igv         =   total_pagar - total;
+       
+        tfootTotalPagar.textContent =   'S/. ' + total_pagar.toFixed(2);
+        tfootIgv.textContent        =   'S/. ' + igv.toFixed(2);
+        tfootTotal.textContent      =   'S/. ' + total.toFixed(2);
+        tfootSubtotal.textContent   =   'S/. ' + subtotal.toFixed(2);
+        
+        inputTotalPagar.value       =   total_pagar.toFixed(2);
+        inputIgv.value              =   igv.toFixed(2);
+        inputTotal.value            =   total.toFixed(2);
+        inputEmbalaje.value         =   embalaje.toFixed(2);
+        inputEnvio.value            =   envio.toFixed(2);
+        inputSubTotal.value         =   subtotal.toFixed(2);
+    }
 
     const eliminarProducto = (productoId,colorId)=>{
         carrito = carrito.filter((p)=>{
@@ -1384,6 +1423,7 @@
                     console.log(data.stocks);
                     console.log(data.producto_colores);
                     pintarTableStocks(data.stocks,tallas,data.producto_colores);
+                    loadCantidadesPrevias();
                 })
 
                 .catch(error => console.error('Error:', error));
@@ -1408,19 +1448,16 @@
             tallas.forEach((t)=>{
                 const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id)[0]?.stock || 0;
 
-                let cantidadPrevia = (carrito.filter((producto) => producto.producto_id == pc.producto_id && producto.color_id == pc.color_id && producto.talla_id == t.id)[0]?.cantidad) || '';
-
-
                 htmlTallas +=   `
-                                    <td>${stock}</td>
+                                    <td style="background-color: rgb(210, 242, 242);">${stock}</td>
                                     <td width="8%">
                                         <input style="width: 45px;" type="text" class="form-control inputCantidad" 
+                                        id="inputCantidad_${pc.producto_id}_${pc.color_id}_${t.id}" 
                                         data-producto-id="${pc.producto_id}"
                                         data-producto-nombre="${pc.producto_nombre}"
                                         data-color-nombre="${pc.color_nombre}"
                                         data-talla-nombre="${t.descripcion}"
-                                        data-color-id="${pc.color_id}" data-talla-id="${t.id}"
-                                        value=${cantidadPrevia}></input>    
+                                        data-color-id="${pc.color_id}" data-talla-id="${t.id}"></input>    
                                     </td>
                                 `;   
             })
@@ -1434,6 +1471,7 @@
                             <option>${pc.precio_venta_3}</option>    
                         </select>
                     </td>`;
+
             }else{
                 htmlTallas+=`<td></td>`;
             }
@@ -1444,5 +1482,30 @@
         tableStocksBody.innerHTML = options;
         btnAgregarDetalle.disabled = false;
     }
+
+    //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
+    function loadCantidadesPrevias(){
+        carrito.forEach((c)=>{
+            const inputLoad = document.querySelector(`#inputCantidad_${c.producto_id}_${c.color_id}_${c.talla_id}`);
+            if(inputLoad){
+                inputLoad.value = c.cantidad;
+            }
+
+            //==== ubicando precios venta seleccionados ======
+            const selectPrecioVenta =   document.querySelector(`#precio-venta-${c.producto_id}`);
+            if(selectPrecioVenta){
+                selectPrecioVenta.value =   c.precio_venta;
+            }
+        }) 
+    }
+
+   function cargarEmbalajeEnvioPrevios(){
+        const precioEmbalaje    =   inputEmbalaje.value;
+        const precioEnvio       =   inputEnvio.value;
+
+        tfootEmbalaje.value     =   precioEmbalaje;
+        tfootEnvio.value        =   precioEnvio;
+   }
+
 </script>
 @endpush

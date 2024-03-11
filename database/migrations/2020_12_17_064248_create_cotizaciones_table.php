@@ -27,8 +27,12 @@ class CreateCotizacionesTable extends Migration
             $table->date('fecha_atencion')->nullable();
 
             $table->unsignedDecimal('sub_total', 15, 2);
-            $table->unsignedDecimal('total_igv', 15, 2);
+            $table->unsignedDecimal('monto_embalaje', 15, 2);
+            $table->unsignedDecimal('monto_envio', 15, 2);
             $table->unsignedDecimal('total', 15, 2);
+            $table->unsignedDecimal('total_igv', 15, 2);
+            $table->unsignedDecimal('total_pagar', 15, 2);
+
             $table->string('igv_check',2)->nullable();
             $table->char('igv',3)->nullable();
 
