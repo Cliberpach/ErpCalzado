@@ -662,14 +662,14 @@
             if(c.tipo == "NO EXISTE EL PRODUCTO COLOR TALLA"){
                 toastr.error(`${c.producto_nombre} - ${c.color_nombre} - ${c.talla_nombre}`, 'No existe el producto', {
                     timeOut: 0, 
-                    extendedTimeOut: 0 
+                    extendedTimeOut: 0,
+                    toastClass: 'toastr-morado' 
                 }); 
             }
             if(c.tipo == "STOCK LOGICO INSUFICIENTE"){
                 toastr.error(`${c.producto_nombre} - ${c.color_nombre} - ${c.talla_nombre}`, 'Stock lógico insuficiente', {
                     timeOut: 0, 
                     extendedTimeOut: 0,
-                    toastClass: 'toastr-morado' // Agrega esta clase personalizada
                 });
             }
         })
