@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Configuracion;
 use App\Configuracion\Configuracion;
 use App\Http\Controllers\Controller;
 use App\Mantenimiento\Empresa\Empresa;
+use App\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -68,4 +71,25 @@ class ConfiguracionController extends Controller
         Session::flash('success', 'Se cambio el codigo de precio menor.');
         return redirect()->route('configuracion.index');
     }
+
+     public function changePasswordMaster(Request $request){
+        $estado='off';
+        $password=$request->clave_maestra;
+       $id_user=Auth::user()->id;
+       
+        if(isset($request->estado_clave_maestra)){
+           $estado= $request->estado_clave_maestra;
+        }
+        
+
+        $usuario=User::find($id_user);
+        
+        $usuario->contra=$password;
+        $usuario->estado=$estado;
+        $usuario->update();
+        Session::flash('success', 'Se cambio la contraseña maestra');
+        return redirect()->route('configuracion.index');
+      
+    
+     }
 }

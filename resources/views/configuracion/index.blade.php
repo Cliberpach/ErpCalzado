@@ -87,6 +87,49 @@
                         </div>
                     </form>
                 </div>
+
+                
+            </div>
+        </div>
+
+
+
+        <div class="col-12 col-md-4">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <h5>CLAVE MAESTRA NOTAS SALIDA</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form action="{{route('changePasswordMaster')}}" method="POST">
+                        @csrf
+                        @method('POST')
+                       
+                        <div class="row align-items-end">
+                            <div class="col-7">
+                                <div class="form-group">
+                                    <input type="password" class="form-control" name="clave_maestra"  placeholder="Contraseña">
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="form-group">
+                                    <label> <input type="checkbox" class="i-checks" name="estado_clave_maestra" > Activo </label>
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                
             </div>
         </div>
     </div>
