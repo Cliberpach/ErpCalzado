@@ -53,6 +53,7 @@ use App\Almacenes\Talla;
 use App\Almacenes\Modelo;
 use App\Almacenes\Color;
 use Illuminate\Support\Facades\Cache;
+use App\Classes\ValidatedDetail;
 
 
 
@@ -534,146 +535,201 @@ class DocumentoController extends Controller
             $errores = collect();
             $devolucion = false;
             $cotizacion = Cotizacion::findOrFail($request->get('cotizacion'));
-            $detalles = CotizacionDetalle::where('cotizacion_id', $request->get('cotizacion'))
+            $detalles   = CotizacionDetalle::where('cotizacion_id', $request->get('cotizacion'))
                         ->with('producto', 'color', 'talla')->get();
             
             //================ VALIDANDO STOCKS_LOGICOS Y CANTIDADES SOLICITADAS =====================
-            // $validaciones = self::validacionStockCantidad($detalles);
-            // $cantidad_no_valido =   $validaciones->where('tipo', 'NO_VALIDO')->count();
+            $validaciones = self::validacionStockCantidad($detalles);
+            
+            //========= OBTENER LOS DETALLES CON STOCK INSUFICIENTE ============
+            $detallesWithStockInsuficiente = array_filter($validaciones, function($validacion) {
+                return $validacion->getTipo() == 'STOCK LOGICO INSUFICIENTE';
+            });
+
+            //========= OBTENER LOS DETALLES CON STOCK LÓGICO VÁLIDO O SUFICIENTE ============
+            $detallesWithStockValido = array_filter($validaciones, function($validacion) {
+                return $validacion->getTipo() == 'STOCK LOGICO VÁLIDO';
+            });
+
+             //========= OBTENER LOS DETALLES QUE NO EXISTEN EN PRODUCTO COLOR TALLAS ============
+             $detallesNotExists = array_filter($validaciones, function($validacion) {
+                return $validacion->getTipo() == 'NO EXISTE EL PRODUCTO COLOR TALLA';
+            });
+
+            $cantidadErrores =  count($detallesWithStockInsuficiente)+ count($detallesNotExists);
+
+            //============= SEPARAR STOCK_LOGICO ===========
+            if($cantidadErrores==0){
+               foreach ($validaciones as $itemValidado) {
+                DB::table('producto_color_tallas')
+                ->where('producto_id', $itemValidado->getProductoId())
+                ->where('color_id', $itemValidado->getColorId())
+                ->where('talla_id', $itemValidado->getTallaId())
+                ->update([
+                    'stock_logico' => DB::raw('stock_logico - ' . $itemValidado->getCantidadSolicitada())
+                ]); 
+               }
+            }
+
+            $detalleValidado = [];
+            //======= CONVIRTIENDO A UN FORMATO QUE JSON PUEDA COMPRENDER =======
+            foreach ($validaciones as $itemValidado) {
+                $detalleArray = [
+                    'producto_id' => $itemValidado->getProductoId(),
+                    'color_id' => $itemValidado->getColorId(),
+                    'talla_id' => $itemValidado->getTallaId(),
+                    'producto_nombre' => $itemValidado->getProductoNombre(),
+                    'color_nombre' => $itemValidado->getColorNombre(),
+                    'talla_nombre' => $itemValidado->getTallaNombre(),
+                    'stock_logico' => $itemValidado->getStockLogico(),
+                    'cantidad_solicitada' => $itemValidado->getCantidadSolicitada(),
+                    'precio_unitario' => $itemValidado->getPrecioUnitario(),
+                    'tipo' => $itemValidado->getTipo(),
+                ];
+
+                $detalleValidado[] = $detalleArray;
+            }
+
+
+            $tallas = Talla::all();
+           
+
+            return view('ventas.documentos.create-venta-cotizacion', [
+                'cotizacion'    =>  $cotizacion,
+                'empresas'      =>  $empresas,
+                'clientes'      =>  $clientes,
+                'productos'     =>  $productos,
+                'condiciones'   =>  $condiciones,
+                // 'lotes' =>  $nuevoDetalle,
+                'errores'       =>  $errores,
+                'fecha_hoy'     =>  $fecha_hoy,
+                'fullaccess'    =>  $fullaccess,
+                'dolar'         =>  $dolar,
+                'detalle'       =>  $detalleValidado,
+                'tallas'        =>  $tallas,
+                'cantidadErrores'   =>  $cantidadErrores
+            ]);
+           
+
             // $cantidad_valido    =   $validaciones->where('tipo', 'VALIDO')->count();
             // $cantidad_total     =   $validaciones->count();
 
-            $lotes = self::cotizacionLote($detalles);
+            // $lotes = self::cotizacionLote($detalles);
             
-            $nuevoDetalle = collect();
-            $detalleValidado = [];
+            // $nuevoDetalle = collect();
+            // $detalleValidado = [];
            
             
             //================= EN CASO TODOS LOS PRODUCTOS SEAN NO VALIDOS(stock_logico<cantidadSolicitada) ===============
-            if (count($lotes) === 0) {
-            // if ($cantidad_no_valido === $cantidad_total) {
-                $coll = new Collection();
-                $coll->producto = '. No hay stock para ninguno de los productos';
-                $coll->cantidad = '.';
-                $errores->push($coll);
+            // if (count($lotes) === 0) {
+            // // if ($cantidad_no_valido === $cantidad_total) {
+            //     $coll = new Collection();
+            //     $coll->producto = '. No hay stock para ninguno de los productos';
+            //     $coll->cantidad = '.';
+            //     $errores->push($coll);
 
-                return view('ventas.documentos.create-venta-cotizacion',[
-                    'cotizacion' => $cotizacion,
-                    'empresas' => $empresas,
-                    'clientes' => $clientes,
-                    'productos' => $productos,
-                    'condiciones' => $condiciones,
-                    //'lotes' => $nuevoDetalle,
-                    'errores' => $errores,
-                    'fecha_hoy' => $fecha_hoy,
-                    'fullaccess' => $fullaccess,
-                    'dolar' => $dolar,
-                ]);
-            }
+            //     return view('ventas.documentos.create-venta-cotizacion',[
+            //         'cotizacion' => $cotizacion,
+            //         'empresas' => $empresas,
+            //         'clientes' => $clientes,
+            //         'productos' => $productos,
+            //         'condiciones' => $condiciones,
+            //         //'lotes' => $nuevoDetalle,
+            //         'errores' => $errores,
+            //         'fecha_hoy' => $fecha_hoy,
+            //         'fullaccess' => $fullaccess,
+            //         'dolar' => $dolar,
+            //     ]);
+            // }
 
             
 
-            foreach ($detalles as $detalle) {
+            // foreach ($detalles as $detalle) {
            
-                //$cantidadDetalle = $lotes->where('producto', $detalle->producto_id)->sum('cantidad');
-                $cantidadDetalle   = [];
-                $cantidadDetalle = $lotes->where('producto', $detalle->producto_id)
-                                    ->where('color', $detalle->color_id)
-                                    ->where('talla', $detalle->talla_id)
-                                    ->first();
+            //     //$cantidadDetalle = $lotes->where('producto', $detalle->producto_id)->sum('cantidad');
+            //     $cantidadDetalle   = [];
+            //     $cantidadDetalle = $lotes->where('producto', $detalle->producto_id)
+            //                         ->where('color', $detalle->color_id)
+            //                         ->where('talla', $detalle->talla_id)
+            //                         ->first();
                 
               
-                if($cantidadDetalle){
-                    if ($cantidadDetalle->cantidad != $detalle->cantidad) {
+            //     if($cantidadDetalle){
+            //         if ($cantidadDetalle->cantidad != $detalle->cantidad) {
                         
-                    //     //dd(' != '. $cantidadDetalle[0]->cantidad);
-                        $devolucion = true;
-                        // $devolucionLotes = $lotes->where('producto', $detalle->producto_id);
-                        $devolucionLotes = $lotes->where('producto',$detalle->producto_id)
-                                                    ->where('color',$detalle->color_id)
-                                                    ->where('talla',$detalle->talla_id)
-                                                    ->first();
-                        //dd($devolucionLotes);
-                        //LLENAR ERROR CANTIDAD SOLICITADA MAYOR AL STOCK
-                        $coll = new Collection();
-                        $coll->producto = $devolucionLotes->descripcion_producto;
-                        $coll->tipo     =   'stocklogico';
-                        $coll->cantidad = $detalle->cantidad;
-                        $errores->push($coll);
+            //         //     //dd(' != '. $cantidadDetalle[0]->cantidad);
+            //             $devolucion = true;
+            //             // $devolucionLotes = $lotes->where('producto', $detalle->producto_id);
+            //             $devolucionLotes = $lotes->where('producto',$detalle->producto_id)
+            //                                         ->where('color',$detalle->color_id)
+            //                                         ->where('talla',$detalle->talla_id)
+            //                                         ->first();
+            //             //dd($devolucionLotes);
+            //             //LLENAR ERROR CANTIDAD SOLICITADA MAYOR AL STOCK
+            //             $coll = new Collection();
+            //             $coll->producto = $devolucionLotes->descripcion_producto;
+            //             $coll->tipo     =   'stocklogico';
+            //             $coll->cantidad = $detalle->cantidad;
+            //             $errores->push($coll);
                         
-                        self::devolverCantidad($lotes->where('producto',$detalle->producto_id)
-                                                        ->where('color',$detalle->color_id)
-                                                        ->where('talla',$detalle->talla_id)
-                                                        ->first());
-                    } else {
-                            $nuevoSindevoluciones = $lotes->where('producto',$detalle->producto_id)
-                                                    ->where('color',$detalle->color_id)
-                                                    ->where('talla',$detalle->talla_id)
-                                                    ->first();
+            //             self::devolverCantidad($lotes->where('producto',$detalle->producto_id)
+            //                                             ->where('color',$detalle->color_id)
+            //                                             ->where('talla',$detalle->talla_id)
+            //                                             ->first());
+            //         } else {
+            //                 $nuevoSindevoluciones = $lotes->where('producto',$detalle->producto_id)
+            //                                         ->where('color',$detalle->color_id)
+            //                                         ->where('talla',$detalle->talla_id)
+            //                                         ->first();
                             
-                            //dd($nuevoSindevoluciones);
-                            $coll = new Collection();
-                            $col  = [];
-                            // $coll->producto_id = $devolucion->producto_id;
+            //                 //dd($nuevoSindevoluciones);
+            //                 $coll = new Collection();
+            //                 $col  = [];
+            //                 // $coll->producto_id = $devolucion->producto_id;
 
-                            $coll->producto_id = $nuevoSindevoluciones->producto;
-                            $coll->color_id = $nuevoSindevoluciones->color;
-                            $coll->talla_id = $nuevoSindevoluciones->talla;
-                            $coll->cantidad             = $nuevoSindevoluciones->cantidad;
-                            $coll->precio_unitario      = $nuevoSindevoluciones->precio_unitario;
-                            $coll->importe              = $nuevoSindevoluciones->importe;
+            //                 $coll->producto_id = $nuevoSindevoluciones->producto;
+            //                 $coll->color_id = $nuevoSindevoluciones->color;
+            //                 $coll->talla_id = $nuevoSindevoluciones->talla;
+            //                 $coll->cantidad             = $nuevoSindevoluciones->cantidad;
+            //                 $coll->precio_unitario      = $nuevoSindevoluciones->precio_unitario;
+            //                 $coll->importe              = $nuevoSindevoluciones->importe;
 
-                            $col = [
-                                'producto_id' => $nuevoSindevoluciones->producto,
-                                'color_id' => $nuevoSindevoluciones->color,
-                                'talla_id' => $nuevoSindevoluciones->talla,
-                                'cantidad' => $nuevoSindevoluciones->cantidad,
-                                'precio_unitario' => $nuevoSindevoluciones->precio_unitario,
-                                'importe' => $nuevoSindevoluciones->importe,
-                                'producto_nombre'   =>  Producto::where('id', $nuevoSindevoluciones->producto)->first()->nombre,
-                                'color_nombre'      =>  Color::where('id',  $nuevoSindevoluciones->color)->first()->descripcion,
-                            ];   
+            //                 $col = [
+            //                     'producto_id' => $nuevoSindevoluciones->producto,
+            //                     'color_id' => $nuevoSindevoluciones->color,
+            //                     'talla_id' => $nuevoSindevoluciones->talla,
+            //                     'cantidad' => $nuevoSindevoluciones->cantidad,
+            //                     'precio_unitario' => $nuevoSindevoluciones->precio_unitario,
+            //                     'importe' => $nuevoSindevoluciones->importe,
+            //                     'producto_nombre'   =>  Producto::where('id', $nuevoSindevoluciones->producto)->first()->nombre,
+            //                     'color_nombre'      =>  Color::where('id',  $nuevoSindevoluciones->color)->first()->descripcion,
+            //                 ];   
 
-                            // $coll->precio_unitario = $devolucion->precio_unitario;
-                            // $coll->precio_inicial = $devolucion->precio_inicial;
-                            // $coll->precio_nuevo = $devolucion->precio_nuevo;
-                            // $coll->descuento = $devolucion->descuento;
-                            // $coll->dinero = $devolucion->dinero;
-                            // $coll->valor_unitario = $devolucion->valor_unitario;
-                            // $coll->valor_venta = $devolucion->valor_venta;
-                            // $coll->unidad = $devolucion->unidad;
-                            $coll->descripcion_producto = $nuevoSindevoluciones->descripcion_producto;
-                            //$coll->presentacion = $devolucion->presentacion;
-                            //$coll->producto = $devolucion->producto;
-                            $nuevoDetalle->push($coll);
+            //                 // $coll->precio_unitario = $devolucion->precio_unitario;
+            //                 // $coll->precio_inicial = $devolucion->precio_inicial;
+            //                 // $coll->precio_nuevo = $devolucion->precio_nuevo;
+            //                 // $coll->descuento = $devolucion->descuento;
+            //                 // $coll->dinero = $devolucion->dinero;
+            //                 // $coll->valor_unitario = $devolucion->valor_unitario;
+            //                 // $coll->valor_venta = $devolucion->valor_venta;
+            //                 // $coll->unidad = $devolucion->unidad;
+            //                 $coll->descripcion_producto = $nuevoSindevoluciones->descripcion_producto;
+            //                 //$coll->presentacion = $devolucion->presentacion;
+            //                 //$coll->producto = $devolucion->producto;
+            //                 $nuevoDetalle->push($coll);
                             
-                            $detalleValidado[] = $col;
-                    }
-                }else{
-                    $coll           = new Collection();
-                    $coll->producto = $detalle->producto->nombre.' - '.$detalle->color->descripcion.' - '.$detalle->talla->descripcion;
-                    $coll->tipo     =   'producto_no_existe';
-                    $errores->push($coll);
-                }
-            }
+            //                 $detalleValidado[] = $col;
+            //         }
+            //     }else{
+            //         $coll           = new Collection();
+            //         $coll->producto = $detalle->producto->nombre.' - '.$detalle->color->descripcion.' - '.$detalle->talla->descripcion;
+            //         $coll->tipo     =   'producto_no_existe';
+            //         $errores->push($coll);
+            //     }
+            // }
            
             
-            $tallas = Talla::all();
-
-            return view('ventas.documentos.create-venta-cotizacion', [
-                'cotizacion' => $cotizacion,
-                'empresas' => $empresas,
-                'clientes' => $clientes,
-                'productos' => $productos,
-                'condiciones' => $condiciones,
-                // 'lotes' =>  $nuevoDetalle,
-                'errores' => $errores,
-                'fecha_hoy' => $fecha_hoy,
-                'fullaccess' => $fullaccess,
-                'dolar' => $dolar,
-                'detalle'     => $detalleValidado,
-                'tallas'    =>  $tallas,
-            ]);
+           
         }
 
         if (empty($cotizacion)) {
@@ -781,8 +837,8 @@ class DocumentoController extends Controller
                 ->where('color_id', $devolucion->color)
                 ->where('talla_id', $devolucion->talla)
                 ->update([
-                    'stock_logico' => DB::raw('stock_logico + ' . $devolucion->cantidad),
-                    'stock' => DB::raw('stock_logico')
+                    'stock_logico' => DB::raw('stock_logico + ' . $devolucion->cantidad)
+                    // 'stock' => DB::raw('stock_logico')
                 ]);
                 
             }
@@ -793,42 +849,54 @@ class DocumentoController extends Controller
 
 
     public function validacionStockCantidad($detalles){
-        $validaciones = collect();
+        $validaciones = [];
         //======== recorriendo cada producto del detalle de la cotización ===========
         foreach ($detalles as $detalle) {
             //=========== obteniendo stock_logico de un producto =============
-            $stock_logico   =   DB::select('select stock_logico from producto_color_tallas as pct
+            $productoExiste   =   DB::select('select stock_logico from producto_color_tallas as pct
                                 where pct.producto_id=? and pct.color_id=? and pct.talla_id=?',
-                                [$detalle->producto_id,$detalle->color_id,$detalle->talla_id])[0]->stock_logico;
-            
-            if($stock_logico<$detalle->cantidad){
-                $registro               =   new Collection();
-                $registro->producto_id  =   $detalle->producto_id;
-                $registro->color_id     =   $detalle->color_id;
-                $registro->talla_id     =   $detalle->talla_id;
-                $registro->stock_logico =   $stock_logico;
-                $registro->cantidad     =   $detalle->cantidad;
-                $registro->tipo         =   'NO_VALIDO';
-                $validaciones->push($registro);      
-                //dd('stock es menor');
+                                [$detalle->producto_id,$detalle->color_id,$detalle->talla_id]);
+
+            $item_producto_nombre   =   Producto::findOrFail($detalle->producto_id)->nombre;
+            $item_color_nombre      =   Color::findOrFail($detalle->color_id)->descripcion;
+            $item_talla_nombre      =   Talla::findOrFail($detalle->talla_id)->descripcion;
+
+            //===== EN CASO EXISTA EL PRODUCTO COLOR TALLA =====
+            if(count($productoExiste)>0){
+                $stock_logico   =   $productoExiste[0]->stock_logico;
+                if($stock_logico<$detalle->cantidad){
+                    $registro                           = new ValidatedDetail();
+                    $registro->setStockLogico($stock_logico);
+                    $registro->setTipo('STOCK LOGICO INSUFICIENTE');
+
+                }else{
+                    $registro                           = new ValidatedDetail();
+                    $registro->setStockLogico($stock_logico);
+                    $registro->setTipo('STOCK LOGICO VÁLIDO');
+                }
             }else{
-                $registro               =   new Collection();
-                $registro->producto_id  =   $detalle->producto_id;
-                $registro->color_id     =   $detalle->color_id;
-                $registro->talla_id     =   $detalle->talla_id;
-                $registro->stock_logico =   $stock_logico;
-                $registro->cantidad     =   $detalle->cantidad;
-                $registro->tipo         =   'VALIDO';
-                $validaciones->push($registro);  
-               
-                //dd('stock es mayor o igual');
+                    $registro                           = new ValidatedDetail();
+                    $registro->setStockLogico(null);
+                    $registro->setTipo('NO EXISTE EL PRODUCTO COLOR TALLA');
             }
+
+            $registro->setProductoId($detalle->producto_id);
+            $registro->setColorId($detalle->color_id);
+            $registro->setTallaId($detalle->talla_id);
+            $registro->setProductoNombre($item_producto_nombre);
+            $registro->setColorNombre($item_color_nombre);
+            $registro->setTallaNombre($item_talla_nombre);
+            $registro->setCantidadSolicitada($detalle->cantidad);
+            $registro->setPrecioUnitario($detalle->precio_unitario);
+            $validaciones[]                     =   $registro;  
+
         }
 
+      
         return $validaciones;
-        dd($validaciones);
-
     }
+
+ 
 
     public function cotizacionLote($detalles)
     {
