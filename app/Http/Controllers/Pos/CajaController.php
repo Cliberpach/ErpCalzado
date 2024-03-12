@@ -89,7 +89,7 @@ class CajaController extends Controller
                 "value" =>(int)$anio_
             ]);
         }
-        
+         
         return view('pos.MovimientoCaja.indexMovimiento',[
             'lstAnios'=>json_decode(json_encode($lstAnios->sortByDesc("value")->values())), 
             'mes'=>$mes, 

@@ -39,7 +39,7 @@
                         <label class="required">Turno:</label>
                         <select class="form-control select2_form" style="text-transform: uppercase; width:100%"
                             name="turno" id="turno" required>
-                            <option ></option>
+                            <option></option>
                             <option>Mañana</option>
                             <option>Tarde</option>
                             <option>Noche</option>
@@ -54,6 +54,50 @@
                         </div>
                     </div>
             </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped table-bordered table-hover" style="text-transform:uppercase"
+                    id="usuarios_venta">
+                    <thead>
+                        <tr>
+
+                            <th class="text-center">
+
+                            </th>
+                            <th class="text-center">USUARIO</th>
+
+                            <th class="text-center">NOMBRES Y APELLIDOS</th>
+
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="checkBox1"
+                                        onclick="verificarSeleccion('1')">
+                                </div>
+                            </th>
+                            <th><input type="hidden" id='idUsuario1' value="1">chinc chin</th>
+                            <th>balton chinc chin</th>
+                        </tr>
+                        <tr>
+                            <th>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="checkBox2"
+                                        onclick="verificarSeleccion('2')">
+                                </div>
+                            </th>
+                            <th><input type="hidden" id='idUsuario2' value="2">chinc chin</th>
+                            <th>balton chinc chin</th>
+                        </tr>
+
+                    </tbody>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
             <div class="modal-footer">
                 <div class="col-md-6 text-left" style="color:#fcbc6c">
                     <i class="fa fa-exclamation-circle"></i> <small>Los campos marcados con asterisco (<label
@@ -65,6 +109,8 @@
                             class="fa fa-times"></i> Cancelar</button>
                 </div>
             </div>
+
+
             </form>
         </div>
     </div>
@@ -76,6 +122,19 @@
     <!-- Select2 -->
     <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
     <script>
+        function verificarSeleccion(id) {
+            let verificar = document.getElementById(`checkBox${id}`);
+            if (verificar.checked) {
+                // Se agregara el atributo name para que  se guarde ese dato
+                document.getElementById(`idUsuario${id}`).setAttribute('name', 'usuarioVentas[]');
+
+            } else {
+                // Se quitara el atributo name para que no se guarde ese dato
+                document.getElementById(`idUsuario${id}`).removeAttribute('name');
+            }
+
+
+        }
         //Select2
         $(".select2_form").select2({
             placeholder: "SELECCIONAR",

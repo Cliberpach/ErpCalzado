@@ -14,7 +14,7 @@
                 <strong>Movimiento Caja</strong>
             </li>
         </ol>
-    </div>
+    </div> 
     <div class="col-lg-2 col-md-2">
         @can('haveaccess', 'movimiento_caja.create')
         <a class="btn btn-block btn-w-m btn-modal btn-primary m-t-md" href="#">

@@ -484,7 +484,7 @@ function(){
     });
 
     //Caja
-    Route::prefix('caja')->group(function () {
+    Route::prefix('caja')->group(function () { 
         Route::get('/index','Pos\CajaController@index')->name('Caja.index');
         Route::get('/getCajas','Pos\CajaController@getCajas')->name('Caja.getCajas');
         Route::post('/store','Pos\CajaController@store')->name('Caja.store');
