@@ -1099,6 +1099,7 @@ export default {
                     // cantidades: JSON.stringify(this.tablaDetalles)
                     carrito: JSON.stringify(this.carrito)
                 });  
+                this.ChangeAsegurarCierre();
         },
         async ObtenerCodigoPrecioMenor() {
             
