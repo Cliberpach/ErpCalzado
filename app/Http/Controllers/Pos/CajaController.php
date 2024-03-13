@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Pos;
 
+use App\DetallesMovimientoCaja;
 use App\Http\Controllers\Controller;
 use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Empresa\Empresa;
@@ -19,6 +20,8 @@ use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
 use Barryvdh\DomPDF\Facade as PDF;
 use Exception;
+
+use function PHPUnit\Framework\returnSelf;
 
 class CajaController extends Controller
 {
@@ -46,6 +49,7 @@ class CajaController extends Controller
     }
     public function store(Request $request)
     {
+        
         $this->authorize('haveaccess', 'caja.index');
         $caja = new Caja();
         $caja->nombre = $request->nombre;
@@ -68,6 +72,43 @@ class CajaController extends Controller
     }
     public function indexMovimiento()
     {
+        $usuariosOcupados= DetallesMovimientoCaja::select('detalles_movimiento_caja.usuario_id')
+        ->join('movimiento_caja as mc','mc.id','=','detalles_movimiento_caja.movimiento_id')
+        ->join('caja as c','c.id','=','mc.caja_id')
+        ->join('users as u','u.id','=','detalles_movimiento_caja.usuario_id')
+        ->join('role_user as ru','ru.user_id','=','u.id')
+        ->join('roles as r','r.id','=','ru.role_id')
+        ->where('r.name','LIKE','%VENTA%')
+        ->where('r.slug','LIKE','%VENTA%')
+        ->where('c.estado_caja','LIKE','ABIERTA')
+        ->distinct()
+        ->get();
+       
+        $getUsersOcupados='';
+        $usuariosDesocupados= null;
+        if(count($usuariosOcupados) == 0){
+            $usuariosDesocupados=User::select('users.id','users.usuario')
+            ->join('role_user as ru','ru.user_id','=','users.id')
+            ->join('roles as r','r.id','=','ru.role_id')
+            ->where('r.slug','LIKE','%VENTA%')
+            ->orWhere('r.name','LIKE','%VENTA%')
+            ->get();
+            
+            if(count($usuariosDesocupados)==0){
+            $usuariosDesocupados=[];
+            }
+        }else{
+          //return $usuariosOcupados;
+            foreach($usuariosOcupados as $u){
+                
+                $getUsersOcupados=$u->usuario_id.','.$getUsersOcupados;
+            }
+            $getUsersOcupados=substr($getUsersOcupados,0,-1);
+        
+            $usuariosDesocupados=DB::select('select * from users as u inner join role_user as ru on ru.user_id=u.id inner join roles as r on r.id=ru.role_id where u.id  not in('.$getUsersOcupados.') and (r.slug LIKE "%VENTA%" OR r.name LIKE "%VENTA%"  )');
+
+        }
+        
         $this->authorize('haveaccess', 'movimiento_caja.index');
         $lstAniosDB = DB::table('lote_productos')
             ->select(DB::raw('year(created_at) as value'))
@@ -93,7 +134,8 @@ class CajaController extends Controller
         return view('pos.MovimientoCaja.indexMovimiento',[
             'lstAnios'=>json_decode(json_encode($lstAnios->sortByDesc("value")->values())), 
             'mes'=>$mes, 
-            'anio_'=>$anio_
+            'anio_'=>$anio_,
+            'usuariosDesocupados'=>$usuariosDesocupados
         ]);
     }
     public function getMovimientosCajas(Request $request)
@@ -151,6 +193,29 @@ class CajaController extends Controller
 
     public function aperturaCaja(Request $request)
     {
+        $this->authorize('haveaccess','pos.MovimientoCaja.indexMovimiento');
+        $data=$request->all();
+        $rules=[
+            'caja'=>'required',
+            'colaborador_id'=>'required',
+            'turno'=>'required',
+            'saldo_inicial'=>'required',
+            'usuarioVentas'=>'required'
+         ];
+
+         $message = [
+            'caja.required' => 'El campo fecha  es Obligatorio',
+            'colaborador_id.required' => 'El campo destino  es Obligatorio',
+            'turno.required'=>'El campo turno es obligatorio',
+            'saldo_inicial.required'=>'Ingresar un saldo en caja',
+            'usuarioVentas.required'=>'Seleccionar al menos un usuario de Ventas',
+        ];
+        Validator::make($data, $rules, $message)->validate();
+    
+        $detalles=$request->usuarioVentas;
+        if(isset($request->usuarioVentas)){
+        
+                //   if($request)
         $movimiento = new MovimientoCaja();
         $movimiento->caja_id = $request->caja;
         $movimiento->colaborador_id = $request->colaborador_id;
@@ -159,10 +224,22 @@ class CajaController extends Controller
         $movimiento->fecha_apertura = date('Y-m-d h:i:s');
         $movimiento->fecha = date('Y-m-d');
         $movimiento->save();
+        
+        foreach($detalles as $d){
+        $detallesMovimiento= new DetallesMovimientoCaja();
+        $detallesMovimiento->movimiento_id=$movimiento->id;
+        $detallesMovimiento->usuario_id=$d;
+        $detallesMovimiento->save();
+        }
+        
         $caja = Caja::findOrFail($request->caja);
         $caja->estado_caja = 'ABIERTA';
         $caja->save();
         return redirect()->route('Caja.Movimiento.index');
+        }else{
+           // return redirect()->route('Caja.Movimiento.index');
+        }
+
     }
 
     public function cerrarCaja(Request $request)
@@ -263,6 +340,12 @@ class CajaController extends Controller
     public function reporteMovimiento($id)
     {
         $movimiento = MovimientoCaja::findOrFail($id);
+        $usuarios=DetallesMovimientoCaja::select('p.documento','p.nombres','p.apellido_paterno','p.apellido_materno','p.telefono_movil')
+        ->join('users as u','u.id','=','detalles_movimiento_caja.usuario_id')
+        ->join('user_persona as up','up.user_id','=','u.id')
+        ->join('personas as p','p.id','=','up.persona_id')
+        ->where('detalles_movimiento_caja.movimiento_id','=',$id)
+        ->get();
         $empresa = Empresa::first();
         $fecha = Carbon::now()->toDateString();
 
@@ -270,6 +353,7 @@ class CajaController extends Controller
             'movimiento' => $movimiento,
             'empresa' => $empresa,
             'fecha' => $fecha,
+            'usuarios'=>$usuarios,
         ])
             ->setPaper('a4')
             ->setWarnings(false);

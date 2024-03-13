@@ -586,6 +586,51 @@
             </tbody>
         </table>
     </div><br>
+    <span style="text-transform: uppercase;font-size:15px">Trabajadores de ventas presentes</span>
+    <div class="cuerpo">
+        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th style="text-align: center; border-right: 2px solid #52BE80;">N° Documento</th>
+                    <th style="text-align: center;border-right: 2px solid #52BE80">Nombres</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">Apellido Paterno</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">Apellido Materno</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">N° Celular</th>
+                 
+                </tr>
+            </thead>
+            <tbody>
+                @if (count($usuarios) == 0)
+                  <tr> 
+                    <td colspan="5" style="text-align: center; border-right: 2px solid #52BE80">
+                        Sin Usuarios Ventas
+                    </td>    
+                </tr>  
+                @else
+                @foreach ($usuarios as $u)
+                <tr>
+                    <td style="text-align: center; border-right: 2px solid #52BE80">
+                        {{ $u->documento }}</td>
+                    <td style="text-align: center; border-right: 2px solid #52BE80">
+                        {{  $u->nombres }}</td>
+                    <td style="text-align: center; border-right: 2px solid #52BE80">
+                        {{ $u->apellido_paterno}}</td>
+                    <td style="text-align: center; border-right: 2px solid #52BE80">
+                        {{$u->apellido_paterno }}
+                    </td>
+                    <td style="text-align: center; border-right: 2px solid #52BE80">
+                        {{$u->telefono_movil }}
+                    </td>
+                   
+                </tr>
+                @endforeach   
+                @endif
+               
+               
+            </tbody>
+        </table>
+    </div><br>
+    <br>
     <div class="info-total-qr">
         <table class="tbl-qr" cellpadding="2" cellspacing="0">
             <tr>

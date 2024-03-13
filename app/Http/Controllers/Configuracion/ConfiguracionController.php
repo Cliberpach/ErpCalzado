@@ -84,7 +84,7 @@ class ConfiguracionController extends Controller
 
         $usuario=User::find($id_user);
         
-        $usuario->contra=$password;
+        $usuario->contra=strtoupper($password);
         $usuario->estado=$estado;
         $usuario->update();
         Session::flash('success', 'Se cambio la contraseña maestra');

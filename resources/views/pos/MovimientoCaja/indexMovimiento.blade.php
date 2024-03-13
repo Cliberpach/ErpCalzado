@@ -271,7 +271,7 @@
 
     function reporte(id)
     {
-        var url="{{route('Caja.reporte.movimiento',':id')}}"
+        var url="{{route('Caja.reporte.movimiento',':id')}}" 
         url = url.replace(':id',id);
         window.open(url, "REPORTE CAJA", "width=900, height=600")
     }

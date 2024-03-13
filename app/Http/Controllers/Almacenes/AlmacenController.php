@@ -28,7 +28,7 @@ class AlmacenController extends Controller
     }
     public function store(Request $request){
         
-        $this->authorize('haveaccess','almacen.index');
+        $this->authorize('haveaccess','almacen.index'); 
         $data = $request->all();
 
         $rules = [
