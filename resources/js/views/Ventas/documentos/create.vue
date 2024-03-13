@@ -361,7 +361,10 @@ export default {
         this.ObtenerData();
     },
     beforeDestroy() {
-         this.$refs.tablaDetalles.DevolverCantidades();
+        console.log('destruyendo',this.$refs.tablaDetalles.asegurarCierre);
+        if(this.$refs.tablaDetalles.asegurarCierre == 1){
+            this.$refs.tablaDetalles.DevolverCantidades();
+        }
     },
     methods: {
         formatearDetalle(detalles){
@@ -460,6 +463,7 @@ export default {
 
 
                          if (success) {
+                            
 
                              toastr.success('¡Documento de venta creado!', 'Exito');
 
@@ -468,6 +472,7 @@ export default {
                              window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
 
                              this.$refs.tablaDetalles.ChangeAsegurarCierre();
+
 
                             this.$emit("update:ruta", "index");
 
