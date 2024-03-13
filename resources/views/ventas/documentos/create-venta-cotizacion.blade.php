@@ -2,7 +2,11 @@
 
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
-
+<style>
+    .toastr-morado {
+        background-color: #652e9b !important; /* Color morado */
+    }   
+</style>
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
         <h2 style="text-transform:uppercase"><b>REGISTRAR NUEVO DOCUMENTO DE VENTA</b></h2>
@@ -466,7 +470,12 @@
                             <a href="javascript:void(0)" onclick="regresarClick(event)"  id="btn_cancelar" class="btn btn-w-m btn-default">
                                 <i class="fa fa-arrow-left"></i> Regresar
                             </a>
-                            @if (empty($errores))
+                            @if($cantidadErrores==0)
+                                <button form="enviar_documento" type="submit" id="btn_grabar" class="btn btn-w-m btn-primary">
+                                    <i class="fa fa-save"></i> Grabar
+                                </button>
+                            @endif
+                            {{-- @if (empty($errores))
                                 <button form="enviar_documento" type="submit" id="btn_grabar" class="btn btn-w-m btn-primary">
                                     <i class="fa fa-save"></i> Grabar
                                 </button>
@@ -476,7 +485,7 @@
                                         <i class="fa fa-save"></i> Grabar
                                     </button>
                                 @endif
-                            @endif
+                            @endif --}}
                         </div>
                     </div>
                 </div>
@@ -528,10 +537,10 @@
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 
 <script>
-    let   carrito           =   @json($detalle);
+    const carrito           =   @json($detalle);
     const tallas            =   @json($tallas);
     const cotizacion        =   @json($cotizacion);
-    const erroresJS         =   @json($errores);  
+    const cantidadErrores   =   @json($cantidadErrores);  
 
     const tableDetalleBody  =   document.querySelector('#table-detalle tbody');
     const tableDetalleFoot  =   document.querySelector('#table-detalle tfoot');
@@ -560,12 +569,15 @@
 
     let clientes_global;
     let carritoFormateado   =   [];
-    let asegurarCierre      =   1;
+    let asegurarCierre      =   2;
 
     document.addEventListener('DOMContentLoaded',()=>{
-        //console.log(carrito);
+        console.log(carrito);
         
         formataearCarrito();
+
+        setAsegurarCierre();
+
         getClientes();
         cargarChecks();
         cargarSelect2();
@@ -573,6 +585,7 @@
         reordenarCarrito(carrito);
         pintarDetalleCotizacion(carrito);
         pintarMontos();
+        showAlertas();
         events();
         //console.log(carritoFormateado);
     })
@@ -634,13 +647,41 @@
 
     }
 
+    function setAsegurarCierre(){
+        //======= SI NO HAY ERRORES DEVUELVE  STOCKS LOGICOS =======
+        if(cantidadErrores == 0){
+            asegurarCierre  =   1;
+        }else{
+            asegurarCierre  =   2;
+        }
+    }
+
+    //===== SHOW ALERTAS ============
+    function showAlertas(){
+        carrito.forEach((c)=>{
+            if(c.tipo == "NO EXISTE EL PRODUCTO COLOR TALLA"){
+                toastr.error(`${c.producto_nombre} - ${c.color_nombre} - ${c.talla_nombre}`, 'No existe el producto', {
+                    timeOut: 0, 
+                    extendedTimeOut: 0,
+                    toastClass: 'toastr-morado' 
+                }); 
+            }
+            if(c.tipo == "STOCK LOGICO INSUFICIENTE"){
+                toastr.error(`${c.producto_nombre} - ${c.color_nombre} - ${c.talla_nombre}`, 'Stock lógico insuficiente', {
+                    timeOut: 0, 
+                    extendedTimeOut: 0,
+                });
+            }
+        })
+    }
+
     //======= EVITAR DOBLE CLICK EN REGRESAR =========
     function regresarClick(event){
             event.preventDefault(); // Prevenir el comportamiento predeterminado del enlace
             var btnCancelar = document.getElementById("btn_cancelar");
             if (!btnCancelar.classList.contains("disabled")) { // Verificar si el botón no está deshabilitado
                 btnCancelar.classList.add("disabled"); // Deshabilitar el botón
-                window.location.href = '{{ route('ventas.documento.index') }}'; // Redirigir a la URL
+                window.location.href = '{{ route('ventas.cotizacion.index') }}'; // Redirigir a la URL
             }
     }
 
@@ -650,10 +691,10 @@
             const llave =   `${p.producto_id}-${p.color_id}`;
             if(!producto_color_procesados.includes(llave)){
                 const producto  =   {
-                    producto_id:p.producto_id,
-                    color_id   :p.color_id,
-                    producto_nombre:p.producto_nombre,
-                    color_nombre:p.color_nombre
+                    producto_id     :p.producto_id,
+                    color_id        :p.color_id,
+                    producto_nombre :p.producto_nombre,
+                    color_nombre    :p.color_nombre
                 }
                 const tallas_producto   =   carrito.filter((c)=>{
                    return c.producto_id==p.producto_id && c.color_id==p.color_id;
@@ -662,7 +703,7 @@
                 tallas_producto.forEach((t)=>{
                     const talla={
                         talla_id:t.talla_id,
-                        cantidad:t.cantidad
+                        cantidad:t.cantidad_solicitada
                     }
                     tallas.push(talla);
                 })
@@ -710,7 +751,11 @@
                     document.getElementById("condicion_id").disabled = false;
                     //HABILITAR EL CARGAR PAGINA
                     // $('#asegurarCierre').val(2)
+
+                    //====== EVITAR DEVOLUCIÓN DE STOCKS ==========
                     asegurarCierre = 2;
+                    console.log(asegurarCierre);
+
                     //$('#enviar_documento').submit();
                 }
                 else
@@ -731,105 +776,91 @@
                     //var json = JSON.stringify(object);
 
                     var datos = object;
-                    console.log(datos);
+                    
 
+                    //========== CUERPO DE LA PETICION HTTP =======
                     var init = {
-                         // el método de envío de la información será POST
                          method: "POST",
-                         headers: { // cabeceras HTTP
-                             // vamos a enviar los datos en formato JSON
+                         headers: { 
                              'Content-Type': 'application/json'
                          },
-                         // el cuerpo de la petición es una cadena de texto
-                         // con los datos en formato JSON
-                         body: JSON.stringify(datos) // convertimos el objeto a texto
+                         body: JSON.stringify(datos) 
                     };
 
+                    //======== RUTA PARA GRABAR EL DOCUMENTO DE VENTA ==========
                     var url = '{{ route("ventas.documento.store") }}';
+
+                    //====== ALERTA PREGUNTA =========
                     var textAlert = "¿Seguro que desea guardar cambios?";
+
                     Swal.fire({
-                         title: 'Opción Guardar',
-                         text: textAlert,
-                         icon: 'question',
-                         customClass: {
-                             container: 'my-swal'
-                         },
-                         showCancelButton: true,
-                         confirmButtonColor: "#1ab394",
-                         confirmButtonText: 'Si, Confirmar',
-                         cancelButtonText: "No, Cancelar",
-                         showLoaderOnConfirm: true,
-                         allowOutsideClick: false,
-                         preConfirm: (login) => {
-                             return fetch(url,init)
-                                 .then(response => {
-                                     if (!response.ok) {
-                                         throw new Error(response.statusText)
-                                     }
-                                     return response.json()
-                                 })
-                                 .catch(error => {
-                                     Swal.showValidationMessage(
-                                         `Ocurrió un error`
-                                     );
-                                 })
-                        },
-                        allowOutsideClick: () => !Swal.isLoading()
-                    }).then((result) => {
-                        if (result.value !== undefined && result.isConfirmed) {
-                            if(result.value.errors)
-                            {
-                                let mensaje = sHtmlErrores("result.value.data.mensajes");
-                                toastr.error(mensaje);
-                                //  $('#asegurarCierre').val(1);
-                                asegurarCierre = 1;
-                                 document.getElementById("moneda").disabled = true;
-                                 document.getElementById("observacion").disabled = true;
-                                 document.getElementById("fecha_documento_campo").disabled = true;
-                                 document.getElementById("fecha_atencion_campo").disabled = true;
-                                 document.getElementById("empresa_id").disabled = true;
-                                @if (!empty($cotizacion))
-                                    document.getElementById("cliente_id").disabled = true;
-                                @endif
+                        title: "¿Seguro que desea guardar cambios?",
+                        text: "Se generará el documento de venta!",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Sí, genéralo!"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                console.log('redireccionando a store document');
+
+                                //======= REALIZAR CONSULTA FETCH =======
+                                fetch(url,init)
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(response.statusText)
+                                    }
+                                      return response.json()
+                                }).then((result)=>{
+                                    console.log(result);
+                                    
+                                        if(result.errors)
+                                        {
+                                            let mensaje = sHtmlErrores("result.value.data.mensajes");
+                                            toastr.error(mensaje);
+                                            //$('#asegurarCierre').val(1);
+                                            asegurarCierre = 1;
+                                            document.getElementById("moneda").disabled = true;
+                                            document.getElementById("observacion").disabled = true;
+                                            document.getElementById("fecha_documento_campo").disabled = true;
+                                            document.getElementById("fecha_atencion_campo").disabled = true;
+                                            document.getElementById("empresa_id").disabled = true;
+                                            @if (!empty($cotizacion))
+                                                document.getElementById("cliente_id").disabled = true;
+                                            @endif
+                                        }
+                                        else if(result.success)
+                                        {
+                                            toastr.success('¡Documento de venta creado!','Exito')
+
+                                            let id = result.documento_id;
+                                            var url_open_pdf = '{{ route("ventas.documento.comprobante", ":id")}}';
+                                            url_open_pdf = url_open_pdf.replace(':id',id+'-80');
+                                            window.open(url_open_pdf,'Comprobante SISCOM','location=1, status=1, scrollbars=1,width=900, height=600');
+
+                                            // $('#asegurarCierre').val(2);
+                                            asegurarCierre = 2;
+
+                                            location = "{{ route('ventas.documento.index') }}";
+                                        }
+                                    
+                                })
+                                .catch(error => {
+                                    alert('error');
+                                  console.log(error);
+                                  asegurarCierre = 1;
+                                })
+
+                                console.log(asegurarCierre);
+                            
+                            }else{
+                                asegurarCierre  =   1;
+                                btnGrabar.disabled = false;
+                                console.log(asegurarCierre);
                             }
-                            else if(result.value.success)
-                            {
-                                toastr.success('¡Documento de venta creado!','Exito')
+                    });
 
-                                let id = result.value.documento_id;
-                                var url_open_pdf = '{{ route("ventas.documento.comprobante", ":id")}}';
-                                url_open_pdf = url_open_pdf.replace(':id',id+'-80');
-                                window.open(url_open_pdf,'Comprobante SISCOM','location=1, status=1, scrollbars=1,width=900, height=600');
-
-                                // $('#asegurarCierre').val(2);
-                                asegurarCierre = 2;
-
-                                location = "{{ route('ventas.documento.index') }}";
-                            }
-                            //  else
-                            //  {
-                            //      $('#asegurarCierre').val(1);
-                            //      Swal.fire({
-                            //          icon: 'error',
-                            //          title: 'Error',
-                            //          text: '¡'+ result.value.mensaje +'!',
-                            //          customClass: {
-                            //              container: 'my-swal'
-                            //          },
-                            //          showConfirmButton: false,
-                            //          timer: 2500
-                            //      });
-                            //      document.getElementById("moneda").disabled = true;
-                            //      document.getElementById("observacion").disabled = true;
-                            //      document.getElementById("fecha_documento_campo").disabled = true;
-                            //      document.getElementById("fecha_atencion_campo").disabled = true;
-                            //      document.getElementById("empresa_id").disabled = true;
-                            //      @if (!empty($cotizacion))
-                            //      document.getElementById("cliente_id").disabled = true;
-                            //      @endif
-                            // }
-                        }
-                     });
                 }
             }
         })
@@ -874,7 +905,11 @@
 
     //==========    CARGAR PRODUCTOS AL FORM   =================
     function cargarProductos() {
+        carrito.forEach((c)=>{
+            c.cantidad = c.cantidad_solicitada;
+        })
         $('#productos_tabla').val(JSON.stringify(carrito));
+
     }
 
     //========== VALIDAR CAMPOS ======================
@@ -1018,7 +1053,7 @@
                     })
 
                     if(producto.length!=0){
-                        subtotal+= parseFloat(producto[0].precio_unitario)*parseFloat(producto[0].cantidad);
+                        subtotal+= parseFloat(producto[0].precio_unitario)*parseFloat(producto[0].cantidad_solicitada);
                     }
                 })
                 carrito.forEach((c)=>{
@@ -1050,16 +1085,26 @@
                 if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
                  
                     fila+= `<tr>   
-                                <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
+                                <th>${c.producto_nombre} - ${c.color_nombre} </th>`;
 
 
                     //tallas
                     tallas.forEach((t)=>{
-                        let cantidad = carrito.filter((ct)=>{
+                        let item_talla = carrito.filter((ct)=>{
                             return ct.producto_id==c.producto_id && ct.color_id==c.color_id && t.id==ct.talla_id;
                         });
-                        cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
-                        htmlTallas += `<td>${cantidad}</td>`; 
+                        const cantidad_solicitada   =   item_talla.length!=0?item_talla[0].cantidad_solicitada:'';  
+                        const validacion            =   item_talla.length!=0?item_talla[0].tipo:'';       
+                       
+                        // Agrega el HTML con el estilo condicionalmente basado en el valor de validacion
+                        htmlTallas += `
+                            <td>
+                                <span style="${validacion === 'STOCK LOGICO INSUFICIENTE' ? 'color: #ff6666; font-weight: bold;' : (validacion === 'NO EXISTE EL PRODUCTO COLOR TALLA' ? 'color: #9966cc; font-weight: bold;' : (validacion === 'STOCK LOGICO VÁLIDO' ? 'color: black; font-weight: bold;' : ''))}">
+                                    ${cantidad_solicitada}
+                                </span>
+                            </td>
+                        `;
+
                     })
 
 
@@ -1076,24 +1121,18 @@
 
     //============= devolver stock logico, ya que hay errores en la cotización ===================
     window.addEventListener('beforeunload', async () => {
-
-        // const asegurarCierre    =   document.querySelector('#asegurarCierre');
-            if (asegurarCierre == 1) {
-                // localStorage.setItem('devuelto', asegurarCierre.value);
-
-                 await this.DevolverCantidades();
-                 asegurarCierre = 10;
-            } else {
-                 console.log("beforeunload", asegurarCierre);
-                //  localStorage.setItem('no devuelto', asegurarCierre.value);
-            }
+        if (asegurarCierre == 1) {
+            await this.DevolverCantidades();
+            asegurarCierre = 2;
+        } else {
+            console.log("beforeunload", asegurarCierre);
+        }
     });
 
     //================ devolver cantidades ===============
     async function DevolverCantidades() {
             await this.axios.post(route('ventas.documento.devolver.cantidades'), {
-                carrito: JSON.stringify(carritoFormateado),
-                vista: 'create-venta-cotizacion'
+                 carrito: JSON.stringify(carritoFormateado)
             });
     }
 

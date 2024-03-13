@@ -299,36 +299,39 @@ class CotizacionController extends Controller
         }
 
         //Registro de actividad
-        $descripcion = "SE MODIFICÓ LA COTIZACION CON LA FECHA: ". Carbon::parse($cotizacion->fecha_documento)->format('d/m/y');;
+        $descripcion = "SE MODIFICÓ LA COTIZACION CON LA FECHA: ". Carbon::parse($cotizacion->fecha_documento)->format('d/m/y');
         $gestion = "COTIZACION";
         modificarRegistro($cotizacion, $descripcion , $gestion);
 
+        Session::flash('success','Cotización modificada.');
+        return redirect()->route('ventas.cotizacion.index')->with('modificar', 'success');
+
+
         //ELIMINAR DOCUMENTO DE ORDEN DE COMPRA SI EXISTE
-        $documento = Documento::where('cotizacion_venta',$id)->where('estado','!=','ANULADO')->first();
-        if ($documento) {
-            $documento->estado = 'ANULADO';
-            $documento->update();
+        // $documento = Documento::where('cotizacion_venta',$id)->where('estado','!=','ANULADO')->first();
+        // if ($documento) {
+        //     $documento->estado = 'ANULADO';
+        //     $documento->update();
 
-            $detalles = Detalle::where('documento_id',$id)->get();
-            foreach ($detalles as $detalle) {
-                $lote = LoteProducto::find($detalle->lote_id);
-                $cantidad = $lote->cantidad + $detalle->cantidad;
-                $lote->cantidad = $cantidad;
-                $lote->cantidad_logica = $cantidad;
-                $lote->update();
-                //ANULAMOS EL DETALLE
-                $detalle->estado = "ANULADO";
-                $detalle->update();
-            }
+        //     $detalles = Detalle::where('documento_id',$id)->get();
+        //     foreach ($detalles as $detalle) {
+        //         $lote = LoteProducto::find($detalle->lote_id);
+        //         $cantidad = $lote->cantidad + $detalle->cantidad;
+        //         $lote->cantidad = $cantidad;
+        //         $lote->cantidad_logica = $cantidad;
+        //         $lote->update();
+        //         //ANULAMOS EL DETALLE
+        //         $detalle->estado = "ANULADO";
+        //         $detalle->update();
+        //     }
 
-            Session::flash('success','Cotización modificada y documento eliminado.');
-            return redirect()->route('ventas.cotizacion.index')->with('modificar', 'success');
+        //     Session::flash('success','Cotización modificada y documento eliminado.');
+        //     return redirect()->route('ventas.cotizacion.index')->with('modificar', 'success');
 
-        }else{
-            Session::flash('success','Cotización modificada.');
-            return redirect()->route('ventas.cotizacion.index')->with('modificar', 'success');
-
-        }
+        // }else{
+        //     Session::flash('success','Cotización modificada.');
+        //     return redirect()->route('ventas.cotizacion.index')->with('modificar', 'success');
+        // }
     }
 
     public function show($id)
