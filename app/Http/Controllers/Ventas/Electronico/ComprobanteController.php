@@ -249,14 +249,18 @@ class ComprobanteController extends Controller
                                 "address" => array(
                                     "direccion" => $documento->direccion_fiscal_empresa,
                                 )),
-                            "mtoOperGravadas" => (float)$documento->sub_total,
+                            //"mtoOperGravadas" => (float)$documento->sub_total,
+                            "mtoOperGravadas" => (float)$documento->total, //=== nuestro subtotal ===
                             "mtoOperExoneradas" => 0,
                             "mtoIGV" => (float)$documento->total_igv,
-
-                            "valorVenta" => (float)$documento->sub_total,
+                            // "valorVenta" => (float)$documento->sub_total,
+                            "valorVenta" => (float)$documento->total, //=== nuestro subtotal ===
                             "totalImpuestos" => (float)$documento->total_igv,
-                            "subTotal" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
-                            "mtoImpVenta" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                            // "subTotal" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                            // "mtoImpVenta" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                            "subTotal" => (float)$documento->total_pagar + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                            "mtoImpVenta" => (float)$documento->total_pagar + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                    
                             "ublVersion" => "2.1",
                             "details" => self::obtenerProductos($documento->id),
                             "legends" =>  self::obtenerLeyenda($documento),
