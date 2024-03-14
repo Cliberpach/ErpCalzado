@@ -185,68 +185,71 @@
             padding: 0;
         }
 
-        .cont-check{
+        .cont-check {
             position: relative;
         }
 
         .checkmark {
-            display:inline-block;
+            display: inline-block;
             width: 22px;
-            height:22px;
-            -ms-transform: rotate(45deg); /* IE 9 */
-            -webkit-transform: rotate(45deg); /* Chrome, Safari, Opera */
+            height: 22px;
+            -ms-transform: rotate(45deg);
+            /* IE 9 */
+            -webkit-transform: rotate(45deg);
+            /* Chrome, Safari, Opera */
             transform: rotate(45deg);
         }
 
         .checkmark_stem {
             position: absolute;
-            width:3px;
-            height:12px;
-            background-color:#229954;
-            left:11px;
-            top:6px;
+            width: 3px;
+            height: 12px;
+            background-color: #229954;
+            left: 11px;
+            top: 6px;
         }
 
         .checkmark_kick {
             position: absolute;
-            width:3px;
-            height:3px;
-            background-color:#229954;
-            left:8px;
-            top:15px;
+            width: 3px;
+            height: 3px;
+            background-color: #229954;
+            left: 8px;
+            top: 15px;
         }
 
-        .cont-remove{
+        .cont-remove {
             position: relative;
         }
 
         .remove {
-            display:inline-block;
+            display: inline-block;
             width: 22px;
-            height:22px;
-            -ms-transform: rotate(45deg); /* IE 9 */
-            -webkit-transform: rotate(45deg); /* Chrome, Safari, Opera */
+            height: 22px;
+            -ms-transform: rotate(45deg);
+            /* IE 9 */
+            -webkit-transform: rotate(45deg);
+            /* Chrome, Safari, Opera */
             transform: rotate(45deg);
         }
 
         .remove_stem {
             position: absolute;
-            width:3px;
-            height:12px;
+            width: 3px;
+            height: 12px;
             background-color: brown;
-            left:11px;
-            top:6px;
+            left: 11px;
+            top: 6px;
         }
 
         .remove_kick {
             position: absolute;
-            width:12px;
-            height:3px;
-            background-color:brown;
-            left:7px;
-            top:10px;
+            width: 12px;
+            height: 3px;
+            background-color: brown;
+            left: 7px;
+            top: 10px;
         }
-
     </style>
 </head>
 
@@ -326,14 +329,13 @@
                     <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
                     @php
                         $cont = 0;
-                        while($cont < count(tipos_pago()))
-                        {
-                            if($cont == count(tipos_pago()) - 1)
-                            {
-                                echo '<th style="text-align: center;">'.tipos_pago()[$cont]->descripcion.'</th>';
-                            }
-                            else {
-                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">'.tipos_pago()[$cont]->descripcion.'</th>';
+                        while ($cont < count(tipos_pago())) {
+                            if ($cont == count(tipos_pago()) - 1) {
+                                echo '<th style="text-align: center;">' . tipos_pago()[$cont]->descripcion . '</th>';
+                            } else {
+                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">' .
+                                    tipos_pago()[$cont]->descripcion .
+                                    '</th>';
                             }
                             $cont++;
                         }
@@ -342,8 +344,11 @@
             </thead>
             <tbody>
                 @foreach ($movimiento->detalleMovimientoVentas as $ventas)
-                {{-- $ventas->documento->sunat != '2' &&  --}}
-                    @if ($ventas->documento->condicion_id == 1 && $ventas->documento->estado_pago == 'PAGADA' && ifNoConvertido($ventas->documento->id))
+                    {{-- $ventas->documento->sunat != '2' &&  --}}
+                    @if (
+                        $ventas->documento->condicion_id == 1 &&
+                            $ventas->documento->estado_pago == 'PAGADA' &&
+                            ifNoConvertido($ventas->documento->id))
                         <tr>
                             <td style="text-align: center; border-right: 2px solid #52BE80">
                                 {{ $ventas->documento->serie . '-' . $ventas->documento->correlativo }}</td>
@@ -351,34 +356,37 @@
                                 {{ $ventas->documento->clienteEntidad->nombre }}</td>
                             <td style="text-align: center; border-right: 2px solid #52BE80;">
                                 @if (count($ventas->documento->notas) > 0)
-                                <div class="cont-check">
-                                    <span class="checkmark">
-                                        <div class="checkmark_stem"></div>
-                                        <div class="checkmark_kick"></div>
-                                    </span>
-                                </div>
+                                    <div class="cont-check">
+                                        <span class="checkmark">
+                                            <div class="checkmark_stem"></div>
+                                            <div class="checkmark_kick"></div>
+                                        </span>
+                                    </div>
                                 @else
-                                <div class="cont-remove">
-                                    <span class="remove">
-                                        <div class="remove_stem"></div>
-                                        <div class="remove_kick"></div>
-                                    </span>
-                                </div>
+                                    <div class="cont-remove">
+                                        <span class="remove">
+                                            <div class="remove_stem"></div>
+                                            <div class="remove_kick"></div>
+                                        </span>
+                                    </div>
                                 @endif
                             </td>
                             <td style="text-align: center; border-right: 2px solid #52BE80">
                                 {{ $ventas->documento->total }}
                             </td>
-                            @foreach(tipos_pago() as $tipo)
-                                @if($tipo->id == 1)
-                                    @if($tipo->id == $ventas->documento->tipo_pago_id)
-                                        <td style="text-align: center; border-right: 2px solid #52BE80">{{$ventas->documento->importe}}</td>';
+                            @foreach (tipos_pago() as $tipo)
+                                @if ($tipo->id == 1)
+                                    @if ($tipo->id == $ventas->documento->tipo_pago_id)
+                                        <td style="text-align: center; border-right: 2px solid #52BE80">
+                                            {{ $ventas->documento->importe }}</td>';
                                     @else
-                                        <td style="text-align: center; border-right: 2px solid #52BE80">{{$ventas->documento->efectivo}}</td>';
+                                        <td style="text-align: center; border-right: 2px solid #52BE80">
+                                            {{ $ventas->documento->efectivo }}</td>';
                                     @endif
                                 @else
-                                    @if($tipo->id == $ventas->documento->tipo_pago_id)
-                                        <td style="text-align: center; border-right: 2px solid #52BE80">{{$ventas->documento->importe}}</td>';
+                                    @if ($tipo->id == $ventas->documento->tipo_pago_id)
+                                        <td style="text-align: center; border-right: 2px solid #52BE80">
+                                            {{ $ventas->documento->importe }}</td>';
                                     @else
                                         <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
                                     @endif
@@ -388,9 +396,12 @@
                     @endif
                 @endforeach
                 <tr>
-                    <td colspan="4" style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL</td>
+                    <td colspan="4"
+                        style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
+                    </td>
                     @foreach (tipos_pago() as $tipo)
-                    <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">{{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento,$tipo->id), 2) }}</td>
+                        <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">
+                            {{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento, $tipo->id), 2) }}</td>
                     @endforeach
                 </tr>
             </tbody>
@@ -407,14 +418,13 @@
                     <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
                     @php
                         $cont = 0;
-                        while($cont < count(tipos_pago()))
-                        {
-                            if($cont == count(tipos_pago()) - 1)
-                            {
-                                echo '<th style="text-align: center;">'.tipos_pago()[$cont]->descripcion.'</th>';
-                            }
-                            else {
-                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">'.tipos_pago()[$cont]->descripcion.'</th>';
+                        while ($cont < count(tipos_pago())) {
+                            if ($cont == count(tipos_pago()) - 1) {
+                                echo '<th style="text-align: center;">' . tipos_pago()[$cont]->descripcion . '</th>';
+                            } else {
+                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">' .
+                                    tipos_pago()[$cont]->descripcion .
+                                    '</th>';
                             }
                             $cont++;
                         }
@@ -425,22 +435,26 @@
                 @foreach ($movimiento->detalleCuentaCliente as $cuentaCliente)
                     <tr>
                         <td style="text-align: center; border-right: 2px solid #52BE80">
-                            {{ $cuentaCliente->cuenta_cliente->documento->serie . '-' . $cuentaCliente->cuenta_cliente->documento->correlativo }}</td>
+                            {{ $cuentaCliente->cuenta_cliente->documento->serie . '-' . $cuentaCliente->cuenta_cliente->documento->correlativo }}
+                        </td>
                         <td style="text-align: center; border-right: 2px solid #52BE80">
                             {{ $cuentaCliente->cuenta_cliente->documento->clienteEntidad->nombre }}</td>
                         <td style="text-align: center; border-right: 2px solid #52BE80">
                             {{ $cuentaCliente->monto }}
                         </td>
-                        @foreach(tipos_pago() as $tipo)
-                            @if($tipo->id == 1)
-                                @if($tipo->id == $cuentaCliente->tipo_pago_id)
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">{{$cuentaCliente->efectivo}}</td>';
+                        @foreach (tipos_pago() as $tipo)
+                            @if ($tipo->id == 1)
+                                @if ($tipo->id == $cuentaCliente->tipo_pago_id)
+                                    <td style="text-align: center; border-right: 2px solid #52BE80">
+                                        {{ $cuentaCliente->efectivo }}</td>';
                                 @else
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">{{$cuentaCliente->efectivo}}</td>';
+                                    <td style="text-align: center; border-right: 2px solid #52BE80">
+                                        {{ $cuentaCliente->efectivo }}</td>';
                                 @endif
                             @else
-                                @if($tipo->id == $cuentaCliente->tipo_pago_id)
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">{{$cuentaCliente->importe}}</td>';
+                                @if ($tipo->id == $cuentaCliente->tipo_pago_id)
+                                    <td style="text-align: center; border-right: 2px solid #52BE80">
+                                        {{ $cuentaCliente->importe }}</td>';
                                 @else
                                     <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
                                 @endif
@@ -449,9 +463,13 @@
                     </tr>
                 @endforeach
                 <tr>
-                    <td colspan="3" style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL</td>
+                    <td colspan="3"
+                        style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
+                    </td>
                     @foreach (tipos_pago() as $tipo)
-                    <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">{{ number_format(cuadreMovimientoCajaIngresosCobranzaResum($movimiento,$tipo->id), 2) }}</td>
+                        <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">
+                            {{ number_format(cuadreMovimientoCajaIngresosCobranzaResum($movimiento, $tipo->id), 2) }}
+                        </td>
                     @endforeach
                 </tr>
             </tbody>
@@ -469,14 +487,13 @@
                     <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
                     @php
                         $cont = 0;
-                        while($cont < count(tipos_pago()))
-                        {
-                            if($cont == count(tipos_pago()) - 1)
-                            {
-                                echo '<th style="text-align: center;">'.tipos_pago()[$cont]->descripcion.'</th>';
-                            }
-                            else {
-                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">'.tipos_pago()[$cont]->descripcion.'</th>';
+                        while ($cont < count(tipos_pago())) {
+                            if ($cont == count(tipos_pago()) - 1) {
+                                echo '<th style="text-align: center;">' . tipos_pago()[$cont]->descripcion . '</th>';
+                            } else {
+                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">' .
+                                    tipos_pago()[$cont]->descripcion .
+                                    '</th>';
                             }
                             $cont++;
                         }
@@ -487,35 +504,41 @@
 
                 @foreach ($movimiento->detalleMoviemientoEgresos as $detalleEgreso)
                     @if ($detalleEgreso->egreso->estado == 'ACTIVO')
-                    <tr>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                            {{ $detalleEgreso->egreso->documento }}</td>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                            {{ $detalleEgreso->egreso->descripcion }}</td>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                            {{ $detalleEgreso->egreso->monto }}</td>
-                        @foreach(tipos_pago() as $tipo)
-                            @if($tipo->id == 1)
-                                @if($tipo->id == $detalleEgreso->egreso->tipo_pago_id)
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">{{$detalleEgreso->egreso->efectivo}}</td>';
+                        <tr>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                {{ $detalleEgreso->egreso->documento }}</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                {{ $detalleEgreso->egreso->descripcion }}</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                {{ $detalleEgreso->egreso->monto }}</td>
+                            @foreach (tipos_pago() as $tipo)
+                                @if ($tipo->id == 1)
+                                    @if ($tipo->id == $detalleEgreso->egreso->tipo_pago_id)
+                                        <td style="text-align: center; border-right: 2px solid #52BE80">
+                                            {{ $detalleEgreso->egreso->efectivo }}</td>';
+                                    @else
+                                        <td style="text-align: center; border-right: 2px solid #52BE80">
+                                            {{ $detalleEgreso->egreso->efectivo }}</td>';
+                                    @endif
                                 @else
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">{{$detalleEgreso->egreso->efectivo}}</td>';
+                                    @if ($tipo->id == $detalleEgreso->egreso->tipo_pago_id)
+                                        <td style="text-align: center; border-right: 2px solid #52BE80">
+                                            {{ $detalleEgreso->egreso->importe }}</td>';
+                                    @else
+                                        <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
+                                    @endif
                                 @endif
-                            @else
-                                @if($tipo->id == $detalleEgreso->egreso->tipo_pago_id)
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">{{$detalleEgreso->egreso->importe}}</td>';
-                                @else
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
-                                @endif
-                            @endif
-                        @endforeach
-                    </tr>
+                            @endforeach
+                        </tr>
                     @endif
                 @endforeach
                 <tr>
-                    <td colspan="3" style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL</td>
+                    <td colspan="3"
+                        style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
+                    </td>
                     @foreach (tipos_pago() as $tipo)
-                    <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">{{ number_format(cuadreMovimientoCajaEgresosEgresoResum($movimiento,$tipo->id), 2) }}</td>
+                        <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">
+                            {{ number_format(cuadreMovimientoCajaEgresosEgresoResum($movimiento, $tipo->id), 2) }}</td>
                     @endforeach
                 </tr>
             </tbody>
@@ -534,14 +557,13 @@
                     <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
                     @php
                         $cont = 0;
-                        while($cont < count(tipos_pago()))
-                        {
-                            if($cont == count(tipos_pago()) - 1)
-                            {
-                                echo '<th style="text-align: center;">'.tipos_pago()[$cont]->descripcion.'</th>';
-                            }
-                            else {
-                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">'.tipos_pago()[$cont]->descripcion.'</th>';
+                        while ($cont < count(tipos_pago())) {
+                            if ($cont == count(tipos_pago()) - 1) {
+                                echo '<th style="text-align: center;">' . tipos_pago()[$cont]->descripcion . '</th>';
+                            } else {
+                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">' .
+                                    tipos_pago()[$cont]->descripcion .
+                                    '</th>';
                             }
                             $cont++;
                         }
@@ -550,86 +572,50 @@
             </thead>
             <tbody>
                 @foreach ($movimiento->detalleCuentaProveedor as $detalleProveedor)
-                <tr>
-                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                        {{ $detalleProveedor->cuenta_proveedor->documento->tipo_compra }}</td>
-                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                        {{ $detalleProveedor->cuenta_proveedor->documento->serie_tipo.' - '.$detalleProveedor->cuenta_proveedor->documento->numero_tipo }}</td>
-                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                        {{ $detalleProveedor->cuenta_proveedor->documento->proveedor->descripcion }}</td>
-                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                        {{ $detalleProveedor->efectivo + $detalleProveedor->importe }}
-                    </td>
-                    @foreach(tipos_pago() as $tipo)
-                        @if($tipo->id == 1)
-                            @if($tipo->id == $detalleProveedor->tipo_pago_id)
-                                <td style="text-align: center; border-right: 2px solid #52BE80">{{$detalleProveedor->efectivo}}</td>';
+                    <tr>
+                        <td style="text-align: center; border-right: 2px solid #52BE80">
+                            {{ $detalleProveedor->cuenta_proveedor->documento->tipo_compra }}</td>
+                        <td style="text-align: center; border-right: 2px solid #52BE80">
+                            {{ $detalleProveedor->cuenta_proveedor->documento->serie_tipo . ' - ' . $detalleProveedor->cuenta_proveedor->documento->numero_tipo }}
+                        </td>
+                        <td style="text-align: center; border-right: 2px solid #52BE80">
+                            {{ $detalleProveedor->cuenta_proveedor->documento->proveedor->descripcion }}</td>
+                        <td style="text-align: center; border-right: 2px solid #52BE80">
+                            {{ $detalleProveedor->efectivo + $detalleProveedor->importe }}
+                        </td>
+                        @foreach (tipos_pago() as $tipo)
+                            @if ($tipo->id == 1)
+                                @if ($tipo->id == $detalleProveedor->tipo_pago_id)
+                                    <td style="text-align: center; border-right: 2px solid #52BE80">
+                                        {{ $detalleProveedor->efectivo }}</td>';
+                                @else
+                                    <td style="text-align: center; border-right: 2px solid #52BE80">
+                                        {{ $detalleProveedor->efectivo }}</td>';
+                                @endif
                             @else
-                                <td style="text-align: center; border-right: 2px solid #52BE80">{{$detalleProveedor->efectivo}}</td>';
+                                @if ($tipo->id == $detalleProveedor->tipo_pago_id)
+                                    <td style="text-align: center; border-right: 2px solid #52BE80">
+                                        {{ $detalleProveedor->importe }}</td>';
+                                @else
+                                    <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
+                                @endif
                             @endif
-                        @else
-                            @if($tipo->id == $detalleProveedor->tipo_pago_id)
-                                <td style="text-align: center; border-right: 2px solid #52BE80">{{$detalleProveedor->importe}}</td>';
-                            @else
-                                <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
-                            @endif
-                        @endif
-                    @endforeach
-                </tr>
+                        @endforeach
+                    </tr>
                 @endforeach
                 <tr>
-                    <td colspan="4" style="text-align: center; border-top: 2px solid #52BE80 ;border-right: 2px solid #52BE80">TOTAL</td>
+                    <td colspan="4"
+                        style="text-align: center; border-top: 2px solid #52BE80 ;border-right: 2px solid #52BE80">
+                        TOTAL</td>
                     @foreach (tipos_pago() as $tipo)
-                    <td style="text-align: center;border-top: 2px solid #52BE80 ;border-right: 2px solid #52BE80">{{ number_format(cuadreMovimientoCajaEgresosPagoResum($movimiento, $tipo->id), 2) }}</td>
+                        <td style="text-align: center;border-top: 2px solid #52BE80 ;border-right: 2px solid #52BE80">
+                            {{ number_format(cuadreMovimientoCajaEgresosPagoResum($movimiento, $tipo->id), 2) }}</td>
                     @endforeach
                 </tr>
             </tbody>
         </table>
     </div><br>
-    <span style="text-transform: uppercase;font-size:15px">Trabajadores de ventas presentes</span>
-    <div class="cuerpo">
-        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th style="text-align: center; border-right: 2px solid #52BE80;">N° Documento</th>
-                    <th style="text-align: center;border-right: 2px solid #52BE80">Nombres</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">Apellido Paterno</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">Apellido Materno</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">N° Celular</th>
-                 
-                </tr>
-            </thead>
-            <tbody>
-                @if (count($usuarios) == 0)
-                  <tr> 
-                    <td colspan="5" style="text-align: center; border-right: 2px solid #52BE80">
-                        Sin Usuarios Ventas
-                    </td>    
-                </tr>  
-                @else
-                @foreach ($usuarios as $u)
-                <tr>
-                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                        {{ $u->documento }}</td>
-                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                        {{  $u->nombres }}</td>
-                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                        {{ $u->apellido_paterno}}</td>
-                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                        {{$u->apellido_paterno }}
-                    </td>
-                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                        {{$u->telefono_movil }}
-                    </td>
-                   
-                </tr>
-                @endforeach   
-                @endif
-               
-               
-            </tbody>
-        </table>
-    </div><br>
+    
     <br>
     <div class="info-total-qr">
         <table class="tbl-qr" cellpadding="2" cellspacing="0">
@@ -647,7 +633,9 @@
                                     <p class="m-0 p-0">VENTAS</p>
                                 </td>
                                 <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">{{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento,1), 2) }}</p>
+                                    <p class="p-0 m-0">
+                                        {{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento, 1), 2) }}
+                                    </p>
                                 </td>
                             </tr>
                             <tr>
@@ -655,29 +643,38 @@
                                     <p class="m-0 p-0">DEVOLUCIONES</p>
                                 </td>
                                 <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">{{ number_format(cuadreMovimientoDevolucionesResum($movimiento,1), 2) }}</p>
+                                    <p class="p-0 m-0">
+                                        {{ number_format(cuadreMovimientoDevolucionesResum($movimiento, 1), 2) }}</p>
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="2"><hr></td>
+                                <td colspan="2">
+                                    <hr>
+                                </td>
                             </tr>
                             <tr style="background-color: #A2D9CE;">
                                 <td style="text-align:left; padding: 5px;">
                                     <p class="m-0 p-0">VENTAS EFECTIVA</p>
                                 </td>
                                 <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">{{ number_format((cuadreMovimientoCajaIngresosVentaResum($movimiento,1) - cuadreMovimientoDevolucionesResum($movimiento,1)), 2) }}</p>
+                                    <p class="p-0 m-0">
+                                        {{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento, 1) - cuadreMovimientoDevolucionesResum($movimiento, 1), 2) }}
+                                    </p>
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="2"><hr></td>
+                                <td colspan="2">
+                                    <hr>
+                                </td>
                             </tr>
                             <tr>
                                 <td style="text-align:left; padding: 5px;">
                                     <p class="m-0 p-0">COBRANZA</p>
                                 </td>
                                 <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">{{ number_format(cuadreMovimientoCajaIngresosCobranzaResum($movimiento,1), 2) }}</p>
+                                    <p class="p-0 m-0">
+                                        {{ number_format(cuadreMovimientoCajaIngresosCobranzaResum($movimiento, 1), 2) }}
+                                    </p>
                                 </td>
                             </tr>
                             <tr>
@@ -685,7 +682,8 @@
                                     <p class="m-0 p-0">PAGOS</p>
                                 </td>
                                 <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">{{ number_format(cuadreMovimientoCajaEgresosPagoResum($movimiento,1), 2) }}</p>
+                                    <p class="p-0 m-0">
+                                        {{ number_format(cuadreMovimientoCajaEgresosPagoResum($movimiento, 1), 2) }}</p>
                                 </td>
                             </tr>
                             <tr>
@@ -693,18 +691,24 @@
                                     <p class="m-0 p-0">EGRESOS</p>
                                 </td>
                                 <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">{{ number_format((cuadreMovimientoCajaEgresosEgresoResum($movimiento,1) - cuadreMovimientoDevolucionesResum($movimiento,1)), 2) }}</p>
+                                    <p class="p-0 m-0">
+                                        {{ number_format(cuadreMovimientoCajaEgresosEgresoResum($movimiento, 1) - cuadreMovimientoDevolucionesResum($movimiento, 1), 2) }}
+                                    </p>
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="2"><hr></td>
+                                <td colspan="2">
+                                    <hr>
+                                </td>
                             </tr>
                             <tr style="background-color: #FCF3CF;">
                                 <td style="text-align:left; padding: 5px;">
                                     <p class="m-0 p-0">EFECTIVO</p>
                                 </td>
                                 <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">{{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento,1) + cuadreMovimientoCajaIngresosCobranzaResum($movimiento,1) - cuadreMovimientoCajaEgresosEgresoResum($movimiento,1) - cuadreMovimientoCajaEgresosPagoResum($movimiento,1), 2) }}</p>
+                                    <p class="p-0 m-0">
+                                        {{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento, 1) + cuadreMovimientoCajaIngresosCobranzaResum($movimiento, 1) - cuadreMovimientoCajaEgresosEgresoResum($movimiento, 1) - cuadreMovimientoCajaEgresosPagoResum($movimiento, 1), 2) }}
+                                    </p>
                                 </td>
                             </tr>
                             <tr style="background-color: #FCF3CF;">
@@ -716,14 +720,18 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="2"><hr></td>
+                                <td colspan="2">
+                                    <hr>
+                                </td>
                             </tr>
                             <tr style="background-color: #FCF3CF;">
                                 <td style="text-align:left; padding: 5px;">
                                     <p class="m-0 p-0">SALDO CAJA DEL DIA</p>
                                 </td>
                                 <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">{{ number_format($movimiento->monto_inicial + cuadreMovimientoCajaIngresosVentaResum($movimiento,1) + cuadreMovimientoCajaIngresosCobranzaResum($movimiento,1) - cuadreMovimientoCajaEgresosEgresoResum($movimiento,1) - cuadreMovimientoCajaEgresosPagoResum($movimiento,1), 2) }}</p>
+                                    <p class="p-0 m-0">
+                                        {{ number_format($movimiento->monto_inicial + cuadreMovimientoCajaIngresosVentaResum($movimiento, 1) + cuadreMovimientoCajaIngresosCobranzaResum($movimiento, 1) - cuadreMovimientoCajaEgresosEgresoResum($movimiento, 1) - cuadreMovimientoCajaEgresosPagoResum($movimiento, 1), 2) }}
+                                    </p>
                                 </td>
                             </tr>
                         </tbody>
@@ -743,27 +751,33 @@
                         </thead>
                         <tbody>
                             @foreach (tipos_pago() as $tipo)
-                            @if ($tipo->id > 1)
-                            <tr>
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="m-0 p-0">{{$tipo->descripcion}}</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">{{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento,$tipo->id), 2) }}</p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="m-0 p-0">{{$tipo->descripcion}} DEVOLUCIONES</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">{{ number_format(cuadreMovimientoDevolucionesResum($movimiento,$tipo->id), 2) }}</p>
-                                </td>
-                            </tr>
-                            @endif
+                                @if ($tipo->id > 1)
+                                    <tr>
+                                        <td style="text-align:left; padding: 5px;">
+                                            <p class="m-0 p-0">{{ $tipo->descripcion }}</p>
+                                        </td>
+                                        <td style="text-align:right; padding: 5px;">
+                                            <p class="p-0 m-0">
+                                                {{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento, $tipo->id), 2) }}
+                                            </p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align:left; padding: 5px;">
+                                            <p class="m-0 p-0">{{ $tipo->descripcion }} DEVOLUCIONES</p>
+                                        </td>
+                                        <td style="text-align:right; padding: 5px;">
+                                            <p class="p-0 m-0">
+                                                {{ number_format(cuadreMovimientoDevolucionesResum($movimiento, $tipo->id), 2) }}
+                                            </p>
+                                        </td>
+                                    </tr>
+                                @endif
                             @endforeach
                             <tr>
-                                <td colspan="2"><hr></td>
+                                <td colspan="2">
+                                    <hr>
+                                </td>
                             </tr>
                             <tr style="background-color: #A2D9CE;">
                                 <td style="text-align:left; padding: 5px;">
@@ -771,11 +785,14 @@
                                 </td>
                                 <td style="text-align:right; padding: 5px;">
                                     <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoCajaIngresosVentaElectronico($movimiento), 2) }}</p>
+                                        {{ number_format(cuadreMovimientoCajaIngresosVentaElectronico($movimiento), 2) }}
+                                    </p>
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="2"><hr></td>
+                                <td colspan="2">
+                                    <hr>
+                                </td>
                             </tr>
                             <tr style="background-color: #A2D9CE;">
                                 <td style="text-align:left; padding: 5px;">
@@ -783,11 +800,54 @@
                                 </td>
                                 <td style="text-align:right; padding: 5px;">
                                     <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoCajaIngresosVenta($movimiento) - cuadreMovimientoDevoluciones($movimiento), 2) }}</p>
+                                        {{ number_format(cuadreMovimientoCajaIngresosVenta($movimiento) - cuadreMovimientoDevoluciones($movimiento), 2) }}
+                                    </p>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+                    <br>
+                    <span style="text-transform: uppercase;font-size:15px">Trabajadores de ventas presentes</span>
+    <div class="cuerpo">
+        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th style="text-align: center; border-right: 2px solid #52BE80;">Codigo</th>
+                    <th style="text-align: center;border-right: 2px solid #52BE80">Nombres</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">Fecha Entrada</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">Fecha Salida</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @if (count($usuarios) == 0)
+                    <tr>
+                        <td colspan="5" style="text-align: center; border-right: 2px solid #52BE80">
+                            Sin Usuarios Ventas
+                        </td>
+                    </tr>
+                @else
+                    @foreach ($usuarios as $u)
+                        <tr>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                {{ $u->id }}</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                {{ $u->usuario }}</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                {{ $u->fecha_entrada }}</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                {{ $u->fecha_salida }}
+                            </td>
+                           
+
+                        </tr>
+                    @endforeach
+                @endif
+
+
+            </tbody>
+        </table>
+    </div><br>
                 </td>
             </tr>
         </table>

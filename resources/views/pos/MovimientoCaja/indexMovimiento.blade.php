@@ -238,10 +238,12 @@
                             html =
                                 "<div class='btn-group'><a class='btn btn-warning btn-sm' href='#'  onclick='cerrarCaja(" +
                                 data.id +
-                                ")' title='Modificar'><i class='fa fa-lock'> cerrar</i></a><a class='btn btn-danger btn-sm' href='#'  onclick='reporte(" +
+                                ")' title='Modificar'><i class='fa fa-lock'> Close</i></a><a class='btn btn-danger btn-sm' href='#'  onclick='reporte(" +
                                 data.id +
-                                ")' title='Pdf'><i class='fa fa-file-pdf-o'></i></a></div>"
-                        }
+                                ")' title='Pdf'><i class='fa fa-file-pdf-o'></i></a>"+
+                                "<a class='btn btn-block btn-w-m btn-modal btn-primary m-t-md' href='#'> <i class='fa fa-plus-square'>Detalles</i></a>"+
+                                "</div>"
+                        } 
                         return html;
                     }
                 }

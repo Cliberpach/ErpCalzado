@@ -17,13 +17,13 @@ class CreateInformacionDetallesCaja extends Migration
             $table->id();
             $table->unsignedBigInteger('movimiento_id');
             $table->integer('usuario_id')->unsigned();
-            //
-           
+            $table->dateTime('fecha_entrada');
+            $table->dateTime('fecha_salida')->nullable();
             $table->foreign('usuario_id')->references('id')
             ->on('users');
             $table->foreign('movimiento_id')->references('id')
             ->on('movimiento_caja');
-            $table->timestamps();
+           
         });
     }
 

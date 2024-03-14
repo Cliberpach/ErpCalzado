@@ -10,7 +10,7 @@
                 <h4 class="modal-title">Caja</h4>
                 <small class="font-bold">Cerrar de Caja</small>
             </div>
-            <div class="modal-body">
+            <div class="modal-body"> 
                 <form role="form" action="{{ route('Caja.cerrar') }}" method="POST" >
                     {{ csrf_field() }} {{ method_field('POST') }}
                     <input type="hidden" name="movimiento_id" id="movimiento_id" >
