@@ -279,7 +279,7 @@ function loadTable()
                 className: "text-left letrapequeña"
             },
             {
-                data: 'total',
+                data: 'total_pagar',
                 className: "text-center letrapequeña"
             },
             {
