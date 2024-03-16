@@ -398,9 +398,7 @@
                                     @endif
 
 
-                                    @include('ventas.documentos.table-detalle',[
-                                        'carrito' => 'carrito'
-                                    ])
+                                    @include('ventas.documentos.table-detalle-cvc')
 
                                      {{-- <div class="table-responsive">
                                         <table

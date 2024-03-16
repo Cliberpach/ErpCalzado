@@ -1,29 +1,22 @@
 <div class="table-responsive">
-    <table class="table table-sm table-striped table-bordered table-hover" @if (!isset($carrito))  id="table-stocks" @else id="table-detalle" @endif>
+    <table class="table table-sm table-striped table-bordered table-hover" id="table-detalle">
       <thead>
         <tr>
-          {{-- @if (isset($carrito))
-              <th></th>
-          @endif --}}
           <th scope="col">PRODUCTO</th>
           @foreach ($tallas as $talla)
               <th scope="col" data-talla={{$talla->id}}>{{$talla->descripcion}}</th>
-              @if (!isset($carrito))
-                <th>CANT</th>
-              @endif
           @endforeach
           
-            <th>PRECIO VENTA</th>  
-            @if (isset($carrito))
-                <th>SUBTOTAL</th>
-             @endif
+          <th>PRECIO VENTA</th>  
+          <th>SUBTOTAL</th>
+             
         </tr>
       </thead>
       <tbody>
           
       </tbody>
-      @if (isset($carrito))
-        <tfoot>
+      
+      <tfoot>
           <tr>
             <td colspan="{{count($tallas) + 2 }}" style="font-weight: bold;text-align:end;">SUBTOTAL:</td>
             <td class="subtotal" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
@@ -62,8 +55,7 @@
             <td colspan="{{count($tallas) + 2 }}" style="font-weight: bold;text-align:end;">MONTO TOTAL A PAGAR:</td>
             <td class="total-pagar" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
           </tr>
-        </tfoot>
-      @endif
+      </tfoot>
     </table>
   </div>
   
