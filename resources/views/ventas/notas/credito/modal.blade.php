@@ -11,14 +11,39 @@
             </div>
             <div class="modal-body">
                 <form id="frm-detalle">
-                    <div class="form-group row d-none">
+                    {{-- <div class="form-group row d-none">
                         <div class="col-12 col-md-6">
                             <label class="required">Indice</label>
                         </div>
                         <div class="col-12 col-md-6">
                             <input type="text" class="form-control" id="indice" onkeypress="return isNumber(event)" required readonly>
                         </div>
+                    </div> --}}
+                    <div class="form-group row d-none">
+                        <div class="col-12 col-md-6">
+                            <label class="required">Producto_id</label>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <input type="text" class="form-control" id="input_producto_id" required readonly>
+                        </div>
                     </div>
+                    <div class="form-group row d-none">
+                        <div class="col-12 col-md-6">
+                            <label class="required">Color_id</label>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <input type="text" class="form-control" id="input_color_id" required readonly>
+                        </div>
+                    </div>
+                    <div class="form-group row d-none">
+                        <div class="col-12 col-md-6">
+                            <label class="required">Talla_id</label>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <input type="text" class="form-control" id="input_talla_id" required readonly>
+                        </div>
+                    </div>
+
                     <div class="form-group row">
                         <div class="col-12 col-md-6">
                             <label class="required">Cantidad a devolver</label>
@@ -43,22 +68,22 @@
                             <input type="text" class="form-control" id="precio_unitario" onkeypress="return filterFloat(event, this);" readonly required>
                         </div>
                     </div>
-                    <div class="form-group row">
+                    {{-- <div class="form-group row">
                         <div class="col-12 col-md-6">
                             <label class="required">Descuento por devolución</label>
                         </div>
                         <div class="col-12 col-md-6">
                             <input type="text" class="form-control" value="0.00" id="descuento_dev" onkeypress="return filterFloat(event, this);" readonly required>
                         </div>
-                    </div>
-                    <div class="form-group row @if($documento->tipo_venta == '129') d-none @endif">
+                    </div> --}}
+                    {{-- <div class="form-group row @if($documento->tipo_venta == '129') d-none @endif">
                         <div class="col-12 col-md-6">
                             <label class="required">IGV 18%</label>
                         </div>
                         <div class="col-12 col-md-6">
                             <input type="text" class="form-control" id="monto_igv" onkeypress="return filterFloat(event, this);" readonly required>
                         </div>
-                    </div>
+                    </div> --}}
                     <div class="form-group row">
                         <div class="col-12 col-md-6">
                             <label class="required">Importe de venta</label>
@@ -74,7 +99,7 @@
                     <i class="fa fa-exclamation-circle leyenda-required"></i> <small class="leyenda-required">Los campos marcados con asterisco (<label class="required"></label>) son obligatorios.</small>
                 </div>
                 <div class="col-md-6 text-right">
-                    <button type="submit" id="btn_editar_detalle" class="btn btn-primary btn-sm" form="frm-detalle"><i class="fa fa-save"></i> Guardar</button>
+                    <button type="button" id="btn_editar_detalle" class="btn btn-primary btn-sm" form="frm-detalle"><i class="fa fa-save"></i> Guardar</button>
                     <button type="button" onclick="limpiarForm()" class="btn btn-danger btn-sm" data-dismiss="modal"><i class="fa fa-times"></i> Cancelar</button>
                 </div>
             </div>
@@ -84,7 +109,7 @@
 </div>
 
 @push('scripts')
-<script>
+{{-- <script>
     $('#frm-detalle').submit(function(e){
         e.preventDefault();
         let index = $('#indice').val();
@@ -109,5 +134,5 @@
         $('#modal_editar_detalle').modal('hide');
         sumaTotal();
     })
-</script>
+</script> --}}
 @endpush

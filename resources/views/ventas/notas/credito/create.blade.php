@@ -1,6 +1,14 @@
 @extends('layout') @section('content')
 
 @section('ventas-active', 'active')
+
+<style>
+    .resaltar-texto{
+        color: rgb(56, 136, 193);
+        font-weight: bold;
+    }
+</style>
+
 @section('documento-active', 'active')
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
@@ -48,7 +56,7 @@
                                     </div>
                                     <div class="col-12 col-md-7">
                                         @if(isset($nota_venta))
-                                        <select name="cod_motivo" id="cod_motivo" class="select2_form form-control" onchange="changeTipoNota(this)" disabled>
+                                        <select name="cod_motivo" id="cod_motivo" class="select2_form form-control" onchange="changeTipoNota(this)">
                                             <option value=""></option>
                                             @foreach(cod_motivos() as $item)
                                                 <option value="{{ $item->simbolo }}" {{$item->simbolo === '07' ? 'selected' : ''}}>{{ $item->descripcion }}</option>
@@ -278,7 +286,7 @@
                                                                 <label class="required">Total</label>
                                                             </div>
                                                             <div class="col-12 col-md-6">
-                                                                <input type="text" class="form-control" name="total_nuevo" id="total_nuevo" value="" readonly>
+                                                                <input type="text" class="form-control" name="total_nuevo" id="total_nuevo" value="0.00" readonly>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -367,6 +375,280 @@
  <script src="{{ asset('Inspinia/js/plugins/ladda/ladda.jquery.min.js') }}"></script>
 
 <script>
+    const bodyTablaDetalles     =   document.querySelector('#tbl-detalles tbody');
+    const inputIndice           =   document.querySelector('#indice');
+
+    const inputCantidadDevolver =   document.querySelector('#cantidad_devolver');
+    const inputDescripcion      =   document.querySelector('#descripcion');
+    const inputPrecioUnitario   =   document.querySelector('#precio_unitario');
+    const inputImporte          =   document.querySelector('#importe_venta');
+    const inputProductoId       =   document.querySelector('#input_producto_id');
+    const inputColorId          =   document.querySelector('#input_color_id');
+    const inputTallaId          =   document.querySelector('#input_talla_id');
+
+    const btnGuardar            =   document.querySelector('#btn_editar_detalle');
+    
+    let detalles        = null;
+    let devoluciones    = [];
+
+    document.addEventListener('DOMContentLoaded',()=>{
+
+        loadSelect2();
+        getDetalles({{$documento->id}});
+        events();
+    })
+
+    function events(){
+
+        //======== BTN GUARDAR CANTIDAD DEVOLUCION ======
+        btnGuardar.addEventListener('click',()=>{
+            const item_devolver =   getValuesForm();
+
+            //==== BUSCANDO SI EXISTE DEVOLUCIÓN PARA ESTE ITEM ======
+            const existeDevolucion = devoluciones.findIndex((dev)=>{
+                return dev.producto_id==item_devolver.producto_id && dev.color_id==item_devolver.color_id && dev.talla_id==item_devolver.talla_id;
+            })
+
+            //===== ACTUALIZAR LISTADO DEVOLUCIONES ======
+            if(existeDevolucion == -1){
+                devoluciones.push(item_devolver);
+            }else{
+                //==== ELIMINAR DEL LISTADO DEVOLUCIONES SI LA CANTIDAD A DEVOLVER ES 0 =====
+                if(item_devolver.cantidad_devolver == 0){
+                    devoluciones.splice(existeDevolucion,1);
+                }else{
+                    devoluciones[existeDevolucion] = item_devolver;
+                }
+            }
+
+
+          
+            pintarDetalle(detalles);
+            $('#modal_editar_detalle').modal('hide');
+
+        })
+
+        //====== EDITAR ITEM DE NOTA DE VENTA =======
+        document.addEventListener('click',(e)=>{
+            if (event.target.classList.contains('btn-edit-item') || event.target.classList.contains('btn-edit-icon')) {
+                const cod_motivo = $('#cod_motivo').val();
+
+                if(cod_motivo != '')
+                {
+                     //======= ACCEDER AL ANCESTRO MÁS CERCANO QUE CUMPLA CON LA CLASE ======
+                    //======= PUEDE TOMAR AL MISMO ELEMENTO CLICKEADO SI LLEGA A CUMPLIR ======
+                    const producto_id   = event.target.closest('.btn-edit-item').getAttribute('data-producto-id');
+                    const color_id      = event.target.closest('.btn-edit-item').getAttribute('data-color-id');
+                    const talla_id      = event.target.closest('.btn-edit-item').getAttribute('data-talla-id');
+
+                    // var data = $(".tbl-detalles").dataTable().fnGetData($(this).closest('tr'));
+                    // let table = $('#tbl-detalles').DataTable();
+                    // let index = table.row($(this).parents('tr')).index();
+                    // let igv = convertFloat('{{ $documento->igv }}')
+                    // let total_igv = data[3] - (data[3] / (1 + (igv/100)));
+
+                    limpiarForm();
+                    setValuesForm({producto_id,color_id,talla_id});
+
+                    // $('#indice').val(index);
+                    // $('#cantidad_devolver').val(data[1]);
+                    // $('#descripcion').val(data[2]);
+                    // $('#precio_unitario').val(data[3]);
+                    // $('#monto_igv').val(total_igv);
+                    // $('#importe_venta').val(data[4]);
+
+                    // $("#cantidad_devolver").attr({
+                    //         "max": data[1],
+                    //         "min": 1,
+                    //     });
+
+                    // if(cod_motivo != '01')
+                    // {
+                    //     console.log('o1')
+                    //     $("#cantidad_devolver").removeAttr('readonly');
+                    //     $("#precio_unitario").removeAttr('readonly');
+                    // }
+                    $('#modal_editar_detalle').modal('show');
+                }
+                else
+                {
+                    toastr.error('Seleccionar tipo de nota de crédito','Error')
+                }
+            }
+        })
+    }
+
+    //======= ESTABLECER DATOS DEL ITEM EN EL MODAL EDIT ======
+    function setValuesForm(item_){
+        console.log(item_)
+        //==== BUSCANDO ITEM EN DETALLES =====
+        const item  =   detalles.filter((d)=>{
+            return d.producto_id == item_.producto_id && d.color_id == item_.color_id  && d.talla_id == item_.talla_id;
+        })
+
+        
+        console.log(item);
+
+        if(item.length>0){
+            //====== BUSCANDO SI EL DETALLE TIENE DEVOLUCIÓN AGREGADA ====
+            const idDevolucion  = devoluciones.findIndex((dev)=> { 
+                return dev.producto_id == item[0].producto_id && dev.color_id == item[0].color_id && dev.talla_id == item[0].talla_id 
+            });
+
+            inputCantidadDevolver.value = idDevolucion==-1?parseFloat(item[0].cantidad).toFixed(2):parseFloat(devoluciones[idDevolucion].cantidad_devolver).toFixed(2);
+            inputDescripcion.value      = `${item[0].modelo_nombre}-${item[0].producto_nombre}-${item[0].color_nombre}-${item[0].talla_nombre} `;
+            inputPrecioUnitario.value   = parseFloat(item[0].precio_unitario).toFixed(2);
+            inputImporte.value          = idDevolucion==-1?parseFloat(item[0].importe).toFixed(2):parseFloat(devoluciones[idDevolucion].importe).toFixed(2);
+            inputProductoId.value       = item_.producto_id;
+            inputColorId.value          = item_.color_id;
+            inputTallaId.value          = item_.talla_id;
+
+            //======= ACTIVANDO EL CAMPO CANTIDAD ======
+            inputCantidadDevolver.removeAttribute('readonly');
+        }
+    }
+
+    function getValuesForm(){
+        const producto_id       =   inputProductoId.value;
+        const color_id          =   inputColorId.value;
+        const talla_id          =   inputTallaId.value;
+        const cantidad_devolver =   inputCantidadDevolver.value;
+        const precio_unitario   =   inputPrecioUnitario.value;
+        const importe           =   parseFloat(precio_unitario) * parseFloat(cantidad_devolver);
+
+        const item_devolver = {producto_id,color_id,talla_id,cantidad_devolver,precio_unitario,importe};
+        return item_devolver;
+    }
+
+    //====== LIMPIAR FORM ====
+    function limpiarForm()
+    {
+        $("#cantidad_devolver").attr('readonly');
+        $("#cantidad_devolver").val('');
+        $("#descripcion").attr('readonly');
+        $("#descripcion").val('');
+        $("#precio_unitario").attr('readonly');
+        $("#precio_unitario").val('');
+        $("#descuento_dev").attr('readonly');
+        $("#descuento_dev").val('');
+        $("#monto_igv").attr('readonly');
+        $("#monto_igv").val('');
+        $("#importe_venta").attr('readonly');
+        $("#importe_venta").val('');
+        inputProductoId.value   =   '';
+        inputColorId.value      =   '';
+        inputTallaId.value      =   '';
+    }
+
+    //======= CARGAR SELECT2 =======
+    const loadSelect2 = ()=>{
+        $(".select2_form").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            height: '200px',
+            width: '100%',
+        });
+    }
+
+    //====== CHANGE TIPO DE NOTA =====
+    function changeTipoNota(b)
+    {
+        if(b.value != '')
+        {
+            if(b.value == '01')
+            {
+                getDetalles({{ $documento->id }})
+            }
+            else
+            {
+                getDetalles({{ $documento->id }})
+            }
+        }else{
+            clearTableDetalles();
+        }
+    }
+
+    //====== OBTENER DETALLE DEL DOC DE VENTA =======
+    const getDetalles= (documento_id)=>{
+        $('#panel_detalle').children('.ibox-content').toggleClass('sk-loading');
+        let url = '{{ route("ventas.getDetalles",":id") }}';
+        url = url.replace(':id',documento_id);
+
+        var l = $( '.ladda-button-demo' ).ladda();
+        l.ladda( 'start' );
+
+        // dibujarTabla();
+        // var t = $('.tbl-detalles').DataTable();
+        // t.clear().draw();
+        $.ajax({
+            dataType: 'json',
+            type: 'get',
+            url: url,
+        }).done(function(result) {
+            // let detalles = result.detalles;
+            // console.log(result.detalles);
+            detalles        =   result.detalles;
+            pintarDetalle(result.detalles);
+            // for(let i = 0; i < detalles.length; i++)
+            // {
+            //     agregarTabla(detalles[i]);
+            // }
+            // sumaTotal();
+
+            l.ladda('stop');
+            $('#panel_detalle').children('.ibox-content').toggleClass('sk-loading');
+        });
+    }
+
+    //======= PINTAR DETALLE =======
+    const pintarDetalle = (detalles)=>{
+        let fila = ``;
+        const cod_motivo = $('#cod_motivo').val();
+
+        detalles.forEach((detalle)=>{
+
+            //====== BUSCANDO SI EL DETALLE TIENE DEVOLUCIÓN AGREGADA ====
+            const idDevolucion  = devoluciones.findIndex((dev)=> { 
+                return dev.producto_id == detalle.producto_id && dev.color_id == detalle.color_id && dev.talla_id == detalle.talla_id 
+            });
+            
+            const resaltarTexto = idDevolucion !== -1? true:false;
+
+            
+            fila += `
+                    <tr>
+                        <th scope="row"></th>
+                        <td class="${resaltarTexto ? 'resaltar-texto' : ''}">${idDevolucion==-1? parseInt(detalle.cantidad):parseInt(devoluciones[idDevolucion].cantidad_devolver)}</td>
+                        <td class="${resaltarTexto ? 'resaltar-texto' : ''}">${detalle.modelo_nombre} - ${detalle.producto_nombre} - ${detalle.color_nombre} - ${detalle.talla_nombre}</td>
+                        <td class="${resaltarTexto ? 'resaltar-texto' : ''}">${(Math.round(detalle.precio_unitario * 100) / 100).toFixed(2)}</td>
+                        <td class="${resaltarTexto ? 'resaltar-texto' : ''}">${idDevolucion==-1?(Math.round(detalle.importe * 100) / 100).toFixed(2):(Math.round(devoluciones[idDevolucion].importe * 100) / 100).toFixed(2)}</td>
+                        <td>
+                            ${cod_motivo === '07' ?
+                            `<button data-producto-id="${detalle.producto_id}" data-color-id="${detalle.color_id}"
+                                data-talla-id="${detalle.talla_id}"
+                                id="editar" type="button" class="btn btn-sm btn-info btn-rounded btn-edit-item">
+                                <span class="glyphicon glyphicon-pencil btn-edit-icon"></span>
+                            </button>`
+                            : ''}
+                        </td>
+                    </tr>
+                    `;
+        })
+
+        bodyTablaDetalles.innerHTML = fila;
+    }
+
+    const clearTableDetalles = ()=>{
+        while(bodyTablaDetalles.firstChild){
+            bodyTablaDetalles.removeChild(bodyTablaDetalles.firstChild)
+        }
+    }
+
+
+
+</script>
+
+{{-- <script>
 
     $(document).ready(function() {
 
@@ -787,5 +1069,5 @@
         }
     });
 
-</script>
+</script> --}}
 @endpush

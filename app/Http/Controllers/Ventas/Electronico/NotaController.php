@@ -105,26 +105,43 @@ class NotaController extends Controller
     {
 
         $detalles = Detalle::where('estado','ACTIVO')->where('documento_id',$id)->get();
-        $coleccion = collect();
-        foreach($detalles as $item)
-        {
-            if($item->cantidad - $item->detalles->sum('cantidad') > 0)
-            {
-                $coleccion->push([
-                    'id' => $item->id,
-                    'cantidad' => $item->cantidad - $item->detalles->sum('cantidad'),
-                    'descripcion' => $item->lote->producto->nombre,
-                    'precio_unitario' => $item->precio_nuevo,
-                    'importe_venta' => $item->valor_venta,
-                    'editable' => 0
-                ]);
-            }
+        $coleccion_detalles = [];
+        foreach ($detalles as $detalle) {
+            $item = [];
+            $item['producto_id']       =   $detalle->producto_id;
+            $item['color_id']          =   $detalle->color_id;
+            $item['talla_id']          =   $detalle->talla_id;   
+            $item['producto_nombre']   =   $detalle->nombre_producto;
+            $item['color_nombre']      =   $detalle->nombre_color;
+            $item['talla_nombre']      =   $detalle->nombre_talla;
+            $item['modelo_nombre']     =   $detalle->nombre_modelo;
+            $item['cantidad']          =   $detalle->cantidad;
+            $item['precio_unitario']   =   $detalle->precio_unitario;
+            $item['importe']           =   $detalle->importe;
+            $coleccion_detalles[]   =   $item;
         }
+
+        // $coleccion = collect();
+        // foreach($detalles as $item)
+        // {
+        //     if($item->cantidad - $item->detalles->sum('cantidad') > 0)
+        //     {
+        //         $coleccion->push([
+        //             'id' => $item->id,
+        //             'cantidad' => $item->cantidad - $item->detalles->sum('cantidad'),
+        //             'descripcion' => $item->lote->producto->nombre,
+        //             'precio_unitario' => $item->precio_nuevo,
+        //             'importe_venta' => $item->valor_venta,
+        //             'editable' => 0
+        //         ]);
+        //     }
+        // }
         //return DataTables::of($coleccion)->make(true);
 
         return response()->json([
             'success' => true,
-            'detalles' => $coleccion
+            'id_doc' => $id,
+            'detalles' => $coleccion_detalles
         ]);
     }
 
