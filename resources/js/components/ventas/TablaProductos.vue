@@ -689,8 +689,8 @@ export default {
         carrito:{
             handler(value){
                 //======== si aún quedan items en el carrito , asegurar cierre será 1 =========
-                if(this.carrito.length>0){
-                    this.asegurarCierre=1;
+                 if(this.carrito.length>0){
+                     this.asegurarCierre=1;
                 }
                 const montos = {
                     monto_sub_total: parseFloat(this.monto_subtotal),
@@ -787,6 +787,7 @@ export default {
         this.ObtenerCodigoPrecioMenor();
         //============= en caso la ventanta se cierre ===============
         window.addEventListener('beforeunload', async () => {
+            console.log('saliendo...',this.asegurarCierre);
             if (this.asegurarCierre == 1) {
                  await this.DevolverCantidades();
                  this.asegurarCierre = 10;
@@ -1407,6 +1408,7 @@ export default {
         },
         ChangeAsegurarCierre() {
             this.asegurarCierre = 5;
+            console.log('devuelvo',this.asegurarCierre);
         }
     }
 }

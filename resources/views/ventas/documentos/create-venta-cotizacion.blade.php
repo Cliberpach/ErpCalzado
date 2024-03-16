@@ -677,11 +677,11 @@
 
     //======= EVITAR DOBLE CLICK EN REGRESAR =========
     function regresarClick(event){
-            event.preventDefault(); // Prevenir el comportamiento predeterminado del enlace
+            event.preventDefault(); 
             var btnCancelar = document.getElementById("btn_cancelar");
-            if (!btnCancelar.classList.contains("disabled")) { // Verificar si el botón no está deshabilitado
-                btnCancelar.classList.add("disabled"); // Deshabilitar el botón
-                window.location.href = '{{ route('ventas.cotizacion.index') }}'; // Redirigir a la URL
+            if (!btnCancelar.classList.contains("disabled")) { 
+                btnCancelar.classList.add("disabled"); 
+                window.location.href = '{{ route('ventas.cotizacion.index') }}'; 
             }
     }
 

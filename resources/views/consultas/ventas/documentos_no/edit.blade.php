@@ -378,9 +378,15 @@
 
                         <input type="hidden" name="igv" id="igv" value="{{ $documento->igv ? $documento->igv : 18}}">
 
+                        {{-- <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
+                        <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
+                        <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}"> --}}
                         <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
+                        <input type="hidden" name="monto_embalaje" id="monto_embalaje" value="{{ old('monto_embalaje') }}">
+                        <input type="hidden" name="monto_envio" id="monto_envio" value="{{ old('monto_envio') }}">
                         <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
                         <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}">
+                        <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ old('monto_total_pagar') }}">
 
 
                     </form>
@@ -564,7 +570,7 @@
 
                         <div class="col-md-6 text-right">
 
-                            <a href="{{ route('consultas.ventas.documento.no.index') }}" id="btn_cancelar" class="btn btn-w-m btn-default">
+                            <a onclick="regresarClick(event)" href="javascript:void(0)" id="btn_cancelar" class="btn btn-w-m btn-default">
                                 <i class="fa fa-arrow-left"></i> Regresar
                             </a>
                             <button type="button" id="btn_grabar" class="btn btn-w-m btn-primary">
@@ -624,11 +630,23 @@
     const tableStocksBody       =   document.querySelector('#table-stocks-docno tbody');   
     const detalles              =   @json($detalles);
     const tallasBD              =   @json($tallas);
-    const tfootSubtotal         =   document.querySelector('.subtotal');
-    const tfootIgv              =   document.querySelector('.igv');
-    const tfootTotal            =   document.querySelector('.total');
+    const documento             =   @json($documento);
     const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
     const btnGrabar             =   document.querySelector('#btn_grabar');
+
+    const tfootSubtotal         =   document.querySelector('.subtotal');
+    const tfootEmbalaje         =   document.querySelector('.embalaje');
+    const tfootEnvio            =   document.querySelector('.envio');
+    const tfootTotal            =   document.querySelector('.total');
+    const tfootIgv              =   document.querySelector('.igv');
+    const tfootTotalPagar       =   document.querySelector('.total-pagar');
+
+    const inputSubTotal         =   document.querySelector('#monto_sub_total');
+    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
+    const inputEnvio            =   document.querySelector('#monto_envio');
+    const inputTotal            =   document.querySelector('#monto_total');
+    const inputIgv              =   document.querySelector('#monto_total_igv');
+    const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
 
     let igv=0;
     let subtotal=0;
@@ -642,16 +660,41 @@
       
         events();
         asegurarCierre=1;
-        cargarClientes();   //===== CARGADO DE CLIENTES ========
-        formatearDetalle(); //======== FORMATEAR DETALLE ==============
+        cargarClientes();       //===== CARGADO DE CLIENTES ========
+        formatearDetalle();     //======== FORMATEAR DETALLE ==============
         pintarTablaDetalle();  
-        calcularMontos();     //========== CARGAR MONTOS =========
         console.log(carrito);
     })
 
     function events(){
         btnAgregarDetalle.addEventListener('click',()=>{
             this.agregarProducto();
+        })
+
+
+        //===== VALIDAR CONTENIDO DE INPUTS CANTIDAD ========
+        //===== VALIDAR TFOOTS EMBALAJE Y ENVIO ======
+        document.addEventListener('input',(e)=>{
+
+            if(e.target.classList.contains('inputCantidad')){
+                e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
+            }
+
+            if (e.target.classList.contains('embalaje') || e.target.classList.contains('envio')) {
+                // Eliminar ceros a la izquierda, excepto si es el único carácter en el campo o si es seguido por un punto decimal y al menos un dígito
+                e.target.value = e.target.value.replace(/^0+(?=\d)|(?<=\D)0+(?=\d)|(?<=\d)0+(?=\.)|^0+(?=[1-9])/g, '');
+
+                // Evitar que el primer carácter sea un punto
+                e.target.value = e.target.value.replace(/^(\.)/, '');
+
+                // Reemplazar todo excepto los dígitos y el punto decimal
+                e.target.value = e.target.value.replace(/[^\d.]/g, '');
+
+                // Reemplazar múltiples puntos decimales con uno solo
+                e.target.value = e.target.value.replace(/(\..*)\./g, '$1');
+
+                calcularMontos();
+            }
         })
 
         //===== ELIMINAR PRODUCTO-COLOR DEL CARRITO =========
@@ -668,9 +711,11 @@
             cargarProductos();
             let correcto = validarCampos();
 
-            $('#monto_sub_total').val($('.subtotal').text())
-            $('#monto_total_igv').val($('.igv').text())
-            $('#monto_total').val($('.total').text())
+            // $('#monto_sub_total').val($('.subtotal').text())
+            // $('#monto_total_igv').val($('.igv').text())
+            // $('#monto_total').val($('.total').text())
+            //======== RECALCULANDO MONTOS =======
+            calcularMontos();
 
 
             if (correcto) {
@@ -695,6 +740,14 @@
                 }
             }
         })
+    }
+
+    function regresarClick(event){
+        event.preventDefault(); 
+        if (!event.target.classList.contains("disabled")) { 
+            event.target.classList.add("disabled"); 
+            window.location.href = '{{ route('consultas.ventas.documento.no.index') }}'; 
+        }
     }
 
     //===== ELIMINAR PRODUCTO COLOR ====
@@ -725,9 +778,10 @@
 
         this.actualizarStockLogico(producto,'eliminar')
 
-
         this.getProductosByModelo(modelo_id);
-         pintarDetalle();
+        pintarDetalle();
+        calcularMontos();
+        toastr.success(`${item[0].producto_nombre} - ${item[0].color_nombre}`,'ELIMINADO DEL DETALLE');
        
     }
 
@@ -740,6 +794,16 @@
             enviar = true;
         }
         return enviar
+    }
+
+    //=================== PINTAR MONTOS ==============
+    const pintarMontos = ()=>{
+        tfootSubtotal.textContent   =   cotizacion.sub_total;
+        tfootEmbalaje.value         =   cotizacion.monto_embalaje;
+        tfootEnvio.value            =   cotizacion.monto_envio;      
+        tfootTotal.textContent      =   cotizacion.total;
+        tfootIgv.textContent        =   cotizacion.total_igv;
+        tfootTotalPagar.textContent =   cotizacion.total_pagar;
     }
 
 
@@ -758,9 +822,9 @@
                 if (tipo == false) {
                     cargarProductos();
                     //CARGAR DATOS TOTAL
-                    $('#monto_sub_total').val($('.subtotal').text())
-                    $('#monto_total_igv').val($('.igv').text())
-                    $('#monto_total').val($('.total').text())
+                    // $('#monto_sub_total').val($('.subtotal').text())
+                    // $('#monto_total_igv').val($('.igv').text())
+                    // $('#monto_total').val($('.total').text())
 
                     document.getElementById("moneda").disabled = false;
                     document.getElementById("observacion").disabled = false;
@@ -1090,8 +1154,9 @@
         console.log('Proceso de agregar producto completado.');
         document.getElementById('overlay').style.display = 'none';
         // cargarCarritoPrevio();
-        // reordenarCarrito();
+        //reordenarCarrito();
         cargarSubTotal();
+        calcularMontos();
         pintarDetalle();
     }
 
@@ -1182,27 +1247,46 @@
         }
     }
 
-    //====== CARGAR MONTOS =========
-    function calcularMontos(){
-        let aux_subtotal=0;
-        let aux_igv=0;
-        let aux_total=0;
-
-        carrito.forEach((p)=>{
-            aux_total+=p.subtotal;
+     //=========== calcular montos =======
+     const calcularMontos = ()=>{
+        let subtotal    =   0;
+        let embalaje    =   tfootEmbalaje.value?parseFloat(tfootEmbalaje.value):0;
+        let envio       =   tfootEnvio.value?parseFloat(tfootEnvio.value):0;
+        let total       =   0;
+        let igv         =   0;
+        let total_pagar =   0;
+        
+        //====== subtotal es la suma de todos los productos ======
+        carrito.forEach((c)=>{
+            subtotal    +=  parseFloat(c.subtotal);
         })
 
-        aux_igv= 0.18*aux_total;
-        aux_subtotal=aux_total-aux_igv;
+        total_pagar =   subtotal + embalaje + envio;
+        total       =   total_pagar/1.18;
+        igv         =   total_pagar - total;
+       
+        // Formatear total_pagar con comas y puntos decimales
+        tfootTotalPagar.textContent = 'S/. ' + total_pagar.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-        const aux_subtotal_formateado = 'S/' + parseFloat(aux_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        const aux_igv_formateado = 'S/' + parseFloat(aux_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        const aux_total_formateado = 'S/' + parseFloat(aux_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        // Formatear igv con comas y puntos decimales
+        tfootIgv.textContent = 'S/. ' + igv.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-        tfootSubtotal.textContent = aux_subtotal_formateado;
-        tfootIgv.textContent = aux_igv_formateado;
-        tfootTotal.textContent = aux_total_formateado;
+        // Formatear total con comas y puntos decimales
+        tfootTotal.textContent = 'S/. ' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+        // Formatear subtotal con comas y puntos decimales
+        tfootSubtotal.textContent = 'S/. ' + subtotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+
+        
+        inputTotalPagar.value       =   total_pagar.toFixed(2);
+        inputIgv.value              =   igv.toFixed(2);
+        inputTotal.value            =   total.toFixed(2);
+        inputEmbalaje.value         =   embalaje.toFixed(2);
+        inputEnvio.value            =   envio.toFixed(2);
+        inputSubTotal.value         =   subtotal.toFixed(2);
     }
+
 
     //========= formatear carrito ==============
     const formatearDetalle = ()=>{
@@ -1358,7 +1442,7 @@
             let descripcion =   ``;
             tallasBD.forEach((t)=>{
                 let cantidad =    p.tallas.filter((pt)=>{return pt.talla_id==t.id});
-                cantidad.length>0? cantidad = cantidad[0].cantidad: cantidad =0;
+                cantidad.length>0? cantidad = cantidad[0].cantidad: cantidad ='';
                 fila+= `<td>${cantidad}</td>`;
             })
            

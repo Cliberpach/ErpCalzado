@@ -419,35 +419,46 @@ class NoEnviadosController extends Controller
 
             $documento = Documento::find($id);
             $monto = $documento->total;
-            $documento->fecha_documento = $request->get('fecha_documento_campo');
-            $documento->fecha_atencion =  $request->get('fecha_atencion_campo');
-            $documento->fecha_vencimiento =  $request->get('fecha_vencimiento_campo');
+            $documento->fecha_documento             = $request->get('fecha_documento_campo');
+            $documento->fecha_atencion              =  $request->get('fecha_atencion_campo');
+            $documento->fecha_vencimiento           =  $request->get('fecha_vencimiento_campo');
             //EMPRESA
-            $empresa = Empresa::findOrFail($request->get('empresa_id'));
-            $documento->ruc_empresa =  $empresa->ruc;
-            $documento->empresa =  $empresa->razon_social;
-            $documento->direccion_fiscal_empresa =  $empresa->direccion_fiscal;
-            $documento->empresa_id = $request->get('empresa_id'); //OBTENER NUMERACION DE LA EMPRESA
+            $empresa                                = Empresa::findOrFail($request->get('empresa_id'));
+            $documento->ruc_empresa                 = $empresa->ruc;
+            $documento->empresa                     = $empresa->razon_social;
+            $documento->direccion_fiscal_empresa    = $empresa->direccion_fiscal;
+            $documento->empresa_id                  = $request->get('empresa_id'); //OBTENER NUMERACION DE LA EMPRESA
             //CLIENTE
             $cliente = Cliente::findOrFail($request->get('cliente_id'));
 
             //CONDICION
-            $cadena = explode('-', $request->get('condicion_id'));
-            $condicion = Condicion::findOrFail($cadena[0]);
-            $documento->condicion_id = $condicion->id;
+            $cadena                     = explode('-', $request->get('condicion_id'));
+            $condicion                  = Condicion::findOrFail($cadena[0]);
+            $documento->condicion_id    = $condicion->id;
 
-            $documento->tipo_documento_cliente =  $cliente->tipo_documento;
-            $documento->documento_cliente =  $cliente->documento;
-            $documento->direccion_cliente =  $cliente->direccion;
-            $documento->cliente =  $cliente->nombre;
-            $documento->cliente_id = $request->get('cliente_id');
+            $documento->tipo_documento_cliente  =  $cliente->tipo_documento;
+            $documento->documento_cliente       =  $cliente->documento;
+            $documento->direccion_cliente       =  $cliente->direccion;
+            $documento->cliente                 =  $cliente->nombre;
+            $documento->cliente_id              = $request->get('cliente_id');
 
-            $documento->observacion = $request->get('observacion');
-            $documento->sub_total = str_replace('S/', '', $request->get('monto_sub_total'));
-            $documento->total_igv = str_replace('S/', '', $request->get('monto_total_igv'));
-            $documento->total = str_replace('S/', '', $request->get('monto_total'));
-            $documento->igv = $request->get('igv') ? $request->get('igv') : 18;
-            $documento->moneda = 1;
+            $documento->observacion         = $request->get('observacion');
+
+            $monto_sub_total    =   str_replace('S/', '', $request->get('monto_sub_total'));
+            $monto_embalaje     =   str_replace('S/', '', $request->get('monto_embalaje') ?? 0);
+            $monto_envio        =   str_replace('S/', '', $request->get('monto_envio') ?? 0);
+            $monto_total        =   str_replace('S/', '', $request->get('monto_total'));
+            $monto_total_igv    =   str_replace('S/', '', $request->get('monto_total_igv'));
+            $monto_total_pagar  =   str_replace('S/', '', $request->get('monto_total_pagar'));  
+
+            $documento->sub_total           = $monto_sub_total;
+            $documento->monto_embalaje      = $monto_embalaje;  
+            $documento->monto_envio         = $monto_envio;  
+            $documento->total               = $monto_total;  
+            $documento->total_igv           = $monto_total_igv;
+            $documento->total_pagar         = $monto_total_pagar;  
+            $documento->igv                 = $request->get('igv') ? $request->get('igv') : 18;
+            $documento->moneda              = 1;
 
             if ($monto != $request->get('monto_total')) {
                  $documento->tipo_pago_id = $request->get('tipo_pago_id');
