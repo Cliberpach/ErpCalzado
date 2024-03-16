@@ -1,6 +1,7 @@
 @extends('layout') @section('content')
-@include('pos.MovimientoCaja.create')
-@include('pos.MovimientoCaja.cerrar')
+    @include('pos.MovimientoCaja.create')
+    @include('pos.MovimientoCaja.cerrar')
+    @include('pos.MovimientoCaja.detallesMovimiento')
 @section('caja-movimiento-active', 'active')
 @section('caja-chica-active', 'active')
 <div class="row wrapper border-bottom white-bg page-heading">
@@ -14,13 +15,14 @@
                 <strong>Movimiento Caja</strong>
             </li>
         </ol>
-    </div> 
+    </div>
     <div class="col-lg-2 col-md-2">
         @can('haveaccess', 'movimiento_caja.create')
-        <a class="btn btn-block btn-w-m btn-modal btn-primary m-t-md" href="#">
-            <i class="fa fa-plus-square"></i> Añadir nuevo
-        </a>
+            <a class="btn btn-block btn-w-m btn-modal btn-primary m-t-md" href="#">
+                <i class="fa fa-plus-square"></i> Añadir nuevo
+            </a>
         @endcan
+
     </div>
 </div>
 <div class="wrapper wrapper-content animated fadeInRight">
@@ -33,40 +35,42 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="row form-group">
-                                <div class="col-md-2 filtro_inactivo" >
+                                <div class="col-md-2 filtro_inactivo">
                                     <label for="">Mes</label>
                                     <select name="mes" id="mes" class="custom-select">
-                                        <option value="01" {{ $mes=='01' ? 'selected' : '' }}>ENERO</option>
-                                        <option value="02" {{ $mes=='02' ? 'selected' : '' }}>FEBRERO</option>
-                                        <option value="03" {{ $mes=='03' ? 'selected' : '' }}>MARZO</option>
-                                        <option value="04" {{ $mes=='04' ? 'selected' : '' }}>ABRIL</option>
-                                        <option value="05" {{ $mes=='05' ? 'selected' : '' }}>MAYO</option>
-                                        <option value="06" {{ $mes=='06' ? 'selected' : '' }}>JUNIO</option>
-                                        <option value="07" {{ $mes=='07' ? 'selected' : '' }}>JULIO</option>
-                                        <option value="08" {{ $mes=='08' ? 'selected' : '' }}>AGOSTO</option>
-                                        <option value="09" {{ $mes=='09' ? 'selected' : '' }}>SEPTIEMBRE</option>
-                                        <option value="10" {{ $mes=='10' ? 'selected' : '' }}>OCTUBRE</option>
-                                        <option value="11" {{ $mes=='11' ? 'selected' : '' }}>NOVIEMBRE</option>
-                                        <option value="12" {{ $mes=='12' ? 'selected' : '' }}>DICIEMBRE</option>
+                                        <option value="01" {{ $mes == '01' ? 'selected' : '' }}>ENERO</option>
+                                        <option value="02" {{ $mes == '02' ? 'selected' : '' }}>FEBRERO</option>
+                                        <option value="03" {{ $mes == '03' ? 'selected' : '' }}>MARZO</option>
+                                        <option value="04" {{ $mes == '04' ? 'selected' : '' }}>ABRIL</option>
+                                        <option value="05" {{ $mes == '05' ? 'selected' : '' }}>MAYO</option>
+                                        <option value="06" {{ $mes == '06' ? 'selected' : '' }}>JUNIO</option>
+                                        <option value="07" {{ $mes == '07' ? 'selected' : '' }}>JULIO</option>
+                                        <option value="08" {{ $mes == '08' ? 'selected' : '' }}>AGOSTO</option>
+                                        <option value="09" {{ $mes == '09' ? 'selected' : '' }}>SEPTIEMBRE</option>
+                                        <option value="10" {{ $mes == '10' ? 'selected' : '' }}>OCTUBRE</option>
+                                        <option value="11" {{ $mes == '11' ? 'selected' : '' }}>NOVIEMBRE</option>
+                                        <option value="12" {{ $mes == '12' ? 'selected' : '' }}>DICIEMBRE</option>
                                     </select>
                                 </div>
                                 <div class="col-md-2 filtro_inactivo">
                                     <label for="">Año</label>
                                     <select name="anio" id="anio" class="custom-select">
                                         @foreach ($lstAnios as $anio)
-                                        <option value="{{ $anio->value }}" {{ $anio_==$anio->value ? 'selected' : ''
-                                            }}>{{ $anio->value
-                                            }}</option>
+                                            <option value="{{ $anio->value }}"
+                                                {{ $anio_ == $anio->value ? 'selected' : '' }}>{{ $anio->value }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-2 filtro_activo d-none">
                                     <label for="">Desde:</label>
-                                    <input type="date" id="desde"  class="form-control" value="{{ FechaActual() }}">
+                                    <input type="date" id="desde" class="form-control"
+                                        value="{{ FechaActual() }}">
                                 </div>
-                                <div class="col-md-2 filtro_activo d-none" >
+                                <div class="col-md-2 filtro_activo d-none">
                                     <label for="">Hasta:</label>
-                                    <input type="date" id="hasta" class="form-control" value="{{ FechaActual() }}">
+                                    <input type="date" id="hasta" class="form-control"
+                                        value="{{ FechaActual() }}">
                                 </div>
                                 <div class="col-md-2">
                                     <label for="" class="text-white">Buscar</label>
@@ -76,12 +80,14 @@
                                     </button>
                                 </div>
                                 <div class="col-md-3">
-                                    <label for=""><strong>Total Venta:</strong> <span id="totalVenta">S/ 0.00</span> </label>
+                                    <label for=""><strong>Total Venta:</strong> <span id="totalVenta">S/
+                                            0.00</span> </label>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-2">
-                                    <label for="" class="mb-0" style="cursor: pointer;" onclick="FiltrarPorFecha()">
+                                    <label for="" class="mb-0" style="cursor: pointer;"
+                                        onclick="FiltrarPorFecha()">
                                         <strong>
                                             <span id="textFilter">Filtrar por fechas</span>
                                             <i class="fa fa-filter"></i>
@@ -104,8 +110,10 @@
                                             <th class="text-center">CANTIDAD CIERRE</th>
                                             <th class="text-center">VENTA DEL DIA</th>
                                             <th class="text-center">ACCIONES</th>
+
                                         </tr>
                                     </thead>
+
                                 </table>
                             </div>
                         </div>
@@ -130,8 +138,74 @@
 <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
+
+
 <script>
-    $(function(){
+    var detalles_colaborades = document.getElementById("modal_detalles_colaboradores");
+    var cuerpo_colaborades = document.querySelector('#modal_detalles_colaboradores table tbody');
+
+    function verificarSeleccion(id) {
+        let verificar = document.getElementById(`checkBox${id}`);
+        if (verificar.checked) {
+            // Se agregara el atributo name para que  se guarde ese dato
+            document.getElementById(`idUsuario${id}`).setAttribute('name', 'colaboradores[]');
+
+        } else {
+            // Se quitara el atributo name para que no se guarde ese dato
+            document.getElementById(`idUsuario${id}`).removeAttribute('name');
+        }
+
+
+    }
+
+    // Obtiene los datos de los colabores presentes en cada apertura de caja
+    function mostrarColaboradores(id) {
+        let url = '/get-colaborades/' + id;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => mostrarData(data))
+            .catch(error => {
+                console.log('error al obtener los datos', error);
+            });
+    }
+
+    // rellena la tabla que muestra los colabores que participan en la apertura de caja
+    function mostrarData(datos) {
+
+      
+        let body = '';
+        if (datos) {
+            datos.forEach(element => {
+                body += `<tr> 
+                <th>
+                    <div class="m-auto p-auto">
+                    <input type="checkbox" class="btn-check" id="checkBox${element.usuario_id}" onclick="verificarSeleccion(${element.usuario_id})">
+                    <input type="hidden" id='idUsuario${element.usuario_id}' value="${element.usuario_id}">
+                    <input type="hidden" name="movimiento" value="${element.movimiento_id}">
+                    </div>    
+                    
+                </th>
+                <th>
+                    ${element.usuario}
+                </th>
+                <th>
+                    ${element.fecha_entrada}
+                </th>
+                </tr>`
+            });
+
+        } else {
+            body = '<tr> <th colspan="3"> Sin colaborades disponibles </th>  </tr>'
+        }
+
+        cuerpo_colaborades.innerHTML = body;
+
+        $(detalles_colaborades).modal("show");
+    }
+
+
+
+    $(function() {
         var table = $('.dataTables-cajas').DataTable({
             "dom": '<"html5buttons"B>lTfgitp',
             "buttons": [{
@@ -162,10 +236,10 @@
             "serverSide": true,
             "ajax": {
                 type: "GET",
-                url:'{{ route('Caja.get_movimientos_cajas') }}',
+                url: '{{ route('Caja.get_movimientos_cajas') }}',
                 dataType: 'json',
-                data:function(d){
-                    $("#reload").prop("disabled",true);
+                data: function(d) {
+                    $("#reload").prop("disabled", true);
                     d.mes = $("#mes").val();
                     d.anio = $("#anio").val();
                     d.filter = $("#filtros").val();
@@ -187,13 +261,15 @@
                 {
                     data: null,
                     className: "text-center",
-                    render:function(data){
-                        const {cantidad_inicial} = data;
+                    render: function(data) {
+                        const {
+                            cantidad_inicial
+                        } = data;
                         let formato = formatoMoneda(cantidad_inicial);
                         return formato;
                     }
                 },
-                
+
                 {
                     data: 'fecha_Inicio',
                     className: "text-center"
@@ -205,23 +281,29 @@
                 {
                     data: null,
                     className: "text-center",
-                    render:function(data){
-                        const {cantidad_final} = data;
-                        if(!isNaN(Number(cantidad_final))){
+                    render: function(data) {
+                        const {
+                            cantidad_final
+                        } = data;
+                        if (!isNaN(Number(cantidad_final))) {
                             let formato = formatoMoneda(cantidad_final);
                             return formato;
-                        }else{
+                        } else {
                             return cantidad_final;
                         }
-                       
+
                     }
                 },
                 {
                     data: null,
                     className: "text-center",
-                    render:function(data){
-                        const {totales} = data;
-                        const {TotalVentaDelDia} = totales;
+                    render: function(data) {
+                        const {
+                            totales
+                        } = data;
+                        const {
+                            TotalVentaDelDia
+                        } = totales;
                         let formato = formatoMoneda(TotalVentaDelDia);
                         return formato;
                     }
@@ -231,19 +313,20 @@
                     className: "text-center",
                     "render": function(data, type, row, meta) {
                         var html =
-                                "<div class='btn-group'><a class='btn btn-primary btn-sm' href='#' title='Caja Cerrada'><i class='fa fa-check'> Caja Cerrada</i></a><a class='btn btn-danger btn-sm' href='#'  onclick='reporte(" +
-                                    data.id +
-                                ")' title='Pdf'><i class='fa fa-file-pdf-o'></i></a></div>";
+                            "<div class='btn-group'><a class='btn btn-primary btn-sm' href='#' title='Caja Cerrada'><i class='fa fa-check'> Caja Cerrada</i></a><a class='btn btn-danger btn-sm' href='#'  onclick='reporte(" +
+                            data.id +
+                            ")' title='Pdf'><i class='fa fa-file-pdf-o'></i></a></div>";
                         if (data.fecha_Cierre == "-") {
-                            html =
-                                "<div class='btn-group'><a class='btn btn-warning btn-sm' href='#'  onclick='cerrarCaja(" +
-                                data.id +
-                                ")' title='Modificar'><i class='fa fa-lock'> Close</i></a><a class='btn btn-danger btn-sm' href='#'  onclick='reporte(" +
-                                data.id +
-                                ")' title='Pdf'><i class='fa fa-file-pdf-o'></i></a>"+
-                                "<a class='btn btn-block btn-w-m btn-modal btn-primary m-t-md' href='#'> <i class='fa fa-plus-square'>Detalles</i></a>"+
-                                "</div>"
-                        } 
+                            html = `<div class='btn-group'><a class='btn btn-warning btn-sm' href='#' onclick='cerrarCaja(
+                                ${data.id}
+                                )' title='Modificar'><i class='fa fa-lock'> Close</i></a><a class='btn btn-danger btn-sm' href='#'  onclick='reporte(
+                                ${data.id}
+                                )' title='Pdf'><i class='fa fa-file-pdf-o'></i></a>
+                                <button class='btn btn-block btn-w-m btn-modal btn-primary m-t-md' id='btn_mostrar_colaborades_${data.id}'  href='#' data_id=${data.id}  onclick='mostrarColaboradores(${data.id})'>Detalles</button>
+                                `
+
+
+                        }
                         return html;
                     }
                 }
@@ -254,29 +337,33 @@
             "order": [
                 [0, "desc"]
             ],
-        }).on("draw",function(){
-            $("#reload").prop("disabled",false);
+        }).on("draw", function() {
+            $("#reload").prop("disabled", false);
             let tabla = $('.dataTables-cajas').DataTable();
             let _TotalVentaDelDia = 0.00;
-            tabla.rows().data().each((el,index)=>{
-                const {totales} = el;
-                const {TotalVentaDelDia} = totales;
-                _TotalVentaDelDia=_TotalVentaDelDia + TotalVentaDelDia;
+            tabla.rows().data().each((el, index) => {
+                const {
+                    totales
+                } = el;
+                const {
+                    TotalVentaDelDia
+                } = totales;
+                _TotalVentaDelDia = _TotalVentaDelDia + TotalVentaDelDia;
             });
             $("#totalVenta").text(formatoMoneda(_TotalVentaDelDia));
         });
-        
-        $(document).on("click","#reload",function(){
+
+        $(document).on("click", "#reload", function() {
             table.draw();
         });
     });
 
-    function reporte(id)
-    {
-        var url="{{route('Caja.reporte.movimiento',':id')}}" 
-        url = url.replace(':id',id);
+    function reporte(id) {
+        var url = "{{ route('Caja.reporte.movimiento', ':id') }}"
+        url = url.replace(':id', id);
         window.open(url, "REPORTE CAJA", "width=900, height=600")
     }
+
     function cerrarCaja(id) {
         axios.get("{{ route('Caja.datos.cierre') }}", {
             params: {
@@ -294,24 +381,31 @@
             $("#modal_cerrar_caja").modal("show");
         }).catch((value) => {})
     }
+
     $(".btn-modal").click(function(e) {
         e.preventDefault();
         $("#modal_crear_caja").modal("show");
     });
 
-    function formatoMoneda(monto){
-        let res = new Intl.NumberFormat("es-PE", { style: 'currency', currency: "PEN" })
-        .format(monto);
+
+
+    function formatoMoneda(monto) {
+        let res = new Intl.NumberFormat("es-PE", {
+                style: 'currency',
+                currency: "PEN"
+            })
+            .format(monto);
         return res;
     }
-    function FiltrarPorFecha(){
+
+    function FiltrarPorFecha() {
         let filtros = $("#filtros").val();
-        if(filtros=="INACTIVO"){
+        if (filtros == "INACTIVO") {
             $(".filtro_inactivo").addClass("d-none");
             $(".filtro_activo").removeClass("d-none");
             $("#filtros").val("ACTIVO");
             $("#textFilter").text("Ocultar filtros");
-        }else{
+        } else {
             $(".filtro_inactivo").removeClass("d-none");
             $(".filtro_activo").addClass("d-none");
             $("#filtros").val("INACTIVO");

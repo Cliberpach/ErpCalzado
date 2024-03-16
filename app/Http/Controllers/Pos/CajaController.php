@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Pos;
 
+use App\Compras\Documento\Detalle;
 use App\DetallesMovimientoCaja;
 use App\Http\Controllers\Controller;
 use App\Mantenimiento\Colaborador\Colaborador;
@@ -30,6 +31,42 @@ class CajaController extends Controller
         $this->authorize('haveaccess', 'caja.index');
 
         return view('pos.Cajas.index');
+    }
+
+    public function retirarColaborades(Request $request){
+     // return $request;
+       $idMovimiento=$request->movimiento;
+       $colaboradores=$request->colaboradores;
+        $usuarios=DetallesMovimientoCaja::select('*')
+        ->where('detalles_movimiento_caja.movimiento_id','=',$idMovimiento)
+        ->whereIn('detalles_movimiento_caja.usuario_id',$colaboradores)
+        ->distinct()
+        ->get();
+        
+        
+        foreach($usuarios as $u){
+
+            $colaborador=  DetallesMovimientoCaja::find($u->id);
+       
+            $colaborador->fecha_salida=date('Y-m-d h:i:s');
+            $colaborador->save();
+
+        }
+    
+        
+        return redirect()->route('Caja.Movimiento.index');
+        
+       
+    }
+
+    public function getColaborades($id){
+        $colaborades_desocupados=DetallesMovimientoCaja::select('*')
+        ->join('users as u','u.id','=','detalles_movimiento_caja.usuario_id')
+        ->where('detalles_movimiento_caja.movimiento_id','=',$id)
+        ->whereNull('detalles_movimiento_caja.fecha_salida')
+        ->get();
+
+        return $colaborades_desocupados;
     }
     public function getCajas()
     {

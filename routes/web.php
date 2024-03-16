@@ -5,6 +5,7 @@ use App\Almacenes\LoteProducto;
 use App\Events\NotifySunatEvent;
 use App\Events\VentasCajaEvent;
 use App\Http\Controllers\Almacenes\NotaSalidadController;
+use App\Http\Controllers\Pos\CajaController;
 use App\Mail\NotificacionFacturacionMail;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Mantenimiento\Tabla\Detalle as TablaDetalle;
@@ -20,7 +21,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade as PDF;
-
+ 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -844,7 +845,8 @@ Route::get('ruta', function () {
     return '<div style="width:100%; height: 100vh;text-align:center;"><h1 style="font-size: 350px;">SISCOM</h1></div';
 });
 
-
+Route::post('/liberar_colaborador','Pos\CajaController@retirarColaborades')->name('Caja.liberarColaborades');
+Route::get('/get-colaborades/{id}','Pos\CajaController@getColaborades')->name('Caja.getColaborades');
 Route::get('/get-producto-by-modelo/{modelo_id}', 'Almacenes\ProductoController@getProductosByModelo'); //obt
 Route::get('/get-productos-nota-ingreso/{modelo_id}', 'Almacenes\ProductoController@getProductosNotaIngreso');
 Route::get('/get-stocklogico/{producto_id}/{color_id}/{talla_id}', 'Almacenes\ProductoController@getStockLogico');
