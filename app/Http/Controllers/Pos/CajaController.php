@@ -148,7 +148,7 @@ class CajaController extends Controller
 
  
         }
-       //  return $cajerosDesocupados;
+        // return $cajerosDesocupados;
        
         //=====================================
 
@@ -214,7 +214,7 @@ class CajaController extends Controller
                 "value" =>(int)$anio_
             ]);
         }
-       
+      //return $cajerosDesocupados;
         
         return view('pos.MovimientoCaja.indexMovimiento',[
             'lstAnios'=>json_decode(json_encode($lstAnios->sortByDesc("value")->values())), 
@@ -279,11 +279,11 @@ class CajaController extends Controller
 
     public function aperturaCaja(Request $request)
     {
+       
         $this->authorize('haveaccess','pos.MovimientoCaja.indexMovimiento');
         $data=$request->all();
         $rules=[
             'caja'=>'required',
-            'colaborador_id'=>'required',
             'turno'=>'required',
             'saldo_inicial'=>'required'
          ];

@@ -171,10 +171,11 @@
 
     // rellena la tabla que muestra los colabores que participan en la apertura de caja
     function mostrarData(datos) {
-
+        let btnColab= document.getElementById('btnRetirarColaboradores');
       
         let body = '';
-        if (datos) {
+        if (datos.length>0) {
+            btnColab.style.display='block';    
             datos.forEach(element => {
                 body += `<tr> 
                 <th>
@@ -195,7 +196,12 @@
             });
 
         } else {
-            body = '<tr> <th colspan="3"> Sin colaborades disponibles </th>  </tr>'
+                btnColab.style.display='none';             
+                body = '<tr> <th colspan="3" class="text-center"> Sin colaborades disponibles </th>  </tr>';
+          
+           
+       
+
         }
 
         cuerpo_colaborades.innerHTML = body;

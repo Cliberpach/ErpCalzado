@@ -28,19 +28,22 @@
                             </span>
                         @endif
                     </div>
+                 
                     <div class="form-group">
                         <label class="required">Cajeros:</label>
+                        
                         <select
                             class="form-control select2_form {{ $errors->has('colaborador_id') ? ' is-invalid' : '' }}"
                             style="text-transform: uppercase; width:100%" name="colaborador_id" id="colaborador_id">
-                            <option></option>
+                         
                             @if (count($cajerosDesocupados) == 0)
                                 <option disabled> Cajeros no disponibles</option>
+                                <option value=""></option>
                             @else
                                 <option></option>
                                 @foreach ($cajerosDesocupados as $c)
-                                    <option value="{{ $c->user_id }}">
-                                        {{ $c->user_id }} {{ $c->usuario }}
+                                    <option value="{{ $c->id }}">
+                                         {{ $c->usuario }}
                                     </option>
                                 @endforeach
                             @endif
@@ -198,12 +201,12 @@
 
 
         }
-        //Select2
-        // $(".select2_form").select2({
-        //     placeholder: "SELECCIONAR",
-        //     allowClear: true,
-        //     height: '200px',
-        //     width: '100%',
-        // });
+       
+        $(".select2_form").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            height: '200px',
+            width: '100%',
+        });
     </script>
 @endpush

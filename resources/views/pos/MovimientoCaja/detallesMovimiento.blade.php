@@ -1,6 +1,6 @@
 <div class="modal inmodal" id="modal_detalles_colaboradores" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
-        <form action="{{route('Caja.liberarColaborades')}}" method="post">
+        <form action="{{route('Caja.liberarColaborades')}}" method="post" id="formularioColab">
           @method('post')
           @csrf
             <div class="modal-content animated bounceInRight">
@@ -12,7 +12,9 @@
                     <i class="fa fa-cogs modal-icon d-none"></i>
                     <h4 class="modal-title">Detalles Colaboradores</h4>
                     <small class="font-bold"> Colaboradores</small>
-                    <button type="submit" class="btn btn-block btn-w-m  btn-primary m-t-md">Liberar Colaborades </button>
+                    <button onclick="comprobarColaboradores()" id="btnRetirarColaboradores" class="btn btn-block btn-w-m  btn-primary m-t-md">
+                        Liberar Colaborades
+                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="table-responsive">
@@ -54,3 +56,21 @@
         
     </div>
 </div>
+
+<script>
+var btn=document.getElementById('btnRetirarColaboradores');
+var formulario= document.getElementById('formularioColab');
+
+btn.addEventListener('click',function(event){
+    event.preventDefault();
+    elementos=document.querySelectorAll('[name="colaboradores[]"]')
+    if(elementos.length>0){
+        btn.setAttribute('type','submit');
+        formulario.submit();
+
+    }else{
+        toastr.error('Seleccione al menos un colaborador para ejecutar esa accion','Advertencia');
+    }
+});
+
+</script>
