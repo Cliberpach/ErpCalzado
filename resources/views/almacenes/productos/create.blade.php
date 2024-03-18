@@ -4,7 +4,7 @@
 @include('almacenes.categorias.create')
 @include('almacenes.marcas.create')
 @include('almacenes.modelos.create')
-@include('almacenes.colores.create')
+@include('almacenes.colores.create') 
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
@@ -193,7 +193,7 @@
                                     <div class="col-lg-4 col-12">
                                         <div class="form-group">
                                             <label class="required form-label">PRECIO 1</label>
-                                            <input class="form-control" type="number" step="0.01" inputmode="decimal" id="precio1" name="precio1" />
+                                            <input class="form-control  {{ $errors->has('precio1') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="precio1" name="precio1" />
                                             @if ($errors->has('precio1'))
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $errors->first('precio1') }}</strong>
@@ -204,7 +204,7 @@
                                     <div class="col-lg-4 col-12">
                                         <div class="form-group">
                                             <label class="required form-label">PRECIO 2</label>
-                                            <input class="form-control" type="number" step="0.01" inputmode="decimal" id="precio2" name="precio2" />
+                                            <input class="form-control  {{ $errors->has('precio2') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="precio2" name="precio2" />
                                             @if ($errors->has('precio2'))
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $errors->first('precio2') }}</strong>
@@ -215,10 +215,22 @@
                                     <div class="col-lg-4 col-12">
                                         <div class="form-group">
                                             <label class="required form-label">PRECIO 3</label>
-                                            <input class="form-control" type="number" step="0.01" inputmode="decimal" id="precio3" name="precio3" />
+                                            <input class="form-control {{ $errors->has('precio3') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="precio3" name="precio3" />
                                             @if ($errors->has('precio3'))
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $errors->first('precio3') }}</strong>
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-12">
+                                        <div class="form-group">
+                                            <label class="required">COSTO</label>
+                                             
+                                            <input class="form-control {{ $errors->has('costo') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="costo" name="costo"  value="{{ old('costo')}}"/>
+                                            @if ($errors->has('costo'))
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $errors->first('costo') }}</strong>
                                                 </span>
                                             @endif
                                         </div>
