@@ -108,6 +108,7 @@ class NotaController extends Controller
         $coleccion_detalles = [];
         foreach ($detalles as $detalle) {
             $item = [];
+            $item['codigo_producto']   =   $detalle->codigo_producto;
             $item['producto_id']       =   $detalle->producto_id;
             $item['color_id']          =   $detalle->color_id;
             $item['talla_id']          =   $detalle->talla_id;   
@@ -195,6 +196,8 @@ class NotaController extends Controller
 
             }
 
+         
+
             $documento = Documento::find($request->get('documento_id'));
 
             $igv = $documento->igv ? $documento->igv : 18;
@@ -214,6 +217,7 @@ class NotaController extends Controller
             $nota->empresa =  $documento->empresa;
             $nota->direccion_fiscal_empresa =  $documento->direccion_fiscal_empresa;
             $nota->empresa_id =  $documento->empresa_id; //OBTENER NUMERACION DE LA EMPRESA
+
             //CLIENTE
             $nota->cod_tipo_documento_cliente =  $documento->tipoDocumentoCliente();
             $nota->tipo_documento_cliente =  $documento->tipo_documento_cliente;
@@ -234,116 +238,153 @@ class NotaController extends Controller
             $nota->user_id = auth()->user()->id;
             $nota->save();
 
+     
             //Llenado de los articulos
             $productosJSON = $request->get('productos_tabla');
             $productotabla = json_decode($productosJSON);
 
+       
+
             foreach ($productotabla as $producto) {
-                if($request->cod_motivo != '01')
-                {
-                    if($producto->editable == 1)
-                    {
-                        $detalle = Detalle::find($producto->id);
-                        $lote = LoteProducto::findOrFail($detalle->lote_id);
-                        NotaDetalle::create([
+                if($request->cod_motivo != '01'){
+                    $detalle =  DB::select('select cdd.id 
+                                from cotizacion_documento_detalles as cdd
+                                where cdd.documento_id=? and cdd.producto_id=?  and cdd.color_id=?
+                                and cdd.talla_id=?',[
+                                    $request->get('documento_id'),
+                                    $producto->producto_id,
+                                    $producto->color_id,
+                                    $producto->talla_id
+                                ]);
+
+                    NotaDetalle::create(
+                        [
                             'nota_id' => $nota->id,
-                            'detalle_id' => $detalle->id,
-                            'codProducto' => $lote->producto->codigo,
-                            'unidad' => $lote->producto->getMedida(),
-                            'descripcion' => $lote->producto->nombre.' - '.$lote->codigo,
-                            'cantidad' => $producto->cantidad,
-
-                            'mtoBaseIgv' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad,
+                            'detalle_id' => $detalle[0]->id,
+                            'codProducto' => $producto->codigo_producto,
+                            'unidad' => 'NIU',
+                            'descripcion' => $producto->modelo_nombre.'-'.$producto->producto_nombre.'-'.$producto->color_nombre.'-'.$producto->talla_nombre,
+                            'cantidad' => $producto->cantidad_devolver,
+                            'mtoBaseIgv' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver,
                             'porcentajeIgv' => 18,
-                            'igv' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad,
+                            'igv' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad_devolver,
                             'tipAfeIgv' => 10,
-
-                            'totalImpuestos' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad,
-                            'mtoValorVenta' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad,
+                            'totalImpuestos' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad_devolver,
+                            'mtoValorVenta' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver,
                             'mtoValorUnitario'=>  $producto->precio_unitario / (1 + ($documento->igv/100)),
                             'mtoPrecioUnitario' => $producto->precio_unitario,
                         ]);
-
-                        $lote->cantidad = $lote->cantidad + $producto->cantidad;
-                        $lote->cantidad_logica = $lote->cantidad_logica + $producto->cantidad;
-                        if ($lote->cantidad > 0) {
-                            $lote->estado = '1';
-                        }
-                        $lote->update();
-                    }
                 }
-                else
-                {
-                    $detalle = Detalle::find($producto->id);
-                    $lote = LoteProducto::findOrFail($detalle->lote_id);
-                    NotaDetalle::create([
-                        'nota_id' => $nota->id,
-                        'detalle_id' => $detalle->id,
-                        'codProducto' => $lote->producto->codigo,
-                        'unidad' => $lote->producto->getMedida(),
-                        'descripcion' => $lote->producto->nombre.' - '.$lote->codigo,
-                        'cantidad' => $producto->cantidad,
+            //     if($request->cod_motivo != '01')
+            //     {
+            //         if($producto->editable == 1)
+            //         {
+            //             $detalle = Detalle::find($producto->id);
+            //             $lote = LoteProducto::findOrFail($detalle->lote_id);
+            //             NotaDetalle::create([
+            //                 'nota_id' => $nota->id,
+            //                 'detalle_id' => $detalle->id,
+            //                 'codProducto' => $lote->producto->codigo,
+            //                 'unidad' => $lote->producto->getMedida(),
+            //                 'descripcion' => $lote->producto->nombre.' - '.$lote->codigo,
+            //                 'cantidad' => $producto->cantidad,
 
-                        'mtoBaseIgv' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad,
-                        'porcentajeIgv' => 18,
-                        'igv' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad,
-                        'tipAfeIgv' => 10,
+            //                 'mtoBaseIgv' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad,
+            //                 'porcentajeIgv' => 18,
+            //                 'igv' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad,
+            //                 'tipAfeIgv' => 10,
 
-                        'totalImpuestos' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad,
-                        'mtoValorVenta' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad,
-                        'mtoValorUnitario'=>  $producto->precio_unitario / (1 + ($documento->igv/100)),
-                        'mtoPrecioUnitario' => $producto->precio_unitario,
-                    ]);
+            //                 'totalImpuestos' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad,
+            //                 'mtoValorVenta' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad,
+            //                 'mtoValorUnitario'=>  $producto->precio_unitario / (1 + ($documento->igv/100)),
+            //                 'mtoPrecioUnitario' => $producto->precio_unitario,
+            //             ]);
 
-                    $lote->cantidad = $lote->cantidad + $producto->cantidad;
-                    $lote->cantidad_logica = $lote->cantidad_logica + $producto->cantidad;
-                    if ($lote->cantidad > 0) {
-                        $lote->estado = '1';
-                    }
-                    $lote->update();
+            //             $lote->cantidad = $lote->cantidad + $producto->cantidad;
+            //             $lote->cantidad_logica = $lote->cantidad_logica + $producto->cantidad;
+            //             if ($lote->cantidad > 0) {
+            //                 $lote->estado = '1';
+            //             }
+            //             $lote->update();
+            //         }
+            //     }
+            //     else
+            //     {
+            //         $detalle = Detalle::find($producto->id);
+            //         $lote = LoteProducto::findOrFail($detalle->lote_id);
+            //         NotaDetalle::create([
+            //             'nota_id' => $nota->id,
+            //             'detalle_id' => $detalle->id,
+            //             'codProducto' => $lote->producto->codigo,
+            //             'unidad' => $lote->producto->getMedida(),
+            //             'descripcion' => $lote->producto->nombre.' - '.$lote->codigo,
+            //             'cantidad' => $producto->cantidad,
 
-                    $documento->sunat = '2';
-                    $documento->update();
-                }
+            //             'mtoBaseIgv' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad,
+            //             'porcentajeIgv' => 18,
+            //             'igv' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad,
+            //             'tipAfeIgv' => 10,
+
+            //             'totalImpuestos' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad,
+            //             'mtoValorVenta' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad,
+            //             'mtoValorUnitario'=>  $producto->precio_unitario / (1 + ($documento->igv/100)),
+            //             'mtoPrecioUnitario' => $producto->precio_unitario,
+            //         ]);
+
+            //         $lote->cantidad = $lote->cantidad + $producto->cantidad;
+            //         $lote->cantidad_logica = $lote->cantidad_logica + $producto->cantidad;
+            //         if ($lote->cantidad > 0) {
+            //             $lote->estado = '1';
+            //         }
+            //         $lote->update();
+
+            //         $documento->sunat = '2';
+            //         $documento->update();
+            //     }
             }
-
-            //Registro de actividad
-            $descripcion = "SE AGREGÓ UNA NOTA DE DEBITO CON LA FECHA: ". Carbon::parse($nota->fechaEmision)->format('d/m/y');
-            $gestion = "NOTA DE DEBITO";
-            crearRegistro($nota , $descripcion , $gestion);
-
-            $envio_prev = self::sunat_prev($nota->id);
-
-            if(!isset($request->nota_venta))
-            {
-                if(!$envio_prev['success'])
-                {
-                    DB::rollBack();
-                    return response()->json([
-                        'success' => false,
-                        'mensaje'=> $envio_prev['mensaje']
-                    ]);
-                }
-            }
-
             DB::commit();
-            if(!isset($request->nota_venta))
-            {
-               // $envio_post = self::sunat_post($nota->id);
-            }
-
-            $text = 'Nota de crédito creada, se creo un egreso con el monto de la nota de credito.';
-
-            if(isset($request->nota_venta))
-            {
-                $text = 'Nota de devolución creada, se creo un egreso con el monto de la nota de devolución.';
-            }
-
-            Session::flash('success', $text);
             return response()->json([
                 'success' => true,
-                'nota_id'=> $nota->id
-            ]);
+                'data'=> $productotabla
+           ]);
+
+            // //Registro de actividad
+            // $descripcion = "SE AGREGÓ UNA NOTA DE DEBITO CON LA FECHA: ". Carbon::parse($nota->fechaEmision)->format('d/m/y');
+            // $gestion = "NOTA DE DEBITO";
+            // crearRegistro($nota , $descripcion , $gestion);
+
+            // $envio_prev = self::sunat_prev($nota->id);
+
+            // if(!isset($request->nota_venta))
+            // {
+            //     if(!$envio_prev['success'])
+            //     {
+            //         DB::rollBack();
+            //         return response()->json([
+            //             'success' => false,
+            //             'mensaje'=> $envio_prev['mensaje']
+            //         ]);
+            //     }
+            // }
+
+            // DB::commit();
+            // if(!isset($request->nota_venta))
+            // {
+            //    // $envio_post = self::sunat_post($nota->id);
+            // }
+
+            // $text = 'Nota de crédito creada, se creo un egreso con el monto de la nota de credito.';
+
+            // if(isset($request->nota_venta))
+            // {
+            //     $text = 'Nota de devolución creada, se creo un egreso con el monto de la nota de devolución.';
+            // }
+
+            // Session::flash('success', $text);
+            // return response()->json([
+            //     'success' => true,
+            //     'nota_id'=> $nota->id
+            // ]);
 
         }
         catch(Exception $e)

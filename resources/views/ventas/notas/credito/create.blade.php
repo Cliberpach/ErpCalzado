@@ -200,8 +200,11 @@
                                     <div class="col-12 col-md-6">
                                         <label class="required">Sub Total</label>
                                     </div>
-                                    <div class="col-12 col-md-6">
+                                    {{-- <div class="col-12 col-md-6">
                                         <input type="text" class="form-control" name="sub_total" id="sub_total" value="{{ $documento->sub_total }}" readonly>
+                                    </div> --}}
+                                    <div class="col-12 col-md-6">
+                                        <input type="text" class="form-control" name="sub_total" id="sub_total" value="{{ $documento->total }}" readonly>
                                     </div>
                                 </div>
                                 <div class="form-group row @if($documento->tipo_venta == '129') d-none @endif">
@@ -212,12 +215,20 @@
                                         <input type="text" class="form-control" name="total_igv" id="total_igv" value="{{ $documento->total_igv }}" readonly>
                                     </div>
                                 </div>
-                                <div class="form-group row">
+                                {{-- <div class="form-group row">
                                     <div class="col-12 col-md-6">
                                         <label class="required">Total</label>
                                     </div>
                                     <div class="col-12 col-md-6">
                                         <input type="text" class="form-control" name="total" id="total" value="{{ $documento->total }}" readonly>
+                                    </div>
+                                </div> --}}
+                                <div class="form-group row">
+                                    <div class="col-12 col-md-6">
+                                        <label class="required">Total</label>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <input type="text" class="form-control" name="total" id="total" value="{{ $documento->total_pagar }}" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -228,11 +239,12 @@
                                     <div class="panel-heading">
                                         <div class="row">
                                             <div class="col-10">
-                                                <h4><b>Detalles de la nota de @if(isset($nota_venta)) devolución @else crédito @endif</b></h4>
+                                                {{-- <h4><b>Detalles de la nota de @if(isset($nota_venta)) devolución @else crédito @endif</b></h4> --}}
+                                                <h4>Seleccionar productos</h4>
                                             </div>
-                                            <div class="col-2 text-right">
+                                            {{-- <div class="col-2 text-right">
                                                 <button type="button" class="ladda-button ladda-button-demo btn btn-secondary btn-sm" onclick="actualizarData({{ $documento->id }})" data-style="zoom-in"><i class="fa fa-refresh"></i></button>
-                                            </div>
+                                            </div> --}}
                                         </div>
                                     </div>
                                     <div class="panel-body ibox-content">
@@ -261,7 +273,7 @@
                                                     </table>
                                                 </div>
                                             </div>
-                                            <div class="col-12">
+                                            {{-- <div class="col-12">
                                                 <div class="row">
                                                     <div class="col-12 col-md-8"></div>
                                                     <div class="col-12 col-md-4">
@@ -281,7 +293,7 @@
                                                                 <input type="text" class="form-control" name="total_igv_nuevo" id="total_igv_nuevo" value="" readonly>
                                                             </div>
                                                         </div>
-                                                        <div class="form-group row">
+                                                        <div class="form-group row d-none">
                                                             <div class="col-12 col-md-6">
                                                                 <label class="required">Total</label>
                                                             </div>
@@ -291,12 +303,14 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> --}}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        <hr>
+                        @include('ventas.notas.credito.table-devoluciones')
                         <div class="hr-line-dashed"></div>
                         <div class="form-group row">
                             <div class="col-md-6 text-left" style="color:#fcbc6c">
@@ -373,9 +387,11 @@
  <script src="{{ asset('Inspinia/js/plugins/ladda/spin.min.js') }}"></script>
  <script src="{{ asset('Inspinia/js/plugins/ladda/ladda.min.js') }}"></script>
  <script src="{{ asset('Inspinia/js/plugins/ladda/ladda.jquery.min.js') }}"></script>
+ <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 
 <script>
     const bodyTablaDetalles     =   document.querySelector('#tbl-detalles tbody');
+    const bodyTableDevoluciones =   document.querySelector('#tbl-detalles-devolucion tbody');
     const inputIndice           =   document.querySelector('#indice');
 
     const inputCantidadDevolver =   document.querySelector('#cantidad_devolver');
@@ -386,7 +402,17 @@
     const inputColorId          =   document.querySelector('#input_color_id');
     const inputTallaId          =   document.querySelector('#input_talla_id');
 
+    const inputTotalOriginal    =   document.querySelector('#total');
+
+    const inputSubTotalNuevo    =   document.querySelector('#sub_total_nuevo');
+    const inputTotalIgvNuevo    =   document.querySelector('#total_igv_nuevo');
+    const inputTotalNuevo       =   document.querySelector('#total_nuevo');
+
+    const inputMontoTotalDev    =   document.querySelector('#monto_total_devolucion');
+
     const btnGuardar            =   document.querySelector('#btn_editar_detalle');
+
+    const formDevolucion        =   document.querySelector('#enviar_documento');
     
     let detalles        = null;
     let devoluciones    = [];
@@ -400,9 +426,59 @@
 
     function events(){
 
+        //====== ENVIAR FORM DEVOLUCION ======
+        formDevolucion.addEventListener('submit',(e)=>{
+            e.preventDefault();
+
+            if(devoluciones.length === 0){
+                toastr.error('NO HAY DEVOLUCIONES','ERROR');
+                return;
+            }
+
+            enviarFormDevolucion();
+
+
+        })
+
+        //==== VALIDACION INPUT CANTIDAD DEVOLVER ====
+        inputCantidadDevolver.addEventListener('input',(e)=>{
+            const max_valor     =   parseInt(e.target.getAttribute('data-cant-max'));
+            const valorActual   =   parseInt(e.target.value);
+            if(valorActual>max_valor){
+                e.target.value  =   max_valor;
+            }
+
+            var regexEntero = /^\d+$/;
+            // Verificar si el valor es 0 o no es un número entero
+            if (inputCantidadDevolver.value === '0' || !regexEntero.test(inputCantidadDevolver.value)) {
+                inputCantidadDevolver.value = '';
+            }
+
+        })
+
+        //====== BORRAR DEVOLUCION =========
+        document.addEventListener('click',(e)=>{
+            if(e.target.classList.contains('btn-delete-devolucion')){
+                const producto_id   =   e.target.getAttribute('data-producto-id');
+                const color_id      =   e.target.getAttribute('data-color-id');
+                const talla_id      =   e.target.getAttribute('data-talla-id');
+
+                devoluciones    =   devoluciones.filter((d)=>{
+                    return !(d.producto_id==producto_id && d.color_id==color_id && d.talla_id==talla_id);
+                })
+
+                pintarDevoluciones();
+                pintarMontoTotalDevolucion();
+            }
+        })
+
         //======== BTN GUARDAR CANTIDAD DEVOLUCION ======
         btnGuardar.addEventListener('click',()=>{
             const item_devolver =   getValuesForm();
+            if(item_devolver.cantidad_devolver.toString().trim().length === 0){
+                toastr.error('INGRESE LA CANTIDAD A DEVOLVER','ERROR');
+                return;
+            }
 
             //==== BUSCANDO SI EXISTE DEVOLUCIÓN PARA ESTE ITEM ======
             const existeDevolucion = devoluciones.findIndex((dev)=>{
@@ -421,9 +497,8 @@
                 }
             }
 
-
-          
-            pintarDetalle(detalles);
+            pintarDevoluciones();
+            pintarMontoTotalDevolucion();
             $('#modal_editar_detalle').modal('hide');
 
         })
@@ -457,6 +532,7 @@
                     // $('#monto_igv').val(total_igv);
                     // $('#importe_venta').val(data[4]);
 
+                   
                     // $("#cantidad_devolver").attr({
                     //         "max": data[1],
                     //         "min": 1,
@@ -478,32 +554,173 @@
         })
     }
 
+    //===== CARGAR PRODUCTOS DEVOLUCION =======
+    function cargarProductos() {
+        $('#productos_tabla').val(JSON.stringify(devoluciones));
+    }
+
+
+    //========= ENVIAR DEVOLUCIÓN ======
+    function enviarFormDevolucion(){
+        let enviar = true;
+        let total =  inputMontoTotalDev.value;
+
+        if(parseFloat(total) <= 0)
+        {
+            enviar = false;
+            toastr.error('El monto total de la Nota de Crédito debe ser mayor que 0.')
+        }
+
+        if(enviar)
+        {
+            cargarProductos();
+            calcularNuevosMontos();
+            let formDocumento = document.getElementById('enviar_documento');
+            let formData = new FormData(formDocumento);
+
+            var object = {};
+            formData.forEach(function(value, key){
+                object[key] = value;
+            });
+
+            var datos = object;
+            console.log(datos)
+            var init = {
+                // el método de envío de la información será POST
+                method: "POST",
+                headers: { // cabeceras HTTP
+                    // vamos a enviar los datos en formato JSON
+                    'Content-Type': 'application/json'
+                },
+                // el cuerpo de la petición es una cadena de texto
+                // con los datos en formato JSON
+                body: JSON.stringify(datos) // convertimos el objeto a texto
+            };
+
+            var url = '{{ route("ventas.notas.store") }}';
+            var textAlert = "¿Seguro que desea guardar cambios?";
+            Swal.fire({
+                title: 'Opción Guardar',
+                text: textAlert,
+                icon: 'question',
+                customClass: {
+                    container: 'my-swal'
+                },
+                showCancelButton: true,
+                confirmButtonColor: "#1ab394",
+                confirmButtonText: 'Si, Confirmar',
+                cancelButtonText: "No, Cancelar",
+                showLoaderOnConfirm: true,
+                allowOutsideClick: false,
+                preConfirm: (login) => {
+                    return fetch(url,init)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(response.statusText)
+                            }
+                            return response.json()
+                        })
+                        .catch(error => {
+                            Swal.showValidationMessage(
+                                `Ocurrió un error`
+                            );
+                        })
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.value !== undefined && result.isConfirmed) {
+                    if(result.value.errors)
+                    {
+                        let mensaje = sHtmlErrores(result.value.data.mensajes);
+                        toastr.error(mensaje);
+                    }
+                    else if(result.value.success)
+                    {
+                        let id = result.value.nota_id;
+                        @if(isset($nota_venta))
+                            toastr.success('Nota de devolución creada!','Exito')
+                            // let url_open_pdf = '{{ route("ventas.notas_dev.show", ":id")}}';
+                            // url_open_pdf = url_open_pdf.replace(':id',id);
+                            // window.open(url_open_pdf, "Comprobante SISCOM", "width=900, height=600");
+                        @else
+                            toastr.success('Nota de crédito creada!','Exito')
+                            let url_open_pdf = '{{ route("ventas.notas.show", ":id")}}';
+                            url_open_pdf = url_open_pdf.replace(':id',id);
+                            window.open(url_open_pdf, "Comprobante SISCOM", "width=900, height=600");
+                        @endif
+
+                        // let ruta = "{{route('ventas.notas', $documento->id)}}"
+                        // @if(isset($nota_venta))
+                        //     ruta = "{{route('ventas.notas_dev', $documento->id)}}";
+                        // @endif
+
+                        // location = ruta;
+                    }
+                    else
+                    {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: '¡'+ result.value.mensaje +'!',
+                            customClass: {
+                                container: 'my-swal'
+                            },
+                            showConfirmButton: false,
+                            timer: 2500
+                        });
+                    }
+                }
+            });
+
+        }
+    }
+
+    //===== CALCULAR NUEVOS MONTOS =====
+    function calcularNuevosMontos(){
+        let subtotal    = 0;
+        let total       = 0;
+        let igv         = 0;
+
+        total       =   parseFloat(inputMontoTotalDev.value);
+        subtotal    =   total/1.18;
+        igv         =   total - subtotal; 
+
+        inputTotalIgvNuevo.value    =   igv;
+        inputSubTotalNuevo.value    =   subtotal;
+    }
+
+    //======= PINTAR MONTO TOTAL DEVOLUCION =======
+    function pintarMontoTotalDevolucion(){
+        let monto_total=0;
+        devoluciones.forEach((d)=>{
+            monto_total+=d.importe;
+        })
+        inputMontoTotalDev.value    =   monto_total;
+    }
+
     //======= ESTABLECER DATOS DEL ITEM EN EL MODAL EDIT ======
     function setValuesForm(item_){
-        console.log(item_)
+      
         //==== BUSCANDO ITEM EN DETALLES =====
         const item  =   detalles.filter((d)=>{
             return d.producto_id == item_.producto_id && d.color_id == item_.color_id  && d.talla_id == item_.talla_id;
         })
 
-        
-        console.log(item);
+       
 
         if(item.length>0){
             //====== BUSCANDO SI EL DETALLE TIENE DEVOLUCIÓN AGREGADA ====
-            const idDevolucion  = devoluciones.findIndex((dev)=> { 
-                return dev.producto_id == item[0].producto_id && dev.color_id == item[0].color_id && dev.talla_id == item[0].talla_id 
-            });
-
-            inputCantidadDevolver.value = idDevolucion==-1?parseFloat(item[0].cantidad).toFixed(2):parseFloat(devoluciones[idDevolucion].cantidad_devolver).toFixed(2);
+            inputCantidadDevolver.value = parseInt(item[0].cantidad);
             inputDescripcion.value      = `${item[0].modelo_nombre}-${item[0].producto_nombre}-${item[0].color_nombre}-${item[0].talla_nombre} `;
             inputPrecioUnitario.value   = parseFloat(item[0].precio_unitario).toFixed(2);
-            inputImporte.value          = idDevolucion==-1?parseFloat(item[0].importe).toFixed(2):parseFloat(devoluciones[idDevolucion].importe).toFixed(2);
+            inputImporte.value          = parseFloat(item[0].importe).toFixed(2);
             inputProductoId.value       = item_.producto_id;
             inputColorId.value          = item_.color_id;
             inputTallaId.value          = item_.talla_id;
 
+
             //======= ACTIVANDO EL CAMPO CANTIDAD ======
+            inputCantidadDevolver.setAttribute("data-cant-max", parseInt(item[0].cantidad));
             inputCantidadDevolver.removeAttribute('readonly');
         }
     }
@@ -516,7 +733,25 @@
         const precio_unitario   =   inputPrecioUnitario.value;
         const importe           =   parseFloat(precio_unitario) * parseFloat(cantidad_devolver);
 
-        const item_devolver = {producto_id,color_id,talla_id,cantidad_devolver,precio_unitario,importe};
+        //==== buscando producto_nombre, color_nombre,modelo_nombre,codigo_producto =====
+        const item  =   detalles.filter((d)=>{
+            return d.producto_id == producto_id && d.color_id == color_id  && d.talla_id == talla_id;
+        }) 
+
+        const item_devolver = {
+            codigo_producto: item[0].codigo_producto,
+            producto_id,
+            color_id,
+            talla_id,
+            producto_nombre: item[0].producto_nombre,
+            color_nombre: item[0].color_nombre,
+            talla_nombre: item[0].talla_nombre,
+            modelo_nombre: item[0].modelo_nombre,
+            cantidad_devolver,
+            precio_unitario,
+            importe
+        };
+
         return item_devolver;
     }
 
@@ -607,27 +842,20 @@
 
         detalles.forEach((detalle)=>{
 
-            //====== BUSCANDO SI EL DETALLE TIENE DEVOLUCIÓN AGREGADA ====
-            const idDevolucion  = devoluciones.findIndex((dev)=> { 
-                return dev.producto_id == detalle.producto_id && dev.color_id == detalle.color_id && dev.talla_id == detalle.talla_id 
-            });
-            
-            const resaltarTexto = idDevolucion !== -1? true:false;
-
             
             fila += `
                     <tr>
                         <th scope="row"></th>
-                        <td class="${resaltarTexto ? 'resaltar-texto' : ''}">${idDevolucion==-1? parseInt(detalle.cantidad):parseInt(devoluciones[idDevolucion].cantidad_devolver)}</td>
-                        <td class="${resaltarTexto ? 'resaltar-texto' : ''}">${detalle.modelo_nombre} - ${detalle.producto_nombre} - ${detalle.color_nombre} - ${detalle.talla_nombre}</td>
-                        <td class="${resaltarTexto ? 'resaltar-texto' : ''}">${(Math.round(detalle.precio_unitario * 100) / 100).toFixed(2)}</td>
-                        <td class="${resaltarTexto ? 'resaltar-texto' : ''}">${idDevolucion==-1?(Math.round(detalle.importe * 100) / 100).toFixed(2):(Math.round(devoluciones[idDevolucion].importe * 100) / 100).toFixed(2)}</td>
+                        <td>${parseInt(detalle.cantidad)}</td>
+                        <td>${detalle.modelo_nombre} - ${detalle.producto_nombre} - ${detalle.color_nombre} - ${detalle.talla_nombre}</td>
+                        <td>${(Math.round(detalle.precio_unitario * 100) / 100).toFixed(2)}</td>
+                        <td>${(Math.round(detalle.importe * 100) / 100).toFixed(2)}</td>
                         <td>
                             ${cod_motivo === '07' ?
                             `<button data-producto-id="${detalle.producto_id}" data-color-id="${detalle.color_id}"
                                 data-talla-id="${detalle.talla_id}"
                                 id="editar" type="button" class="btn btn-sm btn-info btn-rounded btn-edit-item">
-                                <span class="glyphicon glyphicon-pencil btn-edit-icon"></span>
+                                <i class="fas fa-plus btn-edit-icon"></i>
                             </button>`
                             : ''}
                         </td>
@@ -636,6 +864,35 @@
         })
 
         bodyTablaDetalles.innerHTML = fila;
+    }
+
+    //======= PINTAR DEVOLUCIONES =======
+    const pintarDevoluciones = ()=>{
+        let fila = ``;
+        const cod_motivo = $('#cod_motivo').val();
+
+        devoluciones.forEach((devolucion)=>{
+            fila += `
+                    <tr>
+                        <th scope="row">
+                        </th>
+                        <td>${parseInt(devolucion.cantidad_devolver)}</td>
+                        <td>${devolucion.modelo_nombre} - ${devolucion.producto_nombre} - ${devolucion.color_nombre} - ${devolucion.talla_nombre}</td>
+                        <td>${(Math.round(devolucion.precio_unitario * 100) / 100).toFixed(2)}</td>
+                        <td>${(Math.round(devolucion.importe * 100) / 100).toFixed(2)}</td>
+                        <td>
+                            ${cod_motivo === '07' ?
+                            `
+                            <i class="btn btn-danger fas fa-trash-alt btn-delete-devolucion" data-producto-id="${devolucion.producto_id}"
+                            data-color-id="${devolucion.color_id}" data-talla-id="${devolucion.talla_id}"></i>                            
+                            `
+                            : ''}
+                        </td>
+                    </tr>
+                    `;
+        })
+
+        bodyTableDevoluciones.innerHTML = fila;
     }
 
     const clearTableDetalles = ()=>{
