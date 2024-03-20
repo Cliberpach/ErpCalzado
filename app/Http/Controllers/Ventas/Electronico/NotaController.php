@@ -107,19 +107,23 @@ class NotaController extends Controller
         $detalles = Detalle::where('estado','ACTIVO')->where('documento_id',$id)->get();
         $coleccion_detalles = [];
         foreach ($detalles as $detalle) {
-            $item = [];
-            $item['codigo_producto']   =   $detalle->codigo_producto;
-            $item['producto_id']       =   $detalle->producto_id;
-            $item['color_id']          =   $detalle->color_id;
-            $item['talla_id']          =   $detalle->talla_id;   
-            $item['producto_nombre']   =   $detalle->nombre_producto;
-            $item['color_nombre']      =   $detalle->nombre_color;
-            $item['talla_nombre']      =   $detalle->nombre_talla;
-            $item['modelo_nombre']     =   $detalle->nombre_modelo;
-            $item['cantidad']          =   $detalle->cantidad;
-            $item['precio_unitario']   =   $detalle->precio_unitario;
-            $item['importe']           =   $detalle->importe;
-            $coleccion_detalles[]   =   $item;
+            if($detalle->cantidad - $detalle->detalles->sum('cantidad') > 0)
+            {
+                $item = [];
+                $item['codigo_producto']   =   $detalle->codigo_producto;
+                $item['producto_id']       =   $detalle->producto_id;
+                $item['color_id']          =   $detalle->color_id;
+                $item['talla_id']          =   $detalle->talla_id;   
+                $item['producto_nombre']   =   $detalle->nombre_producto;
+                $item['color_nombre']      =   $detalle->nombre_color;
+                $item['talla_nombre']      =   $detalle->nombre_talla;
+                $item['modelo_nombre']     =   $detalle->nombre_modelo;
+                $item['cantidad']          =   $detalle->cantidad - $detalle->detalles->sum('cantidad');
+                // $item['cantidad']       =   $detalle->cantidad;
+                $item['precio_unitario']   =   $detalle->precio_unitario;
+                $item['importe']           =   $detalle->importe;
+                $coleccion_detalles[]   =   $item;
+            }
         }
 
         // $coleccion = collect();
@@ -556,7 +560,7 @@ class NotaController extends Controller
             "legends" =>  $legends,
             ])->setPaper('a4')->setWarnings(false);
 
-        $pdf->save(public_path().'/storage/comprobantessiscom/notas/'.$name);
+        $pdf->save(storage_path().'/app/public/comprobantessiscom/notas/'.$name);
         return $pdf->stream($name);
     }
 

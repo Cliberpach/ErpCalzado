@@ -67,7 +67,7 @@
                                         <select name="cod_motivo" id="cod_motivo" class="select2_form form-control" onchange="changeTipoNota(this)" required>
                                             <option value=""></option>
                                             @foreach(cod_motivos() as $item)
-                                                <option value="{{ $item->simbolo }}">{{ $item->descripcion }}</option>
+                                                <option value="{{ $item->simbolo }}" {{$item->simbolo === '07' ? 'selected' : ''}}>{{ $item->descripcion }}</option>
                                             @endforeach
                                         </select>
                                         @endif
@@ -469,6 +469,7 @@
 
                 pintarDevoluciones();
                 pintarMontoTotalDevolucion();
+                calcularNuevosMontos();
             }
         })
 
@@ -499,6 +500,7 @@
 
             pintarDevoluciones();
             pintarMontoTotalDevolucion();
+            calcularNuevosMontos();
             $('#modal_editar_detalle').modal('hide');
 
         })
@@ -696,6 +698,12 @@
         devoluciones.forEach((d)=>{
             monto_total+=d.importe;
         })
+
+       
+        const cod_motivo = $('#cod_motivo').val();
+        if(cod_motivo == '01'){
+            monto_total += {{$documento->monto_embalaje}} + {{$documento->monto_envio}};
+        }
         inputMontoTotalDev.value    =   monto_total;
     }
 
@@ -803,8 +811,8 @@
                 opciones_table_devolucion.classList.add('d-none');
                 allReturn();
                 pintarDevoluciones();
-                calcularNuevosMontos();
                 pintarMontoTotalDevolucion();
+                calcularNuevosMontos();
             }
             //===== DEVOLUCIÓN PARCIAL =====
             else
@@ -812,6 +820,8 @@
                 devoluciones = [];  //==== LIMPIAR ARRAY ====
                 getDetalles({{ $documento->id }})
                 pintarDevoluciones();
+                pintarMontoTotalDevolucion();
+                calcularNuevosMontos();
                 opciones_table_detalles.classList.remove('d-none');
                 opciones_table_devolucion.classList.remove('d-none');
             }
