@@ -34,6 +34,13 @@ class CreateNotaElectronicaDetalleTable extends Migration
             $table->unsignedDecimal('mtoValorUnitario', 15, 2);
             $table->unsignedDecimal('mtoPrecioUnitario', 15, 2);
 
+            $table->unsignedInteger('producto_id');
+            $table->foreign('producto_id')->references('id')->on('productos');
+            $table->unsignedInteger('color_id');
+            $table->foreign('color_id')->references('id')->on('colores');
+            $table->unsignedInteger('talla_id');
+            $table->foreign('talla_id')->references('id')->on('tallas');
+
             $table->timestamps();
         });
     }

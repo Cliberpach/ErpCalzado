@@ -84,7 +84,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <div class="row">
+                        {{-- <div class="row">
                             <div class="col-md-6">
                                 <label><strong>Sub Total: </strong></label>
                                 <p>{{ number_format($documento->sub_total, 2) }}</p>
@@ -93,11 +93,26 @@
                                 <label><strong>Igv {{$documento->igv}}% </strong></label>
                                 <p>{{ number_format($documento->total_igv, 2) }}</p>
                             </div>
+                        </div> --}}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label><strong>Sub Total: </strong></label>
+                                <p>{{ number_format($documento->total, 2) }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label><strong>Igv {{$documento->igv}}% </strong></label>
+                                <p>{{ number_format($documento->total_igv, 2) }}</p>
+                            </div>
                         </div>
 
-                        <div class="form-group">
+
+                        {{-- <div class="form-group">
                             <label><strong>Total: </strong></label>
                             <p>{{ number_format($documento->total, 2) }}</p>
+                        </div> --}}
+                        <div class="form-group">
+                            <label><strong>Total: </strong></label>
+                            <p>{{ number_format($documento->total_pagar, 2) }}</p>
                         </div>
                     </div>
                 </div>

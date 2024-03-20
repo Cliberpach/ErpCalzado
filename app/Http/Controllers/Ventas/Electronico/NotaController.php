@@ -246,7 +246,8 @@ class NotaController extends Controller
        
 
             foreach ($productotabla as $producto) {
-                if($request->cod_motivo != '01'){
+                
+
                     $detalle =  DB::select('select cdd.id 
                                 from cotizacion_documento_detalles as cdd
                                 where cdd.documento_id=? and cdd.producto_id=?  and cdd.color_id=?
@@ -273,7 +274,24 @@ class NotaController extends Controller
                             'mtoValorVenta' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver,
                             'mtoValorUnitario'=>  $producto->precio_unitario / (1 + ($documento->igv/100)),
                             'mtoPrecioUnitario' => $producto->precio_unitario,
+                            'producto_id'   =>  $producto->producto_id,
+                            'color_id'      =>  $producto->color_id,
+                            'talla_id'      =>  $producto->talla_id
                         ]);
+
+                    //===== AUMENTANDO EL STOCK LOGICO Y FISICO ====
+                    DB::table('producto_color_tallas')
+                    ->where('producto_id', $producto->producto_id)
+                    ->where('color_id', $producto->color_id)
+                    ->where('talla_id', $producto->talla_id)
+                    ->update([
+                        'stock_logico' => DB::raw('stock_logico + ' . $producto->cantidad_devolver),
+                        'stock' => DB::raw('stock + ' . $producto->cantidad_devolver)
+                    ]);
+                
+                if($request->cod_motivo == '01'){   //==== EN CASO DEVOLUCIÓN TOTAL ====
+                    $documento->sunat = '2';
+                    $documento->update();    
                 }
             //     if($request->cod_motivo != '01')
             //     {
@@ -342,49 +360,44 @@ class NotaController extends Controller
             //         $documento->update();
             //     }
             }
+          
+
+            //==== REGISTRO DE ACTIVIDAD ====
+            $descripcion = "SE AGREGÓ UNA NOTA DE DEBITO CON LA FECHA: ". Carbon::parse($nota->fechaEmision)->format('d/m/y');
+            $gestion = "NOTA DE DEBITO";
+            crearRegistro($nota , $descripcion , $gestion);
+
+            $envio_prev = self::sunat_prev($nota->id);
+
+            if(!isset($request->nota_venta))
+            {
+                if(!$envio_prev['success']){
+                    DB::rollBack();
+                    return response()->json([
+                         'success' => false,
+                         'mensaje'=> $envio_prev['mensaje']
+                    ]);
+                }
+            }
+
             DB::commit();
+            if(!isset($request->nota_venta))
+            {
+                // $envio_post = self::sunat_post($nota->id);
+            }
+
+            $text = 'Nota de crédito creada, se creo un egreso con el monto de la nota de credito.';
+
+            if(isset($request->nota_venta))
+            {
+                 $text = 'Nota de devolución creada, se creo un egreso con el monto de la nota de devolución.';
+            }
+
+            Session::flash('success', $text);
             return response()->json([
-                'success' => true,
-                'data'=> $productotabla
-           ]);
-
-            // //Registro de actividad
-            // $descripcion = "SE AGREGÓ UNA NOTA DE DEBITO CON LA FECHA: ". Carbon::parse($nota->fechaEmision)->format('d/m/y');
-            // $gestion = "NOTA DE DEBITO";
-            // crearRegistro($nota , $descripcion , $gestion);
-
-            // $envio_prev = self::sunat_prev($nota->id);
-
-            // if(!isset($request->nota_venta))
-            // {
-            //     if(!$envio_prev['success'])
-            //     {
-            //         DB::rollBack();
-            //         return response()->json([
-            //             'success' => false,
-            //             'mensaje'=> $envio_prev['mensaje']
-            //         ]);
-            //     }
-            // }
-
-            // DB::commit();
-            // if(!isset($request->nota_venta))
-            // {
-            //    // $envio_post = self::sunat_post($nota->id);
-            // }
-
-            // $text = 'Nota de crédito creada, se creo un egreso con el monto de la nota de credito.';
-
-            // if(isset($request->nota_venta))
-            // {
-            //     $text = 'Nota de devolución creada, se creo un egreso con el monto de la nota de devolución.';
-            // }
-
-            // Session::flash('success', $text);
-            // return response()->json([
-            //     'success' => true,
-            //     'nota_id'=> $nota->id
-            // ]);
+                 'success' => true,
+                 'nota_id'=> $nota->id
+            ]);
 
         }
         catch(Exception $e)
@@ -396,7 +409,9 @@ class NotaController extends Controller
                 'excepcion' => $e->getMessage()
             ]);
         }
+    
     }
+
 
     public function obtenerLeyenda($nota)
     {

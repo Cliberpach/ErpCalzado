@@ -6,9 +6,9 @@
                     <div class="col-10">
                         <h4><b>Detalle de la nota de @if(isset($nota_venta)) devolución @else crédito @endif</b></h4>
                     </div>
-                    <div class="col-2 text-right">
+                    {{-- <div class="col-2 text-right">
                         <button type="button" class="ladda-button ladda-button-demo btn btn-secondary btn-sm" onclick="actualizarData({{ $documento->id }})" data-style="zoom-in"><i class="fa fa-refresh"></i></button>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
             <div class="panel-body ibox-content">
@@ -29,7 +29,7 @@
                                     <th>Descripcion</th>
                                     <th>P. Unit</th>
                                     <th>Total</th>
-                                    <th>Opciones</th>
+                                    <th class="tbl-devolucion-opciones">Opciones</th>
                                     <th></th>
                                 </thead>
                                 <tbody>

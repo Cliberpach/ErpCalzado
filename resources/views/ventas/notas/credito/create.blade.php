@@ -265,7 +265,7 @@
                                                             <th>Descripcion</th>
                                                             <th>P. Unit</th>
                                                             <th>Total</th>
-                                                            <th>Opciones</th>
+                                                            <th class="tbl-detalles-opciones">Opciones</th>
                                                             <th></th>
                                                         </thead>
                                                         <tbody>
@@ -649,12 +649,12 @@
                             window.open(url_open_pdf, "Comprobante SISCOM", "width=900, height=600");
                         @endif
 
-                        // let ruta = "{{route('ventas.notas', $documento->id)}}"
-                        // @if(isset($nota_venta))
-                        //     ruta = "{{route('ventas.notas_dev', $documento->id)}}";
-                        // @endif
+                        let ruta = "{{route('ventas.notas', $documento->id)}}"
+                        @if(isset($nota_venta))
+                            ruta = "{{route('ventas.notas_dev', $documento->id)}}";
+                        @endif
 
-                        // location = ruta;
+                        location = ruta;
                     }
                     else
                     {
@@ -684,6 +684,7 @@
         total       =   parseFloat(inputMontoTotalDev.value);
         subtotal    =   total/1.18;
         igv         =   total - subtotal; 
+
 
         inputTotalIgvNuevo.value    =   igv;
         inputSubTotalNuevo.value    =   subtotal;
@@ -788,19 +789,56 @@
     //====== CHANGE TIPO DE NOTA =====
     function changeTipoNota(b)
     {
+        const opciones_table_detalles   = document.querySelector('.tbl-detalles-opciones');
+        const opciones_table_devolucion =   document.querySelector('.tbl-devolucion-opciones');
+
         if(b.value != '')
         {
+            //==== DEVOLUCIÓN TOTAL ====
             if(b.value == '01')
             {
+                devoluciones = [];   //==== LIMPIAR ARRAY ====
                 getDetalles({{ $documento->id }})
+                opciones_table_detalles.classList.add('d-none');
+                opciones_table_devolucion.classList.add('d-none');
+                allReturn();
+                pintarDevoluciones();
+                calcularNuevosMontos();
+                pintarMontoTotalDevolucion();
             }
+            //===== DEVOLUCIÓN PARCIAL =====
             else
             {
+                devoluciones = [];  //==== LIMPIAR ARRAY ====
                 getDetalles({{ $documento->id }})
+                pintarDevoluciones();
+                opciones_table_detalles.classList.remove('d-none');
+                opciones_table_devolucion.classList.remove('d-none');
             }
         }else{
             clearTableDetalles();
         }
+    }
+
+    //===== DEVOLVER TODO =======
+    function allReturn(){
+        detalles.forEach((detalle)=>{
+            const item_devolver = {
+                codigo_producto     :   detalle.codigo_producto,
+                producto_id         :   detalle.producto_id,
+                color_id            :   detalle.color_id,
+                talla_id            :   detalle.talla_id,
+                producto_nombre     :   detalle.producto_nombre,
+                color_nombre        :   detalle.color_nombre,
+                talla_nombre        :   detalle.talla_nombre,
+                modelo_nombre       :   detalle.modelo_nombre,
+                cantidad_devolver   :   detalle.cantidad,
+                precio_unitario     :   detalle.precio_unitario,
+                importe             :   parseFloat(detalle.cantidad)*parseFloat(detalle.precio_unitario)
+            };
+
+            devoluciones.push(item_devolver);
+        })
     }
 
     //====== OBTENER DETALLE DEL DOC DE VENTA =======
@@ -850,15 +888,17 @@
                         <td>${detalle.modelo_nombre} - ${detalle.producto_nombre} - ${detalle.color_nombre} - ${detalle.talla_nombre}</td>
                         <td>${(Math.round(detalle.precio_unitario * 100) / 100).toFixed(2)}</td>
                         <td>${(Math.round(detalle.importe * 100) / 100).toFixed(2)}</td>
-                        <td>
-                            ${cod_motivo === '07' ?
-                            `<button data-producto-id="${detalle.producto_id}" data-color-id="${detalle.color_id}"
-                                data-talla-id="${detalle.talla_id}"
-                                id="editar" type="button" class="btn btn-sm btn-info btn-rounded btn-edit-item">
-                                <i class="fas fa-plus btn-edit-icon"></i>
-                            </button>`
-                            : ''}
-                        </td>
+                        ${cod_motivo === '07' ?
+                            `<td>
+                                
+                                <button data-producto-id="${detalle.producto_id}" data-color-id="${detalle.color_id}"
+                                    data-talla-id="${detalle.talla_id}"
+                                    id="editar" type="button" class="btn btn-sm btn-info btn-rounded btn-edit-item">
+                                    <i class="fas fa-plus btn-edit-icon"></i>
+                                </button>
+                                
+                            </td>`: '' 
+                        }
                     </tr>
                     `;
         })
@@ -869,6 +909,7 @@
     //======= PINTAR DEVOLUCIONES =======
     const pintarDevoluciones = ()=>{
         let fila = ``;
+
         const cod_motivo = $('#cod_motivo').val();
 
         devoluciones.forEach((devolucion)=>{
@@ -880,14 +921,12 @@
                         <td>${devolucion.modelo_nombre} - ${devolucion.producto_nombre} - ${devolucion.color_nombre} - ${devolucion.talla_nombre}</td>
                         <td>${(Math.round(devolucion.precio_unitario * 100) / 100).toFixed(2)}</td>
                         <td>${(Math.round(devolucion.importe * 100) / 100).toFixed(2)}</td>
-                        <td>
-                            ${cod_motivo === '07' ?
-                            `
-                            <i class="btn btn-danger fas fa-trash-alt btn-delete-devolucion" data-producto-id="${devolucion.producto_id}"
-                            data-color-id="${devolucion.color_id}" data-talla-id="${devolucion.talla_id}"></i>                            
-                            `
-                            : ''}
-                        </td>
+                        ${cod_motivo === '07' ?
+                            `<td>
+                                <i class="btn btn-danger fas fa-trash-alt btn-delete-devolucion" data-producto-id="${devolucion.producto_id}"
+                                data-color-id="${devolucion.color_id}" data-talla-id="${devolucion.talla_id}"></i>                            
+                            </td>`:''
+                        }
                     </tr>
                     `;
         })
