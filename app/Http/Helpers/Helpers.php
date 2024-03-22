@@ -870,7 +870,7 @@ if (!function_exists('generarComprobanteapi')) {
 
         return $response->getBody()->getContents();
 
-        dd($response->getBody()->getContents());
+        //dd($response->getBody()->getContents());
         if ($estado == '200') {
 
             $resultado = $response->getBody()->getContents();

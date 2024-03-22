@@ -226,9 +226,17 @@
 
                         <input type="hidden" name="igv" id="igv" value="{{ $documento->igv ? $documento->igv : 18}}">
 
-                        <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
+                        {{-- <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
                         <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
-                        <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}">
+                        <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}"> --}}
+
+                        <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ $documento->sub_total }}" readonly>
+                        <input type="hidden" name="monto_embalaje" id="monto_embalaje" value="{{ $documento->monto_embalaje }}" readonly>
+                        <input type="hidden" name="monto_envio" id="monto_envio" value="{{ $documento->monto_envio }}" readonly>
+                        <input type="hidden" name="monto_total" id="monto_total" value="{{ $documento->total }}" readonly>
+                        <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ $documento->total_igv }}" readonly>
+                        <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ $documento->total_pagar }}">
+
 
 
                     </form>
@@ -1400,10 +1408,11 @@
     };*/
 </script>
 
+<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 
 <script>
-    const tallasBD  =   @json($tallas);
-    const detalles  =   @json($detalles);
+    const tallasBD              =   @json($tallas);
+    const detalles              =   @json($detalles);
     const tableDetalleBody      =   document.querySelector('#table-detalle-conv tbody');   
     const tfootSubtotal         =   document.querySelector('.subtotal');
     const tfootIgv              =   document.querySelector('.igv');
@@ -1411,14 +1420,11 @@
     const btnGrabar             =   document.querySelector('#btn_grabar');
 
     let carrito             = [];
-    let carritoFormateadoBD   = [];
 
     document.addEventListener('DOMContentLoaded',()=>{
         formatearDetalle();
         pintarDetalle();
-        calcularMontos();
-        
-        console.log(carrito);
+       
         events();
 
     })
@@ -1428,15 +1434,12 @@
         //========= GRABAR ========
         btnGrabar.addEventListener('click',(e)=>{
             e.preventDefault();
-            formatearDetalleDB();
             cargarProductos();
             let correcto = validarCampos();
 
-            $('#monto_sub_total').val($('.subtotal').text())
-            $('#monto_total_igv').val($('.igv').text())
-            $('#monto_total').val($('.total').text())
-
-
+            // $('#monto_sub_total').val($('.subtotal').text())
+            // $('#monto_total_igv').val($('.igv').text())
+            // $('#monto_total').val($('.total').text())
 
             if (correcto) {
                 let total = $('#monto_total').val();
@@ -1462,23 +1465,6 @@
         })
     }
 
-    //====== APLICAR FORMATO DE BD AL CARRITO =======
-    //==== TODO EN FILAS PRODUCTO_ID COLOR_ID TALLA_ID ====
-    function formatearDetalleDB(){
-            if(carrito.length>0){
-                carrito.forEach((d)=>{  
-                    d.tallas.forEach((t)=>{
-                        const producto ={};
-                        producto.producto_id        =   d.producto_id;
-                        producto.color_id           =   d.color_id;
-                        producto.talla_id           =   t.talla_id;
-                        producto.cantidad           =   t.cantidad;
-                        producto.precio_unitario    =   d.precio_venta;
-                        carritoFormateadoBD.push(producto);
-                    })
-                }) 
-            }  
-    }
 
     //========= ENVIAR VENTA ===========
     function enviarVenta()
@@ -1495,9 +1481,9 @@
                 if (tipo == false) {
                     cargarProductos();
                     //CARGAR DATOS TOTAL
-                    $('#monto_sub_total').val($('.subtotal').text())
-                    $('#monto_total_igv').val($('.igv').text())
-                    $('#monto_total').val($('.total').text())
+                    // $('#monto_sub_total').val($('.subtotal').text())
+                    // $('#monto_total_igv').val($('.igv').text())
+                    // $('#monto_total').val($('.total').text())
 
                     document.getElementById("moneda").disabled = false;
                     document.getElementById("observacion").disabled = false;
@@ -1590,8 +1576,9 @@
 
                                 let id = result.value.documento_id;
                                 var url_open_pdf = '{{ route("ventas.documento.comprobante", ":id")}}';
-                                url_open_pdf = url_open_pdf.replace(':id',id+'-100');
+                                url_open_pdf = url_open_pdf.replace(':id',id+'-80');
                                 window.open(url_open_pdf,'Comprobante SISCOM','location=1, status=1, scrollbars=1,width=900, height=600');
+
 
                                 $('#asegurarCierre').val(2);
 
@@ -1626,32 +1613,10 @@
 
     //======== CARGAR PRODUCTOS ======
     function cargarProductos() {
-        $('#productos_tabla').val(JSON.stringify(carritoFormateadoBD));
+        $('#productos_tabla').val(JSON.stringify(detalles));
     }
 
-    //====== CARGAR MONTOS =========
-    function calcularMontos(){
-        let aux_subtotal=0;
-        let aux_igv=0;
-        let aux_total=0;
-
-        carrito.forEach((p)=>{
-            aux_total+=p.subtotal;
-        })
-
-        aux_igv= 0.18*aux_total;
-        aux_subtotal=aux_total-aux_igv;
-
-        const aux_subtotal_formateado = 'S/' + parseFloat(aux_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        const aux_igv_formateado = 'S/' + parseFloat(aux_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        const aux_total_formateado = 'S/' + parseFloat(aux_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-        tfootSubtotal.textContent = aux_subtotal_formateado;
-        tfootIgv.textContent = aux_igv_formateado;
-        tfootTotal.textContent = aux_total_formateado;
-    }
-
-
+  
      //========= FORMATEAR CARRITO COMO JSON ==============
      //====== PRODUCTO - COLOR [TALLAS []] =======
      const formatearDetalle = ()=>{
