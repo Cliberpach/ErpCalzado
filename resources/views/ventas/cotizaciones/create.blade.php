@@ -1173,6 +1173,8 @@
             // });
         })
        
+
+        //======= AGREGAR PRODUCTO AL DETALLE ======
         btnAgregarDetalle.addEventListener('click',()=>{
             
             const inputsCantidad = document.querySelectorAll('.inputCantidad');
@@ -1329,7 +1331,7 @@
     }
 
 
-    //=========== calcular montos =======
+    //=========== CALCULAR MONTOS =======
     const calcularMontos = ()=>{
         let subtotal    =   0;
         let embalaje    =   tfootEmbalaje.value?parseFloat(tfootEmbalaje.value):0;
@@ -1376,6 +1378,7 @@
         })
     }
 
+    //======== CALCULAR SUBTOTAL POR PRODUCTO COLOR EN EL DETALLE ======
     const calcularSubTotal=()=>{
         let subtotal = 0;
 

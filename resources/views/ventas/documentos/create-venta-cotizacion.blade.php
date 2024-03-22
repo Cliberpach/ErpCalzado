@@ -312,12 +312,13 @@
                         @endif
 
 
-                        <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
-                        <input type="hidden" name="monto_embalaje" id="monto_embalaje" value="{{ old('monto_embalaje') }}">
-                        <input type="hidden" name="monto_envio" id="monto_envio" value="{{ old('monto_envio') }}">
-                        <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}">
-                        <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
-                        <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ old('monto_total_pagar') }}">
+                        <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ $cotizacion->sub_total }}">
+                        <input type="hidden" name="monto_embalaje" id="monto_embalaje" value="{{ $cotizacion->monto_embalaje }}">
+                        <input type="hidden" name="monto_envio" id="monto_envio" value="{{ $cotizacion->monto_envio }}">
+                        <input type="hidden" name="monto_total" id="monto_total" value="{{ $cotizacion->total}}">
+                        <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ $cotizacion->monto_descuento }}">
+                        <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ $cotizacion->total_igv}}">
+                        <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ $cotizacion->total_pagar }}">
 
                         
                         <input type="hidden" name="cot_doc" id="cot_doc" value="SI">
@@ -535,7 +536,7 @@
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 
 <script>
-    const carrito           =   @json($detalle);
+    const productosPrevios           =   @json($detalle);
     const tallas            =   @json($tallas);
     const cotizacion        =   @json($cotizacion);
     const cantidadErrores   =   @json($cantidadErrores);  
@@ -566,26 +567,20 @@
     const btnGrabar         =   document.querySelector('#btn_grabar');
 
     let clientes_global;
+    let carrito             =   [];
     let carritoFormateado   =   [];
     let asegurarCierre      =   2;
 
     document.addEventListener('DOMContentLoaded',()=>{
-        console.log(carrito);
-        
-        formataearCarrito();
-
+        cargarProductosPrevios();
+       
         setAsegurarCierre();
-
         getClientes();
         cargarChecks();
         cargarSelect2();
-        calcularSubTotal();
-        reordenarCarrito(carrito);
-        pintarDetalleCotizacion(carrito);
-        pintarMontos();
+    
         showAlertas();
         events();
-        //console.log(carritoFormateado);
     })
 
 
@@ -599,15 +594,16 @@
         formDocumento.addEventListener('submit',(e)=>{
             e.preventDefault();
             btnGrabar.disabled = true;
+            formatearDetalle();
             cargarProductos();
             let correcto = validarCampos();
 
-            inputSubTotal.value     =   tfootSubtotal.textContent;   
-            inputEmbalaje.value     =   tfootEmbalaje.value;
-            inputEnvio.value        =   tfootEnvio.value;  
-            inputTotal.value        =   tfootTotal.textContent;
-            inputIgv.value          =   tfootIgv.textContent;
-            inputTotalPagar.value   =   tfootTotalPagar.textContent;
+            // inputSubTotal.value     =   tfootSubtotal.textContent;   
+            // inputEmbalaje.value     =   tfootEmbalaje.value;
+            // inputEnvio.value        =   tfootEnvio.value;  
+            // inputTotal.value        =   tfootTotal.textContent;
+            // inputIgv.value          =   tfootIgv.textContent;
+            // inputTotalPagar.value   =   tfootTotalPagar.textContent;
 
             if (correcto) {
                 let total = $('#monto_total_pagar').val();
@@ -656,7 +652,7 @@
 
     //===== SHOW ALERTAS ============
     function showAlertas(){
-        carrito.forEach((c)=>{
+        productosPrevios.forEach((c)=>{
             if(c.tipo == "NO EXISTE EL PRODUCTO COLOR TALLA"){
                 toastr.error(`${c.producto_nombre} - ${c.color_nombre} - ${c.talla_nombre}`, 'No existe el producto', {
                     timeOut: 0, 
@@ -681,35 +677,6 @@
                 btnCancelar.classList.add("disabled"); 
                 window.location.href = '{{ route('ventas.cotizacion.index') }}'; 
             }
-    }
-
-    function formataearCarrito(){
-        const producto_color_procesados =   [];
-        carrito.forEach((p)=>{
-            const llave =   `${p.producto_id}-${p.color_id}`;
-            if(!producto_color_procesados.includes(llave)){
-                const producto  =   {
-                    producto_id     :p.producto_id,
-                    color_id        :p.color_id,
-                    producto_nombre :p.producto_nombre,
-                    color_nombre    :p.color_nombre
-                }
-                const tallas_producto   =   carrito.filter((c)=>{
-                   return c.producto_id==p.producto_id && c.color_id==p.color_id;
-                })
-                const tallas = [];
-                tallas_producto.forEach((t)=>{
-                    const talla={
-                        talla_id:t.talla_id,
-                        cantidad:t.cantidad_solicitada
-                    }
-                    tallas.push(talla);
-                })
-                producto.tallas=tallas;
-                carritoFormateado.push(producto);
-                producto_color_procesados.push(llave);
-            }
-        })
     }
 
     //========== VALIDAR TIPO ===============
@@ -901,12 +868,31 @@
         @endif
     }
 
+    //====== FORMATEAR EL CARRITO A FORMATO DE BD ======
+    function formatearDetalle(){
+        carrito.forEach((d)=>{
+            console.log('producto_color')
+            d.tallas.forEach((t)=>{
+                console.log('talla')
+                const producto ={};
+                producto.producto_id            =   d.producto_id;
+                producto.color_id               =   d.color_id;
+                producto.talla_id               =   t.talla_id;
+                producto.cantidad               =   t.cantidad;
+                producto.precio_unitario        =   d.precio_venta;  
+                producto.porcentaje_descuento   =   d.porcentaje_descuento;
+                producto.precio_unitario_nuevo  =   d.precio_venta_nuevo;
+                carritoFormateado.push(producto);
+            })
+        })  
+    }
+
     //==========    CARGAR PRODUCTOS AL FORM   =================
     function cargarProductos() {
         carrito.forEach((c)=>{
             c.cantidad = c.cantidad_solicitada;
         })
-        $('#productos_tabla').val(JSON.stringify(carrito));
+        $('#productos_tabla').val(JSON.stringify(carritoFormateado));
 
     }
 
@@ -1040,29 +1026,16 @@
 
     //=============== CALCULAR SUBTOTAL POR PRODUCTO-COLOR ======================
     const calcularSubTotal=()=>{
-        let subtotal = 0;
-        const producto_color_procesados=[];
+            let subtotal = 0;
 
-        carrito.forEach((p)=>{
-            if(!producto_color_procesados.includes(`${p.producto_id}-${p.color_id}`)){
-                tallas.forEach((t)=>{
-                  const producto =  carrito.filter((ct)=>{
-                       return  ct.producto_id==p.producto_id && ct.color_id==p.color_id && ct.talla_id==t.id
-                    })
-
-                    if(producto.length!=0){
-                        subtotal+= parseFloat(producto[0].precio_unitario)*parseFloat(producto[0].cantidad_solicitada);
-                    }
+            carrito.forEach((p)=>{
+                p.tallas.forEach((t)=>{
+                        subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad);   
                 })
-                carrito.forEach((c)=>{
-                    if(c.producto_id==p.producto_id && c.color_id==p.color_id){
-                        c.subtotal=subtotal;
-                    }
-                })
-                subtotal=0;
-                producto_color_procesados.push(`${p.producto_id}-${p.color_id}`);
-            }
-        })  
+                
+                p.subtotal=subtotal; 
+                subtotal=0; 
+            })  
     }
 
 
@@ -1072,49 +1045,148 @@
         }
     }
 
-    function pintarDetalleCotizacion(carrito){
-            let fila= ``;
-            let htmlTallas= ``;
-            const producto_color_procesado=[];
-            clearDetalleTable();
+    //======  CARGAR PRODUCTOS AL CARRITO EN FORMATO ANIDADO =======
+    const cargarProductosPrevios=()=>{
+        //====== CARGANDO CARRITO ======
+        const producto_color_procesados = [];
 
-            carrito.forEach((c)=>{
-                htmlTallas=``;
-                if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
-                 
-                    fila+= `<tr>   
-                                <th>${c.producto_nombre} - ${c.color_nombre} </th>`;
+        productosPrevios.forEach((productoPrevio)=>{
+            const id    =   `${productoPrevio.producto_id}-${productoPrevio.color_id}`;
 
-
-                    //tallas
-                    tallas.forEach((t)=>{
-                        let item_talla = carrito.filter((ct)=>{
-                            return ct.producto_id==c.producto_id && ct.color_id==c.color_id && t.id==ct.talla_id;
-                        });
-                        const cantidad_solicitada   =   item_talla.length!=0?item_talla[0].cantidad_solicitada:'';  
-                        const validacion            =   item_talla.length!=0?item_talla[0].tipo:'';       
-                       
-                        // Agrega el HTML con el estilo condicionalmente basado en el valor de validacion
-                        htmlTallas += `
-                            <td>
-                                <span style="${validacion === 'STOCK LOGICO INSUFICIENTE' ? 'color: #ff6666; font-weight: bold;' : (validacion === 'NO EXISTE EL PRODUCTO COLOR TALLA' ? 'color: #9966cc; font-weight: bold;' : (validacion === 'STOCK LOGICO VÁLIDO' ? 'color: black; font-weight: bold;' : ''))}">
-                                    ${cantidad_solicitada}
-                                </span>
-                            </td>
-                        `;
-
-                    })
-
-
-                    htmlTallas+=`   <td>${c.precio_unitario}</td>
-                                    <td class="td-subtotal">${c.subtotal}</td>
-                                </tr>`;
-
-                    fila+=htmlTallas;
-                    tableDetalleBody.innerHTML=fila;
-                    producto_color_procesado.push(`${c.producto_id}-${c.color_id}`)
+            if(!producto_color_procesados.includes(id)){
+                const producto ={
+                    producto_id: productoPrevio.producto_id,
+                    producto_nombre:productoPrevio.producto_nombre,
+                    color_id:productoPrevio.color_id,
+                    color_nombre:productoPrevio.color_nombre,
+                    precio_venta:productoPrevio.precio_unitario,
+                    subtotal:0,
+                    subtotal_nuevo:0,
+                    porcentaje_descuento: parseFloat(productoPrevio.porcentaje_descuento),
+                    monto_descuento:0,
+                    precio_venta_nuevo:0,
+                    tallas:[]
                 }
-            })
+
+                //==== BUSCANDO SUS TALLAS ====
+                const tallas = productosPrevios.filter((t)=>{
+                    return t.producto_id==productoPrevio.producto_id && t.color_id==productoPrevio.color_id;
+                })
+
+                if(tallas.length > 0){
+                    const producto_color_tallas = [];
+                    tallas.forEach((t)=>{
+                        const talla = {
+                            talla_id:t.talla_id,
+                            talla_nombre:t.talla_nombre,
+                            cantidad: parseInt(t.cantidad_solicitada),
+                            tipo:t.tipo,
+                        }
+                        producto_color_tallas.push(talla);
+                    })
+                    producto.tallas = producto_color_tallas;
+                }
+                producto_color_procesados.push(id);
+                carrito.push(producto);
+            }
+        })
+
+      
+        //===== CALCULAR SUBTOTAL POR FILA DEL DETALLE ======
+        calcularSubTotal();
+        reordenarCarrito();
+        //===== PINTANDO DETALLE ======
+        pintarDetalleCotizacion(carrito);
+        //========= PINTAR DESCUENTOS Y CALCULARLOS ============
+        carrito.forEach((c)=>{
+            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+        })
+
+        
+    }
+
+
+        //======= CALCULAR DESCUENTO ========
+    const calcularDescuento = (producto_id,color_id,porcentaje_descuento)=>{
+        const indiceExiste = carrito.findIndex((c)=>{
+            return c.producto_id==producto_id && c.color_id==color_id;
+        })
+
+        if(indiceExiste !== -1){
+            const producto_color_editar =  carrito[indiceExiste];
+
+            //===== APLICANDO DESCUENTO ======
+            producto_color_editar.porcentaje_descuento =    porcentaje_descuento;
+            producto_color_editar.monto_descuento      =    porcentaje_descuento === 0?0:producto_color_editar.subtotal*(porcentaje_descuento/100);
+            producto_color_editar.precio_venta_nuevo   =    porcentaje_descuento === 0?0:(producto_color_editar.precio_venta*(1-porcentaje_descuento/100)).toFixed(2);
+            producto_color_editar.subtotal_nuevo       =    porcentaje_descuento === 0?0:(producto_color_editar.subtotal*(1-porcentaje_descuento/100)).toFixed(2);
+
+            carrito[indiceExiste] = producto_color_editar;
+
+
+            //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
+            const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`); 
+            const detailSubtotal    =   document.querySelector(`.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);    
+
+            if(porcentaje_descuento !== 0){
+                detailPrecioVenta.textContent = producto_color_editar.precio_venta_nuevo;
+                detailSubtotal.textContent    = producto_color_editar.subtotal_nuevo;
+            }else{
+                detailPrecioVenta.textContent   =   producto_color_editar.precio_venta;
+                detailSubtotal.textContent      =   producto_color_editar.subtotal;
+            }
+
+        }
+    }
+
+     //====== PINTAR DETALLE COTIZACIÓN ======
+     function pintarDetalleCotizacion(carrito){
+        let fila= ``;
+        let htmlTallas= ``;
+
+        carrito.forEach((c)=>{
+            htmlTallas=``;
+                fila+= `<tr>   
+                           
+                            <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
+
+                //tallas
+                tallas.forEach((t)=>{
+                    let talla_item = c.tallas.filter((ct)=>{
+                        return t.id==ct.talla_id;
+                    });
+
+                    const cantidad = talla_item.length>0?talla_item[0].cantidad:0;
+                    const validacion = talla_item.length>0?talla_item[0].tipo:'';
+
+                    htmlTallas +=   `<td>
+                                        <span style="${validacion === 'STOCK LOGICO INSUFICIENTE' ? 'color: #ff6666; font-weight: bold;' : (validacion === 'NO EXISTE EL PRODUCTO COLOR TALLA' ? 'color: #9966cc; font-weight: bold;' : (validacion === 'STOCK LOGICO VÁLIDO' ? 'color: black; font-weight: bold;' : ''))}">
+                                            ${cantidad}
+                                        </span>
+                                    </td>
+                                    `; 
+                })
+
+                htmlTallas+=`   <td style="text-align: right;">
+                                    <span class="precio_venta_${c.producto_id}_${c.color_id}">
+                                        ${c.porcentaje_descuento === 0? c.precio_venta:c.precio_venta_nuevo}
+                                    </span>
+                                </td>
+                                <td class="td-subtotal" style="text-align: right;">
+                                    <span class="subtotal_${c.producto_id}_${c.color_id}">
+                                        ${c.porcentaje_descuento === 0? c.subtotal:c.subtotal_nuevo}
+                                    </span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <input readonly data-producto-id="${c.producto_id}" data-color-id="${c.color_id}" 
+                                    style="width:130px; margin: 0 auto;" value="${c.porcentaje_descuento}"
+                                    class="form-control detailDescuento"></input>
+                                </td>
+                            </tr>`;
+
+                fila+=htmlTallas;
+                tableDetalleBody.innerHTML=fila;            
+        })
     }
 
     //============= devolver stock logico, ya que hay errores en la cotización ===================
@@ -1130,7 +1202,7 @@
     //================ devolver cantidades ===============
     async function DevolverCantidades() {
             await this.axios.post(route('ventas.documento.devolver.cantidades'), {
-                 carrito: JSON.stringify(carritoFormateado)
+                 carrito: JSON.stringify(carrito)
             });
     }
 

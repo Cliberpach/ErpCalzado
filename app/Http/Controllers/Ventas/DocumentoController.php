@@ -584,12 +584,13 @@ class DocumentoController extends Controller
                     'stock_logico' => $itemValidado->getStockLogico(),
                     'cantidad_solicitada' => $itemValidado->getCantidadSolicitada(),
                     'precio_unitario' => $itemValidado->getPrecioUnitario(),
+                    'porcentaje_descuento' =>$itemValidado->getPorcentajeDescuento(),
+                    'precio_unitario_nuevo' =>$itemValidado->getPrecioUnitarioNuevo(),
                     'tipo' => $itemValidado->getTipo(),
                 ];
 
                 $detalleValidado[] = $detalleArray;
             }
-
 
             $tallas = Talla::all();
            
@@ -888,6 +889,8 @@ class DocumentoController extends Controller
             $registro->setTallaNombre($item_talla_nombre);
             $registro->setCantidadSolicitada($detalle->cantidad);
             $registro->setPrecioUnitario($detalle->precio_unitario);
+            $registro->setPrecioUnitarioNuevo($detalle->precio_unitario_nuevo);
+            $registro->setPorcentajeDescuento($detalle->porcentaje_descuento);
             $validaciones[]                     =   $registro;  
 
         }
