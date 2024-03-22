@@ -16,7 +16,8 @@
         <th style="text-align: right;">PRECIO VENTA</th>
         @if (isset($carrito))
               <th style="text-align: right;">SUBTOTAL</th>
-           @endif
+              <th style="text-align: center;">DESCUENTO</th>
+        @endif
       </tr>
     </thead>
     <tbody>
@@ -27,11 +28,11 @@
     @if (isset($carrito))
       <tfoot>
         <tr>
-          <td colspan="{{count($tallas) + 3 }}" style="font-weight: bold;text-align:end;">SUBTOTAL:</td>
+          <td colspan="{{count($tallas) + 4 }}" style="font-weight: bold;text-align:end;">SUBTOTAL:</td>
           <td class="subtotal" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
         </tr>
         <tr>
-          <td  colspan="{{count($tallas) + 3}}" style="font-weight: bold;text-align:end;vertical-align:middle;">EMBALAJE:</td>
+          <td  colspan="{{count($tallas) + 4}}" style="font-weight: bold;text-align:end;vertical-align:middle;">EMBALAJE:</td>
           <td class="td-embalaje" colspan="1" style="font-weight: bold;text-align:end;">
             <div class="input-group">
               <span class="input-group-text" id="monto-embalaje">
@@ -42,7 +43,7 @@
           </td>
         </tr>
         <tr>
-          <td  colspan="{{count($tallas) + 3 }}" style="font-weight: bold;text-align:end;">ENVÍO:</td>
+          <td  colspan="{{count($tallas) + 4 }}" style="font-weight: bold;text-align:end;">ENVÍO:</td>
           <td  class="td-envio" colspan="1" style="font-weight: bold;text-align:end;">
             <div class="input-group">
               <span class="input-group-text" id="monto-envio">
@@ -53,15 +54,19 @@
           </td>
         </tr>
         <tr>
-          <td colspan="{{count($tallas) + 3 }}" style="font-weight: bold;text-align:end;">MONTO TOTAL:</td>
+          <td colspan="{{count($tallas) + 4 }}" style="font-weight: bold;text-align:end;">DESCUENTO:</td>
+          <td class="descuento" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
+        </tr>
+        <tr>
+          <td colspan="{{count($tallas) + 4 }}" style="font-weight: bold;text-align:end;">MONTO TOTAL:</td>
           <td class="total" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
         </tr>
         <tr>
-          <td colspan="{{count($tallas) + 3 }}" style="font-weight: bold;text-align:end;">IGV:</td>
+          <td colspan="{{count($tallas) + 4 }}" style="font-weight: bold;text-align:end;">IGV:</td>
           <td class="igv" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
         </tr>
         <tr>
-          <td colspan="{{count($tallas) + 3 }}" style="font-weight: bold;text-align:end;">MONTO TOTAL A PAGAR:</td>
+          <td colspan="{{count($tallas) + 4 }}" style="font-weight: bold;text-align:end;">MONTO TOTAL A PAGAR:</td>
           <td class="total-pagar" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
         </tr>
       </tfoot>

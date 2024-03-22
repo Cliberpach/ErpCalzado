@@ -118,16 +118,21 @@ class CotizacionController extends Controller
         $monto_total        =   0.0;
         $monto_igv          =   0.0;
         $monto_total_pagar  =   0.0;
+        $monto_descuento    =   $request->get('monto_descuento')??0;
 
         foreach ($productos as $producto) {
-            $monto_subtotal +=  ($producto->cantidad*$producto->precio_venta);
+            if( floatval($producto->porcentaje_descuento) == 0){
+                $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta);
+            }else{
+                $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta_nuevo);
+            }
         }
 
         $monto_total_pagar  =   $monto_subtotal+$monto_embalaje+$monto_envio;
         $monto_total        =   $monto_total_pagar/1.18;
         $monto_igv          =   $monto_total_pagar-$monto_total;
-        
-        
+        $porcentaje_descuento   = ($monto_descuento*100)/($monto_total_pagar+$monto_descuento);
+
 
         $cotizacion = new Cotizacion();
         $cotizacion->empresa_id         = $request->get('empresa');
@@ -145,6 +150,8 @@ class CotizacionController extends Controller
         $cotizacion->total_igv          = $monto_igv;
         $cotizacion->total              = $monto_total;
         $cotizacion->total_pagar        = $monto_total_pagar;  
+        $cotizacion->monto_descuento    = $monto_descuento;
+        $cotizacion->porcentaje_descuento = $porcentaje_descuento;
 
         $cotizacion->user_id = Auth::id();
         //$cotizacion->igv = $request->get('igv');
@@ -158,6 +165,9 @@ class CotizacionController extends Controller
         //$productosJSON = $request->get('productos_tabla');
         //$productotabla = json_decode($productosJSON[0]);
         foreach ($productos as $producto) {
+            //==== CALCULANDO MONTOS PARA EL DETALLE ====
+            $importe =  floatval($producto->cantidad) * floatval($producto->precio_venta);
+
             CotizacionDetalle::create([
                 'cotizacion_id' => $cotizacion->id,
                 'producto_id' => $producto->producto_id,
@@ -165,7 +175,11 @@ class CotizacionController extends Controller
                 'talla_id' => $producto->talla_id,
                 'cantidad' => $producto->cantidad,
                 'precio_unitario' => $producto->precio_venta,
-                'importe' => $producto->cantidad*$producto->precio_venta,
+                'importe' => $importe,
+                'precio_unitario_nuevo'     =>  floatval($producto->precio_venta_nuevo),
+                'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
+                'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
+                'importe_nuevo'             =>  floatval($producto->precio_venta_nuevo) * floatval($producto->cantidad),  
 
                 //'descuento'=> $producto->descuento,
                 //'dinero'=> $producto->dinero,

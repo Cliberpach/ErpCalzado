@@ -12,7 +12,7 @@ i<div class="modal inmodal" id="modal_cliente" role="dialog" aria-hidden="true">
                 <small class="font-bold">Registrar</small>
             </div>
             <div class="modal-body content_cliente" :class="{'sk__loading':loading}">
-                <form id="frmCliente" class="formulario" @submit.prevent="Guardar">
+                <form id="frmCliente" class="formulario">
                     <div class="row">
                         <div class="col-12 col-md-6">
                             <div class="row">
@@ -348,9 +348,9 @@ i<div class="modal inmodal" id="modal_cliente" role="dialog" aria-hidden="true">
                             toastr.error('El RUC debe de contar con 11 dígitos', 'Error');   
                         }
                     }
-            } catch (ex) {
+            } 
+        }catch (ex) {
                 alert("Error en consultarDocumento" + ex);
-            }
         }
     }
 
