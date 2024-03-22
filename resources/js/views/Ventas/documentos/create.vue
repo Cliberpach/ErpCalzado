@@ -373,11 +373,13 @@ export default {
                 detalles.forEach((d)=>{
                     d.tallas.forEach((t)=>{
                         const producto ={};
-                        producto.producto_id        =   d.producto_id;
-                        producto.color_id           =   d.color_id;
-                        producto.talla_id           =   t.talla_id;
-                        producto.cantidad           =   t.cantidad;
-                        producto.precio_unitario    =   d.precio_venta;
+                        producto.producto_id            =   d.producto_id;
+                        producto.color_id               =   d.color_id;
+                        producto.talla_id               =   t.talla_id;
+                        producto.cantidad               =   t.cantidad;
+                        producto.precio_unitario        =   d.precio_venta;  
+                        producto.porcentaje_descuento   =   d.porcentaje_descuento;
+                        producto.precio_unitario_nuevo  =   d.precio_venta_nuevo;
                         carritoFormateado.push(producto);
                     })
                 })
@@ -458,29 +460,30 @@ export default {
                      }
 
                      if (envio_ok) {
-                         const { data } = await this.axios.post(route("ventas.documento.store"), this.formCreate);
-                         const { success, documento_id } = data;
+                        console.log(this.formCreate)
+                        const { data } = await this.axios.post(route("ventas.documento.store"), this.formCreate);
+                        const { success, documento_id } = data;
 
 
-                         if (success) {
+                        if (success) {
                             
 
-                             toastr.success('¡Documento de venta creado!', 'Exito');
+                            toastr.success('¡Documento de venta creado!', 'Exito');
 
-                             var url_open_pdf = route("ventas.documento.comprobante", { id: documento_id +"-80"});
+                            var url_open_pdf = route("ventas.documento.comprobante", { id: documento_id +"-80"});
 
-                             window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
+                            window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
 
                              this.$refs.tablaDetalles.ChangeAsegurarCierre();
 
 
                             this.$emit("update:ruta", "index");
 
-                         } else {
-                             document.querySelector('#btn_grabar').disabled=false;
-                             this.loading = false;
-                             toastr.error('Error al crear documento de venta', 'Error');
-                         }
+                        } else {
+                            document.querySelector('#btn_grabar').disabled=false;
+                            this.loading = false;
+                            toastr.error('Error al crear documento de venta', 'Error');
+                        }
                      }
                 }
 
