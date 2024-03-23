@@ -1495,11 +1495,11 @@ class DocumentoController extends Controller
                
             $documento->monto_descuento         =   $monto_descuento;
             $documento->porcentaje_descuento    =   $porcentaje_descuento;   
-            $documento->moneda              = 1;
+            $documento->moneda                  =   1;
 
-            $documento->tipo_pago_id = $request->get('tipo_pago_id');
-            $documento->importe = $request->get('importe');
-            $documento->efectivo = $request->get('efectivo');
+            $documento->tipo_pago_id    = $request->get('tipo_pago_id');
+            $documento->importe         = $request->get('importe');
+            $documento->efectivo        = $request->get('efectivo');
 
        
 
@@ -1554,7 +1554,8 @@ class DocumentoController extends Controller
                 //$lote = LoteProducto::findOrFail($producto->producto_id);
 
                     //==== CALCULANDO MONTOS PARA EL DETALLE ====
-                    $importe =  floatval($producto->cantidad) * floatval($producto->precio_unitario);
+                    $importe                =   floatval($producto->cantidad) * floatval($producto->precio_unitario);
+                    $precio_unitario        =   $producto->porcentaje_descuento==0?$producto->precio_unitario:$producto->precio_unitario_nuevo;
 
                     Detalle::create([
                         'documento_id'      =>  $documento->id,
@@ -1572,10 +1573,10 @@ class DocumentoController extends Controller
                         'cantidad'          =>  floatval($producto->cantidad),
                         'precio_unitario'   =>  floatval($producto->precio_unitario),
                         'importe'           =>  $importe,
-                        'precio_unitario_nuevo'     =>  floatval($producto->precio_unitario_nuevo),
+                        'precio_unitario_nuevo'     =>  floatval($precio_unitario),
                         'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
                         'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
-                        'importe_nuevo'             =>  floatval($producto->precio_unitario_nuevo) * floatval($producto->cantidad),  
+                        'importe_nuevo'             =>  floatval($precio_unitario) * floatval($producto->cantidad),  
                         //  'precio_inicial' => $producto->precio_inicial,
                         //  'precio_nuevo' => $producto->precio_nuevo,
                         //  'dinero' => $producto->dinero,
@@ -2438,10 +2439,6 @@ class DocumentoController extends Controller
         $arrayProductos = Array();
         for($i = 0; $i < count($detalles); $i++){
 
-            //===== ELIGIENDO MONTOS ======
-            $precio_unitario = $detalles[$i]->porcentaje_descuento===0?$detalles[$i]->precio_unitario:$detalles[$i]->precio_unitario_nuevo;
-            $importe         = $detalles[$i]->porcentaje_descuento===0?$detalles[$i]->importe:$detalles[$i]->importe_nuevo;   
-
             $arrayProductos[] = array(
                 "codProducto" => $detalles[$i]->codigo_producto,
                 "unidad" => $detalles[$i]->unidad,
@@ -2449,26 +2446,20 @@ class DocumentoController extends Controller
                 "descripcion"=> $detalles[$i]->nombre_producto.' - '.$detalles[$i]->nombre_color.' - '.$detalles[$i]->nombre_talla,
                 "cantidad" => (float)$detalles[$i]->cantidad,
                 // "mtoValorUnitario" => (float)($detalles[$i]->precio_nuevo / 1.18),
-                // "mtoValorUnitario" => (float)($detalles[$i]->precio_unitario / 1.18),
-                "mtoValorUnitario" => (float)($precio_unitario / 1.18),
+                "mtoValorUnitario" => (float)($detalles[$i]->precio_unitario_nuevo / 1.18),
 
                 // "mtoValorVenta" => (float)($detalles[$i]->valor_venta / 1.18),
-                // "mtoValorVenta" => (float)($detalles[$i]->importe / 1.18),
-                "mtoValorVenta" => (float)($importe / 1.18),
+                "mtoValorVenta" => (float)($detalles[$i]->importe_nuevo / 1.18),
                 // "mtoBaseIgv" => (float)($detalles[$i]->valor_venta / 1.18),
-                // "mtoBaseIgv" => (float)($detalles[$i]->importe / 1.18),
-                "mtoBaseIgv" => (float)($importe / 1.18),
+                "mtoBaseIgv" => (float)($detalles[$i]->importe_nuevo / 1.18),
                 "porcentajeIgv" => 18,
                 // "igv" => (float)($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
-                // "igv" => (float)($detalles[$i]->importe - ($detalles[$i]->importe / 1.18)),
-                "igv" => (float)($importe - ($importe / 1.18)),
+                "igv" => (float)($detalles[$i]->importe_nuevo - ($detalles[$i]->importe_nuevo / 1.18)),
                 "tipAfeIgv" => 10,
                 // "totalImpuestos" =>  (float)($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
-                // "totalImpuestos" =>  (float)($detalles[$i]->importe - ($detalles[$i]->importe / 1.18)),
-                "totalImpuestos" =>  (float)($importe - ($importe / 1.18)),
+                "totalImpuestos" =>  (float)($detalles[$i]->importe_nuevo - ($detalles[$i]->importe_nuevo / 1.18)),
                 // "mtoPrecioUnitario" => (float)$detalles[$i]->precio_nuevo,
-                // "mtoPrecioUnitario" => (float)$detalles[$i]->precio_unitario
-                "mtoPrecioUnitario" => (float)$precio_unitario
+                "mtoPrecioUnitario" => (float)$detalles[$i]->precio_unitario_nuevo
             );
         }
 

@@ -167,6 +167,7 @@ class CotizacionController extends Controller
         foreach ($productos as $producto) {
             //==== CALCULANDO MONTOS PARA EL DETALLE ====
             $importe =  floatval($producto->cantidad) * floatval($producto->precio_venta);
+            $precio_venta   =   $producto->porcentaje_descuento == 0?$producto->precio_venta:$producto->precio_venta_nuevo;
 
             CotizacionDetalle::create([
                 'cotizacion_id' => $cotizacion->id,
@@ -176,10 +177,10 @@ class CotizacionController extends Controller
                 'cantidad' => $producto->cantidad,
                 'precio_unitario' => $producto->precio_venta,
                 'importe' => $importe,
-                'precio_unitario_nuevo'     =>  floatval($producto->precio_venta_nuevo),
+                'precio_unitario_nuevo'     =>  floatval($precio_venta),
                 'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
                 'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
-                'importe_nuevo'             =>  floatval($producto->precio_venta_nuevo) * floatval($producto->cantidad),  
+                'importe_nuevo'             =>  floatval($precio_venta) * floatval($producto->cantidad),  
 
                 //'descuento'=> $producto->descuento,
                 //'dinero'=> $producto->dinero,
@@ -320,19 +321,20 @@ class CotizacionController extends Controller
             foreach ($productos as $producto) {
                 //==== CALCULANDO MONTOS PARA EL DETALLE ====
                 $importe =  floatval($producto->cantidad) * floatval($producto->precio_venta);
-    
+                $precio_venta   =   $producto->porcentaje_descuento == 0?$producto->precio_venta:$producto->precio_venta_nuevo;
+
                 CotizacionDetalle::create([
-                    'cotizacion_id' => $cotizacion->id,
-                    'producto_id' => $producto->producto_id,
-                    'color_id'  => $producto->color_id,
-                    'talla_id' => $producto->talla_id,
-                    'cantidad' => $producto->cantidad,
-                    'precio_unitario' => $producto->precio_venta,
-                    'importe' => $importe,
-                    'precio_unitario_nuevo'     =>  floatval($producto->precio_venta_nuevo),
+                    'cotizacion_id'             => $cotizacion->id,
+                    'producto_id'               => $producto->producto_id,
+                    'color_id'                  => $producto->color_id,
+                    'talla_id'                  => $producto->talla_id,
+                    'cantidad'                  => $producto->cantidad,
+                    'precio_unitario'           => $producto->precio_venta,
+                    'importe'                   => $importe,
+                    'precio_unitario_nuevo'     =>  floatval($precio_venta),
                     'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
                     'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
-                    'importe_nuevo'             =>  floatval($producto->precio_venta_nuevo) * floatval($producto->cantidad),  
+                    'importe_nuevo'             =>  floatval($precio_venta) * floatval($producto->cantidad),  
                 ]);
             }
         }
@@ -503,7 +505,7 @@ class CotizacionController extends Controller
                     }else{
                         $subtotal_with_desc+=$talla['cantidad']*$producto['precio_unitario'];
                     }
-                    
+
                     $cantidadTotal+=$talla['cantidad'];
                    array_push($tallas,$talla);
                 }

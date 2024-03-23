@@ -72,10 +72,6 @@ class ComprobanteController extends Controller
         $arrayProductos = Array();
         for($i = 0; $i < count($detalles); $i++){
 
-            //===== ELIGIENDO MONTOS ======
-            $precio_unitario = $detalles[$i]->porcentaje_descuento===0?$detalles[$i]->precio_unitario:$detalles[$i]->precio_unitario_nuevo;
-            $importe         = $detalles[$i]->porcentaje_descuento===0?$detalles[$i]->importe:$detalles[$i]->importe_nuevo;   
-
             $arrayProductos[] = array(
                 "codProducto" => $detalles[$i]->codigo_producto,
                 "unidad" => $detalles[$i]->unidad,
@@ -83,26 +79,20 @@ class ComprobanteController extends Controller
                 "descripcion"=> $detalles[$i]->nombre_producto.' - '.$detalles[$i]->nombre_color.' - '.$detalles[$i]->nombre_talla,
                 "cantidad" => (float)$detalles[$i]->cantidad,
                 // "mtoValorUnitario" => (float)($detalles[$i]->precio_nuevo / 1.18),
-                // "mtoValorUnitario" => (float)($detalles[$i]->precio_unitario / 1.18),
-                "mtoValorUnitario" => (float)($precio_unitario / 1.18),
+                "mtoValorUnitario" => (float)($detalles[$i]->precio_unitario_nuevo / 1.18),
 
                 // "mtoValorVenta" => (float)($detalles[$i]->valor_venta / 1.18),
-                // "mtoValorVenta" => (float)($detalles[$i]->importe / 1.18),
-                "mtoValorVenta" => (float)($importe / 1.18),
+                "mtoValorVenta" => (float)($detalles[$i]->importe_nuevo / 1.18),
                 // "mtoBaseIgv" => (float)($detalles[$i]->valor_venta / 1.18),
-                // "mtoBaseIgv" => (float)($detalles[$i]->importe / 1.18),
-                "mtoBaseIgv" => (float)($importe / 1.18),
+                "mtoBaseIgv" => (float)($detalles[$i]->importe_nuevo / 1.18),
                 "porcentajeIgv" => 18,
                 // "igv" => (float)($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
-                // "igv" => (float)($detalles[$i]->importe - ($detalles[$i]->importe / 1.18)),
-                "igv" => (float)($importe - ($importe / 1.18)),
+                "igv" => (float)($detalles[$i]->importe_nuevo - ($detalles[$i]->importe_nuevo / 1.18)),
                 "tipAfeIgv" => 10,
                 // "totalImpuestos" =>  (float)($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
-                // "totalImpuestos" =>  (float)($detalles[$i]->importe - ($detalles[$i]->importe / 1.18)),
-                "totalImpuestos" =>  (float)($importe - ($importe / 1.18)),
+                "totalImpuestos" =>  (float)($detalles[$i]->importe_nuevo - ($detalles[$i]->importe_nuevo / 1.18)),
                 // "mtoPrecioUnitario" => (float)$detalles[$i]->precio_nuevo,
-                // "mtoPrecioUnitario" => (float)$detalles[$i]->precio_unitario
-                "mtoPrecioUnitario" => (float)$precio_unitario
+                "mtoPrecioUnitario" => (float)$detalles[$i]->precio_unitario_nuevo
             );
         }
 
