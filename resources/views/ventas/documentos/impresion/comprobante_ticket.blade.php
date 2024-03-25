@@ -288,6 +288,12 @@
                             <th style="text-align:right">{{ number_format($documento->total_pagar, 2) }}</th>
                         </tr>
                     @else
+                        @if ($documento->monto_descuento!==0)
+                            <tr>
+                                <th colspan="4" style="text-align:right">Descuento: S/.</th>
+                                <th style="text-align:right">{{ number_format($documento->monto_descuento, 2) }}</th>
+                            </tr>
+                        @endif
                         <tr>
                             <th colspan="4" style="text-align:right">Total a pagar: S/.</th>
                             <th style="text-align:right">{{ number_format($documento->total_pagar - $documento->notas->sum('mtoImpVenta'), 2) }}</th>
