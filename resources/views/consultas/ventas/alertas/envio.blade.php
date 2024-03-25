@@ -266,17 +266,17 @@ function loadTable()
                     //         <i class='fa fa-times'></i> ANULAR
                     //     </button>`;
 
-                    if(data.code != '1033' && dias > 0)
-                    {
+                    // if(data.code != '1033' && dias > 0)
+                    // {
                         cadena = cadena + `
                         <button type='button' class='btn btn-sm btn-success m-1' onclick='enviarSunat(${data.id})'
                             title='Enviar Sunat'>
                             <i class='fa fa-send'></i> Sunat
                         </button>`;
-                    }
-                    else {
-                        cadena = cadena + "<span class='badge badge-warning'>FUERA DE FECHA</span>";
-                    }
+                    // }
+                    // else {
+                    //     cadena = cadena + "<span class='badge badge-warning'>FUERA DE FECHA</span>";
+                    // }
 
                     return cadena;
                 }
