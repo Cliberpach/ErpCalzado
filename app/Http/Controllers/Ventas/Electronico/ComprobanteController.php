@@ -79,20 +79,20 @@ class ComprobanteController extends Controller
                 "descripcion"=> $detalles[$i]->nombre_producto.' - '.$detalles[$i]->nombre_color.' - '.$detalles[$i]->nombre_talla,
                 "cantidad" => (float)$detalles[$i]->cantidad,
                 // "mtoValorUnitario" => (float)($detalles[$i]->precio_nuevo / 1.18),
-                "mtoValorUnitario" => (float)($detalles[$i]->precio_unitario / 1.18),
+                "mtoValorUnitario" => (float)($detalles[$i]->precio_unitario_nuevo / 1.18),
+
                 // "mtoValorVenta" => (float)($detalles[$i]->valor_venta / 1.18),
-                "mtoValorVenta" => (float)($detalles[$i]->importe / 1.18),
+                "mtoValorVenta" => (float)($detalles[$i]->importe_nuevo / 1.18),
                 // "mtoBaseIgv" => (float)($detalles[$i]->valor_venta / 1.18),
-                "mtoBaseIgv" => (float)($detalles[$i]->importe / 1.18),
+                "mtoBaseIgv" => (float)($detalles[$i]->importe_nuevo / 1.18),
                 "porcentajeIgv" => 18,
                 // "igv" => (float)($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
-                "igv" => (float)($detalles[$i]->importe - ($detalles[$i]->importe / 1.18)),
+                "igv" => (float)($detalles[$i]->importe_nuevo - ($detalles[$i]->importe_nuevo / 1.18)),
                 "tipAfeIgv" => 10,
                 // "totalImpuestos" =>  (float)($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
-                "totalImpuestos" =>  (float)($detalles[$i]->importe - ($detalles[$i]->importe / 1.18)),
+                "totalImpuestos" =>  (float)($detalles[$i]->importe_nuevo - ($detalles[$i]->importe_nuevo / 1.18)),
                 // "mtoPrecioUnitario" => (float)$detalles[$i]->precio_nuevo,
-                "mtoPrecioUnitario" => (float)$detalles[$i]->precio_unitario
-
+                "mtoPrecioUnitario" => (float)$detalles[$i]->precio_unitario_nuevo
             );
         }
 
@@ -248,7 +248,12 @@ class ComprobanteController extends Controller
                                 "razonSocial" => $documento->empresa,
                                 "address" => array(
                                     "direccion" => $documento->direccion_fiscal_empresa,
+                                    "provincia" =>  "TRUJILLO",
+                                    "departamento"=> "LA LIBERTAD",
+                                    "distrito"=> "TRUJILLO",
+                                    "ubigueo"=> "130101"
                                 )),
+    
                             //"mtoOperGravadas" => (float)$documento->sub_total,
                             "mtoOperGravadas" => (float)$documento->total, //=== nuestro subtotal ===
                             "mtoOperExoneradas" => 0,

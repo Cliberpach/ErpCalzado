@@ -13,9 +13,11 @@ class ValidatedDetail
     protected $stock_logico;
     protected $cantidad_solicitada;
     protected $precio_unitario;
+    protected $porcentaje_descuento;
+    protected $precio_unitario_nuevo;
     protected $tipo;
 
-    public function __construct($producto_id = null, $color_id = null, $talla_id = null, $producto_nombre = null, $color_nombre = null, $talla_nombre = null, $stock_logico = null, $cantidad_solicitada = null, $precio_unitario = null, $tipo = null)
+    public function __construct($producto_id = null, $color_id = null, $talla_id = null, $producto_nombre = null, $color_nombre = null, $talla_nombre = null, $stock_logico = null, $cantidad_solicitada = null, $precio_unitario = null,$precio_unitario_nuevo = null,$porcentaje_descuento = null, $tipo = null)
     {
         $this->producto_id          =   $producto_id;
         $this->color_id             =   $color_id;
@@ -26,6 +28,8 @@ class ValidatedDetail
         $this->stock_logico         =   $stock_logico;
         $this->cantidad_solicitada  =   $cantidad_solicitada;
         $this->precio_unitario      =   $precio_unitario;
+        $this->precio_unitario_nuevo=   $precio_unitario_nuevo;
+        $this->porcentaje_descuento =   $porcentaje_descuento;
         $this->tipo = $tipo;
     }
 
@@ -82,6 +86,16 @@ class ValidatedDetail
         $this->precio_unitario = $precio_unitario;
     }
 
+    public function setPrecioUnitarioNuevo($precio_unitario_nuevo)
+    {
+        $this->precio_unitario_nuevo = $precio_unitario_nuevo;
+    }
+
+    public function setPorcentajeDescuento($porcentaje_descuento)
+    {
+        $this->porcentaje_descuento = $porcentaje_descuento;
+    }
+
     // Setter para tipo
     public function setTipo($tipo)
     {
@@ -134,6 +148,16 @@ class ValidatedDetail
      public function getPrecioUnitario()
      {
          return $this->precio_unitario;
+     }
+
+     public function getPrecioUnitarioNuevo()
+     {
+         return $this->precio_unitario_nuevo;
+     }
+
+     public function getPorcentajeDescuento()
+     {
+         return $this->porcentaje_descuento;
      }
  
      public function getTipo()

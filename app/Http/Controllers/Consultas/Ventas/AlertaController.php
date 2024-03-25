@@ -135,41 +135,84 @@ class AlertaController extends Controller
 
     public function obtenerProductos($id)
     {
-        $detalles = Detalle::where('documento_id', $id)->where('eliminado', '0')->where('estado', 'ACTIVO')->get();
-        $arrayProductos = array();
-        for ($i = 0; $i < count($detalles); $i++) {
+        $detalles = Detalle::where('documento_id',$id)->where('eliminado', '0')->where('estado', 'ACTIVO')->get();
+        $documento = Documento::findOrFail($id);
 
-            // $arrayProductos[] = array(
-            //     "codProducto" => $detalles[$i]->codigo_producto,
-            //     "unidad" => $detalles[$i]->unidad,
-            //     "descripcion" => $detalles[$i]->nombre_producto . ' - ' . $detalles[$i]->codigo_lote,
-            //     "cantidad" => (float)$detalles[$i]->cantidad,
-            //     "mtoValorUnitario" => (float)($detalles[$i]->precio_nuevo / 1.18),
-            //     "mtoValorVenta" => (float)($detalles[$i]->valor_venta / 1.18),
-            //     "mtoBaseIgv" => (float)($detalles[$i]->valor_venta / 1.18),
-            //     "porcentajeIgv" => 18,
-            //     "igv" => (float)($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
-            //     "tipAfeIgv" => 10,
-            //     "totalImpuestos" =>  (float)($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
-            //     "mtoPrecioUnitario" => (float)$detalles[$i]->precio_nuevo
-
-            // );
+        $arrayProductos = Array();
+        for($i = 0; $i < count($detalles); $i++){
 
             $arrayProductos[] = array(
                 "codProducto" => $detalles[$i]->codigo_producto,
                 "unidad" => $detalles[$i]->unidad,
+                // "descripcion"=> $detalles[$i]->nombre_producto.' - '.$detalles[$i]->codigo_lote,                "descripcion"=> $detalles[$i]->nombre_producto.' - '.$detalles[$i]->codigo_lote,
                 "descripcion"=> $detalles[$i]->nombre_producto.' - '.$detalles[$i]->nombre_color.' - '.$detalles[$i]->nombre_talla,
                 "cantidad" => (float)$detalles[$i]->cantidad,
-                "mtoValorUnitario" => (float)($detalles[$i]->precio_unitario / 1.18),
-                "mtoValorVenta" => (float)($detalles[$i]->importe / 1.18),
-                "mtoBaseIgv" => (float)($detalles[$i]->importe / 1.18),
+                // "mtoValorUnitario" => (float)($detalles[$i]->precio_nuevo / 1.18),
+                "mtoValorUnitario" => (float)($detalles[$i]->precio_unitario_nuevo / 1.18),
+
+                // "mtoValorVenta" => (float)($detalles[$i]->valor_venta / 1.18),
+                "mtoValorVenta" => (float)($detalles[$i]->importe_nuevo / 1.18),
+                // "mtoBaseIgv" => (float)($detalles[$i]->valor_venta / 1.18),
+                "mtoBaseIgv" => (float)($detalles[$i]->importe_nuevo / 1.18),
                 "porcentajeIgv" => 18,
-                "igv" => (float)($detalles[$i]->importe - ($detalles[$i]->importe / 1.18)),
+                // "igv" => (float)($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
+                "igv" => (float)($detalles[$i]->importe_nuevo - ($detalles[$i]->importe_nuevo / 1.18)),
                 "tipAfeIgv" => 10,
-                "totalImpuestos" =>  (float)($detalles[$i]->importe - ($detalles[$i]->importe / 1.18)),
-                "mtoPrecioUnitario" => (float)$detalles[$i]->precio_unitario
+                // "totalImpuestos" =>  (float)($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
+                "totalImpuestos" =>  (float)($detalles[$i]->importe_nuevo - ($detalles[$i]->importe_nuevo / 1.18)),
+                // "mtoPrecioUnitario" => (float)$detalles[$i]->precio_nuevo,
+                "mtoPrecioUnitario" => (float)$detalles[$i]->precio_unitario_nuevo
             );
-            
+        }
+
+
+          //======== agregando embalaje y envío como productos ===========
+          if($documento->monto_embalaje!=0){
+            $arrayProductos[] = array(
+                "codProducto" => 'PE00',
+                "unidad" => 'NIU',
+                // "descripcion" => $detalles[$i]->nombre_producto . ' - ' . $detalles[$i]->codigo_lote,
+                "descripcion" => 'EMBALAJE',
+                "cantidad" => (float) 1,
+                // // "mtoValorUnitario" => (float) ($detalles[$i]->precio_nuevo / 1.18),
+                "mtoValorUnitario" => (float) ($documento->monto_embalaje / 1.18),
+                // "mtoValorVenta" => (float) ($detalles[$i]->valor_venta / 1.18),
+                // "mtoBaseIgv" => (float) ($detalles[$i]->valor_venta / 1.18),
+                "mtoValorVenta" => (float) ($documento->monto_embalaje / 1.18),
+                "mtoBaseIgv" => (float) ($documento->monto_embalaje / 1.18),
+                "porcentajeIgv" => 18,
+                // "igv" => (float) ($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
+                "igv" => (float) ($documento->monto_embalaje - ($documento->monto_embalaje / 1.18)),
+                "tipAfeIgv" => 10,
+                // "totalImpuestos" => (float) ($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
+                "totalImpuestos" => (float) ($documento->monto_embalaje - ($documento->monto_embalaje / 1.18)),
+                // // "mtoPrecioUnitario" => (float) $detalles[$i]->precio_nuevo,
+                "mtoPrecioUnitario" => (float) $documento->monto_embalaje,
+            );
+        }
+       
+        if($documento->monto_envio!=0){
+            $arrayProductos[] = array(
+                "codProducto" => 'PE01',
+                "unidad" => 'NIU',
+                // "descripcion" => $detalles[$i]->nombre_producto . ' - ' . $detalles[$i]->codigo_lote,
+                "descripcion" => 'ENVIO',
+                "cantidad" => (float) 1,
+                // // "mtoValorUnitario" => (float) ($detalles[$i]->precio_nuevo / 1.18),
+                "mtoValorUnitario" => (float) ($documento->monto_envio / 1.18),
+                // "mtoValorVenta" => (float) ($detalles[$i]->valor_venta / 1.18),
+                // "mtoBaseIgv" => (float) ($detalles[$i]->valor_venta / 1.18),
+                "mtoValorVenta" => (float) ($documento->monto_envio / 1.18),
+                "mtoBaseIgv" => (float) ($documento->monto_envio / 1.18),
+                "porcentajeIgv" => 18,
+                // "igv" => (float) ($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
+                "igv" => (float) ($documento->monto_envio - ($documento->monto_envio / 1.18)),
+                "tipAfeIgv" => 10,
+                // "totalImpuestos" => (float) ($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
+                "totalImpuestos" => (float) ($documento->monto_envio - ($documento->monto_envio / 1.18)),
+                // // "mtoPrecioUnitario" => (float) $detalles[$i]->precio_nuevo,
+                "mtoPrecioUnitario" => (float) $documento->monto_envio,
+            );
         }
 
         return $arrayProductos;
@@ -303,16 +346,22 @@ class AlertaController extends Controller
                                 "razonSocial" => $documento->empresa,
                                 "address" => array(
                                     "direccion" => $documento->direccion_fiscal_empresa,
-                                )
-                            ),
-                            "mtoOperGravadas" => (float)$documento->sub_total,
+                                    "provincia" =>  "TRUJILLO",
+                                    "departamento"=> "LA LIBERTAD",
+                                    "distrito"=> "TRUJILLO",
+                                    "ubigueo"=> "130101"
+                            )),
+                            "mtoOperGravadas" => (float)$documento->total, //=== nuestro subtotal ===
                             "mtoOperExoneradas" => 0,
                             "mtoIGV" => (float)$documento->total_igv,
-
-                            "valorVenta" => (float)$documento->sub_total,
+                            // "valorVenta" => (float)$documento->sub_total,
+                            "valorVenta" => (float)$documento->total, //=== nuestro subtotal ===
                             "totalImpuestos" => (float)$documento->total_igv,
-                            "subTotal" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
-                            "mtoImpVenta" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                            // "subTotal" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                            // "mtoImpVenta" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                            "subTotal" => (float)$documento->total_pagar + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                            "mtoImpVenta" => (float)$documento->total_pagar + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                    
                             "ublVersion" => "2.1",
                             "details" => self::obtenerProductos($documento->id),
                             "legends" =>  self::obtenerLeyenda($documento),

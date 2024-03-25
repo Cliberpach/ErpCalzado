@@ -190,6 +190,7 @@
                                 <input type="hidden" name="monto_embalaje" id="monto_embalaje"      value="{{$cotizacion->monto_embalaje}}">
                                 <input type="hidden" name="monto_envio" id="monto_envio"            value="{{$cotizacion->monto_envio}}">
                                 <input type="hidden" name="monto_total_igv" id="monto_total_igv"                value="{{$cotizacion->total_igv}}">
+                                <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ $cotizacion->monto_descuento }}">
                                 <input type="hidden" name="monto_total" id="monto_total"            value="{{$cotizacion->total}}">
                                 <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{$cotizacion->total_pagar}}">
 
@@ -201,7 +202,7 @@
                         <div class="col-lg-12 col-xs-12">
                             <div class="panel panel-primary">
                                 <div class="panel-heading">
-                                    <h4><b>Detalle de la Cotización</b></h4>
+                                    <h4><b>Seleccionar productos</b></h4>
                                 </div>
                                 <div class="panel-body">
                                     <div class="row">
@@ -266,9 +267,7 @@
                                     </div>
                                     <div class="row m-t-sm" style="text-transform:uppercase">
                                         <div class="col-lg-12">
-                                            @include('ventas.cotizaciones.table-stocks',[
-                                                "carrito" => "carrito"
-                                            ])
+                                           
                                             {{-- <div class="table-responsive">
                                                 <table
                                                     class="table table-hover" id="table-detalle-cotizacion">
@@ -319,7 +318,25 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="hr-line-dashed"></div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="panel panel-primary">
+                                <div class="panel-heading">
+                                    <h4><b>Detalle de la Cotización</b></h4>
+                                </div>
+                                <div class="panel-body">
+                                    @include('ventas.cotizaciones.table-stocks',[
+                                        "carrito" => "carrito"
+                                    ])
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="form-group row">
@@ -1091,6 +1108,7 @@
     const tfootTotal            =   document.querySelector('.total');
     const tfootIgv              =   document.querySelector('.igv');
     const tfootTotalPagar       =   document.querySelector('.total-pagar');
+    const tfootDescuento        =   document.querySelector('.descuento');
     
     const inputSubTotal         =   document.querySelector('#monto_sub_total');
     const inputEmbalaje         =   document.querySelector('#monto_embalaje');
@@ -1098,6 +1116,8 @@
     const inputTotal            =   document.querySelector('#monto_total');
     const inputIgv              =   document.querySelector('#monto_total_igv');
     const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
+    const inputMontoDescuento   =   document.querySelector('#monto_descuento');
+
 
     const inputProductos        =   document.querySelector('#productos_tabla');
     const tallas                =   @json($tallas);
@@ -1105,9 +1125,10 @@
 
     let modelo_id   = null;
     let carrito     = [];
+    let carritoFormateado   =   [];
    
     document.addEventListener('DOMContentLoaded',()=>{
-       //console.log(tableStocksBody)
+        //console.log(tableStocksBody)
         //console.log(productosPrevios)
         cargarProductosPrevios();
         events();
@@ -1135,6 +1156,44 @@
 
                 calcularMontos();
             }
+
+            if(e.target.classList.contains('detailDescuento')){
+                //==== CONTROLANDO DE QUE EL VALOR SEA UN NÚMERO ====
+                const valor = event.target.value;
+                const producto_id   =   e.target.getAttribute('data-producto-id');
+                const color_id      =   e.target.getAttribute('data-color-id');
+
+                //==== SI EL INPUT ESTA VACÍO ====
+                if(valor.trim().length === 0){
+                    //===== CALCULAR DESCUENTO Y PINTARLO ======
+                    calcularDescuento(producto_id,color_id,0);
+                    //===== CALCULAR Y PINTAR MONTOS =======
+                    calcularMontos();
+                    return;
+                }
+
+                //===== EXPRESION REGULAR PARA EVITAR CARACTERES NO NUMÉRICOS EN LA CADENA ====
+                const regex = /^[0-9]+(\.[0-9]{0,2})?$/;
+                //==== BORRAR CARACTER NO NUMÉRICO ====
+                if (!regex.test(valor)) {
+                    event.target.value = valor.slice(0, -1); 
+                    return;
+                }
+
+                //==== EN CASO SEA NUMÉRICO ====
+                let porcentaje_desc = parseFloat(event.target.value);
+
+                //==== EL MÁXIMO DESCUENTO ES 100% ====
+                if(porcentaje_desc>100){
+                    event.target.value = 100;
+                    porcentaje_desc = event.target.value;
+                }
+
+                //==== CALCULAR DESCUENTO Y PINTARLO ====
+                calcularDescuento(producto_id,color_id,porcentaje_desc)
+                //===== CALCULAR Y PINTAR MONTOS =======
+                calcularMontos();
+            }
         })
 
         document.addEventListener('click',(e)=>{
@@ -1149,72 +1208,129 @@
 
         formCotizacion.addEventListener('submit',(e)=>{
             e.preventDefault();
-            const enviar    =   validaciones();
 
-            if (enviar) {
+            //===== VALIDAR FECHA =====
+            const correcto =  validaciones();
+            if (correcto) {
                 Swal.fire({
                     title: 'Opción Guardar',
                     text: "¿Seguro que desea guardar cambios?",
                     icon: 'question',
-                    showCancelButton: true,
+                showCancelButton: true,
                     confirmButtonColor: "#1ab394",
                     confirmButtonText: 'Si, Confirmar',
                     cancelButtonText: "No, Cancelar",
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        //====== guardamos el carrito en JSON en el form ==========
-                        saveCarritoJSON();
+                        document.querySelector('#btn_grabar').disabled = true;
+                        formatearDetalle();
+                        saveCarritoJSON()
                         formCotizacion.submit();
-
-                    } else if (
-                        result.dismiss === Swal.DismissReason.cancel
-                    ) {
+                    } else if (result.dismiss === Swal.DismissReason.cancel) {
                         swalWithBootstrapButtons.fire(
-                            'Cancelado',
-                            'La Solicitud se ha cancelado.',
-                            'error'
+                        'Cancelado',
+                        'La Solicitud se ha cancelado.',
+                        'error'
                         )
+                        document.querySelector('#btn_grabar').disabled = false;
                     }
                 })
             }
+
+            // const formData = new FormData(formCotizacion);
+            // formData.append("carrito", JSON.stringify(carrito));
+            // formData.forEach((valor, clave) => {
+            //      console.log(`${clave}: ${valor}`);
+            // });
         })
        
+        //===== AGREGAR DETALLE ======
         btnAgregarDetalle.addEventListener('click',()=>{
+            
             const inputsCantidad = document.querySelectorAll('.inputCantidad');
-            inputsCantidad.forEach((ic)=>{
-                const cantidad = ic.value?ic.value:0;
-                if(cantidad != 0){
+            
+            for (const ic of inputsCantidad) {
+
+                const cantidad = ic.value ? ic.value : null;
+                if (cantidad) {
+                            const producto      = formarProducto(ic);
+                            const indiceExiste  = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+                            //===== PRODUCTO NUEVO =====
+                            if (indiceExiste == -1) {
+                                const objProduct = {
+                                    producto_id: producto.producto_id,
+                                    color_id: producto.color_id,
+                                    producto_nombre: producto.producto_nombre,
+                                    color_nombre: producto.color_nombre,
+                                    precio_venta: producto.precio_venta,
+                                    monto_descuento:0,
+                                    porcentaje_descuento:0,
+                                    precio_venta_nuevo:0,
+                                    subtotal_nuevo:0,
+                                    tallas: [{
+                                        talla_id: producto.talla_id,
+                                        talla_nombre: producto.talla_nombre,
+                                        cantidad: producto.cantidad
+                                    }]
+                                };
+
+                                carrito.push(objProduct);
+                            } else {
+                                const productoModificar = carrito[indiceExiste];
+                                productoModificar.precio_venta = producto.precio_venta;
+
+                                const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                                if (indexTalla !== -1) {
+                                    const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
+                                    productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
+                                    carrito[indiceExiste] = productoModificar;
+                                } else {
+                                    const objTallaProduct = {
+                                        talla_id: producto.talla_id,
+                                        talla_nombre: producto.talla_nombre,
+                                        cantidad: producto.cantidad
+                                    };
+                                    carrito[indiceExiste].tallas.push(objTallaProduct);
+                                }
+                            }
+                } else {
                     const producto = formarProducto(ic);
-                    const indiceExiste  = carrito.findIndex((p)=>{
-                    return p.producto_id==producto.producto_id && p.color_id==producto.color_id && p.talla_id==producto.talla_id})
-                    
-                    if(indiceExiste == -1){
-                        carrito.push(producto);
-                    }else{
-                        const productoModificar = carrito[indiceExiste];
-                        productoModificar.cantidad = producto.cantidad;
-                        productoModificar.precio_venta = document.querySelector(`#precio-venta-${productoModificar.producto_id}`).value;
-                        carrito[indiceExiste] = productoModificar;
-                    
-                    }
-                }else{
-                    const producto = formarProducto(ic);
-                    const indiceExiste  = carrito.findIndex((p)=>{
-                    return p.producto_id==producto.producto_id && p.color_id==producto.color_id && p.talla_id==producto.talla_id})
-                    if(indiceExiste !== -1){
-                        carrito.splice(indiceExiste, 1);
+                    const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+                    if (indiceProductoColor !== -1) {
+                        const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                        if (indiceTalla !== -1) {
+                            const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
+                            carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
+                            
+                            const cantidadTallas = carrito[indiceProductoColor].tallas.length;
+
+                            if (cantidadTallas == 0) {
+                                carrito.splice(indiceProductoColor, 1);
+                            }
+                        }
                     }
                 }
-                  
-            })
+            }
+
+           
             reordenarCarrito();
             calcularSubTotal();
             pintarDetalleCotizacion(carrito);
+            //===== RECALCULANDO DESCUENTOS =====
+            carrito.forEach((c)=>{
+                calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+            })
+            //===== RECALCULANDO MONTOS =====
             calcularMontos();
+
         })
     }
 
-    //======= validaciones para el formulario ============
+    //======= VALIDACIONES PARA EL FORMULARIO ============
     const validaciones  =   ()=>{
         
         let enviar = true;
@@ -1224,6 +1340,7 @@
             toastr.error('Ingrese Fecha de Documento.', 'Error');
             $("#fecha_documento").focus();
             enviar = false;
+
         }
 
         if ($('#fecha_atencion').val() == '') {
@@ -1241,49 +1358,153 @@
         return enviar
     }
 
+    //====== FORMATEAR EL CARRITO A FORMATO DE BD ======
+    function formatearDetalle(){
+        carrito.forEach((d)=>{
+            d.tallas.forEach((t)=>{
+                const producto ={};
+                producto.producto_id            =   d.producto_id;
+                producto.color_id               =   d.color_id;
+                producto.talla_id               =   t.talla_id;
+                producto.cantidad               =   t.cantidad;
+                producto.precio_venta           =   d.precio_venta;  
+                producto.porcentaje_descuento   =   d.porcentaje_descuento;
+                producto.precio_venta_nuevo     =   d.precio_venta_nuevo;
+                carritoFormateado.push(producto);
+            })
+        })  
+    }
+
     //====== guardar el carrito en el form ===========
     const saveCarritoJSON = ()=>{
-        inputProductos.value=JSON.stringify(carrito);
+        inputProductos.value=JSON.stringify(carritoFormateado);
     }
 
     const cargarProductosPrevios=()=>{
-        //cargando carrito
+        //====== CARGANDO CARRITO ======
+        const producto_color_procesados = [];
+
         productosPrevios.forEach((productoPrevio)=>{
-            const producto ={
-                producto_id: productoPrevio.producto_id,
-                producto_nombre:productoPrevio.producto.nombre,
-                color_id:productoPrevio.color_id,
-                color_nombre:productoPrevio.color.descripcion,
-                talla_id:productoPrevio.talla_id,
-                talla_nombre:productoPrevio.talla.descripcion,
-                cantidad: parseInt(productoPrevio.cantidad),
-                precio_venta:productoPrevio.precio_unitario
+            const id    =   `${productoPrevio.producto_id}-${productoPrevio.color_id}`;
+
+            if(!producto_color_procesados.includes(id)){
+                const producto ={
+                    producto_id: productoPrevio.producto_id,
+                    producto_nombre:productoPrevio.producto.nombre,
+                    color_id:productoPrevio.color.id,
+                    color_nombre:productoPrevio.color.descripcion,
+                    precio_venta:productoPrevio.precio_unitario,
+                    subtotal:0,
+                    subtotal_nuevo:0,
+                    porcentaje_descuento: parseFloat(productoPrevio.porcentaje_descuento),
+                    monto_descuento:0,
+                    precio_venta_nuevo:0,
+                    tallas:[]
+                }
+
+                //==== BUSCANDO SUS TALLAS ====
+                const tallas = productosPrevios.filter((t)=>{
+                    return t.producto_id==productoPrevio.producto_id && t.color_id==productoPrevio.color_id;
+                })
+
+                if(tallas.length > 0){
+                    const producto_color_tallas = [];
+                    tallas.forEach((t)=>{
+                        const talla = {
+                            talla_id:t.talla_id,
+                            talla_nombre:t.talla.descripcion,
+                            cantidad: parseInt(t.cantidad),
+                        }
+                        producto_color_tallas.push(talla);
+                    })
+                    producto.tallas = producto_color_tallas;
+                }
+                producto_color_procesados.push(id);
+                carrito.push(producto);
             }
-            carrito.push(producto);
         })
-        //calculando subtotales para la tabla detalle
+
+      
+        //===== CALCULAR SUBTOTAL POR FILA DEL DETALLE ======
         calcularSubTotal();
-        //cargando tabla detalle
-        pintarDetalleCotizacion(carrito);
-        //cargando embalaje y envío previo
+        //===== CARGANDO EMBALAJE Y ENVÍO PREVIO ========
         cargarEmbalajeEnvioPrevios();
-        //pintando montos
+        //===== PINTANDO DETALLE ======
+        pintarDetalleCotizacion(carrito);
+        //========= PINTAR DESCUENTOS Y CALCULARLOS ============
+        carrito.forEach((c)=>{
+            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+        })
+        
+        //===== CALCULAR MONTOS Y PINTARLOS ======
         calcularMontos();
     }
 
-     //=========== calcular montos =======
+    //======= CALCULAR DESCUENTO ========
+    const calcularDescuento = (producto_id,color_id,porcentaje_descuento)=>{
+        const indiceExiste = carrito.findIndex((c)=>{
+            return c.producto_id==producto_id && c.color_id==color_id;
+        })
+
+        if(indiceExiste !== -1){
+            const producto_color_editar =  carrito[indiceExiste];
+
+            //===== APLICANDO DESCUENTO ======
+            producto_color_editar.porcentaje_descuento =    porcentaje_descuento;
+            producto_color_editar.monto_descuento      =    porcentaje_descuento === 0?0:producto_color_editar.subtotal*(porcentaje_descuento/100);
+            producto_color_editar.precio_venta_nuevo   =    porcentaje_descuento === 0?0:(producto_color_editar.precio_venta*(1-porcentaje_descuento/100)).toFixed(2);
+            producto_color_editar.subtotal_nuevo       =    porcentaje_descuento === 0?0:(producto_color_editar.subtotal*(1-porcentaje_descuento/100)).toFixed(2);
+
+            carrito[indiceExiste] = producto_color_editar;
+
+
+            //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
+            const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`); 
+            const detailSubtotal    =   document.querySelector(`.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);    
+
+            if(porcentaje_descuento !== 0){
+                detailPrecioVenta.textContent = producto_color_editar.precio_venta_nuevo;
+                detailSubtotal.textContent    = producto_color_editar.subtotal_nuevo;
+            }else{
+                detailPrecioVenta.textContent   =   producto_color_editar.precio_venta;
+                detailSubtotal.textContent      =   producto_color_editar.subtotal;
+            }
+
+        }
+    }
+
+    //======== CALCULAR SUBTOTAL POR PRODUCTO COLOR EN EL DETALLE ======
+    const calcularSubTotal=()=>{
+        let subtotal = 0;
+
+        carrito.forEach((p)=>{
+            p.tallas.forEach((t)=>{
+                    subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad);   
+            })
+               
+            p.subtotal=subtotal; 
+            subtotal=0; 
+        })  
+    }
+
+     //=========== CALCULAR MONTOS =======
      const calcularMontos = ()=>{
-        const subtotales= document.querySelectorAll('.td-subtotal');
         let subtotal    =   0;
         let embalaje    =   tfootEmbalaje.value?parseFloat(tfootEmbalaje.value):0;
         let envio       =   tfootEnvio.value?parseFloat(tfootEnvio.value):0;
         let total       =   0;
         let igv         =   0;
         let total_pagar =   0;
+        let descuento   =   0;
         
         //====== subtotal es la suma de todos los productos ======
-        subtotales.forEach((st)=>{
-            subtotal    +=  parseFloat(st.textContent);
+        carrito.forEach((c)=>{
+            if(c.porcentaje_descuento === 0){
+                subtotal    +=  parseFloat(c.subtotal);
+            }else{
+                subtotal    +=  parseFloat(c.subtotal_nuevo);
+            }
+            descuento += parseFloat(c.monto_descuento);
         })
 
         total_pagar =   subtotal + embalaje + envio;
@@ -1294,6 +1515,7 @@
         tfootIgv.textContent        =   'S/. ' + igv.toFixed(2);
         tfootTotal.textContent      =   'S/. ' + total.toFixed(2);
         tfootSubtotal.textContent   =   'S/. ' + subtotal.toFixed(2);
+        tfootDescuento.textContent  =   'S/. ' + descuento.toFixed(2);
         
         inputTotalPagar.value       =   total_pagar.toFixed(2);
         inputIgv.value              =   igv.toFixed(2);
@@ -1301,7 +1523,9 @@
         inputEmbalaje.value         =   embalaje.toFixed(2);
         inputEnvio.value            =   envio.toFixed(2);
         inputSubTotal.value         =   subtotal.toFixed(2);
+        inputMontoDescuento.value   =   descuento.toFixed(2);
     }
+
 
     const eliminarProducto = (productoId,colorId)=>{
         carrito = carrito.filter((p)=>{
@@ -1309,32 +1533,6 @@
         })
     }
 
-    const calcularSubTotal=()=>{
-        let subtotal = 0;
-        const producto_color_procesados=[];
-
-        carrito.forEach((p)=>{
-            if(!producto_color_procesados.includes(`${p.producto_id}-${p.color_id}`)){
-                tallas.forEach((t)=>{
-                  const producto =  carrito.filter((ct)=>{
-                       return  ct.producto_id==p.producto_id && ct.color_id==p.color_id && ct.talla_id==t.id
-                    })
-
-                    if(producto.length!=0){
-                        subtotal+= parseFloat(producto[0].precio_venta)*parseFloat(producto[0].cantidad);
-                    }
-                })
-                carrito.forEach((c)=>{
-                    if(c.producto_id==p.producto_id && c.color_id==p.color_id){
-                        c.subtotal=subtotal;
-                    }
-                })
-                subtotal=0;
-                producto_color_procesados.push(`${p.producto_id}-${p.color_id}`);
-            }
-        })
-        
-    }
 
     const reordenarCarrito= ()=>{
         carrito.sort(function(a, b) {
@@ -1347,16 +1545,24 @@
     }
 
     const formarProducto = (ic)=>{
-        const producto_id = ic.getAttribute('data-producto-id');
-        const producto_nombre = ic.getAttribute('data-producto-nombre');
-        const color_id = ic.getAttribute('data-color-id');
-        const color_nombre = ic.getAttribute('data-color-nombre');
-        const talla_id = ic.getAttribute('data-talla-id');
-        const talla_nombre = ic.getAttribute('data-talla-nombre');
-        const precio_venta = document.querySelector(`#precio-venta-${producto_id}`).value;
-        const cantidad     = ic.value?ic.value:0;
+        const producto_id           = ic.getAttribute('data-producto-id');
+        const producto_nombre       = ic.getAttribute('data-producto-nombre');
+        const color_id              = ic.getAttribute('data-color-id');
+        const color_nombre          = ic.getAttribute('data-color-nombre');
+        const talla_id              = ic.getAttribute('data-talla-id');
+        const talla_nombre          = ic.getAttribute('data-talla-nombre');
+        const precio_venta          = document.querySelector(`#precio-venta-${producto_id}`).value;
+        const cantidad              = ic.value?ic.value:0;
+        const subtotal              = 0;
+        const subtotal_nuevo        = 0;
+        const porcentaje_descuento  = 0;
+        const monto_descuento       = 0;
+        const precio_venta_nuevo    = 0;
+
         const producto = {producto_id,producto_nombre,color_id,color_nombre,
-                            talla_id,talla_nombre,cantidad,precio_venta};
+                            talla_id,talla_nombre,cantidad,precio_venta,
+                            subtotal,subtotal_nuevo,porcentaje_descuento,monto_descuento,precio_venta_nuevo
+                        };
         return producto;
     }
 
@@ -1366,15 +1572,14 @@
         }
     }
 
+    //====== PINTAR DETALLE COTIZACIÓN ======
     function pintarDetalleCotizacion(carrito){
         let fila= ``;
         let htmlTallas= ``;
-        const producto_color_procesado=[];
         clearDetalleCotizacion();
 
         carrito.forEach((c)=>{
             htmlTallas=``;
-            if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
                 fila+= `<tr>   
                             <td>
                                 <i class="fas fa-trash-alt btn btn-primary delete-product"
@@ -1385,22 +1590,33 @@
 
                 //tallas
                 tallas.forEach((t)=>{
-                    let cantidad = carrito.filter((ct)=>{
-                        return ct.producto_id==c.producto_id && ct.color_id==c.color_id && t.id==ct.talla_id;
+                    let cantidad = c.tallas.filter((ct)=>{
+                        return t.id==ct.talla_id;
                     });
                     cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
                     htmlTallas += `<td>${cantidad}</td>`; 
                 })
 
 
-                htmlTallas+=`   <td style="text-align: right;">${c.precio_venta}</td>
-                                <td class="td-subtotal" style="text-align: right;">${c.subtotal}</td>
+                htmlTallas+=`   <td style="text-align: right;">
+                                    <span class="precio_venta_${c.producto_id}_${c.color_id}">
+                                        ${c.porcentaje_descuento === 0? c.precio_venta:c.precio_venta_nuevo}
+                                    </span>
+                                </td>
+                                <td class="td-subtotal" style="text-align: right;">
+                                    <span class="subtotal_${c.producto_id}_${c.color_id}">
+                                        ${c.porcentaje_descuento === 0? c.subtotal:c.subtotal_nuevo}
+                                    </span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <input data-producto-id="${c.producto_id}" data-color-id="${c.color_id}" 
+                                    style="width:130px; margin: 0 auto;" value="${c.porcentaje_descuento}"
+                                    class="form-control detailDescuento"></input>
+                                </td>
                             </tr>`;
 
                 fila+=htmlTallas;
-                tableDetalleBody.innerHTML=fila;
-                producto_color_procesado.push(`${c.producto_id}-${c.color_id}`)
-            }
+                tableDetalleBody.innerHTML=fila;            
         })
     }
 
@@ -1486,12 +1702,13 @@
     //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
     function loadCantidadesPrevias(){
         carrito.forEach((c)=>{
-            const inputLoad = document.querySelector(`#inputCantidad_${c.producto_id}_${c.color_id}_${c.talla_id}`);
-            if(inputLoad){
-                inputLoad.value = c.cantidad;
-            }
-
-            //==== ubicando precios venta seleccionados ======
+            c.tallas.forEach((t)=>{
+                const inputLoad = document.querySelector(`#inputCantidad_${c.producto_id}_${c.color_id}_${t.talla_id}`);
+                if(inputLoad){
+                    inputLoad.value = t.cantidad;
+                }
+            })
+            //==== UBICANDO PRECIOS DE VENTA SELECCIONADOS ======
             const selectPrecioVenta =   document.querySelector(`#precio-venta-${c.producto_id}`);
             if(selectPrecioVenta){
                 selectPrecioVenta.value =   c.precio_venta;
@@ -1499,13 +1716,15 @@
         }) 
     }
 
-   function cargarEmbalajeEnvioPrevios(){
+    function cargarEmbalajeEnvioPrevios(){
         const precioEmbalaje    =   inputEmbalaje.value;
         const precioEnvio       =   inputEnvio.value;
 
         tfootEmbalaje.value     =   precioEmbalaje;
         tfootEnvio.value        =   precioEnvio;
-   }
+    }
+
+
 
 </script>
 @endpush

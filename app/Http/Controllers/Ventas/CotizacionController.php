@@ -24,6 +24,10 @@ use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 
+use App\Mantenimiento\Ubigeo\Departamento;
+use App\Mantenimiento\Ubigeo\Distrito;
+use App\Mantenimiento\Ubigeo\Provincia;
+
 
 class CotizacionController extends Controller
 {
@@ -52,20 +56,26 @@ class CotizacionController extends Controller
 
     public function create()
     {
-        $empresas = Empresa::where('estado', 'ACTIVO')->get();
-        $clientes = Cliente::where('estado', 'ACTIVO')->get();
-        $fecha_hoy = Carbon::now()->toDateString();
-        $condiciones = Condicion::where('estado','ACTIVO')->get();
-        $lotes = Producto::where('estado','ACTIVO')->get();
-        $modelos = Modelo::where('estado','ACTIVO')->get();
-        $tallas = Talla::where('estado','ACTIVO')->get();
+        $tipos_documento    =   tipos_documento();
+        $departamentos      =   departamentos();
+        $tipo_clientes      =   tipo_clientes();
+
+        $empresas           = Empresa::where('estado', 'ACTIVO')->get();
+        $clientes           = Cliente::where('estado', 'ACTIVO')->get();
+        $fecha_hoy          = Carbon::now()->toDateString();
+        $condiciones        = Condicion::where('estado','ACTIVO')->get();
+        $lotes              = Producto::where('estado','ACTIVO')->get();
+        $modelos            = Modelo::where('estado','ACTIVO')->get();
+        $tallas             = Talla::where('estado','ACTIVO')->get();
         $vendedor_actual    =   DB::select('select c.id from user_persona as up
                                 inner join colaboradores  as c
                                 on c.persona_id=up.persona_id
                                 where up.user_id = ?',[Auth::id()]);
         $vendedor_actual    =   $vendedor_actual?$vendedor_actual[0]->id:null;
+
         
-        return view('ventas.cotizaciones.create', compact('vendedor_actual','tallas','modelos','empresas', 'clientes', 'fecha_hoy', 'lotes', 'condiciones'));
+        return view('ventas.cotizaciones.create', compact('vendedor_actual','tallas','modelos','empresas',
+         'clientes', 'fecha_hoy', 'lotes', 'condiciones','tipos_documento','departamentos','tipo_clientes'));
     }
 
     public function store(Request $request)
@@ -108,16 +118,21 @@ class CotizacionController extends Controller
         $monto_total        =   0.0;
         $monto_igv          =   0.0;
         $monto_total_pagar  =   0.0;
+        $monto_descuento    =   $request->get('monto_descuento')??0;
 
         foreach ($productos as $producto) {
-            $monto_subtotal +=  ($producto->cantidad*$producto->precio_venta);
+            if( floatval($producto->porcentaje_descuento) == 0){
+                $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta);
+            }else{
+                $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta_nuevo);
+            }
         }
 
-        $monto_total_pagar  =   $monto_subtotal+$monto_embalaje+$monto_envio;
-        $monto_total        =   $monto_total_pagar/1.18;
-        $monto_igv          =   $monto_total_pagar-$monto_total;
-        
-        
+        $monto_total_pagar      =   $monto_subtotal+$monto_embalaje+$monto_envio;
+        $monto_total            =   $monto_total_pagar/1.18;
+        $monto_igv              =   $monto_total_pagar-$monto_total;
+        $porcentaje_descuento   = ($monto_descuento*100)/($monto_total_pagar+$monto_descuento);
+
 
         $cotizacion = new Cotizacion();
         $cotizacion->empresa_id         = $request->get('empresa');
@@ -129,12 +144,14 @@ class CotizacionController extends Controller
         $cotizacion->fecha_documento    = $request->get('fecha_documento');
         $cotizacion->fecha_atencion     = $request->get('fecha_atencion');
 
-        $cotizacion->sub_total          = $monto_subtotal;
-        $cotizacion->monto_embalaje     = $monto_embalaje;
-        $cotizacion->monto_envio        = $monto_envio;
-        $cotizacion->total_igv          = $monto_igv;
-        $cotizacion->total              = $monto_total;
-        $cotizacion->total_pagar        = $monto_total_pagar;  
+        $cotizacion->sub_total              = $monto_subtotal;
+        $cotizacion->monto_embalaje         = $monto_embalaje;
+        $cotizacion->monto_envio            = $monto_envio;
+        $cotizacion->total_igv              = $monto_igv;
+        $cotizacion->total                  = $monto_total;
+        $cotizacion->total_pagar            = $monto_total_pagar;  
+        $cotizacion->monto_descuento        = $monto_descuento;
+        $cotizacion->porcentaje_descuento   = $porcentaje_descuento;
 
         $cotizacion->user_id = Auth::id();
         //$cotizacion->igv = $request->get('igv');
@@ -148,6 +165,10 @@ class CotizacionController extends Controller
         //$productosJSON = $request->get('productos_tabla');
         //$productotabla = json_decode($productosJSON[0]);
         foreach ($productos as $producto) {
+            //==== CALCULANDO MONTOS PARA EL DETALLE ====
+            $importe =  floatval($producto->cantidad) * floatval($producto->precio_venta);
+            $precio_venta   =   $producto->porcentaje_descuento == 0?$producto->precio_venta:$producto->precio_venta_nuevo;
+
             CotizacionDetalle::create([
                 'cotizacion_id' => $cotizacion->id,
                 'producto_id' => $producto->producto_id,
@@ -155,7 +176,11 @@ class CotizacionController extends Controller
                 'talla_id' => $producto->talla_id,
                 'cantidad' => $producto->cantidad,
                 'precio_unitario' => $producto->precio_venta,
-                'importe' => $producto->cantidad*$producto->precio_venta,
+                'importe' => $importe,
+                'precio_unitario_nuevo'     =>  floatval($precio_venta),
+                'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
+                'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
+                'importe_nuevo'             =>  floatval($precio_venta) * floatval($producto->cantidad),  
 
                 //'descuento'=> $producto->descuento,
                 //'dinero'=> $producto->dinero,
@@ -245,14 +270,20 @@ class CotizacionController extends Controller
         $monto_total        =   0.0;
         $monto_igv          =   0.0;
         $monto_total_pagar  =   0.0;
-  
+        $monto_descuento    =   $request->get('monto_descuento')??0;
+     
         foreach ($productos as $producto) {
-            $monto_subtotal +=  ($producto->cantidad*$producto->precio_venta);
+            if( floatval($producto->porcentaje_descuento) == 0){
+                $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta);
+            }else{
+                     $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta_nuevo);
+            }
         }
-  
-        $monto_total_pagar  =   $monto_subtotal+$monto_embalaje+$monto_envio;
-        $monto_total        =   $monto_total_pagar/1.18;
-        $monto_igv          =   $monto_total_pagar-$monto_total;
+     
+        $monto_total_pagar      =   $monto_subtotal+$monto_embalaje+$monto_envio;
+        $monto_total            =   $monto_total_pagar/1.18;
+        $monto_igv              =   $monto_total_pagar-$monto_total;
+        $porcentaje_descuento   =   ($monto_descuento*100)/($monto_total_pagar+$monto_descuento);
         
              
         $cotizacion =  Cotizacion::findOrFail($id);
@@ -264,12 +295,14 @@ class CotizacionController extends Controller
         $cotizacion->fecha_documento = $request->get('fecha_documento');
         $cotizacion->fecha_atencion = $request->get('fecha_atencion');
 
-        $cotizacion->sub_total          = $monto_subtotal;
-        $cotizacion->monto_embalaje     = $monto_embalaje;
-        $cotizacion->monto_envio        = $monto_envio;
-        $cotizacion->total_igv          = $monto_igv;
-        $cotizacion->total              = $monto_total;
-        $cotizacion->total_pagar        = $monto_total_pagar; 
+        $cotizacion->sub_total              = $monto_subtotal;
+        $cotizacion->monto_embalaje         = $monto_embalaje;
+        $cotizacion->monto_envio            = $monto_envio;
+        $cotizacion->total_igv              = $monto_igv;
+        $cotizacion->total                  = $monto_total;
+        $cotizacion->total_pagar            = $monto_total_pagar;  
+        $cotizacion->monto_descuento        = $monto_descuento;
+        $cotizacion->porcentaje_descuento   = $porcentaje_descuento;
 
         $cotizacion->user_id = Auth::id();
          //$cotizacion->igv = $request->get('igv');
@@ -286,14 +319,22 @@ class CotizacionController extends Controller
             CotizacionDetalle::where('cotizacion_id', $id)->delete();
 
             foreach ($productos as $producto) {
+                //==== CALCULANDO MONTOS PARA EL DETALLE ====
+                $importe =  floatval($producto->cantidad) * floatval($producto->precio_venta);
+                $precio_venta   =   $producto->porcentaje_descuento == 0?$producto->precio_venta:$producto->precio_venta_nuevo;
+
                 CotizacionDetalle::create([
-                    'cotizacion_id' => $cotizacion->id,
-                    'producto_id' => $producto->producto_id,
-                    'color_id'  => $producto->color_id,
-                    'talla_id' => $producto->talla_id,
-                    'cantidad' => $producto->cantidad,
-                    'precio_unitario' => $producto->precio_venta,
-                    'importe' => $producto->cantidad*$producto->precio_venta,    
+                    'cotizacion_id'             => $cotizacion->id,
+                    'producto_id'               => $producto->producto_id,
+                    'color_id'                  => $producto->color_id,
+                    'talla_id'                  => $producto->talla_id,
+                    'cantidad'                  => $producto->cantidad,
+                    'precio_unitario'           => $producto->precio_venta,
+                    'importe'                   => $importe,
+                    'precio_unitario_nuevo'     =>  floatval($precio_venta),
+                    'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
+                    'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
+                    'importe_nuevo'             =>  floatval($precio_venta) * floatval($producto->cantidad),  
                 ]);
             }
         }
@@ -438,17 +479,19 @@ class CotizacionController extends Controller
                     return $detalleFiltro->producto_id == $detalle->producto_id && $detalleFiltro->color_id == $detalle->color_id;
                 });
                 
-                $producto['producto_codigo'] = $detalle->producto->codigo;
-                $producto['producto_id'] = $detalle->producto_id;
-                $producto['color_id'] = $detalle->color_id;
-                $producto['producto_nombre'] = $detalle->producto->nombre;
-                $producto['color_nombre'] = $detalle->color->descripcion;
-                $producto['modelo_nombre'] = $detalle->producto->modelo->descripcion;
-                $producto['precio_unitario'] = $detalle->precio_unitario;
-                
+                $producto['producto_codigo']        =   $detalle->producto->codigo;
+                $producto['producto_id']            =   $detalle->producto_id;
+                $producto['color_id']               =   $detalle->color_id;
+                $producto['producto_nombre']        =   $detalle->producto->nombre;
+                $producto['color_nombre']           =   $detalle->color->descripcion;
+                $producto['modelo_nombre']          =   $detalle->producto->modelo->descripcion;
+                $producto['precio_unitario']        =   $detalle->precio_unitario;
+                $producto['porcentaje_descuento']   =   $detalle->porcentaje_descuento;
+                $producto['precio_unitario_nuevo']  =   $detalle->precio_unitario_nuevo;
 
-                $tallas=[];
-                $subtotal=0.0;
+                $tallas             =   [];
+                $subtotal           =   0.0;
+                $subtotal_with_desc =   0.0;
                 $cantidadTotal=0;
                 foreach ($producto_color_tallas as $producto_color_talla) {
                     $talla=[];
@@ -456,12 +499,20 @@ class CotizacionController extends Controller
                     $talla['cantidad']=$producto_color_talla->cantidad;
                     $talla['talla_nombre']=$producto_color_talla->talla->descripcion;
                     $subtotal+=$talla['cantidad']*$producto['precio_unitario'];
+
+                    if($detalle->porcentaje_descuento != 0){
+                        $subtotal_with_desc+=$talla['cantidad']*$producto['precio_unitario_nuevo'];
+                    }else{
+                        $subtotal_with_desc+=$talla['cantidad']*$producto['precio_unitario'];
+                    }
+
                     $cantidadTotal+=$talla['cantidad'];
                    array_push($tallas,$talla);
                 }
                 
                 $producto['tallas']=$tallas;
                 $producto['subtotal']=$subtotal;
+                $producto['subtotal_with_desc']=$subtotal_with_desc;
                 $producto['cantidad_total']=$cantidadTotal;
                 array_push($detalleFormateado,$producto);
                 $productosProcesados[] = $detalle->producto_id.'-'.$detalle->color_id;
