@@ -578,8 +578,8 @@
         getClientes();
         cargarChecks();
         cargarSelect2();
-    
         showAlertas();
+        formatearDetalle();
         events();
     })
 
@@ -594,7 +594,6 @@
         formDocumento.addEventListener('submit',(e)=>{
             e.preventDefault();
             btnGrabar.disabled = true;
-            formatearDetalle();
             cargarProductos();
             let correcto = validarCampos();
 
