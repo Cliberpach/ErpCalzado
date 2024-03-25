@@ -259,7 +259,7 @@
                 </tbody>
                 <tfoot>
                     @if($documento->tipo_venta != 129)
-                        @if ($documento->monto_descuento!==0)
+                        @if ($documento->monto_descuento!=0)
                             <tr>
                                 <th colspan="4" style="text-align:right">Descuento: S/.</th>
                                 <th style="text-align:right">{{ number_format($documento->monto_descuento, 2) }}</th>
@@ -288,7 +288,7 @@
                             <th style="text-align:right">{{ number_format($documento->total_pagar, 2) }}</th>
                         </tr>
                     @else
-                        @if ($documento->monto_descuento!==0)
+                        @if ($documento->monto_descuento!=0)
                             <tr>
                                 <th colspan="4" style="text-align:right">Descuento: S/.</th>
                                 <th style="text-align:right">{{ number_format($documento->monto_descuento, 2) }}</th>
