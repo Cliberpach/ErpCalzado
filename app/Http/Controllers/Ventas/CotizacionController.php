@@ -72,7 +72,7 @@ class CotizacionController extends Controller
                                 on c.persona_id=up.persona_id
                                 where up.user_id = ?',[Auth::id()]);
         $vendedor_actual    =   $vendedor_actual?$vendedor_actual[0]->id:null;
-
+        
         
         return view('ventas.cotizaciones.create', compact('vendedor_actual','tallas','modelos','empresas',
          'clientes', 'fecha_hoy', 'lotes', 'condiciones','tipos_documento','departamentos','tipo_clientes'));
@@ -234,7 +234,7 @@ class CotizacionController extends Controller
     {
         $data = $request->all();
         $productos = json_decode($request->input('productos_tabla')[0]);
-
+        
        
         $rules = [
             'empresa' => 'required',
@@ -291,7 +291,7 @@ class CotizacionController extends Controller
         $cotizacion->cliente_id = $request->get('cliente');
         $cotizacion->condicion_id = $request->get('condicion_id');
         //$cotizacion->vendedor_id = $request->get('vendedor');
-        $cotizacion->vendedor_id    =   Auth::id();
+        $cotizacion->vendedor_id    =   $request->get('vendedor');
         $cotizacion->fecha_documento = $request->get('fecha_documento');
         $cotizacion->fecha_atencion = $request->get('fecha_atencion');
 
@@ -456,12 +456,19 @@ class CotizacionController extends Controller
 
         $detalles = $this->formatearArrayDetalle($detalles);
 
+        $vendedor_nombre = DB::select('SELECT CONCAT(p.nombres, " ", p.apellido_paterno, " ", p.apellido_materno) AS nombre_completo
+        FROM user_persona AS up 
+        INNER JOIN personas AS p ON p.id = up.persona_id
+        WHERE up.user_id = ?', [$cotizacion->user_id])[0]->nombre_completo;
+
+
         $pdf = PDF::loadview('ventas.cotizaciones.reportes.detalle_nuevo',[
             'cotizacion' => $cotizacion,
             'nombre_completo' => $nombre_completo,
             'detalles' => $detalles,
             'empresa' => $empresa,
             'tallas' => $tallas,
+            'vendedor_nombre' => $vendedor_nombre
             ])->setPaper('a4')->setWarnings(false);
         return $pdf->stream('CO-'.$cotizacion->id.'.pdf');
 

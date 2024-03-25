@@ -252,6 +252,11 @@
                         <td>{{ getFechaFormato( $cotizacion->fecha_atencion ,'d/m/Y')}}</td>
                     </tr>
                     <tr>
+                        <td style="padding-left: 5px;">ATENDIDO POR</td>
+                        <td>:</td>
+                        <td>{{ $vendedor_nombre }}</td>
+                    </tr>
+                    <tr>
                         <td style="padding-left: 5px;">CLIENTE</td>
                         <td>:</td>
                         <td>{{ $cotizacion->cliente->nombre }}</td>

@@ -135,6 +135,8 @@
                                                     </select>
                                                 </div>
                                             </div>
+                                            <input hidden type="text" name="vendedor" value="{{$cotizacion->vendedor_id}}">
+
                                         </div>
                                         <div class="row">
                                             <div class="col-lg-6 col-xs-12 select-required">

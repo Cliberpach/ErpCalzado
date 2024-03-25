@@ -131,11 +131,13 @@
                                                     </div>
                                                 </div>
                                             </div> --}}
+                                           
+
                                             <div class="col-12 col-md-4">
                                                 <div class="form-group">
                                                     <label class="">Vendedor</label>
                                                     <select id="vendedor" name="vendedor" class="select2_form form-control" disabled>
-                                                        <option value=""></option>
+                                                        <option></option>
                                                         @foreach (vendedores() as $vendedor)
                                                             <option value="{{ $vendedor->id }}" {{ $vendedor->id === $vendedor_actual ? 'selected' : '' }}>
                                                                 {{ $vendedor->persona->apellido_paterno . ' ' . $vendedor->persona->apellido_materno . ' ' . $vendedor->persona->nombres }}
@@ -144,14 +146,16 @@
                                                     </select>
                                                 </div>
                                             </div>
+
+                                            <input hidden type="text" name="vendedor" value="{{$vendedor_actual}}">
+
                                         </div>
                                        
                                         <div class="row">
                                             <div class="col-12 col-md-6 select-required">
                                                 <div class="form-group">
                                                     <label class="required">Cliente:
-                                                        <button type="button" class="btn btn-outline btn-primary"
-                                                            onclick="openModalCliente()">
+                                                        <button type="button" class="btn btn-outline btn-primary">
                                                             Registrar
                                                         </button>
                                                     </label>
@@ -436,6 +440,7 @@
             height: '200px',
             width: '100%',
         });
+
 
 
         if ($("#igv_check").prop('checked')) {
@@ -1131,7 +1136,6 @@
 
             //===== VALIDAR FECHA =====
             const correcto =  validarFecha();
-            console.log('y dale u')
 
             if (correcto) {
                 Swal.fire({
@@ -1572,10 +1576,10 @@
         }) 
     }
 
-    //============= ABRIR MODAL CLIENTE =============
-    function openModalCliente(){
-        $("#modal_cliente").modal("show");
-    }
+    // //============= ABRIR MODAL CLIENTE =============
+    // function openModalCliente(){
+    //     $("#modal_cliente").modal("show");
+    // }
 
 
 </script>
