@@ -293,9 +293,7 @@
                         @endforeach --}}
                         
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">P. UNIT.</th>
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">P. UNIT. DESC</th>
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">TOTAL</th>
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">TOTAL DESC</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -318,14 +316,9 @@
                             @endforeach
 
                             <td style="text-align: center; border-right: 2px solid #52BE80">{{ $descripcion }}</td>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['precio_unitario'], 2, ',', '.') }}</td>
-                            @if ($item['porcentaje_descuento'] != 0)
-                                <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['precio_unitario_nuevo'], 2, ',', '.') }}</td>   
-                            @else
-                                <td style="text-align: center; border-right: 2px solid #52BE80">-</td>   
-                            @endif
+                           
+                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['precio_unitario_nuevo'], 2, ',', '.') }}</td>   
                             <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['subtotal'], 2, ',', '.') }}</td>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['subtotal_with_desc'], 2, ',', '.') }}</td>
 
                             @php
                                 $cantidadTotal+=$item['cantidad_total'];
@@ -341,8 +334,6 @@
                             <td style="text-align: center; border-right: 2px solid #52BE80">EMBALAJE</td>
                             <td style="text-align: center; border-right: 2px solid #52BE80">-</td>
                             <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($cotizacion->monto_embalaje, 2, ',', '.') }}</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">-</td>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($cotizacion->monto_embalaje, 2, ',', '.') }}</td>
                             <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($cotizacion->monto_embalaje, 2, ',', '.') }}</td>
                         </tr>
                     @endif
@@ -353,8 +344,6 @@
                         <tr>
                             <td style="text-align: right; border-right: 2px solid #52BE80">1</td>
                             <td style="text-align: center; border-right: 2px solid #52BE80">ENVÍO</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">-</td>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($cotizacion->monto_envio, 2, ',', '.') }}</td>
                             <td style="text-align: center; border-right: 2px solid #52BE80">-</td>
                             <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($cotizacion->monto_envio, 2, ',', '.') }}</td>
                             <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($cotizacion->monto_envio, 2, ',', '.') }}</td>
@@ -368,8 +357,8 @@
                         <td></td>
                         <td></td>
                         <td ></td>
-                        <td ></td>
-                        <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($cotizacion->total_pagar + $cotizacion->monto_descuento, 2) }}</td>
+                     
+                        {{-- <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($cotizacion->total_pagar + $cotizacion->monto_descuento, 2) }}</td> --}}
                         <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($cotizacion->total_pagar, 2) }}</td>
                       
                     </tr>

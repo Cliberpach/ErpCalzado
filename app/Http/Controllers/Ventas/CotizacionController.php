@@ -498,13 +498,7 @@ class CotizacionController extends Controller
                     $talla['talla_id']=$producto_color_talla->talla_id;
                     $talla['cantidad']=$producto_color_talla->cantidad;
                     $talla['talla_nombre']=$producto_color_talla->talla->descripcion;
-                    $subtotal+=$talla['cantidad']*$producto['precio_unitario'];
-
-                    if($detalle->porcentaje_descuento != 0){
-                        $subtotal_with_desc+=$talla['cantidad']*$producto['precio_unitario_nuevo'];
-                    }else{
-                        $subtotal_with_desc+=$talla['cantidad']*$producto['precio_unitario'];
-                    }
+                    $subtotal+=$talla['cantidad']*$producto['precio_unitario_nuevo'];
 
                     $cantidadTotal+=$talla['cantidad'];
                    array_push($tallas,$talla);
@@ -512,7 +506,6 @@ class CotizacionController extends Controller
                 
                 $producto['tallas']=$tallas;
                 $producto['subtotal']=$subtotal;
-                $producto['subtotal_with_desc']=$subtotal_with_desc;
                 $producto['cantidad_total']=$cantidadTotal;
                 array_push($detalleFormateado,$producto);
                 $productosProcesados[] = $detalle->producto_id.'-'.$detalle->color_id;
