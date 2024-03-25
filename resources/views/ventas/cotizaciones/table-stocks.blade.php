@@ -16,7 +16,7 @@
         <th style="text-align: right;">PRECIO VENTA</th>
         @if (isset($carrito))
               <th style="text-align: right;">SUBTOTAL</th>
-              <th style="text-align: center;">DESCUENTO</th>
+              <th style="text-align: center;">DSCTO %</th>
         @endif
       </tr>
     </thead>

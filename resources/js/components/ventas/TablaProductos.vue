@@ -417,7 +417,7 @@
                                     <!-- <th class="text-center">DESCUENTO</th> -->
                                     <!-- <th class="text-center">P. NUEVO</th> -->
                                     <th class="text-center">SUBTOTAL</th>
-                                    <th class="text-center">DESCUENTO %</th>
+                                    <th class="text-center">DSCTO %</th>
                                 </tr>
                             </thead>
                             <tbody>
