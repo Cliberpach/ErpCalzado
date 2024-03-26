@@ -92,11 +92,14 @@ class NotaSalidadController extends Controller
     public function create()
     {
         $this->authorize('haveaccess','nota_salida.index');
-        $fecha_hoy = Carbon::now()->toDateString();
-        $fecha=Carbon::createFromFormat('d-m-Y', $fecha_hoy);
+        $fecha_hoy = Carbon::now()->format('Y-m-d');
+       
+        $fecha=Carbon::createFromFormat('Y-m-d', $fecha_hoy);
+        
         $fecha=str_replace("-", "", $fecha);
         $fecha=str_replace(" ", "", $fecha);
         $fecha=str_replace(":", "", $fecha);
+        
         $origenes   =   General::find(28)->detalles;
         $destinos   =   General::find(29)->detalles;
         $lotes      =   DB::table('lote_productos')->get();
