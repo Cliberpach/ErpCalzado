@@ -51,7 +51,7 @@ class AlertaController extends Controller
                 'cotizacion_documento.estado',
                 'tabladetalles.descripcion as tipo',
                 'clientes.nombre as cliente',
-                'cotizacion_documento.total as monto',
+                'cotizacion_documento.total_pagar as monto',
                 DB::raw('DATEDIFF( now(),cotizacion_documento.fecha_documento) as dias'),
                 'cotizacion_documento.sunat',
                 'cotizacion_documento.getCdrResponse',
