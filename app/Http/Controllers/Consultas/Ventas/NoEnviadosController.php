@@ -445,19 +445,24 @@ class NoEnviadosController extends Controller
 
             $documento->observacion         = $request->get('observacion');
 
-            $monto_sub_total    =   str_replace('S/', '', $request->get('monto_sub_total'));
-            $monto_embalaje     =   str_replace('S/', '', $request->get('monto_embalaje') ?? 0);
-            $monto_envio        =   str_replace('S/', '', $request->get('monto_envio') ?? 0);
-            $monto_total        =   str_replace('S/', '', $request->get('monto_total'));
-            $monto_total_igv    =   str_replace('S/', '', $request->get('monto_total_igv'));
-            $monto_total_pagar  =   str_replace('S/', '', $request->get('monto_total_pagar'));  
+            $monto_sub_total        =   str_replace('S/', '', $request->get('monto_sub_total'));
+            $monto_embalaje         =   str_replace('S/', '', $request->get('monto_embalaje') ?? 0);
+            $monto_envio            =   str_replace('S/', '', $request->get('monto_envio') ?? 0);
+            $monto_total            =   str_replace('S/', '', $request->get('monto_total'));
+            $monto_total_igv        =   str_replace('S/', '', $request->get('monto_total_igv'));
+            $monto_total_pagar      =   str_replace('S/', '', $request->get('monto_total_pagar'));  
+            $monto_descuento        =   str_replace('S/', '', $request->get('monto_descuento')??0);  
+            $porcentaje_descuento   =   ($monto_descuento*100)/($monto_total_pagar+$monto_descuento);
 
-            $documento->sub_total           = $monto_sub_total;
-            $documento->monto_embalaje      = $monto_embalaje;  
-            $documento->monto_envio         = $monto_envio;  
-            $documento->total               = $monto_total;  
-            $documento->total_igv           = $monto_total_igv;
-            $documento->total_pagar         = $monto_total_pagar;  
+            $documento->sub_total               =   $monto_sub_total;
+            $documento->monto_embalaje          =   $monto_embalaje;  
+            $documento->monto_envio             =   $monto_envio;  
+            $documento->total                   =   $monto_total;  
+            $documento->total_igv               =   $monto_total_igv;
+            $documento->total_pagar             =   $monto_total_pagar;  
+            $documento->monto_descuento         =   $monto_descuento;
+            $documento->porcentaje_descuento    =   $porcentaje_descuento;
+
             $documento->igv                 = $request->get('igv') ? $request->get('igv') : 18;
             $documento->moneda              = 1;
 
@@ -504,6 +509,10 @@ class NoEnviadosController extends Controller
             //==== actualizamos solo stock, ya que el stock logico ya está actualizado =======
             foreach ($productotabla as $producto) {
                 foreach ($producto->tallas as $talla) {
+                    //==== CALCULANDO MONTOS PARA EL DETALLE ====
+                    $importe                =   floatval($talla->cantidad) * floatval($producto->precio_venta);
+                    $precio_unitario        =   $producto->porcentaje_descuento==0?$producto->precio_venta:$producto->precio_venta_nuevo;
+
                        
                     $lote = ProductoColorTalla::where('producto_id', $producto->producto_id)
                     ->where('color_id', $producto->color_id)
@@ -525,7 +534,11 @@ class NoEnviadosController extends Controller
                         'nombre_modelo'     =>  $lote->producto->modelo->descripcion,
                         'cantidad'          =>  floatval($talla->cantidad),
                         'precio_unitario'   =>  floatval($producto->precio_venta),
-                        'importe'           =>  floatval($talla->cantidad) * floatval($producto->precio_venta)
+                        'importe'           =>  floatval($talla->cantidad) * floatval($producto->precio_venta),
+                        'precio_unitario_nuevo' => floatval($precio_unitario),
+                        'porcentaje_descuento'  =>  floatval($producto->porcentaje_descuento),
+                        'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
+                        'importe_nuevo'             =>  floatval($precio_unitario) * floatval($talla->cantidad)
                     ]);
 
                     //ACTUALIZANDO STOCK...
