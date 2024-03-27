@@ -42,7 +42,7 @@ class NotaSalidadController extends Controller
     {
         $data = DB::table("nota_salidad as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
         $detalles = DB::select(
-        'select distinct p.nombre as producto_nombre,ni.id as nota_ingreso_id ,ni.destino
+        'select distinct p.nombre as producto_nombre,ni.id as nota_ingreso_id ,ni.destino, ni.observacion as observacion
         from nota_salidad as ni 
         inner join detalle_nota_salidad  as dni
         on ni.id=dni.nota_salidad_id 
@@ -70,6 +70,10 @@ class NotaSalidadController extends Controller
                     // Si supera los 200 caracteres, terminar el bucle
                     break;
                 }
+
+                if($notaIngreso->observacion==null){
+                    $notaIngreso->observacion='Sin Observaciones';
+                }
             }
 
             // Añadir la cadena de detalles como un nuevo campo en la nota de ingreso
@@ -88,11 +92,14 @@ class NotaSalidadController extends Controller
     public function create()
     {
         $this->authorize('haveaccess','nota_salida.index');
-        $fecha_hoy = Carbon::now()->toDateString();
+        $fecha_hoy = Carbon::now()->format('Y-m-d');
+       
         $fecha=Carbon::createFromFormat('Y-m-d', $fecha_hoy);
+        
         $fecha=str_replace("-", "", $fecha);
         $fecha=str_replace(" ", "", $fecha);
         $fecha=str_replace(":", "", $fecha);
+        
         $origenes   =   General::find(28)->detalles;
         $destinos   =   General::find(29)->detalles;
         $lotes      =   DB::table('lote_productos')->get();

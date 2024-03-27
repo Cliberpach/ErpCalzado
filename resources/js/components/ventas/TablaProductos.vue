@@ -136,7 +136,8 @@
 
     <div class="row">
         <div class="col-lg-12">
-
+           
+            <!-- PRIMER PANEL  -->
             <div class="panel panel-primary">
                 <div id="overlay" class="overlay">
                     <div class="fulfilling-bouncing-circle-spinner">
@@ -145,7 +146,7 @@
                     </div>
                 </div>
                 <div class="panel-heading">
-                    <h4 class=""><b>Detalle del Documento de Venta</b></h4>
+                    <h4 class=""><b>Seleccionar productos</b></h4>
                 </div>
                 <div class="panel-body ibox-content">
 
@@ -316,102 +317,6 @@
                             </button>
                         </div>
                     </div>
-                    <hr>
-
-                    
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped table-bordered table-hover"
-                            style="text-transform:uppercase">
-                            <thead>
-                                <tr>
-                                    <th class="text-center">
-                                        <i class="fa fa-dashboard"></i>
-                                    </th>
-                                    <th class="text-center">PRODUCTO</th>
-                                    <template v-for="t in tallas">
-                                        <th class="text-center">{{ t.descripcion }}</th>
-                                    </template>
-                                    
-                                    <th class="text-center">P. VENTA</th>
-                                    <!-- <th class="text-center">DESCUENTO</th> -->
-                                    <!-- <th class="text-center">P. NUEVO</th> -->
-                                    <th class="text-center">SUBTOTAL</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="carrito.length > 0">
-                                    <tr v-for="(item, index) in carrito" :key="index">
-                                        <td class="text-center">
-                                            <div class='btn-group'>
-                                                <button type="button" class='btn btn-sm btn-danger btn-delete'
-                                                    style='color:white' @click.prevent="EliminarItem(item, index)">
-                                                    <i class='fa fa-trash'></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">{{ item.producto_nombre }}-{{ item.color_nombre }}</td>
-                                        <td v-for="t in tallas">
-                                            {{ printTallaDetalle(t.id,item) }}
-                                        </td>
-                                        <td>{{ item.precio_venta }}</td>
-                                        <td>{{ item.subtotal }}</td>
-                                    </tr>
-                                </template>
-                                <template v-else>
-                                    <tr>
-                                        <td :colspan="tallas.length + 4" class="text-center"><strong>No hay detalles</strong></td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td :colspan="tallas.length + 3" style="font-weight: bold;text-align:end;">SUBTOTAL:</td>
-                                    <td class="subtotal" colspan="1" style="font-weight: bold;text-align:end;">
-                                        {{`S/. ${Number(monto_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`}}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 3" style="font-weight: bold;text-align:end;">EMBALAJE:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        <div class="input-group">
-                                            <span class="input-group-text" id="basic-addon1">
-                                                <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M425.7 256c-16.9 0-32.8-9-41.4-23.4L320 126l-64.2 106.6c-8.7 14.5-24.6 23.5-41.5 23.5-4.5 0-9-.6-13.3-1.9L64 215v178c0 14.7 10 27.5 24.2 31l216.2 54.1c10.2 2.5 20.9 2.5 31 0L551.8 424c14.2-3.6 24.2-16.4 24.2-31V215l-137 39.1c-4.3 1.3-8.8 1.9-13.3 1.9zm212.6-112.2L586.8 41c-3.1-6.2-9.8-9.8-16.7-8.9L320 64l91.7 152.1c3.8 6.3 11.4 9.3 18.5 7.3l197.9-56.5c9.9-2.9 14.7-13.9 10.2-23.1zM53.2 41L1.7 143.8c-4.6 9.2 .3 20.2 10.1 23l197.9 56.5c7.1 2 14.7-1 18.5-7.3L320 64 69.8 32.1c-6.9-.8-13.5 2.7-16.6 8.9z"/></svg>
-                                            </span>
-                                            <input style="width: 10px;" v-model="monto_embalaje" type="text" class="form-control" aria-label="PRECIO DESPACHO" aria-describedby="basic-addon1">
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 3" style="font-weight: bold;text-align:end;">ENVÍO:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        <div class="input-group">
-                                            <span class="input-group-text" id="basic-addon1">
-                                            <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>                                                    </span>
-                                            <input style="width: 10px;" v-model="monto_envio"  type="text" class="form-control"  aria-label="PRECIO ENVÍO" aria-describedby="basic-addon1">
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 3" style="font-weight: bold;text-align:end;">MONTO TOTAL:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        {{ `S/. ${Number(monto_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 3" style="font-weight: bold;text-align:end;">IGV:</td>
-                                    <td class="igv" colspan="1" style="font-weight: bold;text-align:end;">
-                                        {{`S/. ${Number(monto_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`}}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 3" style="font-weight: bold;text-align:end;">MONTO TOTAL A PAGAR:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        {{ `S/. ${Number(monto_total_pagar).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}   
-                                    </td> 
-                                </tr>
-                            </tfoot>
-                        </table> 
-
                         <!-- <table class="table table-sm table-striped table-bordered table-hover"
                             style="text-transform:uppercase">
                             <thead>
@@ -485,10 +390,124 @@
                                 </tr>
                             </tfoot>
                         </table>  -->
+                </div>
+            </div>
+            <!-- FIN PRIMER PANEL -->
+
+            <!-- SEGUNDO PANEL -->
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h4 class=""><b>Detalle del documento de venta</b></h4>
+                </div>
+                <div class="panel-body ibox-content">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped table-bordered table-hover"
+                            style="text-transform:uppercase">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">
+                                        <i class="fa fa-dashboard"></i>
+                                    </th>
+                                    <th class="text-center">PRODUCTO</th>
+                                    <template v-for="t in tallas">
+                                        <th class="text-center">{{ t.descripcion }}</th>
+                                    </template>
+                                    
+                                    <th class="text-center">P. VENTA</th>
+                                    <!-- <th class="text-center">DESCUENTO</th> -->
+                                    <!-- <th class="text-center">P. NUEVO</th> -->
+                                    <th class="text-center">SUBTOTAL</th>
+                                    <th class="text-center">DSCTO %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-if="carrito.length > 0">
+                                    <tr v-for="(item, index) in carrito" :key="index">
+                                        <td class="text-center">
+                                            <div class='btn-group'>
+                                                <button type="button" class='btn btn-sm btn-danger btn-delete'
+                                                    style='color:white' @click.prevent="EliminarItem(item, index)">
+                                                    <i class='fa fa-trash'></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">{{ item.producto_nombre }}-{{ item.color_nombre }}</td>
+                                        <td v-for="t in tallas">
+                                            {{ printTallaDetalle(t.id,item) }}
+                                        </td>
+                                        <td>{{ item.porcentaje_descuento!=0 ? item.precio_venta_nuevo : item.precio_venta }}</td>
+                                        <td>{{ item.porcentaje_descuento !=0 ? item.subtotal_nuevo : item.subtotal }}</td>
+                                        <td>
+                                            <input @input="validarDescuento(item.producto_id,item.color_id,$event)" type="text" style="width: 100px;" class="form-control">
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template v-else>
+                                    <tr>
+                                        <td :colspan="tallas.length + 5" class="text-center"><strong>No hay detalles</strong></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">SUBTOTAL:</td>
+                                    <td class="subtotal" colspan="1" style="font-weight: bold;text-align:end;">
+                                        {{`S/. ${Number(monto_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`}}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">EMBALAJE:</td>
+                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
+                                        <div class="input-group">
+                                            <span class="input-group-text" id="basic-addon1">
+                                                <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M425.7 256c-16.9 0-32.8-9-41.4-23.4L320 126l-64.2 106.6c-8.7 14.5-24.6 23.5-41.5 23.5-4.5 0-9-.6-13.3-1.9L64 215v178c0 14.7 10 27.5 24.2 31l216.2 54.1c10.2 2.5 20.9 2.5 31 0L551.8 424c14.2-3.6 24.2-16.4 24.2-31V215l-137 39.1c-4.3 1.3-8.8 1.9-13.3 1.9zm212.6-112.2L586.8 41c-3.1-6.2-9.8-9.8-16.7-8.9L320 64l91.7 152.1c3.8 6.3 11.4 9.3 18.5 7.3l197.9-56.5c9.9-2.9 14.7-13.9 10.2-23.1zM53.2 41L1.7 143.8c-4.6 9.2 .3 20.2 10.1 23l197.9 56.5c7.1 2 14.7-1 18.5-7.3L320 64 69.8 32.1c-6.9-.8-13.5 2.7-16.6 8.9z"/></svg>
+                                            </span>
+                                            <input style="width: 10px;" v-model="monto_embalaje" type="text" class="form-control" aria-label="PRECIO DESPACHO" aria-describedby="basic-addon1">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">ENVÍO:</td>
+                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
+                                        <div class="input-group">
+                                            <span class="input-group-text" id="basic-addon1">
+                                                <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>                                                    
+                                            </span>
+                                            <input style="width: 10px;" v-model="monto_envio"  type="text" class="form-control"  aria-label="PRECIO ENVÍO" aria-describedby="basic-addon1">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">DESCUENTO:</td>
+                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
+                                        <span>    {{ `S/. ${Number(monto_descuento).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }} </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">MONTO TOTAL:</td>
+                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
+                                        {{ `S/. ${Number(monto_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">IGV:</td>
+                                    <td class="igv" colspan="1" style="font-weight: bold;text-align:end;">
+                                        {{`S/. ${Number(monto_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`}}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">MONTO TOTAL A PAGAR:</td>
+                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
+                                        {{ `S/. ${Number(monto_total_pagar).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}   
+                                    </td> 
+                                </tr>
+                            </tfoot>
+                        </table> 
                     </div>
                 </div>
             </div>
-        </div>
+            <!-- FIN SEGUNDO PANEL -->
+
         <!-- <ModalLotesVue :show.sync="modalLote" :fullAccess="fullaccessTable" :tipoCliente="paramsLotes.tipo_cliente"
             :tipoComprobante="paramsLotes.tipocomprobante" @selectedProductos="ProductoSeleccionado" /> -->
         <!-- <ModalLotesVue :dataLotes="Lotes" :fullAccess="fullaccessTable" :searchInput.sync="searchInput"
@@ -496,7 +515,11 @@
         <!-- <ModalCodigoPrecioMenorVue :estadoPrecioMenor="estadoPrecioMenor"
             @addCodigoPrecioMenor="SaveCodigoPrecioMenor" />
         <ModalEditaDetalleVue :item.sync="itemLote" :detalles.sync="tablaDetalles" /> -->
+
+        </div>
+        <!-- FIN COLUMNA -->
     </div>
+    <!-- FIN FILA -->
 </template>
 <script>
 
@@ -522,6 +545,9 @@ export default {
         return {
             monto_embalaje:0,
             monto_envio:0,
+            monto_descuento:0,
+            porcentaje_descuento_global:0,
+            descuentos:[],
             flujo:[],
             monto_subtotal:0,
             monto_igv:0,
@@ -698,7 +724,8 @@ export default {
                     monto_total: parseFloat(this.monto_total),
                     monto_embalaje: parseFloat(this.monto_embalaje),
                     monto_envio: parseFloat(this.monto_envio),
-                    monto_total_pagar: parseFloat(this.monto_total_pagar)
+                    monto_total_pagar: parseFloat(this.monto_total_pagar),
+                    monto_descuento:parseFloat(this.monto_descuento)
                 };
                 this.$emit('addProductoDetalle', {
                     detalles:   this.carrito,
@@ -799,6 +826,61 @@ export default {
         });
     },
     methods: {
+        validarDescuento(producto_id,color_id,event){
+           
+            //==== CONTROLANDO DE QUE EL VALOR SEA UN NÚMERO ====
+            const valor = event.target.value;
+
+            //==== SI EL INPUT ESTA VACÍO ====
+            if(valor.trim().length === 0){
+                this.calcularDescuento(producto_id,color_id,0);
+                return;
+            }
+
+            //===== EXPRESION REGULAR PARA EVITAR CARACTERES NO NUMÉRICOS EN LA CADENA ====
+            const regex = /^[0-9]+(\.[0-9]{0,2})?$/;
+            //==== BORRAR CARACTER NO NUMÉRICO ====
+            if (!regex.test(valor)) {
+                event.target.value = valor.slice(0, -1); 
+                return;
+            }
+
+            //==== EN CASO SEA NUMÉRICO ====
+            let porcentaje_desc = parseFloat(event.target.value);
+
+            //==== EL MÁXIMO DESCUENTO ES 100% ====
+            if(porcentaje_desc>100){
+                event.target.value = 100;
+                porcentaje_desc = event.target.value;
+            }
+            
+            //==== CALCULAR DESCUENTO ====
+            this.calcularDescuento(producto_id,color_id,porcentaje_desc)
+        
+        },
+        calcularDescuento(producto_id,color_id,porcentaje_descuento){
+
+            //==== BUSCANDO PRODUCTO COLOR EN EL CARRITO ====
+            const indiceProductoColor   =   this.carrito.findIndex((producto)=>{
+                return producto.producto_id == producto_id && producto.color_id==color_id;
+            })
+
+            const producto_color_editar = this.carrito[indiceProductoColor];
+
+            //===== APLICANDO DESCUENTO ======
+            producto_color_editar.porcentaje_descuento =    porcentaje_descuento;
+            producto_color_editar.monto_descuento      =    porcentaje_descuento === 0?0:producto_color_editar.subtotal*(porcentaje_descuento/100);
+            producto_color_editar.precio_venta_nuevo   =    porcentaje_descuento === 0?0:(producto_color_editar.precio_venta*(1-porcentaje_descuento/100)).toFixed(2);
+            producto_color_editar.subtotal_nuevo        =   porcentaje_descuento === 0?0:(producto_color_editar.subtotal*(1-porcentaje_descuento/100)).toFixed(2);
+
+            this.carrito[indiceProductoColor] = producto_color_editar;
+
+            //==== RECALCULANDO MONTOS ====
+            this.calcularMontos();
+
+            console.log(this.carrito);
+
+        },
        async eliminarCarrito(){
             if(this.carrito.length !== 0){
                 document.getElementById('overlay').style.display = 'flex';
@@ -828,9 +910,16 @@ export default {
             let totalSinIgv         =   0;
             let igv                 =   0;
             let totalConIgv         =   0;
+            let descuento           =   0;
 
+            //==== RECORRIENDO CARRITO ====
             this.carrito.forEach((producto)=>{
-                subtotal += producto.subtotal;   //====== suma de todos los productos del carrito =======
+                if(producto.porcentaje_descuento === 0){
+                    subtotal    += producto.subtotal;   
+                }else{
+                    subtotal    +=  parseFloat(producto.subtotal_nuevo);
+                }
+                descuento += parseFloat(producto.monto_descuento);
             })
 
             //========= precio de productos en el carrito + embalaje + envío =============
@@ -843,6 +932,7 @@ export default {
             this.monto_igv          =   igv;
             this.monto_total        =   totalSinIgv;
             this.monto_subtotal     =   subtotal;
+            this.monto_descuento    =   descuento;
 
         },
         async getStockLogico(inputCantidad){
@@ -918,6 +1008,7 @@ export default {
                             const producto      = this.formarProducto(ic);
                             const indiceExiste  = this.carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
 
+                            //===== PRODUCTO NUEVO =====
                             if (indiceExiste == -1) {
                                 const objProduct = {
                                     producto_id: producto.producto_id,
@@ -925,6 +1016,10 @@ export default {
                                     producto_nombre: producto.producto_nombre,
                                     color_nombre: producto.color_nombre,
                                     precio_venta: producto.precio_venta,
+                                    monto_descuento:0,
+                                    porcentaje_descuento:0,
+                                    precio_venta_nuevo:0,
+                                    subtotal_nuevo:0,
                                     tallas: [{
                                         talla_id: producto.talla_id,
                                         talla_nombre: producto.talla_nombre,
@@ -999,11 +1094,19 @@ export default {
             this.reordenarCarrito();
             this.calcularSubTotal();
             this.calcularMontos();
+
+            //===== RECALCULANDO DESCUENTOS =====
+            this.carrito.forEach((c)=>{
+                this.calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+            })
+            
+            //===== ACTUALIZANDO TABLERO DE PRODUCTOS BY MODELO =====
             this.getProductosByModelo().then(()=>{
                 document.getElementById('overlay').style.display = 'none';
             });
+
             console.log(this.asegurarCierre);
-            //console.log(this.carrito);
+            console.log(this.carrito);
         },
         async actualizarStockLogico(producto,modo,cantidadAnterior){
 
@@ -1035,8 +1138,15 @@ export default {
             const talla_nombre = ic.getAttribute('data-talla-nombre');
             const precio_venta = document.querySelector(`#precio-venta-${producto_id}`).value;
             const cantidad     = ic.value?ic.value:0;
+
+            const monto_descuento           =   0.0;
+            const porcentaje_descuento      =   0.0;
+            const precio_venta_nuevo        =   0.0;
+            const subtotal_nuevo            =   0.0;
+
             const producto = {producto_id,producto_nombre,color_id,color_nombre,
-                                talla_id,talla_nombre,cantidad,precio_venta};
+                                talla_id,talla_nombre,cantidad,precio_venta,
+                                monto_descuento,porcentaje_descuento,precio_venta_nuevo,subtotal_nuevo};
             return producto;
         },
         validarContenidoInput(e){

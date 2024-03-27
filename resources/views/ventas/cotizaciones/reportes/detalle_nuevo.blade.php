@@ -271,6 +271,11 @@
                         <td>:</td>
                         <td class="text-uppercase">{{ $cotizacion->cliente->correo_electronico }}</td>
                     </tr>
+                    <tr>
+                        <td style="padding-left: 5px;">ATENDIDO POR</td>
+                        <td>:</td>
+                        <td>{{ $vendedor_nombre }}</td>
+                    </tr>
                 </tbody>
             </table>
         </div><br>
@@ -283,9 +288,9 @@
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">DESCRIPCIÓN</th>
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">P. UNIT.</th>
                         <th style="text-align: right; width: 10%;">TOTAL</th> --}}
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">CANT</th>
+                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 6%;">CANT</th>
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 20%;">PRODUCTO</th>
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 50%;">DESCRIPCIÓN 
+                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 40%;">DESCRIPCIÓN 
                             <span>[TALLA/CANT]</span>
                         </th>
                         {{-- @foreach ($tallas as $talla)
@@ -294,12 +299,12 @@
                         
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">P. UNIT.</th>
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">TOTAL</th>
-
                     </tr>
                 </thead>
                 <tbody>
                     @php
-                        $cantidadTotal=0;
+                        $cantidadTotal     = 0;
+                        $cantidadTotalDesc = 0;
                     @endphp
                     @foreach($detalles as $item)
                         <tr>
@@ -308,17 +313,16 @@
                             @php
                                 $tallas = $item['tallas'];
                                 $descripcion = '';
-                                $subtotal = 0;
                             @endphp
                             @foreach ($tallas as $talla)
                                 @php
                                     $descripcion .= '[' . $talla['talla_nombre'] . '/' . intval($talla['cantidad']) . ']';
-                                    $subtotal+=$subtotal+(intval($talla['cantidad'])*$item['precio_unitario']);
                                 @endphp  
                             @endforeach
 
                             <td style="text-align: center; border-right: 2px solid #52BE80">{{ $descripcion }}</td>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['precio_unitario'], 2, ',', '.') }}</td>
+                           
+                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['precio_unitario_nuevo'], 2, ',', '.') }}</td>   
                             <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['subtotal'], 2, ',', '.') }}</td>
 
                             @php
@@ -358,7 +362,8 @@
                         <td></td>
                         <td></td>
                         <td ></td>
-                       
+                     
+                        {{-- <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($cotizacion->total_pagar + $cotizacion->monto_descuento, 2) }}</td> --}}
                         <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($cotizacion->total_pagar, 2) }}</td>
                       
                     </tr>

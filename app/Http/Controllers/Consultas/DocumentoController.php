@@ -76,7 +76,7 @@ class DocumentoController extends Controller
                         'id' => $doc->id,
                         'tipo_doc' => $doc->descripcionTipo(),
                         'numero' => $doc->serie . '-' . $doc->correlativo,
-                        'total' => $doc->total,
+                        'total' => $doc->total_pagar,
                         'sunat' => $doc->sunat,
                         'cliente' => $doc->cliente,
                         'fecha' => Carbon::parse($doc->fecha_documento)->format( 'd/m/Y'),

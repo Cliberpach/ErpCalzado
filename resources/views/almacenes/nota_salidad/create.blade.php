@@ -49,7 +49,7 @@
                             	<div class="form-group row">
 
                                     <input type="hidden" id="numero" name="numero" class="form-control" value="{{$ngenerado}}" >
-                                    <div class="col-12 col-md-2"  id="fecha">
+                                    <div class="col-12 col-md-3"  id="fecha">
                                         <label>Fecha</label>
                                         <div class="input-group date">
                                             <span class="input-group-addon">
@@ -85,7 +85,7 @@
                                         @endif
                                     </div>
 
-                                    <div class="col-12 col-md-4">
+                                    <div class="col-12 col-md-3">
                                         <label>Observación</label>
                                         <textarea type="text" name="observacion" rows="2" id="observacion" class="form-control" placeholder="Observación"></textarea>
                                     </div>
@@ -257,6 +257,7 @@
 <!-- DataTable -->
 <script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
 {{-- <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script> --}}
+<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 
 
 

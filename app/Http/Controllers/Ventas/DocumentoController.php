@@ -584,12 +584,13 @@ class DocumentoController extends Controller
                     'stock_logico' => $itemValidado->getStockLogico(),
                     'cantidad_solicitada' => $itemValidado->getCantidadSolicitada(),
                     'precio_unitario' => $itemValidado->getPrecioUnitario(),
+                    'porcentaje_descuento' =>$itemValidado->getPorcentajeDescuento(),
+                    'precio_unitario_nuevo' =>$itemValidado->getPrecioUnitarioNuevo(),
                     'tipo' => $itemValidado->getTipo(),
                 ];
 
                 $detalleValidado[] = $detalleArray;
             }
-
 
             $tallas = Talla::all();
            
@@ -888,6 +889,8 @@ class DocumentoController extends Controller
             $registro->setTallaNombre($item_talla_nombre);
             $registro->setCantidadSolicitada($detalle->cantidad);
             $registro->setPrecioUnitario($detalle->precio_unitario);
+            $registro->setPrecioUnitarioNuevo($detalle->precio_unitario_nuevo);
+            $registro->setPorcentajeDescuento($detalle->porcentaje_descuento);
             $validaciones[]                     =   $registro;  
 
         }
@@ -1476,7 +1479,9 @@ class DocumentoController extends Controller
             $monto_total        =   str_replace('S/', '', $request->get('monto_total'));
             $monto_total_igv    =   str_replace('S/', '', $request->get('monto_total_igv'));
             $monto_total_pagar  =   str_replace('S/', '', $request->get('monto_total_pagar'));            
-            
+            $monto_descuento    =   $request->get('monto_descuento')??0;
+            $porcentaje_descuento = ($monto_descuento*100)/($monto_total_pagar+$monto_descuento);
+
              
             
             $documento->sub_total           = $monto_sub_total;
@@ -1486,11 +1491,15 @@ class DocumentoController extends Controller
             $documento->total_igv           = $monto_total_igv;
             $documento->total_pagar         = $monto_total_pagar;  
             $documento->igv                 = $request->get('igv') ? $request->get('igv') : 18;
-            $documento->moneda              = 1;
 
-            $documento->tipo_pago_id = $request->get('tipo_pago_id');
-            $documento->importe = $request->get('importe');
-            $documento->efectivo = $request->get('efectivo');
+               
+            $documento->monto_descuento         =   $monto_descuento;
+            $documento->porcentaje_descuento    =   $porcentaje_descuento;   
+            $documento->moneda                  =   1;
+
+            $documento->tipo_pago_id    = $request->get('tipo_pago_id');
+            $documento->importe         = $request->get('importe');
+            $documento->efectivo        = $request->get('efectivo');
 
        
 
@@ -1542,9 +1551,12 @@ class DocumentoController extends Controller
                         ->with('talla')
                         ->firstOrFail();
                        
-                      
                 //$lote = LoteProducto::findOrFail($producto->producto_id);
-               
+
+                    //==== CALCULANDO MONTOS PARA EL DETALLE ====
+                    $importe                =   floatval($producto->cantidad) * floatval($producto->precio_unitario);
+                    $precio_unitario        =   $producto->porcentaje_descuento==0?$producto->precio_unitario:$producto->precio_unitario_nuevo;
+
                     Detalle::create([
                         'documento_id'      =>  $documento->id,
                         // 'lote_id' => $producto->producto_id, //LOTE
@@ -1560,7 +1572,11 @@ class DocumentoController extends Controller
                         //'codigo_lote' => $lote->codigo_lote,
                         'cantidad'          =>  floatval($producto->cantidad),
                         'precio_unitario'   =>  floatval($producto->precio_unitario),
-                        'importe'           =>  floatval($producto->cantidad) * floatval($producto->precio_unitario)
+                        'importe'           =>  $importe,
+                        'precio_unitario_nuevo'     =>  floatval($precio_unitario),
+                        'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
+                        'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
+                        'importe_nuevo'             =>  floatval($precio_unitario) * floatval($producto->cantidad),  
                         //  'precio_inicial' => $producto->precio_inicial,
                         //  'precio_nuevo' => $producto->precio_nuevo,
                         //  'dinero' => $producto->dinero,
@@ -2246,19 +2262,28 @@ class DocumentoController extends Controller
                         ),
                     ),
                     "company" => array(
-                        "ruc" => $documento->ruc_empresa,
+                        "ruc" =>  $documento->ruc_empresa,
                         "razonSocial" => $documento->empresa,
                         "address" => array(
                             "direccion" => $documento->direccion_fiscal_empresa,
-                        ),
-                    ),
-                    "mtoOperGravadas" => $documento->sub_total,
+                            "provincia" =>  "TRUJILLO",
+                            "departamento"=> "LA LIBERTAD",
+                            "distrito"=> "TRUJILLO",
+                            "ubigueo"=> "130101"
+                        )),
+                    //"mtoOperGravadas" => (float)$documento->sub_total,
+                    "mtoOperGravadas" => (float)$documento->total, //=== nuestro subtotal ===
                     "mtoOperExoneradas" => 0,
-                    "mtoIGV" => $documento->total_igv,
+                    "mtoIGV" => (float)$documento->total_igv,
+                    // "valorVenta" => (float)$documento->sub_total,
+                    "valorVenta" => (float)$documento->total, //=== nuestro subtotal ===
+                    "totalImpuestos" => (float)$documento->total_igv,
+                    // "subTotal" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                    // "mtoImpVenta" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                    "subTotal" => (float)$documento->total_pagar + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                    "mtoImpVenta" => (float)$documento->total_pagar + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+                    // "sumDsctoGlobal" => (float)$documento->monto_descuento,
 
-                    "valorVenta" => $documento->sub_total,
-                    "totalImpuestos" => $documento->total_igv,
-                    "mtoImpVenta" => $documento->total,
                     "ublVersion" => "2.1",
                     "details" => self::obtenerProductos($documento->id),
                     "legends" => self::obtenerLeyenda($documento),
@@ -2291,7 +2316,8 @@ class DocumentoController extends Controller
                     mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml'));
                 }
                 file_put_contents($pathToFile, $data);
-                $ruta = public_path() . '/storage/xml/' . $name;
+                //$ruta = public_path() . '/storage/xml/' . $name;
+                $ruta   =   $pathToFile;
 
                 return response()->download($ruta);
                 //return response()->file($pathToFile);
@@ -2407,31 +2433,33 @@ class DocumentoController extends Controller
     public function obtenerProductos($id)
     {
         
-        $detalles = Detalle::where('documento_id', $id)->where('eliminado', '0')->where('estado', 'ACTIVO')->get();
+        $detalles = Detalle::where('documento_id',$id)->where('eliminado', '0')->where('estado', 'ACTIVO')->get();
         $documento = Documento::findOrFail($id);
-        $arrayProductos = array();
 
-        for ($i = 0; $i < count($detalles); $i++) {
+        $arrayProductos = Array();
+        for($i = 0; $i < count($detalles); $i++){
+
             $arrayProductos[] = array(
                 "codProducto" => $detalles[$i]->codigo_producto,
                 "unidad" => $detalles[$i]->unidad,
-                // "descripcion" => $detalles[$i]->nombre_producto . ' - ' . $detalles[$i]->codigo_lote,
-                "descripcion" => $detalles[$i]->nombre_producto . ' - ' .$detalles[$i]->nombre_color.' - '.$detalles[$i]->nombre_talla,
-                "cantidad" => (float) $detalles[$i]->cantidad,
-                // // "mtoValorUnitario" => (float) ($detalles[$i]->precio_nuevo / 1.18),
-                "mtoValorUnitario" => (float) ($detalles[$i]->precio_unitario / 1.18),
-                // "mtoValorVenta" => (float) ($detalles[$i]->valor_venta / 1.18),
-                // "mtoBaseIgv" => (float) ($detalles[$i]->valor_venta / 1.18),
-                "mtoValorVenta" => (float) ($detalles[$i]->importe / 1.18),
-                "mtoBaseIgv" => (float) ($detalles[$i]->importe / 1.18),
+                // "descripcion"=> $detalles[$i]->nombre_producto.' - '.$detalles[$i]->codigo_lote,                "descripcion"=> $detalles[$i]->nombre_producto.' - '.$detalles[$i]->codigo_lote,
+                "descripcion"=> $detalles[$i]->nombre_producto.' - '.$detalles[$i]->nombre_color.' - '.$detalles[$i]->nombre_talla,
+                "cantidad" => (float)$detalles[$i]->cantidad,
+                // "mtoValorUnitario" => (float)($detalles[$i]->precio_nuevo / 1.18),
+                "mtoValorUnitario" => (float)($detalles[$i]->precio_unitario_nuevo / 1.18),
+
+                // "mtoValorVenta" => (float)($detalles[$i]->valor_venta / 1.18),
+                "mtoValorVenta" => (float)($detalles[$i]->importe_nuevo / 1.18),
+                // "mtoBaseIgv" => (float)($detalles[$i]->valor_venta / 1.18),
+                "mtoBaseIgv" => (float)($detalles[$i]->importe_nuevo / 1.18),
                 "porcentajeIgv" => 18,
-                // "igv" => (float) ($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
-                "igv" => (float) ($detalles[$i]->importe - ($detalles[$i]->importe / 1.18)),
+                // "igv" => (float)($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
+                "igv" => (float)($detalles[$i]->importe_nuevo - ($detalles[$i]->importe_nuevo / 1.18)),
                 "tipAfeIgv" => 10,
-                // "totalImpuestos" => (float) ($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
-                "totalImpuestos" => (float) ($detalles[$i]->importe - ($detalles[$i]->importe / 1.18)),
-                // // "mtoPrecioUnitario" => (float) $detalles[$i]->precio_nuevo,
-                "mtoPrecioUnitario" => (float) $detalles[$i]->precio_unitario,
+                // "totalImpuestos" =>  (float)($detalles[$i]->valor_venta - ($detalles[$i]->valor_venta / 1.18)),
+                "totalImpuestos" =>  (float)($detalles[$i]->importe_nuevo - ($detalles[$i]->importe_nuevo / 1.18)),
+                // "mtoPrecioUnitario" => (float)$detalles[$i]->precio_nuevo,
+                "mtoPrecioUnitario" => (float)$detalles[$i]->precio_unitario_nuevo
             );
         }
 

@@ -233,6 +233,7 @@
                         <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ $documento->sub_total }}" readonly>
                         <input type="hidden" name="monto_embalaje" id="monto_embalaje" value="{{ $documento->monto_embalaje }}" readonly>
                         <input type="hidden" name="monto_envio" id="monto_envio" value="{{ $documento->monto_envio }}" readonly>
+                        <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ $documento->monto_descuento }}" readonly>
                         <input type="hidden" name="monto_total" id="monto_total" value="{{ $documento->total }}" readonly>
                         <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ $documento->total_igv }}" readonly>
                         <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ $documento->total_pagar }}">
@@ -314,7 +315,7 @@
                                             data-toggle="modal" data-target="#modal_lote_recientes">Buscar lotes recientes</button>
                                         </div>
                                     </div>
-                                    <hr>
+                                    
                                     <div class="row">
                                         <div class="col-12">
                                             @include('consultas.documentos.table-detalle')
@@ -1631,6 +1632,8 @@
                     color_nombre    :   p.nombre_color,
                     modelo_nombre   :   p.nombre_modelo,
                     precio_venta    :   parseFloat(p.precio_unitario).toFixed(2),
+                    porcentaje_descuento : p.porcentaje_descuento,
+                    precio_venta_nuevo: parseFloat(p.precio_unitario_nuevo).toFixed(2)
                 }
 
                 const tallasProducto = detalles.filter((c)=>{
@@ -1651,6 +1654,10 @@
             }
         })
         cargarSubTotal();
+        
+        carrito.forEach((c)=>{
+            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+        })
     }
 
     //======== CARGAR SUBTOTAL =======
@@ -1664,6 +1671,38 @@
         })
     }
 
+    //======= CALCULAR DESCUENTO ========
+    const calcularDescuento = (producto_id,color_id,porcentaje_descuento)=>{
+        const indiceExiste = carrito.findIndex((c)=>{
+            return c.producto_id==producto_id && c.color_id==color_id;
+        })
+
+        if(indiceExiste !== -1){
+            const producto_color_editar =  carrito[indiceExiste];
+
+            //===== APLICANDO DESCUENTO ======
+            producto_color_editar.porcentaje_descuento =    porcentaje_descuento;
+            producto_color_editar.monto_descuento      =    porcentaje_descuento === 0?0:producto_color_editar.subtotal*(porcentaje_descuento/100);
+            producto_color_editar.precio_venta_nuevo   =    porcentaje_descuento === 0?0:(producto_color_editar.precio_venta*(1-porcentaje_descuento/100)).toFixed(2);
+            producto_color_editar.subtotal_nuevo       =    porcentaje_descuento === 0?0:(producto_color_editar.subtotal*(1-porcentaje_descuento/100)).toFixed(2);
+
+            carrito[indiceExiste] = producto_color_editar;
+
+
+            // //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
+            // const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`); 
+            // const detailSubtotal    =   document.querySelector(`.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);    
+
+            // if(porcentaje_descuento !== 0){
+            //     detailPrecioVenta.textContent = producto_color_editar.precio_venta_nuevo;
+            //     detailSubtotal.textContent    = producto_color_editar.subtotal_nuevo;
+            // }else{
+            //     detailPrecioVenta.textContent   =   producto_color_editar.precio_venta;
+            //     detailSubtotal.textContent      =   producto_color_editar.subtotal;
+            // }
+
+        }
+    }
 
     //============== PINTAR DETALLE ===========
     function pintarDetalle(){
@@ -1695,8 +1734,21 @@
            
 
             fila+=  `
-                            <td>${p.precio_venta}</td>
-                            <td>${p.subtotal}</td>
+                            <td>
+                                <span class="precio_venta_${p.producto_id}_${p.color_id}">
+                                        ${p.porcentaje_descuento === 0? p.precio_venta:p.precio_venta_nuevo}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="subtotal_${p.producto_id}_${p.color_id}">
+                                    ${p.porcentaje_descuento === 0? p.subtotal:p.subtotal_nuevo}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                <input readonly data-producto-id="${p.producto_id}" data-color-id="${p.color_id}" 
+                                style="width:130px; margin: 0 auto;" value="${p.porcentaje_descuento}"
+                                class="form-control detailDescuento"></input>
+                            </td>
                         </tr>
                     `;
         })

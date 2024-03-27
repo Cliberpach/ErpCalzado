@@ -84,7 +84,7 @@ class ProductoController extends Controller
 
     public function store(Request $request)
     {
-       
+     
         $this->authorize('haveaccess','producto.index');
         $data = $request->all();
         $rules = [
@@ -99,6 +99,11 @@ class ProductoController extends Controller
             'categoria' => 'required',
             'almacen' => 'required',
             'medida' => 'required',
+            'precio1' => 'required',
+            'precio2' => 'required',
+            'precio3' => 'required',
+            'costo'=>['required','numeric'
+            ,'min:0'],
             // 'stock_minimo' => 'required|numeric',
             // 'precio_venta_minimo' => 'numeric|nullable',
             // 'precio_venta_maximo' => 'numeric|nullable',
@@ -117,6 +122,12 @@ class ProductoController extends Controller
             'categoria.required' => 'El campo Categoria es obligatorio',
             'almacen.required' => 'El campo Almacen es obligatorio',
             'medida.required' => 'El campo Unidad de medida es obligatorio',
+            'costo.required'=>'Ingresar un valor al campo costo',
+            'costo.min'=>'Ingresar un costo mayor o igual que 0',
+            'costo.numeric'=>'Ingresar un numero en el campo costo',
+            'precio1.required'=>'El campo precio 1 es obligatorio',
+            'precio2.required'=>'El campo precio 2 es obligatorio',
+            'precio3.required'=>'El campo precio 3 es obligatorio',
             // 'stock_minimo.required' => 'El campo Stock mínimo es obligatorio',
             // 'stock_minimo.numeric' => 'El campo Stock mínimo debe ser numérico',
             // 'igv.required' => 'El campo IGV es obligatorio',
@@ -126,7 +137,8 @@ class ProductoController extends Controller
         ];
 
         Validator::make($data, $rules, $message)->validate();
-
+        
+        
         DB::transaction(function () use ($request) {
 
             //guardando producto
@@ -142,6 +154,7 @@ class ProductoController extends Controller
             $producto->precio_venta_1 = $request->get('precio1');
             $producto->precio_venta_2 = $request->get('precio2');
             $producto->precio_venta_3 = $request->get('precio3');
+            $producto->costo=$request->get('costo');
             // $producto->peso_producto = $request->get('peso_producto') ? $request->get('peso_producto') : 0;
             // $producto->stock_minimo = $request->get('stock_minimo');
             // $producto->precio_venta_minimo = $request->get('precio_venta_minimo');

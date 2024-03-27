@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Pos;
 
+use App\Compras\Documento\Detalle;
+use App\DetallesMovimientoCaja;
 use App\Http\Controllers\Controller;
 use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Empresa\Empresa;
@@ -20,6 +22,8 @@ use Yajra\DataTables\DataTables;
 use Barryvdh\DomPDF\Facade as PDF;
 use Exception;
 
+use function PHPUnit\Framework\returnSelf;
+
 class CajaController extends Controller
 {
     public function index()
@@ -27,6 +31,42 @@ class CajaController extends Controller
         $this->authorize('haveaccess', 'caja.index');
 
         return view('pos.Cajas.index');
+    }
+
+    public function retirarColaborades(Request $request){
+     // return $request;
+       $idMovimiento=$request->movimiento;
+       $colaboradores=$request->colaboradores;
+        $usuarios=DetallesMovimientoCaja::select('*')
+        ->where('detalles_movimiento_caja.movimiento_id','=',$idMovimiento)
+        ->whereIn('detalles_movimiento_caja.usuario_id',$colaboradores)
+        ->distinct()
+        ->get();
+        
+        
+        foreach($usuarios as $u){
+
+            $colaborador=  DetallesMovimientoCaja::find($u->id);
+       
+            $colaborador->fecha_salida=date('Y-m-d h:i:s');
+            $colaborador->save();
+
+        }
+    
+        
+        return redirect()->route('Caja.Movimiento.index');
+        
+       
+    }
+
+    public function getColaborades($id){
+        $colaborades_desocupados=DetallesMovimientoCaja::select('*')
+        ->join('users as u','u.id','=','detalles_movimiento_caja.usuario_id')
+        ->where('detalles_movimiento_caja.movimiento_id','=',$id)
+        ->whereNull('detalles_movimiento_caja.fecha_salida')
+        ->get();
+
+        return $colaborades_desocupados;
     }
     public function getCajas()
     {
@@ -46,6 +86,7 @@ class CajaController extends Controller
     }
     public function store(Request $request)
     {
+        
         $this->authorize('haveaccess', 'caja.index');
         $caja = new Caja();
         $caja->nombre = $request->nombre;
@@ -68,6 +109,90 @@ class CajaController extends Controller
     }
     public function indexMovimiento()
     {
+        //Obtengo id de usuarios cajeros ocupados
+        $cajerosOcupados= DetallesMovimientoCaja::select('detalles_movimiento_caja.usuario_id')
+        ->join('movimiento_caja as mc','mc.id','=','detalles_movimiento_caja.movimiento_id')
+        ->join('caja as c','c.id','=','mc.caja_id')
+        ->join('users as u','u.id','=','detalles_movimiento_caja.usuario_id')
+        ->join('role_user as ru','ru.user_id','=','u.id')
+        ->join('roles as r','r.id','=','ru.role_id')
+        ->where('r.name','LIKE','%CAJE%')
+        ->where('c.estado_caja','LIKE','%ABIERTA%')
+        ->distinct()
+        ->get();
+     
+     
+       $getCajerosOcupados='';
+        $cajerosDesocupados= null;
+        if(count($cajerosOcupados) == 0){
+            
+            $cajerosDesocupados=User::select('users.id','users.usuario')
+            ->join('role_user as ru','ru.user_id','=','users.id')
+            ->join('roles as r','r.id','=','ru.role_id')
+            ->orWhere('r.name','LIKE','%CAJERO%')
+            ->get();
+           
+            
+            if(count($cajerosDesocupados)==0){
+               
+            $cajerosDesocupados=[];
+            }
+        }else{
+            foreach($cajerosOcupados as $u){
+                
+                $getCajerosOcupados=$u->usuario_id.','.$getCajerosOcupados;
+            }
+            $getCajerosOcupados=substr($getCajerosOcupados,0,-1);
+        
+            $cajerosDesocupados=DB::select('select * from users as u inner join role_user as ru on ru.user_id=u.id inner join roles as r on r.id=ru.role_id where u.id  not in('.$getCajerosOcupados.') and (r.name LIKE "%CAJER%"   )');
+
+ 
+        }
+        // return $cajerosDesocupados;
+       
+        //=====================================
+
+        
+        // Obtengo los id de los usuarios ventas ocupados
+        $usuariosOcupados= DetallesMovimientoCaja::select('detalles_movimiento_caja.usuario_id')
+        ->join('movimiento_caja as mc','mc.id','=','detalles_movimiento_caja.movimiento_id')
+        ->join('caja as c','c.id','=','mc.caja_id')
+        ->join('users as u','u.id','=','detalles_movimiento_caja.usuario_id')
+        ->join('role_user as ru','ru.user_id','=','u.id')
+        ->join('roles as r','r.id','=','ru.role_id')
+        ->where('r.name','LIKE','%VENTA%')
+        ->where('c.estado_caja','LIKE','ABIERTA')
+        ->where('detalles_movimiento_caja.fecha_salida','is','null')
+        ->distinct()
+        ->get();
+      // return $usuariosOcupados;
+        
+        $getUsersOcupados='';
+        $usuariosDesocupados= null;
+
+        if(count($usuariosOcupados) == 0){
+            $usuariosDesocupados=User::select('users.id','users.usuario')
+            ->join('role_user as ru','ru.user_id','=','users.id')
+            ->join('roles as r','r.id','=','ru.role_id')
+            ->orWhere('r.name','LIKE','%VENTA%')
+            ->get();
+            
+            if(count($usuariosDesocupados)==0){
+            $usuariosDesocupados=[];
+            }
+        }else{
+          //Obtengo los usuarios ventas desocupados ;
+            foreach($usuariosOcupados as $u){
+                
+                $getUsersOcupados=$u->usuario_id.','.$getUsersOcupados;
+            }
+            $getUsersOcupados=substr($getUsersOcupados,0,-1);
+        
+            $usuariosDesocupados=DB::select('select * from users as u inner join role_user as ru on ru.user_id=u.id inner join roles as r on r.id=ru.role_id where u.id  not in('.$getUsersOcupados.') and (r.name LIKE "%VENTA%" )');
+
+        }
+     
+        
         $this->authorize('haveaccess', 'movimiento_caja.index');
         $lstAniosDB = DB::table('lote_productos')
             ->select(DB::raw('year(created_at) as value'))
@@ -89,11 +214,14 @@ class CajaController extends Controller
                 "value" =>(int)$anio_
             ]);
         }
+      //return $cajerosDesocupados;
         
         return view('pos.MovimientoCaja.indexMovimiento',[
             'lstAnios'=>json_decode(json_encode($lstAnios->sortByDesc("value")->values())), 
             'mes'=>$mes, 
-            'anio_'=>$anio_
+            'anio_'=>$anio_,
+            'usuariosDesocupados'=>$usuariosDesocupados,
+            'cajerosDesocupados'=>$cajerosDesocupados
         ]);
     }
     public function getMovimientosCajas(Request $request)
@@ -151,6 +279,27 @@ class CajaController extends Controller
 
     public function aperturaCaja(Request $request)
     {
+       
+        $this->authorize('haveaccess','pos.MovimientoCaja.indexMovimiento');
+        $data=$request->all();
+        $rules=[
+            'caja'=>'required',
+            'turno'=>'required',
+            'saldo_inicial'=>'required'
+         ];
+
+         $message = [
+            'caja.required' => 'El campo fecha  es Obligatorio',
+            'colaborador_id.required' => 'El campo destino  es Obligatorio',
+            'turno.required'=>'El campo turno es obligatorio',
+            'saldo_inicial.required'=>'Ingresar un saldo en caja',
+        ];
+        Validator::make($data, $rules, $message)->validate();
+    
+        $detalles=$request->usuarioVentas;
+        if(isset($request->usuarioVentas)){
+        
+                //   if($request)
         $movimiento = new MovimientoCaja();
         $movimiento->caja_id = $request->caja;
         $movimiento->colaborador_id = $request->colaborador_id;
@@ -159,10 +308,59 @@ class CajaController extends Controller
         $movimiento->fecha_apertura = date('Y-m-d h:i:s');
         $movimiento->fecha = date('Y-m-d');
         $movimiento->save();
+        
+        $detallesMovimiento= new DetallesMovimientoCaja();
+        $detallesMovimiento->movimiento_id=$movimiento->id;
+        $detallesMovimiento->usuario_id=$request->colaborador_id;
+        $detallesMovimiento->fecha_entrada=date('Y-m-d h:i:s');
+
+        $detallesMovimiento->save();
+      
+            foreach($detalles as $d){
+                $detallesMovimiento= new DetallesMovimientoCaja();
+                $detallesMovimiento->movimiento_id=$movimiento->id;
+                $detallesMovimiento->usuario_id=$d;
+                $detallesMovimiento->fecha_entrada=date('Y-m-d h:i:s');
+                $detallesMovimiento->save();
+                }
+        
+        
+       
+        
         $caja = Caja::findOrFail($request->caja);
         $caja->estado_caja = 'ABIERTA';
         $caja->save();
         return redirect()->route('Caja.Movimiento.index');
+        }else{
+
+           // return $request;
+                 
+                //   if($request)
+        $movimiento = new MovimientoCaja();
+        $movimiento->caja_id = $request->caja;
+        $movimiento->colaborador_id = $request->colaborador_id;
+        $movimiento->monto_inicial = $request->saldo_inicial;
+        $movimiento->estado_movimiento = 'APERTURA';
+        $movimiento->fecha_apertura = date('Y-m-d h:i:s');
+        $movimiento->fecha = date('Y-m-d');
+        $movimiento->save();
+        
+        $detallesMovimiento= new DetallesMovimientoCaja();
+        $detallesMovimiento->movimiento_id=$movimiento->id;
+        $detallesMovimiento->usuario_id=$request->colaborador_id;
+        $detallesMovimiento->fecha_entrada=date('Y-m-d h:i:s');
+
+        $detallesMovimiento->save();
+             
+       
+        
+        $caja = Caja::findOrFail($request->caja);
+        $caja->estado_caja = 'ABIERTA';
+        $caja->save();
+        return redirect()->route('Caja.Movimiento.index');
+           // return redirect()->route('Caja.Movimiento.index');
+        }
+
     }
 
     public function cerrarCaja(Request $request)
@@ -175,6 +373,17 @@ class CajaController extends Controller
         $caja = $movimiento->caja;
         $caja->estado_caja = 'CERRADA';
         $caja->save();
+
+        $detalles= DetallesMovimientoCaja::select('*')
+        ->where('detalles_movimiento_caja.movimiento_id','=',$movimiento->id)
+        ->get();
+        
+        foreach($detalles as $d){
+            $d->fecha_salida=date('Y-m-d h:i:s');
+            $d->save();
+            
+        }
+    
         return redirect()->route('Caja.Movimiento.index');
     }
 
@@ -263,6 +472,11 @@ class CajaController extends Controller
     public function reporteMovimiento($id)
     {
         $movimiento = MovimientoCaja::findOrFail($id);
+        $usuarios=DetallesMovimientoCaja::select('u.id','u.usuario','detalles_movimiento_caja.fecha_entrada','detalles_movimiento_caja.fecha_salida')
+        ->join('users as u','u.id','=','detalles_movimiento_caja.usuario_id')
+        ->join('user_persona as up','up.user_id','=','u.id')
+        ->where('detalles_movimiento_caja.movimiento_id','=',$id)
+        ->get();
         $empresa = Empresa::first();
         $fecha = Carbon::now()->toDateString();
 
@@ -270,6 +484,7 @@ class CajaController extends Controller
             'movimiento' => $movimiento,
             'empresa' => $empresa,
             'fecha' => $fecha,
+            'usuarios'=>$usuarios,
         ])
             ->setPaper('a4')
             ->setWarnings(false);

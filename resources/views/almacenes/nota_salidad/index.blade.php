@@ -37,6 +37,7 @@
                                     <th class="text-center">Fecha Registro</th>
                                     <th class="text-center">Destino</th>
                                     <th class="text-center">Producto</th>
+                                    <th class="text-center">Observaciones</th>
                                     <th class="text-center">ACCIONES</th>
                                 </tr>
                             </thead>
@@ -102,9 +103,10 @@ $(document).ready(function() {
             { data: 'id',className: "text-center"},
             { data: 'usuario',className: "text-center"},
             { data: 'created_at',className: "text-center"},
-            { data: 'destino',className: "text-center"},
-           
+            { data: 'destino',className: "text-center"}, 
+            
             { data: 'cadena_detalles',className: "text-center"},
+            { data: 'observacion',className: "text-center"}, 
             {
                 data: null,
                 className: "text-center",
