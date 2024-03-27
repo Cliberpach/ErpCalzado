@@ -19,7 +19,12 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label for="" class="text-white">-</label>
-                                    <input type="text" placeholder="buscar por n° de documento o nombres" id="cliente"
+                                    <input type="text" placeholder="buscar serie-correlativo" id="numero_doc"
+                                        class="form-control form-control-sm" v-model="numero_doc" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="" class="text-white">-</label>
+                                    <input type="text" placeholder="buscar por cliente" id="cliente"
                                         class="form-control form-control-sm" v-model="cliente" />
                                 </div>
                                 <div class="col-md-1 d-none">
@@ -341,11 +346,13 @@ export default {
             params: {
                 fechaInicial: this.$moment().format("YYYY-MM-DD"),
                 cliente: "",
+                numero_doc:"",
                 tamanio: 10,
                 page: 1,
             },
             fechaInicial: this.$moment().format("YYYY-MM-DD"),
             cliente: "",
+            numero_doc:"",
             ventasPendientes: [],
             loading: false,
             pdfData: null,
@@ -394,6 +401,12 @@ export default {
             this.params.cliente = value;
             this.params.page = 1;
         },
+        numero_doc(value) {
+            this.params.numero_doc = value;
+            console.log(value);
+            console.log(this.params);
+            this.params.page = 1;
+        }
     },
     async created() {
         await this.Lista();

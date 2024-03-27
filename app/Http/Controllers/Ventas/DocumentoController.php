@@ -138,6 +138,15 @@ class DocumentoController extends Controller
                 $documentos = $documentos->where('cliente', 'LIKE', "%{$request->get('cliente')}%");
             }
         }
+
+        if ($request->has("numero_doc")) {
+            $numero_doc = $request->get("numero_doc");
+            if ($request->has("numero_doc")) {
+                $numero_doc = $request->get("numero_doc");
+                $documentos = $documentos->where(DB::raw('(CONCAT(serie, "-" ,correlativo))'), 'LIKE', "%{$numero_doc}%");
+            }            
+        }
+
         $documentos = $documentos->orderBy('id', 'desc')->paginate($request->tamanio);
 
         
