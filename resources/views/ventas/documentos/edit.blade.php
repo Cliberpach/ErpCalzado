@@ -2622,8 +2622,8 @@
         calcularMontos();
     }
 
-     //======= CALCULAR DESCUENTO ========
-     const calcularDescuento = (producto_id,color_id,porcentaje_descuento)=>{
+    //======= CALCULAR DESCUENTO ========
+    const calcularDescuento = (producto_id,color_id,porcentaje_descuento)=>{
         const indiceExiste = carrito.findIndex((c)=>{
             return c.producto_id==producto_id && c.color_id==color_id;
         })
@@ -2819,7 +2819,7 @@
     }
 
     //============== PINTAR DETALLE ===========
-     function pintarDetalle(){
+    function pintarDetalle(){
         let fila= ``;
         let htmlTallas= ``;
         clearDetalle();
