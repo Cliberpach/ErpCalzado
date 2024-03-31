@@ -69,7 +69,7 @@ final class Util
             'auth' => 'https://gre-test.nubefact.com/v1',
             'cpe' => 'https://gre-test.nubefact.com/v1',
         ]);
-        $certificate = file_get_contents(__DIR__ . '/../certificate/certificate.pem');
+        $certificate = file_get_contents(__DIR__ . '/../certificate/certificate_test.pem');
         if ($certificate === false) {
             throw new Exception('No se pudo cargar el certificado');
         }

@@ -255,7 +255,7 @@
                                             <div class="col-lg-6 col-xs-12">
                                                 <label class="required">Cantidad de Productos: </label>
                                                 <input type="number" name="cantidad_productos" id="cantidad_productos"
-                                                    value="{{old('peso_productos')}}"
+                                                    value="{{old('cantidad_productos')}}"
                                                     class="form-control {{ $errors->has('cantidad_productos') ? ' is-invalid' : '' }}"
                                                     readonly>
                                                 @if ($errors->has('cantidad_productos'))
@@ -1272,6 +1272,8 @@
     const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
     const tableDetalleBody      =   document.querySelector('#table-detalle-guia tbody');      
     const tfoot_cantidadTotal   =   document.querySelector('#tfoot_cantidadTotal');   
+    const formGuia              =   document.querySelector('#enviar_documento');
+   
 
     let modelo_id       = null;
     let carrito         = [];
@@ -1282,6 +1284,49 @@
     })
 
     function events(){
+        formGuia.addEventListener('submit',(e)=>{
+            e.preventDefault();
+            const swalWithBootstrapButtons = Swal.mixin({
+             customClass: {
+                 confirmButton: 'btn btn-success',
+                 cancelButton: 'btn btn-danger',
+             },
+             buttonsStyling: false
+         })
+
+         Swal.fire({
+             title: 'Opción Guardar',
+             text: "¿Seguro que desea guardar cambios?",
+             icon: 'question',
+             showCancelButton: true,
+             confirmButtonColor: "#1ab394",
+             confirmButtonText: 'Si, Confirmar',
+             cancelButtonText: "No, Cancelar",
+         }).then((result) => {
+             if (result.isConfirmed) {
+                    if( carrito.length > 0)
+                    {
+                        cargarProductos();
+                        asegurarCierre = 2;    
+                        formGuia.submit();                   
+                    }
+                    else
+                    {
+                        toastr.error('Debe tener al menos un detalle')
+                    }
+                } else if (
+                    /* Read more about handling dismissals below */
+                    result.dismiss === Swal.DismissReason.cancel
+                ) {
+                    swalWithBootstrapButtons.fire(
+                        'Cancelado',
+                        'La Solicitud se ha cancelado.',
+                        'error',
+                    )
+                }
+            })
+        })
+
         document.addEventListener('input',(e)=>{
             if(e.target.classList.contains('inputCantidad')){
                 validarCantidadInstantanea(e);
@@ -1310,6 +1355,16 @@
             }
         })
 
+    }
+
+    function cargarProductos(){
+        const inputProductosTabla   =   document.querySelector('#productos_tabla');
+        const inputCantidadProductos=   document.querySelector('#cantidad_productos');
+        const inputPesoProductos    =   document.querySelector('#peso_productos');
+
+        inputProductosTabla.value   =   JSON.stringify(carrito);
+        inputCantidadProductos.value=   carrito.length;
+        inputPesoProductos.value    =   0;
     }
 
     async function getProductosByModelo(idModelo){
@@ -1372,20 +1427,20 @@
     
     async function validarCantidadInstantanea(event) {
             const cantidadSolicitada    =   event.target.value;
+            btnAgregarDetalle.disabled  =   true;
             try {
                 if(cantidadSolicitada !== ''){
                     const stock_logico  =  await this.getStockLogico(event.target);
                     if(stock_logico < cantidadSolicitada){
-                            event.target.classList.add('inputCantidadIncorrecto');
-                            event.target.classList.remove('inputCantidadValido');
-                            event.target.focus();
-                            this.deshabilitarBtnAgregar =   true;
-                            toastr.error(`Cantidad solicitada: ${cantidadSolicitada}, debe ser menor o igual
-                            al stock lógico: ${stock_logico}`,"Error");
+                        event.target.classList.add('inputCantidadIncorrecto');
+                        event.target.classList.remove('inputCantidadValido');
+                        event.target.focus();
+                        event.target.value  =   stock_logico;
+                        toastr.error(`Cantidad solicitada: ${cantidadSolicitada}, debe ser menor o igual
+                        al stock lógico: ${stock_logico}`,"Error");
                     }else{
-                            event.target.classList.add('inputCantidadValido');
-                            event.target.classList.remove('inputCantidadIncorrecto');
-                            this.deshabilitarBtnAgregar =   false;
+                        event.target.classList.add('inputCantidadValido');
+                        event.target.classList.remove('inputCantidadIncorrecto');
                     }                    
                 }else{
                     this.deshabilitarBtnAgregar =   false;
@@ -1396,6 +1451,8 @@
                 toastr.error(`El producto no cuenta con registros en esa talla`,"Error");
                 event.target.value='';
                 console.error('Error al obtener stock logico:', error);
+            }finally{
+                btnAgregarDetalle.disabled  =   false;
             }
     }
        
@@ -1679,22 +1736,18 @@
      //============= devolver stock logico, ya que hay errores en la cotización ===================
      window.addEventListener('beforeunload', async () => {
         if (asegurarCierre == 1) {
-            localStorage.setItem('devuelto', asegurarCierre);
-
             await this.DevolverCantidades();
             asegurarCierre = 10;
         } else {
             console.log("beforeunload", asegurarCierre);
-            localStorage.setItem('no devuelto', asegurarCierre);
         }
     });
 
     //================ devolver cantidades ===============
     async function DevolverCantidades() {
-        while(true){
-            await this.axios.post(route('ventas.documento.devolver.cantidades'), {
-            });
-        }
+        await this.axios.post(route('ventas.documento.devolver.cantidades'), {
+            carrito: JSON.stringify(carrito)
+        });  
     }
 
 </script>
