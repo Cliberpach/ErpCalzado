@@ -228,9 +228,9 @@
          toastr.success("{{ Session::get('GUIA_ID_SUNAT') }}")
     @endif
 
-    @if(Session::has('error'))
-    toastr.error("{{ Session::get('error') }}");
-    @endif
+
+
+   
 
 
     //Mensaje de Session

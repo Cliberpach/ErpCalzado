@@ -344,25 +344,36 @@ function enviarSunat(id , sunat) {
 
 }
 
+@if(Session::has('guia_exito'))
+    toastr.error("{{ Session::get('guia_exito') }}", "", { timeOut: 0 });
+@endif
 
-    @if(Session::has('sunat_exito'))
-        Swal.fire({
-            icon: 'success',        
-            title: '{{ Session::get("id_sunat") }}',
-            text: '{{ Session::get("descripcion_sunat") }}',
-            showConfirmButton: false,
-            timer: 2500
-        })
-    @endif
+@if(Session::has('guia_error'))
+    toastr.error("{{ Session::get('guia_error') }}", "", { timeOut: 0 });
+@endif
 
-    @if(Session::has('sunat_error'))
-        Swal.fire({
-            icon: 'error',
-            title: '{{ Session::get("id_sunat") }}',
-            text: '{{ Session::get("descripcion_sunat") }}',
-            showConfirmButton: false,
-            timer: 5500
-        })
-    @endif
+// @if(Session::has('sunat_exito'))
+//         Swal.fire({
+//             icon: 'success',        
+//             title: '{{ Session::get("id_sunat") }}',
+//             text: '{{ Session::get("descripcion_sunat") }}',
+//             showConfirmButton: false,
+//             timer: 2500
+//         })
+// @endif
+
+// @if(Session::has('error'))
+//         Swal.fire({
+//             icon: 'error',
+//             title: '{{ Session::get("id_sunat") }}',
+//             text: '{{ Session::get("descripcion_sunat") }}',
+//             showConfirmButton: false,
+//             timer: 5500
+//         })
+// @endif
+
+
+
+
 </script>
 @endpush

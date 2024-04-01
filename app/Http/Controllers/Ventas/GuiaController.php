@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Ventas;
 
+use Illuminate\Support\Facades\Storage;
+
 use App\Almacenes\DetalleNotaSalidad;
 use App\Almacenes\LoteProducto;
 use App\Almacenes\NotaSalidad;
@@ -538,102 +540,122 @@ class GuiaController extends Controller
 
     public function show($id)
     {   
-        // $guia = Guia::with(['documento','detalles','detalles.lote','detalles.lote.producto'])->findOrFail($id);
         $guia = Guia::with(['documento','detalles'])->findOrFail($id);
+        $name = $guia->serie . "-" . $guia->correlativo . '.pdf';
+                            
+        $rutaPdfGuia = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'guia' . DIRECTORY_SEPARATOR . $name);
         
-        if ($guia->sunat == '0' || $guia->sunat == '2' ) {
-            //ARREGLO GUIA
-            $arreglo_guia = array(
-                    "tipoDoc" => "09",
-                    "serie" => "000",
-                    "correlativo"=> "000",
-                    "fechaEmision" => self::obtenerFecha($guia),
+        if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'guia'))) {
+            mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'guia'));
+        }
 
-                    "company" => array(
-                        "ruc" => $guia->ruc_empresa,
-                        "razonSocial" => $guia->empresa,
-                        "address" => array(
-                            "direccion" => $guia->direccion_empresa,
-                        )),
+        $guia->nombre_comprobante_archivo   = $name;
+        $guia->ruta_comprobante_archivo     = $rutaPdfGuia;
+        $guia->update();
+
+        $empresa = Empresa::first();
+        PDF::loadview('ventas.guias.reportes.guia', [
+            'guia' => $guia,
+            'empresa' => $empresa,
+        ])->setPaper('a4')->setWarnings(false)
+            ->save($rutaPdfGuia);
+
+      
+        return response()->file($rutaPdfGuia);
+
+        // $guia = Guia::with(['documento','detalles','detalles.lote','detalles.lote.producto'])->findOrFail($id);
+        
+        // if ($guia->sunat == '0' || $guia->sunat == '2' ) {
+        //     //ARREGLO GUIA
+        //     $arreglo_guia = array(
+        //             "tipoDoc" => "09",
+        //             "serie" => "000",
+        //             "correlativo"=> "000",
+        //             "fechaEmision" => self::obtenerFecha($guia),
+
+        //             "company" => array(
+        //                 "ruc" => $guia->ruc_empresa,
+        //                 "razonSocial" => $guia->empresa,
+        //                 "address" => array(
+        //                     "direccion" => $guia->direccion_empresa,
+        //                 )),
 
 
-                    "destinatario" => array(
-                        "tipoDoc" =>  $guia->codTraslado() == "04" ? "6" : $guia->tipoDocumentoCliente(),
-                        "numDoc" =>  $guia->codTraslado() == "04" ? $guia->ruc_empresa : $guia->documento_cliente,
-                        "rznSocial" =>  $guia->codTraslado() == "04" ? $guia->empresa : $guia->cliente,
-                        "address" => array(
-                            "direccion" =>  $guia->codTraslado() == "04" ? $guia->direccion_empresa : $guia->direccion_cliente,
-                        )
-                    ),
+        //             "destinatario" => array(
+        //                 "tipoDoc" =>  $guia->codTraslado() == "04" ? "6" : $guia->tipoDocumentoCliente(),
+        //                 "numDoc" =>  $guia->codTraslado() == "04" ? $guia->ruc_empresa : $guia->documento_cliente,
+        //                 "rznSocial" =>  $guia->codTraslado() == "04" ? $guia->empresa : $guia->cliente,
+        //                 "address" => array(
+        //                     "direccion" =>  $guia->codTraslado() == "04" ? $guia->direccion_empresa : $guia->direccion_cliente,
+        //                 )
+        //             ),
 
-                    "observacion" => $guia->observacion,
+        //             "observacion" => $guia->observacion,
 
-                    "envio" => array(
-                        "modTraslado" =>  "01",
-                        "codTraslado" =>  $guia->codTraslado(),
-                        "desTraslado" =>  $guia->desTraslado(),
-                        "fecTraslado" =>  self::obtenerFecha($guia),//FECHA DEL TRANSLADO
-                        "codPuerto" => "123",
-                        "indTransbordo"=> false,
-                        "pesoTotal" => $guia->peso_productos,
-                        "undPesoTotal"=> "KGM",
-                        "numBultos" => $guia->cantidad_productos,
-                        "llegada" => array(
-                            "ubigueo" =>  $guia->ubigeo_llegada,
-                            "direccion" => self::limitarDireccion($guia->direccion_llegada,50,"..."),
-                        ),
-                        "partida" => array(
-                            "ubigueo" => $guia->ubigeo_partida,
-                            "direccion" => self::limitarDireccion($guia->direccion_empresa,50,"..."),
-                        ),
-                        "transportista"=> self::condicionReparto($guia)
-                    ),
+        //             "envio" => array(
+        //                 "modTraslado" =>  "01",
+        //                 "codTraslado" =>  $guia->codTraslado(),
+        //                 "desTraslado" =>  $guia->desTraslado(),
+        //                 "fecTraslado" =>  self::obtenerFecha($guia),//FECHA DEL TRANSLADO
+        //                 "codPuerto" => "123",
+        //                 "indTransbordo"=> false,
+        //                 "pesoTotal" => $guia->peso_productos,
+        //                 "undPesoTotal"=> "KGM",
+        //                 "numBultos" => $guia->cantidad_productos,
+        //                 "llegada" => array(
+        //                     "ubigueo" =>  $guia->ubigeo_llegada,
+        //                     "direccion" => self::limitarDireccion($guia->direccion_llegada,50,"..."),
+        //                 ),
+        //                 "partida" => array(
+        //                     "ubigueo" => $guia->ubigeo_partida,
+        //                     "direccion" => self::limitarDireccion($guia->direccion_empresa,50,"..."),
+        //                 ),
+        //                 "transportista"=> self::condicionReparto($guia)
+        //             ),
 
-                    "details" =>  self::obtenerProductos($guia),
-            );
+        //             "details" =>  self::obtenerProductos($guia),
+        //     );
 
     
 
-            $numeracion= json_encode($arreglo_guia);
-            $data = pdfGuiaapi($numeracion);
-            $name = $guia->id.'.pdf';
-            $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'guias'.DIRECTORY_SEPARATOR.$name);
-            if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'guias'))) {
-                mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'guias'));
-            }
-            file_put_contents($pathToFile, $data);
-            $empresa = Empresa::first();
-            $pdf = PDF::loadview('ventas.guias.reportes.guia',[
-                'guia' => $guia,
-                'empresa' => $empresa,
-                ])->setPaper('a4')->setWarnings(false);
-            return $pdf->stream('guia.pdf');
+        //     $numeracion= json_encode($arreglo_guia);
+        //     $data = pdfGuiaapi($numeracion);
+        //     $name = $guia->id.'.pdf';
+        //     $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'guias'.DIRECTORY_SEPARATOR.$name);
+        //     if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'guias'))) {
+        //         mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'guias'));
+        //     }
+        //     file_put_contents($pathToFile, $data);
+        //     $empresa = Empresa::first();
+        //     $pdf = PDF::loadview('ventas.guias.reportes.guia',[
+        //         'guia' => $guia,
+        //         'empresa' => $empresa,
+        //         ])->setPaper('a4')->setWarnings(false);
+        //     return $pdf->stream('guia.pdf');
 
-            //return response()->file($pathToFile);
-        }else{
-            $existe = event(new NumeracionGuiaRemision($guia));
-            //OBTENER CORRELATIVO DE LA GUIA DE REMISION
-            $numeracion = event(new GuiaRegistrado($guia, $existe[0]->get('numeracion')->serie));
-            //ENVIAR GUIA PARA LUEGO GENERAR PDF
-            $data = pdfGuiaapi($numeracion[0]);
-            $name = $guia->id.'.pdf';
-            $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'guias'.DIRECTORY_SEPARATOR.$name);
-            if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'guias'))) {
-                mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'guias'));
-            }
-            file_put_contents($pathToFile, $data);
+        //     //return response()->file($pathToFile);
+        // }else{
+        //     $existe = event(new NumeracionGuiaRemision($guia));
+        //     //OBTENER CORRELATIVO DE LA GUIA DE REMISION
+        //     $numeracion = event(new GuiaRegistrado($guia, $existe[0]->get('numeracion')->serie));
+        //     //ENVIAR GUIA PARA LUEGO GENERAR PDF
+        //     $data = pdfGuiaapi($numeracion[0]);
+        //     $name = $guia->id.'.pdf';
+        //     $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'guias'.DIRECTORY_SEPARATOR.$name);
+        //     if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'guias'))) {
+        //         mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'guias'));
+        //     }
+        //     file_put_contents($pathToFile, $data);
 
-            $empresa = Empresa::first();
-            $pdf = PDF::loadview('ventas.guias.reportes.guia',[
-                'guia' => $guia,
-                'empresa' => $empresa,
-                ])->setPaper('a4')->setWarnings(false);
-            return $pdf->stream('guia.pdf');
+        //     $empresa = Empresa::first();
+        //     $pdf = PDF::loadview('ventas.guias.reportes.guia',[
+        //         'guia' => $guia,
+        //         'empresa' => $empresa,
+        //         ])->setPaper('a4')->setWarnings(false);
+        //     return $pdf->stream('guia.pdf');
 
-            //return response()->file($pathToFile);
-        }
-
-
+        //     //return response()->file($pathToFile);
+        // }
     }
 
 
@@ -648,57 +670,57 @@ class GuiaController extends Controller
             if ($existe[0]->get('existe') == true) {
                 if ($guia->sunat != '1') {
                     //ARREGLO GUIA
-                    $arreglo_guia = array(
-                            "version"   => 2022,
-                            "tipoDoc" => "09",
-                            "serie" => $existe[0]->get('numeracion')->serie,
-                            "correlativo"=> $guia->correlativo,
-                            "fechaEmision" => self::obtenerFecha($guia),
+                    // $arreglo_guia = array(
+                    //         "version"   => 2022,
+                    //         "tipoDoc" => "09",
+                    //         "serie" => $existe[0]->get('numeracion')->serie,
+                    //         "correlativo"=> $guia->correlativo,
+                    //         "fechaEmision" => self::obtenerFecha($guia),
 
-                            "company" => array(
-                                "ruc" => $guia->ruc_empresa,
-                                "razonSocial" => $guia->empresa,
-                                "nombreComercial"   =>  $guia->empresa,
-                                "address" => array(
-                                    "direccion" => $guia->direccion_empresa,
-                                )),
+                    //         "company" => array(
+                    //             "ruc" => $guia->ruc_empresa,
+                    //             "razonSocial" => $guia->empresa,
+                    //             "nombreComercial"   =>  $guia->empresa,
+                    //             "address" => array(
+                    //                 "direccion" => $guia->direccion_empresa,
+                    //             )),
 
 
-                            "destinatario" => array(
-                                "tipoDoc" =>  $guia->codTraslado() == "04" ? "6" : $guia->tipoDocumentoCliente(),
-                                "numDoc" =>  $guia->codTraslado() == "04" ? $guia->ruc_empresa : $guia->documento_cliente,
-                                "rznSocial" =>  $guia->codTraslado() == "04" ? $guia->empresa : $guia->cliente,
-                                // "address" => array(
-                                //     "direccion" =>  $guia->codTraslado() == "04" ? $guia->direccion_empresa : $guia->direccion_cliente,
-                                // )
-                            ),
+                    //         "destinatario" => array(
+                    //             "tipoDoc" =>  $guia->codTraslado() == "04" ? "6" : $guia->tipoDocumentoCliente(),
+                    //             "numDoc" =>  $guia->codTraslado() == "04" ? $guia->ruc_empresa : $guia->documento_cliente,
+                    //             "rznSocial" =>  $guia->codTraslado() == "04" ? $guia->empresa : $guia->cliente,
+                    //             // "address" => array(
+                    //             //     "direccion" =>  $guia->codTraslado() == "04" ? $guia->direccion_empresa : $guia->direccion_cliente,
+                    //             // )
+                    //         ),
 
-                            "observacion" => $guia->observacion,
+                    //         "observacion" => $guia->observacion,
 
-                            "envio" => array(
-                                "modTraslado" =>  "01",
-                                "codTraslado" =>  $guia->codTraslado(),
-                                "desTraslado" =>  $guia->desTraslado(),
-                                "fecTraslado" =>  self::obtenerFecha($guia),//FECHA DEL TRANSLADO
-                                "codPuerto" => "123",
-                                "indTransbordo"=> false,
-                                "pesoTotal" => 1.0,
-                                "undPesoTotal"=> "KGM",
-                                "numContenedor" => "XD-2232",
-                                "numBultos" => $guia->cantidad_productos,
-                                "llegada" => array(
-                                    "ubigueo" =>  $guia->ubigeo_llegada,
-                                    "direccion" => self::limitarDireccion($guia->direccion_llegada,50,"..."),
-                                ),
-                                "partida" => array(
-                                    "ubigueo" => $guia->ubigeo_partida,
-                                    "direccion" => self::limitarDireccion($guia->direccion_empresa,50,"..."),
-                                ),
-                                "transportista"=> self::condicionReparto($guia)
-                            ),
+                    //         "envio" => array(
+                    //             "modTraslado" =>  "01",
+                    //             "codTraslado" =>  $guia->codTraslado(),
+                    //             "desTraslado" =>  $guia->desTraslado(),
+                    //             "fecTraslado" =>  self::obtenerFecha($guia),//FECHA DEL TRANSLADO
+                    //             "codPuerto" => "123",
+                    //             "indTransbordo"=> false,
+                    //             "pesoTotal" => 1.0,
+                    //             "undPesoTotal"=> "KGM",
+                    //             "numContenedor" => "XD-2232",
+                    //             "numBultos" => $guia->cantidad_productos,
+                    //             "llegada" => array(
+                    //                 "ubigueo" =>  $guia->ubigeo_llegada,
+                    //                 "direccion" => self::limitarDireccion($guia->direccion_llegada,50,"..."),
+                    //             ),
+                    //             "partida" => array(
+                    //                 "ubigueo" => $guia->ubigeo_partida,
+                    //                 "direccion" => self::limitarDireccion($guia->direccion_empresa,50,"..."),
+                    //             ),
+                    //             "transportista"=> self::condicionReparto($guia)
+                    //         ),
 
-                            "details" =>  self::obtenerProductos($guia),
-                    );
+                    //         "details" =>  self::obtenerProductos($guia),
+                    // );
 
                     $data_transportista =   self::condicionReparto($guia);
 
@@ -761,7 +783,7 @@ class GuiaController extends Controller
                     $api = $util->getSeeApi();   
                     //======== construyendo XML y enviando a sunat ==========
                     $res = $api->send($despatch);
-                        //======== response estructura ========
+                        //======== RESPONSE ESTRUCTURA ========
                         // ticket(string) | success(boolean) | error
                     //===== guardando XML ========
                     $util->writeXml($despatch, $api->getLastXml());
@@ -770,14 +792,14 @@ class GuiaController extends Controller
                     if($res->isSuccess()){
                         
                         //==== OBTENER Y GUARDAR TICKET ====
-                        $ticket         = $res->getTicket();
+                        $ticket         =   $res->getTicket();
                         $guia->ticket   =   $ticket;
                         $guia->update();
                       
                         //==== CONSULTANDO ESTADO DEL TICKET ========
                         $res = $api->getStatus($ticket);
                      
-                        //======== response estructura =======
+                        //======== RESPONSE ESTRUCTURA =======
                             /*  code: 99(envío con error)   |   cdrResponse (null o con contenido)
                                 code: 98(envío en proceso)  |   cdrResponse(aún sin cdr)
                                 code: 0(envío ok)           |   cdrResponse(con contenido)    
@@ -794,10 +816,10 @@ class GuiaController extends Controller
                         //====== ACEPTADO POR LA SUNAT ==========
                         if($code_estado ==  0 && $cdr_response){
 
-                            //==== OBTENIENDO CDRZIP =====
+                            //===== OBTENIENDO CDRZIP =====
                             $cdrZip                     =   $res->getCdrZip();
 
-                            $guia->getCdrResponse       =   $cdrZip;   //guardando cdrZip  en la bd
+                            $guia->getCdrResponse       =   $cdrZip;                //guardando cdrZip  en la bd
                             $guia->sunat                =   '1';                    //guía enviada a sunat
                             $guia->response_id          =   $cdr_response->getId();
                             $guia->response_code        =   $cdr_response->getCode();
@@ -808,49 +830,53 @@ class GuiaController extends Controller
                                $response_notes.= '|'.$note.'|';
                             }
                             $guia->response_notes   =   $response_notes;
-                            
                             $guia->despatch_name    =   $despatch->getName();
                             
 
-                            //====== guardando cdrzip como archivo =========  
+                            //====== GUARDANDO CDRZIP ARCHIVO =========  
                             $util->writeCdr($despatch, $cdrZip);
-                            //====== guardando name del cdrzip  ===========
+                            //====== GUARDANDO NAME DEL CDRZIP  ===========
                             $guia->cdrzip_name      =   'R-'.$despatch->getName().'.zip';
                             $guia->ruta_cdrzip      =   __DIR__.'/../../../Greenter/files/guias_remision_cdr/'.$guia->cdrzip_name;
                             
                         
-                            //=== QR ========
+                            //====== QR ========
+                            //===== CREAMOS LA RUTA PARA GUARDAR LOS QRS DE GUIA ======
                             $rutaQrsGuia    =   storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs' . 
                             DIRECTORY_SEPARATOR . 'guia');
+                            //===== EN CASO NO EXISTA LA CARPETA, LA CREAMOS ====
                             if (!file_exists($rutaQrsGuia)) {
                                 mkdir($rutaQrsGuia);
                             }
                             
+                            //===== GENERAMOS EL QR Y LO GUARDAMOS EN LA RUTA PREVIA =====
                             \QrCode::generate($cdr_response->getReference(),$rutaQrsGuia. DIRECTORY_SEPARATOR . $despatch->getName().'.svg');
                             $qrLinkSunat = \QrCode::generate($cdr_response->getReference());
-                           
+                            
+                            //===== GUARDANDO RUTA DEL QR =====
+                            $guia->ruta_qr  =   'public/qrs/guia/'.$despatch->getName().'.svg';
+                            $guia->update();
+
                             
                             $name = $existe[0]->get('numeracion')->serie . "-" . $guia->correlativo . '.pdf';
                             
-                            $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'guia' . DIRECTORY_SEPARATOR . $name);
+                            //==== CREANDO CARPETA PDFS GUIAS REMISIÓN ====
+                            $rutaPdfGuia = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'guia' . DIRECTORY_SEPARATOR . $name);
                             
                             if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'guia'))) {
                                 mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'guia'));
                             }
 
-                            //file_put_contents($pathToFile, $data);
                             $empresa = Empresa::first();
                             PDF::loadview('ventas.guias.reportes.guia', [
-                                'qr_guia'   =>  $qrLinkSunat,
                                 'guia' => $guia,
                                 'empresa' => $empresa,
                             ])->setPaper('a4')->setWarnings(false)
-                                ->save($pathToFile);
-                                // ->save(storage_path() . '/storage/sunat/guia/' . $name);
+                                ->save($rutaPdfGuia);
+
 
                             $guia->nombre_comprobante_archivo   = $name;
-                            $guia->ruta_comprobante_archivo     = $pathToFile;
-
+                            $guia->ruta_comprobante_archivo     = $rutaPdfGuia;
                             $guia->update();
                             
                             //Registro de actividad
@@ -877,57 +903,75 @@ class GuiaController extends Controller
 
                           
                             $guia->update();
-                            Session::flash('success', 'Guía de remisión enviada a sunat.');
-                            Session::flash('sunat_exito', 'ESTADO: EN PROCESO');
-                            return redirect()->route('ventas.guiasremision.index')->with('sunat_exito', 'success');
+                            Session::flash('guia_exito', 'Guía de remisión enviada a sunat | ESTADO: EN PROCESO');
+                            return redirect()->route('ventas.guiasremision.index');
                         }
 
                         //============= ENVIADO CON ERRORES;RESPUESTA CON CDR ============
                         if($code_estado ==  99 && $cdr_response){
 
-                            //==== obteniendo crdzip =====
+                            //===== GUARDANDO ERRORES ====
+                            $errorGuia              = new ErrorGuia();
+                            $errorGuia->guia_id     = $guia->id;
+                            $errorGuia->tipo        = 'sunat-envio';
+                            $errorGuia->descripcion = 'ENVIADO A SUNAT CON ERRORES, RESPUESTA CON CDR';
+                            $errorGuia->ecxepcion   = $res->getError()->getCode().' - '.$res->getError()->getMessage();
+                            $errorGuia->save();
+
+                            //==== GUARDANDO DATOS DEL CDR RESPONSE =====
                             $cdrZip                     =   $res->getCdrZip();
-                            $cdr_response_id            =   $cdr_response->getId();
-                            $cdr_response_code          =   $cdr_response->getCode();
-                            $cdr_response_description   =   $cdr_response->getDescription();
+                            $guia->response_id          =   $cdr_response->getId();
+                            $guia->response_code        =   $cdr_response->getCode();
+                            $guia->response_description =   $cdr_response->getDescription();
+                            $guia->response_reference   =   $cdr_response->getReference();
+                            $response_notes =   '';
+                            foreach ($cdr_response->getNotes() as $note) {
+                               $response_notes.= '|'.$note.'|';
+                            }
+                            $guia->response_notes   =   $response_notes;
                              
                             $guia->sunat            =   '1';                    //guía enviada a sunat
+                            $guia->regularize       =   1;
                             $guia->estado_sunat     =   $code_estado;           // 99
-                            $guia->getCdrResponse   =   json_encode($cdrZip);   //guardando cdrZip  en la bd
+                            //$guia->getCdrResponse = $cdrZip;   //guardando cdrZip  en la bd
                             
 
-                            //====== guardando cdrzip como archivo =========  
+                            //====== GUARDANDO CDRZIP COMO ARCHIVO =========  
                             $util->writeCdr($despatch, $cdrZip);
-                            //====== guardando name del cdrzip  ===========
+                            //====== GUARDANDO NAME DEL CDRZIP  ===========
                             $guia->cdrzip_name      =   'R-'.$despatch->getName().'.zip';
                             $guia->ruta_cdrzip      =   __DIR__.'/../../../Greenter/files/guias_remision_cdr/'.$guia->cdrzip_name;
                         
 
                             $guia->update();
-                            Session::flash('success', 'Guía de remisión enviada a sunat.');
-                            Session::flash('sunat_exito', 'ESTADO: ENVIADO CON ERRORES - CDR RECIBIDO');
+
+                            Session::flash('guia_exito', 'Guía de remisión enviada a sunat | ESTADO: ENVIADO CON ERRORES - CDR RECIBIDO');
                           
-                            return redirect()->route('ventas.guiasremision.index')->with('sunat_exito', 'success');
+                            return redirect()->route('ventas.guiasremision.index');
                         }
 
 
                          //============= ENVIADO CON ERRORES; RESPUESTA SIN CDR ============
                          if($code_estado ==  99 && !$cdr_response){
-
                            
-                            $guia->sunat            =   '0';                    //COLOCAR EN 0, porque no hay cdr
+                            //===== GUARDANDO ERRORES ====
+                            $errorGuia              = new ErrorGuia();
+                            $errorGuia->guia_id     = $guia->id;
+                            $errorGuia->tipo        = 'sunat-envio';
+                            $errorGuia->descripcion = 'ENVIADO A SUNAT CON ERRORES, RESPUESTA SIN CDR';
+                            $errorGuia->ecxepcion   = $res->getError()->getCode().' - '.$res->getError()->getMessage();
+                            $errorGuia->save();
+                            
+                            $guia->sunat            =   '0';                    //COLOCAR EN 0, PORQUE NO HAY CDR
                             $guia->estado_sunat     =   $code_estado;           // 99
                             $guia->regularize       =   '1';                    //regularizar luego
-
-                         
                             $guia->update();
-                            Session::flash('error', 'Guía de remisión rechazada.');
-                            Session::flash('sunat_error', 'ESTADO: ENVIADO CON ERRORES - SIN CDR');
-                         
-                            return redirect()->route('ventas.guiasremision.index')->with('sunat_exito', 'error');
+
+                            Session::flash('guia_error', 'Guía de remisión rechazada | ESTADO: ENVIADO CON ERRORES - SIN CDR');
+                           
+                            return redirect()->route('ventas.guiasremision.index');
                         }
                     } else{
-                        dd('rechazada');
 
                         //COMO SUNAT NO LO ADMITE VUELVE A SER 0
                         $guia->sunat = '0';
@@ -1000,12 +1044,21 @@ class GuiaController extends Controller
                     $guia->sunat            = '1';
                     $guia->regularize       = '0';
                     $guia->estado_sunat     =   $code_estado;
-                     //==== obteniendo crdzip =====
-                     $cdrZip                     =   $res->getCdrZip();
-                     $cdr_response_id            =   $cdr_response->getId();
-                     $cdr_response_code          =   $cdr_response->getCode();
-                     $cdr_response_description   =   $cdr_response->getDescription();
-                    //====== guardando name del cdrzip  =========== 
+
+                    //==== GUARDANDO DATOS DEL CDRZIP =====
+                    //$cdrZip                     =   $res->getCdrZip();
+                    $guia->response_id          =   $cdr_response->getId();
+                    $guia->response_code        =   $cdr_response->getCode();
+                    $guia->response_description =   $cdr_response->getDescription();
+                    $guia->response_reference   =   $cdr_response->getReference();
+                    $response_notes =   '';
+                    foreach ($cdr_response->getNotes() as $note) {
+                       $response_notes.= '|'.$note.'|';
+                    }
+                    $guia->response_notes   =   $response_notes;
+                    
+                    
+                    //====== GUARDANDO NAME DEL CDRZIP  =========== 
                     $cdrzip_name            =   'R-'.$guia->despatch_name.'.zip';   
                     $guia->cdrzip_name      =   $cdrzip_name;
                     $guia->ruta_cdrzip      =   base_path('Greenter/files/guias_remision_cdr/').$cdrzip_name;
@@ -1014,10 +1067,10 @@ class GuiaController extends Controller
                 }
 
                 if($code_estado == '98'){
-                    $descripcion    =   'EN PROCESO';
+                    $descripcion            = 'EN PROCESO';
                     $guia->sunat            = '1';
                     $guia->regularize       = '0';
-                    $guia->estado_sunat     =   $code_estado;
+                    $guia->estado_sunat     = $code_estado;
                     $guia->update();
                 }
 

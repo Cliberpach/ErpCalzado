@@ -1363,7 +1363,15 @@
         const inputPesoProductos    =   document.querySelector('#peso_productos');
 
         inputProductosTabla.value   =   JSON.stringify(carrito);
-        inputCantidadProductos.value=   carrito.length;
+
+        let cantProductos = 0;
+        carrito.forEach((c)=>{
+            c.tallas.forEach((t)=>{
+                cantProductos++;
+            })
+        })
+        inputCantidadProductos.value=   cantProductos;
+
         inputPesoProductos.value    =   0;
     }
 
