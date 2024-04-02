@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateInformacionDetallesCaja extends Migration
+class CreateDetallesMovimientoCajaTable extends Migration
 {
     /**
      * Run the migrations.
@@ -23,7 +23,7 @@ class CreateInformacionDetallesCaja extends Migration
             ->on('users');
             $table->foreign('movimiento_id')->references('id')
             ->on('movimiento_caja');
-           
+            $table->timestamps();
         });
     }
 
@@ -34,6 +34,6 @@ class CreateInformacionDetallesCaja extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('informacion_detalles_caja');
+        Schema::dropIfExists('detalles_movimiento_caja');
     }
 }
