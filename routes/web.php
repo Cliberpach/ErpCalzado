@@ -437,6 +437,19 @@ function(){
         Route::post('/updatePago', 'Ventas\CajaController@updatePago')->name('ventas.caja.updatePago');
     });
 
+    //VENTAS-CAJA
+        Route::prefix('ventas/resumenes')->group(function(){
+
+        Route::get('index', 'Ventas\ResumenController@index')->name('ventas.resumenes.index');
+        Route::get('getComprobantes/{fecha}','Ventas\ResumenController@getComprobantes')->name('ventas.resumenes.getComprobantes');
+        Route::get('getStatus','Ventas\ResumenController@isActive')->name('ventas.resumenes.getStatus');
+
+        //Route::get('getDocument','Ventas\CajaController@getDocument')->name('ventas.caja.getDocument');
+        // Route::post('getDocumentClient','Ventas\CajaController@getDocumentClient')->name('ventas.caja.getDocumentClient');
+        Route::post('/store', 'Ventas\ResumenController@store')->name('ventas.resumenes.store');
+        //  Route::post('/updatePago', 'Ventas\CajaController@updatePago')->name('ventas.caja.updatePago');
+    });
+
     //COMPROBANTES ELECTRONICOS
     Route::prefix('comprobantes/electronicos')->group(function(){
         Route::get('/', 'Ventas\Electronico\ComprobanteController@index')->name('ventas.comprobantes');

@@ -1,4 +1,4 @@
-i<div class="modal inmodal" id="modal_cliente" role="dialog" aria-hidden="true">
+<div class="modal inmodal" id="modal_cliente" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg" style="max-width: 94%;">
         <div class="modal-content animated bounceInRight">
             <div class="modal-header">
