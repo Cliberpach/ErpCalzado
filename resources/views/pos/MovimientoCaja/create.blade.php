@@ -28,14 +28,14 @@
                             </span>
                         @endif
                     </div>
-                 
+
                     <div class="form-group">
                         <label class="required">Cajeros:</label>
-                        
+
                         <select
                             class="form-control select2_form {{ $errors->has('colaborador_id') ? ' is-invalid' : '' }}"
                             style="text-transform: uppercase; width:100%" name="colaborador_id" id="colaborador_id">
-                         
+
                             @if (count($cajerosDesocupados) == 0)
                                 <option disabled> Cajeros no disponibles</option>
                                 <option value=""></option>
@@ -43,7 +43,7 @@
                                 <option></option>
                                 @foreach ($cajerosDesocupados as $c)
                                     <option value="{{ $c->id }}">
-                                         {{ $c->usuario }}
+                                        {{ $c->usuario }}
                                     </option>
                                 @endforeach
                             @endif
@@ -167,8 +167,8 @@
                             class="required"></label>) son obligatorios.</small>
                 </div>
                 <div class="col-md-6 text-right">
-                    <button type="submit" class="btn btn-primary btn-sm" id="btnEnviarAperturaCaja"><i
-                            class="fa fa-save"></i> Guardar</button>
+                    <a href="#" class="btn btn-primary btn-sm" id="btnEnviarAperturaCaja" onclick="verificarUsuariosVentas(event)"><i
+                            class="fa fa-save" ></i> Guardar</a>
                     <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i
                             class="fa fa-times"></i> Cancelar</button>
                 </div>
@@ -186,22 +186,22 @@
     <!-- Select2 -->
     <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
     <script>
-        $btnEnviar = document.getElementById('btnEnviarAperturaCaja');
 
-        function verificarSeleccion(id) {
-            let verificar = document.getElementById(`checkBox${id}`);
-            if (verificar.checked) {
-                // Se agregara el atributo name para que  se guarde ese dato
-                document.getElementById(`idUsuario${id}`).setAttribute('name', 'usuarioVentas[]');
+        // function verificarSeleccion(id) {
+        //     alert('estoy en el create');
+        //     let verificar = document.getElementById(`checkBox${id}`);
+        //     if (verificar.checked) {
+        //         // Se agregara el atributo name para que  se guarde ese dato
+        //         document.getElementById(`idUsuario${id}`).setAttribute('name', 'usuarioVentas[]');
 
-            } else {
-                // Se quitara el atributo name para que no se guarde ese dato
-                document.getElementById(`idUsuario${id}`).removeAttribute('name');
-            }
+        //     } else {
+        //         // Se quitara el atributo name para que no se guarde ese dato
+        //         document.getElementById(`idUsuario${id}`).removeAttribute('name');
+        //     }
 
 
-        }
-       
+        // }
+
         $(".select2_form").select2({
             placeholder: "SELECCIONAR",
             allowClear: true,

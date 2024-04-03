@@ -111,7 +111,7 @@
                                             <th class="text-center">VENTA DEL DIA</th>
                                             <th class="text-center">ACCIONES</th>
 
-                                        </tr>
+                                         </tr>
                                     </thead>
 
                                 </table>
@@ -143,12 +143,26 @@
 <script>
     var detalles_colaborades = document.getElementById("modal_detalles_colaboradores");
     var cuerpo_colaborades = document.querySelector('#modal_detalles_colaboradores table tbody');
+    let btnEnviar = document.getElementById('btnEnviarAperturaCaja');
 
+    function verificarUsuariosVentas(event){
+        event.preventDefault();
+        let cant= document.querySelectorAll('input[name="usuarioVentas[]"]');
+        let form= document.getElementById('crear_caja_movimiento');
+        if(cant.length>0){
+            form.submit();
+        }else{
+            alert('Seleccione al menos un usuairo de ventas para la apertura de caja');
+        }
+
+    }
     function verificarSeleccion(id) {
         let verificar = document.getElementById(`checkBox${id}`);
+
         if (verificar.checked) {
+
             // Se agregara el atributo name para que  se guarde ese dato
-            document.getElementById(`idUsuario${id}`).setAttribute('name', 'colaboradores[]');
+            document.getElementById(`idUsuario${id}`).setAttribute('name', 'usuarioVentas[]');
 
         } else {
             // Se quitara el atributo name para que no se guarde ese dato
@@ -172,19 +186,19 @@
     // rellena la tabla que muestra los colabores que participan en la apertura de caja
     function mostrarData(datos) {
         let btnColab= document.getElementById('btnRetirarColaboradores');
-      
+
         let body = '';
         if (datos.length>0) {
-            btnColab.style.display='block';    
+            btnColab.style.display='block';
             datos.forEach(element => {
-                body += `<tr> 
+                body += `<tr>
                 <th>
                     <div class="m-auto p-auto">
                     <input type="checkbox" class="btn-check" id="checkBox${element.usuario_id}" onclick="verificarSeleccion(${element.usuario_id})">
                     <input type="hidden" id='idUsuario${element.usuario_id}' value="${element.usuario_id}">
                     <input type="hidden" name="movimiento" value="${element.movimiento_id}">
-                    </div>    
-                    
+                    </div>
+
                 </th>
                 <th>
                     ${element.usuario}
@@ -196,11 +210,11 @@
             });
 
         } else {
-                btnColab.style.display='none';             
+                btnColab.style.display='none';
                 body = '<tr> <th colspan="3" class="text-center"> Sin colaborades disponibles </th>  </tr>';
-          
-           
-       
+
+
+
 
         }
 

@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade as PDF;
- 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -277,7 +277,7 @@ function(){
         Route::get('getPdf/{id}', 'Almacenes\NotaSalidadController@getPdf')->name('almacenes.nota_salidad.getPdf');
         Route::post('productos', 'Almacenes\NotaSalidadController@getProductos')->name('almacenes.nota_salidad.productos');
         Route::get('getLot','Almacenes\NotaSalidadController@getLot')->name('almacenes.nota_salidad.getLot');
-        
+
         Route::get('getStock/{producto_id}/{color_id}/{talla_id}','Almacenes\NotaSalidadController@getStock')->name('almacenes.nota_salidad.getStock');
 
 
@@ -464,7 +464,7 @@ function(){
         Route::get('sunat/guia/{id}','Ventas\GuiaController@sunat')->name('ventas.guiasremision.sunat');
         Route::get('consulta_ticket/guia/{id}','Ventas\GuiaController@consulta_ticket')->name('ventas.guiasremision.consulta.ticket');
 
-        
+
         // Route::get('tipoPago/{id}','Ventas\GuiaController@TypePay')->name('ventas.documento.tipo_pago.existente');
         // Route::get('comprobante/{id}','Ventas\GuiaController@voucher')->name('ventas.documento.comprobante');
         // Route::get('sunat/comprobante/{id}','Ventas\GuiaController@sunat')->name('ventas.documento.sunat');
@@ -485,7 +485,7 @@ function(){
     });
 
     //Caja
-    Route::prefix('caja')->group(function () { 
+    Route::prefix('caja')->group(function () {
         Route::get('/index','Pos\CajaController@index')->name('Caja.index');
         Route::get('/getCajas','Pos\CajaController@getCajas')->name('Caja.getCajas');
         Route::post('/store','Pos\CajaController@store')->name('Caja.store');
