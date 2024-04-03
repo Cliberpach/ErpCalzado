@@ -3,6 +3,8 @@
 namespace App\Greenter\Data;
 
 use Illuminate\Http\Request;
+use Greenter\Model\Company\Company;
+use Greenter\Model\Company\Address;
 
 class SharedStore
 {

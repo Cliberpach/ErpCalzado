@@ -91,7 +91,8 @@
 <script>
     const btnGetComprobantes            =   document.querySelector('#btn-get-comprobantes');
     const bodyTableSearchComprobantes   =   document.querySelector('.table-search-comprobantes tbody');
-    let listComprobantes = [];
+    let fecha_comprobantes              =   null;
+    let listComprobantes                =   [];   
 
     document.addEventListener('DOMContentLoaded',()=>{
         events();
@@ -124,6 +125,7 @@
         btnGetComprobantes.addEventListener('click',()=>{
             //===== OBTENIENDO FECHA DEL INPUT DATE =====
             const fechaComprobantes  =   document.querySelector('#fecha_comprobante').value;
+            fecha_comprobantes       =   fechaComprobantes;
 
             if(fechaComprobantes){
                 getComprobantes(fechaComprobantes);
@@ -139,7 +141,8 @@
         try {
             const url       =   `/ventas/resumenes/store`;
             const response  =   await axios.post(url,{
-                'comprobantes':listComprobantes
+                'comprobantes': JSON.stringify(listComprobantes),
+                'fecha_comprobantes': JSON.stringify(fecha_comprobantes)
             });
 
             console.log(response);
