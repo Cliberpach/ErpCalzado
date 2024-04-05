@@ -155,6 +155,10 @@ class ResumenController extends Controller
             ->setCompany($util->shared->getCompany())
             ->setDetails($detalles_send);
 
+        //====== GUARDANDO NAME DEL SUMMARY =======
+        $resumen->summary_name  =   $sum->getName();
+        $resumen->update();
+
 
         //==== ENVIANDO A SUNAT ======
         //===== MODO BETA ======
@@ -166,7 +170,7 @@ class ResumenController extends Controller
         $res = $see->send($sum);
 
         //==== GUARDANDO XML ====
-        $util->writeXml($sum, $see->getFactory()->getLastXml(),"RESUMEN");
+        $util->writeXml($sum, $see->getFactory()->getLastXml(),"RESUMEN",'');
         $resumen->ruta_xml  =    __DIR__.'/../../../Greenter/files/resumenes_xml/'.$sum->getName().'.xml';
 
 
@@ -278,8 +282,6 @@ class ResumenController extends Controller
             $resumen->code_estado               =   $code_estado;
             $resumen->update();  
         }
-
-
     }
 
     public function getXml($resumen_id){
@@ -305,84 +307,86 @@ class ResumenController extends Controller
     }
 
 
-    public function consult_ticket($id){
-        try {
-            //==== OBTENER EL RESUMEN POR SU ID =====
-            $guia   =   Resumen::findOrFail($id);
-            $ticket =   $guia->ticket;
+    public function consultTicket(Request $request){
+        $resumen_id =   json_decode($request->get('resumen_id'));
 
-            if($ticket){
-                $util = Util::getInstance();
-                //===== iniciar greenter api ====
-                $api = $util->getSeeApi(); 
-                //consultando estado de la guía =====
-                $res = $api->getStatus($ticket);
-                //======== response estructura =======
-                    /*  code: 99(envío con error)   |   cdrResponse (null o con contenido)
-                        code: 98(envío en proceso)  |   cdrResponse(aún sin cdr)
-                        code: 0(envío ok)           |   cdrResponse(con contenido)    
-                    */
-                $code_estado    =   $res->getCode();
-                $cdr_response   =   $res->getCdrResponse();
-                $descripcion    =   null;
-                if($code_estado == '0'){
-                    $descripcion            =   'ACEPTADA';
-                    $guia->sunat            = '1';
-                    $guia->regularize       = '0';
-                    $guia->estado_sunat     =   $code_estado;
+        $resumen    =   Resumen::findOrFail($resumen_id);
+        $ticket     =   $resumen->ticket;
+        $summary_name   =   $resumen->summary_name;
 
-                    //==== GUARDANDO DATOS DEL CDRZIP =====
-                    //$cdrZip                     =   $res->getCdrZip();
-                    $guia->response_id          =   $cdr_response->getId();
-                    $guia->response_code        =   $cdr_response->getCode();
-                    $guia->response_description =   $cdr_response->getDescription();
-                    $guia->response_reference   =   $cdr_response->getReference();
-                    $response_notes =   '';
-                    foreach ($cdr_response->getNotes() as $note) {
-                       $response_notes.= '|'.$note.'|';
-                    }
-                    $guia->response_notes   =   $response_notes;
-                    
-                    
-                    //====== GUARDANDO NAME DEL CDRZIP  =========== 
-                    $cdrzip_name            =   'R-'.$guia->despatch_name.'.zip';   
-                    $guia->cdrzip_name      =   $cdrzip_name;
-                    $guia->ruta_cdrzip      =   base_path('Greenter/files/guias_remision_cdr/').$cdrzip_name;
-                     
-                    $guia->update();
-                }
+        if($ticket){
+            $util = Util::getInstance();
 
-                if($code_estado == '98'){
-                    $descripcion            = 'EN PROCESO';
-                    $guia->sunat            = '1';
-                    $guia->regularize       = '0';
-                    $guia->estado_sunat     = $code_estado;
-                    $guia->update();
-                }
+            //===== INICIAR ENDPOINTS SUNAT ====
+            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
 
-                if($code_estado == '99' && $cdr_response){
-                    $descripcion    =   'ENVÍO CON ERROR CON GENERACIÓN DE CDR';
-                }
+            $res_ticket     =   $see->getStatus($ticket);
 
-                if($code_estado == '99' && !$cdr_response){
-                    $descripcion    =   'ENVÍO CON ERROR SIN GENERACIÓN DE CDR';
-                }
-           
+            $code_estado    =   $res_ticket->getCode();
+            $cdr            =   $res_ticket->getCdrResponse();
 
+            //====== ENVIO CORRECTO Y CDR RECIBIDO ======
+            if($code_estado == 0){
+                //===== GUARDANDO CDR ======
+                $util->writeCdr(null, $res_ticket->getCdrZip(),"RESUMEN",$summary_name);
+                $resumen->ruta_cdr  =   __DIR__.'/../../../Greenter/files/resumenes_cdr/'.$summary_name.'.zip';   
 
-                $response = [   'code_estado'   =>  $code_estado,
-                                'cdr'           =>  $cdr_response?1:0,
-                                'descripcion'   =>  $descripcion];
+                //==== GUARDANDO DATOS DEL CDR ====
+                $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
+                $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
+                $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
 
-                return response()->json([  'type' => 'success','message' => $response ], 200);
-            }else{
-                return response()->json(['type' => 'error',
-                'message' => "La guía no contiene un ticket,debe enviar a sunat previamente" ], 333);
+                //====== GUARDANDO ESTADO DEL TICKET ====
+                $resumen->code_estado               =   $code_estado;
+
+                $resumen->update();  
             }
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-           
-            return response()->json(['type' => 'error','message' => 'Guía no encontrada'], 404);
+            //===== ENVÍO CON ERRORES Y CDR RECIBIDO =====
+            if($code_estado == 99 && $cdr){
+                //===== GUARDANDO CDR ======
+                $util->writeCdr($sum, $res_ticket->getCdrZip(),"RESUMEN");
+
+                //==== GUARDANDO DATOS DEL CDR ====
+                $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
+                $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
+                $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
+
+                //====== GUARDANDO ESTADO DEL TICKET ====
+                $resumen->code_estado               =   $code_estado;
+
+                //======= SEÑALAR COMO RESUMEN CON ERRORES =======
+                $resumen->regularize    =   1;
+
+                //===== GUARDANDO ERRORES =======
+                $error                  =   'CODE: '.$res_ticket->getError()->getCode().' - '.'MESSAGE: '.$res_ticket->getError()->getMessage();
+                $resumen->response_error=   $error;
+
+                $resumen->update();  
+            }
+
+            //===== ENVÍO CON ERRORES Y SIN CDR =====
+            if($code_estado == 99 && !$cdr){
+                //======= SEÑALAR COMO RESUMEN CON ERRORES =======
+                $resumen->regularize    =   1;
+
+                //====== GUARDANDO ESTADO DEL TICKET ====
+                $resumen->code_estado               =   $code_estado;
+
+                //===== GUARDANDO ERRORES =======
+                $error                  =   'CODE: '.$res_ticket->getError()->getCode().' - '.'MESSAGE: '.$res_ticket->getError()->getMessage();
+                $resumen->response_error=   $error;
+
+                $resumen->update();  
+            }
+
+            //======= EN PROCESO =======
+            if($code_estado == 98){
+                //====== GUARDANDO ESTADO DEL TICKET ====
+                $resumen->code_estado               =   $code_estado;
+                $resumen->update();  
+            }
+
         }
         
     }

@@ -157,7 +157,13 @@
                                             </div>
                                         </td>
                                         
-                                        <td>ACCIONES</td>
+                                        <td>
+                                            @if ($resumen->code_estado == '98')
+                                                <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-consultar-resumen">
+                                                    CONSULTAR
+                                                </button>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -199,7 +205,14 @@
     })
 
     function events(){
-       
+        //====== CONSULTAR RESUMEN =======
+        document.addEventListener('click',(e)=>{
+            if(e.target.classList.contains('btn-consultar-resumen')){
+                const resumen_id    =   e.target.getAttribute('data-resumen-id');
+
+                consultarResumen(resumen_id);
+            }
+        })
 
         //======= GUARDAR RESUMEN ======
         document.addEventListener('click',(e)=>{
@@ -235,6 +248,24 @@
             }
 
         })
+    }
+
+    //======== CONSULTAR RESUMEN ======
+    async function consultarResumen(resumen_id){
+        document.querySelector('.loader-container').style.display = 'flex'; 
+        try {
+            const url       =   `/ventas/resumenes/consultar`;
+            const response  =   await axios.post(url,{
+                'resumen_id': JSON.stringify(resumen_id)
+            });
+
+            console.log(response);
+          
+        } catch (error) {
+            console.error('Error al enviar y guardar resumen:', error);
+        }finally{
+            document.querySelector('.loader-container').style.display = 'none'; 
+        }
     }
 
   

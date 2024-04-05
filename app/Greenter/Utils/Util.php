@@ -114,14 +114,31 @@ HTML;
         return $result;
     }
 
-    public function writeXml(DocumentInterface $document, ?string $xml,?string $tipo_comprobante): void
+    public function writeXml(?DocumentInterface $document, ?string $xml,?string $tipo_comprobante,?string $document_name): void
     {
-        $this->writeFile($document->getName().'.xml', $xml,"xml",$tipo_comprobante);
+        $doc_name   = null;
+        if($document){
+            $doc_name   =   $document->getName();   
+        }else{
+            $doc_name   =   $document_name;
+        }
+
+        // $this->writeFile($document->getName().'.xml', $xml,"xml",$tipo_comprobante);
+        $this->writeFile($doc_name.'.xml', $xml,"xml",$tipo_comprobante);
     }
 
-    public function writeCdr(DocumentInterface $document, ?string $zip,?string $tipo_comprobante): void
+    public function writeCdr(?DocumentInterface $document, ?string $zip,?string $tipo_comprobante,?string $document_name): void
     {
-        $this->writeFile($document->getName().'.zip', $zip,"zip",$tipo_comprobante);
+        $doc_name   = null;
+        if($document){
+            $doc_name   =   $document->getName();   
+        }else{
+            $doc_name   =   $document_name;
+        }
+
+        // $this->writeFile($document->getName().'.zip', $zip,"zip",$tipo_comprobante);
+        $this->writeFile($doc_name.'.zip', $zip,"zip",$tipo_comprobante);
+
     }
 
     public function writeFile(?string $filename, ?string $content,?string $typeFile,?string $tipo_comprobante): void

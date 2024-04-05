@@ -449,6 +449,8 @@ function(){
         //Route::get('getDocument','Ventas\CajaController@getDocument')->name('ventas.caja.getDocument');
         // Route::post('getDocumentClient','Ventas\CajaController@getDocumentClient')->name('ventas.caja.getDocumentClient');
         Route::post('/store', 'Ventas\ResumenController@store')->name('ventas.resumenes.store');
+        Route::post('/consultar', 'Ventas\ResumenController@consultTicket')->name('ventas.resumenes.consultar');
+
         //  Route::post('/updatePago', 'Ventas\CajaController@updatePago')->name('ventas.caja.updatePago');
     });
 
