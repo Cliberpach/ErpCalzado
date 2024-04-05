@@ -260,9 +260,14 @@
             });
 
             console.log(response);
+            if(response.status == 200){
+                toastr.success('RESUMEN ACTUALIZADO','CONSULTA COMPLETADA');
+            }
           
         } catch (error) {
-            console.error('Error al enviar y guardar resumen:', error);
+            console.error('Error al consultar el estado del ticket:', error);
+            toastr.error(error,'CONSULTA INCORRECTA');
+
         }finally{
             document.querySelector('.loader-container').style.display = 'none'; 
         }
@@ -373,6 +378,14 @@
                 descargarArchivos+=`</div>`;   
         }
 
+        let acciones    =   ``;
+        if (resumen.code_estado == '98') {
+            acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
+                class="btn btn-primary btn-consultar-resumen">
+                CONSULTAR</button>`;
+        }
+       
+
         tableResumenes.row
         .add([resumen.id,
             resumen.created_at, 
@@ -381,7 +394,7 @@
             resumen_estado,
             resumen.ticket,
             descargarArchivos,
-            'ACCIONES'
+            acciones,
         ]).draw()
     }
 
