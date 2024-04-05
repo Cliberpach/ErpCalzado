@@ -428,10 +428,13 @@ class ResumenController extends Controller
                 'cdr'           =>  $cdr?true:false
                 ]);
         }else{
+            $comprobantes   =   DB::select('select * from resumenes_detalles');
+
+            $this->sendSunat($comprobantes,$resumen->fecha_comprobantes,$resumen);
             return response()
             ->json([   
                 'type'=> 'error',
-                'message'=> 'EL RESUMEN NO CONTIENE UN TICKET'  
+                'message'=> 'REGULARIZADO'  
                 ]);
         }
         

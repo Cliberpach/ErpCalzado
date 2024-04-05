@@ -167,14 +167,9 @@
                                         </td>
                                         
                                         <td>
-                                            @if ($resumen->code_estado == '98')
+                                            @if ($resumen->code_estado == '98' || $resumen->regularize == 1)
                                                 <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-consultar-resumen">
                                                     CONSULTAR
-                                                </button>
-                                            @endif
-                                            @if ($resumen->send_sunat == 0)
-                                                <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-reenviar-resumen">
-                                                    REINTENTAR ENVÍO
                                                 </button>
                                             @endif
                                         </td>
