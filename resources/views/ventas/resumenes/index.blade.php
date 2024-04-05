@@ -163,6 +163,11 @@
                                                     CONSULTAR
                                                 </button>
                                             @endif
+                                            @if ($resumen->send_sunat == 0)
+                                                <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-reenviar-resumen">
+                                                    REINTENTAR ENVÍO
+                                                </button>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
