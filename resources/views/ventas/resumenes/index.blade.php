@@ -133,7 +133,7 @@
                                         @if ($resumen->send_sunat == 0)
                                             <td>
                                                 <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #f8f9e0; color: #ad8a14; font-weight: bold;text-align:center;">
-                                                    NO ENVIADO
+                                                    ERROR EN EL ENVÍO
                                                 </p>
                                             </td>
                                         @endif
@@ -430,7 +430,7 @@
         if(resumen.send_sunat == 0){
             resumen_estado  =   ` <p class="mb-0" style="padding:2px;border-radius: 10px; 
                                 background-color: #f8f9e0; color: #ad8a14; font-weight: bold;text-align:center;">
-                                NO ENVIADO</p>`;
+                                ERROR EN EL ENVÍO</p>`;
         }
 
         let descargarArchivos   =   ``;
