@@ -450,6 +450,7 @@ function(){
         // Route::post('getDocumentClient','Ventas\CajaController@getDocumentClient')->name('ventas.caja.getDocumentClient');
         Route::post('/store', 'Ventas\ResumenController@store')->name('ventas.resumenes.store');
         Route::post('/consultar', 'Ventas\ResumenController@consultTicket')->name('ventas.resumenes.consultar');
+        Route::post('/reenviar', 'Ventas\ResumenController@consultTicket')->name('ventas.resumenes.reenviar');
 
         //  Route::post('/updatePago', 'Ventas\CajaController@updatePago')->name('ventas.caja.updatePago');
     });

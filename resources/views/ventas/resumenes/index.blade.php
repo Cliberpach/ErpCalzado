@@ -129,6 +129,13 @@
                                                     </p>
                                                 </td>  
                                             @endif
+                                            @if (!$resumen->code_estado)
+                                                <td>
+                                                    <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #c0d5f5; color: #033bd6; font-weight: bold;text-align:center;">
+                                                        ERROR EN EL ENVÍO
+                                                    </p>
+                                                </td>  
+                                            @endif
                                         @endif
                                         @if ($resumen->send_sunat == 0)
                                             <td>
@@ -217,6 +224,11 @@
 
                 consultarResumen(resumen_id);
             }
+            if(e.target.classList.contains('btn-reenviar-resumen')){
+                const resumen_id    =   e.target.getAttribute('data-resumen-id');
+
+                reenviarResumen(resumen_id);
+            }
         })
 
         //======= GUARDAR RESUMEN ======
@@ -253,6 +265,37 @@
             }
 
         })
+    }
+
+    //====== REENVIAR RESUMEN ========
+    async function reenviarResumen(){
+        document.querySelector('.loader-container').style.display = 'flex'; 
+        try {
+            const url       =   `/ventas/resumenes/consultar`;
+            const response  =   await axios.post(url,{
+                'resumen_id': JSON.stringify(resumen_id)
+            });
+
+            console.log(response);
+            if(response.status == 200){
+                if(response.data.type == 'error'){
+                    toastr.success(response.data.message,'ERROR EN LA CONSULTA');
+                    return;
+                }
+                if(response.data.type == 'success'){
+                    actualizarDataTable(resumen_id,response.data);
+                    toastr.success(response.data.message,'CONSULTA COMPLETADA');
+                }
+                
+            }
+          
+        } catch (error) {
+            console.error('Error al consultar el estado del ticket:', error);
+            toastr.error(error,'CONSULTA INCORRECTA');
+
+        }finally{
+            document.querySelector('.loader-container').style.display = 'none'; 
+        }
     }
 
     //======== CONSULTAR RESUMEN ======

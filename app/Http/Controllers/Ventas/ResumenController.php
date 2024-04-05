@@ -190,6 +190,7 @@ class ResumenController extends Controller
             $ticket                 =   $res->getTicket();
             $resumen->send_sunat    =   1;
             $resumen->ticket        =   $ticket;
+            $resumen->regularize    =   0;
 
             //======= ACTUALIZANDO DOCUMENTOS DE VENTA COMO ENVIADOS A SUNAT =========
             $detalles   =   DB::select('select * from resumenes_detalles as rd
