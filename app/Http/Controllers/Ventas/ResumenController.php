@@ -30,6 +30,8 @@ class ResumenController extends Controller
     }
 
     public function getComprobantes($fechaComprobantes){
+        //======= SELECCIONAMOS LOS COMPROBANTES DE LA FECHA RESPECTIVA ======
+        //===== QUE NO SE ENCUENTREN REGISTRADOS EN NINGÚN DETALLE DE RESUMEN ========
         $comprobantes   =   DB::select('select cd.id as documento_id, cd.serie as documento_serie,
                             cd.correlativo as documento_correlativo, td.parametro as documento_moneda,
                             cd.total_pagar as documento_total,cd.total_igv as documento_igv,
@@ -37,7 +39,13 @@ class ResumenController extends Controller
                             from cotizacion_documento as cd
                             inner join tabladetalles as td on td.id=cd.moneda
                             where cd.fecha_documento=? and cd.serie="B001" and sunat="0" 
-                            and td.tabla_id=1',[$fechaComprobantes]);   
+                            and td.tabla_id=1
+                            and cd.id NOT IN (
+                                SELECT
+                                    rd.documento_id
+                                FROM
+                                    resumenes_detalles AS rd
+                            )',[$fechaComprobantes]);   
 
         return response()->json(['success'=>$comprobantes , 'fecha' => $fechaComprobantes]);
     }
@@ -200,11 +208,13 @@ class ResumenController extends Controller
             $message_envio          =   "OCURRIO UN ERROR, NO SE ENVIÓ A SUNAT";
             $resumen->send_sunat    =   0;
             $resumen->regularize    =   1;
-            dd('errorzazo http');
+            
             //===== OBTENIENDO ERRORES =====
-            $error                  =   'CODE: '.$res->getError()->getCode().' - '.'MESSAGE: '.$res->getError()->getMessage();
-            $resumen->response_error=   $error;
-
+            if($res->getError()){
+                $error                  =   'CODE: '.$res->getError()->getCode().' - '.'MESSAGE: '.$res->getError()->getMessage();
+                $resumen->response_error=   $error;
+            }
+           
             $resumen->update();
         }
 
