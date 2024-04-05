@@ -303,4 +303,87 @@ class ResumenController extends Controller
     
         return Response::download($resumen->ruta_cdr, $nombreArchivo, $headers);
     }
+
+
+    public function consult_ticket($id){
+        try {
+            //==== OBTENER EL RESUMEN POR SU ID =====
+            $guia   =   Resumen::findOrFail($id);
+            $ticket =   $guia->ticket;
+
+            if($ticket){
+                $util = Util::getInstance();
+                //===== iniciar greenter api ====
+                $api = $util->getSeeApi(); 
+                //consultando estado de la guía =====
+                $res = $api->getStatus($ticket);
+                //======== response estructura =======
+                    /*  code: 99(envío con error)   |   cdrResponse (null o con contenido)
+                        code: 98(envío en proceso)  |   cdrResponse(aún sin cdr)
+                        code: 0(envío ok)           |   cdrResponse(con contenido)    
+                    */
+                $code_estado    =   $res->getCode();
+                $cdr_response   =   $res->getCdrResponse();
+                $descripcion    =   null;
+                if($code_estado == '0'){
+                    $descripcion            =   'ACEPTADA';
+                    $guia->sunat            = '1';
+                    $guia->regularize       = '0';
+                    $guia->estado_sunat     =   $code_estado;
+
+                    //==== GUARDANDO DATOS DEL CDRZIP =====
+                    //$cdrZip                     =   $res->getCdrZip();
+                    $guia->response_id          =   $cdr_response->getId();
+                    $guia->response_code        =   $cdr_response->getCode();
+                    $guia->response_description =   $cdr_response->getDescription();
+                    $guia->response_reference   =   $cdr_response->getReference();
+                    $response_notes =   '';
+                    foreach ($cdr_response->getNotes() as $note) {
+                       $response_notes.= '|'.$note.'|';
+                    }
+                    $guia->response_notes   =   $response_notes;
+                    
+                    
+                    //====== GUARDANDO NAME DEL CDRZIP  =========== 
+                    $cdrzip_name            =   'R-'.$guia->despatch_name.'.zip';   
+                    $guia->cdrzip_name      =   $cdrzip_name;
+                    $guia->ruta_cdrzip      =   base_path('Greenter/files/guias_remision_cdr/').$cdrzip_name;
+                     
+                    $guia->update();
+                }
+
+                if($code_estado == '98'){
+                    $descripcion            = 'EN PROCESO';
+                    $guia->sunat            = '1';
+                    $guia->regularize       = '0';
+                    $guia->estado_sunat     = $code_estado;
+                    $guia->update();
+                }
+
+                if($code_estado == '99' && $cdr_response){
+                    $descripcion    =   'ENVÍO CON ERROR CON GENERACIÓN DE CDR';
+                }
+
+                if($code_estado == '99' && !$cdr_response){
+                    $descripcion    =   'ENVÍO CON ERROR SIN GENERACIÓN DE CDR';
+                }
+           
+
+
+                $response = [   'code_estado'   =>  $code_estado,
+                                'cdr'           =>  $cdr_response?1:0,
+                                'descripcion'   =>  $descripcion];
+
+                return response()->json([  'type' => 'success','message' => $response ], 200);
+            }else{
+                return response()->json(['type' => 'error',
+                'message' => "La guía no contiene un ticket,debe enviar a sunat previamente" ], 333);
+            }
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+           
+            return response()->json(['type' => 'error','message' => 'Guía no encontrada'], 404);
+        }
+        
+    }
 }
