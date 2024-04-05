@@ -167,7 +167,7 @@
                                         </td>
                                         
                                         <td>
-                                            @if ($resumen->code_estado == '98' || $resumen->regularize == 1)
+                                            @if ($resumen->code_estado == '98' || $resumen->regularize == 1 ||$resumen->code_estado == null)
                                                 <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-consultar-resumen">
                                                     CONSULTAR
                                                 </button>
