@@ -202,6 +202,7 @@ class ResumenController extends Controller
             $message_envio          =   "OCURRIO UN ERROR, NO SE ENVIÓ A SUNAT";
             $resumen->send_sunat    =   0;
             $resumen->regularize    =   1;
+            dd('errorzazo http');
             //===== OBTENIENDO ERRORES =====
             $error                  =   'CODE: '.$res->getError()->getCode().' - '.'MESSAGE: '.$res->getError()->getMessage();
             $resumen->response_error=   $error;
