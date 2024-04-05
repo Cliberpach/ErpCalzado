@@ -462,6 +462,12 @@
                 class="btn btn-primary btn-consultar-resumen">
                 CONSULTAR</button>`;
         }
+
+        //========= OBTENIENDO TICKET ======
+        let ticket  =   '';
+        if('ticket' in resumen){
+            ticket  =   resumen.ticket;
+        }
        
 
         tableResumenes.row
@@ -470,7 +476,7 @@
             resumen.fecha_comprobantes,
             `${resumen.serie}-${resumen.correlativo}`,
             resumen_estado,
-            resumen.ticket,
+            ticket,
             descargarArchivos,
             acciones,
         ]).draw()

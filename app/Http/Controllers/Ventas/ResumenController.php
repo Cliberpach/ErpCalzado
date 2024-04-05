@@ -212,9 +212,6 @@ class ResumenController extends Controller
     }
 
 
-
-
-
     public function consultarTicket($ticket,$see,$util,$sum,$resumen){
         $res_ticket     =   $see->getStatus($ticket);
         
