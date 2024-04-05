@@ -387,6 +387,34 @@ class ResumenController extends Controller
                 $resumen->update();  
             }
 
+
+            $tipo_estado    =   '';
+            if($code_estado==0){
+                $tipo_estado    =   'ACEPTADO Y CDR RECIBIDO';
+            }
+            if($code_estado==98){
+                $tipo_estado    =   'EN PROCESO';
+            }
+            if($code_estado==99 && $cdr){
+                $tipo_estado    =   'CON ERRORES Y CDR RECIBIDO';
+            }
+            if($code_estado==99 && !$cdr){
+                $tipo_estado    =   'CON ERRORES Y CDR NO RECIBIDO';
+            }
+
+            return response()
+            ->json([   
+                'type'=> 'success',
+                'message'=> 'RESUMEN ACTUALIZADO: '.$tipo_estado,
+                'code_estado'   =>  $code_estado,
+                'cdr'           =>  $cdr?true:false
+                ]);
+        }else{
+            return response()
+            ->json([   
+                'type'=> 'error',
+                'message'=> 'EL RESUMEN NO CONTIENE UN TICKET'  
+                ]);
         }
         
     }

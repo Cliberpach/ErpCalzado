@@ -88,7 +88,7 @@
                             <thead>
                              
                                 <tr>
-                                    <th class="text-center">#</th>
+                                    <th class="text-center">NRO</th>
                                     <th class="text-center">FEC.EMISIÓN</th>
                                     <th class="text-center">FEC. REFERENCIA</th>
                                     <th class="text-center">IDENTIFICADOR</th>
@@ -261,7 +261,15 @@
 
             console.log(response);
             if(response.status == 200){
-                toastr.success('RESUMEN ACTUALIZADO','CONSULTA COMPLETADA');
+                if(response.data.type == 'error'){
+                    toastr.success(response.data.message,'ERROR EN LA CONSULTA');
+                    return;
+                }
+                if(response.data.type == 'success'){
+                    actualizarDataTable(resumen_id,response.data);
+                    toastr.success(response.data.message,'CONSULTA COMPLETADA');
+                }
+                
             }
           
         } catch (error) {
@@ -271,6 +279,63 @@
         }finally{
             document.querySelector('.loader-container').style.display = 'none'; 
         }
+    }
+
+    //========== ACTUALIZAR DATATABLE ==============
+    function actualizarDataTable(resumen_id,res_consulta) {
+        //===== OBTENIENDO EL NRO DE FILA DE ACUERDO AL RESUMEN_ID =====
+        const indiceFila    =   tableResumenes.row((idx,data) => data[0] == resumen_id).index();
+        const fila          =   tableResumenes.row((idx,data) => data[0] == resumen_id);
+
+        //====== ACTUALIZANDO DATA DE LA FILA ========
+        //==== ESTADO - COLUMNA 4, DEL 0 AL 7 ====
+        let resumen_estado  =   ``;
+        
+        if(res_consulta.code_estado == 0){
+            resumen_estado  =   `<p class="mb-0" style="padding:2px;border-radius: 10px; 
+                                background-color: #e5f9e0; color: #176e2f; font-weight: bold;text-align:center;">
+                                ACEPTADO</p>`;
+        }
+
+         if(res_consulta.code_estado == 98){
+            resumen_estado  =   ` <p class="mb-0" style="padding:2px;border-radius: 10px; 
+                                background-color: #c0d5f5; color: #033bd6; font-weight: bold;text-align:center;">
+                                EN PROCESO</p>`;
+        }
+
+        if(res_consulta.code_estado == 99){
+            resumen_estado  =   `<p class="mb-0" style="padding:2px;border-radius: 10px; 
+                                background-color: #efd5d5; color: #be1919; font-weight: bold;text-align:center;">
+                                Enviado con errores</p>`;
+        }
+
+        fila.cell(indiceFila,4).data(resumen_estado).draw();
+
+        //======= ACTUALIZANDO COLUMNA DEL CDR ==========
+        let descargarArchivos   =   ``;
+
+        
+        descargarArchivos = `<div style="display: flex; justify-content: center;">`;
+
+        descargarArchivos +=    `<form action="{{ route('ventas.resumenes.getXml', ':resumenId') }}" 
+                                method="get">
+                                    <button type="submit" class="btn btn-primary btn-xml">
+                                            XML
+                                    </button>
+                                </form>`.replace(':resumenId', resumen_id);  
+
+        if(res_consulta.cdr){
+            descargarArchivos +=    `<form style="margin-left:3px;" action="{{ route('ventas.resumenes.getCdr', ':resumenId') }}" 
+                                    method="get">
+                                        <button type="submit" class="btn btn-primary btn-xml">
+                                            CDR
+                                        </button>
+                                    </form>`.replace(':resumenId', resumen_id);                          
+        }
+        
+        descargarArchivos+=`</div>`;  
+
+        fila.cell(indiceFila,6).data(descargarArchivos).draw();
     }
 
   
