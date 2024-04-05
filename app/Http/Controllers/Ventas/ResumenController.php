@@ -241,7 +241,7 @@ class ResumenController extends Controller
         //===== ENVÍO CON ERRORES Y CDR RECIBIDO =====
         if($code_estado == 99 && $cdr){
             //===== GUARDANDO CDR ======
-            $util->writeCdr($sum, $res_ticket->getCdrZip(),"RESUMEN");
+            $util->writeCdr($sum, $res_ticket->getCdrZip(),"RESUMEN",null);
 
             //==== GUARDANDO DATOS DEL CDR ====
             $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
