@@ -81,9 +81,6 @@ class ResumenController extends Controller
             //===== ENVIANDO A SUNAT ======
             $res    =   $this->sendSunat($comprobantes,$fecha_comprobantes,$resumen);
 
-            
-
-
             return response()->json([   'message'=> 'RESUMEN REGISTRADO COMO'.'R001',
                                         'fecha' =>  $fecha_comprobantes,
                                         'res'   =>  $res,
@@ -194,6 +191,9 @@ class ResumenController extends Controller
                 ->update(['sunat' => '1']);
             }
 
+            $resumen->update();
+            dd($res);
+
             //===== CONSULTAR ESTADO DEL RESUMEN ENVIADO =======
             $this->consultarTicket($ticket,$see,$util,$sum,$resumen);
         }else{
@@ -203,9 +203,9 @@ class ResumenController extends Controller
             //===== OBTENIENDO ERRORES =====
             $error                  =   'CODE: '.$res->getError()->getCode().' - '.'MESSAGE: '.$res->getError()->getMessage();
             $resumen->response_error=   $error;
-        }
 
-        $resumen->update();
+            $resumen->update();
+        }
 
 
         return 'Y DALE U';
