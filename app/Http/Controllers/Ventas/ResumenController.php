@@ -193,8 +193,6 @@ class ResumenController extends Controller
             }
 
             $resumen->update();
-            dd($see->getStatus($ticket));
-
 
             //===== CONSULTAR ESTADO DEL RESUMEN ENVIADO =======
             $this->consultarTicket($ticket,$see,$util,$sum,$resumen);
@@ -229,10 +227,12 @@ class ResumenController extends Controller
             $resumen->ruta_cdr  =   __DIR__.'/../../../Greenter/files/resumenes_cdr/'.$sum->getName().'.zip';   
 
             //==== GUARDANDO DATOS DEL CDR ====
-            $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
-            $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
-            $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
-
+            if($res_ticket->getCdrResponse()){
+                $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
+                $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
+                $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
+            }
+           
             //====== GUARDANDO ESTADO DEL TICKET ====
             $resumen->code_estado               =   $code_estado;
 
@@ -256,8 +256,11 @@ class ResumenController extends Controller
             $resumen->regularize    =   1;
 
             //===== GUARDANDO ERRORES =======
-            $error                  =   'CODE: '.$res_ticket->getError()->getCode().' - '.'MESSAGE: '.$res_ticket->getError()->getMessage();
-            $resumen->response_error=   $error;
+            if($res_ticket->getError()){
+                $error                  =   'CODE: '.$res_ticket->getError()->getCode().' - '.'MESSAGE: '.$res_ticket->getError()->getMessage();
+                $resumen->response_error=   $error;
+            }
+           
 
             $resumen->update();  
         }
@@ -270,9 +273,11 @@ class ResumenController extends Controller
             //====== GUARDANDO ESTADO DEL TICKET ====
             $resumen->code_estado               =   $code_estado;
 
-            //===== GUARDANDO ERRORES =======
-            $error                  =   'CODE: '.$res_ticket->getError()->getCode().' - '.'MESSAGE: '.$res_ticket->getError()->getMessage();
-            $resumen->response_error=   $error;
+             //===== GUARDANDO ERRORES =======
+             if($res_ticket->getError()){
+                $error                  =   'CODE: '.$res_ticket->getError()->getCode().' - '.'MESSAGE: '.$res_ticket->getError()->getMessage();
+                $resumen->response_error=   $error;
+            }
 
             $resumen->update();  
         }
