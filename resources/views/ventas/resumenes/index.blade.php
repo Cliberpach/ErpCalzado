@@ -336,6 +336,19 @@
         descargarArchivos+=`</div>`;  
 
         fila.cell(indiceFila,6).data(descargarArchivos).draw();
+
+        //====== ACTUALIZANDO COLUMNA DE LAS ACCIONES ======
+        let acciones    =   ``;
+        if (res_consulta.code_estado == 98) {
+            acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
+                class="btn btn-primary btn-consultar-resumen">
+                CONSULTAR</button>`;
+        }
+        if (res_consulta.code_estado == 0) {
+            acciones+=``;
+        }
+
+        fila.cell(indiceFila,7).data(acciones).draw();
     }
 
   
@@ -444,7 +457,7 @@
         }
 
         let acciones    =   ``;
-        if (resumen.code_estado == '98') {
+        if (resumen.code_estado == 98) {
             acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
                 class="btn btn-primary btn-consultar-resumen">
                 CONSULTAR</button>`;
