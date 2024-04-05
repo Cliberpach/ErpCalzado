@@ -107,6 +107,7 @@
                                         <td>{{$resumen->created_at}}</td>
                                         <td>{{$resumen->fecha_comprobantes}}</td>
                                         <td>{{$resumen->serie.'-'.$resumen->correlativo}}</td>
+
                                         @if ($resumen->send_sunat == 1)
                                             @if ($resumen->code_estado == '0')
                                                 <td>
@@ -129,7 +130,7 @@
                                                     </p>
                                                 </td>  
                                             @endif
-                                            @if (!$resumen->code_estado)
+                                            @if ($resumen->code_estado == null)
                                                 <td>
                                                     <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #c0d5f5; color: #033bd6; font-weight: bold;text-align:center;">
                                                         ERROR EN EL ENVÍO
@@ -144,6 +145,7 @@
                                                 </p>
                                             </td>
                                         @endif
+
                                         <td>{{$resumen->ticket}}</td>
                                         <td style="white-space: nowrap;">
                                             <div style="display: flex; justify-content: center;">
