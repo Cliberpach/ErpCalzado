@@ -157,7 +157,12 @@ class ResumenController extends Controller
 
 
         //==== ENVIANDO A SUNAT ======
-        $see = $util->getSee(SunatEndpoints::FE_BETA);
+        //===== MODO BETA ======
+        //$see = $util->getSee(SunatEndpoints::FE_BETA);
+
+        //===== MODO PRODUCCION =====
+        $see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
+
         $res = $see->send($sum);
 
         //==== GUARDANDO XML ====
