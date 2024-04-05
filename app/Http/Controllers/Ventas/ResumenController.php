@@ -192,7 +192,7 @@ class ResumenController extends Controller
             }
 
             $resumen->update();
-            dd($res);
+            
 
             //===== CONSULTAR ESTADO DEL RESUMEN ENVIADO =======
             $this->consultarTicket($ticket,$see,$util,$sum,$resumen);
@@ -218,6 +218,7 @@ class ResumenController extends Controller
         $code_estado    =   $res_ticket->getCode();
         $cdr            =   $res_ticket->getCdrResponse();
 
+        dd($res_ticket);
         //====== ENVIO CORRECTO Y CDR RECIBIDO ======
         if($code_estado == 0){
             //===== GUARDANDO CDR ======
