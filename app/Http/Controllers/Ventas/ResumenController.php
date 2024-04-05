@@ -177,6 +177,7 @@ class ResumenController extends Controller
         $ticket         =   null;
 
         if($envioSunat){
+
             $message_envio          =   "ENVIADO A SUNAT";
             $ticket                 =   $res->getTicket();
             $resumen->send_sunat    =   1;
@@ -192,7 +193,8 @@ class ResumenController extends Controller
             }
 
             $resumen->update();
-            
+            dd($see->getStatus($ticket));
+
 
             //===== CONSULTAR ESTADO DEL RESUMEN ENVIADO =======
             $this->consultarTicket($ticket,$see,$util,$sum,$resumen);
@@ -218,7 +220,7 @@ class ResumenController extends Controller
         $code_estado    =   $res_ticket->getCode();
         $cdr            =   $res_ticket->getCdrResponse();
 
-        dd($res_ticket);
+        
         //====== ENVIO CORRECTO Y CDR RECIBIDO ======
         if($code_estado == 0){
             //===== GUARDANDO CDR ======
