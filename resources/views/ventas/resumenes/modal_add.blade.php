@@ -1,5 +1,7 @@
+
 <!-- Modal -->
 <div class="modal inmodal" id="modal_resumenes" role="dialog" aria-hidden="true">
+
     <div class="modal-dialog modal-lg" style="max-width: 80%;">
         <div class="modal-content animated bounceInRight">
             <div class="modal-header">
@@ -11,7 +13,9 @@
                 <h4 class="modal-title">REGISTRAR RESUMEN</h4>
                 <small class="font-bold">Registrar</small>
             </div>
-            <div class="modal-body content_cliente" :class="{'sk__loading':loading}">
+            <div class="modal-body content_cliente">
+                
+                
                 <div class="row">
                     <div class="col-4">
                         <label for="fecha_comprobante">Fecha de Emisión de comprobantes</label>
@@ -43,16 +47,7 @@
                     </div>
                 </div>
 
-                {{-- <form id="frmCliente" class="formulario">
-                   
-                </form>
-                <div class="sk-spinner sk-spinner-wave d-none">
-                    <div class="sk-rect1"></div>
-                    <div class="sk-rect2"></div>
-                    <div class="sk-rect3"></div>
-                    <div class="sk-rect4"></div>
-                    <div class="sk-rect5"></div>
-                </div> --}}
+              
             </div>
             <div class="modal-footer">
                 <div class="col-md-6 text-left">

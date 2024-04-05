@@ -3,6 +3,57 @@
 @section('resumenes-active', 'active')
 
 @include('ventas.resumenes.modal_add')
+<style>
+    .loader {
+     display: inline-block;
+     font-size: 48px;
+     font-family: Arial, Helvetica, sans-serif;
+     font-weight: bold;
+     color: #FFF;
+     position: relative;
+   }
+   .loader::before {
+     content: '';  
+     position: absolute;
+     left: 34px;
+     bottom: 8px;
+     width: 30px;
+     height: 30px;
+     border-radius: 50%;
+     border: 5px solid #FFF;
+     border-bottom-color: #FF3D00;
+     box-sizing: border-box;
+     animation: rotation 0.6s linear infinite;
+   }
+   
+   @keyframes rotation {
+     0% {
+       transform: rotate(0deg);
+     }
+     100% {
+       transform: rotate(360deg);
+     }
+   }   
+
+   .loader-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 100%; /* Ancho completo */
+        height: 100%; /* Altura completa */
+        transform: translate(-50%, -50%); /* Centrar vertical y horizontalmente */
+        background-color: rgba(37, 36, 36, 0.7); /* Fondo semitransparente */
+        display: none; /* Ocultar inicialmente */
+        justify-content: center;
+        align-items: center;
+        z-index: 9999; /* Asegurar que esté sobre el modal */
+    }
+</style>
+
+
+<div class="loader-container">
+    <span class="loader">L &nbsp; ading</span>
+</div>
 
 <div class="row wrapper border-bottom white-bg page-heading">
     @csrf
@@ -27,11 +78,13 @@
 <div class="wrapper wrapper-content animated fadeInRight">
     <div class="row">
         <div class="col-lg-12">
+
             <div class="ibox ">
                 <div class="ibox-content">
                     <div class="table-responsive">
+
                         <table class="table dataTables-gui table-striped table-bordered table-hover"
-                        style="text-transform:uppercase">
+                        style="text-transform:uppercase" id="table-resumenes">
                             <thead>
                              
                                 <tr>
@@ -48,9 +101,69 @@
                                 </tr>
                             </thead>
                             <tbody>
-
+                                @foreach ($resumenes as $resumen)
+                                    <tr>
+                                        <th scope="row">{{$resumen->id}}</th>
+                                        <td>{{$resumen->created_at}}</td>
+                                        <td>{{$resumen->fecha_comprobantes}}</td>
+                                        <td>{{$resumen->serie.'-'.$resumen->correlativo}}</td>
+                                        @if ($resumen->send_sunat == 1)
+                                            @if ($resumen->code_estado == '0')
+                                                <td>
+                                                    <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #e5f9e0; color: #176e2f; font-weight: bold;text-align:center;">
+                                                        ACEPTADO
+                                                    </p>
+                                                </td>  
+                                            @endif
+                                            @if ($resumen->code_estado == '99')
+                                                <td>
+                                                    <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #efd5d5; color: #be1919; font-weight: bold;text-align:center;">
+                                                        Enviado con errores
+                                                    </p>
+                                                </td>  
+                                            @endif
+                                            @if ($resumen->code_estado == '98')
+                                                <td>
+                                                    <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #c0d5f5; color: #033bd6; font-weight: bold;text-align:center;">
+                                                        EN PROCESO
+                                                    </p>
+                                                </td>  
+                                            @endif
+                                        @endif
+                                        @if ($resumen->send_sunat == 0)
+                                            <td>
+                                                <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #f8f9e0; color: #ad8a14; font-weight: bold;text-align:center;">
+                                                    NO ENVIADO
+                                                </p>
+                                            </td>
+                                        @endif
+                                        <td>{{$resumen->ticket}}</td>
+                                        <td style="white-space: nowrap;">
+                                            <div style="display: flex; justify-content: center;">
+                                                @if ($resumen->ruta_xml)
+                                                    <form action="{{ route('ventas.resumenes.getXml', $resumen->id) }}" method="get">
+                                                        <button type="submit" class="btn btn-primary btn-xml">
+                                                            XML
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                                @if ($resumen->ruta_cdr)
+                                                    <form style="margin-left:3px;" action="{{ route('ventas.resumenes.getCdr', $resumen->id) }}" method="get">
+                                                        <button type="submit" class="btn btn-primary btn-xml">
+                                                            CDR
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        </td>
+                                        
+                                        <td>ACCIONES</td>
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
+
+
                     </div>
                 </div>
             </div>
@@ -59,47 +172,35 @@
 </div>
 
 
-<!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          ...
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary">Save changes</button>
-        </div>
-      </div>
-    </div>
-</div>
-
 @stop
 @push('styles')
     <!-- DataTable -->
     <link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/dist/toastr.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css">
 @endpush
 
 
 @push('scripts')
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+
 <script>
     const btnGetComprobantes            =   document.querySelector('#btn-get-comprobantes');
     const bodyTableSearchComprobantes   =   document.querySelector('.table-search-comprobantes tbody');
+    let tableResumenes  = null;
+
     let fecha_comprobantes              =   null;
     let listComprobantes                =   [];   
 
     document.addEventListener('DOMContentLoaded',()=>{
         events();
-        
+        cargarDataTable()
     })
 
     function events(){
+       
+
         //======= GUARDAR RESUMEN ======
         document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('btn-guardar-resumen')){
@@ -136,8 +237,39 @@
         })
     }
 
+  
+
+    function cargarDataTable(){
+        tableResumenes = new DataTable('#table-resumenes',
+        {
+            language: {
+                processing:     "Traitement en cours...",
+                search:         "BUSCAR: ",
+                lengthMenu:    "MOSTRAR _MENU_ RESÚMENES",
+                info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ RESÚMENES",
+                infoEmpty:      "MOSTRANDO 0 RESÚMENES",
+                infoFiltered:   "(FILTRADO de _MAX_ RESÚMENES)",
+                infoPostFix:    "",
+                loadingRecords: "CARGA EN CURSO",
+                zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+                emptyTable:     "NO HAY RESÚMENES DISPONIBLES",
+                paginate: {
+                    first:      "PRIMERO",
+                    previous:   "ANTERIOR",
+                    next:       "SIGUIENTE",
+                    last:       "ÚLTIMO"
+                },
+                aria: {
+                    sortAscending:  ": activer pour trier la colonne par ordre croissant",
+                    sortDescending: ": activer pour trier la colonne par ordre décroissant"
+                }
+            }
+        });
+    }
+
     //========= GUARDAR RESUMEN Y ENVIAR A SUNAT A LA VEZ ==========
     async function saveSendResumen(){
+        document.querySelector('.loader-container').style.display = 'flex'; 
         try {
             const url       =   `/ventas/resumenes/store`;
             const response  =   await axios.post(url,{
@@ -146,10 +278,80 @@
             });
 
             console.log(response);
-        
+            $("#modal_resumenes").modal("hide");
+            addNewResumen(response.data.nuevo_resumen)
+            toastr.info('RESUMEN REGISTRADO','OPERACIÓN EXITOSA');
         } catch (error) {
             console.error('Error al enviar y guardar resumen:', error);
+        }finally{
+            document.querySelector('.loader-container').style.display = 'none'; 
         }
+    }
+
+    //====== PINTAR NUEVO RESUMEN =====
+    function addNewResumen(resumen){
+        //====== CONSTRUYENDO HTML DE ESTADO =======
+        let resumen_estado  =   ``;
+        if(resumen.send_sunat == 1){
+
+            if(resumen.code_estado == 0){
+                resumen_estado  =   `<p class="mb-0" style="padding:2px;border-radius: 10px; 
+                                    background-color: #e5f9e0; color: #176e2f; font-weight: bold;text-align:center;">
+                                    ACEPTADO</p>`;
+            }
+
+            if(resumen.code_estado == 98){
+                resumen_estado  =   ` <p class="mb-0" style="padding:2px;border-radius: 10px; 
+                                    background-color: #c0d5f5; color: #033bd6; font-weight: bold;text-align:center;">
+                                    EN PROCESO</p>`;
+            }
+
+            if(resumen.code_estado == 99){
+                resumen_estado  =   `<p class="mb-0" style="padding:2px;border-radius: 10px; 
+                                    background-color: #efd5d5; color: #be1919; font-weight: bold;text-align:center;">
+                                    Enviado con errores</p>`;
+            }
+
+        }
+        if(resumen.send_sunat == 0){
+            resumen_estado  =   ` <p class="mb-0" style="padding:2px;border-radius: 10px; 
+                                background-color: #f8f9e0; color: #ad8a14; font-weight: bold;text-align:center;">
+                                NO ENVIADO</p>`;
+        }
+
+        let descargarArchivos   =   ``;
+
+        if(resumen.ruta_xml || resumen.ruta_cdr){
+            descargarArchivos = `<div style="display: flex; justify-content: center;">`;
+                if(resumen.ruta_xml){
+                    descargarArchivos +=    `<form action="{{ route('ventas.resumenes.getXml', ':resumenId') }}" 
+                                            method="get">
+                                                <button type="submit" class="btn btn-primary btn-xml">
+                                                    XML
+                                                </button>
+                                            </form>`.replace(':resumenId', resumen.id);                       
+                }
+                if(resumen.ruta_cdr){
+                    descargarArchivos +=    `<form style="margin-left:3px;" action="{{ route('ventas.resumenes.getCdr', ':resumenId') }}" 
+                                            method="get">
+                                                <button type="submit" class="btn btn-primary btn-xml">
+                                                    CDR
+                                                </button>
+                                            </form>`.replace(':resumenId', resumen.id);                       
+                }
+                descargarArchivos+=`</div>`;   
+        }
+
+        tableResumenes.row
+        .add([resumen.id,
+            resumen.created_at, 
+            resumen.fecha_comprobantes,
+            `${resumen.serie}-${resumen.correlativo}`,
+            resumen_estado,
+            resumen.ticket,
+            descargarArchivos,
+            'ACCIONES'
+        ]).draw()
     }
 
     //==== ELIMINAR COMPROBANTE DEL CARRITO ======
@@ -162,7 +364,7 @@
     //============= ABRIR MODAL CLIENTE =============
     async function openModalResumenes(){
         $("#modal_resumenes").modal("show");
-
+        clearTableComprobantes();
         await  isActive();
     }
 

@@ -443,6 +443,8 @@ function(){
         Route::get('index', 'Ventas\ResumenController@index')->name('ventas.resumenes.index');
         Route::get('getComprobantes/{fecha}','Ventas\ResumenController@getComprobantes')->name('ventas.resumenes.getComprobantes');
         Route::get('getStatus','Ventas\ResumenController@isActive')->name('ventas.resumenes.getStatus');
+        Route::get('getXml/{resumen_id}','Ventas\ResumenController@getXml')->name('ventas.resumenes.getXml');
+        Route::get('getCdr/{resumen_id}','Ventas\ResumenController@getCdr')->name('ventas.resumenes.getCdr');
 
         //Route::get('getDocument','Ventas\CajaController@getDocument')->name('ventas.caja.getDocument');
         // Route::post('getDocumentClient','Ventas\CajaController@getDocumentClient')->name('ventas.caja.getDocumentClient');

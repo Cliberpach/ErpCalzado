@@ -16,6 +16,7 @@ use Greenter\Model\Summary\SummaryDetail;
 use Greenter\Model\Summary\SummaryPerception;
 use Greenter\Ws\Services\SunatEndpoints;
 use DateTime;
+use Illuminate\Support\Facades\Response; // Añade esta línea al principio del archivo
 
 
 require __DIR__ . '/../../../../vendor/autoload.php';
@@ -23,7 +24,9 @@ require __DIR__ . '/../../../../vendor/autoload.php';
 class ResumenController extends Controller
 {
     public function index(){
-        return view('ventas.resumenes.index');
+        $resumenes  =   Resumen::all();
+
+        return view('ventas.resumenes.index',compact('resumenes'));
     }
 
     public function getComprobantes($fechaComprobantes){
@@ -33,7 +36,7 @@ class ResumenController extends Controller
                             cd.total as documento_subtotal,cd.documento_cliente as documento_doc_cliente
                             from cotizacion_documento as cd
                             inner join tabladetalles as td on td.id=cd.moneda
-                            where cd.fecha_documento=? and cd.serie="B001" 
+                            where cd.fecha_documento=? and cd.serie="B001" and sunat="0" 
                             and td.tabla_id=1',[$fechaComprobantes]);   
 
         return response()->json(['success'=>$comprobantes , 'fecha' => $fechaComprobantes]);
@@ -52,9 +55,10 @@ class ResumenController extends Controller
             $correlativo    =   $this->getCorrelativo();
 
             //==== GUARDANDO RESUMEN EN LA BD ====
-            $resumen                =   new Resumen();
-            $resumen->serie         =   'R001';
-            $resumen->correlativo   =   $correlativo;
+            $resumen                    =   new Resumen();
+            $resumen->serie             =   'R001';
+            $resumen->correlativo       =   $correlativo;
+            $resumen->fecha_comprobantes  =   $fecha_comprobantes;
             $resumen->save();
 
 
@@ -82,7 +86,8 @@ class ResumenController extends Controller
 
             return response()->json([   'message'=> 'RESUMEN REGISTRADO COMO'.'R001',
                                         'fecha' =>  $fecha_comprobantes,
-                                        'res'   =>  $res
+                                        'res'   =>  $res,
+                                        'nuevo_resumen' => $resumen
                                     ]);
         } catch (\Exception $e) {
             DB::rollback();
@@ -157,6 +162,8 @@ class ResumenController extends Controller
 
         //==== GUARDANDO XML ====
         $util->writeXml($sum, $see->getFactory()->getLastXml(),"RESUMEN");
+        $resumen->ruta_xml  =    __DIR__.'/../../../Greenter/files/resumenes_xml/'.$sum->getName().'.xml';
+
 
         //==== VERIFICANDO SI SE ENVIÓ A SUNAT ====
         $envioSunat     =   $res->isSuccess();
@@ -169,11 +176,21 @@ class ResumenController extends Controller
             $resumen->send_sunat    =   1;
             $resumen->ticket        =   $ticket;
 
+            //======= ACTUALIZANDO DOCUMENTOS DE VENTA COMO ENVIADOS A SUNAT =========
+            $detalles   =   DB::select('select * from resumenes_detalles as rd
+                            where rd.resumen_id=?',[$resumen->id]);
+
+            foreach ($detalles as $detalle) {
+                DB::table('cotizacion_documento')->where('id',$detalle->documento_id)
+                ->update(['sunat' => '1']);
+            }
+
             //===== CONSULTAR ESTADO DEL RESUMEN ENVIADO =======
             $this->consultarTicket($ticket,$see,$util,$sum,$resumen);
         }else{
             $message_envio          =   "OCURRIO UN ERROR, NO SE ENVIÓ A SUNAT";
             $resumen->send_sunat    =   0;
+            $resumen->regularize    =   1;
             //===== OBTENIENDO ERRORES =====
             $error                  =   'CODE: '.$res->getError()->getCode().' - '.'MESSAGE: '.$res->getError()->getMessage();
             $resumen->response_error=   $error;
@@ -181,18 +198,40 @@ class ResumenController extends Controller
 
         $resumen->update();
 
+
         return 'Y DALE U';
     }
+
+
+
+
 
     public function consultarTicket($ticket,$see,$util,$sum,$resumen){
         $res_ticket     =   $see->getStatus($ticket);
         
         $code_estado    =   $res_ticket->getCode();
-        
+        $cdr            =   $res_ticket->getCdrResponse();
+
         //====== ENVIO CORRECTO Y CDR RECIBIDO ======
         if($code_estado == 0){
             //===== GUARDANDO CDR ======
-            $cdr = $res_ticket->getCdrResponse();
+            $util->writeCdr($sum, $res_ticket->getCdrZip(),"RESUMEN");
+            $resumen->ruta_cdr  =   __DIR__.'/../../../Greenter/files/resumenes_cdr/'.$sum->getName().'.zip';   
+
+            //==== GUARDANDO DATOS DEL CDR ====
+            $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
+            $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
+            $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
+
+            //====== GUARDANDO ESTADO DEL TICKET ====
+            $resumen->code_estado               =   $code_estado;
+
+            $resumen->update();  
+        }
+
+        //===== ENVÍO CON ERRORES Y CDR RECIBIDO =====
+        if($code_estado == 99 && $cdr){
+            //===== GUARDANDO CDR ======
             $util->writeCdr($sum, $res_ticket->getCdrZip(),"RESUMEN");
 
             //==== GUARDANDO DATOS DEL CDR ====
@@ -200,9 +239,63 @@ class ResumenController extends Controller
             $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
             $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
 
-            $resumen->update();
-            
+            //====== GUARDANDO ESTADO DEL TICKET ====
+            $resumen->code_estado               =   $code_estado;
+
+            //======= SEÑALAR COMO RESUMEN CON ERRORES =======
+            $resumen->regularize    =   1;
+
+            //===== GUARDANDO ERRORES =======
+            $error                  =   'CODE: '.$res_ticket->getError()->getCode().' - '.'MESSAGE: '.$res_ticket->getError()->getMessage();
+            $resumen->response_error=   $error;
+
+            $resumen->update();  
         }
 
+        //===== ENVÍO CON ERRORES Y SIN CDR =====
+        if($code_estado == 99 && !$cdr){
+            //======= SEÑALAR COMO RESUMEN CON ERRORES =======
+            $resumen->regularize    =   1;
+
+            //====== GUARDANDO ESTADO DEL TICKET ====
+            $resumen->code_estado               =   $code_estado;
+
+            //===== GUARDANDO ERRORES =======
+            $error                  =   'CODE: '.$res_ticket->getError()->getCode().' - '.'MESSAGE: '.$res_ticket->getError()->getMessage();
+            $resumen->response_error=   $error;
+
+            $resumen->update();  
+        }
+
+        //======= EN PROCESO =======
+        if($code_estado == 98){
+            //====== GUARDANDO ESTADO DEL TICKET ====
+            $resumen->code_estado               =   $code_estado;
+            $resumen->update();  
+        }
+
+
+    }
+
+    public function getXml($resumen_id){
+        $resumen    =   Resumen::find($resumen_id);
+        $nombreArchivo = basename($resumen->ruta_xml);
+
+        $headers = [
+            'Content-Type' => 'text/xml',
+        ];
+    
+        return Response::download($resumen->ruta_xml, $nombreArchivo, $headers);
+    }
+
+    public function getCdr($resumen_id){
+        $resumen        =   Resumen::find($resumen_id);
+        $nombreArchivo  =   basename($resumen->ruta_cdr);
+
+        $headers = [
+            'Content-Type' => 'text/xml',
+        ];
+    
+        return Response::download($resumen->ruta_cdr, $nombreArchivo, $headers);
     }
 }
