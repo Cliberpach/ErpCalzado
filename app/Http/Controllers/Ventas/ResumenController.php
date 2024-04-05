@@ -217,6 +217,7 @@ class ResumenController extends Controller
         
         $code_estado    =   $res_ticket->getCode();
         $cdr            =   $res_ticket->getCdrResponse();
+        dd($res_ticket);
 
         //====== ENVIO CORRECTO Y CDR RECIBIDO ======
         if($code_estado == 0){
