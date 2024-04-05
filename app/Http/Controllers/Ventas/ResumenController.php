@@ -97,7 +97,7 @@ class ResumenController extends Controller
     }
 
     public function isActive(){
-        $resumenActive  = DB::table('empresa_numeracion_facturaciones')->where('tipo_comprobante', 190)->exists();
+        $resumenActive  = DB::table('empresa_numeracion_facturaciones')->where('tipo_comprobante', 186)->exists();
         return response()->json(['resumenActive'=>$resumenActive]);
     }
 
