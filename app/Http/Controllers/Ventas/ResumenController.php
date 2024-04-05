@@ -178,7 +178,7 @@ class ResumenController extends Controller
         $envioSunat     =   $res->isSuccess();
         $message_envio  =   '';
         $ticket         =   null;
-        dd($res);
+
         if($envioSunat){
             $message_envio          =   "ENVIADO A SUNAT";
             $ticket                 =   $res->getTicket();
