@@ -114,7 +114,7 @@ class ResumenController extends Controller
         //===== BUSCAMOS EL REGISTRO DEL COMPROBANTE RESÚMENES =======
         $correlativo   =   DB::select('select enf.numero_iniciar 
                                     from empresa_numeracion_facturaciones as enf
-                                    where enf.tipo_comprobante=190')[0]->numero_iniciar;
+                                    where enf.tipo_comprobante=186')[0]->numero_iniciar;
 
         return $correlativo;
     }
