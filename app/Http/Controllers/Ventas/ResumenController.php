@@ -430,7 +430,11 @@ class ResumenController extends Controller
         }else{
             $comprobantes   =   DB::select('select * from resumenes_detalles');
 
+            $resumen->regularize    =   0;
+            $resumen->update();
             $this->sendSunat($comprobantes,$resumen->fecha_comprobantes,$resumen);
+            
+
             return response()
             ->json([   
                 'type'=> 'error',
