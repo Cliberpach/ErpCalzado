@@ -1,4 +1,5 @@
 <div class="modal inmodal" id="modal_cliente" role="dialog" aria-hidden="true">
+
     <div class="modal-dialog modal-lg" style="max-width: 94%;">
         <div class="modal-content animated bounceInRight">
             <div class="modal-header">
@@ -7,11 +8,13 @@
                     <span class="sr-only">Close</span>
                 </button>
                 {{-- <i class="fa fa-user-plus modal-icon"></i> --}}
-                <i class="fas fa-user-astronaut fa-pulse modal-icon" ></i>
+                <i class="fas fa-user-astronaut fa-pulse modal-icon"></i>
                 <h4 class="modal-title">NUEVO CLIENTE</h4>
                 <small class="font-bold">Registrar</small>
             </div>
-            <div class="modal-body content_cliente" :class="{'sk__loading':loading}">
+            <div class="modal-body content_cliente">
+                @include('components.overlay_search')
+                @include('components.overlay_save')
                 <form id="frmCliente" class="formulario">
                     <div class="row">
                         <div class="col-12 col-md-6">
@@ -30,14 +33,14 @@
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <div class="form-group">
-                                        <label class="required" for="nro_documento">Nro. Documento</label>
+                                        <label class="required" for="documento">Nro. Documento</label>
                                         <div class="input-group">
-                                            <input type="text" id="nro_documento" name="nro_documento" class="form-control"
+                                            <input type="text" id="documento" name="documento" class="form-control"
                                                  required>
-                                                 <button onclick="consultarDocumento()" type="button" style="color:white" class="btn btn-primary">
-                                                    <i class="fa fa-search" ></i>
-                                                    <span id="entidad"> </span>
-                                                </button>
+                                            <button id="btn_consultar_doc" onclick="consultarDocumento()" type="button" style="color:white" class="btn btn-primary">
+                                                <i class="fa fa-search" ></i>
+                                                <span id="entidad"> </span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -46,7 +49,7 @@
                                 <div class="col-12 col-md-6">
                                     <div class="form-group">
                                         <label class="required" for="tipo_cliente">Tipo Cliente</label>
-                                        <select class="select2_form" name="tipo_documento" id="tipo_cliente" >
+                                        <select class="select2_form" name="tipo_cliente_id" id="tipo_cliente_id" >
                                             @foreach ($tipo_clientes as $tipo_cliente)
                                                 <option value="{{$tipo_cliente->id}}">{{$tipo_cliente->simbolo}}</option>
                                             @endforeach
@@ -90,7 +93,7 @@
                                 <div class="col-12 col-md-6">
                                     <div class="form-group">
                                         <label class="required" for="departamento">Departamento</label>
-                                        <select class="select2_form" name="departamento" id="departamento" onchange="setUbicacionDepartamento(this)">
+                                        <select required class="select2_form" name="departamento" id="departamento" onchange="setUbicacionDepartamento(this.value,'first')">
                                             @foreach ($departamentos as $departamento)
                                                 <option @if ($departamento->id == 13) selected @endif value="{{$departamento->id}}">{{$departamento->nombre}}</option>
                                             @endforeach
@@ -102,7 +105,7 @@
                                 <div class="col-12 col-md-6">
                                     <div class="form-group">
                                         <label class="required" for="provincia">Provincia</label>
-                                        <select class="select2_form" name="provincia" id="provincia" onchange="setUbicacionProvincia(this)" >
+                                        <select required class="select2_form" name="provincia" id="provincia" onchange="setUbicacionProvincia(this.value,'first')" >
                                            
                                         </select>
                                         {{-- <v-select v-model="provincia" :options="Provincias" :reduce="p=>p"
@@ -114,7 +117,7 @@
                                 <div class="col-12 col-md-6">
                                     <div class="form-group">
                                         <label class="required" for="distrito">Distrito</label>
-                                        <select class="select2_form" name="distrito" id="distrito" >
+                                        <select required class="select2_form" name="distrito" id="distrito"   >
                                            
                                         </select>
                                         {{-- <v-select v-model="distrito" :options="Distritos" :reduce="d=>d"
@@ -194,49 +197,41 @@
     const selectTipoDoc     =   document.querySelector('#tipo_documento');
     const selectProvincia   =   document.querySelector('#provincia');
     const selectDistrito    =   document.querySelector('#distrito');
-    const inputNroDoc       =   document.querySelector('#nro_documento');
+    const inputNroDoc       =   document.querySelector('#documento');
     const btnConsultarDoc   =   document.querySelector('#btn_consultar_doc');
     const inputZona         =   document.querySelector('#zona');
     const departamentos     =   @json($departamentos);
+    const formCliente       =   document.querySelector('#frmCliente');
 
-    document.addEventListener('DOMContentLoaded',()=>{
-        events();
-        //====== ESTABLECER UBICACIÓN POR DEFAULT =======
-        setUbicacionDepartamento({value:13});
-
-    })
-
-    function events(){
-   
-
-    }
-
-    function hola(){
-        console.log('hola')
-    }
 
     function controlNroDoc(e){
         const tipoDocSimbolo    =   e.value;
 
-            if(tipoDocSimbolo == 6 || tipoDocSimbolo == 8){
-                inputNroDoc.disabled        =   false;
-                btnConsultarDoc.disabled    =   false;
-            }else{
-                inputNroDoc.disabled        =   true;
-                btnConsultarDoc.disabled    =   true;
-            }
+        console.log(e.value);
+        if(tipoDocSimbolo == 6 || tipoDocSimbolo == 8){
+            inputNroDoc.disabled        =   false;
+            btnConsultarDoc.disabled    =   false;
+        }else{
+            inputNroDoc.disabled        =   true;
+            btnConsultarDoc.disabled    =   true;
+        }
     }
 
-    function setUbicacionDepartamento(e){
-        const departamento_id   =   e.value;
+    async function setUbicacionDepartamento(dep_id,provincia_id){
+        const departamento_id   =   dep_id;
+        console.log(`provincia: ${provincia_id}`);
        
         setZona(getZona(departamento_id));
-        getProvincias(departamento_id);
+        
+        const provincias    =   await getProvincias(departamento_id,provincia_id);
+        pintarProvincias(provincias,provincia_id);
     }
 
-    function setUbicacionProvincia(e){
-        const provincia_id      =   e.value;
-        getDistritos(provincia_id);
+    async function setUbicacionProvincia(prov_id,distrito_id){
+        const provincia_id      =   prov_id;
+        const distritos         =   await getDistritos(provincia_id);
+        pintarDistritos(distritos,distrito_id);
+
     }
 
     function getZona(departamento_id){
@@ -259,46 +254,50 @@
                     departamento_id
                 });
                 const { error, message, provincias } = data;
-                pintarProvincias(provincias);
                 // this.Provincias = provincias;
                 // this.loadingProvincias = true;
+                return provincias;
             } catch (ex) {
 
             }
     }
 
     //======== pintar provincias =========
-    function pintarProvincias(provincias){
+    function pintarProvincias(provincias,provincia_id){
         let options =   ``;
         provincias.forEach((provincia)=>{
             options+= `
-                <option value="${provincia.id}">${provincia.text}</option>
+                <option ${provincia.id == provincia_id? 'selected':''} value="${provincia.id}">${provincia.text}</option>
             `
         })
 
         selectProvincia.innerHTML   =   options;
 
         //====== seleccionar primera opción =======
-        $(selectProvincia).val($(selectProvincia).find('option').first().val()).trigger('change.select2');
+        if(provincia_id == 'first'){
+            $(selectProvincia).val($(selectProvincia).find('option').first().val()).trigger('change.select2');
+        }else{
+            $("#provincia").val(provincia_id).trigger("change.select2");
+        }
     }
 
     //====== PINTAR DISTRITOS ========
-    async function getDistritos(provincia_id) {
+    async function getDistritos(provincia_id,distrito_id) {
             try {
                 const { data } = await this.axios.post(route('mantenimiento.ubigeo.distritos'), {
                     provincia_id
                 });
                 const { error, message, distritos } = data;
-                pintarDistritos(distritos);
                 // this.Distritos = distritos;
                 // this.loadingDistritos = true;
+                return distritos;
             } catch (ex) {
 
             }
     }
 
     //======== PINTAR DISTRITOS =========
-    function pintarDistritos(distritos){
+    function pintarDistritos(distritos,distrito_id){
         let options =   ``;
         distritos.forEach((distrito)=>{
             options+= `
@@ -307,61 +306,105 @@
         })
 
         selectDistrito.innerHTML   =   options;
-
-        //====== seleccionar primera opción =======
-        $(selectDistrito).val($(selectDistrito).find('option').first().val()).trigger('change.select2');
+        if(distrito_id == 'first'){
+            //====== seleccionar primera opción =======
+            $(selectDistrito).val($(selectDistrito).find('option').first().val()).trigger('change.select2');
+        }else{
+            $("#distrito").val(distrito_id).trigger("change.select2");
+        }
     }
 
 
     //========= CONSULTAR DOCUMENTO ========
     async function consultarDocumento() {
         try {
-            const tipoDocumento     =   selectTipoDoc.value;
-            const numeroDocumento   =   inputNroDoc.value;
+            //======= MOSTRAR OVERLAY =======
+            const overlay = document.getElementById('overlay');
+            overlay.style.display = 'flex'; 
 
-            // spinner.classList.toggle('hide-cliente');
+            const tipoDocumento     =   selectTipoDoc.options[selectTipoDoc.selectedIndex].textContent;
+            const numeroDocumento   =   inputNroDoc.value;
+            console.log(tipoDocumento)
+            console.log(numeroDocumento);
+            console.log(numeroDocumento.trim().length)
+
             const { data } = await this.axios.post(route('ventas.cliente.getDocumento'), {
                 tipo_documento: selectTipoDoc.value,
                 documento: inputNroDoc.value,
                 id: null
             });
+            console.log(data);
 
             const { existe } = data;
-            console.log(data);
             if (existe) {
                     this.loading = false;
                     toastr.error('El ' + this.tipo_documento + ' ingresado ya se encuentra registrado para un cliente',
                         'Registrado');
             } else {
-                    if (tipoDocumento === "DNI") {
-                        if (numeroDocumento.length === 8) {
-                             this.consultarAPI(tipoDocumento,numeroDocumento);
-                        } else {
-                            //  this.loading = false;
-                             toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
-                        }
-                    } else if (this.tipo_documento === "RUC") {
-                        if (numeroDocumento.length === 11) {
-                            this.consultarAPI(tipoDocumento,numeroDocumento);
-                        } else {
-                            //  this.loading = false;
-                            toastr.error('El RUC debe de contar con 11 dígitos', 'Error');   
-                        }
+                //======= DNI = "6" =========
+                if (tipoDocumento === "DNI") {
+                    if (numeroDocumento.trim().length === 8) {
+                        await consultarAPI(tipoDocumento,numeroDocumento);
+                    } else {
+                        console.log('el dni no tiene 8 digitos')
+                        toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
                     }
+                
+                //======= RUC = "8" =========
+                } else if (tipoDocumento === "RUC") {
+                    console.log('validando ruc')
+                    if (numeroDocumento.trim().length === 11) {
+                        await consultarAPI(tipoDocumento,numeroDocumento);
+                    } else {
+                        toastr.error('El RUC debe de contar con 11 dígitos', 'Error');   
+                    }
+                }
             } 
         }catch (ex) {
                 alert("Error en consultarDocumento" + ex);
+        }finally{
+            const overlay = document.getElementById('overlay');
+            overlay.style.display = 'none'; 
         }
     }
 
     //======= CONSULTAR API =======
     async function consultarAPI(tipo_documento,nro_documento) {
             try {
-                let tipoDoc     = tipo_documento;
-                let documento   = nro_documento;
-                let url         = tipoDoc == "DNI" ? route('getApidni', { dni: nro_documento }) : route('getApiruc', { ruc: nro_documento });
+                let tipoDoc     =   tipo_documento;
+                let documento   =   nro_documento;
+                let url         =   null;
+
+                if(tipoDoc === "DNI"){
+                    url =   route('getApidni', { dni: nro_documento });
+                }
+                if(tipoDoc === "RUC"){
+                    url =   route('getApiruc', { ruc: nro_documento });
+                }
+
                 const { data } = await this.axios.get(url);
+               
                 console.log(data);
+                if(data.success){
+                    //===== COLOCANDO NOMBRE EN EL INPUT DEL FORMULARIO ======
+                    if(tipoDoc === "DNI"){
+                        setCamposDni(data);
+                    }
+                    if(tipoDoc === "RUC"){
+                        setCamposRuc(data);
+                    }
+                }else{
+                    toastr.error(data.message,'Error');
+                    if(tipoDoc === "DNI"){
+                        clearCamposDni();
+                        inputNroDoc.focus();
+                    }
+                    if(tipoDoc === "RUC"){
+                        clearCamposRuc();
+                        inputNroDoc.focus();
+                    }
+                }
+              
                 // if (tipoDoc == "DNI") {
                 //     this.CamposDNI(data);
                 // }
@@ -374,4 +417,102 @@
                 alert("Error en consultarAPI" + ex);
             }
     }
+
+    //======== SET CAMPOS DNI =========
+    function setCamposDni(data){
+        const data_dni  =   data.data;
+        document.querySelector('#nombre').value =   `${data_dni.nombres} ${data_dni.apellido_paterno} ${data_dni.apellido_materno}`;
+        document.querySelector('#activo').value =   'ACTIVO';
+    }
+
+    //====== SET CAMPOS RUC =====
+    async function setCamposRuc(data){
+        const data_ruc  =   data.data;
+        document.querySelector('#nombre').value     =   data_ruc.nombre_o_razon_social;
+        document.querySelector('#direccion').value  =   data_ruc.direccion;
+        document.querySelector('#activo').value     =   data_ruc.estado;
+        
+        document.querySelector('#departamento').onchange    =   null;
+        document.querySelector('#provincia').onchange    =   null;
+        
+        $("#departamento").val(data_ruc.ubigeo[0]).trigger("change.select2");
+        setZona(getZona(data_ruc.ubigeo[0]));
+        const provincias = await getProvincias(data_ruc.ubigeo[0]);
+        pintarProvincias(provincias,data_ruc.ubigeo[1]);
+        const distritos  = await getDistritos(data_ruc.ubigeo[1]);
+        pintarDistritos(distritos,data_ruc.ubigeo[2]);
+
+        document.querySelector('#departamento').onchange = function() {
+            setUbicacionDepartamento(this.value, 'first');
+        };
+        document.querySelector('#provincia').onchange = function() {
+            setUbicacionProvincia(this.value, 'first');
+        };
+    }
+
+    //====== CLEAR CAMPOS DNI =====
+    function clearCamposDni(){
+        document.querySelector('#nombre').value =  '';
+        document.querySelector('#activo').value =  'SIN VERIFICAR';
+    }
+
+    function clearCamposRuc(){
+        document.querySelector('#nombre').value =  '';
+        document.querySelector('#activo').value =  'SIN VERIFICAR';
+        document.querySelector('#direccion').value =  '';
+    }
+
+    function eventsCliente(){
+        formCliente.addEventListener('submit',(e)=>{
+            e.preventDefault();            
+            guardarCliente();
+        })
+    }
+
+    //====== GUARDAR CLIENTE ======
+    async function guardarCliente() {
+            try {
+                //======= MOSTRAR OVERLAY =======
+                const overlay = document.getElementById('overlay_save');
+                overlay.style.display = 'flex'; 
+
+                //======== OBTENEMOS EL SIMBOLO DEL TIPO DOCUMENTO =======
+                const formData  =   new FormData(formCliente);
+                formData.set('tipo_documento', selectTipoDoc.options[selectTipoDoc.selectedIndex].textContent);
+
+                const res = await axios.post(route('ventas.cliente.storeFast'), formData);
+
+                // const { cliente, dataCliente, mensaje, result } = data;
+                console.log(res);
+                console.log(res.data.dataCliente);
+
+                if(res.status == 200){
+                    if(res.data.result  ==   'success'){
+                        updateSelectClientes(res.data.dataCliente);
+                        toastr.success(res.data.mensaje,'OPERACION COMPLETADA');
+                        formCliente.reset();
+                        $("#modal_cliente").modal("hide");
+                    }
+                    if(res.data.result  ==   'error'){
+                        toastr.error(res.data.mensaje,'ERROR');
+                    }
+                }
+
+            } catch (ex) {
+                alert("Ocurrio un error");
+            }finally{
+                const overlay = document.getElementById('overlay_save');
+                overlay.style.display = 'none'; 
+            }
+    }
+
+    const updateSelectClientes = (clientes_actualizados) => {
+        const ultimoCliente = clientes_actualizados[clientes_actualizados.length - 1];
+
+        var newOption = new Option(`${ultimoCliente.tipo_documento}: ${ultimoCliente.documento} - ${ultimoCliente.nombre}`, ultimoCliente.id, false, false);
+        $('#cliente').append(newOption).trigger('change');
+    };
+
+    
+
 </script>

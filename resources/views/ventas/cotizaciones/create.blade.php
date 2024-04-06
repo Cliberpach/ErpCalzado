@@ -1,8 +1,9 @@
 @extends('layout') @section('content')
-{{-- @include('ventas.cotizaciones.modal-cliente') --}}
+@include('ventas.cotizaciones.modal-cliente') 
     
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
+
 @csrf
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
@@ -22,10 +23,7 @@
     </div>
 </div>
 
-
-
 <div class="wrapper wrapper-content animated fadeInRight">
-      
     <div class="row">
         <div class="col-lg-12">
             <div class="ibox">
@@ -155,7 +153,7 @@
                                             <div class="col-12 col-md-6 select-required">
                                                 <div class="form-group">
                                                     <label class="required">Cliente:
-                                                        <button type="button" class="btn btn-outline btn-primary">
+                                                        <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
                                                             Registrar
                                                         </button>
                                                     </label>
@@ -403,11 +401,8 @@
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 <link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/dist/toastr.min.css">
+@endpush
 
-@endpush
-@push('scripts-vue-js')
-    <script src="{{'/js/modal_cliente.js?v='.rand() }}"></script>
-@endpush
 @push('scripts')
 
 <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
@@ -1047,6 +1042,8 @@
     const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
     const inputMontoDescuento   =   document.querySelector('#monto_descuento');
 
+    const selectClientes    =   document.querySelector('#cliente');
+
     const inputProductos        =   document.querySelector('#productos_tabla');
     const tallas                =   @json($tallas);
 
@@ -1055,7 +1052,10 @@
     let carritoFormateado   =   [];
    
     document.addEventListener('DOMContentLoaded',()=>{
+        console.log('coti create');
+        //setUbicacionDepartamento({value:13});
         events();
+        eventsCliente();
     })
 
     function events(){
@@ -1133,7 +1133,7 @@
 
         formCotizacion.addEventListener('submit',(e)=>{
             e.preventDefault();
-
+            console.log('hola papu')
             //===== VALIDAR FECHA =====
             const correcto =  validarFecha();
 
@@ -1577,9 +1577,9 @@
     }
 
     // //============= ABRIR MODAL CLIENTE =============
-    // function openModalCliente(){
-    //     $("#modal_cliente").modal("show");
-    // }
+    function openModalCliente(){
+        $("#modal_cliente").modal("show");
+    }
 
 
 </script>

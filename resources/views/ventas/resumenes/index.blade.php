@@ -435,14 +435,32 @@
                 'comprobantes': JSON.stringify(listComprobantes),
                 'fecha_comprobantes': JSON.stringify(fecha_comprobantes)
             });
-
             console.log(response);
-            $("#modal_resumenes").modal("hide");
-            addNewResumen(response.data.nuevo_resumen)
-            toastr.info('RESUMEN REGISTRADO','OPERACIÓN EXITOSA');
+
+            if(response.status  ==  200){
+                const nuevo_resumen =   response.data.res_store.nuevo_resumen;
+                const type_store    =   response.data.res_store.type;
+                const type_send     =   response.data.res_send.type;
+
+                if(type_store   ==  'success'){
+                    addNewResumen(nuevo_resumen);
+                    toastr.info('RESUMEN REGISTRADO','OPERACIÓN EXITOSA', { timeOut: 0 });
+                }
+                if(type_store   ==  'error'){
+                    const message   =   response.data.res_store.message;
+                    const exception =   response.data.res_store.exception;
+
+                    toastr.error(`${message} | ${exception}`, 'ERROR AL REGISTRAR EL RESUMEN', { timeOut: 0 });
+                }
+
+
+            }
         } catch (error) {
             console.error('Error al enviar y guardar resumen:', error);
+            toastr.error(error, 'ERROR', { timeOut: 0 });
+
         }finally{
+            $("#modal_resumenes").modal("hide");
             document.querySelector('.loader-container').style.display = 'none'; 
         }
     }

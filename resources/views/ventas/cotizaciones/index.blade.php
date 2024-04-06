@@ -3,6 +3,7 @@
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
 
+
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
         <h2 style="text-transform:uppercase"><b>Listado de Cotizaciones</b></h2>
@@ -54,8 +55,8 @@
 
 @stop
 @push('styles')
-<!-- DataTable -->
-<link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+    <!-- DataTable -->
+    <link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
 @endpush
 
 @push('scripts')
