@@ -319,6 +319,8 @@ function(){
         Route::get('nuevodocumento/{id}','Compras\OrdenController@newdocument')->name('compras.orden.nuevodocumento');
         Route::get('confirmarEliminar/{id}','Compras\OrdenController@confirmDestroy')->name('compras.orden.confirmDestroy');
         Route::get('dolar','Compras\OrdenController@dolar')->name('compras.orden.dolar');
+
+        Route::get('getProductosByModelo/{modelo_id}','Compras\OrdenController@getProductosByModelo')->name('compras.orden.getProductosByModelo');
     });
     //Documentos
     Route::prefix('compras/documentos')->group(function(){

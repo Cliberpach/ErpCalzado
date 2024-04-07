@@ -252,8 +252,35 @@
                         </div>
 
                         <hr>
-
                         <div class="row">
+                            <div class="col-lg-12">
+                                <div class="panel panel-primary" id="panel_detalle">
+                                    <div class="panel-heading">
+                                        <h4 class=""><b>Seleccionar productos</b></h4>
+                                    </div>
+                                    <div class="panel-body ibox-content">
+                                       <div class="row">
+                                        <div class="col-4">
+                                            <label for="modelo">MODELO</label>
+                                            <select class="select2_form form-control" name="modelo" id="modelo">
+                                                <option value=""></option>
+                                                @foreach ($modelos as $modelo)
+                                                   <option value="{{$modelo->id}}">{{$modelo->descripcion}}</option> 
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-12 mt-3">
+                                            <div class="table-responsive">
+                                                @include('compras.ordenes.table-productos')
+                                            </div>
+                                        </div>
+                                       </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- <div class="row">
 
                             <div class="col-lg-12">
                                 <div class="panel panel-primary" id="panel_detalle">
@@ -363,7 +390,7 @@
                                 </div>
                             </div>
 
-                        </div>
+                        </div> --}}
 
                         <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
                         <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
@@ -430,7 +457,7 @@
 <script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
-<script>
+{{-- <script>
 //Select2
 $(".select2_form").select2({
     placeholder: "SELECCIONAR",
@@ -1012,6 +1039,161 @@ $(document).on("change", "#proveedor_id", function () {
         })
     }
 
+
+</script> --}}
+<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
+<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
+<script>
+    const bodyTablaProductos    =   document.querySelector('#table-productos tbody');
+    const tallas                =   @json($tallas);
+
+    let dataTableProductos      =   null;
+    let modelo_id               =   null;
+
+    document.addEventListener('DOMContentLoaded',()=>{
+        cargarSelect2();
+        events();
+    })
+
+    function events(){
+        $('#modelo').on('change', function (e) {
+            getProductosByModelo(e.target.value);
+        });
+    
+    }
+
+    function cargarSelect2(){
+        $(".select2_form").select2({
+        placeholder: "SELECCIONAR",
+        allowClear: true,
+        width: '100%',
+        })
+
+    }
+
+
+    //====== OBTENER PRODUCTOS POR MODELO =======
+    async function getProductosByModelo(idModelo){
+        modelo_id = idModelo;
+        
+        if(modelo_id){
+            const url = "{{ route('compras.orden.getProductosByModelo', ['modelo_id' => ':modelo_id']) }}".replace(':modelo_id', modelo_id);
+            const response = await axios.get(url);
+            
+            console.log(response);
+            if(response.data.type   ==  'success'){
+                
+                if(dataTableProductos){
+                    dataTableProductos.destroy();
+                }
+                //======= PINTAR PRODUCTOS ========
+                pintarTablaProductos(response.data.message);
+
+                //====== CARGAR DATATABLE =======
+                cargarDataTablesProductos();            
+            }
+        }else{
+            clearTablaProductos();
+        }
+    }
+
+    //======== ORDENAR POR EL PRODUCTO NOMBRE =====
+    function ordenarByProducto(a, b) {
+        //Primero, ordenar por producto_nombre
+        const nombreA = a.producto_nombre.toUpperCase();
+        const nombreB = b.producto_nombre.toUpperCase();
+
+        if (nombreA !== nombreB) {
+            return nombreA > nombreB ? 1 : -1;
+        } else {
+            // Si los nombres de los productos son iguales, ordenar por color_nombre
+            const colorA = a.color_nombre.toUpperCase();
+            const colorB = b.color_nombre.toUpperCase();
+
+            return colorA > colorB ? 1 : colorA < colorB ? -1 : 0;
+        }
+    }
+
+    //======= PINTAR TABLE PRODUCTOS ==========
+    function pintarTablaProductos(productos){
+        let filas       = ``;
+        let htmlTallas  = ``;
+
+        clearTablaProductos();
+
+        productos.forEach((producto)=>{
+            htmlTallas=``;
+                filas+= `<tr>   
+                            <th>${producto.producto_nombre}</th>
+                            <th>
+                                ${producto.color_nombre}
+                            </th>
+                        `;
+
+                tallas.forEach((t)=>{
+                    let producto_color_talla =  producto.tallas.filter((pt)=>{
+                        return t.id==pt.talla_id;
+                    });
+                    const stock =   producto_color_talla.length==0?0:producto_color_talla[0].stock;
+
+                    htmlTallas +=   `   <td style="background-color: rgb(210, 242, 242);">${stock}</td>
+                                        <td>
+                                            <input class="form-control"></input>   
+                                        </td>
+                                    `; 
+                })
+
+                const input =   producto.print_importe?`<input class="form-control" data-producto="${producto.producto_id}" data-color="${producto.color_id}">`:'';
+
+                htmlTallas +=   `<td>${input}</td>
+                                </tr>`;
+
+                filas+=htmlTallas;
+        })
+
+        bodyTablaProductos.innerHTML=filas;            
+    }
+
+    //======= CLEAR TABLA PRODUCTOS ======
+    function clearTablaProductos(){
+        while (bodyTablaProductos.firstChild) {
+            bodyTablaProductos.removeChild(bodyTablaProductos.firstChild);
+        }
+    }
+
+    function cargarDataTablesProductos(){
+        dataTableProductos = new DataTable('#table-productos',
+        {
+            language: {
+                processing:     "Traitement en cours...",
+                search:         "BUSCAR: ",
+                lengthMenu:    "MOSTRAR _MENU_ PRODUCTOS",
+                info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ PRODUCTOS",
+                infoEmpty:      "MOSTRANDO 0 ELEMENTOS",
+                infoFiltered:   "(FILTRADO de _MAX_ PRODUCTOS)",
+                infoPostFix:    "",
+                loadingRecords: "CARGA EN CURSO",
+                zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+                emptyTable:     "NO HAY PRODUCTOS DISPONIBLES",
+                paginate: {
+                    first:      "PRIMERO",
+                    previous:   "ANTERIOR",
+                    next:       "SIGUIENTE",
+                    last:       "ÚLTIMO"
+                },
+                aria: {
+                    sortAscending:  ": activer pour trier la colonne par ordre croissant",
+                    sortDescending: ": activer pour trier la colonne par ordre décroissant"
+                }
+            }
+        });
+        
+        const tableProductos   = document.querySelector('#table-productos');
+        if(tableProductos.children[1]){
+            tableProductos.children[1].remove();
+        }
+    }
 
 </script>
 @endpush

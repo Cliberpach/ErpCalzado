@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Compras;
 
 use App\Almacenes\LoteProducto;
 use App\Almacenes\Producto;
+use App\Almacenes\Talla;
+use App\Almacenes\Modelo;
 use App\Compras\CuentaProveedor;
 use App\Compras\Detalle;
 use App\Compras\Documento\Documento;
@@ -118,14 +120,17 @@ class OrdenController extends Controller
     public function create(Request $request)
     {
         $this->authorize('haveaccess','orden.index');
-        $empresas = Empresa::where('estado','ACTIVO')->get();
-        $proveedores = Proveedor::where('estado','ACTIVO')->get();
-        $productos = Producto::where('estado','ACTIVO')->get();
+        $empresas       = Empresa::where('estado','ACTIVO')->get();
+        $proveedores    = Proveedor::where('estado','ACTIVO')->get();
+        $productos      = Producto::where('estado','ACTIVO')->get();
         $presentaciones =  presentaciones();
-        $modos =  modo_compra();
-        $fecha_hoy = Carbon::now()->toDateString();
-        $monedas =  tipos_moneda();
-        $condiciones = Condicion::where('estado','ACTIVO')->get();
+        $modos          =  modo_compra();
+        $fecha_hoy      = Carbon::now()->toDateString();
+        $monedas        =  tipos_moneda();
+        $condiciones    = Condicion::where('estado','ACTIVO')->get();
+
+        $tallas         =   Talla::where('estado','ACTIVO')->get();
+        $modelos        =   Modelo::where('estado','ACTIVO')->get();
 
         return view('compras.ordenes.create',[
             'empresas' => $empresas,
@@ -136,6 +141,8 @@ class OrdenController extends Controller
             'fecha_hoy' => $fecha_hoy,
             'modos' => $modos,
             'monedas' => $monedas,
+            'tallas'    =>  $tallas,
+            'modelos'   =>  $modelos
         ]);
     }
 
@@ -707,5 +714,75 @@ class OrdenController extends Controller
     public function dolar()
     {
         return precio_dolar();
+    }
+
+    public function getProductosByModelo($modelo_id){
+        try {
+            $productos  =   DB::select('select distinct p.id as producto_id,c.id as color_id, t.id as talla_id,
+            m.id as modelo_id, p.nombre as producto_nombre,c.descripcion as color_nombre, 
+            t.descripcion as talla_nombre,pct.stock,m.descripcion as modelo_nombre 
+            from producto_color_tallas as pct 
+            inner join producto_colores as pc on pc.producto_id=pct.producto_id 
+            inner join productos as p on p.id=pct.producto_id 
+            inner join colores as c on c.id=pct.color_id 
+            inner join tallas as t on t.id=pct.talla_id 
+            inner join modelos as m on m.id=p.modelo_id
+            where m.id=?
+            order by p.nombre,c.descripcion',[$modelo_id]);    
+
+            $productos_formateado       =   [];
+            $producto_color_procesados  =   [];
+            $llave                      =   '';
+
+            $productos_procesados       =   [];
+            $llave_2                    =   '';
+
+
+            //====== FORMATEANDO =====
+            foreach ($productos as $producto) {
+                $llave      =   $producto->producto_id.'-'.$producto->color_id;
+                $llave_2    =   $producto->producto_id;
+                if (!in_array($llave, $producto_color_procesados)) {
+                    $producto_color =   [];
+                    $producto_color['producto_id']          =   $producto->producto_id;
+                    $producto_color['color_id']             =   $producto->color_id;
+                    $producto_color['producto_nombre']      =   $producto->producto_nombre;
+                    $producto_color['color_nombre']         =   $producto->color_nombre;
+                    $producto_color['modelo_nombre']        =   $producto->modelo_nombre;
+
+                    //==== OBTENIENDO LAS TALLAS ====
+                    $tallas = array_filter($productos, function($p) use ($producto) {
+                        return $p->producto_id == $producto->producto_id && $p->color_id == $producto->color_id;
+                    });
+
+                    $producto_color_tallas = [];
+                    foreach ($tallas as $talla) {
+                        //====== CONSTRUYENDO TALLA =====
+                        $producto_color_talla                  =   [];
+                        $producto_color_talla['talla_id']      =   $talla->talla_id;
+                        $producto_color_talla['talla_nombre']  =   $talla->talla_nombre;
+                        $producto_color_talla['stock']         =   $talla->stock;   
+                        
+                        //====== GUARDANDO TALLA DEL PRODUCTO COLOR ====
+                        $producto_color_tallas[]   =   $producto_color_talla;
+                    }
+                    $producto_color['tallas']   =   $producto_color_tallas;
+                    if(!in_array($llave_2, $productos_procesados)){
+                        $producto_color['print_importe']   =   true;
+                    }else{
+                        $producto_color['print_importe']   =   false;
+                    }
+                    
+                    $productos_formateado[]         =   $producto_color;
+                    $producto_color_procesados[]    =   $llave;
+                }
+                $productos_procesados[]    =   $llave_2;
+            }
+            
+            return response()->json(['type'=>'success','message'=>$productos_formateado]);
+
+        } catch (\Throwable $e) {
+            return response()->json(['type'=>'error','message'=>$e->getMessage()]);
+        }
     }
 }
