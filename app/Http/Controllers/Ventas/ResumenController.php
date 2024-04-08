@@ -382,7 +382,7 @@ class ResumenController extends Controller
             //===== ENVÍO CON ERRORES Y CDR RECIBIDO =====
             if($code_estado == 99 && $cdr){
                 //===== GUARDANDO CDR ======
-                $util->writeCdr($sum, $res_ticket->getCdrZip(),"RESUMEN");
+                $util->writeCdr(null, $res_ticket->getCdrZip(),"RESUMEN",$summary_name);
 
                 //==== GUARDANDO DATOS DEL CDR ====
                 $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
@@ -447,7 +447,8 @@ class ResumenController extends Controller
                 'cdr'           =>  $cdr?true:false
                 ]);
         }else{
-            $comprobantes   =   DB::select('select * from resumenes_detalles');
+            $comprobantes   =   DB::select('select * from resumenes_detalles as rd 
+                                where rd.resumen_id=?',[$resumen->id]);
 
             $resumen->regularize    =   0;
             $resumen->update();
