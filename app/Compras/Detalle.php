@@ -11,6 +11,8 @@ class Detalle extends Model
     protected $fillable = [
         'orden_id',
         'producto_id',
+        'color_id',
+        'talla_id',
         'cantidad',
         'precio',
     ];

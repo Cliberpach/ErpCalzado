@@ -16,6 +16,7 @@ class CreateDetalleOrdenesTable extends Migration
         Schema::create('detalle_ordenes', function (Blueprint $table) {
             $table->Increments('id');
             $table->unsignedInteger('orden_id')->unsigned();
+
             $table->foreign('orden_id')
                   ->references('id')->on('ordenes')
                   ->onDelete('cascade');
@@ -23,6 +24,16 @@ class CreateDetalleOrdenesTable extends Migration
             $table->unsignedInteger('producto_id')->unsigned();
             $table->foreign('producto_id')
                 ->references('id')->on('productos')
+                ->onDelete('cascade');
+
+            $table->unsignedInteger('color_id')->unsigned();
+            $table->foreign('color_id')
+                ->references('id')->on('colores')
+                ->onDelete('cascade');
+            
+            $table->unsignedInteger('talla_id')->unsigned();
+            $table->foreign('talla_id')
+                ->references('id')->on('tallas')
                 ->onDelete('cascade');
 
             $table->BigInteger('cantidad');

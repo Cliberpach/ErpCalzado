@@ -211,7 +211,7 @@ class OrdenController extends Controller
             'observacion' => 'nullable',
             'moneda' => 'nullable',
             'tipo_cambio' => 'nullable|numeric',
-            'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
+            //'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
 
         ];
         $message = [
@@ -220,9 +220,9 @@ class OrdenController extends Controller
             'proveedor_id.required' => 'El campo Proveedor es obligatorio.',
             'condicion_id.required' => 'El campo Condicion es obligatorio.',
             'moneda.required' => 'El campo Moneda es obligatorio.',
-            'igv.required_if' => 'El campo Igv es obligatorio.',
-            'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
-            'igv.numeric' => 'El campo Igv debe se numérico.',
+            // 'igv.required_if' => 'El campo Igv es obligatorio.',
+            // 'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
+            // 'igv.numeric' => 'El campo Igv debe se numérico.',
             'tipo_cambio.numeric' => 'El campo Tipo de Cambio debe se numérico.',
 
 
@@ -247,7 +247,9 @@ class OrdenController extends Controller
         $orden->moneda = $request->get('moneda');
         $orden->tipo_cambio = $request->get('tipo_cambio');
         $orden->usuario_id = auth()->user()->id;
-        $orden->igv = $request->get('igv');
+        // $orden->igv = $request->get('igv');
+        $orden->igv = '18';
+
         if ($request->get('igv_check') == "on") {
             $orden->igv_check = "1";
         };
@@ -258,12 +260,16 @@ class OrdenController extends Controller
         $productotabla = json_decode($productosJSON[0]);
 
         foreach ($productotabla as $producto) {
-            Detalle::create([
-                'orden_id' => $orden->id,
-                'producto_id' => $producto->producto_id,
-                'cantidad' => $producto->cantidad,
-                'precio' => $producto->precio,
-            ]);
+            foreach ($producto->tallas as $talla) {
+                Detalle::create([
+                    'orden_id'      => $orden->id,
+                    'producto_id'   => $producto->producto_id,
+                    'color_id'      => $producto->color_id,
+                    'talla_id'      => $talla->talla_id,
+                    'cantidad'      => $talla->cantidad,
+                    'precio'        => $producto->precio_unitario,
+                ]);            
+            } 
         }
 
         //Registro de actividad
@@ -721,12 +727,12 @@ class OrdenController extends Controller
             $productos  =   DB::select('select distinct p.id as producto_id,c.id as color_id, t.id as talla_id,
             m.id as modelo_id, p.nombre as producto_nombre,c.descripcion as color_nombre, 
             t.descripcion as talla_nombre,pct.stock,m.descripcion as modelo_nombre 
-            from producto_color_tallas as pct 
-            inner join producto_colores as pc on pc.producto_id=pct.producto_id 
-            inner join productos as p on p.id=pct.producto_id 
-            inner join colores as c on c.id=pct.color_id 
-            inner join tallas as t on t.id=pct.talla_id 
+            from producto_colores as pc 
+            left join producto_color_tallas as pct on (pc.producto_id=pct.producto_id and pc.color_id=pct.color_id) 
+            inner join productos as p on p.id=pc.producto_id 
+            inner join colores as c on c.id=pc.color_id 
             inner join modelos as m on m.id=p.modelo_id
+            left join tallas as t on t.id=pct.talla_id 
             where m.id=?
             order by p.nombre,c.descripcion',[$modelo_id]);    
 
@@ -749,6 +755,7 @@ class OrdenController extends Controller
                     $producto_color['producto_nombre']      =   $producto->producto_nombre;
                     $producto_color['color_nombre']         =   $producto->color_nombre;
                     $producto_color['modelo_nombre']        =   $producto->modelo_nombre;
+                    $producto_color['importe']              =   0;
 
                     //==== OBTENIENDO LAS TALLAS ====
                     $tallas = array_filter($productos, function($p) use ($producto) {
@@ -758,10 +765,12 @@ class OrdenController extends Controller
                     $producto_color_tallas = [];
                     foreach ($tallas as $talla) {
                         //====== CONSTRUYENDO TALLA =====
-                        $producto_color_talla                  =   [];
-                        $producto_color_talla['talla_id']      =   $talla->talla_id;
-                        $producto_color_talla['talla_nombre']  =   $talla->talla_nombre;
-                        $producto_color_talla['stock']         =   $talla->stock;   
+                        $producto_color_talla                       =   [];
+                        $producto_color_talla['talla_id']           =   $talla->talla_id;
+                        $producto_color_talla['talla_nombre']       =   $talla->talla_nombre;
+                        $producto_color_talla['stock']              =   $talla->stock;   
+                        $producto_color_talla['precio_unitario']    =   0;   
+
                         
                         //====== GUARDANDO TALLA DEL PRODUCTO COLOR ====
                         $producto_color_tallas[]   =   $producto_color_talla;
