@@ -38,6 +38,8 @@ class CreateDetalleOrdenesTable extends Migration
 
             $table->BigInteger('cantidad');
             $table->unsignedDecimal('precio', 15,4);
+            $table->unsignedDecimal('importe_producto_id', 15,2);
+
             $table->timestamps();
         });
     }

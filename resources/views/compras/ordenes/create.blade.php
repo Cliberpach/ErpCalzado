@@ -1106,7 +1106,9 @@ $(document).on("change", "#proveedor_id", function () {
                 const productoId    = e.target.getAttribute('data-producto');
                 const colorId       = e.target.getAttribute('data-color');
                 eliminarProducto(productoId,colorId);
-                pintarDetalleOrden();                
+                calcularPrecioUnitario();
+                calcularSubTotal();
+                pintarDetalleOrden();
                 calcularMontos();
             }
         })

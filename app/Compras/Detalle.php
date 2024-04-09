@@ -15,6 +15,7 @@ class Detalle extends Model
         'talla_id',
         'cantidad',
         'precio',
+        'importe_producto_id'
     ];
 
     public function orden()
@@ -25,5 +26,13 @@ class Detalle extends Model
     public function producto()
     {
         return $this->belongsTo('App\Almacenes\Producto');
+    }
+    public function color()
+    {
+        return $this->belongsTo('App\Almacenes\Color');
+    }
+    public function talla()
+    {
+        return $this->belongsTo('App\Almacenes\Talla');
     }
 }

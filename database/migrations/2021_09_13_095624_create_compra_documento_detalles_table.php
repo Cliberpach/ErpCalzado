@@ -21,17 +21,25 @@ class CreateCompraDocumentoDetallesTable extends Migration
                   ->onDelete('cascade');
 
             $table->unsignedInteger('producto_id')->unsigned();
-            $table->string('codigo_producto')->nullable();
-            $table->string('descripcion_producto');
+            $table->unsignedInteger('color_id')->unsigned();
+            $table->unsignedInteger('talla_id')->unsigned();
+
+            $table->string('producto_codigo')->nullable();
+            $table->string('producto_nombre')->nullable();
             $table->string('presentacion_producto')->nullable();
-            $table->string('medida_producto');
+            $table->string('medida_producto')->nullable();
+
+            $table->string('color_nombre')->nullable();
+            $table->string('talla_nombre')->nullable();
+            $table->string('modelo_nombre')->nullable();
+
 
             $table->unsignedDecimal('cantidad', 15, 4);
             $table->date('fecha_vencimiento')->nullable();
 
-            $table->string('lote')->nullable();
-            $table->unsignedInteger('lote_id')->unsigned()->nullable();
-            $table->foreign('lote_id')->references('id')->on('lote_productos')->onDelete('cascade');
+            // $table->string('lote')->nullable();
+            // $table->unsignedInteger('lote_id')->unsigned()->nullable();
+            // $table->foreign('lote_id')->references('id')->on('lote_productos')->onDelete('cascade');
 
             $table->unsignedDecimal('precio', 15,4)->nullable();
             $table->unsignedDecimal('precio_inicial', 15, 4)->nullable();

@@ -25,9 +25,15 @@ class CreateMovimientoAlmacenesTable extends Migration
 
             $table->unsignedInteger('producto_id')->unsigned();
             $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
+
+            $table->unsignedInteger('color_id')->unsigned();
+            $table->foreign('color_id')->references('id')->on('colores')->onDelete('cascade');
+
+            $table->unsignedInteger('talla_id')->unsigned();
+            $table->foreign('talla_id')->references('id')->on('tallas')->onDelete('cascade');
             
-            $table->unsignedInteger('lote_id')->unsigned()->nullable();
-            $table->foreign('lote_id')->references('id')->on('lote_productos')->onDelete('cascade');
+            // $table->unsignedInteger('lote_id')->unsigned()->nullable();
+            // $table->foreign('lote_id')->references('id')->on('lote_productos')->onDelete('cascade');
 
             $table->unsignedInteger('compra_documento_id')->unsigned();
             $table->foreign('compra_documento_id')
