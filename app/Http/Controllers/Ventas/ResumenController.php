@@ -256,6 +256,7 @@ class ResumenController extends Controller
             if($code_estado == 0){
                 //===== GUARDANDO CDR ======
                 $util->writeCdr($sum, $res_ticket->getCdrZip(), "RESUMEN",null);
+                $resumen->ruta_cdr  =   __DIR__.'/../../../Greenter/files/resumenes_cdr/'.$sum->getName().'.zip';   
     
                 //==== GUARDANDO DATOS DEL CDR ====
                 if($res_ticket->getCdrResponse()){
