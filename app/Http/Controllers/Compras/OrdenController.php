@@ -183,7 +183,10 @@ class OrdenController extends Controller
                 'detalles' => $detalles,
                 'modos' => $modos,
                 'monedas' => $monedas,
-                'aviso' => $aviso
+                'aviso' => $aviso,
+                'monedas' => $monedas,
+                'tallas'    =>  $tallas,
+                'modelos'   =>  $modelos
             ]);
         }else{
             return view('compras.ordenes.edit',[

@@ -748,12 +748,13 @@ function(){
     Route::prefix('reportes/producto')->group(function(){
 
         Route::get('informe', 'Reportes\ProductoController@informe')->name('reporte.producto.informe');
-        Route::get('llenarCompras/{id}', 'Reportes\ProductoController@llenarCompras')->name('reporte.producto.llenarCompras');
-        Route::get('llenarVentas/{id}', 'Reportes\ProductoController@llenarVentas')->name('reporte.producto.llenarVentas');
-        Route::get('llenarSalidas/{id}', 'Reportes\ProductoController@llenarSalidas')->name('reporte.producto.llenarSalidas');
-        Route::get('llenarIngresos/{id}', 'Reportes\ProductoController@llenarIngresos')->name('reporte.producto.llenarIngresos');
+        Route::get('llenarCompras/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarCompras')->name('reporte.producto.llenarCompras');
+        Route::get('llenarVentas/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarVentas')->name('reporte.producto.llenarVentas');
+        Route::get('llenarSalidas/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarSalidas')->name('reporte.producto.llenarSalidas');
+        Route::get('llenarIngresos/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarIngresos')->name('reporte.producto.llenarIngresos');
         Route::post('updateIngreso', 'Reportes\ProductoController@updateIngreso')->name('reporte.producto.updateIngreso');
-        Route::get('getTable', 'Reportes\ProductoController@getTable')->name('reporte.producto.getTable');
+        // Route::get('getTable', 'Reportes\ProductoController@getTable')->name('reporte.producto.getTable');
+        Route::get('getProductos', 'Reportes\ProductoController@getProductos')->name('reporte.producto.getProductos');
 
     });
 

@@ -37,11 +37,11 @@
                                 <thead>
                                     <tr>
                                         <th class="text-center">CÓDIGO</th>
-                                        <th class="text-center">PRODUCTO</th>
-                                        <th class="text-center">COLOR</th>
-                                        <th class="text-center">TALLA</th>
-                                        <th class="text-center">MODELO</th>
+                                        <th class="text-center">CÓDIGO BARRA</th>
+                                        <th class="text-center">NOMBRE</th>
+                                        <th class="text-center">ALMACEN</th>
                                         <th class="text-center">MARCA</th>
+                                        <th class="text-center">CATEGORIA</th>
                                         <th class="text-center">STOCK</th>
                                     </tr>
                                 </thead>
@@ -79,6 +79,7 @@
                                         <th class="text-center">CANTIDAD</th>
                                         <th class="text-center">PRECIO</th>
                                         <th class="text-center">MEDIDA</th>
+                                        <th class="text-center">LOTE</th>
                                         <th class="text-center">FECHA VENC.</th>
                                     </tr>
                                 </thead>
@@ -117,6 +118,7 @@
                                         <th class="text-center">CANTIDAD</th>
                                         <th class="text-center">PRECIO</th>
                                         <th class="text-center">MEDIDA</th>
+                                        <th class="text-center">LOTE</th>
                                         <th class="text-center">FECHA VENC.</th>
                                     </tr>
                                 </thead>
@@ -189,7 +191,7 @@
                                         <th class="text-center">DESTINO</th>
                                         <th class="text-center">CANTIDAD</th>
                                         <th class="text-center">MEDIDA</th>
-                                        <th class="text-center">FECHA</th>
+                                        <th class="text-center">LOTE</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -365,26 +367,21 @@
             });
 
             //DOBLE CLICK EN LOTES
-            $('.dataTables-producto').on('click', 'tbody td', function() {
-                var instancia   = $('.dataTables-producto').DataTable();
-                var producto    = instancia.row(this).data();
-                llenarCompras(producto.producto_id,producto.color_id,producto.talla_id);
-                llenarVentas(producto.producto_id,producto.color_id,producto.talla_id);
-                llenarSalidas(producto.producto_id,producto.color_id,producto.talla_id);
-                
-                llenarIngresos(producto.producto_id,producto.color_id,producto.talla_id);
-                console.log(`${producto.producto_id}-${producto.color_id}-${producto.talla_id}`);
+            $('.dataTables-producto').on('dblclick', 'tbody td', function() {
+                var lote = $('.dataTables-producto').DataTable();
+                var data = lote.row(this).data();
+                llenarCompras(data.id);
+                llenarVentas(data.id);
+                llenarSalidas(data.id);
+                llenarIngresos(data.id);
             });
 
         });
 
-        function llenarCompras(producto_id,color_id,talla_id) {
+        function llenarCompras(id) {
             $('.dataTables-compras').dataTable().fnDestroy();
-            let url = '{{ route('reporte.producto.llenarCompras', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
-            url = url.replace(":producto_id", producto_id);
-            url = url.replace(":color_id", color_id);
-            url = url.replace(":talla_id", talla_id);
-            
+            let url = '{{ route('reporte.producto.llenarCompras', ':id') }}';
+            url = url.replace(":id", id);
             $('.dataTables-compras').DataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
@@ -450,6 +447,11 @@
                         className: "letrapequeña"
                     },
                     {
+                        data: 'lote',
+                        name: 'lote',
+                        className: "letrapequeña"
+                    },
+                    {
                         data: 'fecha_vencimiento',
                         name: 'fecha_vencimiento',
                         className: "letrapequeña"
@@ -466,13 +468,10 @@
             });
         }
 
-        function llenarVentas(producto_id,color_id,talla_id) {
+        function llenarVentas(id) {
             $('.dataTables-ventas').dataTable().fnDestroy();
-            let url = '{{ route('reporte.producto.llenarVentas', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
-            url = url.replace(":producto_id", producto_id);
-            url = url.replace(":color_id", color_id);
-            url = url.replace(":talla_id", talla_id);
-            
+            let url = '{{ route('reporte.producto.llenarVentas', ':id') }}';
+            url = url.replace(":id", id);
             $('.dataTables-ventas').DataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
@@ -538,6 +537,11 @@
                         className: "letrapequeña"
                     },
                     {
+                        data: 'lote',
+                        name: 'lote',
+                        className: "letrapequeña"
+                    },
+                    {
                         data: 'fecha_vencimiento',
                         name: 'fecha_vencimiento',
                         className: "letrapequeña"
@@ -554,12 +558,10 @@
             });
         }
 
-        function llenarSalidas(producto_id,color_id,talla_id) {
+        function llenarSalidas(id) {
             $('.dataTables-salidas').dataTable().fnDestroy();
-            let url = '{{ route('reporte.producto.llenarSalidas', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
-            url = url.replace(":producto_id", producto_id);
-            url = url.replace(":color_id", color_id);
-            url = url.replace(":talla_id", talla_id);
+            let url = '{{ route('reporte.producto.llenarSalidas', ':id') }}';
+            url = url.replace(":id", id);
             $('.dataTables-salidas').DataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
@@ -610,8 +612,8 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'fecha',
-                        name: 'fecha',
+                        data: 'lote',
+                        name: 'lote',
                         className: "letrapequeña"
                     },
                 ],
@@ -626,13 +628,10 @@
             });
         }
 
-        function llenarIngresos(producto_id,color_id,talla_id) {
+        function llenarIngresos(id) {
             $('.dataTables-ingresos').dataTable().fnDestroy();
-            let url = '{{ route('reporte.producto.llenarIngresos', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
-            url = url.replace(":producto_id", producto_id);
-            url = url.replace(":color_id", color_id);
-            url = url.replace(":talla_id", talla_id);
-
+            let url = '{{ route('reporte.producto.llenarIngresos', ':id') }}';
+            url = url.replace(":id", id);
             $('.dataTables-ingresos').DataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
@@ -724,41 +723,41 @@
                 "order": [],
                 "bInfo": true,
                 'bAutoWidth': false,
-                "ajax": "{{ route('reporte.producto.getProductos') }}",
+                "ajax": "{{ route('almacenes.producto.getTable') }}",
                 "columns": [{
-                        data: 'producto_codigo',
+                        data: 'codigo',
                         className: "text-left",
-                        name: "codigo"
+                        name: "productos.codigo"
                     },
                     {
-                        data: 'producto_nombre',
+                        data: 'codigo_barra',
                         className: "text-left",
-                        name: "nombre"
+                        name: "productos.codigo_barra"
                     },
                     {
-                        data: 'color_nombre',
+                        data: 'nombre',
                         className: "text-left",
-                        name: "colores.descripcion"
+                        name: "productos.nombre"
                     },
                     {
-                        data: 'talla_nombre',
+                        data: 'almacen',
                         className: "text-left",
-                        name: "tallas.descripcion"
+                        name: "almacenes.descripcion"
                     },
                     {
-                        data: 'modelo_nombre',
+                        data: 'marca',
                         className: "text-left",
-                        name: "modelos.descripcion"
+                        name: "marcas.marca"
                     },
                     {
-                        data: 'categoria_nombre',
+                        data: 'categoria',
                         className: "text-left",
                         name: "categorias.descripcion"
                     },
                     {
                         data: 'stock',
                         className: "text-center",
-                        name: "producto_color_tallas.stock"
+                        name: "productos.stock"
                     }
 
                 ],

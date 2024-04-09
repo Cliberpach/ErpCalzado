@@ -134,4 +134,7 @@ class AlmacenController extends Controller
         return response()->json($result);
 
     }
+
+ 
+
 }

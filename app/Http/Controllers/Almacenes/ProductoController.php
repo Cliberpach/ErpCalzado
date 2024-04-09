@@ -56,17 +56,17 @@ class ProductoController extends Controller
     {
         $this->authorize('haveaccess','producto.index');
 
-        return datatables()->query(
-            DB::table('productos')
-            ->join('marcas','productos.marca_id','=','marcas.id')
-            ->join('almacenes','almacenes.id','=','productos.almacen_id')
-            ->join('categorias','categorias.id','=','productos.categoria_id')
-            ->join('tabladetalles','tabladetalles.id','=','productos.medida')
-            ->join('modelos','modelos.id','=','productos.modelo_id')
-            ->select('categorias.descripcion as categoria','almacenes.descripcion as almacen','modelos.descripcion as modelo','marcas.marca','productos.*')
-            ->orderBy('productos.id','DESC')
-            ->where('productos.estado', 'ACTIVO')
-        )->toJson();
+         return datatables()->query(
+             DB::table('productos')
+             ->join('marcas','productos.marca_id','=','marcas.id')
+             ->join('almacenes','almacenes.id','=','productos.almacen_id')
+             ->join('categorias','categorias.id','=','productos.categoria_id')
+             ->join('tabladetalles','tabladetalles.id','=','productos.medida')
+             ->join('modelos','modelos.id','=','productos.modelo_id')
+             ->select('categorias.descripcion as categoria','almacenes.descripcion as almacen','modelos.descripcion as modelo','marcas.marca','productos.*')
+             ->orderBy('productos.id','DESC')
+             ->where('productos.estado', 'ACTIVO')
+         )->toJson();    
     }
 
     public function create()
