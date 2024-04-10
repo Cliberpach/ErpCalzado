@@ -365,7 +365,7 @@
             });
 
             //DOBLE CLICK EN LOTES
-            $('.dataTables-producto').on('click', 'tbody td', function() {
+            $('.dataTables-producto').on('dblclick', 'tbody td', function() {
                 var instancia   = $('.dataTables-producto').DataTable();
                 var producto    = instancia.row(this).data();
                 llenarCompras(producto.producto_id,producto.color_id,producto.talla_id);
