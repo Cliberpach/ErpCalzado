@@ -3,6 +3,8 @@
 namespace App\Greenter\Data;
 
 use Illuminate\Http\Request;
+use Greenter\Model\Company\Company;
+use Greenter\Model\Company\Address;
 
 class SharedStore
 {
@@ -13,15 +15,15 @@ class SharedStore
             ->setNombreComercial('MERRIS CALZADO')
             ->setRazonSocial('MERRIS CALZADO E.I.R.L.')
             ->setAddress((new Address())
-                ->setUbigueo('150101')
-                ->setDistrito('LIMA')
-                ->setProvincia('LIMA')
-                ->setDepartamento('LIMA')
-                ->setUrbanizacion('CASUARINAS')
+                ->setUbigueo('130101')
+                ->setDistrito('TRUJILLO')
+                ->setProvincia('TRUJILLO')
+                ->setDepartamento('LA LIBERTAD')
+                ->setUrbanizacion('AV ESPAÑA')
                 ->setCodLocal('0000')
-                ->setDireccion('AV NEW DEÁL 123'))
-            ->setEmail('admin@greenter.com')
-            ->setTelephone('01-234455');
+                ->setDireccion('Av España 152'))
+            ->setEmail('merriscalzado@gmail.com')
+            ->setTelephone('954782217');
     }
 
     public function getClientPerson(): Client

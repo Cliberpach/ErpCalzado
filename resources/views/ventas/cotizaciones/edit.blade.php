@@ -1,5 +1,5 @@
 @extends('layout') @section('content')
-    {{-- @include('ventas.cotizaciones.edit-detalle') --}}
+@include('ventas.cotizaciones.modal-cliente') 
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
 
@@ -140,8 +140,11 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="required">Cliente</label>
-                                                <select id="cliente" name="cliente"
+                                                <label class="required">Cliente:
+                                                    <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
+                                                        Registrar
+                                                    </button>
+                                                </label>                                                <select id="cliente" name="cliente"
                                                     class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}"
                                                     onchange="obtenerTipo(this)" required>
                                                     <option></option>
@@ -1134,6 +1137,7 @@
         //console.log(productosPrevios)
         cargarProductosPrevios();
         events();
+        eventsCliente();
     })
 
     function events(){
@@ -1726,7 +1730,10 @@
         tfootEnvio.value        =   precioEnvio;
     }
 
-
+    //============= ABRIR MODAL CLIENTE =============
+    function openModalCliente(){
+        $("#modal_cliente").modal("show");
+    }
 
 </script>
 @endpush

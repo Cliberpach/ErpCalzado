@@ -204,6 +204,10 @@ class CotizacionController extends Controller
 
     public function edit($id)
     {
+        $tipos_documento    =   tipos_documento();
+        $departamentos      =   departamentos();
+        $tipo_clientes      =   tipo_clientes();
+
         $cotizacion = Cotizacion::findOrFail($id);
         $empresas = Empresa::where('estado', 'ACTIVO')->get();
         $clientes = Cliente::where('estado', 'ACTIVO')->get();
@@ -227,6 +231,9 @@ class CotizacionController extends Controller
             'detalles' => $detalles,
             'modelos' => $modelos,
             'tallas' => $tallas,
+            'tipos_documento' => $tipos_documento,
+            'departamentos' => $departamentos,
+            'tipo_clientes' => $tipo_clientes
         ]);
     }
 

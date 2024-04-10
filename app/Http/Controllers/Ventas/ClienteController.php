@@ -362,7 +362,7 @@ class ClienteController extends Controller
     public function storeFast(Request $request)
     {
         $data = $request->all();
-
+       
         try{
             DB::beginTransaction();
             $rules = [
@@ -404,7 +404,7 @@ class ClienteController extends Controller
                 DB::rollBack();
                 return response()->json([
                     'result' => 'error',
-                    'mensaje' => 'Cliente creado exitosamente.',
+                    'mensaje' => 'Error al crear el cliente.',
                     'data' => array('mensajes' => $validator->getMessageBag()->toArray())
                 ]);
     

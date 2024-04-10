@@ -45,8 +45,10 @@ final class Util
     {
         $see = new See();
         $see->setService($endpoint);
-//        $see->setCodeProvider(new XmlErrorCodeProvider());
-        $certificate = file_get_contents(__DIR__ . '/../resources/cert.pem');
+        //$see->setCodeProvider(new XmlErrorCodeProvider());
+        //$certificate = file_get_contents(__DIR__ . '/../certificate/certificate_test.pem');
+        $certificate = file_get_contents(__DIR__ . '/../certificate/certificate_merris.pem');
+
         if ($certificate === false) {
             throw new Exception('No se pudo cargar el certificado');
         }
@@ -57,7 +59,8 @@ final class Util
          * Usuario = MODDATOS
          * Clave   = moddatos
          */
-        $see->setClaveSOL('20123456789', 'MODDATOS', 'moddatos');
+        //$see->setClaveSOL('20000000001', 'MODDATOS', 'moddatos');
+        $see->setClaveSOL('20611904020', 'SISCOMFA', 'Merry321');
         $see->setCachePath(__DIR__ . '/../cache');
 
         return $see;
@@ -69,7 +72,7 @@ final class Util
             'auth' => 'https://gre-test.nubefact.com/v1',
             'cpe' => 'https://gre-test.nubefact.com/v1',
         ]);
-        $certificate = file_get_contents(__DIR__ . '/../certificate/certificate.pem');
+        $certificate = file_get_contents(__DIR__ . '/../certificate/certificate_test.pem');
         if ($certificate === false) {
             throw new Exception('No se pudo cargar el certificado');
         }
@@ -111,27 +114,55 @@ HTML;
         return $result;
     }
 
-    public function writeXml(DocumentInterface $document, ?string $xml): void
+    public function writeXml(?DocumentInterface $document, ?string $xml,?string $tipo_comprobante,?string $document_name): void
     {
-        $this->writeFile($document->getName().'.xml', $xml,"xml");
+        $doc_name   = null;
+        if($document){
+            $doc_name   =   $document->getName();   
+        }else{
+            $doc_name   =   $document_name;
+        }
+
+        // $this->writeFile($document->getName().'.xml', $xml,"xml",$tipo_comprobante);
+        $this->writeFile($doc_name.'.xml', $xml,"xml",$tipo_comprobante);
     }
 
-    public function writeCdr(DocumentInterface $document, ?string $zip): void
+    public function writeCdr(?DocumentInterface $document, ?string $zip,?string $tipo_comprobante,?string $document_name): void
     {
-        $this->writeFile('R-'.$document->getName().'.zip', $zip,"zip");
+        $doc_name   = null;
+        if($document){
+            $doc_name   =   $document->getName();   
+        }else{
+            $doc_name   =   $document_name;
+        }
+
+        // $this->writeFile($document->getName().'.zip', $zip,"zip",$tipo_comprobante);
+        $this->writeFile($doc_name.'.zip', $zip,"zip",$tipo_comprobante);
+
     }
 
-    public function writeFile(?string $filename, ?string $content,?string $typeFile): void
+    public function writeFile(?string $filename, ?string $content,?string $typeFile,?string $tipo_comprobante): void
     {
         if (getenv('GREENTER_NO_FILES')) {
             return;
         }
 
         if($typeFile    ==  "zip"){
-            $fileDir = __DIR__.'/../files/guias_remision_cdr';
+            if($tipo_comprobante == 'RESUMEN'){
+                $fileDir = __DIR__.'/../files/resumenes_cdr';
+            }
+            if($tipo_comprobante == 'GUIA REMISION'){
+                $fileDir = __DIR__.'/../files/guias_remision_cdr';
+            }
         }
+        
         if($typeFile    ==  "xml"){
-            $fileDir = __DIR__.'/../files/guias_remision_xml';
+            if($tipo_comprobante == 'RESUMEN'){
+                $fileDir = __DIR__.'/../files/resumenes_xml';
+            }
+            if($tipo_comprobante == 'GUIA REMISION'){
+                $fileDir = __DIR__.'/../files/guias_remision_xml';
+            }
         }
 
 

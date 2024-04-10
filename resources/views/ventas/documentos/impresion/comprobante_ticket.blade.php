@@ -368,7 +368,7 @@
         </div><br>
         <div class="qr">
             @if($documento->ruta_qr)
-            <img src="{{ base_path() . '/storage/app/'.$documento->ruta_qr }}">
+                <img src="{{ base_path() . '/storage/app/'.$documento->ruta_qr }}">
             @endif
             @if($documento->hash)
             <p class="m-0 p-0">Código Hash: {{ $documento->hash }}</p>

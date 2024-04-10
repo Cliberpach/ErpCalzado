@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Compras;
 
 use App\Almacenes\LoteProducto;
 use App\Almacenes\Producto;
+use App\Almacenes\Talla;
+use App\Almacenes\Modelo;
 use App\Compras\CuentaProveedor;
 use App\Compras\Detalle;
 use App\Compras\Documento\Documento;
@@ -118,14 +120,17 @@ class OrdenController extends Controller
     public function create(Request $request)
     {
         $this->authorize('haveaccess','orden.index');
-        $empresas = Empresa::where('estado','ACTIVO')->get();
-        $proveedores = Proveedor::where('estado','ACTIVO')->get();
-        $productos = Producto::where('estado','ACTIVO')->get();
+        $empresas       = Empresa::where('estado','ACTIVO')->get();
+        $proveedores    = Proveedor::where('estado','ACTIVO')->get();
+        $productos      = Producto::where('estado','ACTIVO')->get();
         $presentaciones =  presentaciones();
-        $modos =  modo_compra();
-        $fecha_hoy = Carbon::now()->toDateString();
-        $monedas =  tipos_moneda();
-        $condiciones = Condicion::where('estado','ACTIVO')->get();
+        $modos          =  modo_compra();
+        $fecha_hoy      = Carbon::now()->toDateString();
+        $monedas        =  tipos_moneda();
+        $condiciones    = Condicion::where('estado','ACTIVO')->get();
+
+        $tallas         =   Talla::where('estado','ACTIVO')->get();
+        $modelos        =   Modelo::where('estado','ACTIVO')->get();
 
         return view('compras.ordenes.create',[
             'empresas' => $empresas,
@@ -136,6 +141,8 @@ class OrdenController extends Controller
             'fecha_hoy' => $fecha_hoy,
             'modos' => $modos,
             'monedas' => $monedas,
+            'tallas'    =>  $tallas,
+            'modelos'   =>  $modelos
         ]);
     }
 
@@ -143,13 +150,16 @@ class OrdenController extends Controller
     public function edit($id)
     {
         $this->authorize('haveaccess','orden.index');
-        $empresas = Empresa::where('estado','ACTIVO')->get();
-        $detalles = Detalle::where('orden_id',$id)->get();
-        $proveedores = Proveedor::where('estado','ACTIVO')->get();
-        $orden = Orden::findOrFail($id);
-        $condiciones = Condicion::where('estado','ACTIVO')->get();
+        $empresas       = Empresa::where('estado','ACTIVO')->get();
+        $detalles       = Detalle::with('producto.modelo', 'color', 'talla')->where('orden_id', $id)->get();
+        $proveedores    = Proveedor::where('estado','ACTIVO')->get();
+        $orden          = Orden::findOrFail($id);
+        $condiciones    = Condicion::where('estado','ACTIVO')->get();
 
-        $documento = Documento::where('orden_compra',$id)->where('estado','!=','ANULADO')->first();
+        $documento      =   Documento::where('orden_compra',$id)->where('estado','!=','ANULADO')->first();
+
+        $tallas         =   Talla::where('estado','ACTIVO')->get();
+        $modelos        =   Modelo::where('estado','ACTIVO')->get();
 
         if ($documento) {
             $aviso = $documento->id;
@@ -173,7 +183,10 @@ class OrdenController extends Controller
                 'detalles' => $detalles,
                 'modos' => $modos,
                 'monedas' => $monedas,
-                'aviso' => $aviso
+                'aviso' => $aviso,
+                'monedas' => $monedas,
+                'tallas'    =>  $tallas,
+                'modelos'   =>  $modelos
             ]);
         }else{
             return view('compras.ordenes.edit',[
@@ -187,6 +200,8 @@ class OrdenController extends Controller
                 'detalles' => $detalles,
                 'modos' => $modos,
                 'monedas' => $monedas,
+                'tallas'    =>  $tallas,
+                'modelos'   =>  $modelos
             ]);
         }
     }
@@ -204,7 +219,7 @@ class OrdenController extends Controller
             'observacion' => 'nullable',
             'moneda' => 'nullable',
             'tipo_cambio' => 'nullable|numeric',
-            'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
+            //'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
 
         ];
         $message = [
@@ -213,9 +228,9 @@ class OrdenController extends Controller
             'proveedor_id.required' => 'El campo Proveedor es obligatorio.',
             'condicion_id.required' => 'El campo Condicion es obligatorio.',
             'moneda.required' => 'El campo Moneda es obligatorio.',
-            'igv.required_if' => 'El campo Igv es obligatorio.',
-            'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
-            'igv.numeric' => 'El campo Igv debe se numérico.',
+            // 'igv.required_if' => 'El campo Igv es obligatorio.',
+            // 'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
+            // 'igv.numeric' => 'El campo Igv debe se numérico.',
             'tipo_cambio.numeric' => 'El campo Tipo de Cambio debe se numérico.',
 
 
@@ -240,7 +255,9 @@ class OrdenController extends Controller
         $orden->moneda = $request->get('moneda');
         $orden->tipo_cambio = $request->get('tipo_cambio');
         $orden->usuario_id = auth()->user()->id;
-        $orden->igv = $request->get('igv');
+        // $orden->igv = $request->get('igv');
+        $orden->igv = '18';
+
         if ($request->get('igv_check') == "on") {
             $orden->igv_check = "1";
         };
@@ -251,12 +268,17 @@ class OrdenController extends Controller
         $productotabla = json_decode($productosJSON[0]);
 
         foreach ($productotabla as $producto) {
-            Detalle::create([
-                'orden_id' => $orden->id,
-                'producto_id' => $producto->producto_id,
-                'cantidad' => $producto->cantidad,
-                'precio' => $producto->precio,
-            ]);
+            foreach ($producto->tallas as $talla) {
+                Detalle::create([
+                    'orden_id'              => $orden->id,
+                    'producto_id'           => $producto->producto_id,
+                    'color_id'              => $producto->color_id,
+                    'talla_id'              => $talla->talla_id,
+                    'cantidad'              => $talla->cantidad,
+                    'precio'                => $producto->precio_unitario,
+                    'importe_producto_id'   =>  $producto->importe
+                ]);            
+            } 
         }
 
         //Registro de actividad
@@ -278,7 +300,7 @@ class OrdenController extends Controller
             'condicion_id'=> 'required',
             'observacion' => 'nullable',
             'moneda' => 'nullable',
-            'igv' => 'required_if:igv_check,==,on|digits_between:1,3',
+            //'igv' => 'required_if:igv_check,==,on|digits_between:1,3',
         ];
 
         $message = [
@@ -287,9 +309,9 @@ class OrdenController extends Controller
             'proveedor_id.required' => 'El campo Proveedor es obligatorio.',
             'condicion_id.required' => 'El campo Condicion es obligatorio.',
             'moneda.required' => 'El campo Moneda es obligatorio.',
-            'igv.required_if' => 'El campo Igv es obligatorio.',
-            'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
-            'igv.numeric' => 'El campo Igv debe se numérico.',
+            //'igv.required_if' => 'El campo Igv es obligatorio.',
+            //'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
+            //'igv.numeric' => 'El campo Igv debe se numérico.',
 
         ];
         Validator::make($data, $rules, $message)->validate();
@@ -311,7 +333,8 @@ class OrdenController extends Controller
         $orden->moneda = $request->get('moneda');
         $orden->observacion = $request->get('observacion');
         $orden->usuario_id = auth()->user()->id;
-        $orden->igv = $request->get('igv');
+        // // $orden->igv = $request->get('igv');
+        $orden->igv = '18';
         $orden->tipo_cambio = $request->get('tipo_cambio');
 
         if ($request->get('igv_check') == "on") {
@@ -329,55 +352,70 @@ class OrdenController extends Controller
 
             Detalle::where('orden_id', $orden->id)->delete();
 
+            // foreach ($productotabla as $producto) {
+            //     Detalle::create([
+            //         'orden_id' => $orden->id,
+            //         'producto_id' => $producto->producto_id,
+            //         'cantidad' => $producto->cantidad,
+            //         'precio' => $producto->precio,
+            //     ]);
+            // }
+
             foreach ($productotabla as $producto) {
-                Detalle::create([
-                    'orden_id' => $orden->id,
-                    'producto_id' => $producto->producto_id,
-                    'cantidad' => $producto->cantidad,
-                    'precio' => $producto->precio,
-                ]);
+                foreach ($producto->tallas as $talla) {
+                    Detalle::create([
+                        'orden_id'              => $orden->id,
+                        'producto_id'           => $producto->producto_id,
+                        'color_id'              => $producto->color_id,
+                        'talla_id'              => $talla->talla_id,
+                        'cantidad'              => $talla->cantidad,
+                        'precio'                => $producto->precio_unitario,
+                        'importe_producto_id'   =>  $producto->importe
+                    ]);            
+                } 
             }
+            
         }
 
         //ELIMINAR DOCUMENTO DE ORDEN DE COMPRA SI EXISTE
         $documento = Documento::where('orden_compra',$id)->where('estado','!=','ANULADO')->first();
         if ($documento) {
-            $documento->estado = 'ANULADO';
-            $documento->update();
+        //     $documento->estado = 'ANULADO';
+        //     $documento->update();
 
-            foreach($documento->lotes as $lot)
-            {
-                MovimientoAlmacen::where('lote_id', $lot->id)->where('producto_id', $lot->producto_id)->where('compra_documento_id', $lot->compra_documento_id)->where('nota', 'COMPRA')->where('movimiento', 'INGRESO')->delete();
-                $lote = LoteProducto::find($lot->id);
-                $producto_id = $lote->producto_id;
-                $lote->estado = '0';
-                $lote->update();
+        //     foreach($documento->lotes as $lot)
+        //     {
+        //         MovimientoAlmacen::where('lote_id', $lot->id)->where('producto_id', $lot->producto_id)->where('compra_documento_id', $lot->compra_documento_id)->where('nota', 'COMPRA')->where('movimiento', 'INGRESO')->delete();
+        //         $lote = LoteProducto::find($lot->id);
+        //         $producto_id = $lote->producto_id;
+        //         $lote->estado = '0';
+        //         $lote->update();
 
-                //RECORRER DETALLE NOTAS
-                $cantidadProductos = LoteProducto::where('producto_id',$producto_id)->where('estado','1')->sum('cantidad');
-                //ACTUALIZAR EL STOCK DEL PRODUCTO
-                $producto = Producto::findOrFail($lote->producto_id);
-                $producto->stock = $cantidadProductos ? $cantidadProductos : 0.00;
-                $producto->update();
-            }
+        //         //RECORRER DETALLE NOTAS
+        //         $cantidadProductos = LoteProducto::where('producto_id',$producto_id)->where('estado','1')->sum('cantidad');
+        //         //ACTUALIZAR EL STOCK DEL PRODUCTO
+        //         $producto = Producto::findOrFail($lote->producto_id);
+        //         $producto->stock = $cantidadProductos ? $cantidadProductos : 0.00;
+        //         $producto->update();
+        //     }
 
 
 
-           if($documento->cuenta)
-           {
-                $cuenta_proveedor = CuentaProveedor::find($documento->cuenta->id);
-                $cuenta_proveedor->delete();
+        //    if($documento->cuenta)
+        //    {
+        //         $cuenta_proveedor = CuentaProveedor::find($documento->cuenta->id);
+        //         $cuenta_proveedor->delete();
 
-                //Registro de actividad
-                $descripcion = "SE ELIMINÓ EL DOCUMENTO DE COMPRA DEL DOCUMENTO (".$documento->id.") CON LA FECHA DE EMISION: ". Carbon::parse($documento->fecha_emision)->format('d/m/y');
-                $gestion = "DOCUMENTO DE COMPRA";
-                eliminarRegistro($documento, $descripcion , $gestion);
-           }
+        //         //Registro de actividad
+        //         $descripcion = "SE ELIMINÓ EL DOCUMENTO DE COMPRA DEL DOCUMENTO (".$documento->id.") CON LA FECHA DE EMISION: ". Carbon::parse($documento->fecha_emision)->format('d/m/y');
+        //         $gestion = "DOCUMENTO DE COMPRA";
+        //         eliminarRegistro($documento, $descripcion , $gestion);
+        //    }
 
-            //Registro de actividad
-            $descripcion = "SE ELIMINÓ LA CUENTA DE PROVEEDOR: ". Carbon::parse($documento->fecha_emision)->format('d/m/y');
-            $gestion = "CUENTA PROVEEDOR";
-            eliminarRegistro($documento, $descripcion , $gestion);
+        //     //Registro de actividad
+        //     $descripcion = "SE ELIMINÓ LA CUENTA DE PROVEEDOR: ". Carbon::parse($documento->fecha_emision)->format('d/m/y');
+        //     $gestion = "CUENTA PROVEEDOR";
+        //     eliminarRegistro($documento, $descripcion , $gestion);
 
             Session::flash('success','Orden de Compra modificada y documento eliminado.');
             return redirect()->route('compras.orden.index')->with('modificar', 'success');
@@ -708,4 +746,85 @@ class OrdenController extends Controller
     {
         return precio_dolar();
     }
+
+    public function getProductosByModelo($modelo_id){
+        try {
+            $productos  =   DB::select('select distinct p.id as producto_id,c.id as color_id, t.id as talla_id,
+            m.id as modelo_id, p.nombre as producto_nombre,c.descripcion as color_nombre, 
+            t.descripcion as talla_nombre,pct.stock,m.descripcion as modelo_nombre,p.codigo as producto_codigo 
+            from producto_colores as pc 
+            left join producto_color_tallas as pct on (pc.producto_id=pct.producto_id and pc.color_id=pct.color_id) 
+            inner join productos as p on p.id=pc.producto_id 
+            inner join colores as c on c.id=pc.color_id 
+            inner join modelos as m on m.id=p.modelo_id
+            left join tallas as t on t.id=pct.talla_id 
+            where m.id=?
+            order by p.nombre,c.descripcion',[$modelo_id]);    
+
+           $productos_formateado    =   $this->formatearListado($productos);
+            
+            return response()->json(['type'=>'success','message'=>$productos_formateado]);
+
+        } catch (\Throwable $e) {
+            return response()->json(['type'=>'error','message'=>$e->getMessage()]);
+        }
+    }
+
+    public function formatearListado($productos){
+        $productos_formateado       =   [];
+        $producto_color_procesados  =   [];
+        $llave                      =   '';
+
+        $productos_procesados       =   [];
+        $llave_2                    =   '';
+
+
+        //====== FORMATEANDO =====
+        foreach ($productos as $producto) {
+            $llave      =   $producto->producto_id.'-'.$producto->color_id;
+            $llave_2    =   $producto->producto_id;
+            if (!in_array($llave, $producto_color_procesados)) {
+                $producto_color =   [];
+                $producto_color['producto_id']          =   $producto->producto_id;
+                $producto_color['color_id']             =   $producto->color_id;
+                $producto_color['producto_nombre']      =   $producto->producto_nombre;
+                $producto_color['producto_codigo']      =   $producto->producto_codigo;
+                $producto_color['color_nombre']         =   $producto->color_nombre;
+                $producto_color['modelo_nombre']        =   $producto->modelo_nombre;
+                $producto_color['importe']              =   0;
+
+                //==== OBTENIENDO LAS TALLAS ====
+                $tallas = array_filter($productos, function($p) use ($producto) {
+                    return $p->producto_id == $producto->producto_id && $p->color_id == $producto->color_id;
+                });
+
+                $producto_color_tallas = [];
+                foreach ($tallas as $talla) {
+                    //====== CONSTRUYENDO TALLA =====
+                    $producto_color_talla                       =   [];
+                    $producto_color_talla['talla_id']           =   $talla->talla_id;
+                    $producto_color_talla['talla_nombre']       =   $talla->talla_nombre;
+                    $producto_color_talla['stock']              =   $talla->stock;   
+                    $producto_color_talla['precio_unitario']    =   0;   
+
+                    
+                    //====== GUARDANDO TALLA DEL PRODUCTO COLOR ====
+                    $producto_color_tallas[]   =   $producto_color_talla;
+                }
+                $producto_color['tallas']   =   $producto_color_tallas;
+                if(!in_array($llave_2, $productos_procesados)){
+                    $producto_color['print_importe']   =   true;
+                }else{
+                    $producto_color['print_importe']   =   false;
+                }
+                
+                $productos_formateado[]         =   $producto_color;
+                $producto_color_procesados[]    =   $llave;
+            }
+            $productos_procesados[]    =   $llave_2;
+        }
+
+        return $productos_formateado;
+    }
+
 }

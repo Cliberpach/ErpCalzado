@@ -638,7 +638,7 @@ class NoEnviadosController extends Controller
             $documento->update();
 
             //Registro de actividad
-            $descripcion = "SE AGREGÓ EL DOCUMENTO DE VENTA CON LA FECHA: " . Carbon::parse($documento->fecha_documento)->format('d/m/y');
+            $descripcion = "SE AGREGÓ EL DOCUMENTO DE VENTA MODIFICADO CON LA FECHA: " . Carbon::parse($documento->fecha_documento)->format('d/m/y');
             $gestion = "DOCUMENTO DE VENTA";
             crearRegistro($documento, $descripcion, $gestion);
 

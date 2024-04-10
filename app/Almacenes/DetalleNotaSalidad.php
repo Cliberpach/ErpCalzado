@@ -35,88 +35,68 @@ class DetalleNotaSalidad extends Model
     protected static function booted()
     {
        //=========== actualizando stock producto ===============
-       static::created(function(DetalleNotaSalidad $detalleNotaIngreso){
+       static::created(function(DetalleNotaSalidad $detalleNotaSalida){
 
-           $cantidadProductos  = $detalleNotaIngreso->cantidad;
+           $cantidadProductos  = $detalleNotaSalida->cantidad;
 
            //comprobando si existe el producto_color_talla
            $producto   =   DB::select('select * from producto_color_tallas as pct
                                        where pct.producto_id = ? and
-                                       pct.color_id = ? and pct.talla_id = ?',[$detalleNotaIngreso->producto_id,
-                                       $detalleNotaIngreso->color_id,$detalleNotaIngreso->talla_id]);
+                                       pct.color_id = ? and pct.talla_id = ?',[$detalleNotaSalida->producto_id,
+                                       $detalleNotaSalida->color_id,$detalleNotaSalida->talla_id]);
                 
            //======== el producto existe =========
-           //========= incrementar sus stocks ===========
+           //========= decrementar sus stocks ===========
            if (count($producto) > 0) {
-
-               ProductoColorTalla::where('producto_id', $detalleNotaIngreso->producto_id)
-               ->where('color_id', $detalleNotaIngreso->color_id)
-               ->where('talla_id', $detalleNotaIngreso->talla_id)
-               ->update([
-                   'stock' => DB::raw("stock - $cantidadProductos"),
-                   'stock_logico'  =>  DB::raw("stock_logico - $cantidadProductos"),
-                   'estado'        =>  '1',  
-               ]);
-
-           } else {
-           //========= el producto no existe =============
-           //================== crearlo =========================
-
-               //========= verificando si ya existe registro en la tabla producto_color =========
-               $existeColor = ProductoColor::where('producto_id', $detalleNotaIngreso->producto_id)
-                               ->where('color_id', $detalleNotaIngreso->color_id)
-                               ->exists();
-               
-               //======== registrar en caso no exista el color para el producto =======
-               //===== cuando se reciba varias tallas por color esto evitará color_id duplicado =====
-               if(!$existeColor){
-                   $producto_color                 =   new ProductoColor();
-                   $producto_color->producto_id    =   $detalleNotaIngreso->producto_id;
-                   $producto_color->color_id       =   $detalleNotaIngreso->color_id;
-                   $producto_color->save(); 
-               }  
-
-               //====== registrar el stock de producto_color_talla ============
-               $producto               =    new ProductoColorTalla();
-               $producto->producto_id  =   $detalleNotaIngreso->producto_id;
-               $producto->color_id     =   $detalleNotaIngreso->color_id;
-               $producto->talla_id     =   $detalleNotaIngreso->talla_id;
-               $producto->stock        =   $cantidadProductos;
-               $producto->stock_logico =   $cantidadProductos;
-               $producto->save();
-           }  
-           
+                if($detalleNotaSalida->nota_salidad->observacion == '/guiasremision/create_new'){
+                    ProductoColorTalla::where('producto_id', $detalleNotaSalida->producto_id)
+                    ->where('color_id', $detalleNotaSalida->color_id)
+                    ->where('talla_id', $detalleNotaSalida->talla_id)
+                    ->update([
+                        'stock' => DB::raw("stock - $cantidadProductos"),
+                        'estado'        =>  '1',  
+                    ]);
+                }else{
+                    ProductoColorTalla::where('producto_id', $detalleNotaSalida->producto_id)
+                    ->where('color_id', $detalleNotaSalida->color_id)
+                    ->where('talla_id', $detalleNotaSalida->talla_id)
+                    ->update([
+                        'stock' => DB::raw("stock - $cantidadProductos"),
+                        'stock_logico'  =>  DB::raw("stock_logico - $cantidadProductos"),
+                        'estado'        =>  '1',  
+                    ]);
+                }
+           } 
            
            //=========== registrando movimiento ===============
-               MovimientoNota::create([
-                'cantidad' => $detalleNotaIngreso->cantidad,
-                'observacion' => $detalleNotaIngreso->producto->modelo->descripcion.' - '.$detalleNotaIngreso->producto->nombre,
+            MovimientoNota::create([
+                'cantidad' => $detalleNotaSalida->cantidad,
+                'observacion' => $detalleNotaSalida->producto->modelo->descripcion.' - '.$detalleNotaSalida->producto->nombre,
                 'movimiento' => "Salida",
-               //  'lote_id' => $lote->id,
                 'usuario_id' => Auth()->user()->id,
-                'nota_id' => $detalleNotaIngreso->id,
-                'producto_id' => $detalleNotaIngreso->producto_id,
-                'color_id' => $detalleNotaIngreso->color_id,
-                'talla_id' => $detalleNotaIngreso->talla_id,
+                'nota_id' => $detalleNotaSalida->id,
+                'producto_id' => $detalleNotaSalida->producto_id,
+                'color_id' => $detalleNotaSalida->color_id,
+                'talla_id' => $detalleNotaSalida->talla_id,
             ]);
 
-           //=========== OBTENIENDO PRODUCTO CON STOCK NUEVO ===========
-           $producto   =   DB::select('select * from producto_color_tallas as pct
+            //=========== OBTENIENDO PRODUCTO CON STOCK NUEVO ===========
+            $producto   =   DB::select('select * from producto_color_tallas as pct
                                        where pct.producto_id = ? and
-                                       pct.color_id = ? and pct.talla_id = ?',[$detalleNotaIngreso->producto_id,
-                                       $detalleNotaIngreso->color_id,$detalleNotaIngreso->talla_id]);
+                                       pct.color_id = ? and pct.talla_id = ?',[$detalleNotaSalida->producto_id,
+                                       $detalleNotaSalida->color_id,$detalleNotaSalida->talla_id]);
                 
 
             //==================== KARDEX ==================
            $kardex                    =    new Kardex();
            $kardex->origen            =    'Salida';
-           $kardex->numero_doc        =    $detalleNotaIngreso->numero;
-           $kardex->fecha             =    $detalleNotaIngreso->fecha;
-           $kardex->cantidad          =    $detalleNotaIngreso->cantidad;
-           $kardex->producto_id       =    $detalleNotaIngreso->producto_id;
-           $kardex->color_id          =    $detalleNotaIngreso->color_id;
-           $kardex->talla_id          =    $detalleNotaIngreso->talla_id;
-           $kardex->descripcion       =    $detalleNotaIngreso->origen;
+           $kardex->numero_doc        =    $detalleNotaSalida->nota_salidad->numero;
+           $kardex->fecha             =    $detalleNotaSalida->nota_salidad->fecha;
+           $kardex->cantidad          =    $detalleNotaSalida->cantidad;
+           $kardex->producto_id       =    $detalleNotaSalida->producto_id;
+           $kardex->color_id          =    $detalleNotaSalida->color_id;
+           $kardex->talla_id          =    $detalleNotaSalida->talla_id;
+           $kardex->descripcion       =    $detalleNotaSalida->nota_salidad->origen;
            //$kardex->precio          = $detalle->costo_soles;
            //$kardex->importe         = $detalle->costo_soles * $detalle->cantidad;
            //$kardex->stock           = $detalle->producto->stock;
@@ -125,7 +105,7 @@ class DetalleNotaSalidad extends Model
           
        });
        
-   //     static::created(function (DetalleNotaIngreso $detalle) {
+   //     static::created(function (detalleNotaSalida $detalle) {
 
    //         $lote = new LoteProducto();
    //         $lote->nota_ingreso_id = $detalle->nota_ingreso->id;

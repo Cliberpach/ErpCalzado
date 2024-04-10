@@ -319,6 +319,8 @@ function(){
         Route::get('nuevodocumento/{id}','Compras\OrdenController@newdocument')->name('compras.orden.nuevodocumento');
         Route::get('confirmarEliminar/{id}','Compras\OrdenController@confirmDestroy')->name('compras.orden.confirmDestroy');
         Route::get('dolar','Compras\OrdenController@dolar')->name('compras.orden.dolar');
+
+        Route::get('getProductosByModelo/{modelo_id}','Compras\OrdenController@getProductosByModelo')->name('compras.orden.getProductosByModelo');
     });
     //Documentos
     Route::prefix('compras/documentos')->group(function(){
@@ -435,6 +437,24 @@ function(){
 
         Route::post('/storePago', 'Ventas\CajaController@storePago')->name('ventas.caja.storePago');
         Route::post('/updatePago', 'Ventas\CajaController@updatePago')->name('ventas.caja.updatePago');
+    });
+
+    //VENTAS-CAJA
+        Route::prefix('ventas/resumenes')->group(function(){
+
+        Route::get('index', 'Ventas\ResumenController@index')->name('ventas.resumenes.index');
+        Route::get('getComprobantes/{fecha}','Ventas\ResumenController@getComprobantes')->name('ventas.resumenes.getComprobantes');
+        Route::get('getStatus','Ventas\ResumenController@isActive')->name('ventas.resumenes.getStatus');
+        Route::get('getXml/{resumen_id}','Ventas\ResumenController@getXml')->name('ventas.resumenes.getXml');
+        Route::get('getCdr/{resumen_id}','Ventas\ResumenController@getCdr')->name('ventas.resumenes.getCdr');
+
+        //Route::get('getDocument','Ventas\CajaController@getDocument')->name('ventas.caja.getDocument');
+        // Route::post('getDocumentClient','Ventas\CajaController@getDocumentClient')->name('ventas.caja.getDocumentClient');
+        Route::post('/store', 'Ventas\ResumenController@store')->name('ventas.resumenes.store');
+        Route::post('/consultar', 'Ventas\ResumenController@consultTicket')->name('ventas.resumenes.consultar');
+        Route::post('/reenviar', 'Ventas\ResumenController@consultTicket')->name('ventas.resumenes.reenviar');
+
+        //  Route::post('/updatePago', 'Ventas\CajaController@updatePago')->name('ventas.caja.updatePago');
     });
 
     //COMPROBANTES ELECTRONICOS
@@ -728,12 +748,13 @@ function(){
     Route::prefix('reportes/producto')->group(function(){
 
         Route::get('informe', 'Reportes\ProductoController@informe')->name('reporte.producto.informe');
-        Route::get('llenarCompras/{id}', 'Reportes\ProductoController@llenarCompras')->name('reporte.producto.llenarCompras');
-        Route::get('llenarVentas/{id}', 'Reportes\ProductoController@llenarVentas')->name('reporte.producto.llenarVentas');
-        Route::get('llenarSalidas/{id}', 'Reportes\ProductoController@llenarSalidas')->name('reporte.producto.llenarSalidas');
-        Route::get('llenarIngresos/{id}', 'Reportes\ProductoController@llenarIngresos')->name('reporte.producto.llenarIngresos');
+        Route::get('llenarCompras/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarCompras')->name('reporte.producto.llenarCompras');
+        Route::get('llenarVentas/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarVentas')->name('reporte.producto.llenarVentas');
+        Route::get('llenarSalidas/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarSalidas')->name('reporte.producto.llenarSalidas');
+        Route::get('llenarIngresos/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarIngresos')->name('reporte.producto.llenarIngresos');
         Route::post('updateIngreso', 'Reportes\ProductoController@updateIngreso')->name('reporte.producto.updateIngreso');
-        Route::get('getTable', 'Reportes\ProductoController@getTable')->name('reporte.producto.getTable');
+        // Route::get('getTable', 'Reportes\ProductoController@getTable')->name('reporte.producto.getTable');
+        Route::get('getProductos', 'Reportes\ProductoController@getProductos')->name('reporte.producto.getProductos');
 
     });
 

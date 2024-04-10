@@ -39,6 +39,7 @@ class ProductoController extends Controller
                     where c.estado="ACTIVO" and p.estado="ACTIVO" ');
 
         $tallas = Talla::where('estado', 'ACTIVO')->get();
+
         $stocks = ProductoColorTalla::join('colores', 'producto_color_tallas.color_id', '=', 'colores.id')
         ->join('tallas', 'producto_color_tallas.talla_id', '=', 'tallas.id')
         ->select('producto_color_tallas.*')
@@ -55,17 +56,17 @@ class ProductoController extends Controller
     {
         $this->authorize('haveaccess','producto.index');
 
-        return datatables()->query(
-            DB::table('productos')
-            ->join('marcas','productos.marca_id','=','marcas.id')
-            ->join('almacenes','almacenes.id','=','productos.almacen_id')
-            ->join('categorias','categorias.id','=','productos.categoria_id')
-            ->join('tabladetalles','tabladetalles.id','=','productos.medida')
-            ->join('modelos','modelos.id','=','productos.modelo_id')
-            ->select('categorias.descripcion as categoria','almacenes.descripcion as almacen','modelos.descripcion as modelo','marcas.marca','productos.*')
-            ->orderBy('productos.id','DESC')
-            ->where('productos.estado', 'ACTIVO')
-        )->toJson();
+         return datatables()->query(
+             DB::table('productos')
+             ->join('marcas','productos.marca_id','=','marcas.id')
+             ->join('almacenes','almacenes.id','=','productos.almacen_id')
+             ->join('categorias','categorias.id','=','productos.categoria_id')
+             ->join('tabladetalles','tabladetalles.id','=','productos.medida')
+             ->join('modelos','modelos.id','=','productos.modelo_id')
+             ->select('categorias.descripcion as categoria','almacenes.descripcion as almacen','modelos.descripcion as modelo','marcas.marca','productos.*')
+             ->orderBy('productos.id','DESC')
+             ->where('productos.estado', 'ACTIVO')
+         )->toJson();    
     }
 
     public function create()
@@ -334,22 +335,48 @@ class ProductoController extends Controller
         }
 
         //=========== EDITAMOS LOS COLORES DEL PRODUCTO ==========
-        $coloresAsignados = json_decode($request->get('coloresJSON'));
+        $coloresNuevos = json_decode($request->get('coloresJSON'));//['A','C']     ['A','R','C']  ['A','B']      
         
-        //==== borrando colores anteriores del producto ======
-        DB::table('producto_colores')
-        ->where('producto_id', $id)
-        ->delete();
 
-        //==== asignando nuevos colores ======
-        foreach ($coloresAsignados as $color_id) {
-            $producto_color                 =  new ProductoColor();
-            $producto_color->producto_id    =   $producto->id;
-            $producto_color->color_id       =   $color_id;
-            $producto_color->save();     
+        //===== OBTENIENDO COLORES ANTERIORES DEL PRODUCTO ===== //['A','R','C']     ['A','C']   ['A','B']
+        $colores_anteriores =   DB::select('select pc.producto_id as producto_id, 
+                                pc.color_id as color_id
+                                from producto_colores as pc
+                                where pc.producto_id=?',[$id]);
+
+        $collection_colores_anteriores  =   collect($colores_anteriores);   
+        $collection_colores_nuevos      =   collect($coloresNuevos);   
+
+        $ids_colores_anteriores = $collection_colores_anteriores->pluck('color_id')->toArray();
+        $ids_colores_nuevos = $collection_colores_nuevos->toArray();
+
+        //===== CASO I: COLORES DE LA LISTA ANTERIOR NO ESTÁN EN LA LISTA NUEVA =====
+        //===== DEBEN DE ELIMINARSE =====
+        $colores_diferentes_1 = array_diff($ids_colores_anteriores, $ids_colores_nuevos);
+        foreach ($colores_diferentes_1 as $key => $value) {
+            //==== ELIMINANDO COLORES ======
+            DB::table('producto_colores')
+            ->where('producto_id', $id)
+            ->where('color_id', $value)
+            ->delete();
+            //===== ELIMINANDO TALLAS DEL COLOR =====
+            DB::table('producto_color_tallas')
+            ->where('producto_id', $id)
+            ->where('color_id', $value)
+            ->delete();
         }
 
-         
+        //======== CASO II: COLORES DE LA LISTA NUEVA NO ESTÁN EN LA LISTA ANTERIOR ======
+        //===== DEBEN REGISTRARSE =====
+        $colores_diferentes_2 = array_diff($ids_colores_nuevos, $ids_colores_anteriores);
+        foreach ($colores_diferentes_2 as $key => $value) {
+            //==== REGISTRANDO COLORES ======
+            $producto_color                 =  new ProductoColor();
+            $producto_color->producto_id    =   $id;
+            $producto_color->color_id       =   $value;
+            $producto_color->save(); 
+        }
+                     
         // $clientesJSON = $request->get('clientes_tabla');
         // $clientetabla = json_decode($clientesJSON[0]);
 

@@ -35,9 +35,13 @@ class ProductoController extends Controller
         )->toJson();
     }
 
-    public function llenarCompras($id)
+    public function llenarCompras($producto_id,$color_id,$talla_id)
     {
-        $compras = Detalle::where('producto_id', $id)->where('estado', 'ACTIVO')->orderBy('id', 'desc')->get();
+        $compras = Detalle::where('producto_id', $producto_id)
+        ->where('estado', 'ACTIVO')
+        ->where('color_id', $color_id)
+        ->where('talla_id', $talla_id)
+        ->orderBy('id', 'desc')->get();
         $coleccion = collect([]);
         foreach ($compras as $producto) {
             $coleccion->push([
@@ -47,40 +51,40 @@ class ProductoController extends Controller
                 'fecha_emision' => $producto->documento->fecha_emision,
                 'cantidad' => $producto->cantidad,
                 'precio' => $producto->precio_soles,
-                'lote' => $producto->lote,
+                // 'lote' => $producto->lote,
                 'fecha_vencimiento' => $producto->fecha_vencimiento,
-                'medida' => $producto->loteProducto->producto->medidaCompleta(),
+                'medida' => $producto->producto->medidaCompleta(),
             ]);
         }
         return DataTables::of($coleccion)->make(true);
     }
 
-    public function llenarVentas($id)
+    public function llenarVentas($producto_id,$color_id,$talla_id)
     {
         ini_set('memory_limit', '1024M');
         try{
             $ventas = DocumentoDetalle::orderBy('id', 'desc')
             ->where('estado', 'ACTIVO')
-            ->where("eliminado","0")
+            ->where("producto_id",$producto_id)
+            ->where("color_id",$color_id)
+            ->where("talla_id",$talla_id)
             ->get();
             $coleccion = collect([]);
             foreach ($ventas as $producto) {
-                if ($producto->lote->producto_id == $id) {
-                    $coleccion->push([
-                        'cliente' => $producto->documento->clienteEntidad->nombre,
-                        'documento' => $producto->documento->nombreTipo(),
-                        'numero' => $producto->documento->serie . '-' . $producto->documento->correlativo,
-                        'fecha_emision' => $producto->documento->fecha_atencion,
-                        'cantidad' => $producto->cantidad,
-                        'precio' => $producto->precio_nuevo,
-                        'lote' => $producto->lote->codigo_lote,
-                        'fecha_vencimiento' => $producto->documento->fecha_vencimiento,
-                        'medida' => $producto->lote->producto->medidaCompleta(),
-                    ]);
-                }
+                $coleccion->push([
+                    'cliente' => $producto->documento->clienteEntidad->nombre,
+                    'documento' => $producto->documento->nombreTipo(),
+                    'numero' => $producto->documento->serie . '-' . $producto->documento->correlativo,
+                    'fecha_emision' => $producto->documento->fecha_atencion,
+                    'cantidad' => $producto->cantidad,
+                    'precio' => $producto->precio_nuevo,
+                    'fecha_vencimiento' => $producto->documento->fecha_vencimiento,
+                    'medida' => $producto->producto->medidaCompleta(),
+                ]);
             }
             return DataTables::of($coleccion)->make(true);
         }catch(\Exception $ex){
+            dd($ex->getMessage());
             return response()->json([
                 "data"=> [],
                 "draw"=> 0,
@@ -90,40 +94,82 @@ class ProductoController extends Controller
                 "ex"=>$ex
             ]);
         }
+        // try{
+        //     $ventas = DocumentoDetalle::orderBy('id', 'desc')
+        //     ->where('estado', 'ACTIVO')
+        //     ->where("eliminado","0")
+        //     ->get();
+        //     $coleccion = collect([]);
+        //     foreach ($ventas as $producto) {
+        //         if ($producto->lote->producto_id == $id) {
+        //             $coleccion->push([
+        //                 'cliente' => $producto->documento->clienteEntidad->nombre,
+        //                 'documento' => $producto->documento->nombreTipo(),
+        //                 'numero' => $producto->documento->serie . '-' . $producto->documento->correlativo,
+        //                 'fecha_emision' => $producto->documento->fecha_atencion,
+        //                 'cantidad' => $producto->cantidad,
+        //                 'precio' => $producto->precio_nuevo,
+        //                 'lote' => $producto->lote->codigo_lote,
+        //                 'fecha_vencimiento' => $producto->documento->fecha_vencimiento,
+        //                 'medida' => $producto->lote->producto->medidaCompleta(),
+        //             ]);
+        //         }
+        //     }
+        //     return DataTables::of($coleccion)->make(true);
+        // }catch(\Exception $ex){
+        //     return response()->json([
+        //         "data"=> [],
+        //         "draw"=> 0,
+        //         "input"=>"1664832061783",
+        //         "recordsFiltered"=>0,
+        //         "recordsTotal"=> 0,
+        //         "ex"=>$ex
+        //     ]);
+        // }
     }
 
-    public function llenarSalidas($id)
+    public function llenarSalidas($producto_id,$color_id,$talla_id)
     {
         $salidas = DB::table('detalle_nota_salidad')
         ->join('nota_salidad', 'nota_salidad.id', '=', 'detalle_nota_salidad.nota_salidad_id')
         ->join('productos', 'productos.id','=', 'detalle_nota_salidad.producto_id')
         ->join('tabladetalles', 'tabladetalles.id','=','productos.medida')
-        ->join('lote_productos', 'lote_productos.id', '=', 'detalle_nota_salidad.lote_id')
+        // ->join('lote_productos', 'lote_productos.id', '=', 'detalle_nota_salidad.lote_id')
         ->select(
             'detalle_nota_salidad.cantidad',
             'nota_salidad.origen',
             'nota_salidad.destino',
-            'lote_productos.codigo_lote',
+            'nota_salidad.fecha',
+            //'lote_productos.codigo_lote',
             'tabladetalles.descripcion as unidad'
         )
-        ->where('detalle_nota_salidad.producto_id', $id)    
+        ->where('detalle_nota_salidad.producto_id', $producto_id)  
+        ->where('detalle_nota_salidad.color_id', $color_id)    
+        ->where('detalle_nota_salidad.talla_id', $talla_id)      
         ->where('nota_salidad.estado', '!=', 'ANULADO')->get();
+
         $coleccion = collect([]);
         foreach ($salidas as $salida) {
             $coleccion->push([
                 'origen' => $salida->origen,
                 'destino' => $salida->destino,
                 'cantidad' => $salida->cantidad,
-                'lote' => $salida->codigo_lote,
+                //'lote' => $salida->codigo_lote,
+                'fecha'     =>  $salida->fecha,
                 'medida' => $salida->unidad,
             ]);
         }
         return DataTables::of($coleccion)->make(true);
     }
 
-    public function llenarIngresos($id)
+    public function llenarIngresos($producto_id,$color_id,$talla_id)
     {
-        $ingresos = DetalleNotaIngreso::orderBy('id', 'desc')->where('producto_id', $id)->get();
+        $ingresos = DetalleNotaIngreso::orderBy('id', 'desc')
+                    ->where('producto_id', $producto_id)
+                    ->where('color_id', $color_id)
+                    ->where('talla_id', $talla_id)
+                    ->get();
+
         $coleccion = collect([]);
         foreach ($ingresos as $ingreso) {
             $coleccion->push([
@@ -137,7 +183,8 @@ class ProductoController extends Controller
                 'nota_ingreso_id' => $ingreso->nota_ingreso->id,
                 'id' => $ingreso->id,
                 'moneda' => $ingreso->nota_ingreso->moneda,
-                'medida' => $ingreso->loteProducto->producto->medidaCompleta(),
+                'medida' => $ingreso->producto->medidaCompleta(),
+                //'medida' => $ingreso->loteProducto->producto->medidaCompleta(),
             ]);
         }
         return DataTables::of($coleccion)->make(true);
@@ -209,5 +256,27 @@ class ProductoController extends Controller
         Session::flash('success', 'Se actualizo correctamente el costo de ingreso.');
         DB::commit();
         return redirect()->route('reporte.producto.informe');
+    }
+
+    public function getProductos(){
+        return datatables()->query(
+            DB::table('productos')
+                ->select('productos.id as producto_id', 'colores.id as color_id', 'tallas.id as talla_id', 'productos.codigo as producto_codigo',
+                         'productos.nombre as producto_nombre', 'colores.descripcion as color_nombre', 'tallas.descripcion as talla_nombre',
+                         'modelos.descripcion as modelo_nombre', 'categorias.descripcion as categoria_nombre', 'producto_color_tallas.stock')
+                ->join('producto_colores', 'productos.id', '=', 'producto_colores.producto_id')
+                ->join('producto_color_tallas', function ($join) {
+                    $join->on('producto_color_tallas.producto_id', '=', 'producto_colores.producto_id')
+                         ->on('producto_color_tallas.color_id', '=', 'producto_colores.color_id');
+                })
+                ->join('colores', 'colores.id', '=', 'producto_colores.color_id')
+                ->join('tallas', 'tallas.id', '=', 'producto_color_tallas.talla_id')
+                ->join('modelos', 'modelos.id', '=', 'productos.modelo_id')
+                ->join('categorias', 'categorias.id', '=', 'productos.categoria_id')
+                ->where('productos.estado', '=', 'ACTIVO')
+                ->orderBy('productos.id', 'asc')
+                ->orderBy('colores.id', 'asc')
+                ->orderBy('tallas.id', 'asc')
+        )->toJson();
     }
 }
