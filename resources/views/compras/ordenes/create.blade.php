@@ -1092,6 +1092,7 @@ $(document).on("change", "#proveedor_id", function () {
     const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
     const tallas                =   @json($tallas);
     const formOrden             =   document.querySelector('#enviar_orden');
+    const inputFlete            =   document.querySelector('#inputFlete');
 
     let dataTableProductos      =   null;
     let modelo_id               =   null;
@@ -1129,19 +1130,21 @@ $(document).on("change", "#proveedor_id", function () {
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
             }
 
-            if(e.target.classList.contains('inputImporte')){
+            if(e.target.classList.contains('inputImporte') || e.target.classList.contains('inputFlete')){
                 //======= NO PERMITIR EL PUNTO COMO PRIMER DÍGITO =======
                 if (e.target.value.startsWith('.')) {
                     e.target.value = '';
                 }
               
-
                 // Eliminar el último dígito decimal si hay más de dos decimales
                 e.target.value = e.target.value.replace(/(\.\d\d)\d+$/, '$1');
                 // Reemplazar cualquier carácter que no sea un dígito ni un punto, y también reemplazar cualquier punto adicional después del primer punto
                 e.target.value = e.target.value.replace(/[^\d.]+|(?<=\..*)\./g, '');
-
-               
+  
+                //====== CALCULANDO COSTO UNITARIO FLETE =====
+                if(e.target.classList.contains('inputFlete')){                    
+                    calcularFleteUnitario();
+                }
             }
         })
 
@@ -1267,8 +1270,10 @@ $(document).on("change", "#proveedor_id", function () {
             calcularSubTotal();
             pintarDetalleOrden();
             calcularMontos();
+            calcularFleteUnitario();
             console.log(carrito);
         })
+
     }
 
     //======== ELIMINAR PRODUCTOS =======
@@ -1413,7 +1418,7 @@ $(document).on("change", "#proveedor_id", function () {
         const talla_id              = ic.getAttribute('data-talla-id');
         const talla_nombre          = ic.getAttribute('data-talla-nombre');
 
-        const inputImporte          =   document.querySelector(`#importe_${producto_id}`).value.trim();
+        const inputImporte          = document.querySelector(`#importe_${producto_id}`).value.trim();
         const importe               = inputImporte.length===0?0:parseFloat(inputImporte);
         
         const cantidad              = ic.value?ic.value:0;
@@ -1617,6 +1622,7 @@ $(document).on("change", "#proveedor_id", function () {
         }
     }
 
+    //======== LIBRERÍA DATEPICKER ========
     function cargarDatePicker (){
         $('#fecha_documento .input-group.date').datepicker({
             todayBtn: "linked",
@@ -1639,8 +1645,41 @@ $(document).on("change", "#proveedor_id", function () {
         })
     }
 
+    //======== ABRIR MODAL PROVEEDOR =======
     function openModalProveedor(){
         $("#modal_proveedor").modal("show");    
+    }
+
+    //======== CALCULAR COSTO FLETE UNITARIO =======
+    function calcularFleteUnitario(){
+        //==== OBTENIENDO MONTO TOTAL DEL FLETE ====
+        
+        const montoTotalFlete =   inputFlete.value.trim().length==0?0:parseFloat(inputFlete.value.trim());
+
+        let cantidadTotal           =   0;
+        let costo_flete_unitario    =   0;
+
+        //====== OBTENIENDO LA CANTIDAD TOTAL DE PRODUCTOS EN EL CARRITO =========
+        carrito.forEach((c)=>{
+           c.tallas.forEach((t)=>{
+            cantidadTotal+= parseFloat(t.cantidad);
+           })
+        })
+
+        if(montoTotalFlete==0 && cantidadTotal==0){
+            costo_flete_unitario    =   0;
+            return;
+        }
+        if(montoTotalFlete>0 && cantidadTotal==0){
+            costo_flete_unitario    =   0;
+            return;
+        }
+
+        costo_flete_unitario    =   montoTotalFlete/cantidadTotal;
+        //====== CALCULAR FLETE UNITARIO CORRECTAMENTE =======
+        carrito.forEach((c,index)=>{
+            c.costo_flete_unitario   =   costo_flete_unitario;   
+        })
     }
 
 </script>

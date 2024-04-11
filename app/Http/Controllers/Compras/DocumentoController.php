@@ -392,7 +392,8 @@ class DocumentoController extends Controller
                         'costo_flete_dolares'       =>  0,
                         'fecha_vencimiento'         =>  null,
                         'color_id'                  =>  $detalle->color_id,
-                        'talla_id'                  =>  $talla->talla_id
+                        'talla_id'                  =>  $talla->talla_id,
+                        'talla_nombre'              =>  $talla->talla_nombre
                     ]);
                 }
                 

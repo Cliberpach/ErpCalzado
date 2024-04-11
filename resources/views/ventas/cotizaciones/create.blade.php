@@ -1019,6 +1019,8 @@
 </script>
 
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
+<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
 <script>
     const tableStocksBody       =   document.querySelector('#table-stocks tbody');
     const tableDetalleBody      =   document.querySelector('#table-detalle tbody');
@@ -1052,8 +1054,7 @@
     let carritoFormateado   =   [];
    
     document.addEventListener('DOMContentLoaded',()=>{
-        console.log('coti create');
-        //setUbicacionDepartamento({value:13});
+        setUbicacionDepartamento(13,'first');
         events();
         eventsCliente();
     })
@@ -1579,6 +1580,35 @@
     // //============= ABRIR MODAL CLIENTE =============
     function openModalCliente(){
         $("#modal_cliente").modal("show");
+    }
+
+    function cargarDataTables(){
+        table = new DataTable('#table-productos',
+        {
+            language: {
+                processing:     "Traitement en cours...",
+                search:         "BUSCAR: ",
+                lengthMenu:    "MOSTRAR _MENU_ PRODUCTOS",
+                info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ PRODUCTOS",
+                infoEmpty:      "MOSTRANDO 0 ELEMENTOS",
+                infoFiltered:   "(FILTRADO de _MAX_ PRODUCTOS)",
+                infoPostFix:    "",
+                loadingRecords: "CARGA EN CURSO",
+                zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+                emptyTable:     "NO HAY PRODUCTOS DISPONIBLES",
+                paginate: {
+                    first:      "PRIMERO",
+                    previous:   "ANTERIOR",
+                    next:       "SIGUIENTE",
+                    last:       "ÚLTIMO"
+                },
+                aria: {
+                    sortAscending:  ": activer pour trier la colonne par ordre croissant",
+                    sortDescending: ": activer pour trier la colonne par ordre décroissant"
+                }
+            }
+        });
+        
     }
 
 

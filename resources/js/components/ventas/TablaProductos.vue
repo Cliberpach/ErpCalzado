@@ -438,7 +438,8 @@
                                         <td>{{ item.porcentaje_descuento!=0 ? item.precio_venta_nuevo : item.precio_venta }}</td>
                                         <td>{{ item.porcentaje_descuento !=0 ? item.subtotal_nuevo : item.subtotal }}</td>
                                         <td>
-                                            <input @input="validarDescuento(item.producto_id,item.color_id,$event)" type="text" style="width: 100px;" class="form-control">
+                                            <input @input="validarDescuento(item.producto_id,item.color_id,$event)" type="text" 
+                                            :value="item.porcentaje_descuento" style="width: 100px;" class="form-control">
                                         </td>
                                     </tr>
                                 </template>
@@ -1475,6 +1476,8 @@ export default {
                 this.carrito.splice(index, 1);
                 //========= recalcular subtotal,igv,total =========
                 this.calcularMontos();
+                console.log('ITEM ELIMINADO DEL CARRITO');
+                console.log(this.carrito);
                 //======= alerta ======================
                 toastr.success('Producto eliminado',"Cantidad devuelta")
             } catch (error) {
