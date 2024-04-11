@@ -1754,7 +1754,7 @@ $(document).on("change", "#proveedor_id", function () {
         });
         
         const tableProductos   = document.querySelector('#table-productos');
-        if(tableProductos.children[1]){
+        if(tableProductos.children[1].tagName == 'COLGROUP'){
             tableProductos.children[1].remove();
         }
     }

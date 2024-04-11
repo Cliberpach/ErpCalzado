@@ -1251,8 +1251,6 @@ function consultarDni() {
     } else {
         toastr.error('El campo Dni debe de contar con 8 dígitos', 'Error');
     }
-
-
 }
 
 function camposDni(objeto) {

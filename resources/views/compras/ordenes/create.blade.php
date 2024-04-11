@@ -4,7 +4,6 @@
 @section('orden-compra-active', 'active')
 
 <div class="row wrapper border-bottom white-bg page-heading">
-
     <div class="col-lg-12">
        <h2  style="text-transform:uppercase"><b>REGISTRAR NUEVA ORDEN DE COMPRA</b></h2>
         <ol class="breadcrumb">
@@ -20,10 +19,9 @@
 
         </ol>
     </div>
-
-
-
 </div>
+
+@include('compras.ordenes.modal_proveedor')
 
 
 <div class="wrapper wrapper-content animated fadeInRight">
@@ -85,7 +83,7 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="form-group d-none">
                                     <label class="required">Empresa: </label>
                                     <select
                                         class="select2_form form-control {{ $errors->has('empresa_id') ? ' is-invalid' : '' }}"
@@ -99,36 +97,46 @@
                                     </select>
                                 </div>
                                 <hr>
-                                <div class="row">
+                                {{-- <div class="row">
                                     <div class="col-md-12">
-                                        <p>Registrar Proveedor:</p>
+                                        <p>Proveedor:</p>
+                                    </div>
+                                </div> --}}
+
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label class="required">Proveedor: </label>
+                                            <button class="btn btn-primary" type="button" id="btn-proveedor-add" onclick="openModalProveedor()"> 
+                                                NUEVO   <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <select class="select2_form form-control {{ $errors->has('proveedor_id') ? ' is-invalid' : '' }}"
+                                            style="text-transform: uppercase; width:100%" value="{{old('proveedor_id')}}"
+                                            name="proveedor_id" id="proveedor_id" required>
+                                                <option></option>
+                                                @foreach ($proveedores as $proveedor)
+                                                    @if($proveedor->ruc)
+                                                        <option value="{{$proveedor->id}}" @if(old('proveedor_id')==$proveedor->id )
+                                                            {{'selected'}} @endif >{{$proveedor->ruc}} - {{$proveedor->descripcion}}
+                                                        </option>
+                                                    @else
+                                                        @if($proveedor->dni)
+                                                        <option value="{{$proveedor->id}}" @if(old('proveedor_id')==$proveedor->id )
+                                                            {{'selected'}} @endif >{{$proveedor->dni}} - {{$proveedor->descripcion}}
+                                                        </option>
+                                                        @endif
+                                                    @endif
+                                                @endforeach
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="form-group">
-                                    <label class="required">Ruc / Dni: </label>
-                                    <select
-                                        class="select2_form form-control {{ $errors->has('proveedor_id') ? ' is-invalid' : '' }}"
-                                        style="text-transform: uppercase; width:100%" value="{{old('proveedor_id')}}"
-                                        name="proveedor_id" id="proveedor_id" required>
-                                        <option></option>
-                                        @foreach ($proveedores as $proveedor)
-                                            @if($proveedor->ruc)
-                                            <option value="{{$proveedor->id}}" @if(old('proveedor_id')==$proveedor->id )
-                                                {{'selected'}} @endif >{{$proveedor->ruc}}
-                                            </option>
-                                            @else
-                                            @if($proveedor->dni)
-                                            <option value="{{$proveedor->id}}" @if(old('proveedor_id')==$proveedor->id )
-                                                {{'selected'}} @endif >{{$proveedor->dni}}
-                                            </option>
-                                            @endif
-                                        @endif
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
+                                {{-- <div class="form-group">
                                     <label class="required">Razon Social: </label>
                                     <select
                                         class="select2_form form-control {{ $errors->has('proveedor_razon') ? ' is-invalid' : '' }}"
@@ -149,7 +157,7 @@
                                         @endif
                                         @endforeach
                                     </select>
-                                </div>
+                                </div> --}}
 
 
                             </div>
@@ -216,10 +224,10 @@
                                         <div class="input-group">
                                             <div class="input-group-prepend">
                                                 <span class="input-group-addon">
-                                                    <input type="checkbox" id="igv_check" name="igv_check">
+                                                    <input checked type="checkbox" id="igv_check" name="igv_check">
                                                 </span>
                                             </div>
-                                            <input disabled type="text" value="{{old('igv')}}"
+                                            <input  disabled type="text" value="{{old('igv')}}"
                                                 class="form-control {{ $errors->has('igv') ? ' is-invalid' : '' }}"
                                                 name="igv" id="igv" maxlength="3"  onkeyup="return mayus(this)"
                                                 required>
@@ -1093,6 +1101,7 @@ $(document).on("change", "#proveedor_id", function () {
         cargarSelect2();
         cargarDatePicker();
         events();
+        eventsProveedor();
     })
 
     function events(){
@@ -1600,8 +1609,10 @@ $(document).on("change", "#proveedor_id", function () {
             }
         });
         
+      
         const tableProductos   = document.querySelector('#table-productos');
-        if(tableProductos.children[1]){
+        console.log(tableProductos.children[1].tagName)
+        if(tableProductos.children[1].tagName == 'COLGROUP'){
             tableProductos.children[1].remove();
         }
     }
@@ -1626,6 +1637,10 @@ $(document).on("change", "#proveedor_id", function () {
             format: "dd/mm/yyyy",
             startDate: "today"
         })
+    }
+
+    function openModalProveedor(){
+        $("#modal_proveedor").modal("show");    
     }
 
 </script>

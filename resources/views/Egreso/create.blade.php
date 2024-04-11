@@ -117,6 +117,7 @@
         });
         $("#frm_egreso_create").on('submit', function(e) {
             e.preventDefault();
+            document.querySelector('.btn-submit-egreso').disabled   =   true;
 
             var efectivo_venta = $("#efectivo_venta").val();
             var importe_venta = $("#importe_venta").val();
@@ -148,6 +149,8 @@
                         this.submit();
                     }
                 })
+            }else{
+                document.querySelector('.btn-submit-egreso').disabled   =   false;
             }
         })
 

@@ -129,20 +129,28 @@ class OrdenController extends Controller
         $monedas        =  tipos_moneda();
         $condiciones    = Condicion::where('estado','ACTIVO')->get();
 
+
+        $tipos          =   personas();
+        $zonas          =   zonas();
         $tallas         =   Talla::where('estado','ACTIVO')->get();
         $modelos        =   Modelo::where('estado','ACTIVO')->get();
+        $departamentos      =   departamentos();
+
 
         return view('compras.ordenes.create',[
-            'empresas' => $empresas,
-            'proveedores' => $proveedores,
-            'productos' => $productos,
-            'presentaciones' => $presentaciones,
-            'condiciones' => $condiciones,
-            'fecha_hoy' => $fecha_hoy,
-            'modos' => $modos,
-            'monedas' => $monedas,
-            'tallas'    =>  $tallas,
-            'modelos'   =>  $modelos
+            'empresas'          => $empresas,
+            'proveedores'       => $proveedores,
+            'productos'         => $productos,
+            'presentaciones'    => $presentaciones,
+            'condiciones'       => $condiciones,
+            'fecha_hoy'         => $fecha_hoy,
+            'modos'             => $modos,
+            'monedas'           => $monedas,
+            'tallas'            =>  $tallas,
+            'modelos'           =>  $modelos,
+            'tipos'             =>  $tipos,
+            'zonas'             =>  $zonas,
+            'departamentos'     =>  $departamentos
         ]);
     }
 

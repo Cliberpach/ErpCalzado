@@ -6,3 +6,8 @@
 <div class="overlay" id="overlay">
   <span class="loader"></span>
 </div>
+
+
+{{-- USAR ESTO PARA ACTIVAR O DESACTIVAR :     const overlay = document.getElementById('overlay'); --}}
+{{-- overlay.style.display = 'flex'; 
+overlay.style.display = 'none';  --}}

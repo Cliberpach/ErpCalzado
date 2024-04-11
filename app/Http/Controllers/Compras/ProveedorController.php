@@ -72,7 +72,17 @@ class ProveedorController extends Controller
         $message = [
             'tipo_documento.required' => 'El campo Tipo es obligatorio.',
         ];
-        Validator::make($data, $rules, $message)->validate();
+        
+        $validator = Validator::make($data, $rules, $message);
+
+        if ($validator->fails()) {
+            if ($request->has('type_store')) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+        }
+
         if ($request->input('tipo_documento') == 'RUC') {
             $rules = [
                 'ruc' => [
@@ -87,12 +97,21 @@ class ProveedorController extends Controller
             ];
             $message = [
                 'ruc.required' => 'El campo Ruc es obligatorio.',
-                'ruc.unique'=> 'El campo Ruc debe de ser campo único.',
+                'ruc.unique'=> 'El Ruc ya se encuentra registrado.',
                 'ruc.numeric'=> 'El campo Ruc debe se numérico.',
                 'ruc.digits'=>'El campo Ruc debe tener 11 dígitos.',
                 'tipo_persona.required' => 'El campo Tipo es obligatorio.',
             ];
-            Validator::make($data, $rules, $message)->validate();
+
+            $validator = Validator::make($data, $rules, $message);
+            if ($validator->fails()) {
+                if ($request->has('type_store')) {
+                    return response()->json(['errors' => $validator->errors()], 422);
+                } else {
+                    return redirect()->back()->withErrors($validator)->withInput();
+                }
+            }
+
         }else{
             $rules = [
                 'dni' => [
@@ -109,10 +128,18 @@ class ProveedorController extends Controller
                 'dni.digits' => 'El campo Dni debe tener 8 dígitos.',
                 'dni.numeric' => 'El campo Dni debe ser numérico.',
                 'dni.required' => 'El campo Dni es obligatorio.',
-                'dni.unique'=> 'El campo Dni debe de ser campo único.',
+                'dni.unique'=> 'El Dni ya se encuentra registrado.',
                 'tipo_persona_dni.required' => 'El campo Tipo es obligatorio.',
             ];
-            Validator::make($data, $rules, $message)->validate();
+            
+            $validator = Validator::make($data, $rules, $message);
+            if ($validator->fails()) {
+                if ($request->has('type_store')) {
+                    return response()->json(['errors' => $validator->errors()], 422);
+                } else {
+                    return redirect()->back()->withErrors($validator)->withInput();
+                }
+            }
         }
         
         $rules = [
@@ -175,7 +202,14 @@ class ProveedorController extends Controller
 
         ];
 
-        Validator::make($data, $rules, $message)->validate();
+        $validator = Validator::make($data, $rules, $message);
+        if ($validator->fails()) {
+            if ($request->has('type_store')) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+        }
 
         $proveedor = new Proveedor();
         $proveedor->ruc = $request->get('ruc');
@@ -221,21 +255,36 @@ class ProveedorController extends Controller
         $proveedor->save();
 
         //Llenado de Bancos
-        $entidadesJSON = $request->get('entidades_tabla');
-        $entidadtabla = json_decode($entidadesJSON[0]);
+        if($request->has('entidades_tabla')){
+            $entidadesJSON = $request->get('entidades_tabla');
+            $entidadtabla = json_decode($entidadesJSON[0]);
 
-        if ($entidadtabla) {
-            foreach ($entidadtabla as $entidad) {
-                Banco::create([
-                    'proveedor_id' => $proveedor->id,
-                    'descripcion' => $entidad->entidad,
-                    'tipo_moneda' => $entidad->moneda,
-                    'num_cuenta' => $entidad->cuenta,
-                    'cci' => $entidad->cci,
-                    'itf' => $entidad->itf,
-                ]);
+            if ($entidadtabla) {
+                foreach ($entidadtabla as $entidad) {
+                    Banco::create([
+                        'proveedor_id' => $proveedor->id,
+                        'descripcion' => $entidad->entidad,
+                        'tipo_moneda' => $entidad->moneda,
+                        'num_cuenta' => $entidad->cuenta,
+                        'cci' => $entidad->cci,
+                        'itf' => $entidad->itf,
+                    ]);
+                }
             }
         }
+
+        if($request->has('type_store')){
+            if($proveedor->tipo_documento   ==  "RUC"){
+                $ultimoProveedor    =   ["nroDoc"=>$proveedor->ruc,"descripcion"=>$proveedor->descripcion,"id"=>$proveedor->id];
+            }
+            if($proveedor->tipo_documento   ==  "DNI"){
+                $ultimoProveedor    =   ["nroDoc"=>$proveedor->dni,"descripcion"=>$proveedor->descripcion,"id"=>$proveedor->id];
+            }
+            return response()->json(['success' => true,
+            'message'=>'PROVEEDOR REGISTRADO',
+            'data'=>$ultimoProveedor]);
+        }
+        
 
         //Registro de actividad
         $descripcion = "SE AGREGÓ EL PROVEEDOR CON LA DESCRIPCION: ". $proveedor->descripcion;
