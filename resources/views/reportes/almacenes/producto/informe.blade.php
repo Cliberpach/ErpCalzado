@@ -77,9 +77,9 @@
                                         <th class="text-center">NUMERO</th>
                                         <th class="text-center">FECHA</th>
                                         <th class="text-center">CANTIDAD</th>
-                                        <th class="text-center">PRECIO</th>
-                                        <th class="text-center">MEDIDA</th>
-                                        <th class="text-center">FECHA VENC.</th>
+                                        <th class="text-center">PREC. DOC</th>
+                                        <th class="text-center">COSTO FLETE</th>
+                                        <th class="text-center">PREC. COMPRA</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -116,8 +116,6 @@
                                         <th class="text-center">FECHA</th>
                                         <th class="text-center">CANTIDAD</th>
                                         <th class="text-center">PRECIO</th>
-                                        <th class="text-center">MEDIDA</th>
-                                        <th class="text-center">FECHA VENC.</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -151,10 +149,7 @@
                                         <th class="text-center">ORIGEN</th>
                                         <th class="text-center">DESTINO</th>
                                         <th class="text-center">CANTIDAD</th>
-                                        <th class="text-center">COSTO U.</th>
-                                        <th class="text-center">MEDIDA</th>
-                                        <th class="text-center">TOTAL</th>
-                                        <th class="text-center">OPCIONES</th>
+                                        <th class="text-center">USUARIO</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -365,7 +360,7 @@
             });
 
             //DOBLE CLICK EN LOTES
-            $('.dataTables-producto').on('dblclick', 'tbody td', function() {
+            $('.dataTables-producto').on('click', 'tbody td', function() {
                 var instancia   = $('.dataTables-producto').DataTable();
                 var producto    = instancia.row(this).data();
                 llenarCompras(producto.producto_id,producto.color_id,producto.talla_id);
@@ -440,18 +435,18 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'precio',
-                        name: 'precio',
+                        data: 'precio_doc',
+                        name: 'precio_soles',
                         className: "letrapequeña"
                     },
                     {
-                        data: 'medida',
-                        name: 'medida',
+                        data: 'costo_flete',
+                        name: 'costo_flete',
                         className: "letrapequeña"
                     },
                     {
-                        data: 'fecha_vencimiento',
-                        name: 'fecha_vencimiento',
+                        data: 'precio_compra',
+                        name: 'precio_compra',
                         className: "letrapequeña"
                     }
                 ],
@@ -528,18 +523,8 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'precio',
-                        name: 'precio',
-                        className: "letrapequeña"
-                    },
-                    {
-                        data: 'medida',
-                        name: 'medida',
-                        className: "letrapequeña"
-                    },
-                    {
-                        data: 'fecha_vencimiento',
-                        name: 'fecha_vencimiento',
+                        data: 'precio_unitario_nuevo',
+                        name: 'precio_unitario_nuevo',
                         className: "letrapequeña"
                     }
                 ],
@@ -678,26 +663,9 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'costo',
-                        name: 'costo',
+                        data: 'usuario',
+                        name: 'usuario',
                         className: "letrapequeña"
-                    },
-                    {
-                        data: 'medida',
-                        name: 'medida',
-                        className: "letrapequeña"
-                    },
-                    {
-                        data: 'total',
-                        name: 'total',
-                        className: "letrapequeña"
-                    },
-                    {
-                        data: null,
-                        className: "text-center letrapequeña",
-                        render: function(data) {
-                            return "<button type='button' class='btn btn-sm btn-info editCosto'><i class='fa fa-pencil'></i></button>"
-                        }
                     },
                 ],
                 "language": {

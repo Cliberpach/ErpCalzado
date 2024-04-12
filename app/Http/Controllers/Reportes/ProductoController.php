@@ -45,15 +45,17 @@ class ProductoController extends Controller
         $coleccion = collect([]);
         foreach ($compras as $producto) {
             $coleccion->push([
-                'proveedor' => $producto->documento->proveedor->descripcion,
-                'documento' => $producto->documento->tipo_compra,
-                'numero' => $producto->documento->serie_tipo . '-' . $producto->documento->numero_tipo,
+                'proveedor'     => $producto->documento->proveedor->descripcion,
+                'documento'     => $producto->documento->tipo_compra,
+                'numero'        => $producto->documento->serie_tipo . '-' . $producto->documento->numero_tipo,
                 'fecha_emision' => $producto->documento->fecha_emision,
-                'cantidad' => $producto->cantidad,
-                'precio' => $producto->precio_soles,
+                'cantidad'      => $producto->cantidad,
+                'precio_doc'    => number_format($producto->precio_soles, 2),
+                'costo_flete'   => number_format($producto->costo_flete, 2),
+                'precio_compra' => number_format($producto->precio_soles + $producto->costo_flete, 2),                
+                // 'fecha_vencimiento' => $producto->fecha_vencimiento,
+                // 'medida'            => $producto->producto->medidaCompleta(),
                 // 'lote' => $producto->lote,
-                'fecha_vencimiento' => $producto->fecha_vencimiento,
-                'medida' => $producto->producto->medidaCompleta(),
             ]);
         }
         return DataTables::of($coleccion)->make(true);
@@ -77,9 +79,9 @@ class ProductoController extends Controller
                     'numero' => $producto->documento->serie . '-' . $producto->documento->correlativo,
                     'fecha_emision' => $producto->documento->fecha_atencion,
                     'cantidad' => $producto->cantidad,
-                    'precio' => $producto->precio_nuevo,
-                    'fecha_vencimiento' => $producto->documento->fecha_vencimiento,
-                    'medida' => $producto->producto->medidaCompleta(),
+                    'precio_unitario_nuevo' => $producto->precio_unitario_nuevo,
+                    // 'fecha_vencimiento' => $producto->documento->fecha_vencimiento,
+                    // 'medida' => $producto->producto->medidaCompleta(),
                 ]);
             }
             return DataTables::of($coleccion)->make(true);
@@ -168,22 +170,25 @@ class ProductoController extends Controller
                     ->where('producto_id', $producto_id)
                     ->where('color_id', $color_id)
                     ->where('talla_id', $talla_id)
+                    ->join('nota_ingreso', 'detalle_nota_ingreso.nota_ingreso_id', '=', 'nota_ingreso.id')
+                    ->select('detalle_nota_ingreso.*', 'nota_ingreso.usuario')
                     ->get();
 
         $coleccion = collect([]);
         foreach ($ingresos as $ingreso) {
             $coleccion->push([
-                'origen' => $ingreso->nota_ingreso->origen,
-                'numero' => $ingreso->nota_ingreso->numero,
-                'destino' => $ingreso->nota_ingreso->destino,
-                'cantidad' => $ingreso->cantidad,
-                'costo' => $ingreso->costo_soles,
-                'nombre' => $ingreso->producto->nombre,
-                'total' => $ingreso->valor_ingreso,
-                'nota_ingreso_id' => $ingreso->nota_ingreso->id,
-                'id' => $ingreso->id,
-                'moneda' => $ingreso->nota_ingreso->moneda,
-                'medida' => $ingreso->producto->medidaCompleta(),
+                'origen'            => $ingreso->nota_ingreso->origen,
+                'numero'            => $ingreso->nota_ingreso->numero,
+                'destino'           => $ingreso->nota_ingreso->destino,
+                'cantidad'          => $ingreso->cantidad,
+                'costo'             => $ingreso->costo_soles,
+                'nombre'            => $ingreso->producto->nombre,
+                'total'             => $ingreso->valor_ingreso,
+                'nota_ingreso_id'   => $ingreso->nota_ingreso->id,
+                'id'                => $ingreso->id,
+                'moneda'            => $ingreso->nota_ingreso->moneda,
+                'medida'            => $ingreso->producto->medidaCompleta(),
+                'usuario'           => $ingreso->usuario
                 //'medida' => $ingreso->loteProducto->producto->medidaCompleta(),
             ]);
         }

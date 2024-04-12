@@ -1141,10 +1141,6 @@ $(document).on("change", "#proveedor_id", function () {
                 // Reemplazar cualquier carácter que no sea un dígito ni un punto, y también reemplazar cualquier punto adicional después del primer punto
                 e.target.value = e.target.value.replace(/[^\d.]+|(?<=\..*)\./g, '');
   
-                //====== CALCULANDO COSTO UNITARIO FLETE =====
-                if(e.target.classList.contains('inputFlete')){                    
-                    calcularFleteUnitario();
-                }
             }
         })
 
@@ -1270,7 +1266,6 @@ $(document).on("change", "#proveedor_id", function () {
             calcularSubTotal();
             pintarDetalleOrden();
             calcularMontos();
-            calcularFleteUnitario();
             console.log(carrito);
         })
 
@@ -1648,38 +1643,6 @@ $(document).on("change", "#proveedor_id", function () {
     //======== ABRIR MODAL PROVEEDOR =======
     function openModalProveedor(){
         $("#modal_proveedor").modal("show");    
-    }
-
-    //======== CALCULAR COSTO FLETE UNITARIO =======
-    function calcularFleteUnitario(){
-        //==== OBTENIENDO MONTO TOTAL DEL FLETE ====
-        
-        const montoTotalFlete =   inputFlete.value.trim().length==0?0:parseFloat(inputFlete.value.trim());
-
-        let cantidadTotal           =   0;
-        let costo_flete_unitario    =   0;
-
-        //====== OBTENIENDO LA CANTIDAD TOTAL DE PRODUCTOS EN EL CARRITO =========
-        carrito.forEach((c)=>{
-           c.tallas.forEach((t)=>{
-            cantidadTotal+= parseFloat(t.cantidad);
-           })
-        })
-
-        if(montoTotalFlete==0 && cantidadTotal==0){
-            costo_flete_unitario    =   0;
-            return;
-        }
-        if(montoTotalFlete>0 && cantidadTotal==0){
-            costo_flete_unitario    =   0;
-            return;
-        }
-
-        costo_flete_unitario    =   montoTotalFlete/cantidadTotal;
-        //====== CALCULAR FLETE UNITARIO CORRECTAMENTE =======
-        carrito.forEach((c,index)=>{
-            c.costo_flete_unitario   =   costo_flete_unitario;   
-        })
     }
 
 </script>

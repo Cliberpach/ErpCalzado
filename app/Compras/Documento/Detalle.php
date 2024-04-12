@@ -104,11 +104,12 @@ class Detalle extends Model
                 $producto_color_talla->save();
             }
 
-            //MOVIMIENTO
+            //====== COSTO DEL PRODUCTO ====
             $producto                   = Producto::findOrFail($detalle->producto_id);
-            $producto->precio_compra    = $detalle->precio_soles;
+            $producto->precio_compra    = $detalle->precio_soles + $detalle->costo_flete;
             $producto->update();
 
+            //====== MOVIMIENTO =====
             $movimiento = new MovimientoAlmacen();
             $movimiento->almacen_final_id               = $detalle->producto->almacen->id;
             $movimiento->cantidad                       = $detalle->cantidad;

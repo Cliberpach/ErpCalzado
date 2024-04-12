@@ -30,12 +30,6 @@
           <td colspan="{{count($tallas) + 4 }}" style="font-weight: bold;text-align:end;">MONTO TOTAL:</td>
           <td class="tfoot-total" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
         </tr>
-        <tr>
-          <td colspan="{{count($tallas) + 4 }}" style="font-weight: bold;text-align:end;">MONTO FLETE:</td>
-          <td class="tfoot-total" colspan="1" style="font-weight: bold;">
-            <input class="form-control inputFlete" id="inputFlete" type="text" value="0" style="width: 90px;margin-left: auto;">
-          </td>
-        </tr>
       </tfoot>
     </table>
   </div>

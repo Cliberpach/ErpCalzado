@@ -334,29 +334,27 @@ class DocumentoController extends Controller
                 foreach ($detalle->tallas as  $talla) {
                
                     $precio_soles           = $detalle->precio_unitario;
-                    $costo_flete_soles      = $detalle->costo_flete??0;
+                    $costo_flete_soles      = $detalle->costo_flete_unitario??0;
                     $precio_dolares         = $detalle->precio_unitario;
-                    $costo_flete_dolares    = $detalle->costo_flete??0;
+                    $costo_flete_dolares    = $detalle->costo_flete_unitario??0;
     
                     //-------------------------------
                     if($request->get('moneda') == 'DOLARES')
                     {
                         $precio_soles           = (float) $detalle->precio_unitario * (float) $request->get('tipo_cambio');
-                        $costo_flete_soles      = (float) $detalle->costo_flete * (float) $request->get('tipo_cambio');
+                        $costo_flete_soles      = (float) $detalle->costo_flete_unitario * (float) $request->get('tipo_cambio');
     
                         $precio_dolares         = (float) $detalle->precio_unitario;
-                        $costo_flete_dolares    = (float) $detalle->costo_flete??0;
+                        $costo_flete_dolares    = (float) $detalle->costo_flete_unitario??0;
                     }
                     else
                     {
 
                         $precio_soles           = (float) $detalle->precio_unitario;
-                        // $costo_flete_soles      = (float) $detalle->costo_flete??0;
-                        $costo_flete_soles      =   0;
+                        $costo_flete_soles      = (float) $detalle->costo_flete_unitario??0;
     
                         $precio_dolares         = (float) $detalle->precio_unitario / (float) $dolar;
-                        // $costo_flete_dolares = (float) $detalle->costo_flete??0 / (float) $dolar;
-                        $costo_flete_dolares    = 0;
+                        $costo_flete_dolares    = (float) $detalle->costo_flete_unitario??0 / (float) $dolar;
                     }
     
                     //-------------------------------
@@ -387,9 +385,9 @@ class DocumentoController extends Controller
                         'precio_mas_igv_dolares'    =>  $precio_mas_igv_dolares,
                         'precio_soles'              =>  $precio_soles,
                         'precio_dolares'            =>  $precio_dolares,
-                        'costo_flete'               =>  0,
-                        'costo_flete_soles'         =>  0,
-                        'costo_flete_dolares'       =>  0,
+                        'costo_flete'               =>  $detalle->costo_flete_unitario,
+                        'costo_flete_soles'         =>  $costo_flete_soles,
+                        'costo_flete_dolares'       =>  $costo_flete_dolares,
                         'fecha_vencimiento'         =>  null,
                         'color_id'                  =>  $detalle->color_id,
                         'talla_id'                  =>  $talla->talla_id,

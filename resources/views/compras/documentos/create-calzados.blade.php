@@ -825,7 +825,7 @@
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
             }
 
-            if(e.target.classList.contains('inputImporte')){
+            if(e.target.classList.contains('inputImporte') || e.target.classList.contains('inputFlete')){
                 //======= NO PERMITIR EL PUNTO COMO PRIMER DÍGITO =======
                 if (e.target.value.startsWith('.')) {
                     e.target.value = '';
@@ -837,7 +837,10 @@
                 // Reemplazar cualquier carácter que no sea un dígito ni un punto, y también reemplazar cualquier punto adicional después del primer punto
                 e.target.value = e.target.value.replace(/[^\d.]+|(?<=\..*)\./g, '');
 
-               
+                //====== CALCULANDO COSTO UNITARIO FLETE =====
+                if(e.target.classList.contains('inputFlete')){                    
+                    calcularFleteUnitario();
+                }
             }
         })
 
@@ -1002,6 +1005,7 @@
             calcularSubTotal();
             pintarDetalleOrden();
             calcularMontos();
+            calcularFleteUnitario();
             console.log(carrito);
         })
     }
@@ -1519,6 +1523,39 @@
         },
         buttonsStyling: false
     })
+
+    
+    //======== CALCULAR COSTO FLETE UNITARIO =======
+    function calcularFleteUnitario(){
+        //==== OBTENIENDO MONTO TOTAL DEL FLETE ====
+        
+        const montoTotalFlete =   inputFlete.value.trim().length==0?0:parseFloat(inputFlete.value.trim());
+
+        let cantidadTotal           =   0;
+        let costo_flete_unitario    =   0;
+
+        //====== OBTENIENDO LA CANTIDAD TOTAL DE PRODUCTOS EN EL CARRITO =========
+        carrito.forEach((c)=>{
+           c.tallas.forEach((t)=>{
+            cantidadTotal+= parseFloat(t.cantidad);
+           })
+        })
+
+        if(montoTotalFlete==0 && cantidadTotal==0){
+            costo_flete_unitario    =   0;
+            return;
+        }
+        if(montoTotalFlete>0 && cantidadTotal==0){
+            costo_flete_unitario    =   0;
+            return;
+        }
+
+        costo_flete_unitario    =   montoTotalFlete/cantidadTotal;
+        //====== CALCULAR FLETE UNITARIO CORRECTAMENTE =======
+        carrito.forEach((c,index)=>{
+            c.costo_flete_unitario   =   costo_flete_unitario;   
+        })
+    }
 
 </script>
 {{-- <script>
