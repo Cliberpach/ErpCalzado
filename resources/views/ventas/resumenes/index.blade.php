@@ -133,7 +133,7 @@
                                             @if ($resumen->code_estado == null)
                                                 <td>
                                                     <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #c0d5f5; color: #033bd6; font-weight: bold;text-align:center;">
-                                                        ERROR EN EL ENVÍO
+                                                        ENVIADO
                                                     </p>
                                                 </td>  
                                             @endif
@@ -167,11 +167,16 @@
                                         </td>
                                         
                                         <td>
-                                            @if ($resumen->code_estado == '98' || $resumen->regularize == 1 ||$resumen->code_estado == null)
+                                            @if ($resumen->code_estado == '98')
                                                 <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-consultar-resumen">
                                                     CONSULTAR
                                                 </button>
                                             @endif
+                                            @if ($resumen->send_sunat == '0' && !$resumen->ticket)
+                                            <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-reenviar-resumen">
+                                                REENVIAR
+                                            </button>
+                                        @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -199,6 +204,8 @@
 @push('scripts')
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 <script>
     const btnGetComprobantes            =   document.querySelector('#btn-get-comprobantes');
@@ -231,12 +238,10 @@
         //======= GUARDAR RESUMEN ======
         document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('btn-guardar-resumen')){
-
                const valido   = validaciones();
-               if(valido){
-                saveSendResumen();
-               }
-   
+                if(valido){
+                   saveSendResumen();
+                }
             }
         })
 
@@ -265,29 +270,30 @@
     }
 
     //====== REENVIAR RESUMEN ========
-    async function reenviarResumen(){
+    async function reenviarResumen(resumen_id){
         document.querySelector('.loader-container').style.display = 'flex'; 
         try {
-            const url       =   `/ventas/resumenes/consultar`;
+            const url       =   `/ventas/resumenes/reenviar`;
             const response  =   await axios.post(url,{
                 'resumen_id': JSON.stringify(resumen_id)
             });
 
             console.log(response);
             if(response.status == 200){
-                if(response.data.type == 'error'){
-                    toastr.success(response.data.message,'ERROR EN LA CONSULTA');
+                if(response.data.res_send.type == 'error'){
+                    toastr.success(response.data.res_send.message,'ERROR EN EL ENVÍO A SUNAT');
                     return;
                 }
-                if(response.data.type == 'success'){
-                    actualizarDataTable(resumen_id,response.data);
-                    toastr.success(response.data.message,'CONSULTA COMPLETADA');
+                if(response.data.res_send.type == 'success'){
+                    actualizarDataTable(resumen_id,response.data.resumen);
+                    toastr.success(response.data.res_send.message,'RESUMEN ENVIADO A SUNAT');
                 }
                 
             }
           
         } catch (error) {
-            console.error('Error al consultar el estado del ticket:', error);
+            console.log(error);
+            console.error('Error al reenviar el resumen:', error);
             toastr.error(error,'CONSULTA INCORRECTA');
 
         }finally{
@@ -306,13 +312,13 @@
 
             console.log(response);
             if(response.status == 200){
-                if(response.data.type == 'error'){
-                    toastr.success(response.data.message,'ERROR EN LA CONSULTA');
+                if(response.data.res.type == 'error'){
+                    toastr.error(`${response.data.res.message} | ${response.data.res.exception}`,'ERROR EN LA CONSULTA');
                     return;
                 }
-                if(response.data.type == 'success'){
-                    actualizarDataTable(resumen_id,response.data);
-                    toastr.success(response.data.message,'CONSULTA COMPLETADA');
+                if(response.data.res.type == 'success'){
+                    actualizarDataTable(resumen_id,response.data.res.resumen);
+                    toastr.success(response.data.res.message,'CONSULTA COMPLETADA');
                 }
                 
             }
@@ -369,7 +375,7 @@
                                     </button>
                                 </form>`.replace(':resumenId', resumen_id);  
 
-        if(res_consulta.cdr){
+        if(res_consulta.ruta_cdr){
             descargarArchivos +=    `<form style="margin-left:3px;" action="{{ route('ventas.resumenes.getCdr', ':resumenId') }}" 
                                     method="get">
                                         <button type="submit" class="btn btn-primary btn-xml">
@@ -391,6 +397,16 @@
         }
         if (res_consulta.code_estado == 0) {
             acciones+=``;
+        }
+        if (res_consulta.send_sunat == 0 && !res_consulta.ticket) {
+            acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
+                class="btn btn-primary btn-reenviar-resumen">
+                REENVIAR</button>`;
+        }
+        if (res_consulta.send_sunat == 1 && 'ticket' in res_consulta && !res_consulta.code_estado) {
+            acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
+                class="btn btn-primary btn-consultar-resumen">
+                CONSULTAR</button>`;
         }
 
         fila.cell(indiceFila,7).data(acciones).draw();
@@ -453,6 +469,17 @@
                     toastr.error(`${message} | ${exception}`, 'ERROR AL REGISTRAR EL RESUMEN', { timeOut: 0 });
                 }
 
+                if(type_send   ==  'success'){
+                    const message   =   response.data.res_send.message;
+
+                    toastr.info(message,'ENVÍO EXITOSO', { timeOut: 0 });
+                }
+                if(type_send   ==  'error'){
+                    const message   =   response.data.res_send.message;
+                    const exception =   response.data.res_send.exception;
+
+                    toastr.error(`${message} | ${exception}`, 'ERROR AL ENVIAR EL RESUMEN', { timeOut: 0 });
+                }
 
             }
         } catch (error) {
@@ -487,6 +514,11 @@
                 resumen_estado  =   `<p class="mb-0" style="padding:2px;border-radius: 10px; 
                                     background-color: #efd5d5; color: #be1919; font-weight: bold;text-align:center;">
                                     Enviado con errores</p>`;
+            }
+
+            if(!resumen.code_estado){
+                resumen_estado  =   `<p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #c0d5f5; color: #033bd6; font-weight: bold;text-align:center;">
+                                    ENVIADO</p>`;
             }
 
         }
@@ -525,7 +557,18 @@
                 class="btn btn-primary btn-consultar-resumen">
                 CONSULTAR</button>`;
         }
-
+        if (resumen.send_sunat == 0 && !resumen.ticket) {
+            acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
+                class="btn btn-primary btn-reenviar-resumen">
+                REENVIAR</button>`;
+        }
+        if (resumen.send_sunat == 1 && 'ticket' in resumen) {
+            acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
+                class="btn btn-primary btn-consultar-resumen">
+                CONSULTAR</button>`;
+        }
+       
+       
         //========= OBTENIENDO TICKET ======
         let ticket  =   '';
         if('ticket' in resumen){
