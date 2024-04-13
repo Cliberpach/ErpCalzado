@@ -46,8 +46,8 @@ final class Util
         $see = new See();
         $see->setService($endpoint);
         //$see->setCodeProvider(new XmlErrorCodeProvider());
-        $certificate = file_get_contents(__DIR__ . '/../certificate/certificate_test.pem');
-        //$certificate = file_get_contents(__DIR__ . '/../certificate/certificate_merris.pem');
+        //$certificate = file_get_contents(__DIR__ . '/../certificate/certificate_test.pem');
+        $certificate = file_get_contents(__DIR__ . '/../certificate/certificate_merris.pem');
 
         if ($certificate === false) {
             throw new Exception('No se pudo cargar el certificado');
@@ -59,8 +59,8 @@ final class Util
          * Usuario = MODDATOS
          * Clave   = moddatos
          */
-        $see->setClaveSOL('20000000001', 'MODDATOS', 'moddatos');
-        //$see->setClaveSOL('20611904020', 'SISCOMFA', 'Merry321');
+        //$see->setClaveSOL('20000000001', 'MODDATOS', 'moddatos');
+        $see->setClaveSOL('20611904020', 'SISCOMFA', 'Merry321');
         $see->setCachePath(__DIR__ . '/../cache');
 
         return $see;
