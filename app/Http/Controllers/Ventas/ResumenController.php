@@ -24,7 +24,7 @@ require __DIR__ . '/../../../../vendor/autoload.php';
 class ResumenController extends Controller
 {
     public function index(){
-        $resumenes  =   Resumen::all();
+        $resumenes = Resumen::orderByDesc('id')->get();
 
         return view('ventas.resumenes.index',compact('resumenes'));
     }

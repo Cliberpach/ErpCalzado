@@ -172,6 +172,11 @@
                                                     CONSULTAR
                                                 </button>
                                             @endif
+                                            @if ($resumen->send_sunat == 1 && $resumen->ticket && !$resumen->code_estado)
+                                                <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-consultar-resumen">
+                                                    CONSULTAR
+                                                </button>
+                                            @endif
                                             @if ($resumen->send_sunat == '0' && !$resumen->ticket)
                                             <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-reenviar-resumen">
                                                 REENVIAR
@@ -438,7 +443,8 @@
                     sortAscending:  ": activer pour trier la colonne par ordre croissant",
                     sortDescending: ": activer pour trier la colonne par ordre décroissant"
                 }
-            }
+            },
+            "order": [[ 0, "desc" ]]
         });
     }
 
