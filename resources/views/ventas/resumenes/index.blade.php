@@ -172,7 +172,7 @@
                                                     CONSULTAR
                                                 </button>
                                             @endif
-                                            @if ($resumen->send_sunat == 1 && $resumen->ticket && !$resumen->code_estado)
+                                            @if ($resumen->send_sunat == 1 && $resumen->ticket && $resumen->code_estado==null)
                                                 <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-consultar-resumen">
                                                     CONSULTAR
                                                 </button>

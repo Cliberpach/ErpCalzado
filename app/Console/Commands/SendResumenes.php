@@ -45,12 +45,14 @@ class SendResumenes extends Command
     public function handle()
     {
         //====== COMPROBANDO CONFIGURACIÓN ======
+        Log::info('========== COMMAND SEND RESUMENES ==========');
         Log::info('VERIFICANDO CONFIGURACIÓN');
         $config = Configuracion::where('slug', 'EARB')->first();
 
         if($config->propiedad == "SI"){
+            Log::info('ENVÍO RESÚMENES AUTOMÁTICO ACTIVADO');
             $dias_menos =   $config->nro_dias;
-            Log::info('OBTENIENDO FECHA '.$dias_menos. 'DÍAS ANTERIORES');
+            Log::info('OBTENIENDO FECHA '.$dias_menos. ' DÍAS ANTERIORES');
             //====== OBTENER LA FECHA DE N DÍAS ANTES ====
             $fecha_comprobantes   =   $this->getFechaComprobantes($dias_menos);
             Log::info($fecha_comprobantes);
@@ -66,7 +68,7 @@ class SendResumenes extends Command
             $data       = json_decode($jsonData, true);
             $listadoBoletas =   $data['success'];
             
-            Log::info('GRABAR Y ENVIAR A SUNAT EN CASO EXISTAN BOLETAS');
+            Log::info('VERIFICANDO SI EXISTEN BOLETAS NO ENVIADAS EN ESA FECHA');
             //====== EN CASO EXISTAN BOLETAS NO ENVIADAS DE HACE 4 DÍAS =======
             if(count($listadoBoletas)>0){
                //======= PREPARANDO REQUEST ======
@@ -76,6 +78,7 @@ class SendResumenes extends Command
                 ]);
     
                 //======= GRABAR Y ENVIAR A SUNAT =====
+                Log::info('GRABANDO Y ENVIANDO RESUMEN');
                 $respuesta_store_send  =   $resumenController->store($request);
                 //===== RESPUESTA====
                 $jsonData   =   $respuesta_store_send->getContent();
@@ -111,7 +114,11 @@ class SendResumenes extends Command
                         }
                     }
                 }
+            }else{
+                Log::info('NO HAY BOLETAS NO ENVIADAS EN ESA FECHA');
             }
+        }else{
+            Log::info('ENVÍO RESÚMENES AUTOMÁTICO DESACTIVADO');
         }
 
         // return 0;
