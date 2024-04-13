@@ -132,6 +132,55 @@
                 
             </div>
         </div>
+
+        @foreach ($config as $item)
+        @if ($item->slug == 'EARB')
+        <div class="col-12 col-md-4">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <h5>ENVÍO AUTOMÁTICO RESÚMENES BOLETAS</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form id="form_resumenes_envio" action="{{route('configuracion.resumenes.envio')}}" method="POST">
+                        @csrf
+                        @method('POST')
+                        <div class="row align-items-end">
+                            <div class="col-7">
+                                <div class="form-group">
+                                    <input 
+                                        @if ($item->nro_dias)
+                                            value="{{$item->nro_dias}}"
+                                        @endif
+                                      type="text" class="form-control" name="nro_dias" id="nro_dias"  placeholder="NRO DÍAS">
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="form-group">
+                                    <label> <input 
+                                        @if ($item->propiedad == "SI")
+                                            checked
+                                        @endif
+                                        type="checkbox" class="i-checks" name="estado_resumenes_envio" id="estado_resumenes_envio" > Activo </label>
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endif
+        @endforeach
+
     </div>
 </div>
 
@@ -169,5 +218,40 @@
         checkboxClass: 'icheckbox_square-green',
         radioClass: 'iradio_square-green',
     });
+
+    document.addEventListener('DOMContentLoaded',()=>{
+        events();
+    })
+
+    function events(){
+        document.querySelector('#nro_dias').addEventListener('input',(e)=>{
+            let valor = e.target.value;
+
+            valor = valor.replace(/\D/g, '');
+
+            let numero = parseInt(valor);
+            if (numero == 0) {
+                numero = 1;
+            }
+          
+            if(isNaN(numero)){
+                numero = "";
+            }
+
+            e.target.value = numero;
+        })
+
+        document.querySelector('#form_resumenes_envio').addEventListener('submit',(e)=>{
+            e.preventDefault();
+            const nro_dias  = document.querySelector('#nro_dias').value;
+            const estado    =   document.querySelector('#estado_resumenes_envio').checked;
+
+            if(nro_dias.trim().length == 0 && estado){
+                toastr.error('NÚMERO DE DÍAS DEBE SER 1 COMO MÍNIMO','ERROR');
+                return;
+            }
+            document.querySelector('#form_resumenes_envio').submit();
+        })
+    }
 </script>
 @endpush

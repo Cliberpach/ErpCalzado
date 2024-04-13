@@ -17,5 +17,13 @@ class ConfiguracionSeeder extends Seeder
             'descripcion' => 'Cobrar en caja',
             'propiedad' => 'SI'
         ]);
+
+        Configuracion::create([
+            'slug'          => 'EARB',
+            'descripcion'   => 'ENVÍO AUTOMÁTICO RESÚMENES BOLETAS',
+            'propiedad'     => 'NO',
+            'nro_dias'      =>  null
+        ]);
+
     }
 }

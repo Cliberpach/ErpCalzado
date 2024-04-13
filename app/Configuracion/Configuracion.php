@@ -8,9 +8,5 @@ class Configuracion extends Model
 {
     protected $table = 'configuracion';
     public $timestamps = true;
-    protected $fillable = [
-            'slug',
-            'descripcion',
-            'propiedad'
-        ];
+    protected $guarded = [];
 }

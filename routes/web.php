@@ -76,6 +76,8 @@ function(){
         Route::put('update/{id}', 'Configuracion\ConfiguracionController@update')->name('configuracion.update');
         Route::put('/empresa/update', 'Configuracion\ConfiguracionController@codigo')->name('configuracion.empresa.update');
         Route::post('/changePassword','Configuracion\ConfiguracionController@changePasswordMaster')->name('changePasswordMaster');
+        Route::post('/resumenes/envio', 'Configuracion\ConfiguracionController@resumenesEnvio')->name('configuracion.resumenes.envio');
+
     });
 
     //Users

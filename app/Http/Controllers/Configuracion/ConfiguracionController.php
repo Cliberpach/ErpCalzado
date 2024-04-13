@@ -89,7 +89,26 @@ class ConfiguracionController extends Controller
         $usuario->update();
         Session::flash('success', 'Se cambio la contraseña maestra');
         return redirect()->route('configuracion.index');
-      
-    
      }
+
+    public function resumenesEnvio(Request $request){
+        $estado = $request->estado_resumenes_envio ?? null;
+        $nro_dias   =   $request->nro_dias;
+
+        $config = Configuracion::where('slug', 'EARB')->first();
+
+        if($estado == "on"){
+            $config->propiedad  =   "SI";
+        }
+        
+        if(!$estado){
+            $config->propiedad  =   "NO";
+        }
+
+        $config->nro_dias  =   $request->nro_dias;
+        $config->update();
+        
+        Session::flash('success',$config->descripcion.' modificada.');
+        return redirect()->route('configuracion.index');
+    }
 }
