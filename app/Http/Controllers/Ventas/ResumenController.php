@@ -386,6 +386,7 @@ class ResumenController extends Controller
         $resumen->update();
         $res    =   $this->sendSunat($comprobantes,$resumen->fecha_comprobantes,$resumen);
 
+        dd($res);
         return response()
         ->json(
         [   
