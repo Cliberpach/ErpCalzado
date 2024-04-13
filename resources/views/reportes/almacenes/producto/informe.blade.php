@@ -681,15 +681,35 @@
 
         function loadTable() {
             $('.dataTables-producto').DataTable({
-                "dom": "<'row'<'col-sm-12 col-md-12 col-lg-12'f>>" +
-                    "<'row'<'col-sm-12'tr>>" +
-                    "<'row justify-content-between'<'col information-content p-0'i><''p>>",
+                "dom": '<"html5buttons"B>lTfgitp',
+                "buttons": [{
+                        extend: 'excelHtml5',
+                        text: '<i class="fa fa-file-excel-o"></i> Excel',
+                        titleAttr: 'Excel',
+                        title: 'CONSULTA PRODUCTOS'
+                    },
+                    {
+                        titleAttr: 'Imprimir',
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Imprimir',
+                        customize: function(win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ],
                 "bPaginate": true,
                 "serverSide": true,
                 "processing": true,
                 "bLengthChange": true,
                 "bFilter": true,
-                "order": [],
+                "order": [
+                    [0, "asc"]
+                ],
+                "ordering": true,
                 "bInfo": true,
                 'bAutoWidth': false,
                 "ajax": "{{ route('reporte.producto.getProductos') }}",
@@ -741,7 +761,7 @@
             return false;
         }
 
-        $(".dataTables-ingresos").on('click', '.editCosto', function() {
+        $(".dataTables-ingresos").on('dblclick', '.editCosto', function() {
             var data = $(".dataTables-ingresos").dataTable().fnGetData($(this).closest('tr'));
             $('#modal_costo_update .pago-title').html(data.nombre)
             $('#modal_costo_update .pago-subtitle').html(data.numero);

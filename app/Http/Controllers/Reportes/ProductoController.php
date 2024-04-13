@@ -279,9 +279,9 @@ class ProductoController extends Controller
                 ->join('modelos', 'modelos.id', '=', 'productos.modelo_id')
                 ->join('categorias', 'categorias.id', '=', 'productos.categoria_id')
                 ->where('productos.estado', '=', 'ACTIVO')
-                ->orderBy('productos.id', 'asc')
-                ->orderBy('colores.id', 'asc')
-                ->orderBy('tallas.id', 'asc')
+                // ->orderBy('productos.id', 'asc')
+                // ->orderBy('colores.id', 'asc')
+                // ->orderBy('tallas.id', 'asc')
         )->toJson();
     }
 }
