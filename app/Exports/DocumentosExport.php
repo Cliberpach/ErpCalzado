@@ -5,6 +5,7 @@ namespace App\Exports;
 use App\Ventas\Documento\Documento;
 use App\Ventas\Guia;
 use App\Ventas\Nota;
+use App\Ventas\Resumen;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -73,7 +74,10 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                 $consulta = $consulta->where('user_id',$this->user);
             }
 
-            $consulta = $consulta->orderBy('id', 'asc')->get();
+            $consulta = $consulta->orderBy('fecha_documento', 'asc')
+            ->orderBy('serie', 'asc')
+            ->orderBy('correlativo', 'asc')
+            ->get();
 
             $coleccion = collect();
             foreach($consulta as $doc){
@@ -134,7 +138,10 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                 $ventas = $ventas->where('user_id',$this->user);
             }
 
-            $ventas = $ventas->orderBy('id', 'asc')->get();
+            $ventas = $ventas->orderBy('fecha_documento', 'asc')
+            ->orderBy('serie', 'asc')
+            ->orderBy('correlativo', 'asc')
+            ->get();
 
             $coleccion = collect();
             foreach($ventas as $doc){
@@ -178,7 +185,7 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                     'HASH' => $doc->hash
                 ]);
             }
-            return $coleccion->sortBy('FECHA');
+            return $coleccion;
         }
 
         if($this->tipo == 125) //Fact, Boletas y Nota Crédito
@@ -194,7 +201,10 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                 $ventas = $ventas->where('user_id',$this->user);
             }
 
-            $ventas = $ventas->orderBy('id', 'asc')->get();
+            $ventas = $ventas->orderBy('fecha_documento', 'asc')
+            ->orderBy('serie', 'asc')
+            ->orderBy('correlativo', 'asc')
+            ->get();
 
             $coleccion = collect();
 
@@ -272,7 +282,7 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                 ]);
             }
 
-            return $coleccion->sortBy('FECHA');
+            return $coleccion;
         }
 
         if($this->tipo == 130)
@@ -283,7 +293,10 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                 $notas_electronicas = $notas_electronicas->whereBetween('fechaEmision', [$this->fecha_desde, $this->fecha_hasta]);
             }
 
-            $notas_electronicas = $notas_electronicas->orderBy('id', 'desc')->get();
+            $notas_electronicas = $notas_electronicas->orderBy('fechaEmision', 'asc')
+            ->orderBy('serie', 'asc')
+            ->orderBy('correlativo', 'asc')
+            ->get();
 
             $coleccion = collect();
             foreach($notas_electronicas as $nota){

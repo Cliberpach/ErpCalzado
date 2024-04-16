@@ -96,7 +96,7 @@ class CajaController extends Controller
                 'otros' => $otros,
                 'efectivo' => $efectivo,
                 'transferencia' => $transferencia,
-                'total' => $documento->total,
+                'total' => $documento->total_pagar,
                 'dias' => (int)(4 - $diff < 0 ? 0  : 4 - $diff),
                 'notas' => $cantidad_notas
             ]);
@@ -160,7 +160,7 @@ class CajaController extends Controller
                 'otros' => 'S/. '.number_format($otros, 2, '.', ''),
                 'efectivo' => 'S/. '.number_format($efectivo, 2, '.', ''),
                 'transferencia' => 'S/. '.number_format($transferencia, 2, '.', ''),
-                'total' => number_format($documento->total, 2, '.', ''),
+                'total' => number_format($documento->total_pagar, 2, '.', ''),
                 'dias' => (int)(7 - $diff < 0 ? 0  : 7 - $diff),
                 'notas' => $cantidad_notas
             ]);
