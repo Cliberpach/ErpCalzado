@@ -1536,9 +1536,18 @@ class DocumentoController extends Controller
             $documento->numero_doc = 'VENTA-' . $numero_doc;
             $documento->update();
 
+            //===== OBTENIENDO CORRELATIVO Y SERIE =====
+            $envio_prev =   self::sunat($documento->id);
+            //====== VERIFICANDO SI EL TIPO DE DOCUMENTO ESTÁ ACTIVO EN LA EMPRESA =======
+            if (!$envio_prev['success']) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'mensaje' => $envio_prev['mensaje'],
+                ]);
+           }
            
-            //DETALLE DEL DOCUMENTO
-
+            //=========== DETALLE DEL DOCUMENTO =======
             //Llenado de los articulos
             $productosJSON = $request->get('productos_tabla');
             $productotabla = json_decode($productosJSON);
@@ -1616,7 +1625,7 @@ class DocumentoController extends Controller
                         $kardex->origen         =   'VENTA';
                         $kardex->accion         =   'REGISTRO';
                         $kardex->documento_id   =   $documento->id;
-                        $kardex->numero_doc     =   $documento->serie.'-'.$documento->correlativo;
+                        $kardex->numero_doc     =   $envio_prev['serie_correlativo'];
                         $kardex->fecha          =   $documento->fecha_documento;
                         $kardex->cantidad       =   floatval($producto->cantidad);
                         $kardex->producto_id    =   $producto->producto_id;
@@ -1667,15 +1676,15 @@ class DocumentoController extends Controller
             $detalle->mcaja_id = movimientoUser()->id;
             
             $detalle->save();
-            //$envio_prev =   $this->ObtenerCorrelativoVentas($documento);
-            $envio_prev =   self::sunat($documento->id);
-            if (!$envio_prev['success']) {
-                 DB::rollBack();
-                 return response()->json([
-                     'success' => false,
-                     'mensaje' => $envio_prev['mensaje'],
-                 ]);
-            }
+            ////$envio_prev =   $this->ObtenerCorrelativoVentas($documento);
+            //$envio_prev =   self::sunat($documento->id);
+            // if (!$envio_prev['success']) {
+            //      DB::rollBack();
+            //      return response()->json([
+            //          'success' => false,
+            //          'mensaje' => $envio_prev['mensaje'],
+            //      ]);
+            // }
 
             // if ($request->tipo_venta == '127' && $cliente->agente_retencion == '1' && $documento->total >= $cliente->monto_mayor) {
             //      self::generarComprobanteRetencion($documento->id);
@@ -2599,7 +2608,8 @@ class DocumentoController extends Controller
             $existe = event(new DocumentoNumeracion($documento));
             if ($existe[0]) {
                 if ($existe[0]->get('existe') == true) {
-                    return array('success' => true, 'mensaje' => 'Documento validado.');
+                    return array('success' => true,'mensaje' => 'Documento validado.',
+                    'serie_correlativo'=>$existe[0]->get('correlativo_datos')['serie'].'-'.$existe[0]->get('correlativo_datos')['correlativo']);
                 } else {
                     return array('success' => false, 'mensaje' => 'Tipo de Comprobante no registrado en la empresa.');
                 }

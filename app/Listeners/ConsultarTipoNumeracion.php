@@ -18,9 +18,10 @@ class ConsultarTipoNumeracion
 
             $resultado = ($numeracion)->exists();
             $enviar = [
-                'existe' => ($resultado == true) ? true : false,
-                'numeracion' => $numeracion,
-                'correlativo' => self::obtenerCorrelativo($event->documento,$numeracion)
+                'existe'                =>  ($resultado == true) ? true : false,
+                'numeracion'            =>  $numeracion,
+                'correlativo_datos'     =>  self::obtenerCorrelativo($event->documento,$numeracion)
+                // 'correlativo'   =>  self::obtenerCorrelativo($event->documento,$numeracion)
             ];
             $collection = collect($enviar);
             return  $collection;
@@ -64,7 +65,8 @@ class ConsultarTipoNumeracion
 
                     //ACTUALIZAR LA NUMERACION (SE REALIZO EL INICIO)
                     self::actualizarNumeracion($numeracion);
-                    return $documento->correlativo;
+                    return ['correlativo' =>    $documento->correlativo,
+                            'serie'       =>    $documento->serie];
                 }
             }
        }
