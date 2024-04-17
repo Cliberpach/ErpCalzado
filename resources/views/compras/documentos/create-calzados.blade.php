@@ -1470,6 +1470,7 @@
                     color_nombre:       productoPrevio.color.descripcion,
                     modelo_nombre:      productoPrevio.producto.modelo.descripcion,
                     precio_unitario:    0,
+                    costo_flete_unitario: 0,
                     importe:            productoPrevio.importe_producto_id,
                     tallas:[]
                 }

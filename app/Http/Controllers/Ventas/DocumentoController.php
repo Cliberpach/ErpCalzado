@@ -1614,6 +1614,8 @@ class DocumentoController extends Controller
                         //======= KARDEX CON STOCK YA MODIFICADO =======
                         $kardex = new Kardex();
                         $kardex->origen         =   'VENTA';
+                        $kardex->accion         =   'REGISTRO';
+                        $kardex->documento_id   =   $documento->id;
                         $kardex->numero_doc     =   $documento->numero_doc;
                         $kardex->fecha          =   $documento->fecha_documento;
                         $kardex->cantidad       =   floatval($producto->cantidad);

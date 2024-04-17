@@ -126,7 +126,7 @@ class Detalle extends Model
             //KARDEX
             $kardex = new Kardex();
             $kardex->origen             = 'COMPRA';
-            $kardex->numero_doc         = $detalle->documento->numero_doc;
+            $kardex->numero_doc         = $detalle->documento->serie_tipo.'-'.$detalle->documento->numero_tipo;
             $kardex->fecha              = $detalle->documento->fecha_emision;
             $kardex->cantidad           = $detalle->cantidad;
             $kardex->producto_id        = $detalle->producto_id;
@@ -135,8 +135,16 @@ class Detalle extends Model
             $kardex->descripcion        = 'PROVEEDOR: ' . $detalle->documento->proveedor->descripcion;
             $kardex->precio             = $detalle->precio_mas_igv_soles;
             $kardex->importe            = $detalle->precio_mas_igv_soles * $detalle->cantidad;
-            if(count($producto_stock)>0){
-                $kardex->stock  =   $producto_stock[0]->stock;
+            $kardex->documento_id       = $detalle->documento->id;
+            $kardex->accion             = 'REGISTRO';
+
+            $producto_nuevo_stock   =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,pct.stock 
+                            from producto_color_tallas as pct
+                            where pct.producto_id=? and pct.color_id=? and pct.talla_id=?',
+                            [$detalle->producto_id,$detalle->color_id,$detalle->talla_id]);
+
+            if(count($producto_nuevo_stock)>0){
+                $kardex->stock  =   $producto_nuevo_stock[0]->stock;
             }else{
                 $kardex->stock  =   0;
             }

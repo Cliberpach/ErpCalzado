@@ -20,6 +20,8 @@ class Kardex extends Model
         'precio',
         'importe',
         'stock',
+        'accion',
+        'documento_id'
     ];
     public $timestamps = true;
 

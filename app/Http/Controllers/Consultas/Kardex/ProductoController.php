@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Consultas\Kardex;
+use Carbon\Carbon;
 
 use App\Almacenes\Kardex;
 use App\Almacenes\Producto;
@@ -80,7 +81,7 @@ class ProductoController extends Controller
 
                 $coleccion->push([
                     'numero_doc'    =>  $documento->numero_doc,
-                    'fecha'         =>  $documento->fecha,
+                    'fecha'         =>  Carbon::parse($documento->created_at)->format('Y-m-d H:i:s'),
                     'producto'      =>  $producto?$producto->nombre:'',
                     'color'         =>  $color?$color->descripcion:'',
                     'talla'         =>  $talla?$talla->descripcion:'',
@@ -91,7 +92,7 @@ class ProductoController extends Controller
                     'ventas'        =>  $ventas,
                     'devoluciones'  =>  $devoluciones,
                     'salidas'       =>  $salidas,
-
+                    'accion'        =>  $documento->accion
                 ]);
         }
 

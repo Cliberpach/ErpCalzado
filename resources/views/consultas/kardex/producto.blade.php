@@ -68,6 +68,7 @@
                                     <th class="text-center">DEVOLUCIONES</th>
                                     <th class="text-center">SALIDAS</th>
                                     <th class="text-center">STOCK</th>
+                                    <th class="text-center">ACCION</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -244,6 +245,10 @@
                 },
                 {
                     data: 'stock',
+                    className: "text-center"
+                },
+                {
+                    data: 'accion',
                     className: "text-center"
                 }
             ],

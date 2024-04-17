@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Consultas\Ventas;
 use Illuminate\Support\Facades\Cache;
 
 use App\Classes\StockMov;
+use App\Almacenes\Kardex;
 use App\Almacenes\LoteProducto;
 use App\Almacenes\Producto;
 use App\Http\Controllers\Controller;
@@ -490,14 +491,51 @@ class NoEnviadosController extends Controller
             //========= ELIMINAR DETALLE ANTERIOR ====
             foreach ($detalles as $detalle) {
 
-               //==== reponer stock de producto_color_tallas =====
+               //==== REPONER STOCK DE PRODUCTO COLOR TALLA =====
                //====== NOTA: EL STOCK_LOGICO se actualizó en la vista =======
                DB::table('producto_color_tallas')
                ->where('producto_id', $detalle->producto_id)
                ->where('color_id', $detalle->color_id)
                ->where('talla_id', $detalle->talla_id)
                ->update(['stock' => DB::raw('stock + ' . $detalle->cantidad)]);
-           
+
+               //======= GUARDAR UNA SOLA VEZ EN KARDEX ======
+               //====== SI EL PRODUCTO YA NO ESTÁ EN EL NUEVO DETALLE =====
+                $existe = false;
+                foreach ($productotabla as $producto) {
+                    if($producto->producto_id == $detalle->producto_id && $producto->color_id == $detalle->color_id){
+                        foreach ($producto->tallas as $talla) {
+                            if($detalle->talla_id == $talla->talla_id){
+                                $existe =   true;
+                            }
+                        }        
+                    }
+                }  
+
+                if(!$existe){
+                    $nuevo_stock = DB::table('producto_color_tallas')
+                    ->where('producto_id', $detalle->producto_id)
+                    ->where('color_id', $detalle->color_id)
+                    ->where('talla_id', $detalle->talla_id)
+                    ->value('stock');
+    
+                    //======= KARDEX CON STOCK YA MODIFICADO =======
+                    $kardex = new Kardex();
+                    $kardex->origen         =   'VENTA';
+                    $kardex->accion         =   'EDITAR';
+                    $kardex->documento_id   =   $documento->id;
+                    $kardex->numero_doc     =   $documento->numero_doc;
+                    $kardex->fecha          =   $documento->fecha_documento;
+                    $kardex->cantidad       =   floatval($detalle->cantidad);
+                    $kardex->producto_id    =   $detalle->producto_id;
+                    $kardex->color_id       =   $detalle->color_id;
+                    $kardex->talla_id       =   $detalle->talla_id;
+                    $kardex->descripcion    =   $documento->cliente;
+                    $kardex->precio         =   $detalle->precio_unitario_nuevo;   
+                    $kardex->importe        =   floatval($detalle->precio_unitario_nuevo) * floatval($detalle->cantidad);
+                    $kardex->stock          =   $nuevo_stock;
+                    $kardex->save();
+                }
             }
 
             //========== eliminar detalles ======
@@ -546,6 +584,30 @@ class NoEnviadosController extends Controller
                     SET stock = stock - ? 
                     WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
                     [$talla->cantidad, $producto->producto_id, $producto->color_id, $talla->talla_id]);
+
+                    $nuevo_stock = DB::table('producto_color_tallas')
+                                        ->where('producto_id', $producto->producto_id)
+                                        ->where('color_id', $producto->color_id)
+                                        ->where('talla_id', $talla->talla_id)
+                                        ->value('stock');
+
+                    //======= KARDEX CON STOCK YA MODIFICADO =======
+                    $kardex = new Kardex();
+                    $kardex->origen         =   'VENTA';
+                    $kardex->accion         =   'EDITAR';
+                    $kardex->documento_id   =   $documento->id;
+                    $kardex->numero_doc     =   $documento->serie.'-'.$documento->correlativo;
+                    $kardex->fecha          =   $documento->fecha_documento;
+                    $kardex->cantidad       =   floatval($talla->cantidad);
+                    $kardex->producto_id    =   $producto->producto_id;
+                    $kardex->color_id       =   $producto->color_id;
+                    $kardex->talla_id       =   $talla->talla_id;
+                    $kardex->descripcion    =   $documento->cliente;
+                    $kardex->precio         =   $precio_unitario;   
+                    $kardex->importe        =   floatval($precio_unitario) * floatval($talla->cantidad);
+                    $kardex->stock          =   $nuevo_stock;
+                    $kardex->save();
+
 
                     if ($lote->stock == 0) {
                         DB::update('UPDATE producto_color_tallas 

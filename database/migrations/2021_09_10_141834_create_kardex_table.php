@@ -22,6 +22,7 @@ class CreateKardexTable extends Migration
             $table->unsignedInteger('talla_id');
             $table->foreign('talla_id')->references('id')->on('tallas')->onDelete('cascade');
             $table->text('origen')->nullable();
+            $table->text('accion')->nullable();
             $table->text('numero_doc')->nullable();
             $table->date('fecha')->nullable();
             $table->unsignedDecimal('cantidad', 15,2);
@@ -30,6 +31,7 @@ class CreateKardexTable extends Migration
             $table->unsignedDecimal('importe', 15,2)->nullable();
             $table->unsignedDecimal('stock', 15,2); 
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
+            $table->unsignedInteger('documento_id');
             $table->timestamps();
         });
     }
