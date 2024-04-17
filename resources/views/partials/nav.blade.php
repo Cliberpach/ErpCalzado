@@ -253,7 +253,7 @@
             class="fa arrow"></span></a>
     <ul class="nav nav-second-level collapse">
         @can('haveaccess','kardex_proveedor.index')
-        <li class="@yield('proveedor_kardex-active')"><a href="#">Proveedor</a></li>
+        <li ><a class="@yield('proveedor_kardex-active')" href="{{route('consultas.kardex.proveedor.index')}}">Proveedor</a></li>
         @endcan
         @can('haveaccess','kardex_cliente.index')
         <li class="@yield('cliente_kardex-active')"><a href="{{ route('consultas.kardex.cliente.index') }}">Cliente</a></li>

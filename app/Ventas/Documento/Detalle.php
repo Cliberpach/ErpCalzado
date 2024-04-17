@@ -73,18 +73,18 @@ class Detalle extends Model
                                     ->where('color_id', $detalle->color_id)
                                     ->where('talla_id', $detalle->talla_id)
                                     ->first();
-             //KARDEX
+            //KARDEX
             $kardex = new Kardex();
-            $kardex->origen = 'VENTA';
-            $kardex->numero_doc = $detalle->documento->numero_doc;
-            $kardex->fecha = $detalle->documento->fecha_documento;
-            $kardex->cantidad = $detalle->cantidad;
+            $kardex->origen         = 'VENTA';
+            $kardex->numero_doc     = $detalle->documento->numero_doc;
+            $kardex->fecha          = $detalle->documento->fecha_documento;
+            $kardex->cantidad       = $detalle->cantidad;
             //$kardex->producto_id = $detalle->lote->producto_id;
             $kardex->producto_id    =   $detalle->producto_id;
             $kardex->color_id       =   $detalle->color_id;
             $kardex->talla_id       =   $detalle->talla_id;
             $kardex->descripcion    =   'CLIENTES VARIOS';
-            // $kardex->precio = $detalle->precio_nuevo;
+            //$kardex->precio = $detalle->precio_nuevo;
             $kardex->precio         =   $detalle->precio_unitario;   
             // $kardex->importe = $detalle->precio_nuevo * $detalle->cantidad;
             $kardex->importe        =   $detalle->precio_unitario * $detalle->cantidad;

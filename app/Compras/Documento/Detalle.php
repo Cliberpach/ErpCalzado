@@ -133,8 +133,8 @@ class Detalle extends Model
             $kardex->color_id           = $detalle->color_id;
             $kardex->talla_id           = $detalle->talla_id;
             $kardex->descripcion        = 'PROVEEDOR: ' . $detalle->documento->proveedor->descripcion;
-            $kardex->precio             = $detalle->precio_unitario;
-            $kardex->importe            = $detalle->precio_unitario * $detalle->cantidad;
+            $kardex->precio             = $detalle->precio_mas_igv_soles;
+            $kardex->importe            = $detalle->precio_mas_igv_soles * $detalle->cantidad;
             if(count($producto_stock)>0){
                 $kardex->stock  =   $producto_stock[0]->stock;
             }else{
@@ -143,8 +143,6 @@ class Detalle extends Model
             $kardex->save();
 
             
-
-
             // $lote = new LoteProducto();
             // $lote->compra_documento_id = $detalle->documento->id;
             // $lote->codigo_lote = $detalle->lote;

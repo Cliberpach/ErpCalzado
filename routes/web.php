@@ -695,23 +695,29 @@ function(){
     // Consultas - Kardex - Producto
     Route::prefix('consultas/kardex/producto')->group(function(){
 
+        // Route::get('index', 'Consultas\Kardex\ProductoController@index')->name('consultas.kardex.producto.index');
+        // Route::get('index_top', 'Consultas\Kardex\ProductoController@index_top')->name('consultas.kardex.producto.index_top');
+        // Route::get('getTable','Consultas\Kardex\ProductoController@getTable')->name('consultas.kardex.producto.getTable');
+        // Route::post('getTableTop','Consultas\Kardex\ProductoController@getTableTop')->name('consultas.kardex.producto.getTableTop');
+        // Route::get('donwload-excel', 'Consultas\Kardex\ProductoController@DonwloadExcel')->name('consultas.kardex.producto.DonwloadExcel');
         Route::get('index', 'Consultas\Kardex\ProductoController@index')->name('consultas.kardex.producto.index');
-        Route::get('index_top', 'Consultas\Kardex\ProductoController@index_top')->name('consultas.kardex.producto.index_top');
-        Route::get('getTable','Consultas\Kardex\ProductoController@getTable')->name('consultas.kardex.producto.getTable');
-        Route::post('getTableTop','Consultas\Kardex\ProductoController@getTableTop')->name('consultas.kardex.producto.getTableTop');
-        Route::get('donwload-excel', 'Consultas\Kardex\ProductoController@DonwloadExcel')->name('consultas.kardex.producto.DonwloadExcel');
+        Route::post('getTable','Consultas\Kardex\ProductoController@getTable')->name('consultas.kardex.producto.getTable');
+    });
 
+       // Consultas - Kardex - Proveedor
+    Route::prefix('consultas/kardex/proveedor')->group(function(){
+        Route::get('index', 'Consultas\Kardex\ProveedorController@index')->name('consultas.kardex.proveedor.index');
+        Route::post('getTable','Consultas\Kardex\ProveedorController@getTable')->name('consultas.kardex.proveedor.getTable');
     });
 
     // Consultas - Kardex - Cliente
     Route::prefix('consultas/kardex/cliente')->group(function(){
-
         Route::get('index', 'Consultas\Kardex\ClienteController@index')->name('consultas.kardex.cliente.index');
         Route::post('getTable','Consultas\Kardex\ClienteController@getTable')->name('consultas.kardex.cliente.getTable');
 
     });
 
-
+   
     // Consultas - Kardex - Salida -Ventas
     Route::prefix('consultas/kardex/salidas')->group(function(){
 

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Consultas\Kardex;
 
 use App\Almacenes\Kardex;
 use App\Almacenes\Producto;
+use App\Almacenes\Color;
+use App\Almacenes\Talla;
 use App\Exports\KardexProductoExport;
 use App\Http\Controllers\Controller;
 use App\Ventas\Documento\Detalle;
@@ -19,66 +21,84 @@ class ProductoController extends Controller
     public function index()
     {
         $kardex7668 = 'ocultate';
-        return view('consultas.kardex.producto', compact('kardex7668'));
+        $productos  =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,
+                        p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre
+                        from producto_color_tallas as pct
+                        inner join productos as p on p.id=pct.producto_id
+                        inner join colores as c on c.id=pct.color_id
+                        inner join tallas as t on t.id=pct.talla_id');
+        
+        return view('consultas.kardex.producto', compact('kardex7668','productos'));
     }
 
     public function getTable(Request $request)
     {
+        $consulta = Kardex::where('estado','!=','ANULADO');
+        if($request->fecha_desde && $request->fecha_hasta)
+        {
+            $consulta->whereBetween('fecha', [$request->fecha_desde, $request->fecha_hasta]);
+        }
 
-        $fecini = $request->d_start;
-        $fecfin = $request->d_end;
-        $input = $request->input;
-        $stock = (int) $request->stock;
+        if($request->producto_id)
+        {
+            $ids = explode("_", $request->producto_id);
+
+            $producto_id    = $ids[0];
+            $color_id       = $ids[1];
+            $talla_id       = $ids[2];
+            $consulta->where('producto_id',$producto_id)
+            ->where('color_id',$color_id)
+            ->where('talla_id',$talla_id);
+        }
+
+        $documentos = $consulta->orderBy('id', 'desc')->get();
+
+        $coleccion = collect();
+        foreach($documentos as $documento){
+                $producto   =   Producto::find($documento->producto_id);   
+                $color      =   Color::find($documento->color_id);   
+                $talla      =   Talla::find($documento->talla_id);   
+
+                $compras        =   '-';
+                $ingresos       =   '-';
+                $ventas         =   '-';
+                $devoluciones   =   '-';
+                $salidas        =   '-';
         
-        $kardex = DB::table('productos')
-            ->join('categorias', 'categorias.id', '=', 'productos.categoria_id')
-            ->join('marcas', 'marcas.id', '=', 'productos.marca_id')
-            ->join('tabladetalles', 'tabladetalles.id', '=', 'productos.medida')
-            ->select(
-                'productos.nombre',
-                'categorias.descripcion as categoria',
-                'marcas.marca',
-                'tabladetalles.descripcion as medida',
-                DB::raw(
-                    "(ifnull((SELECT sum(ddc.cantidad) from compra_documento_detalles ddc INNER JOIN compra_documentos dc ON ddc.documento_id = dc.id WHERE dc.fecha_emision < '{$fecini}' AND ddc.producto_id = productos.id AND dc.estado != 'ANULADO'),0) + ifnull((SELECT sum(dni.cantidad) from detalle_nota_ingreso dni INNER JOIN nota_ingreso ni ON dni.nota_ingreso_id = ni.id WHERE ni.fecha < '{$fecini}' AND dni.producto_id = productos.id AND ni.estado != 'ANULADO'),0) -ifnull((SELECT SUM(ddv.cantidad) FROM cotizacion_documento_detalles ddv INNER JOIN cotizacion_documento dv ON ddv.documento_id = dv.id INNER JOIN lote_productos lp ON ddv.lote_id = lp.id WHERE dv.fecha_documento < '{$fecini}' AND dv.estado != 'ANULADO' AND lp.producto_id = productos.id AND ddv.eliminado = '0'),0) + ifnull((SELECT SUM(ddv.cantidad) FROM cotizacion_documento_detalles ddv INNER JOIN cotizacion_documento dv ON ddv.documento_id = dv.id INNER JOIN lote_productos lp ON ddv.lote_id = lp.id WHERE dv.fecha_documento < '{$fecini}' AND dv.estado != 'ANULADO' AND lp.producto_id = productos.id AND dv.tipo_venta != '129' AND dv.convertir != '' AND ddv.eliminado = '0'),0) - ifnull((SELECT SUM(dns.cantidad) FROM detalle_nota_salidad dns INNER JOIN nota_salidad ns ON dns.nota_salidad_id = ns.id WHERE ns.fecha < '{$fecini}' AND ns.estado != 'ANULADO' AND dns.producto_id = productos.id),0) + ifnull((SELECT SUM(ned.cantidad) FROM nota_electronica_detalle ned INNER JOIN nota_electronica ne ON ned.nota_id = ne.id INNER JOIN cotizacion_documento_detalles cdd ON cdd.id = ned.detalle_id INNER JOIN lote_productos lpn ON lpn.id = cdd.lote_id WHERE ne.fechaEmision < '{$fecini}' AND ne.estado != 'ANULADO' AND lpn.producto_id = productos.id),0)) as STOCKINI"
-                ),
-                DB::raw(
-                    "ifnull((SELECT SUM(cdd.cantidad) from compra_documento_detalles cdd INNER JOIN compra_documentos cd ON cdd.documento_id = cd.id WHERE cd.fecha_emision >= '{$fecini}' AND cd.fecha_emision <= '{$fecfin}' AND cd.estado != 'ANULADO' AND cdd.producto_id = productos.id),0) AS COMPRAS"
-                ),
-                DB::raw(
-                    "ifnull((SELECT sum(dni.cantidad) from detalle_nota_ingreso dni INNER JOIN nota_ingreso ni ON dni.nota_ingreso_id = ni.id WHERE ni.fecha >= '{$fecini}' AND ni.fecha <= '{$fecfin}' AND dni.producto_id = productos.id AND ni.estado != 'ANULADO'),0) AS INGRESOS"
-                ),
-                DB::raw(
-                    "ifnull((SELECT SUM(ned.cantidad) FROM nota_electronica_detalle ned INNER JOIN nota_electronica ne ON ned.nota_id = ne.id INNER JOIN cotizacion_documento_detalles cdd ON cdd.id = ned.detalle_id INNER JOIN lote_productos lpn ON lpn.id = cdd.lote_id WHERE ne.fechaEmision >= '{$fecini}' AND ne.fechaEmision <= '{$fecfin}' AND  ne.estado != 'ANULADO' AND lpn.producto_id = productos.id),0) as DEVOLUCIONES"
-                ),
-                DB::raw(
-                    "(ifnull((SELECT SUM(vdd.cantidad) from cotizacion_documento_detalles vdd INNER JOIN cotizacion_documento vd ON vdd.documento_id = vd.id INNER JOIN lote_productos lp ON vdd.lote_id = lp.id WHERE vd.fecha_documento >= '{$fecini}' and vd.fecha_documento <= '{$fecfin}' AND vd.estado != 'ANULADO' AND lp.producto_id = productos.id AND vdd.eliminado = '0'),0) - ifnull((SELECT SUM(vdd.cantidad) from cotizacion_documento_detalles vdd INNER JOIN cotizacion_documento vd ON vdd.documento_id = vd.id INNER JOIN lote_productos lp ON vdd.lote_id = lp.id WHERE vd.fecha_documento >= '{$fecini}' and vd.fecha_documento <= '{$fecfin}' AND vd.estado != 'ANULADO' AND lp.producto_id = productos.id AND vd.tipo_venta != '129' AND vd.convertir != '' AND vdd.eliminado = '0'),0)) AS VENTAS"
-                ),
-                DB::raw(
-                    "ifnull((SELECT SUM(dns.cantidad) FROM detalle_nota_salidad dns INNER JOIN nota_salidad ns ON dns.nota_salidad_id = ns.id WHERE ns.fecha >= '{$fecini}' AND ns.fecha <= '{$fecfin}' AND ns.estado != 'ANULADO' AND dns.producto_id = productos.id),0) AS SALIDAS"
-                ),
-                DB::raw(
-                    "((ifnull((SELECT sum(ddc.cantidad) from compra_documento_detalles ddc INNER JOIN compra_documentos dc ON ddc.documento_id = dc.id WHERE dc.fecha_emision < '{$fecini}' AND ddc.producto_id = productos.id AND dc.estado != 'ANULADO'),0) + ifnull((SELECT sum(dni.cantidad) from detalle_nota_ingreso dni INNER JOIN nota_ingreso ni ON dni.nota_ingreso_id = ni.id WHERE ni.fecha < '{$fecini}' AND dni.producto_id = productos.id AND ni.estado != 'ANULADO'),0) - ifnull((SELECT SUM(ddv.cantidad) FROM cotizacion_documento_detalles ddv INNER JOIN cotizacion_documento dv ON ddv.documento_id = dv.id INNER JOIN lote_productos lp ON ddv.lote_id = lp.id WHERE dv.fecha_documento < '{$fecini}' AND dv.estado != 'ANULADO' AND lp.producto_id = productos.id AND ddv.eliminado = '0'),0) + ifnull((SELECT SUM(ddv.cantidad) FROM cotizacion_documento_detalles ddv INNER JOIN cotizacion_documento dv ON ddv.documento_id = dv.id INNER JOIN lote_productos lp ON ddv.lote_id = lp.id WHERE dv.fecha_documento < '{$fecini}' AND dv.estado != 'ANULADO' AND lp.producto_id = productos.id AND dv.tipo_venta != '129' AND dv.convertir != '' AND ddv.eliminado = '0'),0) - ifnull((SELECT SUM(dns.cantidad) FROM detalle_nota_salidad dns INNER JOIN nota_salidad ns ON dns.nota_salidad_id = ns.id WHERE ns.fecha < '{$fecini}' AND ns.estado != 'ANULADO' AND dns.producto_id = productos.id),0) + ifnull((SELECT SUM(ned.cantidad) FROM nota_electronica_detalle ned INNER JOIN nota_electronica ne ON ned.nota_id = ne.id INNER JOIN cotizacion_documento_detalles cdd ON cdd.id = ned.detalle_id INNER JOIN lote_productos lpn ON lpn.id = cdd.lote_id WHERE ne.fechaEmision < '{$fecini}' AND ne.estado != 'ANULADO' AND lpn.producto_id = productos.id),0)) - (ifnull((SELECT SUM(vdd.cantidad) from cotizacion_documento_detalles vdd INNER JOIN cotizacion_documento vd ON vdd.documento_id = vd.id INNER JOIN lote_productos lp ON vdd.lote_id = lp.id WHERE vd.fecha_documento >= '{$fecini}' and vd.fecha_documento <= '{$fecfin}' AND vd.estado != 'ANULADO' AND lp.producto_id = productos.id AND vdd.eliminado = '0'),0) - ifnull((SELECT SUM(vdd.cantidad) from cotizacion_documento_detalles vdd INNER JOIN cotizacion_documento vd ON vdd.documento_id = vd.id INNER JOIN lote_productos lp ON vdd.lote_id = lp.id WHERE vd.fecha_documento >= '{$fecini}' and vd.fecha_documento <= '{$fecfin}' AND vd.estado != 'ANULADO' AND lp.producto_id = productos.id AND vd.tipo_venta != '129' AND vd.convertir != '' AND vdd.eliminado = '0'),0) + ifnull((SELECT SUM(dns.cantidad) FROM detalle_nota_salidad dns INNER JOIN nota_salidad ns ON dns.nota_salidad_id = ns.id WHERE ns.fecha >= '{$fecini}' AND ns.fecha <= '{$fecfin}' AND ns.estado != 'ANULADO' AND dns.producto_id = productos.id),0)) + ifnull((SELECT SUM(cdd.cantidad) from compra_documento_detalles cdd INNER JOIN compra_documentos cd ON cdd.documento_id = cd.id WHERE cd.fecha_emision >= '{$fecini}' AND cd.fecha_emision <= '{$fecfin}' AND cd.estado != 'ANULADO' AND cdd.producto_id = productos.id),0) + ifnull((SELECT sum(dni.cantidad) from detalle_nota_ingreso dni INNER JOIN nota_ingreso ni ON dni.nota_ingreso_id = ni.id WHERE ni.fecha >= '{$fecini}' AND ni.fecha <= '{$fecfin}' AND dni.producto_id = productos.id AND ni.estado != 'ANULADO'),0) + ifnull((SELECT SUM(ned.cantidad) FROM nota_electronica_detalle ned INNER JOIN nota_electronica ne ON ned.nota_id = ne.id INNER JOIN cotizacion_documento_detalles cdd ON cdd.id = ned.detalle_id INNER JOIN lote_productos lpn ON lpn.id = cdd.lote_id WHERE ne.fechaEmision >= '{$fecini}' AND ne.fechaEmision <= '{$fecfin}' AND  ne.estado != 'ANULADO' AND lpn.producto_id = productos.id),0)) as STOCK"
-                ),
-                DB::raw("'{$fecini}' as fecini"),
-                DB::raw("'{$fecfin}'  as fecfin"),
-            )->where("productos.estado", "<>", 'ANULADO');
+                if($documento->origen == 'VENTA'){
+                    $ventas     =   $documento->numero_doc;
+                }
+                if($documento->origen == 'Salida'){
+                    $salidas    =   $documento->numero_doc;
+                }
+                if($documento->origen == 'COMPRA'){
+                    $compras    =   $documento->numero_doc;
+                }
+                if($documento->origen == 'INGRESO'){
+                    $ingresos    =   $documento->numero_doc;
+                }
 
-        if ($input) {
-            $kardex = $kardex->where('productos.nombre', 'like', '%' . $input . '%');
-        }
-        if ($stock > 0) {
-            $kardex = $kardex->where('productos.stock', '>', 0);
-        }
-        if ($stock == 0) {
-            $kardex = $kardex->where('productos.stock', 0);
+                $coleccion->push([
+                    'numero_doc'    =>  $documento->numero_doc,
+                    'fecha'         =>  $documento->fecha,
+                    'producto'      =>  $producto?$producto->nombre:'',
+                    'color'         =>  $color?$color->descripcion:'',
+                    'talla'         =>  $talla?$talla->descripcion:'',
+                    'origen'        =>  $documento->origen,
+                    'stock'         =>  $documento->stock,
+                    'compras'       =>  $compras,
+                    'ingresos'      =>  $ingresos,
+                    'ventas'        =>  $ventas,
+                    'devoluciones'  =>  $devoluciones,
+                    'salidas'       =>  $salidas,
+
+                ]);
         }
 
-        $kardex = $kardex
-            ->orderBy("productos.id", "ASC")
-            ->paginate(10);
-
-        return response()->json($kardex);
+        return response()->json([
+            'success' => true,
+            'kardex' => $coleccion,
+        ]);
     }
 
     public function DonwloadExcel(Request $request)

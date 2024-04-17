@@ -18,7 +18,7 @@ class ClienteController extends Controller
     public function getTable(Request $request){
 
         $consulta = Documento::where('estado','!=','ANULADO')->where('sunat','!=','2');
-
+        
         if($request->fecha_desde && $request->fecha_hasta)
         {
             $consulta->whereBetween('fecha_documento', [$request->fecha_desde, $request->fecha_hasta]);
@@ -40,13 +40,14 @@ class ClienteController extends Controller
                     'numero_doc' => $documento->serie.'-'.$documento->correlativo,
                     'fecha' => $documento->fecha_documento,
                     'cliente' => $documento->clienteEntidad->nombre,
-                    'codigo' => $detalle->lote->producto->codigo,
+                    'codigo' => $detalle->codigo_producto,
                     'cantidad' => $detalle->cantidad,
-                    'unidad' => $detalle->unidad,
-                    'producto' => $detalle->lote->producto->nombre,
-                    'costo' => $detalle->lote->detalle_compra ? $detalle->lote->detalle_compra->precio : 0.00,
-                    'precio' => $detalle->precio_nuevo,
-                    'importe' => number_format($detalle->precio_nuevo * $detalle->cantidad, 2)
+                    'talla' => $detalle->nombre_talla,
+                    'color' => $detalle->nombre_color,
+                    'producto' => $detalle->nombre_producto,
+                    'costo' => $detalle->producto->precio_compra?$detalle->producto->precio_compra:0.0,
+                    'precio' => $detalle->precio_unitario_nuevo,
+                    'importe' => number_format($detalle->importe_nuevo, 2)
                 ]);
             }
         }

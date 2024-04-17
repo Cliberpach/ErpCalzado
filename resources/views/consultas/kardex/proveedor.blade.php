@@ -1,16 +1,16 @@
 @extends('layout') @section('content')
 
 @section('kardex-active', 'active')
-@section('cliente_kardex-active', 'active')
+@section('proveedor_kardex-active', 'active')
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
-        <h2 style="text-transform:uppercase"><b>Kardex Cliente</b></h2>
+        <h2 style="text-transform:uppercase"><b>Kardex Proveedor</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{ route('home') }}">Panel de Control</a>
             </li>
             <li class="breadcrumb-item active">
-                <strong>Kardex Cliente</strong>
+                <strong>Kardex Proveedor</strong>
             </li>
         </ol>
     </div>
@@ -22,11 +22,11 @@
             <div class="row align-items-end">
                 <div class="col-12 col-md-4">
                     <div class="form-group">
-                        <label for="cliente_id">Cliente</label>
-                        <select name="cliente_id" id="cliente_id" class="select2_form form-control">
+                        <label for="proveedor_id">Proveedor</label>
+                        <select name="proveedor_id" id="proveedor_id" class="select2_form form-control">
                             <option value=""></option>
-                            @foreach(clientes() as $cliente)
-                                <option value="{{$cliente->id}}">{{ $cliente->getDocumento() }} - {{ $cliente->nombre }}</option>
+                            @foreach(proveedores() as $proveedor)
+                                <option value="{{$proveedor->id}}">{{ $proveedor->getDocumento() }} - {{ $proveedor->descripcion }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -114,7 +114,7 @@
         let verificar = true;
         var fecha_desde = $('#fecha_desde').val();
         var fecha_hasta = $('#fecha_hasta').val();
-        var cliente_id = $('#cliente_id').val();
+        var proveedor_id = $('#proveedor_id').val();
         if (fecha_desde !== '' && fecha_desde !== null && fecha_hasta == '') {
             verificar = false;
             toastr.error('Ingresar fecha hasta');
@@ -147,8 +147,8 @@
                     $.ajax({
                         dataType : 'json',
                         type : 'post',
-                        url : '{{ route('consultas.kardex.cliente.getTable') }}',
-                        data : {'_token' : $('input[name=_token]').val(), 'fecha_desde' : fecha_desde, 'fecha_hasta' : fecha_hasta, 'cliente_id' : cliente_id},
+                        url : '{{ route('consultas.kardex.proveedor.getTable') }}',
+                        data : {'_token' : $('input[name=_token]').val(), 'fecha_desde' : fecha_desde, 'fecha_hasta' : fecha_hasta, 'proveedor_id' : proveedor_id},
                         success: function(response) {
                             if (response.success) {
                                 kardex = [];
@@ -182,7 +182,7 @@
                     extend: 'excelHtml5',
                     text: '<i class="fa fa-file-excel-o"></i> Excel',
                     titleAttr: 'Excel',
-                    title: 'CONSULTA KARDEX CLIENTE'
+                    title: 'CONSULTA KARDEX PROVEEDOR'
                 },
                 {
                     titleAttr: 'Imprimir',

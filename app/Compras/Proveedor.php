@@ -57,4 +57,15 @@ class Proveedor extends Model
     public function tipodocumento(){
         return $this->dni==null ? 'DNI' : 'RUC';
     }
+    public function getDocumento(): string
+    {
+        $resultado  =   '';
+        if($this->tipo_documento == "RUC"){
+            $resultado  =   $this->tipo_documento.': '.$this->ruc;
+        }
+        if($this->tipo_documento == "DNI"){
+            $resultado  =   $this->tipo_documento.': '.$this->dni;
+        }
+        return $resultado;
+    }
 }

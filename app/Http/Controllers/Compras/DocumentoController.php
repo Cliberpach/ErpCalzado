@@ -373,11 +373,11 @@ class DocumentoController extends Controller
                     DocumentoDetalle::create([
                         'documento_id'              =>  $documento->id,
                         'producto_id'               =>  $detalle->producto_id,
+                        'producto_codigo'           =>  $detalle->producto_codigo,
                         'producto_nombre'           =>  $detalle->producto_nombre,
                         'color_nombre'              =>  $detalle->color_nombre,
                         'modelo_nombre'             =>  $detalle->modelo_nombre,
                         'presentacion_producto'     =>  '-',
-                        'codigo_producto'           =>  $detalle->producto_codigo,
                         'medida_producto'           =>  'NIU',
                         'cantidad'                  =>  $talla->cantidad,
                         'precio'                    =>  $detalle->precio_unitario,

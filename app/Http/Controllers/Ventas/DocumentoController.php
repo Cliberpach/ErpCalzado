@@ -1594,7 +1594,7 @@ class DocumentoController extends Controller
                         //  'valor_venta' => $producto->valor_venta,
                     ]);
                 
-            //      $lote->cantidad = $lote->cantidad - $producto->cantidad;
+                    //$lote->cantidad = $lote->cantidad - $producto->cantidad;
                     //$lote->stock = $lote->stock - $producto->cantidad;
 
                     if(!$request->has('convertir')){
@@ -1603,15 +1603,17 @@ class DocumentoController extends Controller
                         SET stock = stock - ? 
                         WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
                         [$producto->cantidad, $producto->producto_id, $producto->color_id, $producto->talla_id]);
+
+                        //======= KARDEX CON STOCK YA MODIFICADO =======
                     }
                    
 
 
-            //if ($lote->cantidad == 0) {
-            //         $lote->estado = '0';
-            //     }
-            //     $lote->update();
-            // }
+                //if ($lote->cantidad == 0) {
+                //         $lote->estado = '0';
+                //     }
+                //     $lote->update();
+                // }
 
                 if ($lote->stock == 0) {
                     DB::update('UPDATE producto_color_tallas 
