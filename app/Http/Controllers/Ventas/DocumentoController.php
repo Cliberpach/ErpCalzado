@@ -13,6 +13,7 @@ use App\Almacenes\Producto;
 use App\Pos\MovimientoCaja;
 use Illuminate\Http\Request;
 use App\Almacenes\LoteDetalle;
+use App\Almacenes\Kardex;
 use App\Almacenes\LoteProducto;
 use App\Events\VentasCajaEvent;
 use App\Events\NotifySunatEvent;
@@ -1598,17 +1599,34 @@ class DocumentoController extends Controller
                     //$lote->stock = $lote->stock - $producto->cantidad;
 
                     if(!$request->has('convertir')){
-                         //===== ACTUALIZANDO STOCK ===========
+                        //===== ACTUALIZANDO STOCK ===========
                         DB::update('UPDATE producto_color_tallas 
                         SET stock = stock - ? 
                         WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
                         [$producto->cantidad, $producto->producto_id, $producto->color_id, $producto->talla_id]);
 
+                        $nuevo_stock = DB::table('producto_color_tallas')
+                                        ->where('producto_id', $producto->producto_id)
+                                        ->where('color_id', $producto->color_id)
+                                        ->where('talla_id', $producto->talla_id)
+                                        ->value('stock');
+
                         //======= KARDEX CON STOCK YA MODIFICADO =======
+                        $kardex = new Kardex();
+                        $kardex->origen         =   'VENTA';
+                        $kardex->numero_doc     =   $documento->numero_doc;
+                        $kardex->fecha          =   $documento->fecha_documento;
+                        $kardex->cantidad       =   floatval($producto->cantidad);
+                        $kardex->producto_id    =   $producto->producto_id;
+                        $kardex->color_id       =   $producto->color_id;
+                        $kardex->talla_id       =   $producto->talla_id;
+                        $kardex->descripcion    =   $documento->cliente;
+                        $kardex->precio         =   $producto->precio_unitario;   
+                        $kardex->importe        =   $producto->precio_unitario * $producto->cantidad;
+                        $kardex->stock          =   $nuevo_stock;
+                        $kardex->save();
                     }
                    
-
-
                 //if ($lote->cantidad == 0) {
                 //         $lote->estado = '0';
                 //     }

@@ -73,24 +73,7 @@ class Detalle extends Model
                                     ->where('color_id', $detalle->color_id)
                                     ->where('talla_id', $detalle->talla_id)
                                     ->first();
-            //KARDEX
-            $kardex = new Kardex();
-            $kardex->origen         = 'VENTA';
-            $kardex->numero_doc     = $detalle->documento->numero_doc;
-            $kardex->fecha          = $detalle->documento->fecha_documento;
-            $kardex->cantidad       = $detalle->cantidad;
-            //$kardex->producto_id = $detalle->lote->producto_id;
-            $kardex->producto_id    =   $detalle->producto_id;
-            $kardex->color_id       =   $detalle->color_id;
-            $kardex->talla_id       =   $detalle->talla_id;
-            $kardex->descripcion    =   'CLIENTES VARIOS';
-            //$kardex->precio = $detalle->precio_nuevo;
-            $kardex->precio         =   $detalle->precio_unitario;   
-            // $kardex->importe = $detalle->precio_nuevo * $detalle->cantidad;
-            $kardex->importe        =   $detalle->precio_unitario * $detalle->cantidad;
-            // $kardex->stock = $detalle->lote->producto->stock;
-            $kardex->stock          =   $producto_color_talla->stock;
-            $kardex->save();
+            
 
             // $producto = Producto::find($detalle->lote->producto_id);
             // $producto->precio_venta_minimo = $detalle->precio_unitario;
