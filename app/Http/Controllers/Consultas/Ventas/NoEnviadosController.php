@@ -524,7 +524,7 @@ class NoEnviadosController extends Controller
                     $kardex->origen         =   'VENTA';
                     $kardex->accion         =   'EDITAR';
                     $kardex->documento_id   =   $documento->id;
-                    $kardex->numero_doc     =   $documento->numero_doc;
+                    $kardex->numero_doc     =   $documento->serie.'-'.$documento->correlativo;
                     $kardex->fecha          =   $documento->fecha_documento;
                     $kardex->cantidad       =   floatval($detalle->cantidad);
                     $kardex->producto_id    =   $detalle->producto_id;

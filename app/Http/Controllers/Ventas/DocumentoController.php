@@ -1616,7 +1616,7 @@ class DocumentoController extends Controller
                         $kardex->origen         =   'VENTA';
                         $kardex->accion         =   'REGISTRO';
                         $kardex->documento_id   =   $documento->id;
-                        $kardex->numero_doc     =   $documento->numero_doc;
+                        $kardex->numero_doc     =   $documento->serie.'-'.$documento->correlativo;
                         $kardex->fecha          =   $documento->fecha_documento;
                         $kardex->cantidad       =   floatval($producto->cantidad);
                         $kardex->producto_id    =   $producto->producto_id;
