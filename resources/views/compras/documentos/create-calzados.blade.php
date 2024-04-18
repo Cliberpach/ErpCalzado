@@ -4,7 +4,6 @@
 @section('documento-active', 'active')
 
 <div class="row wrapper border-bottom white-bg page-heading">
-
     <div class="col-lg-12">
        <h2  style="text-transform:uppercase"><b>REGISTRAR NUEVO DOCUMENTO DE COMPRA</b></h2>
         <ol class="breadcrumb">
@@ -20,19 +19,15 @@
 
         </ol>
     </div>
-
-
-
 </div>
 
-<div class="wrapper wrapper-content animated fadeInRight">
+@include('compras.ordenes.modal_proveedor')
 
+<div class="wrapper wrapper-content animated fadeInRight">
     <div class="row">
         <div class="col-lg-12">
             <div class="ibox">
-
                 <div class="ibox-content">
-
                     <div class="row">
                         <div class="col-12">
                             <form action="{{route('compras.documento.store')}}" method="POST" id="enviar_documento">
@@ -110,7 +105,6 @@
 
                                         <div class="form-group d-none">
                                             <label class="required">Empresa: </label>
-
                                                 @if (!empty($orden))
                                                     <select
                                                     class="select2_form form-control {{ $errors->has('empresa_id') ? ' is-invalid' : '' }}"
@@ -134,129 +128,59 @@
                                                     @endforeach
                                                     </select>
                                                 @endif
-
-
-
                                         </div>
 
                                         <hr>
 
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <p>Registrar Proveedor:</p>
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <label class="required">Proveedor: </label>
+                                                    <button class="btn btn-primary" type="button" id="btn-proveedor-add" onclick="openModalProveedor()"> 
+                                                        NUEVO   <i class="fas fa-plus"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <select class="select2_form form-control {{ $errors->has('proveedor_id') ? ' is-invalid' : '' }}"
+                                                    style="text-transform: uppercase; width:100%" value="{{old('proveedor_id')}}"
+                                                    name="proveedor_id" id="proveedor_id" required>
+                                                        <option></option>
+                                                        @foreach ($proveedores as $proveedor)
+                                                            @if($proveedor->ruc)
+                                                                <option value="{{$proveedor->id}}"
+                                                                    @if (!empty($orden))
+                                                                        @if ($proveedor->id==$orden->proveedor_id)
+                                                                            selected
+                                                                        @endif
+                                                                    @endif
+                                                                     @if(old('proveedor_id')==$proveedor->id )
+                                                                    {{'selected'}} @endif >{{$proveedor->ruc}} - {{$proveedor->descripcion}}
+                                                                </option>
+                                                            @else
+                                                                @if($proveedor->dni)
+                                                                <option value="{{$proveedor->id}}"
+                                                                    @if (!empty($orden))
+                                                                        @if ($proveedor->id==$orden->proveedor_id)
+                                                                            selected
+                                                                        @endif
+                                                                    @endif 
+                                                                    @if(old('proveedor_id')==$proveedor->id )
+                                                                    {{'selected'}} @endif >{{$proveedor->dni}} - {{$proveedor->descripcion}}
+                                                                </option>
+                                                                @endif
+                                                            @endif
+                                                        @endforeach
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
-
-
-                                        <div class="form-group">
-                                            <label class="required">Ruc / Dni: </label>
-
-                                                @if (!empty($orden))
-                                                <select
-                                                class="select2_form form-control {{ $errors->has('proveedor_id') ? ' is-invalid' : '' }}"
-                                                style="text-transform: uppercase; width:100%" value="{{old('proveedor_id', $orden->proveedor_id)}}"
-                                                name="proveedor_id" id="proveedor_id" required disabled>
-                                                <option></option>
-                                                    @foreach ($proveedores as $proveedor)
-                                                    @if($proveedor->ruc)
-                                                    <option value="{{$proveedor->id}}" @if(old('proveedor_id',$orden->proveedor_id)==$proveedor->id )
-                                                        {{'selected'}} @endif >{{$proveedor->ruc}}
-                                                    </option>
-                                                    @else
-                                                    @if($proveedor->dni)
-                                                    <option value="{{$proveedor->id}}" @if(old('proveedor_id',$orden->proveedor_id)==$proveedor->id )
-                                                        {{'selected'}} @endif >{{$proveedor->dni}}
-                                                    </option>
-                                                    @endif
-                                                    @endif
-                                                    @endforeach
-                                                    </select>
-
-
-                                                @else
-                                                    <select
-                                                    class="select2_form form-control {{ $errors->has('proveedor_id') ? ' is-invalid' : '' }}"
-                                                    style="text-transform: uppercase; width:100%" value="{{old('proveedor_id')}}"
-                                                    name="proveedor_id" id="proveedor_id" required >
-                                                    <option></option>
-                                                    @foreach ($proveedores as $proveedor)
-                                                    @if($proveedor->ruc)
-                                                    <option value="{{$proveedor->id}}" @if(old('proveedor_id')==$proveedor->id )
-                                                        {{'selected'}} @endif >{{$proveedor->ruc}}
-                                                    </option>
-                                                    @else
-                                                    @if($proveedor->dni)
-                                                    <option value="{{$proveedor->id}}" @if(old('proveedor_id')==$proveedor->id )
-                                                        {{'selected'}} @endif >{{$proveedor->dni}}
-                                                    </option>
-                                                    @endif
-                                                    @endif
-                                                    @endforeach
-                                                    </select>
-                                                @endif
-
-
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="required">Razon Social: </label>
-                                            @if (!empty($orden))
-                                            <select
-                                                class="select2_form form-control {{ $errors->has('proveedor_razon') ? ' is-invalid' : '' }}"
-                                                style="text-transform: uppercase; width:100%" value="{{old('proveedor_razon')}}"
-                                                name="proveedor_razon" id="proveedor_razon" required disabled>
-                                                <option></option>
-                                                @foreach ($proveedores as $proveedor)
-                                                    @if($proveedor->ruc)
-                                                    <option value="{{$proveedor->id}}" @if(old('proveedor_id',$orden->proveedor_id)==$proveedor->id )
-                                                        {{'selected'}} @endif >{{$proveedor->descripcion}}
-                                                    </option>
-                                                    @else
-                                                    @if($proveedor->dni)
-                                                    <option value="{{$proveedor->id}}" @if(old('proveedor_id',$orden->proveedor_id)==$proveedor->id )
-                                                        {{'selected'}} @endif >{{$proveedor->descripcion}}
-                                                    </option>
-                                                    @endif
-                                                @endif
-                                                @endforeach
-                                            </select>
-                                            @else
-                                            <select
-                                                class="select2_form form-control {{ $errors->has('proveedor_razon') ? ' is-invalid' : '' }}"
-                                                style="text-transform: uppercase; width:100%" value="{{old('proveedor_razon')}}"
-                                                name="proveedor_razon" id="proveedor_razon" required >
-                                                <option></option>
-                                                @foreach ($proveedores as $proveedor)
-                                                    @if($proveedor->ruc)
-                                                    <option value="{{$proveedor->id}}" @if(old('proveedor_id')==$proveedor->id )
-                                                        {{'selected'}} @endif >{{$proveedor->descripcion}}
-                                                    </option>
-                                                    @else
-                                                    @if($proveedor->dni)
-                                                    <option value="{{$proveedor->id}}" @if(old('proveedor_id')==$proveedor->id )
-                                                        {{'selected'}} @endif >{{$proveedor->descripcion}}
-                                                    </option>
-                                                    @endif
-                                                @endif
-                                                @endforeach
-                                            </select>
-
-
-                                            @endif
-
-
-                                        </div>
-
-
-
-
-
                                     </div>
 
+
                                     <div class="col-sm-6">
-
                                         <div class="form-group row">
-
                                             <div class="col-md-6">
                                                 @if (!empty($orden))
                                                     <label class="required">Condición</label>
@@ -320,11 +244,11 @@
                                                 @else
                                                     <select
                                                     class="select2_form form-control {{ $errors->has('moneda') ? ' is-invalid' : '' }}"
-                                                    style="text-transform: uppercase; width:100%" value="{{old('moneda')}}"
-                                                    name="moneda" id="moneda" onchange="cambioMoneda(this)" required>
+                                                    style="text-transform: uppercase; width:100%" value="{{old('moneda','SOLES')}}"
+                                                    name="moneda" id="moneda" required disabled>
                                                         <option></option>
                                                     @foreach ($monedas as $moneda)
-                                                    <option value="{{$moneda->descripcion}}" @if(old('moneda')==$moneda->descripcion ) {{'selected'}} @endif
+                                                    <option value="{{$moneda->descripcion}}" @if(old('moneda','SOLES')==$moneda->descripcion ) {{'selected'}} @endif
                                                         >{{$moneda->simbolo.' - '.$moneda->descripcion}}</option>
                                                     @endforeach
                                                     @if ($errors->has('moneda'))
@@ -429,7 +353,7 @@
                                                     @else
                                                         <div class="input-group-prepend">
                                                             <span class="input-group-addon">
-                                                                <input type="checkbox" id="igv_check" name="igv_check">
+                                                                <input checked type="checkbox" id="igv_check" name="igv_check">
                                                             </span>
                                                         </div>
                                                     @endif
@@ -438,10 +362,10 @@
                                                         class="form-control {{ $errors->has('igv') ? ' is-invalid' : '' }}"
                                                         name="igv" id="igv" maxlength="3"  onkeyup="return mayus(this)" readonly>
                                                     @else
-                                                    <input type="text" value="{{old('igv')}}"
+                                                    <input type="text" value="{{old('igv',18)}}"
                                                         class="form-control {{ $errors->has('igv') ? ' is-invalid' : '' }}"
                                                         name="igv" id="igv" maxlength="3"  onkeyup="return mayus(this)"
-                                                        required>
+                                                        required readonly>
                                                     @endif
 
                                                     @if ($errors->has('igv'))
@@ -798,6 +722,7 @@
         cargarSelect2();
         cargarDatePicker();
         events();
+        eventsProveedor();
     })
 
     function events(){
@@ -856,12 +781,12 @@
                     async: false,
                     url: '{{ route('compras.documento.consulta_store') }}',
                     data: {
-                        '_token': $('input[name=_token]').val(),
-                        'moneda': $('#moneda').val(),
-                        'serie_tipo': $('#serie_tipo').val(),
-                        'numero_tipo': $('#numero_tipo').val(),
+                        '_token':       $('input[name=_token]').val(),
+                        'moneda':       $('#moneda').val(),
+                        'serie_tipo':   $('#serie_tipo').val(),
+                        'numero_tipo':  $('#numero_tipo').val(),
                         'proveedor_id': $('#proveedor_id').val(),
-                        'tipo_compra': $('#tipo_compra').val(),
+                        'tipo_compra':  $('#tipo_compra').val(),
                     }
                 }).done(function(result) {
                     if(!result.success)
@@ -886,12 +811,11 @@
                                     // var validar = montosFlete()
                                     const validar = true;
                                     if (validar == true) {
-                                        cargarProductos()
+                                        cargarProductos();
                                         document.getElementById("condicion_id").disabled = false;
                                         document.getElementById("igv_check").disabled = false;
                                         document.getElementById("moneda").disabled = false;
                                         document.getElementById("observacion").disabled = false;
-                                        document.getElementById("proveedor_razon").disabled = false;
                                         document.getElementById("proveedor_id").disabled = false;
                                         document.getElementById("fecha_documento_campo").disabled = false;
                                         document.getElementById("fecha_entrega_campo").disabled = false;
@@ -900,7 +824,14 @@
                                     }
 
                                 @else
-                                    cargarproductos()
+                                    cargarProductos();
+                                    document.getElementById("condicion_id").disabled = false;
+                                    document.getElementById("igv_check").disabled = false;
+                                    document.getElementById("moneda").disabled = false;
+                                    document.getElementById("observacion").disabled = false;
+                                    document.getElementById("proveedor_id").disabled = false;
+                                    document.getElementById("fecha_documento_campo").disabled = false;
+                                    document.getElementById("fecha_entrega_campo").disabled = false;
                                     document.getElementById('enviar_documento').submit();
                                 @endif
 
@@ -1556,6 +1487,11 @@
         carrito.forEach((c,index)=>{
             c.costo_flete_unitario   =   costo_flete_unitario;   
         })
+    }
+
+    //======== ABRIR MODAL PROVEEDOR =======
+    function openModalProveedor(){
+        $("#modal_proveedor").modal("show");    
     }
 
 </script>

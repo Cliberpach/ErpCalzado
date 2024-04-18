@@ -8,6 +8,7 @@ use App\Compras\Orden;
 use App\Compras\Proveedor;
 use App\Almacenes\Producto;
 use App\Almacenes\Talla;
+use App\Almacenes\Kardex;
 use App\Almacenes\Modelo;
 use Illuminate\Http\Request;
 use App\Almacenes\LoteProducto;
@@ -130,6 +131,9 @@ class DocumentoController extends Controller
         $this->authorize('haveaccess','documento_compra.index');
         $tallas         =   Talla::where('estado','ACTIVO')->get();
         $modelos        =   Modelo::where('estado','ACTIVO')->get();
+        $tipos          =   personas();
+        $zonas          =   zonas();
+        $departamentos  =   departamentos();
 
         $orden          = '';
         $detalles       = '';
@@ -159,40 +163,49 @@ class DocumentoController extends Controller
         }           
 
 
-        $empresas = Empresa::where('estado','ACTIVO')->get();
-        $proveedores = Proveedor::where('estado','ACTIVO')->get();
-        $productos = Producto::where('estado','ACTIVO')->get();
-        $modos =  modo_compra();
-        $condiciones = Condicion::where('estado','ACTIVO')->get();
+        $empresas       = Empresa::where('estado','ACTIVO')->get();
+        $proveedores    = Proveedor::where('estado','ACTIVO')->get();
+        $productos      = Producto::where('estado','ACTIVO')->get();
+        $modos          =  modo_compra();
+        $condiciones    = Condicion::where('estado','ACTIVO')->get();
 
         $monedas =  tipos_moneda();
         if (empty($orden)) {
-            return view('compras.documentos.create',[
-                'empresas' => $empresas,
-                'proveedores' => $proveedores,
-                'productos' => $productos,
-                'modos' => $modos,
-                'monedas' => $monedas,
-                'fecha_hoy' => $fecha_hoy,
-                'fecha_actual' => $fecha_actual,
-                'condiciones' => $condiciones,
-                'fecha_5' => $fecha_5,
+            return view('compras.documentos.create-calzados',[
+                'empresas'          =>  $empresas,
+                'proveedores'       =>  $proveedores,
+                'productos'         =>  $productos,
+                'modos'             =>  $modos,
+                'monedas'           =>  $monedas,
+                'fecha_hoy'         =>  $fecha_hoy,
+                'fecha_actual'      =>  $fecha_actual,
+                'condiciones'       =>  $condiciones,
+                'fecha_5'           =>  $fecha_5,
+                'detalles'          =>  [],
+                'tallas'            =>  $tallas,
+                'modelos'           =>  $modelos,
+                'tipos'             =>  $tipos,
+                'zonas'             =>  $zonas,
+                'departamentos'     =>  $departamentos
             ]);
         }else{
             return view('compras.documentos.create-calzados',[
-                'orden' => $orden,
-                'empresas' => $empresas,
-                'proveedores' => $proveedores,
-                'productos' => $productos,
-                'modos' => $modos,
-                'monedas' => $monedas,
-                'fecha_hoy' => $fecha_hoy,
-                'fecha_actual' => $fecha_actual,
-                'condiciones' => $condiciones,
-                'detalles' => $detalles,
-                'fecha_5' => $fecha_5,
-                'tallas'    =>  $tallas,
-                'modelos'   =>  $modelos
+                'orden'             => $orden,
+                'empresas'          => $empresas,
+                'proveedores'       => $proveedores,
+                'productos'         => $productos,
+                'modos'             => $modos,
+                'monedas'           => $monedas,
+                'fecha_hoy'         => $fecha_hoy,
+                'fecha_actual'      => $fecha_actual,
+                'condiciones'       => $condiciones,
+                'detalles'          => $detalles,
+                'fecha_5'           => $fecha_5,
+                'tallas'            =>  $tallas,
+                'modelos'           =>  $modelos,
+                'tipos'             =>  $tipos,
+                'zonas'             =>  $zonas,
+                'departamentos'     =>  $departamentos
             ]);
         }
     }
@@ -230,15 +243,15 @@ class DocumentoController extends Controller
             $data = $request->all();
 
             $rules = [
-                'fecha_emision'=> 'required',
-                'fecha_entrega'=> 'required',
-                'tipo_compra'=> 'required',
-                'numero_tipo'=> 'required',
-                'serie_tipo'=> 'required',
-                'proveedor_id'=> 'required',
-                'condicion_id'=> 'required',
-                'observacion' => 'nullable',
-                'moneda' => 'nullable',
+                'fecha_emision' => 'required',
+                'fecha_entrega' => 'required',
+                'tipo_compra'   => 'required',
+                'numero_tipo'   => 'required',
+                'serie_tipo'    => 'required',
+                'proveedor_id'  => 'required',
+                'condicion_id'  => 'required',
+                'observacion'   => 'nullable',
+                'moneda'        => 'nullable',
                 // 'tipo_cambio' => 'nullable|numeric',
                 // 'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
             ];
@@ -393,6 +406,33 @@ class DocumentoController extends Controller
                         'talla_id'                  =>  $talla->talla_id,
                         'talla_nombre'              =>  $talla->talla_nombre
                     ]);
+
+                    //====== GRABADO KARDEX ======
+                    $kardex                     = new Kardex();
+                    $kardex->origen             = 'COMPRA';
+                    $kardex->numero_doc         = $documento->serie_tipo.'-'.$documento->numero_tipo;
+                    $kardex->fecha              = $documento->fecha_emision;
+                    $kardex->cantidad           = $talla->cantidad;
+                    $kardex->producto_id        = $detalle->producto_id;
+                    $kardex->color_id           = $detalle->color_id;
+                    $kardex->talla_id           = $talla->talla_id;
+                    $kardex->descripcion        = 'PROVEEDOR: ' . $documento->proveedor->descripcion;
+                    $kardex->precio             = $precio_mas_igv_soles;
+                    $kardex->importe            = $precio_mas_igv_soles * $talla->cantidad;
+                    $kardex->documento_id       = $documento->id;
+                    $kardex->accion             = 'REGISTRO';
+
+                    $producto_nuevo_stock   =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,pct.stock 
+                                    from producto_color_tallas as pct
+                                    where pct.producto_id=? and pct.color_id=? and pct.talla_id=?',
+                                    [$detalle->producto_id,$detalle->color_id,$talla->talla_id]);
+
+                    if(count($producto_nuevo_stock)>0){
+                        $kardex->stock  =   $producto_nuevo_stock[0]->stock;
+                    }else{
+                        $kardex->stock  =   0;
+                    }
+                    $kardex->save();
                 }
                 
             }
