@@ -767,7 +767,6 @@ $('#enviar_orden').submit(function(e) {
     e.preventDefault();
     var correcto = validarFecha()
     if (correcto) {
-
         Swal.fire({
             title: 'Opción Guardar',
             text: "¿Seguro que desea guardar cambios?",

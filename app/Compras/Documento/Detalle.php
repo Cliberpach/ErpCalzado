@@ -66,7 +66,10 @@ class Detalle extends Model
 
     public function fechaFormateada()
     {
-        $fecha = Carbon::createFromFormat('Y-m-d', $this->fecha_vencimiento)->format('d/m/Y');
+        $fecha  =   null;
+        if($this->fecha_vencimiento){
+            $fecha = Carbon::createFromFormat('Y-m-d', $this->fecha_vencimiento)->format('d/m/Y');
+        }
         return $fecha;
     }
 

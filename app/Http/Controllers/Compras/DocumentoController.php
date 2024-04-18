@@ -134,6 +134,8 @@ class DocumentoController extends Controller
         $tipos          =   personas();
         $zonas          =   zonas();
         $departamentos  =   departamentos();
+        $monedas        =  tipos_moneda();
+
 
         $orden          = '';
         $detalles       = '';
@@ -153,7 +155,7 @@ class DocumentoController extends Controller
         // }
 
         if($request->get('orden')){
-            $orden = Orden::findOrFail( $request->get('orden') );
+            $orden      = Orden::findOrFail( $request->get('orden') );
             $detalles   = ComprasDetalle::with('producto.modelo', 'color', 'talla')->where('orden_id', $request->get('orden'))->get();            
             foreach($detalles as $item)
             {
@@ -169,7 +171,6 @@ class DocumentoController extends Controller
         $modos          =  modo_compra();
         $condiciones    = Condicion::where('estado','ACTIVO')->get();
 
-        $monedas =  tipos_moneda();
         if (empty($orden)) {
             return view('compras.documentos.create-calzados',[
                 'empresas'          =>  $empresas,
@@ -382,7 +383,7 @@ class DocumentoController extends Controller
                         $precio_mas_igv_dolares     = $precio_dolares * (1.18);
                     }
 
-                    //-------------------------------
+                    //======== GRABANDO DETALLE DEL DOCUMENTO COMPRA =========
                     DocumentoDetalle::create([
                         'documento_id'              =>  $documento->id,
                         'producto_id'               =>  $detalle->producto_id,
@@ -404,7 +405,8 @@ class DocumentoController extends Controller
                         'fecha_vencimiento'         =>  null,
                         'color_id'                  =>  $detalle->color_id,
                         'talla_id'                  =>  $talla->talla_id,
-                        'talla_nombre'              =>  $talla->talla_nombre
+                        'talla_nombre'              =>  $talla->talla_nombre,
+                        'importe_producto_id'       =>  $detalle->importe
                     ]);
 
                     //====== GRABADO KARDEX ======
@@ -523,18 +525,27 @@ class DocumentoController extends Controller
     public function edit($id)
     {
         $this->authorize('haveaccess','documento_compra.index');
-        $empresas = Empresa::where('estado','ACTIVO')->get();
-        $detalles = DocumentoDetalle::where('documento_id', $id)->where('estado','ACTIVO')->get();
-        $proveedores = Proveedor::where('estado','ACTIVO')->get();
-        $documento = Documento::findOrFail($id);
-        $productos = producto::where('estado','ACTIVO')->get();
+        $empresas       = Empresa::where('estado','ACTIVO')->get();
+        $detalles       = DocumentoDetalle::where('documento_id', $id)->where('estado','ACTIVO')->get();
+        $proveedores    = Proveedor::where('estado','ACTIVO')->get();
+        $documento      = Documento::findOrFail($id);
+        $productos      = producto::where('estado','ACTIVO')->get();
         $presentaciones =  presentaciones();
-        $fecha_hoy = Carbon::now()->toDateString();
-        $fecha_actual = Carbon::now();
-        $fecha_actual = date("d/m/Y",strtotime($fecha_actual));
-        $fecha_5 = date("d/m/Y",strtotime($fecha_hoy."+ 5 years"));
-        $condiciones = Condicion::where('estado','ACTIVO')->get();
-        return view('compras.documentos.edit',[
+        $fecha_hoy      = Carbon::now()->toDateString();
+        $fecha_actual   = Carbon::now();
+        $fecha_actual   = date("d/m/Y",strtotime($fecha_actual));
+        $fecha_5        = date("d/m/Y",strtotime($fecha_hoy."+ 5 years"));
+        $condiciones    = Condicion::where('estado','ACTIVO')->get();
+
+        $tallas         =   Talla::where('estado','ACTIVO')->get();
+        $modelos        =   Modelo::where('estado','ACTIVO')->get();
+        $tipos          =   personas();
+        $zonas          =   zonas();
+        $departamentos  =   departamentos();
+        $monedas        =  tipos_moneda();
+
+
+        return view('compras.documentos.edit-calzados',[
             'empresas' => $empresas,
             'proveedores' => $proveedores,
             'documento' => $documento,
@@ -545,11 +556,18 @@ class DocumentoController extends Controller
             'condiciones' => $condiciones,
             'fecha_5' => $fecha_5,
             'detalles' => $detalles,
+            'tallas'            =>  $tallas,
+            'modelos'           =>  $modelos,
+            'tipos'             =>  $tipos,
+            'zonas'             =>  $zonas,
+            'departamentos'     =>  $departamentos,
+            'monedas'           =>  $monedas
         ]);
     }
 
     public function update(Request $request, $id)
     {
+        
         $this->authorize('haveaccess','documento_compra.index');
         $data = $request->all();
         $rules = [
@@ -562,8 +580,8 @@ class DocumentoController extends Controller
             'condicion_id'=> 'required',
             'observacion' => 'nullable',
             'moneda' => 'nullable',
-            'tipo_cambio' => 'nullable|numeric',
-            'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
+            // 'tipo_cambio' => 'nullable|numeric',
+            // 'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
         ];
         $message = [
             'fecha_emision.required' => 'El campo Fecha de Emisión es obligatorio.',
@@ -574,10 +592,10 @@ class DocumentoController extends Controller
             'proveedor_id.required' => 'El campo Proveedor es obligatorio.',
             'condicion_id.required' => 'El campo Condicion es obligatorio.',
             'moneda.required' => 'El campo Moneda es obligatorio.',
-            'igv.required_if' => 'El campo Igv es obligatorio.',
-            'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
-            'igv.numeric' => 'El campo Igv debe se numérico.',
-            'tipo_cambio.numeric' => 'El campo Tipo de Cambio debe se numérico.',
+            // 'igv.required_if' => 'El campo Igv es obligatorio.',
+            // 'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
+            // 'igv.numeric' => 'El campo Igv debe se numérico.',
+            // 'tipo_cambio.numeric' => 'El campo Tipo de Cambio debe se numérico.',
         ];
         Validator::make($data, $rules, $message)->validate();
         $dolar_aux = json_encode(precio_dolar(), true);
@@ -620,16 +638,17 @@ class DocumentoController extends Controller
         }
             //-------------------------------
         $condicion = Condicion::find($request->get('condicion_id'));
-        $documento->empresa_id = '1';
-        $documento->proveedor_id = $request->get('proveedor_id');
-        $documento->condicion_id = $request->get('condicion_id');
-        $documento->modo_compra = $condicion->descripcion;
-        $documento->observacion = $request->get('observacion');
-        $documento->moneda = $request->get('moneda');
-        $documento->tipo_cambio = $request->get('tipo_cambio');
-        $documento->numero_tipo = $request->get('numero_tipo');
-        $documento->serie_tipo = $request->get('serie_tipo');
-        $documento->usuario_id = auth()->user()->id;
+        $documento->empresa_id      = '1';
+        $documento->proveedor_id    = $request->get('proveedor_id');
+        $documento->condicion_id    = $request->get('condicion_id');
+        $documento->modo_compra     = $condicion->descripcion;
+        $documento->observacion     = $request->get('observacion');
+        $documento->moneda          = $request->get('moneda');
+        $documento->tipo_cambio     = $request->get('tipo_cambio');
+        $documento->numero_tipo     = $request->get('numero_tipo');
+        $documento->serie_tipo      = $request->get('serie_tipo');
+        $documento->usuario_id      = auth()->user()->id;
+
         if ($request->get('igv_check') == "on") {
             $documento->igv_check = "1";
             $documento->igv = $request->get('igv');
@@ -639,111 +658,162 @@ class DocumentoController extends Controller
         }
         $documento->tipo_compra = $request->get('tipo_compra');
         $documento->update();
+
         $productosJSON = $request->get('productos_tabla');
         $productotabla = json_decode($productosJSON[0]);
-        if ($productotabla) {
-            foreach ($productotabla as $detalle) {
-                if($detalle->detalle_id == 0)
-                {
-                    $producto = Producto::findOrFail($detalle->producto_id);
-                    $precio_soles = $detalle->precio;
-                    $costo_flete_soles = $detalle->costo_flete;
-                    $precio_dolares = $detalle->precio;
-                    $costo_flete_dolares = $detalle->costo_flete;
-                    //-------------------------------
-                    if($request->get('moneda') === 'DOLARES')
-                    {
-                        $precio_soles = (float) $detalle->precio * (float) $request->get('tipo_cambio');
-                        $costo_flete_soles = (float) $detalle->costo_flete * (float) $request->get('tipo_cambio');
-                    }
-                    else
-                    {
-                        $precio_soles = (float) $detalle->precio;
-                        $costo_flete_soles = (float) $detalle->costo_flete;
+        
+        //======= OBTENIENDO DETALLE ANTERIOR ======
+        $detalles_anteriores = DocumentoDetalle::where('documento_id', $documento->id)->get();
+        foreach ($detalles_anteriores as  $detalle_anterior) {
+            //======== QUITANDO EL STOCK AUMENTADO POR EL DETALLE ANTERIOR ========
+            DB::table('producto_color_tallas')
+            ->where('producto_id', $detalle_anterior->producto_id)
+            ->where('color_id', $detalle_anterior->color_id)
+            ->where('talla_id', $detalle_anterior->talla_id)
+            ->update([
+                'stock' => DB::raw("stock - $detalle_anterior->cantidad"),
+                'stock_logico' => DB::raw("stock_logico - $detalle_anterior->cantidad"),
+            ]);
 
-                        $precio_dolares = (float) $detalle->precio / (float) $dolar;
-                        $costo_flete_dolares = (float) $detalle->costo_flete / (float) $dolar;
-                    }
-                    $precio_mas_igv_soles = $detalle->precio;
-                    $precio_mas_igv_dolares = $detalle->precio;
-                    if ($request->get('igv_check') == "on") {
-                        $precio_mas_igv_soles = $precio_soles;
-                        $precio_mas_igv_dolares = $precio_dolares;
-                    }else{
-                        $precio_mas_igv_soles = $precio_soles * (1.18);
-                        $precio_mas_igv_dolares = $precio_dolares * (1.18);
-                    }
-                    DocumentoDetalle::create([
-                        'documento_id' => $documento->id,
-                        'producto_id' => $detalle->producto_id,
-                        'descripcion_producto' => $producto->nombre,
-                        'presentacion_producto' => '-',
-                        'codigo_producto' => $producto->codigo,
-                        'medida_producto' => $producto->medida,
-                        'cantidad' => $detalle->cantidad,
-                        'precio' => $detalle->precio,
-                        'precio_mas_igv_soles' => $precio_mas_igv_soles,
-                        'precio_mas_igv_dolares' => $precio_mas_igv_dolares,
-                        'precio_soles' => $precio_soles,
-                        'precio_dolares' => $precio_dolares,
-                        'costo_flete' => $detalle->costo_flete,
-                        'costo_flete_soles' => $costo_flete_soles,
-                        'costo_flete_dolares' => $costo_flete_dolares,
-                        'fecha_vencimiento' =>  Carbon::createFromFormat('d/m/Y', $detalle->fecha_vencimiento)->format('Y-m-d'),
-                        'lote' => $detalle->lote,
-                    ]);
-                }else
-                {
-                    $producto = Producto::findOrFail($detalle->producto_id);
-                    $precio_soles = $detalle->precio;
-                    $costo_flete_soles = $detalle->costo_flete;
-                    $precio_dolares = $detalle->precio;
-                    $costo_flete_dolares = $detalle->costo_flete;
-                    //-------------------------------
-                    if($request->get('moneda') === 'DOLARES')
-                    {
-                        $precio_soles = (float) $detalle->precio * (float) $request->get('tipo_cambio');
-                        $costo_flete_soles = (float) $detalle->costo_flete * (float) $request->get('tipo_cambio');
-                    }
-                    else
-                    {
-                        $precio_soles = (float) $detalle->precio;
-                        $costo_flete_soles = (float) $detalle->costo_flete;
+             //======= GUARDAR UNA SOLA VEZ EN KARDEX ======
+               //====== SI EL PRODUCTO YA NO ESTÁ EN EL NUEVO DETALLE =====
+               $existe = false;
+               foreach ($productotabla as $producto) {
+                   if($producto->producto_id == $detalle_anterior->producto_id && $producto->color_id == $detalle_anterior->color_id){
+                       foreach ($producto->tallas as $talla) {
+                           if($detalle_anterior->talla_id == $talla->talla_id){
+                               $existe =   true;
+                           }
+                       }        
+                   }
+               }  
 
-                        $precio_dolares = (float) $detalle->precio / (float) $dolar;
-                        $costo_flete_dolares = (float) $detalle->costo_flete / (float) $dolar;
-                    }
-                    $precio_mas_igv_soles = $detalle->precio;
-                    $precio_mas_igv_dolares = $detalle->precio;
-                    if ($request->get('igv_check') == "on") {
-                        $precio_mas_igv_soles = $precio_soles;
-                        $precio_mas_igv_dolares = $precio_dolares;
-                    }else{
-                        $precio_mas_igv_soles = $precio_soles * (1.18);
-                        $precio_mas_igv_dolares = $precio_dolares * (1.18);
-                    }
-                    $detalle_update = DocumentoDetalle::find($detalle->detalle_id);
-                    $detalle_update->documento_id = $documento->id;
-                    $detalle_update->producto_id = $detalle->producto_id;
-                    $detalle_update->descripcion_producto = $producto->nombre;
-                    $detalle_update->presentacion_producto = '-';
-                    $detalle_update->codigo_producto = $producto->codigo;
-                    $detalle_update->medida_producto = $producto->medida;
-                    $detalle_update->cantidad = $detalle->cantidad;
-                    $detalle_update->precio = $detalle->precio;
-                    $detalle_update->precio_mas_igv_soles = $precio_mas_igv_soles;
-                    $detalle_update->precio_mas_igv_dolares = $precio_mas_igv_dolares;
-                    $detalle_update->precio_soles = $precio_soles;
-                    $detalle_update->precio_dolares = $precio_dolares;
-                    $detalle_update->costo_flete = $detalle->costo_flete;
-                    $detalle_update->costo_flete_soles = $costo_flete_soles;
-                    $detalle_update->costo_flete_dolares = $costo_flete_dolares;
-                    $detalle_update->fecha_vencimiento =  Carbon::createFromFormat('d/m/Y', $detalle->fecha_vencimiento)->format('Y-m-d');
-                    $detalle_update->lote = $detalle->lote;
-                    $detalle_update->update();
-                }
-            }
+               if(!$existe){
+                   $nuevo_stock = DB::table('producto_color_tallas')
+                   ->where('producto_id', $detalle_anterior->producto_id)
+                   ->where('color_id', $detalle_anterior->color_id)
+                   ->where('talla_id', $detalle_anterior->talla_id)
+                   ->value('stock');
+   
+                   //======= KARDEX CON STOCK YA MODIFICADO =======
+                   $kardex = new Kardex();
+                   $kardex->origen         =   'COMPRA';
+                   $kardex->accion         =   'EDITAR';
+                   $kardex->documento_id   =   $documento->id;
+                   $kardex->numero_doc     =   $documento->serie_tipo.'-'.$documento->numero_tipo;
+                   $kardex->fecha          =   $documento->fecha_emision;
+                   $kardex->cantidad       =   floatval($detalle_anterior->cantidad);
+                   $kardex->producto_id    =   $detalle_anterior->producto_id;
+                   $kardex->color_id       =   $detalle_anterior->color_id;
+                   $kardex->talla_id       =   $detalle_anterior->talla_id;
+                   $kardex->descripcion    =   'PROVEEDOR: ' . $documento->proveedor->descripcion;
+                   $kardex->precio         =   $detalle_anterior->precio_mas_igv_soles;   
+                   $kardex->importe        =   floatval($detalle_anterior->precio_mas_igv_soles) * floatval($detalle_anterior->cantidad);
+                   $kardex->stock          =   $nuevo_stock;
+                   $kardex->save();
+               }
         }
+        //======= ELIMINANDO DETALLE ANTERIOR ======
+         //========== eliminar detalles ======
+         DB::table('compra_documento_detalles')
+         ->where('documento_id', $id)
+         ->delete();
+
+        //========= GUARDANDO NUEVO DETALLE ======
+        foreach ($productotabla as $detalle) {
+            foreach ($detalle->tallas as  $talla) {
+           
+                $precio_soles           = $detalle->precio_unitario;
+                $costo_flete_soles      = $detalle->costo_flete_unitario??0;
+                $precio_dolares         = $detalle->precio_unitario;
+                $costo_flete_dolares    = $detalle->costo_flete_unitario??0;
+
+                //-------------------------------
+                if($request->get('moneda') == 'DOLARES')
+                {
+                    $precio_soles           = (float) $detalle->precio_unitario * (float) $request->get('tipo_cambio');
+                    $costo_flete_soles      = (float) $detalle->costo_flete_unitario * (float) $request->get('tipo_cambio');
+
+                    $precio_dolares         = (float) $detalle->precio_unitario;
+                    $costo_flete_dolares    = (float) $detalle->costo_flete_unitario??0;
+                }
+                else
+                {
+
+                    $precio_soles           = (float) $detalle->precio_unitario;
+                    $costo_flete_soles      = (float) $detalle->costo_flete_unitario??0;
+
+                    $precio_dolares         = (float) $detalle->precio_unitario / (float) $dolar;
+                    $costo_flete_dolares    = (float) $detalle->costo_flete_unitario??0 / (float) $dolar;
+                }
+
+                //-------------------------------
+                $precio_mas_igv_soles   = $detalle->precio_unitario;
+                $precio_mas_igv_dolares = $detalle->precio_unitario;
+
+                if ($request->get('igv_check') == "on") {
+                    $precio_mas_igv_soles   = $precio_soles;
+                    $precio_mas_igv_dolares = $precio_dolares;
+                }else{
+                    $precio_mas_igv_soles       = $precio_soles * (1.18);
+                    $precio_mas_igv_dolares     = $precio_dolares * (1.18);
+                }
+
+                //======== GRABANDO DETALLE DEL DOCUMENTO COMPRA =========
+                DocumentoDetalle::create([
+                    'documento_id'              =>  $documento->id,
+                    'producto_id'               =>  $detalle->producto_id,
+                    'producto_codigo'           =>  $detalle->producto_codigo,
+                    'producto_nombre'           =>  $detalle->producto_nombre,
+                    'color_nombre'              =>  $detalle->color_nombre,
+                    'modelo_nombre'             =>  $detalle->modelo_nombre,
+                    'presentacion_producto'     =>  '-',
+                    'medida_producto'           =>  'NIU',
+                    'cantidad'                  =>  $talla->cantidad,
+                    'precio'                    =>  $detalle->precio_unitario,
+                    'precio_mas_igv_soles'      =>  $precio_mas_igv_soles,
+                    'precio_mas_igv_dolares'    =>  $precio_mas_igv_dolares,
+                    'precio_soles'              =>  $precio_soles,
+                    'precio_dolares'            =>  $precio_dolares,
+                    'costo_flete'               =>  $detalle->costo_flete_unitario,
+                    'costo_flete_soles'         =>  $costo_flete_soles,
+                    'costo_flete_dolares'       =>  $costo_flete_dolares,
+                    'fecha_vencimiento'         =>  null,
+                    'color_id'                  =>  $detalle->color_id,
+                    'talla_id'                  =>  $talla->talla_id,
+                    'talla_nombre'              =>  $talla->talla_nombre,
+                    'importe_producto_id'       =>  $detalle->importe
+                ]);
+
+                //====== GRABADO KARDEX ======
+                $kardex                     = new Kardex();
+                $kardex->origen             = 'COMPRA';
+                $kardex->numero_doc         = $documento->serie_tipo.'-'.$documento->numero_tipo;
+                $kardex->fecha              = $documento->fecha_emision;
+                $kardex->cantidad           = $talla->cantidad;
+                $kardex->producto_id        = $detalle->producto_id;
+                $kardex->color_id           = $detalle->color_id;
+                $kardex->talla_id           = $talla->talla_id;
+                $kardex->descripcion        = 'PROVEEDOR: ' . $documento->proveedor->descripcion;
+                $kardex->precio             = $precio_mas_igv_soles;
+                $kardex->importe            = $precio_mas_igv_soles * $talla->cantidad;
+                $kardex->documento_id       = $documento->id;
+                $kardex->accion             = 'EDITAR';
+
+                $producto_nuevo_stock   =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,pct.stock 
+                                from producto_color_tallas as pct
+                                where pct.producto_id=? and pct.color_id=? and pct.talla_id=?',
+                                [$detalle->producto_id,$detalle->color_id,$talla->talla_id]);
+
+                if(count($producto_nuevo_stock)>0){
+                    $kardex->stock  =   $producto_nuevo_stock[0]->stock;
+                }else{
+                    $kardex->stock  =   0;
+                }
+                $kardex->save();
+            } 
+        }
+        
         //Registro de actividad
         $descripcion = "SE MODIFICÓ EL DOCUMENTO DE COMPRA CON LA FECHA DE EMISION: ". Carbon::parse($documento->fecha_emision)->format('d/m/y');
         $gestion = "DOCUMENTO DE COMPRA";
@@ -751,6 +821,212 @@ class DocumentoController extends Controller
         Session::flash('success','Documento de Compra modificada.');
         return redirect()->route('compras.documento.index')->with('modificar', 'success');
     }
+
+
+    // public function update(Request $request, $id)
+    // {
+    //     dd($request->all());
+    //     $this->authorize('haveaccess','documento_compra.index');
+    //     $data = $request->all();
+    //     $rules = [
+    //         'fecha_emision'=> 'required',
+    //         'fecha_entrega'=> 'required',
+    //         'tipo_compra'=> 'required',
+    //         'numero_tipo'=> 'required',
+    //         'serie_tipo'=> 'required',
+    //         'proveedor_id'=> 'required',
+    //         'condicion_id'=> 'required',
+    //         'observacion' => 'nullable',
+    //         'moneda' => 'nullable',
+    //         'tipo_cambio' => 'nullable|numeric',
+    //         'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
+    //     ];
+    //     $message = [
+    //         'fecha_emision.required' => 'El campo Fecha de Emisión es obligatorio.',
+    //         'tipo_compra.required' => 'El campo Tipo es obligatorio.',
+    //         'fecha_entrega.required' => 'El campo Fecha de Entrega es obligatorio.',
+    //         'numero_tipo.required' => 'El campo Número es obligatorio.',
+    //         'serie_tipo.required' => 'El campo Serie es obligatorio.',
+    //         'proveedor_id.required' => 'El campo Proveedor es obligatorio.',
+    //         'condicion_id.required' => 'El campo Condicion es obligatorio.',
+    //         'moneda.required' => 'El campo Moneda es obligatorio.',
+    //         'igv.required_if' => 'El campo Igv es obligatorio.',
+    //         'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
+    //         'igv.numeric' => 'El campo Igv debe se numérico.',
+    //         'tipo_cambio.numeric' => 'El campo Tipo de Cambio debe se numérico.',
+    //     ];
+    //     Validator::make($data, $rules, $message)->validate();
+    //     $dolar_aux = json_encode(precio_dolar(), true);
+    //     $dolar_aux = json_decode($dolar_aux, true);
+
+    //     $dolar = (float)$dolar_aux['original']['venta'];
+
+    //     $documento = Documento::findOrFail($id);
+    //     $documento->fecha_emision = Carbon::createFromFormat('d/m/Y', $request->get('fecha_emision'))->format('Y-m-d');
+    //     $documento->fecha_entrega = Carbon::createFromFormat('d/m/Y', $request->get('fecha_entrega'))->format('Y-m-d');
+    //     $documento->sub_total = (float) $request->get('monto_sub_total');
+    //     $documento->total_igv = (float) $request->get('monto_total_igv');
+    //     $documento->percepcion = (float) $request->get('monto_percepcion');
+    //     $documento->total = (float) $request->get('monto_total');
+    //     //-------------------------------
+    //     if($request->get('moneda') === 'DOLARES')
+    //     {
+    //         $documento->sub_total_soles = (float) $request->get('monto_sub_total') * (float) $request->get('tipo_cambio');
+    //         $documento->total_igv_soles = (float) $request->get('monto_total_igv') * (float) $request->get('tipo_cambio');
+    //         $documento->percepcion_soles = (float) $request->get('monto_percepcion') * (float) $request->get('tipo_cambio');
+    //         $documento->total_soles = (float) $request->get('monto_total') * (float) $request->get('tipo_cambio');
+
+    //         $documento->sub_total_dolares = (float) $request->get('monto_sub_total');
+    //         $documento->total_igv_dolares = (float) $request->get('monto_total_igv');
+    //         $documento->percepcion_dolares = (float) $request->get('monto_percepcion') * (float) $request->get('tipo_cambio');
+    //         $documento->total_dolares = (float) $request->get('monto_total');
+    //     }
+    //     else
+    //     {
+    //         $documento->sub_total_soles = (float) $request->get('monto_sub_total');
+    //         $documento->total_igv_soles = (float) $request->get('monto_total_igv');
+    //         $documento->percepcion_soles = (float) $request->get('monto_percepcion');
+    //         $documento->total_soles = (float) $request->get('monto_total');
+
+    //         $documento->sub_total_dolares = (float) $request->get('monto_sub_total') / $dolar;
+    //         $documento->total_igv_dolares = (float) $request->get('monto_total_igv') / $dolar;
+
+    //         $documento->percepcion_soles = (float) $request->get('monto_percepcion') / $dolar;
+    //         $documento->total_dolares = (float) $request->get('monto_total') / $dolar;
+    //     }
+    //         //-------------------------------
+    //     $condicion = Condicion::find($request->get('condicion_id'));
+    //     $documento->empresa_id = '1';
+    //     $documento->proveedor_id = $request->get('proveedor_id');
+    //     $documento->condicion_id = $request->get('condicion_id');
+    //     $documento->modo_compra = $condicion->descripcion;
+    //     $documento->observacion = $request->get('observacion');
+    //     $documento->moneda = $request->get('moneda');
+    //     $documento->tipo_cambio = $request->get('tipo_cambio');
+    //     $documento->numero_tipo = $request->get('numero_tipo');
+    //     $documento->serie_tipo = $request->get('serie_tipo');
+    //     $documento->usuario_id = auth()->user()->id;
+    //     if ($request->get('igv_check') == "on") {
+    //         $documento->igv_check = "1";
+    //         $documento->igv = $request->get('igv');
+    //     }else{
+    //         $documento->igv_check = '';
+    //         $documento->igv = '';
+    //     }
+    //     $documento->tipo_compra = $request->get('tipo_compra');
+    //     $documento->update();
+    //     $productosJSON = $request->get('productos_tabla');
+    //     $productotabla = json_decode($productosJSON[0]);
+    //     if ($productotabla) {
+    //         foreach ($productotabla as $detalle) {
+    //             if($detalle->detalle_id == 0)
+    //             {
+    //                 $producto = Producto::findOrFail($detalle->producto_id);
+    //                 $precio_soles = $detalle->precio;
+    //                 $costo_flete_soles = $detalle->costo_flete;
+    //                 $precio_dolares = $detalle->precio;
+    //                 $costo_flete_dolares = $detalle->costo_flete;
+    //                 //-------------------------------
+    //                 if($request->get('moneda') === 'DOLARES')
+    //                 {
+    //                     $precio_soles = (float) $detalle->precio * (float) $request->get('tipo_cambio');
+    //                     $costo_flete_soles = (float) $detalle->costo_flete * (float) $request->get('tipo_cambio');
+    //                 }
+    //                 else
+    //                 {
+    //                     $precio_soles = (float) $detalle->precio;
+    //                     $costo_flete_soles = (float) $detalle->costo_flete;
+
+    //                     $precio_dolares = (float) $detalle->precio / (float) $dolar;
+    //                     $costo_flete_dolares = (float) $detalle->costo_flete / (float) $dolar;
+    //                 }
+    //                 $precio_mas_igv_soles = $detalle->precio;
+    //                 $precio_mas_igv_dolares = $detalle->precio;
+    //                 if ($request->get('igv_check') == "on") {
+    //                     $precio_mas_igv_soles = $precio_soles;
+    //                     $precio_mas_igv_dolares = $precio_dolares;
+    //                 }else{
+    //                     $precio_mas_igv_soles = $precio_soles * (1.18);
+    //                     $precio_mas_igv_dolares = $precio_dolares * (1.18);
+    //                 }
+    //                 DocumentoDetalle::create([
+    //                     'documento_id' => $documento->id,
+    //                     'producto_id' => $detalle->producto_id,
+    //                     'descripcion_producto' => $producto->nombre,
+    //                     'presentacion_producto' => '-',
+    //                     'codigo_producto' => $producto->codigo,
+    //                     'medida_producto' => $producto->medida,
+    //                     'cantidad' => $detalle->cantidad,
+    //                     'precio' => $detalle->precio,
+    //                     'precio_mas_igv_soles' => $precio_mas_igv_soles,
+    //                     'precio_mas_igv_dolares' => $precio_mas_igv_dolares,
+    //                     'precio_soles' => $precio_soles,
+    //                     'precio_dolares' => $precio_dolares,
+    //                     'costo_flete' => $detalle->costo_flete,
+    //                     'costo_flete_soles' => $costo_flete_soles,
+    //                     'costo_flete_dolares' => $costo_flete_dolares,
+    //                     'fecha_vencimiento' =>  Carbon::createFromFormat('d/m/Y', $detalle->fecha_vencimiento)->format('Y-m-d'),
+    //                     'lote' => $detalle->lote,
+    //                 ]);
+    //             }else
+    //             {
+    //                 $producto = Producto::findOrFail($detalle->producto_id);
+    //                 $precio_soles = $detalle->precio;
+    //                 $costo_flete_soles = $detalle->costo_flete;
+    //                 $precio_dolares = $detalle->precio;
+    //                 $costo_flete_dolares = $detalle->costo_flete;
+    //                 //-------------------------------
+    //                 if($request->get('moneda') === 'DOLARES')
+    //                 {
+    //                     $precio_soles = (float) $detalle->precio * (float) $request->get('tipo_cambio');
+    //                     $costo_flete_soles = (float) $detalle->costo_flete * (float) $request->get('tipo_cambio');
+    //                 }
+    //                 else
+    //                 {
+    //                     $precio_soles = (float) $detalle->precio;
+    //                     $costo_flete_soles = (float) $detalle->costo_flete;
+
+    //                     $precio_dolares = (float) $detalle->precio / (float) $dolar;
+    //                     $costo_flete_dolares = (float) $detalle->costo_flete / (float) $dolar;
+    //                 }
+    //                 $precio_mas_igv_soles = $detalle->precio;
+    //                 $precio_mas_igv_dolares = $detalle->precio;
+    //                 if ($request->get('igv_check') == "on") {
+    //                     $precio_mas_igv_soles = $precio_soles;
+    //                     $precio_mas_igv_dolares = $precio_dolares;
+    //                 }else{
+    //                     $precio_mas_igv_soles = $precio_soles * (1.18);
+    //                     $precio_mas_igv_dolares = $precio_dolares * (1.18);
+    //                 }
+    //                 $detalle_update = DocumentoDetalle::find($detalle->detalle_id);
+    //                 $detalle_update->documento_id = $documento->id;
+    //                 $detalle_update->producto_id = $detalle->producto_id;
+    //                 $detalle_update->descripcion_producto = $producto->nombre;
+    //                 $detalle_update->presentacion_producto = '-';
+    //                 $detalle_update->codigo_producto = $producto->codigo;
+    //                 $detalle_update->medida_producto = $producto->medida;
+    //                 $detalle_update->cantidad = $detalle->cantidad;
+    //                 $detalle_update->precio = $detalle->precio;
+    //                 $detalle_update->precio_mas_igv_soles = $precio_mas_igv_soles;
+    //                 $detalle_update->precio_mas_igv_dolares = $precio_mas_igv_dolares;
+    //                 $detalle_update->precio_soles = $precio_soles;
+    //                 $detalle_update->precio_dolares = $precio_dolares;
+    //                 $detalle_update->costo_flete = $detalle->costo_flete;
+    //                 $detalle_update->costo_flete_soles = $costo_flete_soles;
+    //                 $detalle_update->costo_flete_dolares = $costo_flete_dolares;
+    //                 $detalle_update->fecha_vencimiento =  Carbon::createFromFormat('d/m/Y', $detalle->fecha_vencimiento)->format('Y-m-d');
+    //                 $detalle_update->lote = $detalle->lote;
+    //                 $detalle_update->update();
+    //             }
+    //         }
+    //     }
+    //     //Registro de actividad
+    //     $descripcion = "SE MODIFICÓ EL DOCUMENTO DE COMPRA CON LA FECHA DE EMISION: ". Carbon::parse($documento->fecha_emision)->format('d/m/y');
+    //     $gestion = "DOCUMENTO DE COMPRA";
+    //     modificarRegistro($documento, $descripcion , $gestion);
+    //     Session::flash('success','Documento de Compra modificada.');
+    //     return redirect()->route('compras.documento.index')->with('modificar', 'success');
+    // }
 
     public function destroy($id)
     {
