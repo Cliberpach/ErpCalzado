@@ -119,6 +119,7 @@ class CuentaProveedorController extends Controller
     public function detallePago(Request $request)
     {
         $this->authorize('haveaccess','cuenta_proveedor.index');
+       
         DB::beginTransaction();
         $cuentaProveedor=CuentaProveedor::findOrFail($request->id);
         if($request->pago=="A CUENTA")

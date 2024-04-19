@@ -82,7 +82,7 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="" class="col-form-label required">Pago</label>
-                                            <select name="pago" id="pago" class="form-control select2_form" required>
+                                            <select name="pago" id="pago" class="form-control select2_form" required onchange="tipoPago(this)">
                                                 <option value="A CUENTA">A CUENTA</option>
                                                 <option value="TODO">TODO</option>
                                             </select>
@@ -256,7 +256,8 @@
                                 data.append("importe_venta", importe_venta)
                                 data.append("modo_pago", modo_pago)
                                 data.append("file", fileImagen);
-                                axios.post("{{ route('cuentaProveedor.detallePago') }}", data, config)
+                               
+                                axios.post("{{ route('cuentaProveedor.detallePago')}}", data)
                                     .then((value) => {
                                      window.location.href = "{{ route('cuentaProveedor.index') }}"
                                     }).catch((value) => {
@@ -307,6 +308,26 @@
             else{
                 $("#efectivo_venta").attr('readonly',false)
                 $("#importe_venta").attr('readonly',false)
+            }
+
+            const tipo_pago = document.querySelector('#pago').value;
+            if(tipo_pago == "TODO"){
+                const saldo =   document.querySelector('#saldo').value;
+                document.querySelector('#efectivo_venta').value         =   saldo;
+                document.querySelector('#efectivo_venta').readOnly      =   true;
+            }
+        }
+
+        function tipoPago(tipoPago){
+            const tipo_pago =   tipoPago.value;
+            if(tipo_pago == "TODO"){
+                const saldo =   document.querySelector('#saldo').value;
+                document.querySelector('#efectivo_venta').value         =   saldo;
+                document.querySelector('#efectivo_venta').readOnly      =   true;
+            }
+            if(tipo_pago == "A CUENTA"){
+                document.querySelector('#efectivo_venta').value         =   "0.00";
+                document.querySelector('#efectivo_venta').readOnly      = false;
             }
         }
     </script>

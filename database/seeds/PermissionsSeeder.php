@@ -311,11 +311,31 @@ class PermissionsSeeder extends Seeder
         Permission::create([
             'name'  => 'Mantenedor Documentos Venta',
             'slug'=>'documento_venta.index',
-            'description'=>'El usuario puede acceder al mantenedor de Dpcumentos de Venta'
+            'description'=>'El usuario puede acceder al mantenedor de Documentos de Venta'
+        ]);
+
+        //Resúmenes Permission
+        Permission::create([
+            'name'  => 'Mantenedor Resúmenes',
+            'slug'=>'resumenes.index',
+            'description'=>'El usuario puede acceder al mantenedor de Resúmenes'
+        ]);
+
+        //Ventas Caja Permission
+        Permission::create([
+            'name'  => 'Ventas Caja',
+            'slug'=>'ventascaja.index',
+            'description'=>'El usuario puede acceder a Ventas Caja'
+        ]);
+
+        //Ventas Pedidos Permission
+        Permission::create([
+            'name'  => 'Mantenedor Pedidos',
+            'slug'=>'pedidos.index',
+            'description'=>'El usuario puede acceder al mantenedor de Pedidos'
         ]);
 
         //Cuenta Cliente permission
-
         Permission::create([
             'name'  => 'Mantenedor Cuentas Cliente',
             'slug'=>'cuenta_cliente.index',

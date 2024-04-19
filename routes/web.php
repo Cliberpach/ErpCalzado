@@ -442,7 +442,7 @@ function(){
         Route::post('/updatePago', 'Ventas\CajaController@updatePago')->name('ventas.caja.updatePago');
     });
 
-    //VENTAS-CAJA
+    //VENTAS-RESÚMENES
         Route::prefix('ventas/resumenes')->group(function(){
 
         Route::get('index', 'Ventas\ResumenController@index')->name('ventas.resumenes.index');
@@ -458,6 +458,15 @@ function(){
         Route::post('/reenviar', 'Ventas\ResumenController@reenviarSunat')->name('ventas.resumenes.reenviar');
 
         //  Route::post('/updatePago', 'Ventas\CajaController@updatePago')->name('ventas.caja.updatePago');
+    });
+
+    //VENTAS-PEDIDOS
+    Route::prefix('ventas/pedidos')->group(function(){
+
+        Route::get('index', 'Ventas\PedidoController@index')->name('ventas.pedidos.index');
+        Route::post('getTable', 'Ventas\PedidoController@getTable')->name('ventas.pedidos.getTable');
+
+      
     });
 
     //COMPROBANTES ELECTRONICOS

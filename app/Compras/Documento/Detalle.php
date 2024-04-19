@@ -126,8 +126,6 @@ class Detalle extends Model
             $movimiento->compra_documento_id            = $detalle->documento_id; 
             $movimiento->save();
 
-        
-
             
             // $lote = new LoteProducto();
             // $lote->compra_documento_id = $detalle->documento->id;

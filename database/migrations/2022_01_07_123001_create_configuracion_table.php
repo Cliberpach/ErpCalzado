@@ -18,6 +18,7 @@ class CreateConfiguracionTable extends Migration
             $table->longText('slug');
             $table->longText('descripcion');
             $table->longText('propiedad')->nullable();
+            $table->integer('nro_dias')->nullable();
             $table->timestamps();
         });
     }

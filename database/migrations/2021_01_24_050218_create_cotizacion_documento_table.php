@@ -34,12 +34,14 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->string('tipo_venta');
 
             $table->unsignedDecimal('sub_total', 15, 2);
-            $table->unsignedDecimal('monto_embalaje',15,2);
-            $table->unsignedDecimal('monto_envio',15,2);
+            $table->unsignedDecimal('monto_embalaje',15,2)->nullable();
+            $table->unsignedDecimal('monto_envio',15,2)->nullable();
             $table->unsignedDecimal('total', 15, 2);
             $table->unsignedDecimal('total_igv', 15, 2);
             $table->unsignedDecimal('total_pagar', 15, 2);
 
+            $table->unsignedDecimal('porcentaje_descuento', 15, 2)->nullable();
+            $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
 
 
             $table->unsignedInteger('tipo_pago_id')->nullable();

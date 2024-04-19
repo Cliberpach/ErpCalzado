@@ -28,7 +28,7 @@ class CuentaClienteController extends Controller
         foreach ($cuentaCliente as $key => $value) {
             $detalle_ultimo = DetalleCuentaCliente::where('cuenta_cliente_id',$value->id)->get()->last();
 
-            $total_pagar = $value->documento->total - $value->documento->notas->sum("mtoImpVenta");
+            $total_pagar = $value->documento->total_pagar - $value->documento->notas->sum("mtoImpVenta");
 
             $nuevo_monto = $total_pagar - $value->detalles->sum("monto");
             $detalle_ultimo->saldo = $nuevo_monto;
@@ -69,7 +69,7 @@ class CuentaClienteController extends Controller
                 "cliente"=>$cuenta_cliente->documento->clienteEntidad->nombre,
                 "numero_doc"=>$cuenta_cliente->documento->serie.' - '.$cuenta_cliente->documento->correlativo,
                 "fecha_doc"=>$cuenta_cliente->fecha_doc,
-                "monto"=>$cuenta_cliente->documento->total - $cuenta_cliente->documento->notas->sum("mtoImpVenta"),
+                "monto"=>$cuenta_cliente->documento->total_pagar - $cuenta_cliente->documento->notas->sum("mtoImpVenta"),
                 "acta"=> number_format(round($acta, 2), 2),
                 "saldo"=>$cuenta_cliente->saldo,
                 "estado"=>$cuenta_cliente->estado
@@ -110,7 +110,7 @@ class CuentaClienteController extends Controller
             'clientes.nombre as cliente',
             'cotizacion_documento.numero_doc as numero_doc',
             'cotizacion_documento.created_at as fecha_doc',
-            'cotizacion_documento.total as monto'
+            'cotizacion_documento.total_pagar as monto'
         )->get();
             return $cuentas;
     }
@@ -140,10 +140,12 @@ class CuentaClienteController extends Controller
             }
 
             $CuentaCliente->saldo = $CuentaCliente->saldo - $request->cantidad;
+
             $CuentaCliente->update();
 
             $detallepago->saldo = $CuentaCliente->saldo;
             $detallepago->update();
+            
 
             if($request->hasFile('imagen')){
                 $detallepago->ruta_imagen = $request->file('imagen')->store('public/cuenta/cobrar');
@@ -163,6 +165,7 @@ class CuentaClienteController extends Controller
                 Session::flash('error', 'Ocurrió un error, al parecer ingreso un monto diferente al saldo.');
                 return redirect()->route('cuentaCliente.index');
             }
+
             $detallepago = new DetalleCuentaCliente();
             $detallepago->cuenta_cliente_id = $CuentaCliente->id;
             $detallepago->mcaja_id = movimientoUser()->id;
@@ -198,6 +201,7 @@ class CuentaClienteController extends Controller
                 $CuentaCliente->save();
             }
         }
+
         /*else{
             $cliente = $CuentaCliente->documento->clienteEntidad;
             $cuentasFaltantes = CuentaCliente::where('estado','PENDIENTE')->get();

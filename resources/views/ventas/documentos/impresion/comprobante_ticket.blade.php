@@ -323,7 +323,7 @@
                         <tr>
                             <td style="text-align: left">Monto neto pendiente de pago</td>
                             <td>:</td>
-                            <td>S/. {{ number_format($documento->total - $documento->notas->sum('mtoImpVenta'), 2) }}</td>
+                            <td>S/. {{ number_format($documento->total_pagar - $documento->notas->sum('mtoImpVenta'), 2) }}</td>
                         </tr>
                         <tr>
                             <td style="text-align: left">Total de cuotas</td>
@@ -340,7 +340,7 @@
                         <tr>
                             <td style="text-align: center">1</td>
                             <td style="text-align: center">{{ $documento->fecha_vencimiento }}</td>
-                            <td style="text-align: center">{{ number_format($documento->total - $documento->notas->sum('mtoImpVenta'), 2) }}</td>
+                            <td style="text-align: center">{{ number_format($documento->total_pagar - $documento->notas->sum('mtoImpVenta'), 2) }}</td>
                         </tr>
                     </table>
                 </div>

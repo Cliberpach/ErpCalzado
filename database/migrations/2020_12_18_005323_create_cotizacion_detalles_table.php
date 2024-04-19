@@ -28,6 +28,11 @@ class CreateCotizacionDetallesTable extends Migration
             $table->unsignedDecimal('precio_unitario');
             $table->unsignedDecimal('importe');
 
+            $table->unsignedDecimal('porcentaje_descuento', 15, 2)->nullable();
+            $table->unsignedDecimal('precio_unitario_nuevo', 15, 2);
+            $table->unsignedDecimal('importe_nuevo', 15, 2);
+            $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
+
             // $table->unsignedDecimal('precio_inicial', 15, 4);
             // $table->unsignedDecimal('precio_unitario', 15, 4);
             // $table->unsignedDecimal('descuento', 15, 4)->default(0.00);

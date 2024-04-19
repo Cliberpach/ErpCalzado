@@ -79,7 +79,7 @@
                                 <div class="col-12 col-md-6">
                                     <div class="form-group">
                                         <label for="" class="required">Pago</label>
-                                        <select name="pago" id="pago" class="form-control select2_form" required>
+                                        <select name="pago" id="pago" class="form-control select2_form" required onchange="tipoPago(this)">
                                             <option value="A CUENTA">A CUENTA</option>
                                             <option value="TODO">TODO</option>
                                         </select>
@@ -186,12 +186,12 @@
     <script>
         $("#frmDetalle").submit(function(e) {
             e.preventDefault();
-            var pago = $("#modal_detalle #pago").val();
-            var fecha = $("#modal_detalle #fecha").val();
-            var cantidad = parseFloat($("#modal_detalle #cantidad").val());
-            var observacion = $("#modal_detalle #observacion").val();
-            var saldo = parseFloat($("#modal_detalle #saldo").val());
-            var id_cuenta_cliente = $("#modal_detalle #cuenta_cliente_id").val();
+            var pago                = $("#modal_detalle #pago").val();
+            var fecha               = $("#modal_detalle #fecha").val();
+            var cantidad            = parseFloat($("#modal_detalle #cantidad").val());
+            var observacion         = $("#modal_detalle #observacion").val();
+            var saldo               = parseFloat($("#modal_detalle #saldo").val());
+            var id_cuenta_cliente   = $("#modal_detalle #cuenta_cliente_id").val();
 
             var efectivo_venta = $("#efectivo_venta").val();
             var importe_venta = $("#importe_venta").val();
@@ -292,6 +292,10 @@
                 $("#efectivo_venta").attr('readonly',false)
                 $("#importe_venta").attr('readonly',false)
             }
+
+            if(document.querySelector('#pago').value = "TODO"){
+                document.querySelector('#efectivo_venta').readOnly      =   true;
+            }
         }
 
         function changeEfectivo()
@@ -308,6 +312,20 @@
             let importe = convertFloat($('#importe_venta').val());
             let suma = efectivo + importe;
             $('#cantidad').val(suma.toFixed(2));
+        }
+
+        function tipoPago(tipoPago){
+            const tipo_pago =   tipoPago.value;
+            if(tipo_pago == "TODO"){
+                const saldo =   document.querySelector('#saldo').value;
+                document.querySelector('#efectivo_venta').value         =   saldo;
+                document.querySelector('#efectivo_venta').readOnly      =   true;
+                document.querySelector('#cantidad').value               =   saldo;      
+            }
+            if(tipo_pago == "A CUENTA"){
+                document.querySelector('#efectivo_venta').value         =   "0.00";
+                document.querySelector('#efectivo_venta').readOnly      = false;
+            }
         }
     </script>
 @endpush

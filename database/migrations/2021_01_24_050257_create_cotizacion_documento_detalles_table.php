@@ -17,6 +17,7 @@ class CreateCotizacionDocumentoDetallesTable extends Migration
             $table->Increments('id');
             $table->unsignedInteger('documento_id');
             $table->foreign('documento_id')->references('id')->on('cotizacion_documento')->onDelete('cascade');
+            
             $table->unsignedInteger('producto_id');
             $table->unsignedInteger('color_id');
             $table->unsignedInteger('talla_id');
@@ -32,11 +33,16 @@ class CreateCotizacionDocumentoDetallesTable extends Migration
             $table->string('nombre_color');
             $table->string('nombre_talla');
             $table->string('nombre_modelo');
-            //$table->string('codigo_lote');
             $table->unsignedDecimal('cantidad', 15, 4);
             $table->unsignedDecimal('precio_unitario', 15, 4);
             $table->unsignedDecimal('importe', 15, 4);
 
+            $table->unsignedDecimal('porcentaje_descuento', 15, 2)->nullable();
+            $table->unsignedDecimal('precio_unitario_nuevo', 15, 2);
+            $table->unsignedDecimal('importe_nuevo', 15, 2);
+            $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
+            
+            //$table->string('codigo_lote');
             // $table->unsignedDecimal('precio_inicial', 15, 2);
             // $table->unsignedDecimal('precio_unitario', 15, 2);
             // $table->unsignedDecimal('descuento', 15, 2)->default(0.00);
