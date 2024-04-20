@@ -212,10 +212,6 @@
         } else {
                 btnColab.style.display='none';
                 body = '<tr> <th colspan="3" class="text-center"> Sin colaborades disponibles </th>  </tr>';
-
-
-
-
         }
 
         cuerpo_colaborades.innerHTML = body;
@@ -337,15 +333,12 @@
                             data.id +
                             ")' title='Pdf'><i class='fa fa-file-pdf-o'></i></a></div>";
                         if (data.fecha_Cierre == "-") {
-                            html = `<div class='btn-group'><a class='btn btn-warning btn-sm' href='#' onclick='cerrarCaja(
-                                ${data.id}
-                                )' title='Modificar'><i class='fa fa-lock'> Close</i></a><a class='btn btn-danger btn-sm' href='#'  onclick='reporte(
-                                ${data.id}
-                                )' title='Pdf'><i class='fa fa-file-pdf-o'></i></a>
-                                <button class='btn btn-block btn-w-m btn-modal btn-primary m-t-md' id='btn_mostrar_colaborades_${data.id}'  href='#' data_id=${data.id}  onclick='mostrarColaboradores(${data.id})'>Detalles</button>
+                            html = `<div class='btn-group'>
+                                <button class='btn btn-warning btn-sm' onclick='cerrarCaja(${data.id})' title='Modificar'><i class='fa fa-lock'> Close</i></button>
+                                <button class='btn btn-danger btn-sm'  onclick='reporte(${data.id})' title='Pdf'><i class='fa fa-file-pdf-o'></i></button>
+                                <button class='btn btn-block btn-sm btn-modal btn-primary' id='btn_mostrar_colaborades_${data.id}'  data_id=${data.id}  onclick='mostrarColaboradores(${data.id})'>Detalles</button>
+                                </div>
                                 `
-
-
                         }
                         return html;
                     }

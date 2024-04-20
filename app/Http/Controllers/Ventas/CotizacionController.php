@@ -67,6 +67,7 @@ class CotizacionController extends Controller
         $lotes              = Producto::where('estado','ACTIVO')->get();
         $modelos            = Modelo::where('estado','ACTIVO')->get();
         $tallas             = Talla::where('estado','ACTIVO')->get();
+        
         $vendedor_actual    =   DB::select('select c.id from user_persona as up
                                 inner join colaboradores  as c
                                 on c.persona_id=up.persona_id

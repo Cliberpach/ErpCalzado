@@ -17,7 +17,7 @@
         </ol>
     </div>
     <div class="col-lg-2 col-md-2">
-        <button id="btn_añadir_cotizacion" class="btn btn-block btn-w-m btn-primary m-t-md">
+        <button id="btn_añadir_cotizacion" class="btn btn-block btn-w-m btn-primary m-t-md" onclick="añadirPedido()">
             <i class="fa fa-plus-square"></i> Añadir nuevo
         </button>
     </div>
@@ -29,11 +29,11 @@
             <div class="row">
                 <div class="col-6">
                     <label for="fecha_inicio" style="font-weight: bold;">Fecha desde:</label>
-                    <input type="date" class="form-control" id="fecha_inicio" value="{{ now()->format('Y-m-d') }}" onchange="controlFechas(this)">
+                    <input type="date" class="form-control" id="fecha_inicio" value="{{ now()->format('Y-m-d') }}">
                 </div>
                 <div class="col-6">
                     <label for="fecha_fin" style="font-weight: bold;">Fecha hasta:</label>
-                    <input type="date" class="form-control" id="fecha_fin" value="{{ now()->format('Y-m-d') }}" onchange="controlFechas(this)">
+                    <input type="date" class="form-control" id="fecha_fin" value="{{ now()->format('Y-m-d') }}">
                 </div>
             </div>
         </div>
@@ -218,28 +218,8 @@
         }
     }
 
-    function controlFechas(target){
-        const id    =   target.getAttribute('id');
-
-        if(id == "fecha_inicio"){
-            const fecha_inicio  =   target.value;
-            const fecha_fin     =   document.querySelector('#fecha_fin').value;
-
-            if(fecha_inicio > fecha_fin){
-                document.querySelector('#fecha_fin').value  =   fecha_inicio;
-            }
-            document.querySelector('#fecha_fin').setAttribute('min',fecha_inicio);
-        }
-
-        if(id == "fecha_fin"){
-            const fecha_fin         =   target.value;
-            const fecha_inicio      =   document.querySelector('#fecha_inicio').value;
-
-            if(fecha_fin < fecha_inicio){
-                document.querySelector('#fecha_inicio').value  =   fecha_fin;
-            }
-            document.querySelector('#fecha_inicio').setAttribute('max',fecha_fin);
-        }
+    function añadirPedido() {
+        window.location = "{{ route('ventas.pedidos.create') }}";
     }
   
 </script>

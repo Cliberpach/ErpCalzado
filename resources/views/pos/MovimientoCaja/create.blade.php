@@ -47,9 +47,8 @@
                                     </option>
                                 @endforeach
                             @endif
-
-
                         </select>
+
                         @if ($errors->has('colaborador_id'))
                             <span class="invalid-feedback" role="alert">
                                 <strong id="error-colaborador_id">{{ $errors->first('colaborador_id') }}</strong>
@@ -86,7 +85,7 @@
                     </div>
             </div>
             <div class="table-responsive">
-                <h3 class="text-center"> Colaboradores </h3>
+                <h3 class="text-center"> Colaboradores</h3>
                 <table class="table table-sm table-striped table-bordered table-hover" style="text-transform:uppercase"
                     id="usuarios_venta">
                     <thead>
@@ -198,8 +197,6 @@
         //         // Se quitara el atributo name para que no se guarde ese dato
         //         document.getElementById(`idUsuario${id}`).removeAttribute('name');
         //     }
-
-
         // }
 
         $(".select2_form").select2({
