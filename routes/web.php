@@ -466,8 +466,9 @@ function(){
         Route::get('index', 'Ventas\PedidoController@index')->name('ventas.pedidos.index');
         Route::post('getTable', 'Ventas\PedidoController@getTable')->name('ventas.pedidos.getTable');
         Route::get('create', 'Ventas\PedidoController@create')->name('ventas.pedidos.create');
+        Route::post('store', 'Ventas\PedidoController@store')->name('ventas.pedidos.store');
+        Route::get('getProductosByModelo/{modelo_id}','Ventas\PedidoController@getProductosByModelo')->name('ventas.pedidos.getProductosByModelo');
 
-      
     });
 
     //COMPROBANTES ELECTRONICOS

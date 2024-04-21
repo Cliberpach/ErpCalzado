@@ -132,7 +132,7 @@ class CotizacionController extends Controller
         $monto_total_pagar      =   $monto_subtotal+$monto_embalaje+$monto_envio;
         $monto_total            =   $monto_total_pagar/1.18;
         $monto_igv              =   $monto_total_pagar-$monto_total;
-        $porcentaje_descuento   = ($monto_descuento*100)/($monto_total_pagar+$monto_descuento);
+        $porcentaje_descuento   = ($monto_descuento*100)/($monto_total_pagar);
 
 
         $cotizacion = new Cotizacion();

@@ -19,7 +19,11 @@ class CreatePedidosTable extends Migration
             $table->string('cliente_nombre');
             $table->unsignedInteger('empresa_id');
             $table->string('empresa_nombre');
+            $table->unsignedInteger('user_id');
+            $table->string('user_nombre');
+            $table->unsignedBigInteger('condicion_id');
 
+            $table->string('moneda');
 
             $table->unsignedDecimal('sub_total', 15, 2);
             $table->unsignedDecimal('total', 15, 2);
@@ -37,7 +41,8 @@ class CreatePedidosTable extends Migration
 
             $table->foreign('cliente_id')->references('id')->on('clientes');
             $table->foreign('empresa_id')->references('id')->on('empresas');
-
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('condicion_id')->references('id')->on('condicions');
         });
     }
 

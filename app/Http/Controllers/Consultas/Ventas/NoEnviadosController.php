@@ -453,7 +453,7 @@ class NoEnviadosController extends Controller
             $monto_total_igv        =   str_replace('S/', '', $request->get('monto_total_igv'));
             $monto_total_pagar      =   str_replace('S/', '', $request->get('monto_total_pagar'));  
             $monto_descuento        =   str_replace('S/', '', $request->get('monto_descuento')??0);  
-            $porcentaje_descuento   =   ($monto_descuento*100)/($monto_total_pagar+$monto_descuento);
+            $porcentaje_descuento   =   ($monto_descuento*100)/($monto_total_pagar);
 
             $documento->sub_total               =   $monto_sub_total;
             $documento->monto_embalaje          =   $monto_embalaje;  

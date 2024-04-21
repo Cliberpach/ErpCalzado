@@ -26,7 +26,7 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form  method="POST"
+                            <form  method="POST" action="{{route('ventas.pedidos.store')}}"
                                 id="form-pedido">
                                 @csrf
                                 <div class="row">
@@ -224,7 +224,7 @@
 
                                             <div class="form-group row mt-3">
                                                 <div class="col-lg-12">
-                                                    @include('ventas.cotizaciones.table-stocks')
+                                                    @include('ventas.pedidos.table-stocks')
                                                 </div>
                                             </div>
                                             <div class="form-group row mt-1">
@@ -248,7 +248,7 @@
                                     <h4><b>Detalle de la Cotización</b></h4>
                                 </div>
                                 <div class="panel-body">
-                                    @include('ventas.cotizaciones.table-stocks',[
+                                    @include('ventas.pedidos.table-detalles',[
                                         "carrito" => "carrito"
                                     ])
                                 </div>
@@ -266,12 +266,12 @@
                                         (<label class="required"></label>) son obligatorios.</small>
                                 </div>
                                 <div class="col-md-6 text-right">
-                                    <a href="{{ route('almacenes.producto.index') }}" id="btn_cancelar"
+                                    <a href="{{ route('ventas.pedidos.index') }}" id="btn_cancelar"
                                         class="btn btn-w-m btn-default">
                                         <i class="fa fa-arrow-left"></i> Regresar
                                     </a>
                                    
-                                    <button type="submit" id="btn_grabar" form="form-cotizacion" class="btn btn-w-m btn-primary">
+                                    <button type="submit" id="btn_grabar" form="form-pedido" class="btn btn-w-m btn-primary">
                                         <i class="fa fa-save"></i> Grabar
                                     </button>
                                 </div>
@@ -325,20 +325,217 @@
 @push('scripts')
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <script src="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.5/b-3.0.2/b-html5-3.0.2/b-print-3.0.2/date-1.5.2/r-3.0.2/sp-2.3.1/datatables.min.js"></script>
 <script>
+    const tfootSubtotal         =   document.querySelector('.subtotal');
+    const tfootEmbalaje         =   document.querySelector('.embalaje');
+    const tfootEnvio            =   document.querySelector('.envio');
+    const tfootTotal            =   document.querySelector('.total');
+    const tfootIgv              =   document.querySelector('.igv');
+    const tfootTotalPagar       =   document.querySelector('.total-pagar');
+    const tfootDescuento        =   document.querySelector('.descuento');
+    
+    const inputSubTotal         =   document.querySelector('#monto_sub_total');
+    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
+    const inputEnvio            =   document.querySelector('#monto_envio');
+    const inputTotal            =   document.querySelector('#monto_total');
+    const inputIgv              =   document.querySelector('#monto_total_igv');
+    const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
+    const inputMontoDescuento   =   document.querySelector('#monto_descuento');
+
     let pedidos_data_table  = null;
+    let carrito             =   [];
 
     document.addEventListener('DOMContentLoaded',()=>{
         loadSelect2();
         events();
-       
     })
 
     function events(){
-       
+        //====== SUBMIT FORM PEDIDOS =======
+        document.querySelector('#form-pedido').addEventListener('submit',(e)=>{
+            e.preventDefault();
+            //===== VALIDAR FECHA =====
+            const correcto =  validarFecha();
+
+            if (correcto) {
+                Swal.fire({
+                    title: 'Opción Guardar',
+                    text: "¿Seguro que desea guardar cambios?",
+                    icon: 'question',
+                showCancelButton: true,
+                    confirmButtonColor: "#1ab394",
+                    confirmButtonText: 'Si, Confirmar',
+                    cancelButtonText: "No, Cancelar",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if(carrito.length>0){
+                            document.querySelector('#btn_grabar').disabled = true;
+                            setProductosForm();                            
+                            document.querySelector('#form-pedido').submit();
+                        }else{
+                            toastr.error('EL DETALLE DEL PEDIDO ESTÁ VACÍO','ERROR');
+                        }
+
+                    } else if (result.dismiss === Swal.DismissReason.cancel) {
+                        swalWithBootstrapButtons.fire(
+                        'Cancelado',
+                        'La Solicitud se ha cancelado.',
+                        'error'
+                        )
+                        document.querySelector('#btn_grabar').disabled = false;
+                    }
+                })
+            }
+
+            // const formData = new FormData(formCotizacion);
+            // formData.append("carrito", JSON.stringify(carrito));
+            // formData.forEach((valor, clave) => {
+            //      console.log(`${clave}: ${valor}`);
+            // });
+        })
+
+
+        //===== VALIDAR CONTENIDO DE INPUTS CANTIDAD ========
+        //===== VALIDAR TFOOTS EMBALAJE Y ENVIO ======
+        document.addEventListener('input',(e)=>{
+
+            if(e.target.classList.contains('inputCantidad')){
+                e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
+            }
+
+            if (e.target.classList.contains('embalaje') || e.target.classList.contains('envio')) {
+                // Eliminar ceros a la izquierda, excepto si es el único carácter en el campo o si es seguido por un punto decimal y al menos un dígito
+                e.target.value = e.target.value.replace(/^0+(?=\d)|(?<=\D)0+(?=\d)|(?<=\d)0+(?=\.)|^0+(?=[1-9])/g, '');
+
+                // Evitar que el primer carácter sea un punto
+                e.target.value = e.target.value.replace(/^(\.)/, '');
+
+                // Reemplazar todo excepto los dígitos y el punto decimal
+                e.target.value = e.target.value.replace(/[^\d.]/g, '');
+
+                // Reemplazar múltiples puntos decimales con uno solo
+                e.target.value = e.target.value.replace(/(\..*)\./g, '$1');
+
+                calcularMontos();
+            }
+
+            if(e.target.classList.contains('detailDescuento')){
+                //==== CONTROLANDO DE QUE EL VALOR SEA UN NÚMERO ====
+                const valor = event.target.value;
+                const producto_id   =   e.target.getAttribute('data-producto-id');
+                const color_id      =   e.target.getAttribute('data-color-id');
+
+                //==== SI EL INPUT ESTA VACÍO ====
+                if(valor.trim().length === 0){
+                    calcularDescuento(producto_id,color_id,0);
+                    return;
+                }
+
+                //===== EXPRESION REGULAR PARA EVITAR CARACTERES NO NUMÉRICOS EN LA CADENA ====
+                const regex = /^[0-9]+(\.[0-9]{0,2})?$/;
+                //==== BORRAR CARACTER NO NUMÉRICO ====
+                if (!regex.test(valor)) {
+                    event.target.value = valor.slice(0, -1); 
+                    return;
+                }
+
+                //==== EN CASO SEA NUMÉRICO ====
+                let porcentaje_desc = parseFloat(event.target.value);
+
+                //==== EL MÁXIMO DESCUENTO ES 100% ====
+                if(porcentaje_desc>100){
+                    event.target.value = 100;
+                    porcentaje_desc = event.target.value;
+                }
+
+                //==== CALCULAR DESCUENTO ====
+                calcularDescuento(producto_id,color_id,porcentaje_desc)
+            }
+        })
+
+       //======== AGREGAR PRODUCTO AL DETALLE =====
+       document.querySelector('#btn_agregar_detalle').addEventListener('click',()=>{
+            const inputsCantidad = document.querySelectorAll('.inputCantidad');
+            
+            for (const ic of inputsCantidad) {
+
+                const cantidad = ic.value ? ic.value : null;
+                if (cantidad) {
+                            const producto      = formarProducto(ic);
+                            const indiceExiste  = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+                            //===== PRODUCTO NUEVO =====
+                            if (indiceExiste == -1) {
+                                const objProduct = {
+                                    producto_id:            producto.producto_id,
+                                    color_id:               producto.color_id,
+                                    modelo_nombre:          producto.modelo_nombre,
+                                    producto_nombre:        producto.producto_nombre,
+                                    producto_codigo:        producto.producto_codigo,
+                                    color_nombre:           producto.color_nombre,
+                                    precio_venta:           producto.precio_venta,
+                                    monto_descuento:        0,
+                                    porcentaje_descuento:   0,
+                                    precio_venta_nuevo:     0,
+                                    subtotal_nuevo:         0,
+                                    tallas: [{
+                                        talla_id:           producto.talla_id,
+                                        talla_nombre:       producto.talla_nombre,
+                                        cantidad:           producto.cantidad
+                                    }]
+                                };
+
+                                carrito.push(objProduct);
+                            } else {
+                                const productoModificar = carrito[indiceExiste];
+                                productoModificar.precio_venta = producto.precio_venta;
+
+                                const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                                if (indexTalla !== -1) {
+                                    const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
+                                    productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
+                                    carrito[indiceExiste] = productoModificar;
+                                } else {
+                                    const objTallaProduct = {
+                                        talla_id: producto.talla_id,
+                                        talla_nombre: producto.talla_nombre,
+                                        cantidad: producto.cantidad
+                                    };
+                                    carrito[indiceExiste].tallas.push(objTallaProduct);
+                                }
+                            }
+                } else {
+                    const producto = formarProducto(ic);
+                    const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+                    if (indiceProductoColor !== -1) {
+                        const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                        if (indiceTalla !== -1) {
+                            const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
+                            carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
+                            
+                            const cantidadTallas = carrito[indiceProductoColor].tallas.length;
+
+                            if (cantidadTallas == 0) {
+                                carrito.splice(indiceProductoColor, 1);
+                            }
+                        }
+                    }
+                }
+            }
+
+            reordenarCarrito();
+            calcularSubTotal();
+            pintarDetallePedido(carrito);
+            //===== RECALCULANDO DESCUENTOS Y MONTOS =====
+            carrito.forEach((c)=>{
+                calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+            })
+
+        })
     }
 
     //====== SELECT2 =======
@@ -351,118 +548,308 @@
         });
     }
 
-    function loadDataTable(data){
-        if(!pedidos_data_table){
-            pedidos_data_table = new DataTable('#pedidos_table',{
-                "order": [
-                            [0, 'desc']
-                        ],
-            
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        className: 'custom-button btn-check', 
-                        text: '<i class="fa fa-file-excel-o" style="font-size:15px;"></i> Excel',
-                        title: 'Pedidos'
-                    },
-                    {
-                        extend: 'pdf',
-                        className: 'custom-button btn-check', 
-                        text: '<i class="fas fa-file-pdf"></i> Pdf',
-                        title: 'Pedidos'
-                    },
-                    {
-                        extend: 'print',
-                        className: 'custom-button btn-check', 
-                        text: '<i class="fa fa-print"></i> Imprimir',
-                        title: 'Pedidos'
-                    }
-                ],
-                dom: '<"buttons-container"B><"search-length-container"lf>t',
-                bProcessing: true,
-                data:data,
-                columns: [
-                    { data: 'id' },
-                    { data: 'empresa_nombre' },
-                    { data: 'cliente_nombre' },
-                    { data: 'fecha_registro' },
-                    { data: 'total_pagar' },
-                    { data: 'estado' },
-                    { data: 'acciones',
-                        render: function(data, type, row) {
-                            return `
-                                <button class="btn btn-primary">ATENDER</button>
-                            `;
-                        }
-                    }
-                ],
-                language: {
-                    processing:     "Traitement en cours...",
-                    search:         "BUSCAR: ",
-                    lengthMenu:    "MOSTRAR _MENU_ PEDIDOS",
-                    info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ PEDIDOS",
-                    infoEmpty:      "MOSTRANDO 0 PEDIDOS",
-                    infoFiltered:   "(FILTRADO de _MAX_ PEDIDOS)",
-                    infoPostFix:    "",
-                    loadingRecords: "CARGA EN CURSO",
-                    zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
-                    emptyTable:     "NO HAY PEDIDOS DISPONIBLES",
-                    paginate: {
-                        first:      "PRIMERO",
-                        previous:   "ANTERIOR",
-                        next:       "SIGUIENTE",
-                        last:       "ÚLTIMO"
-                    },
-                    aria: {
-                        sortAscending:  ": activer pour trier la colonne par ordre croissant",
-                        sortDescending: ": activer pour trier la colonne par ordre décroissant"
-                    }}
+    //========= SWAL ======
+    const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-danger',
+        },
+        buttonsStyling: false
+    })
+
+    //========= VALIDAR FECHAS =========
+    function validarFecha() {
+        var enviar = true;
+
+        if ($('#fecha_documento').val() == '') {
+            toastr.error('Ingrese Fecha de Documento.', 'Error');
+            $("#fecha_documento").focus();
+            enviar = false;
+        }
+
+        if ($('#fecha_atencion').val() == '') {
+            toastr.error('Ingrese Fecha de Atención.', 'Error');
+            $("#fecha_atencion").focus();
+            enviar = false;
+        }
+
+        return enviar
+    }
+
+    //======= CARGAR PRODUCTOS ========
+    function setProductosForm(){
+        document.querySelector('#productos_tabla').value    =   JSON.stringify(carrito);
+    }
+
+    //======= CALCULAR MONTOS =======
+    //=========== CALCULAR MONTOS =======
+    const calcularMontos = ()=>{
+        let subtotal    =   0;
+        let embalaje    =   tfootEmbalaje.value?parseFloat(tfootEmbalaje.value):0;
+        let envio       =   tfootEnvio.value?parseFloat(tfootEnvio.value):0;
+        let total       =   0;
+        let igv         =   0;
+        let total_pagar =   0;
+        let descuento   =   0;
+        
+        //====== subtotal es la suma de todos los productos ======
+        carrito.forEach((c)=>{
+            if(c.porcentaje_descuento === 0){
+                subtotal    +=  parseFloat(c.subtotal);
+            }else{
+                subtotal    +=  parseFloat(c.subtotal_nuevo);
+            }
+            descuento += parseFloat(c.monto_descuento);
+        })
+
+        total_pagar =   subtotal + embalaje + envio;
+        total       =   total_pagar/1.18;
+        igv         =   total_pagar - total;
+       
+        tfootTotalPagar.textContent =   'S/. ' + total_pagar.toFixed(2);
+        tfootIgv.textContent        =   'S/. ' + igv.toFixed(2);
+        tfootTotal.textContent      =   'S/. ' + total.toFixed(2);
+        tfootSubtotal.textContent   =   'S/. ' + subtotal.toFixed(2);
+        tfootDescuento.textContent  =   'S/. ' + descuento.toFixed(2);
+        
+        inputTotalPagar.value       =   total_pagar.toFixed(2);
+        inputIgv.value              =   igv.toFixed(2);
+        inputTotal.value            =   total.toFixed(2);
+        inputEmbalaje.value         =   embalaje.toFixed(2);
+        inputEnvio.value            =   envio.toFixed(2);
+        inputSubTotal.value         =   subtotal.toFixed(2);
+        inputMontoDescuento.value   =   descuento.toFixed(2);
+    }
+
+
+
+    //======== CALCULAR DESCUENTO ========
+    const calcularDescuento = (producto_id,color_id,porcentaje_descuento)=>{
+        const indiceExiste = carrito.findIndex((c)=>{
+            return c.producto_id==producto_id && c.color_id==color_id;
+        })
+
+        if(indiceExiste !== -1){
+            const producto_color_editar =  carrito[indiceExiste];
+
+            //===== APLICANDO DESCUENTO ======
+            producto_color_editar.porcentaje_descuento =    porcentaje_descuento;
+            producto_color_editar.monto_descuento      =    porcentaje_descuento === 0?0:producto_color_editar.subtotal*(porcentaje_descuento/100);
+            producto_color_editar.precio_venta_nuevo   =    porcentaje_descuento === 0?0:(producto_color_editar.precio_venta*(1-porcentaje_descuento/100)).toFixed(2);
+            producto_color_editar.subtotal_nuevo       =    porcentaje_descuento === 0?0:(producto_color_editar.subtotal*(1-porcentaje_descuento/100)).toFixed(2);
+
+            carrito[indiceExiste] = producto_color_editar;
+
+            //==== RECALCULANDO MONTOS ====
+            calcularMontos();   
+
+            //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
+            const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`); 
+            const detailSubtotal    =   document.querySelector(`.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);    
+
+            if(porcentaje_descuento !== 0){
+                detailPrecioVenta.textContent = producto_color_editar.precio_venta_nuevo;
+                detailSubtotal.textContent    = producto_color_editar.subtotal_nuevo;
+            }else{
+                detailPrecioVenta.textContent   =   producto_color_editar.precio_venta;
+                detailSubtotal.textContent      =   producto_color_editar.subtotal;
+            }
+
+        }
+    }
+
+
+    //========= REORDENAR CARRITO =========
+    const reordenarCarrito= ()=>{
+        carrito.sort(function(a, b) {
+            if (a.producto_id === b.producto_id) {
+                return a.color_id - b.color_id;
+            } else {
+                return a.producto_id - b.producto_id;
+            }
+        });
+    }
+
+    //=========== FORMAR PRODUCTO =========
+    const formarProducto = (ic)=>{
+        const producto_id           = ic.getAttribute('data-producto-id');
+        const modelo_nombre         = ic.getAttribute('data-modelo-nombre');
+        const producto_nombre       = ic.getAttribute('data-producto-nombre');
+        const producto_codigo       = ic.getAttribute('data-producto-codigo');
+        const color_id              = ic.getAttribute('data-color-id');
+        const color_nombre          = ic.getAttribute('data-color-nombre');
+        const talla_id              = ic.getAttribute('data-talla-id');
+        const talla_nombre          = ic.getAttribute('data-talla-nombre');
+        const precio_venta          = document.querySelector(`#precio-venta-${producto_id}`).value;
+        const cantidad              = ic.value?ic.value:0;
+        const subtotal              = 0;
+        const subtotal_nuevo        = 0;
+        const porcentaje_descuento  = 0;
+        const monto_descuento       = 0;
+        const precio_venta_nuevo    = 0;
+
+        const producto = {producto_id,producto_nombre,producto_codigo,modelo_nombre,
+                            color_id,color_nombre,
+                            talla_id,talla_nombre,
+                            cantidad,precio_venta,
+                            subtotal,subtotal_nuevo,porcentaje_descuento,monto_descuento,precio_venta_nuevo
+                        };
+        return producto;
+    }
+
+
+    //======== CALCULAR SUBTOTAL POR PRODUCTO COLOR EN EL DETALLE ======
+    const calcularSubTotal=()=>{
+        let subtotal = 0;
+
+        carrito.forEach((p)=>{
+            p.tallas.forEach((t)=>{
+                    subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad);   
             })
+               
+            p.subtotal=subtotal; 
+            subtotal=0; 
+        })  
+    }
+
+    //========= PINTAR DETALLE PEDIDO =======
+    function pintarDetallePedido(carrito){
+        let fila= ``;
+        let htmlTallas= ``;
+        const bodyDetalleTable  =   document.querySelector('#table-detalle-pedido tbody');
+        const tallas            =   @json($tallas);
+        clearTabla(bodyDetalleTable);
+
+        carrito.forEach((c)=>{
+            htmlTallas=``;
+                fila+= `<tr>   
+                            <td>
+                                <i class="fas fa-trash-alt btn btn-primary delete-product"
+                                data-producto="${c.producto_id}" data-color="${c.color_id}">
+                                </i>                            
+                            </td>
+                            <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
+
+                //tallas
+                tallas.forEach((t)=>{
+                    let cantidad = c.tallas.filter((ct)=>{
+                        return t.id==ct.talla_id;
+                    });
+                    cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
+                    htmlTallas += `<td>${cantidad}</td>`; 
+                })
+
+
+                htmlTallas+=`   <td style="text-align: right;">
+                                    <span class="precio_venta_${c.producto_id}_${c.color_id}">
+                                        ${c.porcentaje_descuento === 0? c.precio_venta:c.precio_venta_nuevo}
+                                    </span>
+                                </td>
+                                <td class="td-subtotal" style="text-align: right;">
+                                    <span class="subtotal_${c.producto_id}_${c.color_id}">
+                                        ${c.porcentaje_descuento === 0? c.subtotal:c.subtotal_nuevo}
+                                    </span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <input data-producto-id="${c.producto_id}" data-color-id="${c.color_id}" 
+                                    style="width:130px; margin: 0 auto;" value="${c.porcentaje_descuento}"
+                                    class="form-control detailDescuento"></input>
+                                </td>
+                            </tr>`;
+
+                fila+=htmlTallas;
+                bodyDetalleTable.innerHTML=fila;            
+        })
+    }
+
+    
+    //========== OBTENER PRODUCTOS POR MODELO =========
+    async function getProductosByModelo(target){
+        const   btnAgregarDetalle   =   document.querySelector('#btn_agregar_detalle')
+        const modelo_id =   target.value;
+        btnAgregarDetalle.disabled = true;
+
+        if(modelo_id){
+            try {
+                const res       =   await axios.get(route('ventas.pedidos.getProductosByModelo', modelo_id));
+                const productos =   res.data.message;
+                console.log(productos);
+                pintarTableProductos(productos);
+            } catch (error) {
+                    
+            }
         }else{
-            pedidos_data_table.clear().rows.add(data).draw(); 
-        }
-
-        document.querySelector('.dt-buttons').classList.add('btn-group');
+            const bodyTablaProductos    =   document.querySelector('#table-stocks-pedidos tbody');
+            clearTabla(bodyTablaProductos);
+        }  
     }
 
-    async function getTable(){
-        try {
-            const fecha_inicio  =   document.querySelector('#fecha_inicio').value;
-            const fecha_fin     =   document.querySelector('#fecha_fin').value;
-            const res   =   await   axios.post("{{ route('ventas.pedidos.getTable') }}",{
-                fecha_inicio,
-                fecha_fin
-            });
-           
-            loadDataTable(res.data.message);
-        } catch (error) {
-            
-        }
-    }
 
-    function controlFechas(target){
-        const id    =   target.getAttribute('id');
+    //======== PINTAR TABLA PRODUCTOS =========
+    function pintarTableProductos(productos){
+        let     options             =   ``;
+        const   tallas              =   @json($tallas);
+        const   tableStocksBody     =   document.querySelector('#table-stocks-pedidos tbody');
+        const   btnAgregarDetalle   =   document.querySelector('#btn_agregar_detalle')
 
-        if(id == "fecha_inicio"){
-            const fecha_inicio  =   target.value;
-            const fecha_fin     =   document.querySelector('#fecha_fin').value;
+        productos.forEach((p)=>{
+            options+=`  <tr>
+                            <th scope="row" data-producto=${p.producto_id} data-color=${p.color_id} >
+                                ${p.producto_nombre} - ${p.color_nombre}
+                            </th>
+                        `;
 
-            if(fecha_inicio > fecha_fin){
-                document.querySelector('#fecha_fin').value  =   fecha_inicio;
+            let htmlTallas = ``;
+
+            tallas.forEach((t)=>{
+                const stock = p.tallas.filter(pt => pt.talla_id == t.id)[0]?.stock || 0;
+
+                htmlTallas +=   `
+                                    <td style="background-color: rgb(210, 242, 242);">${stock}</td>
+                                    <td width="8%">
+                                        <input type="text" class="form-control inputCantidad"
+                                        id="inputCantidad_${p.producto_id}_${p.color_id}_${t.id}" 
+                                        data-modelo-nombre="${p.modelo_nombre}"
+                                        data-producto-id="${p.producto_id}"
+                                        data-producto-nombre="${p.producto_nombre}"
+                                        data-producto-codigo="${p.producto_codigo}"
+                                        data-color-id="${p.color_id}"
+                                        data-color-nombre="${p.color_nombre}"
+                                        data-talla-id="${t.id}"
+                                        data-talla-nombre="${t.descripcion}"></input>    
+                                    </td>
+                                `;   
+            })
+
+            if(p.print_precios){
+                htmlTallas+=`
+                    <td>
+                        <select class="select2_form form-control" id="precio-venta-${p.producto_id}">
+                            <option>${p.precio_venta_1}</option>    
+                            <option>${p.precio_venta_2}</option>    
+                            <option>${p.precio_venta_3}</option>    
+                        </select>
+                    </td>`;
+            }else{
+                htmlTallas+=`<td></td>`;
             }
-            document.querySelector('#fecha_fin').setAttribute('min',fecha_inicio);
-        }
 
-        if(id == "fecha_fin"){
-            const fecha_fin         =   target.value;
-            const fecha_inicio      =   document.querySelector('#fecha_inicio').value;
+            htmlTallas += `</tr>`;
+            options += htmlTallas;
+        })
 
-            if(fecha_fin < fecha_inicio){
-                document.querySelector('#fecha_inicio').value  =   fecha_fin;
-            }
-            document.querySelector('#fecha_inicio').setAttribute('max',fecha_fin);
+        tableStocksBody.innerHTML = options;
+        btnAgregarDetalle.disabled = false;
+    }
+
+    //======== LIMPIAR TABLA PRODUCTOS ========
+    function clearTabla(bodyTable){
+        while (bodyTable.firstChild) {
+            bodyTable.removeChild(bodyTable.firstChild);
         }
     }
+
+   
   
 </script>
 @endpush
