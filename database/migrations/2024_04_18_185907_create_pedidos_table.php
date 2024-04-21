@@ -24,6 +24,7 @@ class CreatePedidosTable extends Migration
             $table->unsignedBigInteger('condicion_id');
 
             $table->string('moneda');
+            $table->bigInteger('pedido_nro');
 
             $table->unsignedDecimal('sub_total', 15, 2);
             $table->unsignedDecimal('total', 15, 2);
@@ -36,7 +37,7 @@ class CreatePedidosTable extends Migration
             $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
 
             $table->date('fecha_registro');
-            $table->enum('estado', ['PENDIENTE', 'ATENDIDO'])->default('PENDIENTE');
+            $table->enum('estado', ['PENDIENTE', 'ATENDIDO','ANULADO'])->default('PENDIENTE');
             $table->timestamps();
 
             $table->foreign('cliente_id')->references('id')->on('clientes');

@@ -34,9 +34,9 @@ class CreatePedidosDetallesTable extends Migration
             $table->string('color_nombre');
             $table->string('talla_nombre');
             $table->string('modelo_nombre');
-            $table->unsignedDecimal('cantidad', 15, 4);
-            $table->unsignedDecimal('precio_unitario', 15, 4);
-            $table->unsignedDecimal('importe', 15, 4);
+            $table->unsignedDecimal('cantidad', 15, 2);
+            $table->unsignedDecimal('precio_unitario', 15, 2);
+            $table->unsignedDecimal('importe', 15, 2);
 
             $table->unsignedDecimal('porcentaje_descuento', 15, 2)->nullable();
             $table->unsignedDecimal('precio_unitario_nuevo', 15, 2);

@@ -479,7 +479,6 @@ class CotizacionController extends Controller
             'vendedor_nombre' => $vendedor_nombre
             ])->setPaper('a4')->setWarnings(false);
         return $pdf->stream('CO-'.$cotizacion->id.'.pdf');
-
     }
 
     public function formatearArrayDetalle($detalles){

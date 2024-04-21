@@ -10,4 +10,9 @@ class Pedido extends Model
     protected $guarded  = [''];
 
    
+
+    public function cliente()
+    {
+        return $this->belongsTo('App\Ventas\Cliente', 'cliente_id');
+    }
 }

@@ -6,7 +6,7 @@
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
-        <h2 style="text-transform:uppercase"><b>Registrar Nuevo Pedido</b></h2>
+        <h2 style="text-transform:uppercase"><b>Modificar Pedido #{{$pedido->id}}</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{ route('home') }}">Panel de Control</a>
@@ -26,9 +26,9 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form  method="POST" action="{{route('ventas.pedidos.store')}}"
-                                id="form-pedido">
+                            <form method="POST" action="{{ route('ventas.pedidos.update', $pedido->id) }}" id="form-pedido">
                                 @csrf
+                                @method('PUT')
                                 <div class="row">
                                     <div class="col-12">
                                         <h4><b>Datos Generales</b></h4>
@@ -43,8 +43,8 @@
                                                     </span>
                                                     <input type="date" id="fecha_documento" name="fecha_documento"
                                                     class="form-control input-required {{ $errors->has('fecha_documento') ? ' is-invalid' : '' }}"
-                                                    value="{{ old('fecha_documento', date('Y-m-d')) }}">
-                                                        autocomplete="off" required readonly>
+                                                    value="{{ old('fecha_registro', $pedido->fecha_registro) }}"
+                                                    autocomplete="off" required readonly>
                                                     @if ($errors->has('fecha_documento'))
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $errors->first('fecha_documento') }}</strong>
@@ -72,6 +72,9 @@
                                                         <option value="{{ $empresa->id }}"
                                                             {{ old('empresa') == $empresa->id || $empresa->id === 1 ? 'selected' : '' }}>
                                                             {{ $empresa->razon_social }}
+                                                            @if ($empresa->id == $pedido->empresa_id)
+                                                                selected
+                                                            @endif
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -94,7 +97,7 @@
                                                         </span>
                                                         <input type="date" id="fecha_atencion" name="fecha_atencion"
                                                             class="form-control {{ $errors->has('fecha_atencion') ? ' is-invalid' : '' }}"
-                                                            value="{{ old('fecha_atencion', date('Y-m-d')) }}"
+                                                            value="{{ old('fecha_registro', $pedido->fecha_registro) }}"
                                                             autocomplete="off" required readonly>
                                                         @if ($errors->has('fecha_atencion'))
                                                             <span class="invalid-feedback" role="alert">
@@ -104,13 +107,14 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                           
                                             <div class="col-12 col-md-4">
                                                 <div class="form-group">
                                                     <label class="">Vendedor</label>
                                                     <select id="vendedor" name="vendedor" class="select2_form form-control" disabled>
                                                         <option></option>
                                                         @foreach (vendedores() as $vendedor)
-                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === $vendedor_actual ? 'selected' : '' }}>
+                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === $vendedor_actual_id ? 'selected' : '' }}>
                                                                 {{ $vendedor->persona->apellido_paterno . ' ' . $vendedor->persona->apellido_materno . ' ' . $vendedor->persona->nombres }}
                                                             </option>
                                                         @endforeach
@@ -118,7 +122,7 @@
                                                 </div>
                                             </div>
 
-                                            <input hidden type="text" name="vendedor" value="{{$vendedor_actual}}">
+                                            <input hidden type="text" name="vendedor" value="{{$vendedor_actual_id}}">
 
                                         </div>
                                        
@@ -135,7 +139,7 @@
                                                          required>
                                                         <option></option>
                                                         @foreach ($clientes as $cliente)
-                                                            <option @if ($cliente->id == 1)
+                                                            <option @if ($cliente->id == $pedido->cliente_id)
                                                                 selected
                                                             @endif value="{{ $cliente->id }}"
                                                                 {{ old('cliente') == $cliente->id ? 'selected' : '' }}>
@@ -159,6 +163,9 @@
                                                         <option></option>
                                                         @foreach ($condiciones as $condicion)
                                                             <option value="{{ $condicion->id }}"
+                                                                @if ($condicion->id == $pedido->condicion_id)
+                                                                    selected
+                                                                @endif
                                                                 {{ old('condicion_id') == $condicion->id ? 'selected' : '' }}>
                                                                 {{ $condicion->descripcion }} {{ $condicion->dias > 0 ? $condicion->dias.' dias' : '' }}
                                                             </option>
@@ -183,13 +190,13 @@
                                     </div>
                                 </div>
 
-                                <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
-                                <input type="hidden" name="monto_embalaje" id="monto_embalaje" value="{{ old('monto_embalaje') }}">
-                                <input type="hidden" name="monto_envio" id="monto_envio" value="{{ old('monto_envio') }}">
-                                <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
-                                <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ old('monto_descuento') }}">
-                                <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}">
-                                <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ old('monto_total_pagar') }}">
+                                <input type="hidden" name="monto_sub_total" id="monto_sub_total"    value="{{$pedido->sub_total}}">
+                                <input type="hidden" name="monto_embalaje" id="monto_embalaje"      value="{{$pedido->monto_embalaje}}">
+                                <input type="hidden" name="monto_envio" id="monto_envio"            value="{{$pedido->monto_envio}}">
+                                <input type="hidden" name="monto_total_igv" id="monto_total_igv"                value="{{$pedido->total_igv}}">
+                                <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ $pedido->monto_descuento }}">
+                                <input type="hidden" name="monto_total" id="monto_total"            value="{{$pedido->total}}">
+                                <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{$pedido->total_pagar}}">
 
                             </form>
                         </div>
@@ -348,12 +355,13 @@
 
     document.addEventListener('DOMContentLoaded',()=>{
         loadSelect2();
+        cargarProductosPrevios();
         events();
     })
 
     function events(){
-         //====== ELIMINAR ITEM =========
-         document.addEventListener('click',(e)=>{
+        //====== ELIMINAR ITEM =========
+        document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('delete-product')){
                 const productoId = e.target.getAttribute('data-producto');
                 const colorId = e.target.getAttribute('data-color');
@@ -570,8 +578,8 @@
         buttonsStyling: false
     })
 
-     //======== ELIMINAR ITEM ========
-     const eliminarProducto = (productoId,colorId)=>{
+    //======== ELIMINAR ITEM ========
+    const eliminarProducto = (productoId,colorId)=>{
         carrito = carrito.filter((p)=>{
             return !(p.producto_id == productoId && p.color_id == colorId);
         })
@@ -870,8 +878,82 @@
         }
     }
 
-   //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
-   function setCantidadesTablero(){
+
+    //=========== CARGAR PRODUCTOS PREVIOS =======
+    const cargarProductosPrevios=()=>{
+        const productosPrevios  =   @json($pedido_detalles);
+        //====== CARGANDO CARRITO ======
+        const producto_color_procesados = [];
+
+        productosPrevios.forEach((productoPrevio)=>{
+            const id    =   `${productoPrevio.producto_id}-${productoPrevio.color_id}`;
+
+            if(!producto_color_procesados.includes(id)){
+                const producto ={
+                    producto_id:            productoPrevio.producto_id,
+                    producto_nombre:        productoPrevio.producto_nombre,
+                    producto_codigo:        productoPrevio.producto_codigo,
+                    modelo_nombre:          productoPrevio.modelo_nombre,
+                    color_id:               productoPrevio.color_id,
+                    color_nombre:           productoPrevio.color_nombre,
+                    precio_venta:           productoPrevio.precio_unitario,
+                    subtotal:               0,
+                    subtotal_nuevo:         0,
+                    porcentaje_descuento:   parseFloat(productoPrevio.porcentaje_descuento),
+                    monto_descuento:        0,
+                    precio_venta_nuevo:     0,
+                    tallas:[]
+                }
+
+                //==== BUSCANDO SUS TALLAS ====
+                const tallas = productosPrevios.filter((t)=>{
+                    return t.producto_id==productoPrevio.producto_id && t.color_id==productoPrevio.color_id;
+                })
+
+                if(tallas.length > 0){
+                    const producto_color_tallas = [];
+                    tallas.forEach((t)=>{
+                        const talla = {
+                            talla_id:           t.talla_id,
+                            talla_nombre:       t.talla_nombre,
+                            cantidad:           parseInt(t.cantidad),
+                        }
+                        producto_color_tallas.push(talla);
+                    })
+                    producto.tallas = producto_color_tallas;
+                }
+                producto_color_procesados.push(id);
+                carrito.push(producto);
+            }
+        })
+
+      
+        //===== CALCULAR SUBTOTAL POR FILA DEL DETALLE ======
+        calcularSubTotal();
+        //===== CARGANDO EMBALAJE Y ENVÍO PREVIO ========
+        cargarEmbalajeEnvioPrevios();
+        //===== PINTANDO DETALLE ======
+        pintarDetallePedido(carrito);
+        //========= PINTAR DESCUENTOS Y CALCULARLOS ============
+        carrito.forEach((c)=>{
+            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+        })
+        
+        //===== CALCULAR MONTOS Y PINTARLOS ======
+        calcularMontos();
+    }
+
+    //======= CARGAR EMBALAJE ENVIO PREVIOS =======
+    function cargarEmbalajeEnvioPrevios(){
+        const precioEmbalaje    =   inputEmbalaje.value;
+        const precioEnvio       =   inputEnvio.value;
+
+        tfootEmbalaje.value     =   precioEmbalaje;
+        tfootEnvio.value        =   precioEnvio;
+    }
+
+    //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
+    function setCantidadesTablero(){
         carrito.forEach((c)=>{
             c.tallas.forEach((t)=>{
                 const inputLoad = document.querySelector(`#inputCantidad_${c.producto_id}_${c.color_id}_${t.talla_id}`);
@@ -886,6 +968,7 @@
             }
         }) 
     }
+   
   
 </script>
 @endpush

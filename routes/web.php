@@ -467,7 +467,11 @@ function(){
         Route::post('getTable', 'Ventas\PedidoController@getTable')->name('ventas.pedidos.getTable');
         Route::get('create', 'Ventas\PedidoController@create')->name('ventas.pedidos.create');
         Route::post('store', 'Ventas\PedidoController@store')->name('ventas.pedidos.store');
+        Route::put('update/{id}', 'Ventas\PedidoController@update')->name('ventas.pedidos.update');
+        Route::get('edit/{id}','Ventas\PedidoController@edit')->name('ventas.pedidos.edit');
+        Route::delete('pedidos/{id}', 'Ventas\PedidoController@destroy')->name('ventas.pedidos.destroy');
         Route::get('getProductosByModelo/{modelo_id}','Ventas\PedidoController@getProductosByModelo')->name('ventas.pedidos.getProductosByModelo');
+        Route::get('reporte/{id}','Ventas\PedidoController@report')->name('ventas.pedidos.reporte');
 
     });
 
