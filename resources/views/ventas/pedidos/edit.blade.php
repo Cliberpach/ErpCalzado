@@ -252,7 +252,7 @@
                         <div class="col-12">
                             <div class="panel panel-primary">
                                 <div class="panel-heading">
-                                    <h4><b>Detalle de la Cotización</b></h4>
+                                    <h4><b>Detalle del Pedido</b></h4>
                                 </div>
                                 <div class="panel-body">
                                     @include('ventas.pedidos.table-detalles',[
@@ -609,7 +609,6 @@
         document.querySelector('#productos_tabla').value    =   JSON.stringify(carrito);
     }
 
-    //======= CALCULAR MONTOS =======
     //=========== CALCULAR MONTOS =======
     const calcularMontos = ()=>{
         let subtotal    =   0;
@@ -648,8 +647,6 @@
         inputSubTotal.value         =   subtotal.toFixed(2);
         inputMontoDescuento.value   =   descuento.toFixed(2);
     }
-
-
 
     //======== CALCULAR DESCUENTO ========
     const calcularDescuento = (producto_id,color_id,porcentaje_descuento)=>{
@@ -831,7 +828,7 @@
             let htmlTallas = ``;
 
             tallas.forEach((t)=>{
-                const stock = p.tallas.filter(pt => pt.talla_id == t.id)[0]?.stock || 0;
+                const stock = p.tallas.filter(pt => pt.talla_id == t.id)[0]?.stock_logico || 0;
 
                 htmlTallas +=   `
                                     <td style="background-color: rgb(210, 242, 242);">${stock}</td>

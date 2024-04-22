@@ -170,6 +170,8 @@
                             let url_reporte = '{{route("ventas.pedidos.reporte", ":id")}}';
                             url_reporte = url_reporte.replace(':id', data);
 
+                            const url_atender   =   '{{route("ventas.pedidos.atender")}}';
+
                             return `
                             <div class="btn-group" style="text-transform:capitalize;">
                                 <button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class='fa fa-bars'></i></button>
@@ -178,6 +180,13 @@
                             <li><a class='dropdown-item'  target='_blank' href="${url_reporte}" title='Detalle'><b><i class='fa fa-file-pdf-o'></i> Pdf</a></b></li>
                             <li><a class='dropdown-item' onclick="modificarPedido(${data})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li> 
                             <li><a class='dropdown-item' onclick="eliminarPedido(${data})"  title='Eliminar'><b><i class='fa fa-trash'></i>Eliminar</a></b></li> 
+                            <li>
+                                <form id="formAtenderPedido" method="POST" action="${url_atender}">
+                                    @csrf
+                                    <input hidden name="pedido_id" value="${data}"></input>
+                                    <a class='dropdown-item' onclick="atenderPedido()"  title='Atender'><b><i class='fa fa-trash'></i>Atender</a></b>
+                                </form>
+                            </li> 
 
                             </ul></div>
                             `;
@@ -238,6 +247,10 @@
 
     function reportePedido(pedido_id){
         window.location = `{{ route('ventas.pedidos.reporte', ['id' => ':id']) }}`.replace(':id', pedido_id);
+    }
+
+    function atenderPedido(){
+        document.querySelector('#formAtenderPedido').submit();
     }
 
     function eliminarPedido(pedido_id) {

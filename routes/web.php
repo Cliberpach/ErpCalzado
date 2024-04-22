@@ -466,6 +466,7 @@ function(){
         Route::get('index', 'Ventas\PedidoController@index')->name('ventas.pedidos.index');
         Route::post('getTable', 'Ventas\PedidoController@getTable')->name('ventas.pedidos.getTable');
         Route::get('create', 'Ventas\PedidoController@create')->name('ventas.pedidos.create');
+        Route::post('atender', 'Ventas\PedidoController@atender')->name('ventas.pedidos.atender');
         Route::post('store', 'Ventas\PedidoController@store')->name('ventas.pedidos.store');
         Route::put('update/{id}', 'Ventas\PedidoController@update')->name('ventas.pedidos.update');
         Route::get('edit/{id}','Ventas\PedidoController@edit')->name('ventas.pedidos.edit');

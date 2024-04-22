@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Session;
 use Barryvdh\DomPDF\Facade as PDF;
+use Illuminate\Support\Collection;
+
 
 
 class PedidoController extends Controller
@@ -417,6 +419,119 @@ class PedidoController extends Controller
 
     }
 
+    public function atender(Request $request){
+        DB::beginTransaction();
+
+        try {
+            //======== OBTENIENDO ID DEL PEDIDO =========
+            $pedido_id      =   $request->get('pedido_id');
+            //========= OBTENIENDO EL DETALLE DEL PEDIDO =====
+            $pedido         =   Pedido::find($pedido_id);
+            $pedido_detalle =   PedidoDetalle::where('pedido_id',$pedido_id)->get();
+            
+            $atencion_detalle = [];            
+            foreach ($pedido_detalle as  $pedido_item) {
+                //======== OBTENIENDO EL STOCK DEL PRODUCTO =======
+                $producto_stock =   DB::select('select pct.stock_logico from producto_color_tallas as pct
+                                    where pct.producto_id=? and pct.color_id=? and pct.talla_id=?',
+                                    [$pedido_item->producto_id,$pedido_item->color_id,$pedido_item->talla_id]);
+                
+                //======= EN CASO EL PRODUCTO COLOR TENGA ESA TALLA EN LA BD ========
+                if(count($producto_stock) > 0){
+                    $stock_logico                       =   $producto_stock[0]->stock_logico;
+                    $cantidad_solicitada                =   $pedido_item->cantidad;
+                    $cantidad_atendida                  =   $stock_logico>=$cantidad_solicitada?$cantidad_solicitada:$stock_logico;
+                    $cantidad_pendiente                 =   $cantidad_solicitada - $cantidad_atendida;
+
+                    //===== SEPARANDO STOCK LOGICO ======
+                    if($cantidad_atendida   >  0){
+                        DB::table('producto_color_tallas')
+                        ->where('producto_id', $pedido_item->producto_id) 
+                        ->where('color_id', $pedido_item->color_id) 
+                        ->where('talla_id', $pedido_item->talla_id) 
+                        ->update([
+                            'stock_logico' => DB::raw("stock_logico - $cantidad_atendida") 
+                        ]);
+                    }
+                    //====== OBTENIENDO NUEVO STOCK_LOGICO ======
+                    $producto_stock_actualizado =   DB::select('select pct.stock_logico from producto_color_tallas as pct
+                                    where pct.producto_id=? and pct.color_id=? and pct.talla_id=?',
+                                    [$pedido_item->producto_id,$pedido_item->color_id,$pedido_item->talla_id]);
+                    $stock_logico_actualizado   =   $producto_stock_actualizado[0]->stock_logico;
+
+                    //====== EXISTE EL PRODUCTO COLOR TALLA ======
+                    $existe                     =   true;
+                }
+
+                //========= EN CASO EL PRODUCTO COLOR NO TENGA ESA TALLA EN BD ==========
+                if(count($producto_stock) == 0){
+                    $stock_logico                       =   0;
+                    $cantidad_solicitada                =   $pedido_item->cantidad;
+                    $cantidad_atendida                  =   0;
+                    $cantidad_pendiente                 =   $cantidad_solicitada - $cantidad_atendida;
+                    $stock_logico_actualizado           =   0;
+
+                    //====== EXISTE EL PRODUCTO COLOR TALLA ======
+                    $existe                     =   false;
+                }
+
+                $atencion_item = (object)[
+                    'modelo_nombre'         => $pedido_item->modelo_nombre,
+                    'producto_id'           => $pedido_item->producto_id,
+                    'producto_codigo'       => $pedido_item->producto_codigo,
+                    'producto_nombre'       => $pedido_item->producto_nombre,
+                    'color_id'              => $pedido_item->color_id,
+                    'color_nombre'          => $pedido_item->color_nombre,
+                    'talla_id'              => $pedido_item->talla_id,
+                    'talla_nombre'          => $pedido_item->talla_nombre,
+                    'precio_unitario'       => $pedido_item->precio_unitario,
+                    'porcentaje_descuento'  => $pedido_item->porcentaje_descuento,
+                    'precio_unitario_nuevo' => $pedido_item->precio_unitario_nuevo,
+                    'stock_logico_actualizado' => $stock_logico_actualizado,
+                    'stock_logico'          => $stock_logico,
+                    'cantidad_solicitada'   => $cantidad_solicitada,
+                    'cantidad_atendida'     => $cantidad_atendida,
+                    'cantidad_pendiente'    => $cantidad_pendiente,
+                    'existe'                => $existe,
+                ];
+
+                $atencion_detalle[]     =   $atencion_item;
+            }
+
+
+            $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
+            $clientes           =   Cliente::where('estado', 'ACTIVO')->get();  
+            $condiciones        =   Condicion::where('estado','ACTIVO')->get();
+            $vendedor_actual    =   DB::select('select c.id from user_persona as up
+                                    inner join colaboradores  as c
+                                    on c.persona_id=up.persona_id
+                                    where up.user_id = ?',[Auth::id()]);
+            $vendedor_actual    =   $vendedor_actual?$vendedor_actual[0]->id:null;     
+            $modelos            =   Modelo::where('estado','ACTIVO')->get();
+            $tallas             =   Talla::where('estado','ACTIVO')->get();
+            $tipos_ventas       =   tipos_venta();
+            $tipoVentas         =   collect();
+
+            foreach($tipos_ventas as $tipo){
+                if(ifComprobanteSeleccionado($tipo->id) && ($tipo->tipo == 'VENTA' || $tipo->tipo == 'AMBOS')){
+                    $tipoVentas->push([
+                        "id"=>$tipo->id,
+                        "nombre"=>$tipo->nombre,
+                    ]);
+                }
+            }
+
+        
+            DB::commit();
+            return view('ventas.pedidos.atender',compact('atencion_detalle','empresas','clientes',
+                                                'vendedor_actual','condiciones',
+                                                'modelos','tallas','pedido','tipoVentas'));
+        } catch (\Throwable $th) {
+            DB::rollback();
+            dd($th->getMessage());
+        }
+    }
+
     public function formatearArrayDetalle($detalles){
         $detalleFormateado=[];
         $productosProcesados = [];
@@ -446,11 +561,15 @@ class PedidoController extends Controller
                 foreach ($producto_color_tallas as $producto_color_talla) {
                     $talla=[];
                     $talla['talla_id']              =   $producto_color_talla->talla_id;
-                    $talla['cantidad']              =   $producto_color_talla->cantidad;
-                    $talla['talla_nombre']          =   $producto_color_talla->talla_nombre;
-                    $subtotal                       +=  $talla['cantidad']*$producto['precio_unitario_nuevo'];
 
-                    $cantidadTotal+=$talla['cantidad'];
+                    
+                    $talla['cantidad']              =   $producto_color_talla->cantidad;
+                    $subtotal                       +=  $talla['cantidad']*$producto['precio_unitario_nuevo'];
+                    $cantidadTotal                  +=  $talla['cantidad'];
+                   
+
+                    $talla['talla_nombre']          =   $producto_color_talla->talla_nombre;
+                    
                    array_push($tallas,$talla);
                 }
                 
@@ -468,7 +587,7 @@ class PedidoController extends Controller
         try {
             $productos  =   DB::select('select distinct p.id as producto_id,c.id as color_id, t.id as talla_id,
             m.id as modelo_id, p.nombre as producto_nombre,c.descripcion as color_nombre, 
-            t.descripcion as talla_nombre,pct.stock,m.descripcion as modelo_nombre,p.codigo as producto_codigo,
+            t.descripcion as talla_nombre,pct.stock_logico,m.descripcion as modelo_nombre,p.codigo as producto_codigo,
             p.precio_venta_1,p.precio_venta_2,p.precio_venta_3 
             from producto_colores as pc 
             left join producto_color_tallas as pct on (pc.producto_id=pct.producto_id and pc.color_id=pct.color_id) 

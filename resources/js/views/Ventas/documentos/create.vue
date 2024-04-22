@@ -54,7 +54,6 @@
                                                         :reduce="tipo => tipo.id" label="nombre"
                                                         placeholder="Seleccionar comprobante...">
                                                     </v-select>
-
                                                 </div>
                                             </div>
                                             <div class="col-12 col-md-6 select-required">

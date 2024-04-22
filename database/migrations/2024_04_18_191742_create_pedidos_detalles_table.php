@@ -43,6 +43,10 @@ class CreatePedidosDetallesTable extends Migration
             $table->unsignedDecimal('importe_nuevo', 15, 2);
             $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
 
+            $table->unsignedDecimal('cantidad_atendida', 15, 2);
+            $table->unsignedDecimal('cantidad_pendiente', 15, 2);
+
+
             $table->timestamps();
         });
     }

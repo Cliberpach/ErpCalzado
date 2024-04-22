@@ -245,7 +245,7 @@
                         <div class="col-12">
                             <div class="panel panel-primary">
                                 <div class="panel-heading">
-                                    <h4><b>Detalle de la Cotización</b></h4>
+                                    <h4><b>Detalle del Pedido</b></h4>
                                 </div>
                                 <div class="panel-body">
                                     @include('ventas.pedidos.table-detalles',[
@@ -823,7 +823,7 @@
             let htmlTallas = ``;
 
             tallas.forEach((t)=>{
-                const stock = p.tallas.filter(pt => pt.talla_id == t.id)[0]?.stock || 0;
+                const stock = p.tallas.filter(pt => pt.talla_id == t.id)[0]?.stock_logico || 0;
 
                 htmlTallas +=   `
                                     <td style="background-color: rgb(210, 242, 242);">${stock}</td>
