@@ -21,9 +21,9 @@ class CreateCotizacionDocumentoDetallesTable extends Migration
             $table->unsignedInteger('producto_id');
             $table->unsignedInteger('color_id');
             $table->unsignedInteger('talla_id');
-            $table->foreign('producto_id')->references('producto_id')->on('producto_color_tallas')->onDelete('cascade');
-            $table->foreign('color_id')->references('color_id')->on('producto_color_tallas')->onDelete('cascade');
-            $table->foreign('talla_id')->references('talla_id')->on('producto_color_tallas')->onDelete('cascade');
+            $table->foreign('producto_id')->references('producto_id')->on('productos');
+            $table->foreign('color_id')->references('color_id')->on('colores');
+            $table->foreign('talla_id')->references('talla_id')->on('tallas');
 
             //$table->unsignedInteger('lote_id');
             // $table->foreign('lote_id')->references('id')->on('lote_productos')->onDelete('cascade');

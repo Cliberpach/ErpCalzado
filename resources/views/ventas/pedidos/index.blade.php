@@ -2,6 +2,7 @@
 
 @section('ventas-active', 'active')
 @section('pedidos-active', 'active')
+@include('ventas.pedidos.modal-historial-atenciones') 
 
 
 <div class="row wrapper border-bottom white-bg page-heading">
@@ -179,15 +180,15 @@
 
                             <li><a class='dropdown-item'  target='_blank' href="${url_reporte}" title='Detalle'><b><i class='fa fa-file-pdf-o'></i> Pdf</a></b></li>
                             <li><a class='dropdown-item' onclick="modificarPedido(${data})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li> 
-                            <li><a class='dropdown-item' onclick="eliminarPedido(${data})"  title='Eliminar'><b><i class='fa fa-trash'></i>Eliminar</a></b></li> 
+                            <li><a class='dropdown-item' onclick="eliminarPedido(${data})"  title='Eliminar'><b><i class='fa fa-trash'></i> Eliminar</a></b></li> 
                             <li>
-                                <form id="formAtenderPedido" method="POST" action="${url_atender}">
+                                <form id="formAtenderPedido_${data}" method="POST" action="${url_atender}">
                                     @csrf
                                     <input hidden name="pedido_id" value="${data}"></input>
-                                    <a class='dropdown-item' onclick="atenderPedido()"  title='Atender'><b><i class='fa fa-trash'></i>Atender</a></b>
+                                    <a class='dropdown-item' onclick="atenderPedido(${data})"  title='Atender'><b><i class="fas fa-concierge-bell"></i> Atender</a></b>
                                 </form>
                             </li> 
-
+                            <li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${data}" data-target="#modal_historial_atenciones"  title='Eliminar'><b><i class="fas fa-history"></i> Historial Atenciones</a></b></li> 
                             </ul></div>
                             `;
                         }
@@ -249,8 +250,92 @@
         window.location = `{{ route('ventas.pedidos.reporte', ['id' => ':id']) }}`.replace(':id', pedido_id);
     }
 
-    function atenderPedido(){
-        document.querySelector('#formAtenderPedido').submit();
+    function atenderPedido(pedido_id){
+        document.querySelector(`#formAtenderPedido_${pedido_id}`).submit();
+    }
+
+    $('#modal_historial_atenciones').on('show.bs.modal', async function (event) {
+       
+    //    if(table){
+    //        table.destroy();
+    //    }
+    //    resetearTabla();
+
+       var button = $(event.relatedTarget) 
+       const pedido_id   = button.data('pedido-id');
+
+    //    let filas = ``;
+
+        document.querySelector('.pedido_id_span').textContent    =   pedido_id;
+        //===== OBTENIENDO DETALLES DEL PEDIDO =======
+        try {
+            const res   =   await axios.get(route('ventas.pedidos.getDetalles',{pedido_id}));
+            console.log(res);
+            const type  =   res.data.type;
+            if(type == 'success'){
+                const pedido_detalles   =   res.data.pedido_detalles;
+                pintarTablePedidoDetalles(pedido_detalles);
+            }
+        } catch (error) {
+        
+        }
+
+        //===== OBTENIENDO ATENCIONES DEL PEDIDO =======
+        try {
+            const res   =   await axios.get(route('ventas.pedidos.getAtenciones',{pedido_id}));
+            console.log(res);
+            const type  =   res.data.type;
+            if(type == 'success'){
+                const pedido_atenciones   =   res.data.pedido_atenciones;
+                pintarTablePedidoAtenciones(pedido_atenciones);
+            }
+        } catch (error) {
+        
+        }
+        
+
+        
+    //    bodyTableShowStocks.innerHTML= filas;
+      
+    //     var modal = $(this)
+    //     modal.find('.modal-title').text('Stocks: ' + product_name)
+    //     modal.find('.product_name').text(product_name);
+    //     cargarDataTables();
+    })
+
+    function pintarTablePedidoDetalles(pedido_detalles) {
+        const bodyPedidoDetalles    =   document.querySelector('#table-pedido-detalles tbody');
+
+        bodyPedidoDetalles.innerHTML    =   '';
+        let body    =   ``;
+
+        pedido_detalles.forEach((pd)=>{
+            body    +=  `<tr><th scope="row">${pd.producto_nombre}</th>
+            <td scope="row">${pd.color_nombre}</td>
+            <td scope="row">${pd.talla_nombre}</td>
+            <td scope="row">${pd.cantidad}</td>
+            <td scope="row">${pd.cantidad_atendida}</td>
+            <td scope="row">${pd.cantidad_pendiente}</td></tr>`;
+        })
+
+
+        bodyPedidoDetalles.innerHTML    =   body;
+    }
+
+    function pintarTablePedidoAtenciones(pedido_atenciones) {
+        const bodyPedidoAtenciones    =   document.querySelector('#table-pedido-atenciones tbody');
+        
+        bodyPedidoAtenciones.innerHTML    =   '';
+        let body    =   ``;
+
+        pedido_atenciones.forEach((pa)=>{
+            body    +=  `<tr><th scope="row">${pa.pedido_id}</th>
+            <td scope="row">${pa.documento_serie}-${pa.documento_correlativo}</td>
+            <td scope="row">${pa.fecha_atencion}</td></tr>`;
+        })
+
+
+        bodyPedidoAtenciones.innerHTML    =   body;
     }
 
     function eliminarPedido(pedido_id) {

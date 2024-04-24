@@ -467,12 +467,17 @@ function(){
         Route::post('getTable', 'Ventas\PedidoController@getTable')->name('ventas.pedidos.getTable');
         Route::get('create', 'Ventas\PedidoController@create')->name('ventas.pedidos.create');
         Route::post('atender', 'Ventas\PedidoController@atender')->name('ventas.pedidos.atender');
+        Route::post('validar-cantidad-atendida', 'Ventas\PedidoController@validarCantidadAtendida')->name('ventas.pedidos.validarCantidadAtendida');
         Route::post('store', 'Ventas\PedidoController@store')->name('ventas.pedidos.store');
+        Route::post('generar-doc-venta', 'Ventas\PedidoController@generarDocumentoVenta')->name('ventas.pedidos.generarDocumentoVenta');
         Route::put('update/{id}', 'Ventas\PedidoController@update')->name('ventas.pedidos.update');
         Route::get('edit/{id}','Ventas\PedidoController@edit')->name('ventas.pedidos.edit');
         Route::delete('pedidos/{id}', 'Ventas\PedidoController@destroy')->name('ventas.pedidos.destroy');
         Route::get('getProductosByModelo/{modelo_id}','Ventas\PedidoController@getProductosByModelo')->name('ventas.pedidos.getProductosByModelo');
         Route::get('reporte/{id}','Ventas\PedidoController@report')->name('ventas.pedidos.reporte');
+        Route::get('validar-tipo-venta/{comprobante_id}','Ventas\PedidoController@validarTipoVenta')->name('ventas.pedidos.validarTipoVenta');
+        Route::get('get-detalles-pedido/{pedido_id}','Ventas\PedidoController@getDetalles')->name('ventas.pedidos.getDetalles');
+        Route::get('get-atenciones-pedido/{pedido_id}','Ventas\PedidoController@getAtenciones')->name('ventas.pedidos.getAtenciones');
 
     });
 

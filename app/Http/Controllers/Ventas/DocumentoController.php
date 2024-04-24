@@ -1448,9 +1448,7 @@ class DocumentoController extends Controller
                     'data' => array('mensajes' => $validator->getMessageBag()->toArray()),
                 ]);
             }
-
-
-
+            
             $documento = new Documento();
             $documento->fecha_documento = $request->get('fecha_documento_campo');
             $documento->fecha_atencion = $request->get('fecha_atencion_campo');
@@ -1511,7 +1509,7 @@ class DocumentoController extends Controller
             $documento->importe         = $request->get('importe');
             $documento->efectivo        = $request->get('efectivo');
 
-       
+            
 
             if ($request->convertir) {
                 $documento->convertir = $request->convertir;
@@ -1671,11 +1669,12 @@ class DocumentoController extends Controller
             //     $documento->update();
             // }
 
-            $detalle = new DetalleMovimientoVentaCaja();
+            $detalle                = new DetalleMovimientoVentaCaja();
             $detalle->cdocumento_id = $documento->id;
-            $detalle->mcaja_id = movimientoUser()->id;
+            $detalle->mcaja_id      = movimientoUser()->id;
             
             $detalle->save();
+
             ////$envio_prev =   $this->ObtenerCorrelativoVentas($documento);
             //$envio_prev =   self::sunat($documento->id);
             // if (!$envio_prev['success']) {
@@ -1717,7 +1716,7 @@ class DocumentoController extends Controller
             } else {
                  $dato = 'Actualizar';
                  broadcast(new VentasCajaEvent($dato));
-                 DB::commit();
+                DB::commit();
                  //$vp = self::venta_comprobante($documento->id);
                  //$ve = self::venta_email($documento->id);
                  // Session::flash('success', 'Documento de venta creado.');
@@ -1730,12 +1729,13 @@ class DocumentoController extends Controller
             }
             return response()->json([
                 'success' => false,
-                    'mensaje' => "exito",
+                'mensaje' => "exito",
             ]);
             
         } catch (Exception $e) {
             DB::rollBack();
             Log::info($e);
+            dd($e->getMessage());
             return response()->json([
                 'success' => false,
                 'mensaje' => $e->getMessage(), //'Ocurrio un error porfavor volver a intentar, si el error persiste comunicarse con el administrador del sistema.'
