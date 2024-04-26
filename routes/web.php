@@ -62,6 +62,10 @@ function(){
     Route::get('parametro/getApidni/{dni}', 'ParametroController@apiDni')->name('getApidni');
     Route::get('parametro/notifications', 'ParametroController@notifications')->name('getNotifications');
 
+    //======== RESTAURAR STOCK ======
+    Route::post('restaurar-stock/', 'ParametroController@restaurarStock')->name('restaurarStock');
+    Route::get('descargar-bd/', 'ParametroController@descargarBD')->name('descargarBD');
+
     // Mantenimiento
     //Tabla General - Protegido con crud_general
     Route::prefix('mantenimiento/tablas/generales')->group(function() {
@@ -467,7 +471,7 @@ function(){
         Route::post('getTable', 'Ventas\PedidoController@getTable')->name('ventas.pedidos.getTable');
         Route::get('create', 'Ventas\PedidoController@create')->name('ventas.pedidos.create');
         Route::post('atender', 'Ventas\PedidoController@atender')->name('ventas.pedidos.atender');
-        Route::post('validar-cantidad-atendida', 'Ventas\PedidoController@validarCantidadAtendida')->name('ventas.pedidos.validarCantidadAtendida');
+        Route::post('validar-cantidad-atender', 'Ventas\PedidoController@validarCantidadAtender')->name('ventas.pedidos.validarCantidadAtender');
         Route::post('store', 'Ventas\PedidoController@store')->name('ventas.pedidos.store');
         Route::post('generar-doc-venta', 'Ventas\PedidoController@generarDocumentoVenta')->name('ventas.pedidos.generarDocumentoVenta');
         Route::put('update/{id}', 'Ventas\PedidoController@update')->name('ventas.pedidos.update');
@@ -476,9 +480,10 @@ function(){
         Route::get('getProductosByModelo/{modelo_id}','Ventas\PedidoController@getProductosByModelo')->name('ventas.pedidos.getProductosByModelo');
         Route::get('reporte/{id}','Ventas\PedidoController@report')->name('ventas.pedidos.reporte');
         Route::get('validar-tipo-venta/{comprobante_id}','Ventas\PedidoController@validarTipoVenta')->name('ventas.pedidos.validarTipoVenta');
-        Route::get('get-detalles-pedido/{pedido_id}','Ventas\PedidoController@getDetalles')->name('ventas.pedidos.getDetalles');
+        Route::get('get-atencion-detalles/{pedido_id}/{atencion_id}','Ventas\PedidoController@getAtencionDetalles')->name('ventas.pedidos.getAtencionDetalles');
         Route::get('get-atenciones-pedido/{pedido_id}','Ventas\PedidoController@getAtenciones')->name('ventas.pedidos.getAtenciones');
-
+        Route::get('get-pedido-detalles/{pedido_id}','Ventas\PedidoController@getPedidoDetalles')->name('ventas.pedidos.getPedidoDetalles');
+        Route::post('devolver-stock-logico', 'Ventas\PedidoController@devolverStockLogico')->name('ventas.pedidos.devolverStockLogico');
     });
 
     //COMPROBANTES ELECTRONICOS

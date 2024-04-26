@@ -21,6 +21,7 @@ use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Collection;
 use App\Ventas\Documento\Documento;
 use  App\Http\Controllers\Ventas\DocumentoController;
+use App\Ventas\Documento\Detalle;
 
 
 
@@ -89,8 +90,6 @@ class PedidoController extends Controller
 
               //======= MANEJANDO MONTOS ========
             $monto_subtotal     =   0.0;
-            $monto_embalaje     =   $request->get('monto_embalaje')??0;
-            $monto_envio        =   $request->get('monto_envio')??0;
             $monto_total        =   0.0;
             $monto_igv          =   0.0;
             $monto_total_pagar  =   0.0;
@@ -109,7 +108,7 @@ class PedidoController extends Controller
                 }
             }
     
-            $monto_total_pagar      =   $monto_subtotal+$monto_embalaje+$monto_envio;
+            $monto_total_pagar      =   $monto_subtotal;
             $monto_total            =   $monto_total_pagar/1.18;
             $monto_igv              =   $monto_total_pagar-$monto_total;
             $porcentaje_descuento   =   ($monto_descuento*100)/($monto_total_pagar);
@@ -151,8 +150,6 @@ class PedidoController extends Controller
             $pedido->fecha_registro     = $request->get('fecha_documento');
 
             $pedido->sub_total              = $monto_subtotal;
-            $pedido->monto_embalaje         = $monto_embalaje;
-            $pedido->monto_envio            = $monto_envio;
             $pedido->total_igv              = $monto_igv;
             $pedido->total                  = $monto_total;
             $pedido->total_pagar            = $monto_total_pagar;  
@@ -213,6 +210,7 @@ class PedidoController extends Controller
     }
 
     public function edit($id){
+
         $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
         $clientes           =   Cliente::where('estado', 'ACTIVO')->get();  
         $condiciones        =   Condicion::where('estado','ACTIVO')->get();
@@ -261,8 +259,6 @@ class PedidoController extends Controller
 
             //======= MANEJANDO MONTOS ========
             $monto_subtotal     =   0.0;
-            $monto_embalaje     =   $request->get('monto_embalaje')??0;
-            $monto_envio        =   $request->get('monto_envio')??0;
             $monto_total        =   0.0;
             $monto_igv          =   0.0;
             $monto_total_pagar  =   0.0;
@@ -281,7 +277,7 @@ class PedidoController extends Controller
                 }
             }
     
-            $monto_total_pagar      =   $monto_subtotal+$monto_embalaje+$monto_envio;
+            $monto_total_pagar      =   $monto_subtotal;
             $monto_total            =   $monto_total_pagar/1.18;
             $monto_igv              =   $monto_total_pagar-$monto_total;
             $porcentaje_descuento   =   ($monto_descuento*100)/($monto_total_pagar);
@@ -323,8 +319,6 @@ class PedidoController extends Controller
             $pedido->fecha_registro     = $request->get('fecha_documento');
 
             $pedido->sub_total              = $monto_subtotal;
-            $pedido->monto_embalaje         = $monto_embalaje;
-            $pedido->monto_envio            = $monto_envio;
             $pedido->total_igv              = $monto_igv;
             $pedido->total                  = $monto_total;
             $pedido->total_pagar            = $monto_total_pagar;  
@@ -562,23 +556,34 @@ class PedidoController extends Controller
         }
     }
 
-    public function getDetalles($pedido_id){
-        $pedido_detalles    =   DB::select('select * from pedidos_detalles as pd   
-                                where pd.pedido_id=?',[$pedido_id]);
-
-        
-        return  response()->json(['type'=>'success','pedido_detalles'=>$pedido_detalles]);
-    }
+   
 
     public function getAtenciones($pedido_id){
-        $pedido_atenciones    =   DB::select('select pa.pedido_id,cd.serie as documento_serie,
-                                pa.fecha_atencion,cd.correlativo as documento_correlativo 
+        $pedido_atenciones    =   DB::select('select cd.serie as documento_serie,cd.correlativo as documento_correlativo, 
+                                pa.fecha_atencion,CONCAT(p.nombres, " ", p.apellido_paterno, " ", p.apellido_materno) AS documento_usuario,
+                                cd.monto_envio as documento_monto_envio, cd.monto_embalaje as documento_monto_embalaje,
+                                cd.total_pagar as documento_total_pagar,pa.pedido_id,pa.id as atencion_id
                                 from pedidos_atenciones as pa 
-                                inner join cotizacion_documento as cd   
+                                inner join cotizacion_documento as cd on pa.documento_id = cd.id  
+                                inner join user_persona as up on cd.user_id = up.user_id
+                                inner join personas as p  on p.id = up.persona_id
                                 where pa.pedido_id=? and pa.documento_id=cd.id',[$pedido_id]);
 
         
         return  response()->json(['type'=>'success','pedido_atenciones'=>$pedido_atenciones]);
+    }
+
+    public function getAtencionDetalles($pedido_id,$atencion_id){
+        $atencion_detalles    =   DB::select('select cdd.nombre_producto as producto_nombre,
+                                cdd.nombre_color as color_nombre, cdd.nombre_talla as talla_nombre,
+                                cdd.cantidad
+                                from pedidos_atenciones as pa
+                                inner join cotizacion_documento as cd on cd.id=pa.documento_id
+                                inner join cotizacion_documento_detalles  as cdd on cdd.documento_id = cd.id   
+                                where pa.pedido_id=? and pa.id=?',[$pedido_id,$atencion_id]);
+
+        
+        return  response()->json(['type'=>'success','atencion_detalles'=>$atencion_detalles]);
     }
 
     public function formatearArrayDetalle($detalles){
@@ -694,7 +699,7 @@ class PedidoController extends Controller
                     $producto_color_talla                       =   [];
                     $producto_color_talla['talla_id']           =   $talla->talla_id;
                     $producto_color_talla['talla_nombre']       =   $talla->talla_nombre;
-                    $producto_color_talla['stock']              =   $talla->stock;   
+                    $producto_color_talla['stock_logico']       =   $talla->stock_logico;   
                     $producto_color_talla['precio_unitario']    =   0;   
 
                     
@@ -717,13 +722,13 @@ class PedidoController extends Controller
         return $productos_formateado;
     }
 
-    public function validarCantidadAtendida(Request $request){
+    public function validarCantidadAtender(Request $request){
         DB::beginTransaction();
         try {
             $data   =   $request->all();
-
-            $cantidad_atendida_nueva        =   $request->get('cantidad_atendida_nueva');
-            $cantidad_atendida_anterior     =   $request->get('cantidad_atendida_anterior');
+          
+            $cantidad_atender_nueva         =   $request->get('cantidad_atender_nueva');
+            $cantidad_atender_anterior      =   $request->get('cantidad_atender_anterior');
     
             $producto_id        =   $request->get('producto_id');
             $color_id           =   $request->get('color_id');
@@ -737,28 +742,29 @@ class PedidoController extends Controller
             if(count($producto)>0){
                 $stock_logico   =   $producto[0]->stock_logico;
     
-                //======= SI LA NUEVA CANTIDAD ATENDIDA ES MENOR IGUAL AL STOCK LOGICO REPUESTO ======
-                $stock_logico_repuesto  =   $stock_logico + $cantidad_atendida_anterior;   
-                if($cantidad_atendida_nueva <= $stock_logico_repuesto){
+                //======= SI LA NUEVA CANTIDAD ATENDER ES MENOR IGUAL AL STOCK LOGICO REPUESTO ======
+                $stock_logico_repuesto  =   $stock_logico + $cantidad_atender_anterior;   
+                if($cantidad_atender_nueva <= $stock_logico_repuesto){
                     //======== ACTUALIZAR STOCK_LOGICO ======
                     DB::table('producto_color_tallas')
                     ->where('producto_id', $producto_id)
                     ->where('color_id', $color_id)
                     ->where('talla_id', $talla_id)
                     ->update([
-                        'stock_logico' => DB::raw('stock_logico + ' . ($cantidad_atendida_anterior - $cantidad_atendida_nueva)),
+                        'stock_logico' => DB::raw('stock_logico + ' . ($cantidad_atender_anterior - $cantidad_atender_nueva)),
                     ]);
 
                     DB::commit();
                     return response()->json(['type'=>'success','data'=>$data,'message'=>'Stock lógico actualizado']);
                 }else{
                     return response()->json(['type'=>'error','data'=>$data,'message'=>'Stock lógico ('.$stock_logico_repuesto .') es menor 
-                    a la cantidad atendida ('.$cantidad_atendida_nueva.')']);
+                    a la cantidad que se quiere atender ('.$cantidad_atender_nueva.')']);
                 }
             }else{
                 return response()->json(['type'=>'error','data'=>$data,'message'=>'El producto no existe']);
             }
         } catch (\Throwable $th) {
+            DB::rollback();
             return response()->json(['type'=>'error','data'=>$th->getMessage(),'message'=>'Error en el servidor']);
         }
     }
@@ -789,8 +795,8 @@ class PedidoController extends Controller
                     ->where('color_id', $producto->color_id)
                     ->where('talla_id', $producto->talla_id)
                     ->update([
-                        'cantidad_atendida'     => $producto->cantidad,
-                        'cantidad_pendiente'    => DB::raw('cantidad - ' . $producto->cantidad),
+                        'cantidad_pendiente'    => DB::raw('cantidad_pendiente  - ' . $producto->cantidad),
+                        'cantidad_atendida'     => DB::raw('cantidad_atendida   + ' . $producto->cantidad)
                     ]);
                 }
 
@@ -801,6 +807,27 @@ class PedidoController extends Controller
                 $pedido_atencion->fecha_atencion    =   Carbon::now()->format('Y-m-d');
                 $pedido_atencion->save();
 
+                //======= CAMBIANDO ESTADO DEL PEDIDO =====
+                //===== CANTIDAD DE ITEMS QUE TIENE EL PEDIDO ======
+                $cant_items_pedido                  =   PedidoDetalle::where('pedido_id',$pedido_id)->count('*');
+                $cant_items_pendientes_pedido       =   PedidoDetalle::where('pedido_id',$pedido_id)
+                                                        ->where('cantidad_pendiente','>',0)
+                                                        ->count('*');
+
+                $pedido_actualizar                  =   Pedido::find($pedido_id);
+                if($cant_items_pendientes_pedido < $cant_items_pedido && $cant_items_pendientes_pedido>0){
+                    $pedido_actualizar->estado      =   "ATENDIENDO";
+                }
+                if($cant_items_pendientes_pedido == 0){
+                    $pedido_actualizar->estado      =   "FINALIZADO";
+                }
+
+                if($cant_items_pendientes_pedido == $cant_items_pedido){
+                    $pedido_actualizar->estado      =   "PENDIENTE";
+                }
+                $pedido_actualizar->save();
+               
+
                 DB::commit();
                 return response()->json([
                     'success' => true,
@@ -808,7 +835,22 @@ class PedidoController extends Controller
                     'mensaje'      =>   'DOCUMENTO DE VENTA GENERADO - PEDIDO ACTUALIZADO'
                 ]);
             } catch (\Throwable $th) {
+                //======== REVERTIR ACCIONES REALIZADAS EN PEDIDO CONTROLLER ======
                 DB::rollBack();
+
+                //===== DEVOLVER STOCKS =======
+                $detalles_documento_venta    =   Detalle::where('documento_id',$documento_id)->get();
+
+                foreach ($detalles_documento_venta as $item) {
+                    DB::table('producto_color_tallas')
+                    ->where('producto_id', $item->producto_id)
+                    ->where('color_id', $item->color_id)
+                    ->where('talla_id', $item->talla_id)
+                    ->update([
+                        'stock'    => DB::raw('stock  + ' . $item->cantidad),
+                    ]);
+                }
+               
                 //====== ELIMINAR DOC DE VENTA ====
                 DB::table('cotizacion_documento')
                 ->where('id', $documento_id)
@@ -816,7 +858,7 @@ class PedidoController extends Controller
 
                 return response()->json([
                     'success'   => false,
-                    'mensaje'   => 'ERROR AL ACTUALIZAR EL PEDIDO', 
+                    'mensaje'   => 'ERROR EN EL SERVIDOR, SI EL ERROR PERSISTE COMUNICARSE CON EL ADMINISTRADOR DEL SISTEMA', 
                     'excepcion' => $th->getMessage(),
                 ]);
             }
@@ -843,7 +885,35 @@ class PedidoController extends Controller
         } catch (\Throwable $th) {
             return response()->json(['type'=>'error','message'=>'ERROR EN EL SERVIDOR','exception'=>$th->getMessage()]);
         }
-       
+    }
+
+    public function devolverStockLogico(Request $request){
+        $productos  =  json_decode($request->get('carrito'));
+
+        foreach ($productos as $producto) {
+            foreach ($producto->tallas as $talla) {
+                if($talla->existe && $talla->cantidad_atender > 0){
+
+                    DB::update('UPDATE producto_color_tallas 
+                    SET stock_logico = stock_logico + ? 
+                    WHERE producto_id = ? and color_id=? and talla_id=?', 
+                    [$talla->cantidad_atender, $producto->producto_id,$producto->color_id,$talla->talla_id]);
+    
+                }
+            }
+        }
+    }
+    
+    public function getPedidoDetalles($pedido_id){
+
+        try {
+            $pedido_detalles    =   PedidoDetalle::where('pedido_id',$pedido_id)->get();
+            
+            return response()->json(['type'=>'success','pedido_detalles'=>$pedido_detalles]);
+        } catch (\Throwable $th) {
+            return response()->json(['type'=>'error','exception'=>$th->getMessage(),'message'=>'ERROR EN EL SERVIDOR']);
+        }
 
     }
+
 }

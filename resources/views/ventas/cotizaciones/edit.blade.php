@@ -1098,7 +1098,6 @@
     // }
 </script>
 
-<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <script>
     const selectModelo          =   document.querySelector('#modelo');
     const tableStocksBody       =   document.querySelector('#table-stocks tbody');

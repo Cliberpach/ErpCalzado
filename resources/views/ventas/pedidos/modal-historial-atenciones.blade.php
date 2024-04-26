@@ -12,34 +12,21 @@
             </div>
             <div class="modal-body content_cliente">
                <div class="row">
-                    <div class="col-6">
-                        <div class="row">
-                            <div class="col-12">
-                                <h5>DETALLES DEL PEDIDO</h5>
-                                @include('ventas.pedidos.tables-historial.table-pedido-detalles')
-                            </div>
-                        </div>
-                        <div class="row">
+                    <div class="col-12">
+                        <div class="row mb-3">
                             <div class="col-12">
                                 <h5>ATENCIONES</h5>
                                 @include('ventas.pedidos.tables-historial.table-atenciones')
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="row">
-                            <div class="col-12">
-                                <h5>DOCUMENTO</h5>
-                                @include('ventas.pedidos.tables-historial.table-documento')
+
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-12">
-                                <h5>DETALLES DOCUMENTO</h5>
-                                @include('ventas.pedidos.tables-historial.table-documento-detalles')
+                                <h5>DETALLES DEL DOCUMENTO</h5>
+                                @include('ventas.pedidos.tables-historial.table-atenciones-detalles')
                             </div>
                         </div>
-                    </div>
+                    </div>   
                </div>
             </div>
             <div class="modal-footer">
@@ -56,3 +43,54 @@
 
     </div>
 </div>
+
+@push('scripts')
+<script>
+    function eventsModalAtenciones(){
+        document.addEventListener('click',(e)=>{
+            const filaCercana   =   e.target.closest('tr');
+            if(filaCercana && filaCercana.classList.contains('rowAtencion')){
+                const pedido_id     =   filaCercana.getAttribute('data-pedido-id');
+                const atencion_id   =   filaCercana.getAttribute('data-atencion-id');
+
+                getAtencionDetalles(pedido_id,atencion_id);
+            }
+        })
+    }
+
+
+    async function getAtencionDetalles(pedido_id,atencion_id){
+         //===== OBTENIENDO DETALLES DEL PEDIDO =======
+         try {
+            const res   =   await axios.get(route('ventas.pedidos.getAtencionDetalles',{pedido_id,atencion_id}));
+            console.log(res);
+            const type  =   res.data.type;
+            if(type == 'success'){
+                const atencion_detalles   =   res.data.atencion_detalles;
+                pintarTableAtencionesDetalles(atencion_detalles);
+            }
+        } catch (error) {
+        
+        }
+    }
+
+    function pintarTableAtencionesDetalles(atencion_detalles) {
+        const bodyPedidoDetalles    =   document.querySelector('#table-atenciones-detalles tbody');
+
+        bodyPedidoDetalles.innerHTML    =   '';
+        let body    =   ``;
+
+        atencion_detalles.forEach((ad)=>{
+            body    +=  `<tr><th scope="row">${ad.producto_nombre}</th>
+            <td scope="row">${ad.color_nombre}</td>
+            <td scope="row">${ad.talla_nombre}</td>
+            <td scope="row">${ad.cantidad}</td>
+            </tr>`;
+        })
+
+        bodyPedidoDetalles.innerHTML    =   body;
+    }
+</script>
+@endpush
+
+

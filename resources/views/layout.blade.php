@@ -77,8 +77,11 @@
     <!-- Toastr style -->
     <link href="/Inspinia/css/plugins/toastr/toastr.min.css" rel="stylesheet">
 
-
-
+    <!-- FONTAWESOME PREMIUM 6.0 -->
+    <link href="https://cdn.jsdelivr.net/gh/eliyantosarage/font-awesome-pro@main/fontawesome-pro-6.5.1-web/css/all.min.css" rel="stylesheet">
+    
+    <!-- FONTAWESOME 5.0 FREE -->
+    {{-- <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script> --}}
 
     @stack('styles')
 
@@ -116,6 +119,16 @@
                         <li>
                             <a href="{{ route('reporte.producto.informe' )}}" title="PRODUCTO INFORME">
                                 <i class="fa fa-plus"></i> PI
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="restaurarStock()" title="RESTAURAR STOCK">
+                                <i class="fa-regular fa-hourglass-clock"></i> RESTAURAR STOCK
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{route('descargarBD')}}" title="RESTAURAR STOCK">
+                                <i class="fa-solid fa-database"></i> DATABASE
                             </a>
                         </li>
                     </ul>
@@ -216,6 +229,7 @@
     @stack('scripts')
 
     <script>
+          
     @if(Session::has('success'))
         toastr.success("{{ Session::get('success') }}")
     @endif
@@ -228,11 +242,7 @@
          toastr.success("{{ Session::get('GUIA_ID_SUNAT') }}")
     @endif
 
-
-
    
-
-
     //Mensaje de Session
     @if(session('guardar') == 'success')
     Swal.fire({
@@ -354,6 +364,16 @@
     })
     @endif
 
+    @if(Session::has('toastrError'))
+    Swal.fire({
+        icon: 'error',
+        title: 'ERROR AL DESCARGAR LA BD',
+        text: "{{ Session::get('toastrError') }}",
+        showConfirmButton: false,
+        timer: 3000
+    })
+    @endif
+
     </script>
 
     <script>
@@ -380,6 +400,26 @@
             $('.loader-spinner').hide();
             $("#content-system").css("display", "");
         })
+
+    async function restaurarStock(){
+        try {
+            const res   =   await axios.post(route('restaurarStock'));
+            console.log(res);
+            if(res.data.success){
+                const message   =   res.data.message;
+                toastr.success(message,'OPERACIÓN COMPLETADA');
+            }else{
+                const message       =   res.data.message;
+                const exception   =   res.data.exception;
+
+                toastr.error(`${message} - ${exception}`,'ERROR');
+            }
+        } catch (error) {
+            console.log(error)
+            toastr.error(`${error.response.data.message}`,'ERROR EN EL SERVIDOR');  
+        }
+    }
+
 
     </script>
 </body>

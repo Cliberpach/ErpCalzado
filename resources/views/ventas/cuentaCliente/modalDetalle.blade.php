@@ -293,7 +293,7 @@
                 $("#importe_venta").attr('readonly',false)
             }
 
-            if(document.querySelector('#pago').value = "TODO"){
+            if(document.querySelector('#pago').value == "TODO"){
                 document.querySelector('#efectivo_venta').readOnly      =   true;
             }
         }

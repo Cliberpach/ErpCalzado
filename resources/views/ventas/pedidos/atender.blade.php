@@ -347,8 +347,9 @@
     const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
     const inputMontoDescuento   =   document.querySelector('#monto_descuento');
 
-    let carrito     =   [];
-    const data_send =   [];
+    let carrito         =   [];
+    const data_send     =   [];
+    let secureClosure   =   1;  //======= 1:DEVUELVE STOCKS_LOGICOS  2: NO DEVUELVE STOCKS_LOGICOS =======
 
     document.addEventListener('DOMContentLoaded',()=>{
         loadSelect2();
@@ -360,7 +361,7 @@
     function events(){
         //======== EDITAR INPUT CANTIDAD ATENDIDA =======
         document.addEventListener('input',(e)=>{
-            if(e.target.classList.contains('inputCantidadAtendida')){
+            if(e.target.classList.contains('inputCantidadAtender')){
                 //====== QUITAR EL FOCUS DEL INPUT ======
                 e.target.blur();
                 //======== ELIMINAR TODOS LOS CARACTERES QUE NO SEAN NÚMEROS ========
@@ -371,27 +372,78 @@
                 const talla_id      =   e.target.getAttribute('data-talla-id');
 
                 //======= VALIDAR CANTIDAD ======
-                const cantidad_atendida_nueva   =  e.target.value==''?0:parseInt(e.target.value);
-                validarCantidadAtendida(producto_id,color_id,talla_id,cantidad_atendida_nueva,e.target);
+                const cantidad_atender_nueva   =  e.target.value==''?0:parseInt(e.target.value);
+                validarCantidadAtendida(producto_id,color_id,talla_id,cantidad_atender_nueva,e.target);
             } 
+
+            if (e.target.classList.contains('embalaje') || e.target.classList.contains('envio')) {
+                // Eliminar ceros a la izquierda, excepto si es el único carácter en el campo o si es seguido por un punto decimal y al menos un dígito
+                e.target.value = e.target.value.replace(/^0+(?=\d)|(?<=\D)0+(?=\d)|(?<=\d)0+(?=\.)|^0+(?=[1-9])/g, '');
+
+                // Evitar que el primer carácter sea un punto
+                e.target.value = e.target.value.replace(/^(\.)/, '');
+
+                // Reemplazar todo excepto los dígitos y el punto decimal
+                e.target.value = e.target.value.replace(/[^\d.]/g, '');
+
+                // Reemplazar múltiples puntos decimales con uno solo
+                e.target.value = e.target.value.replace(/(\..*)\./g, '$1');
+
+                calcularMontos();
+            }
         })
 
         //========= GENERAR DOC DE VENTA ========
         document.querySelector('#form-pedido-doc-venta').addEventListener('submit',async (e)=>{
             e.preventDefault();
-            //===== VALIDACIONES ======
-            const validar = await validarForm();
 
-            if(!validar){
-                return;
+            Swal.fire({
+                title: "Está seguro de generar el documento?",
+                text: "Operación no reversible!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sí, genera el documento!"
+                }).then(async (result) => {
+                if (result.isConfirmed) {
+
+                    //===== VALIDACIONES ======
+                    const validar = await validarForm();
+
+                    if(!validar){
+                        return;
+                    }
+
+                    //====== CARGAR PRODUCTOS ========
+                    cargarData();
+
+                    //======== ENVIAR FORM =======
+                    generarDocumentoVenta(e.target);
+
+                }
+            });  
+
+        })
+
+        //============ CIERRE DE LA VENTANA ======
+        window.addEventListener('beforeunload', async function(event) {
+
+            if (secureClosure == 1) {
+                var mensaje = '¿Estás seguro de que quieres salir de esta página?';
+                event.returnValue = mensaje;
+
+                try {
+                    const response = await axios.post(route('ventas.pedidos.devolverStockLogico'), {
+                        carrito: JSON.stringify(carrito)
+                    });
+                    console.log('Stock devuelto correctamente:', response.data);
+                } catch (error) {
+                    console.error('Error al devolver el stock:', error);
+                }
             }
 
-            //====== CARGAR PRODUCTOS ========
-            cargarData();
-
-            //======== ENVIAR FORM =======
-            generarDocumentoVenta(e.target);
-        })
+        });
 
     }
 
@@ -405,6 +457,8 @@
         });
     }
 
+
+
     function cargarData(){
         //===== CARGANDO PRODUCTOS =====
         const inputProductos    =   document.querySelector('#productos_tabla');
@@ -413,7 +467,6 @@
         //======= CARGANDO CLIENTE ======
         const cliente_id        =   document.querySelector('#cliente').value;
         document.querySelector('#cliente_id').value =   cliente_id;
-
 
     }
 
@@ -442,6 +495,7 @@
                 const success   =   res.data.success;
                 
                 if(success){
+                    secureClosure = 2;
                     const documento_id  =   res.data.documento_id;
 
                     toastr.success('¡Documento de venta creado!', 'Exito');
@@ -449,17 +503,28 @@
                     window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
                     //===> asegurar cierre ===
                     window.location.href = '{{ route('ventas.documento.index') }}';
+                }else{
+                    secureClosure = 1;
+                    const mensaje   =   res.data.mensaje;
+                    const excepcion =   res.data.excepcion;
+                    toastr.error(`${excepcion}`, `${mensaje}`, {
+                        timeOut: 0,
+                        extendedTimeOut: 0 
+                    });
                 }
+
+            }else{
+                toastr.error('NO HAY CAJAS APERTURADAS','ERROR');
+                secureClosure = 1;
             }
 
-          
-         
             console.log(res);
         } catch (error) {
             
         }finally{
             const overlay = document.getElementById('overlay_esfera_1');
-            overlay.style.display = 'none'; 
+            overlay.style.display = 'none';
+            document.querySelector('#btn_grabar').disabled  = false;
         }
     }
 
@@ -526,7 +591,7 @@
     }
 
     //========= VALIDAR CANTIDAD ATENDIDA ========
-    async function validarCantidadAtendida(producto_id,color_id,talla_id,cantidad_atendida_nueva,input){
+    async function validarCantidadAtendida(producto_id,color_id,talla_id,cantidad_atender_nueva,input){
 
         //======== OBTENER EL PRODUCTO DEL CARRITO =======
         let producto      =   carrito.filter((c)=>{
@@ -537,23 +602,23 @@
 
         if(producto.length > 0){
             //======= VALIDAR QUE LA CANTIDAD ATENDIDA SEA MENOR IGUAL A LA SOLICITADA =====
-            const cantidad_solicitada   =   parseInt(producto[0].cantidad_solicitada);
-            const cantidad_atendida_anterior    =   parseInt(producto[0].cantidad_atendida);
+            const cantidad_pendiente            =   parseInt(producto[0].cantidad_pendiente);
+            const cantidad_atender_anterior     =   parseInt(producto[0].cantidad_atender);
             
-            if(cantidad_atendida_nueva > cantidad_solicitada){
-                toastr.error('LA CANTIDAD ATENDIDA DEBE SER MENOR O IGUAL A LA SOLICITADA','ERROR');
-                input.value  =   parseInt(cantidad_atendida_anterior);
+            if(cantidad_atender_nueva > cantidad_pendiente){
+                toastr.error('LA CANTIDAD ATENDER DEBE SER MENOR O IGUAL A LA PENDIENTE','ERROR');
+                input.value  =   parseInt(cantidad_atender_anterior);
                 input.focus();
                 return false;
             }
 
-            //======= VALIDAR QUE LA CANTIDAD ATENDIDA SEA MENOR IGUAL AL STOCK_LOGICO EN VIVO DEL PRODUCTO =======
+            //======= VALIDAR QUE LA CANTIDAD ATENDER SEA MENOR IGUAL AL STOCK_LOGICO EN VIVO DEL PRODUCTO =======
             try {
                 const overlay = document.getElementById('overlay_esfera_1');
                 overlay.style.display = 'flex'; 
-                const res   =   await axios.post(route('ventas.pedidos.validarCantidadAtendida'),{
-                    cantidad_atendida_anterior,
-                    cantidad_atendida_nueva,
+                const res   =   await axios.post(route('ventas.pedidos.validarCantidadAtender'),{
+                    cantidad_atender_anterior,
+                    cantidad_atender_nueva,
                     producto_id,
                     color_id,
                     talla_id
@@ -566,13 +631,15 @@
 
                 if(type == 'success'){
                     //======== ACTUALIZANDO EL CARRITO ========
-                    producto[0].cantidad_atendida  =   cantidad_atendida_nueva; 
+                    producto[0].cantidad_atender  =   cantidad_atender_nueva; 
                     calcularSubTotal();
                     calcularDescuento(producto_id,color_id);
                     toastr.success(message,'CANTIDAD ACTUALIZADA');
                 }
 
                 if(type == 'error'){
+                    input.value =   cantidad_atender_anterior;
+                    input.focus();   
                     toastr.error(message,'ERROR');
                 }
             } catch (error) {
@@ -609,13 +676,18 @@
                         htmlTallas += `<td></td>`; 
                         htmlTallas += `<td></td>`; 
                     }else{
-                        htmlTallas += `<td>${talla_data[0].cantidad_pendiente}</td>`; 
+                        htmlTallas += `<td>
+                                        <div class="d-flex flex-column align-items-center">
+                                            <p  style="margin:0px;">${talla_data[0].cantidad_pendiente}</p>
+                                            <p  style="margin:0px;">${talla_data[0].stock_logico}</p>
+                                        </div>
+                                        </td>`; 
                         
                         htmlTallas += ` <td>
-                                            <input ${talla_data[0].cantidad == 0?'readonly':''} 
-                                            class="form-control inputCantidadAtendida" data-producto-id="${c.producto_id}"
+                                            <input ${talla_data[0].cantidad_atender == 0?'readonly':''} 
+                                            class="form-control inputCantidadAtender" data-producto-id="${c.producto_id}"
                                             data-color-id="${c.color_id}" data-talla-id="${t.id}" 
-                                            value="${talla_data[0].cantidad}"></input>
+                                            value="${talla_data[0].cantidad_atender}"></input>
                                         </td>`; 
                     }
                 })
@@ -685,7 +757,8 @@
                             cantidad_pendiente:             parseInt(t.cantidad_pendiente),
                             stock_logico:                   parseInt(t.stock_logico),
                             stock_logico_actualizado:       parseInt(t.stock_logico_actualizado),
-                            cantidad:                       parseInt(t.cantidad)
+                            cantidad_atender:               parseInt(t.cantidad),
+                            existe:                         t.existe
                         }
                         producto_color_tallas.push(talla);
                     })
@@ -718,7 +791,7 @@
 
         carrito.forEach((p)=>{
             p.tallas.forEach((t)=>{
-                    subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad);   
+                    subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad_atender);   
             })
                
             p.subtotal=subtotal; 
@@ -885,12 +958,12 @@
         if(detalles.length>0){
             detalles.forEach((d)=>{
                 d.tallas.forEach((t)=>{
-                    if(t.cantidad != 0){
+                    if(t.cantidad_atender != 0){
                         const producto ={};
                         producto.producto_id            =   d.producto_id;
                         producto.color_id               =   d.color_id;
                         producto.talla_id               =   t.talla_id;
-                        producto.cantidad               =   t.cantidad_atendida;
+                        producto.cantidad               =   t.cantidad_atender;
                         producto.precio_unitario        =   d.precio_venta;  
                         producto.porcentaje_descuento   =   d.porcentaje_descuento;
                         producto.precio_unitario_nuevo  =   d.precio_venta_nuevo;

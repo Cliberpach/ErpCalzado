@@ -328,16 +328,12 @@
 <script src="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.5/b-3.0.2/b-html5-3.0.2/b-print-3.0.2/date-1.5.2/r-3.0.2/sp-2.3.1/datatables.min.js"></script>
 <script>
     const tfootSubtotal         =   document.querySelector('.subtotal');
-    const tfootEmbalaje         =   document.querySelector('.embalaje');
-    const tfootEnvio            =   document.querySelector('.envio');
     const tfootTotal            =   document.querySelector('.total');
     const tfootIgv              =   document.querySelector('.igv');
     const tfootTotalPagar       =   document.querySelector('.total-pagar');
     const tfootDescuento        =   document.querySelector('.descuento');
     
     const inputSubTotal         =   document.querySelector('#monto_sub_total');
-    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
-    const inputEnvio            =   document.querySelector('#monto_envio');
     const inputTotal            =   document.querySelector('#monto_total');
     const inputIgv              =   document.querySelector('#monto_total_igv');
     const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
@@ -413,22 +409,6 @@
 
             if(e.target.classList.contains('inputCantidad')){
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
-            }
-
-            if (e.target.classList.contains('embalaje') || e.target.classList.contains('envio')) {
-                // Eliminar ceros a la izquierda, excepto si es el único carácter en el campo o si es seguido por un punto decimal y al menos un dígito
-                e.target.value = e.target.value.replace(/^0+(?=\d)|(?<=\D)0+(?=\d)|(?<=\d)0+(?=\.)|^0+(?=[1-9])/g, '');
-
-                // Evitar que el primer carácter sea un punto
-                e.target.value = e.target.value.replace(/^(\.)/, '');
-
-                // Reemplazar todo excepto los dígitos y el punto decimal
-                e.target.value = e.target.value.replace(/[^\d.]/g, '');
-
-                // Reemplazar múltiples puntos decimales con uno solo
-                e.target.value = e.target.value.replace(/(\..*)\./g, '$1');
-
-                calcularMontos();
             }
 
             if(e.target.classList.contains('detailDescuento')){
@@ -605,8 +585,6 @@
     //=========== CALCULAR MONTOS =======
     const calcularMontos = ()=>{
         let subtotal    =   0;
-        let embalaje    =   tfootEmbalaje.value?parseFloat(tfootEmbalaje.value):0;
-        let envio       =   tfootEnvio.value?parseFloat(tfootEnvio.value):0;
         let total       =   0;
         let igv         =   0;
         let total_pagar =   0;
@@ -622,7 +600,7 @@
             descuento += parseFloat(c.monto_descuento);
         })
 
-        total_pagar =   subtotal + embalaje + envio;
+        total_pagar =   subtotal;
         total       =   total_pagar/1.18;
         igv         =   total_pagar - total;
        
@@ -635,8 +613,6 @@
         inputTotalPagar.value       =   total_pagar.toFixed(2);
         inputIgv.value              =   igv.toFixed(2);
         inputTotal.value            =   total.toFixed(2);
-        inputEmbalaje.value         =   embalaje.toFixed(2);
-        inputEnvio.value            =   envio.toFixed(2);
         inputSubTotal.value         =   subtotal.toFixed(2);
         inputMontoDescuento.value   =   descuento.toFixed(2);
     }
@@ -752,10 +728,10 @@
 
                 //tallas
                 tallas.forEach((t)=>{
-                    let cantidad = c.tallas.filter((ct)=>{
+                    let item_talla = c.tallas.filter((ct)=>{
                         return t.id==ct.talla_id;
                     });
-                    cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
+                    let cantidad    =   item_talla.length!=0?item_talla[0].cantidad:0;
                     htmlTallas += `<td>${cantidad}</td>`; 
                 })
 

@@ -33,7 +33,7 @@
                 <span class="input-group-text" id="monto-embalaje">
                   <i class="fas fa-box-open"></i>
                 </span>
-                <input readonly  style="width: 10px;" type="text" class="form-control embalaje" value="0" aria-label="Username" aria-describedby="monto_embalaje">
+                <input  style="width: 10px;" type="text" class="form-control embalaje" value="0" aria-label="Username" aria-describedby="monto_embalaje">
               </div>
             </td>
           </tr>
@@ -44,7 +44,7 @@
                 <span class="input-group-text" id="monto-envio">
                   <i class="fas fa-truck"></i>
                 </span>
-                <input readonly style="width: 10px;"  type="text" class="form-control envio" value="0" aria-label="Username" aria-describedby="basic-addon1">
+                <input style="width: 10px;"  type="text" class="form-control envio" value="0" aria-label="Username" aria-describedby="basic-addon1">
               </div>
             </td>
           </tr>

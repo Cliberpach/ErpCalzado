@@ -1,4 +1,4 @@
-<table class="table table-striped" id="table-pedido-detalles">
+<table class="table table-striped table-hover table-light" id="table-pedido-detalles">
     <thead>
       <tr>
         <th scope="col">PRODUCTO</th>

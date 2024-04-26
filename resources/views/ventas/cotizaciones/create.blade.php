@@ -1018,7 +1018,6 @@
  
 </script>
 
-<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
 <script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
 <script>
