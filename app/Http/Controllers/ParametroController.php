@@ -110,7 +110,7 @@ class ParametroController extends Controller
             $fechaActual = Carbon::now()->format('Y-m-d');
             $ubicacionArchivoTemporal = getcwd() . DIRECTORY_SEPARATOR . "Respaldo_" . uniqid(date("Y-m-d") . "_", true) . ".sql";
     
-            $rutaMysqldump = 'D:\xampp\mysql\bin\mysqldump.exes'; 
+            $rutaMysqldump = 'D:\xampp\mysql\bin\mysqldump.exe'; 
             $salida = "";
             $codigoSalida = 0;
 

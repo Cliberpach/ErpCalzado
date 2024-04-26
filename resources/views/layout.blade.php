@@ -121,16 +121,18 @@
                                 <i class="fa fa-plus"></i> PI
                             </a>
                         </li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="restaurarStock()" title="RESTAURAR STOCK">
-                                <i class="fa-regular fa-hourglass-clock"></i> RESTAURAR STOCK
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{route('descargarBD')}}" title="RESTAURAR STOCK">
-                                <i class="fa-solid fa-database"></i> DATABASE
-                            </a>
-                        </li>
+                        @if(auth()->check() && auth()->user()->roles()->where('name', 'ADMIN')->exists())
+                            <li>
+                                <a href="javascript:void(0);" onclick="restaurarStock()" title="RESTAURAR STOCK">
+                                    <i class="fa-regular fa-hourglass-clock"></i> RESTAURAR STOCK
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{route('descargarBD')}}" title="RESTAURAR STOCK">
+                                    <i class="fa-solid fa-database"></i> DATABASE
+                                </a>
+                            </li>                        
+                        @endif
                     </ul>
                     <ul class="nav navbar-top-links navbar-right" id="appNotify">
                         <notify-component></notify-component>
