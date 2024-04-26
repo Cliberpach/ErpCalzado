@@ -128,7 +128,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{route('descargarBD')}}" title="RESTAURAR STOCK">
+                                <a href="{{route('descargarBD')}}" title="DESCARGAR BD">
                                     <i class="fa-solid fa-database"></i> DATABASE
                                 </a>
                             </li>                        
