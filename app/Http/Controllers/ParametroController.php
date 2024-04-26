@@ -116,7 +116,7 @@ class ParametroController extends Controller
             $codigoSalida = 0;
 
             $comando = sprintf("%s --user=\"%s\" --password=\"%s\" %s > %s", 
-            $rutaMysqldump, 
+            'mysqldump', 
             env("DB_USERNAME"), 
             env("DB_PASSWORD"), 
             env("DB_DATABASE"), 
