@@ -115,12 +115,20 @@ class ParametroController extends Controller
             $salida = "";
             $codigoSalida = 0;
 
-            $comando = sprintf("%s --user=\"%s\" --password=\"%s\" %s > %s", 
-            'mysqldump', 
-            env("DB_USERNAME"), 
-            env("DB_PASSWORD"), 
-            env("DB_DATABASE"), 
-            $ubicacionArchivoTemporal);
+            // $comando = sprintf("%s --user=\"%s\" --password=\"%s\" %s > %s", 
+            // 'mysqldump', 
+            // env("DB_USERNAME"), 
+            // env("DB_PASSWORD"), 
+            // env("DB_DATABASE"), 
+            // $ubicacionArchivoTemporal);
+
+            $comando = sprintf(
+                'mysqldump --user=%s --password=%s %s > %s',
+                env('DB_USERNAME'),
+                env('DB_PASSWORD'),
+                env('DB_DATABASE'),
+                $rutaArchivoTemporal
+            );
 
             exec($comando, $salida, $codigoSalida);
             dd($salida);
