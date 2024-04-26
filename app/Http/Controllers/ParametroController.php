@@ -131,7 +131,7 @@ class ParametroController extends Controller
             );
 
             exec($comando, $salida, $codigoSalida);
-            dd($salida);
+            
             if ($codigoSalida !== 0) {
                 return back()->with('toastrError', "Código de salida distinto de 0, se obtuvo código (" . $codigoSalida. "). Revise los ajustes e intente de nuevo");
             }
