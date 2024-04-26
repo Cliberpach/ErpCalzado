@@ -127,7 +127,7 @@ class ParametroController extends Controller
                 env('DB_USERNAME'),
                 env('DB_PASSWORD'),
                 env('DB_DATABASE'),
-                $rutaArchivoTemporal
+                $ubicacionArchivoTemporal
             );
 
             exec($comando, $salida, $codigoSalida);
