@@ -433,6 +433,8 @@ function(){
         Route::get('getLot/{id}/{tipocomprobante}','Ventas\DocumentoController@getLot')->name('ventas.getLot');
         Route::get('getLote-productos','Ventas\DocumentoController@getLoteProductos')->name('ventas.getLoteProductos');
         Route::post('vouchersAvaible','Ventas\DocumentoController@vouchersAvaible')->name('ventas.vouchersAvaible');
+        
+        Route::post('regularizar-venta','Ventas\DocumentoController@regularizarVenta')->name('ventas.regularizarVenta');
     });
 
     //VENTAS-CAJA
@@ -530,7 +532,7 @@ function(){
         Route::get('getDetalles/{id}','Ventas\Electronico\NotaController@getDetalles')->name('ventas.getDetalles');
         Route::get('show/{id}','Ventas\Electronico\NotaController@show')->name('ventas.notas.show');
         Route::get('show_dev/{id}','Ventas\Electronico\NotaController@show_dev')->name('ventas.notas_dev.show');
-        Route::get('sunat/{id}','Ventas\Electronico\NotaController@sunat')->name('ventas.notas.sunat');
+        Route::get('sunat/{id}/{type_response?}','Ventas\Electronico\NotaController@sunat')->name('ventas.notas.sunat');
     });
 
     //Caja

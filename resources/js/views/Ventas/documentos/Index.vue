@@ -225,7 +225,7 @@
                                                                     </button>
                                                                 </template>
 
-                                                                <template v-if="
+                                                                <!-- <template v-if="
                                                                   dias(item) <= 0 &&
                                                                   item.contingencia == '0' &&
                                                                   item.tipo_venta_id != '129' &&
@@ -234,9 +234,25 @@
                                                                     <button type="button" class="btn btn-sm btn-warning"
                                                                         @click.prevent="contingencia(item.id)"
                                                                         title="Convertir a comprobante de contingencia">
-                                                                        <i class="fa fa-exchange"></i> Contingencia
-                                                                    </button>
+                                                                        <i class="fa fa-exchange"></i> {{item.estado}}
+                                                                    </button> 
+                                                                
+                                                                </template> -->
+
+                                                                <template v-if="
+                                                                  dias(item) <= 0 &&
+                                                                  item.estado == 'ACTIVO' &&
+                                                                  item.tipo_venta_id != '129' &&
+                                                                  item.sunat == '0'
+                                                                ">
+                                                                    <button type="button" class="btn btn-sm btn-warning"
+                                                                        @click.prevent="regularizarVenta(item.id)"
+                                                                        title="Crear nuevo doc venta con el mismo detalle">
+                                                                        <i class="fa fa-exchange"></i> ANULAR
+                                                                    </button> 
+                                                                
                                                                 </template>
+
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -688,6 +704,84 @@ export default {
             if (aData.contingencia == '1') {
                 return {'background-color':"#EBDEF0"}
             }
+        },
+        async regularizarVenta(documento_id){
+            Swal.fire({
+            title: "DESEA ANULAR EL DOC DE VENTA?",
+            text: "SE GENERARÁ UN NUEVO DOC DE VENTA COMO REEMPLAZO!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "SÍ!"
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    let alerta_procesando =   toastr.info('ANULANDO DOC DE VENTA', 'PROCESANDO', {
+                            closeButton: false,
+                            progressBar: true,
+                            positionClass: 'toast-top-right',
+                            timeOut: 0, 
+                            tapToDismiss: false 
+                    });
+
+                    try {
+
+                        const res   =   await axios.post(route('ventas.regularizarVenta'),{
+                            documento_id
+                        });
+                        console.log(res);
+
+                        const success   =   res.data.success;
+                        if(success){
+                            const message       =   res.data.message;
+
+                            //======== ACTUALIZANDO LISTADO =====
+                            this.Lista();
+                            //========= RESPUESTA EXITOSA ======
+                            toastr.success(message,'OPERACIÓN COMPLETADA',{
+                                timeOut: 0, 
+                            });
+                        }else{
+                            const type  =   res.data.type;
+
+                            //========== MANEJANDO ERRORES DE VALIDACIÓN DEL REQUEST =====
+                            if(type == "VALIDATION"){
+                            
+                                const messages  =   res.data.data.mensajes;
+                                console.log(messages);
+                                let message = ``;
+                                for (const key in messages) {
+                                    if (Object.hasOwnProperty.call(messages, key)) {
+                                        const element = messages[key];
+                                        message += `| ${element[0]} |`;
+                                    }
+                                }
+                                toastr.error(message,'ERROR DE VALIDACIÓN',{
+                                    timeOut: 0, 
+                                });
+                            }
+
+                            //======= MANEJANDO ERRORES EN ACCIONES SOBRE LA BD =====
+                            if(type == "DB"){
+                                const message       =   res.data.message;
+                                const exception  =   res.data.exception;
+
+                                toastr.error(exception,message,{
+                                    timeOut: 0, 
+                                });
+                            }
+
+                        }
+                    } catch (error) {
+                        toastr.error('ERROR EN EL SERVIDOR','ERROR',{
+                                timeOut: 0, 
+                        });
+                    }finally{
+                        toastr.clear(alerta_procesando);
+                    }
+
+                }
+            });
         }
     },
     mounted() {

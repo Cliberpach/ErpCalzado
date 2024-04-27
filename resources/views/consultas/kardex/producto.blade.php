@@ -67,8 +67,10 @@
                                     <th class="text-center">VENTAS</th>
                                     <th class="text-center">DEVOLUCIONES</th>
                                     <th class="text-center">SALIDAS</th>
+                                    <th class="text-center">CANTIDAD</th>
                                     <th class="text-center">STOCK</th>
                                     <th class="text-center">ACCION</th>
+                                    <th class="text-center">USUARIO/CLIENTE/PROVEEDOR</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -244,11 +246,19 @@
                     className: "text-center"
                 },
                 {
+                    data: 'cantidad',
+                    className: "text-center"
+                },
+                {
                     data: 'stock',
                     className: "text-center"
                 },
                 {
                     data: 'accion',
+                    className: "text-center"
+                },
+                {
+                    data: 'descripcion',
                     className: "text-center"
                 }
             ],

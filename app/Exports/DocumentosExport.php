@@ -31,7 +31,7 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
             "RUC/DNI",
             "TIPO.CLIENTE",
             "CLIENTE",
-            "ESTADO",
+            "SUNAT",
             "MONEDA",
             "MONTO",
             "OP.GRAVADA",
@@ -40,7 +40,9 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
             "TRANSFERENCIA",
             "YAPE/PLIN",
             "ENVIADA",
-            "HASH"]
+            "ESTADO",
+            // "HASH"
+            ]
         ];
     }
 
@@ -63,7 +65,9 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
     {
         if($this->tipo == 129 || $this->tipo == 128 || $this->tipo == 127)
         {
-            $consulta = Documento::where('estado','!=','ANULADO')->where('tipo_venta', $this->tipo);
+            // $consulta = Documento::where('estado','!=','ANULADO')->where('tipo_venta', $this->tipo);
+            $consulta = Documento::where('tipo_venta', $this->tipo);
+
             if($this->fecha_desde && $this->fecha_hasta)
             {
                 $consulta = $consulta->whereBetween('fecha_documento', [$this->fecha_desde, $this->fecha_hasta]);
@@ -109,7 +113,7 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                     'RUC/DNI' => $doc->documento_cliente,
                     'TIPO.CLIENTE' => $doc->tipoDocumentoCliente(),
                     'CLIENTE' => $doc->cliente,
-                    'ESTADO' => $doc->sunat == '2' ? "NULO" : "VALIDO",
+                    'SUNAT' => $doc->sunat == '2' ? "NULO" : "VALIDO",
                     'MONEDA' => $doc->simboloMoneda(),
                     'MONTO' => $doc->total_pagar,
                     'OP.GRAVADA' => $doc->total,
@@ -118,7 +122,8 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                     'TRANSFERENCIA' => $transferencia,
                     'YAPE/PLIN' => $otros,
                     'ENVIADA' => $doc->contingencia == '0' ? ($doc->sunat == '1' || $doc->sunat == '2' ? 'SI' : 'NO') : ($doc->sunat_contingencia == '1' ? 'SI' : 'NO'),
-                    'HASH' => $doc->hash
+                    'ESTADO'    =>  $doc->estado,
+                    // 'HASH' => $doc->hash
                 ]);
             }
 
@@ -127,7 +132,9 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
 
         if($this->tipo == 126) //Ventas
         {
-            $ventas = Documento::where('estado','!=','ANULADO');
+            //$ventas = Documento::where('estado','!=','ANULADO');
+            $ventas = Documento::all();
+
             if($this->fecha_desde && $this->fecha_hasta)
             {
                 $ventas = $ventas->whereBetween('fecha_documento', [$this->fecha_desde, $this->fecha_hasta]);
@@ -173,7 +180,7 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                     'RUC/DNI' => $doc->documento_cliente,
                     'TIPO.CLIENTE' => $doc->tipoDocumentoCliente(),
                     'CLIENTE' => $doc->cliente,
-                    'ESTADO' => $doc->sunat == '2' ? "NULO" : "VALIDO",
+                    'SUNAT' => $doc->sunat == '2' ? "NULO" : "VALIDO",
                     'MONEDA' => $doc->simboloMoneda(),
                     'MONTO' => $doc->total_pagar,
                     'OP.GRAVADA' => $doc->total,
@@ -182,7 +189,8 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                     'TRANSFERENCIA' => $transferencia,
                     'YAPE/PLIN' => $otros,
                     'ENVIADA' => $doc->contingencia == '0' ? ($doc->sunat == '1'|| $doc->sunat == '2' ? 'SI' : 'NO') : ($doc->sunat_contingencia == '1' ? 'SI' : 'NO'),
-                    'HASH' => $doc->hash
+                    'ESTADO'    =>  $doc->estado,
+                    // 'HASH' => $doc->hash
                 ]);
             }
             return $coleccion;
@@ -190,7 +198,9 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
 
         if($this->tipo == 125) //Fact, Boletas y Nota Crédito
         {
-            $ventas = Documento::where('estado','!=','ANULADO')->where('tipo_venta','!=',129);
+            // $ventas = Documento::where('estado','!=','ANULADO')->where('tipo_venta','!=',129);
+            $ventas = Documento::where('tipo_venta','!=',129);
+
             if($this->fecha_desde && $this->fecha_hasta)
             {
                 $ventas = $ventas->whereBetween('fecha_documento', [$this->fecha_desde, $this->fecha_hasta]);
@@ -205,6 +215,7 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
             ->orderBy('serie', 'asc')
             ->orderBy('correlativo', 'asc')
             ->get();
+
 
             $coleccion = collect();
 
@@ -237,7 +248,7 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                     'RUC/DNI' => $doc->documento_cliente,
                     'TIPO.CLIENTE' => $doc->tipoDocumentoCliente(),
                     'CLIENTE' => $doc->cliente,
-                    'ESTADO' => $doc->sunat == '2' ? "NULO" : "VALIDO",
+                    'SUNAT' => $doc->sunat == '2' ? "NULO" : "VALIDO",
                     'MONEDA' => $doc->simboloMoneda(),
                     'MONTO' => $doc->total_pagar,
                     'OP.GRAVADA' => $doc->total,
@@ -246,7 +257,8 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                     'TRANSFERENCIA' => $transferencia,
                     'YAPE/PLIN' => $otros,
                     'ENVIADA' => $doc->contingencia == '0' ? ($doc->sunat == '1'|| $doc->sunat == '2' ? 'SI' : 'NO') : ($doc->sunat_contingencia == '1' ? 'SI' : 'NO'),
-                    'HASH' => $doc->hash
+                    'ESTADO'    =>  $doc->estado,
+                    // 'HASH' => $doc->hash
                 ]);
             }
 
@@ -269,7 +281,7 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                     'RUC/DNI' => $nota->documento_cliente,
                     'TIPO.CLIENTE' => $nota->cod_tipo_documento_cliente,
                     'CLIENTE' => $nota->cliente,
-                    'ESTADO' => $nota->sunat == '2' ? "NULO" : "VALIDO",
+                    'SUNAT' => $nota->sunat == '2' ? "NULO" : "VALIDO",
                     'MONEDA' => $nota->tipoMoneda,
                     'MONTO' => -($nota->mtoImpVenta),
                     'OP.GRAVADA' => -($nota->mtoOperGravadas),
@@ -278,7 +290,8 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                     'TRANSFERENCIA' => '-',
                     'YAPE/PLIN' => '-',
                     'ENVIADA' => $nota->sunat == '1' || $nota->sunat == '2' ? 'SI' : 'NO',
-                    'HASH' => $nota->hash
+                    'ESTADO'    =>  $nota->estado
+                    // 'HASH' => $nota->hash
                 ]);
             }
 
@@ -310,7 +323,7 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                     'RUC/DNI' => $nota->documento_cliente,
                     'TIPO.CLIENTE' => $nota->cod_tipo_documento_cliente,
                     'CLIENTE' => $nota->cliente,
-                    'ESTADO' => $nota->sunat == '2' ? "NULO" : "VALIDO",
+                    'SUNAT' => $nota->sunat == '2' ? "NULO" : "VALIDO",
                     'MONEDA' => $nota->tipoMoneda,
                     'MONTO' => $nota->mtoImpVenta,
                     'OP.GRAVADA' => $nota->mtoOperGravadas,
@@ -319,7 +332,8 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
                     'TRANSFERENCIA' => '-',
                     'YAPE/PLIN' => '-',
                     'ENVIADA' => $nota->sunat == '1' || $nota->sunat == '2' ? 'SI' : 'NO',
-                    'HASH' => $nota->hash
+                    'ESTADO'    =>  $nota->estado,
+                    // 'HASH' => $nota->hash
                 ]);
             }
 

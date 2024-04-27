@@ -176,8 +176,8 @@ class NotaIngresoController extends Controller
             $notaingreso->destino = $destino->descripcion;
        }
         $origen = DB::table('tabladetalles')->where('id', $request->origen)->first();
-        $notaingreso->origen = $origen->descripcion;
-        $notaingreso->usuario = Auth()->user()->usuario;
+        $notaingreso->origen    = $origen->descripcion;
+        $notaingreso->usuario   = Auth()->user()->usuario;
         // $notaingreso->total = $request->get('monto_total');
         // $notaingreso->moneda = $request->get('moneda');
         // $notaingreso->tipo_cambio = $dolar;

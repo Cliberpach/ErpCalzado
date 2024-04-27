@@ -365,7 +365,6 @@ class NotaController extends Controller
             //     }
             }
           
-
             //==== REGISTRO DE ACTIVIDAD ====
             $descripcion = "SE AGREGÓ UNA NOTA DE DEBITO CON LA FECHA: ". Carbon::parse($nota->fechaEmision)->format('d/m/y');
             $gestion = "NOTA DE DEBITO";
@@ -396,6 +395,11 @@ class NotaController extends Controller
             {
                  $text = 'Nota de devolución creada, se creo un egreso con el monto de la nota de devolución.';
             }
+
+            //========== ENVIO A SUNAT ======
+            $this->sunat($nota->id);
+
+    
 
             Session::flash('success', $text);
             return response()->json([
@@ -817,6 +821,8 @@ class NotaController extends Controller
                                 Session::flash('sunat_exito', '1');
                                 Session::flash('id_sunat', $json_sunat->sunatResponse->cdrResponse->id);
                                 Session::flash('descripcion_sunat', $json_sunat->sunatResponse->cdrResponse->description);
+
+                              
                                 return redirect()->route('ventas.notas', $documento->id)->with('sunat_exito', 'success');
                             }
                             else {
@@ -834,6 +840,7 @@ class NotaController extends Controller
                                 Session::flash('sunat_error', '1');
                                 Session::flash('id_sunat', $id_sunat);
                                 Session::flash('descripcion_sunat', $descripcion_sunat);
+
                                 return redirect()->route('ventas.notas', $documento->id)->with('sunat_error', 'error');
                             }
                         }else{
@@ -864,6 +871,7 @@ class NotaController extends Controller
                             Session::flash('sunat_error', '1');
                             Session::flash('id_sunat', $id_sunat);
                             Session::flash('descripcion_sunat', $descripcion_sunat);
+
                             return redirect()->route('ventas.notas', $documento->id)->with('sunat_error', 'error');
                         }
                     }else{

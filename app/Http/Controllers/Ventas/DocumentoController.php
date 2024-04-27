@@ -105,6 +105,7 @@ class DocumentoController extends Controller
                 'contingencia',
                 'sunat_contingencia',
                 'documento_cliente',
+                'estado',
                 DB::raw('json_unquote(json_extract(getRegularizeResponse, "$.code")) as code'),
                 'total',
                 'total_pagar',
@@ -184,7 +185,8 @@ class DocumentoController extends Controller
                 "condicion"=>$value->condicion->descripcion,
                 "tipo_venta_id"=>$value->tipo_venta,
                 "correo"=>$value->clienteEntidad->correo_electronico,
-                "telefonoMovil"=>$value->clienteEntidad->telefono_movil
+                "telefonoMovil"=>$value->clienteEntidad->telefono_movil,
+                "estado"=> $value->estado
             ]);
         }
 
@@ -1423,7 +1425,7 @@ class DocumentoController extends Controller
                 'cliente_id' => 'required',
                 'observacion' => 'nullable',
                 'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
-
+                'regularizar'   =>  'nullable'
             ];
 
             $message = [
@@ -1444,10 +1446,12 @@ class DocumentoController extends Controller
 
             if ($validator->fails()) {
                 return response()->json([
-                    'errors' => true,
-                    'data' => array('mensajes' => $validator->getMessageBag()->toArray()),
+                    'errors'    => true,
+                    'data'      => array('mensajes' => $validator->getMessageBag()->toArray()),
+                    'success'   =>  false,
                 ]);
             }
+
             
             $documento = new Documento();
             $documento->fecha_documento = $request->get('fecha_documento_campo');
@@ -1476,7 +1480,6 @@ class DocumentoController extends Controller
             $condicion = Condicion::findOrFail($cadena[0]);
             $documento->condicion_id = $condicion->id;
 
-           
 
             $documento->observacion = $request->get('observacion');
             $documento->user_id     = auth()->user()->id;
@@ -1490,7 +1493,7 @@ class DocumentoController extends Controller
             $monto_descuento    =   $request->get('monto_descuento')??0;
             $porcentaje_descuento = ($monto_descuento*100)/($monto_total_pagar);
 
-             
+
             
             $documento->sub_total           = $monto_sub_total;
             $documento->monto_embalaje      = $monto_embalaje;  
@@ -1605,7 +1608,7 @@ class DocumentoController extends Controller
                     //$lote->cantidad = $lote->cantidad - $producto->cantidad;
                     //$lote->stock = $lote->stock - $producto->cantidad;
 
-                    if(!$request->has('convertir')){
+                    if(!$request->has('convertir') && $request->get('regularizar') == 'NO'){
                         //===== ACTUALIZANDO STOCK ===========
                         DB::update('UPDATE producto_color_tallas 
                         SET stock = stock - ? 
@@ -1622,6 +1625,56 @@ class DocumentoController extends Controller
                         $kardex = new Kardex();
                         $kardex->origen         =   'VENTA';
                         $kardex->accion         =   'REGISTRO';
+                        $kardex->documento_id   =   $documento->id;
+                        $kardex->numero_doc     =   $envio_prev['serie_correlativo'];
+                        $kardex->fecha          =   $documento->fecha_documento;
+                        $kardex->cantidad       =   floatval($producto->cantidad);
+                        $kardex->producto_id    =   $producto->producto_id;
+                        $kardex->color_id       =   $producto->color_id;
+                        $kardex->talla_id       =   $producto->talla_id;
+                        $kardex->descripcion    =   $documento->cliente;
+                        $kardex->precio         =   $producto->precio_unitario;   
+                        $kardex->importe        =   $producto->precio_unitario * $producto->cantidad;
+                        $kardex->stock          =   $nuevo_stock;
+                        $kardex->save();
+                    }
+
+                    if($request->has('convertir')){
+                        $nuevo_stock = DB::table('producto_color_tallas')
+                        ->where('producto_id', $producto->producto_id)
+                        ->where('color_id', $producto->color_id)
+                        ->where('talla_id', $producto->talla_id)
+                        ->value('stock');
+
+                         //======= KARDEX CON STOCK YA MODIFICADO =======
+                         $kardex = new Kardex();
+                         $kardex->origen         =   'VENTA';
+                         $kardex->accion         =   'CONVERTIR';
+                         $kardex->documento_id   =   $documento->id;
+                         $kardex->numero_doc     =   $envio_prev['serie_correlativo'];
+                         $kardex->fecha          =   $documento->fecha_documento;
+                         $kardex->cantidad       =   floatval($producto->cantidad);
+                         $kardex->producto_id    =   $producto->producto_id;
+                         $kardex->color_id       =   $producto->color_id;
+                         $kardex->talla_id       =   $producto->talla_id;
+                         $kardex->descripcion    =   $documento->cliente;
+                         $kardex->precio         =   $producto->precio_unitario;   
+                         $kardex->importe        =   $producto->precio_unitario * $producto->cantidad;
+                         $kardex->stock          =   $nuevo_stock;
+                         $kardex->save();
+                    }
+
+                    if($request->get('regularizar') == 'SI'){
+                        $nuevo_stock = DB::table('producto_color_tallas')
+                        ->where('producto_id', $producto->producto_id)
+                        ->where('color_id', $producto->color_id)
+                        ->where('talla_id', $producto->talla_id)
+                        ->value('stock');
+
+                        //======= KARDEX CON STOCK YA MODIFICADO =======
+                        $kardex = new Kardex();
+                        $kardex->origen         =   'VENTA';
+                        $kardex->accion         =   'REGULARIZAR';
                         $kardex->documento_id   =   $documento->id;
                         $kardex->numero_doc     =   $envio_prev['serie_correlativo'];
                         $kardex->fecha          =   $documento->fecha_documento;
@@ -1694,9 +1747,16 @@ class DocumentoController extends Controller
             $documento->update();
             
 
-            //Registro de actividad
+            //========= REGISTRO DE ACTIVIDAD =========
             $descripcion = "SE AGREGÓ EL DOCUMENTO DE VENTA CON LA FECHA: " . Carbon::parse($documento->fecha_documento)->format('d/m/y');
             $gestion = "DOCUMENTO DE VENTA";
+
+            if($request->get('regularizar') == 'SI'){
+                $gestion = "DOCUMENTO DE VENTA REGULARIZADO";
+            }
+            if($request->has('convertir')){
+                $gestion = "DOCUMENTO DE VENTA CONVERTIDO";
+            }
             crearRegistro($documento, $descripcion, $gestion);
 
             if ((int) $documento->tipo_venta == 127 || (int) $documento->tipo_venta == 128) {
@@ -3406,5 +3466,120 @@ class DocumentoController extends Controller
                 'success' => false,
             ]);
         }
+    }
+
+    //====== REGULARIZAR VENTAS ======
+    //====== BOLETAS O FACTURAS =======
+    public function regularizarVenta(Request $request){
+        try {
+            DB::beginTransaction();
+            $documento_id   =   $request->get('documento_id');
+
+            //======= OBTENIENDO DOCUMENTO DE VENTA ANTIGUO ====
+            $documento_venta_antiguo    =   Documento::find($documento_id);
+
+            if($documento_venta_antiguo->tipo_venta == "129"){
+                return response()->json(['success'=>false,'message'=>'SOLO SE PERMITE REGULARIZAR FACTURAS O BOLETAS']);
+            }
+
+            //====== BUSCANDO DETALLES DEL DOC VENTA ANTIGUO ======
+            $detalles_documento_venta_antiguo   =   Detalle::where('documento_id',$documento_id)->get();
+
+            //===== CREANDO REQUEST =====
+            $request_doc_nuevo = new Request();
+
+            //====== OBTENIENDO FECHA ACTUAL ======
+            $fecha_documento_campo = Carbon::now();
+
+            $anio   = $fecha_documento_campo->year;
+            $mes    = $fecha_documento_campo->month;
+            $dia    = $fecha_documento_campo->day;
+    
+            $fecha_documento_campo = $fecha_documento_campo->format('Y-m-d');
+
+            
+            $request_doc_nuevo->merge([
+                'fecha_documento_campo'     =>  $fecha_documento_campo,
+                'fecha_atencion_campo'      =>  $fecha_documento_campo,
+                'fecha_vencimiento_campo'   =>  $documento_venta_antiguo->fecha_vencimiento,
+                'tipo_venta'            =>  $documento_venta_antiguo->tipo_venta,
+                'tipo_pago_id'          =>  $documento_venta_antiguo->tipo_pago_id,
+                'efectivo'              =>  $documento_venta_antiguo->efectivo,
+                'importe'               =>  $documento_venta_antiguo->importe,
+                'empresa_id'            =>  $documento_venta_antiguo->empresa_id,
+                'condicion_id'          =>  $documento_venta_antiguo->condicion_id,
+                'cliente_id'            =>  $documento_venta_antiguo->cliente_id,
+                'observacion'           =>  $documento_venta_antiguo->observacion,
+                'observacion'           =>  $documento_venta_antiguo->observacion,
+                'igv'                   =>  intval($documento_venta_antiguo->igv),
+                'regularizar'           =>  'SI',
+                'productos_tabla'       =>  json_encode($detalles_documento_venta_antiguo),
+                'monto_sub_total'       =>  $documento_venta_antiguo->sub_total,
+                'monto_embalaje'        =>  $documento_venta_antiguo->monto_embalaje,
+                'monto_envio'           =>  $documento_venta_antiguo->monto_envio,
+                'monto_total'           =>  $documento_venta_antiguo->total,
+                'monto_total_igv'       =>  $documento_venta_antiguo->total_igv,
+                'monto_total_pagar'     =>  $documento_venta_antiguo->total_pagar
+            ]);
+
+        
+            //====== GENERANDO NUEVO DOC DE VENTA ======
+            $res_store  =   $this->store($request_doc_nuevo);
+            
+            $res_store  =   $res_store->getData();
+            
+            //====== MANEJANDO RESPUESTA ======
+            //====== CASO I - DOC VENTA NUEVO GENERADO CORRECTAMENTE =======
+            if($res_store->success){
+               //===== ANULAR DOC VENTA ANTIGUO ======
+               $documento_venta_antiguo->estado =   'ANULADO';
+               $documento_venta_antiguo->save();
+
+                //===== BUSCAMOS EL NUEVO DOC PARA EXTRAER SU CORRELATIVO Y SERIE =====
+                $documento_venta_nuevo           =   Documento::find($res_store->documento_id);
+                $serie_correlativo_doc_nuevo     =   $documento_venta_nuevo->serie.'-'.$documento_venta_nuevo->correlativo;
+
+                $serie_correlativo_doc_antiguo   =   $documento_venta_antiguo->serie.'-'.$documento_venta_antiguo->correlativo;
+                //==== PREPARAMOS EL MENSAJE ======
+                $message    =   "SE CREO EL NUEVO DOCUMENTO DE VENTA: ".$serie_correlativo_doc_nuevo.", 
+                                Y SE ANULÓ EL DOCUMENTO DE VENTA: ".$serie_correlativo_doc_antiguo;
+
+                //===== COMMITEAMOS =====
+                DB::commit();
+
+               return response()->json(['success'   =>true,
+                'documento_nuevo_id'     =>$res_store->documento_id,
+                'documento_antiguo_id'   =>$documento_id,
+                'message'=>$message]);
+
+            }else{
+                //====== ERROR AL GENERAR EL DOC VENTA NUEVO ======
+                //======= VERIFICAMOS SI EL ERROR ES DE VALIDACIÓN ======
+                if (property_exists($res_store, 'errors')) {
+                    return response()->json(['success'=>false,
+                    'errors'    =>  $res_store->errors,
+                    'message'   =>  'ERROR DE VALIDACIÓN',
+                    'data'      =>  $res_store->data,
+                    'type'      =>  'VALIDATION']);
+                }
+                //======== ERROR EN LAS OPERACIONES SOBRE LA BD =======
+                return response()->json(['success'=>false,
+                'message'   =>$res_store->mensaje,
+                'exception' =>$res_store->excepcion,
+                'type'      =>  "DB"]);
+            }
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+
+            //===== ELIMINANDO DOC DE VENTA NUEVO GENERADO ====
+            DB::table('cotizacion_documento')
+              ->where('id', $res_store->documento_id)
+              ->delete();
+
+            return response()->json(['res'=>$th->getMessage(),'errorrr']);
+
+        }
+
     }
 }

@@ -86,13 +86,15 @@ class ProductoController extends Controller
                     'color'         =>  $color?$color->descripcion:'',
                     'talla'         =>  $talla?$talla->descripcion:'',
                     'origen'        =>  $documento->origen,
+                    'cantidad'      =>  $documento->cantidad,
                     'stock'         =>  $documento->stock,
                     'compras'       =>  $compras,
                     'ingresos'      =>  $ingresos,
                     'ventas'        =>  $ventas,
                     'devoluciones'  =>  $devoluciones,
                     'salidas'       =>  $salidas,
-                    'accion'        =>  $documento->accion
+                    'accion'        =>  $documento->origen.' '.$documento->accion,
+                    'descripcion' =>  $documento->descripcion
                 ]);
         }
 

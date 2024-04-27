@@ -126,7 +126,8 @@ class DetalleNotaIngreso extends Model
             $kardex->producto_id       =    $detalleNotaIngreso->producto_id;
             $kardex->color_id          =    $detalleNotaIngreso->color_id;
             $kardex->talla_id          =    $detalleNotaIngreso->talla_id;
-            $kardex->descripcion       =    $detalleNotaIngreso->nota_ingreso->origen;
+            $kardex->descripcion       =    $detalleNotaIngreso->nota_ingreso->usuario;
+            //$kardex->descripcion       =    $detalleNotaIngreso->nota_ingreso->origen;
             //$kardex->precio          = $detalle->costo_soles;
             //$kardex->importe         = $detalle->costo_soles * $detalle->cantidad;
             //$kardex->stock           = $detalle->producto->stock;
