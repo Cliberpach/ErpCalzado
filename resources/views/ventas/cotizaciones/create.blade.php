@@ -1577,7 +1577,7 @@
         }) 
     }
 
-    // //============= ABRIR MODAL CLIENTE =============
+    //============= ABRIR MODAL CLIENTE =============
     function openModalCliente(){
         $("#modal_cliente").modal("show");
     }

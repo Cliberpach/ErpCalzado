@@ -59,9 +59,13 @@ class PedidoController extends Controller
         $vendedor_actual    =   $vendedor_actual?$vendedor_actual[0]->id:null;     
         $modelos            = Modelo::where('estado','ACTIVO')->get();
         $tallas             = Talla::where('estado','ACTIVO')->get();
+
+        $tipos_documento    =   tipos_documento();
+        $departamentos      =   departamentos();
+        $tipo_clientes      =   tipo_clientes();
         
         return view('ventas.pedidos.create',compact('empresas','clientes','vendedor_actual','condiciones',
-                                            'modelos','tallas'));
+                                            'modelos','tallas','tipos_documento','departamentos','tipo_clientes'));
     }
 
     public function store(Request $request){
@@ -228,9 +232,14 @@ class PedidoController extends Controller
         $modelos            =   Modelo::where('estado','ACTIVO')->get();
         $tallas             =   Talla::where('estado','ACTIVO')->get();
         $pedido_id          =   $id;
+
+        $tipos_documento    =   tipos_documento();
+        $departamentos      =   departamentos();
+        $tipo_clientes      =   tipo_clientes();
         
         return view('ventas.pedidos.edit',compact('empresas','clientes','vendedor_actual_id','condiciones',
-                                            'modelos','tallas','pedido','pedido_detalles'));
+                                            'modelos','tallas','pedido','pedido_detalles',
+                                        'tipos_documento','departamentos','tipo_clientes'));
     }
 
     public function update(Request $request,$id){

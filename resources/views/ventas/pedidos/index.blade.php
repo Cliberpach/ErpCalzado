@@ -43,6 +43,7 @@
             <button class="btn btn-primary" style="width: 80%" id="btn-filtrar">FILTRAR <i class="fas fa-filter"></i></button>
        </div>
     </div>
+
     <div class="row">
         <div class="col-lg-12">
             <div class="ibox ">
@@ -70,6 +71,7 @@
             </div>
         </div>
     </div>
+
 </div>
 
 @stop
@@ -103,6 +105,11 @@
     background-color: #d7e9fb !important;
     color: #000000 !important;
     border-color: #d7e9fb !important;
+}
+
+.dropdown-menu {
+    max-height: 140px;
+    overflow-y: auto; 
 }
 
 </style>
@@ -182,7 +189,7 @@
                             return `
                             <div class="btn-group" style="text-transform:capitalize;">
                                 <button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class="fa-solid fa-list-timeline"></i></button>
-                                <ul class='dropdown-menu'>
+                                <ul class='dropdown-menu dropdown-menu-up'>
 
                             <li><a class='dropdown-item'  target='_blank' href="${url_reporte}" title='Detalle'><b><i class='fa fa-file-pdf-o'></i> Pdf</a></b></li>
                             <li><a class='dropdown-item' onclick="modificarPedido(${data})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li> 

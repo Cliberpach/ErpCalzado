@@ -249,7 +249,23 @@
                         <div class="col-12">
                             <div class="panel panel-primary">
                                 <div class="panel-heading">
-                                    <h4><b>Detalle del Pedido</b></h4>
+                                    <div class="row justify-content-between">
+                                        <div class="col-lg-6 col-md-6">
+                                            <h4><b>Detalle del Pedido</b></h4>
+                                        </div>
+                                        <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12 mr-3" style="background-color: #ffffff;border-radius:5px;">
+                                            <div class="row align-items-center" style="height: 100%;">
+                                                <div class="col-6 d-flex justify-content-center p-0">
+                                                    <div class="mr-2" style="background-color: rgb(7, 7, 183);padding:5px;"></div>
+                                                    <p class="m-0" style="color: black;">CANT SOLICITADA</p>
+                                                </div>
+                                                <div class="col-6 d-flex justify-content-center p-0">
+                                                    <div class="mr-2" style="background-color: black;padding:5px;"></div>
+                                                    <p class="m-0" style="color:black;">STOCK</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="panel-body">
                                     @include('ventas.pedidos.table-detalles-atender',[
@@ -430,8 +446,8 @@
         window.addEventListener('beforeunload', async function(event) {
 
             if (secureClosure == 1) {
-                var mensaje = '¿Estás seguro de que quieres salir de esta página?';
-                event.returnValue = mensaje;
+                // var mensaje = '¿Estás seguro de que quieres salir de esta página?';
+                // event.returnValue = mensaje;
 
                 try {
                     const response = await axios.post(route('ventas.pedidos.devolverStockLogico'), {
@@ -678,8 +694,8 @@
                     }else{
                         htmlTallas += `<td>
                                         <div class="d-flex flex-column align-items-center">
-                                            <p  style="margin:0px;">${talla_data[0].cantidad_pendiente}</p>
-                                            <p  style="margin:0px;">${talla_data[0].stock_logico}</p>
+                                            <p  style="margin:0px;color:rgb(7, 7, 183);font-weight:bold;">${talla_data[0].cantidad_pendiente}</p>
+                                            <p  style="margin:0px;color:black;font-weight:bold;">${talla_data[0].stock_logico}</p>
                                         </div>
                                         </td>`; 
                         

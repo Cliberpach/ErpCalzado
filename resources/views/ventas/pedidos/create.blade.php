@@ -1,4 +1,5 @@
 @extends('layout') @section('content')
+@include('ventas.cotizaciones.modal-cliente') 
 
 @section('ventas-active', 'active')
 @section('pedidos-active', 'active')
@@ -344,7 +345,9 @@
 
     document.addEventListener('DOMContentLoaded',()=>{
         loadSelect2();
+        setUbicacionDepartamento(13,'first');
         events();
+        eventsCliente();
     })
 
     function events(){
@@ -861,6 +864,11 @@
                 selectPrecioVenta.value =   c.precio_venta;
             }
         }) 
+    }
+
+    //============= ABRIR MODAL CLIENTE =============
+    function openModalCliente(){
+        $("#modal_cliente").modal("show");
     }
   
 </script>
