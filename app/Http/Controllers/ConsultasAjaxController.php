@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ConsultasAjaxController extends Controller
 {
@@ -22,5 +23,13 @@ class ConsultasAjaxController extends Controller
     public function getCodigoPrecioMenor(){
         $datos = codigoPrecioMenor();
         return $datos;
+    }
+
+    public function getTipoEnvios(){
+        $tipos_envio    =   DB::select('select td.id,td.descripcion from tablas as t 
+        inner join tabladetalles as td  on t.id=td.tabla_id
+        where t.id=35');
+
+        return response()->json($tipos_envio);
     }
 }

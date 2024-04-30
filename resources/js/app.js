@@ -26,6 +26,7 @@ Vue.component('example-component', require('./components/ExampleComponent.vue').
 Vue.component('ventas-component', require('./components/caja/VentasComponent.vue').default);
 Vue.component('modal-cliente', require('./components/ventas/ModalCliente.vue').default);
 
+
 Vue.component('v-select', vSelect)
 
 /**

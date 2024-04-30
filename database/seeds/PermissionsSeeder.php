@@ -260,6 +260,13 @@ class PermissionsSeeder extends Seeder
             'description'=>'El usuario puede acceder al mantenedor de Vendedores'
         ]);
 
+        //MANTENEDOR METODO ENTREGA
+        Permission::create([
+            'name'  => 'Mantenedor Métodos Entrega',
+            'slug'=>'metodo_entrega.index',
+            'description'=>'El usuario puede acceder al mantenedor de métodos entrega'
+        ]);
+
         //Caja permission
 
         Permission::create([

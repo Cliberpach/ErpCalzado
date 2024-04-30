@@ -174,6 +174,20 @@ function(){
         Route::post('/getDNI', 'Mantenimiento\Vendedor\VendedorController@getDNI')->name('mantenimiento.vendedor.getDni');
     });
 
+    //===== METODOS ENTREGA =======
+    Route::prefix('mantenimiento/metodos_entrega')->group(function() {
+        Route::get('/', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@index')->name('mantenimiento.metodo_entrega.index');
+        Route::get('/getTable', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@getTable')->name('mantenimiento.metodo_entrega.getTable');
+        Route::get('/registrar', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@create')->name('mantenimiento.metodo_entrega.create');
+        Route::post('/registrar', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@store')->name('mantenimiento.metodo_entrega.store');
+        Route::get('/edit/{id}', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@edit')->name('mantenimiento.metodo_entrega.edit');
+        Route::put('/actualizar/{id}', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@update')->name('mantenimiento.metodo_entrega.update');
+        Route::get('/destroy/{id}', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@destroy')->name('mantenimiento.metodo_entrega.destroy');
+
+       
+    });
+    
+
     //Almacenes
     //Almacen
     Route::prefix('almacenes/almacen')->group(function() {
@@ -873,6 +887,8 @@ function(){
         Route::get("tipo-clientes","ConsultasAjaxController@tipoClientes")->name("consulta.ajax.tipoClientes");
         Route::get("departamentos","ConsultasAjaxController@getDepartamentos")->name("consulta.ajax.getDepartamentos");
         Route::get("codigo-precio-menor","ConsultasAjaxController@getCodigoPrecioMenor")->name("consulta.ajax.getCodigoPrecioMenor");
+        Route::get("tipo-envios","ConsultasAjaxController@getTipoEnvios")->name("consulta.ajax.getTipoEnvios");
+
     });
 });
 

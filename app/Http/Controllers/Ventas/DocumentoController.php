@@ -804,15 +804,15 @@ class DocumentoController extends Controller
 
             return response()->json([
                 "initData"=>[
-                    'empresas' => $empresas,
-                    'clientes' => $clientes,
-                    'condiciones' => $condiciones,
-                    'fullaccess' => $fullaccess,
-                    'dolar' => $dolar,
-                    'vista'=>$vista,
-                    "tipoVentas"=>$tipoVentaArray,
-                    "modelos"=>Modelo::all(),
-                    "tallas"=>Talla::where('estado', 'ACTIVO')->get()
+                    'empresas'      =>  $empresas,
+                    'clientes'      =>  $clientes,
+                    'condiciones'   =>  $condiciones,
+                    'fullaccess'    =>  $fullaccess,
+                    'dolar'         =>  $dolar,
+                    'vista'         =>  $vista,
+                    "tipoVentas"    =>  $tipoVentaArray,
+                    "modelos"       =>  Modelo::all(),
+                    "tallas"        =>  Talla::where('estado', 'ACTIVO')->get(),
                 ],
                 "succes"=>true
             ]);

@@ -224,5 +224,13 @@ class TablaSeeder extends Seeder
         $tabla->editable = '1';
         $tabla->save();
 
+        //35
+        $tabla = new General();
+        $tabla->descripcion = 'TIPOS DE ENVIO';
+        $tabla->sigla = 'TIPOS DE ENVIO';
+        $tabla->editable = '1';
+        $tabla->save();
+
+
     }
 }

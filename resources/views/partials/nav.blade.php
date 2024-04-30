@@ -283,7 +283,7 @@
 @endcan
 
 
-@can('restore', [Auth::user(),['colaborador.index','vendedor.index','empresa.index','condicion.index','tabla.index','configuracion.index']])
+@can('restore', [Auth::user(),['colaborador.index','vendedor.index','empresa.index','condicion.index','tabla.index','configuracion.index','metodo_entrega.index']])
 <li class="@yield('mantenimiento-active')">
     <a href="#"><i class="fa fa-cogs"></i> <span class="nav-label">Mantenimento</span><span
             class="fa arrow"></span></a>
@@ -305,6 +305,9 @@
         @endcan
         @can('haveaccess', 'configuracion.index')
         <li class="@yield('configuracion-active')"><a href="{{ route('configuracion.index') }}">Configuración</a></li>
+        @endcan
+        @can('haveaccess', 'metodo_entrega.index')
+        <li class="@yield('metodo_entrega-active')"><a href="{{ route('mantenimiento.metodo_entrega.index') }}">Métodos Entrega</a></li>
         @endcan
     </ul>
 </li>

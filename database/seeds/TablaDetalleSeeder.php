@@ -1441,6 +1441,34 @@ class TablaDetalleSeeder extends Seeder
         $detalle->editable = 1;
         $detalle->save();
 
+        //======= TIPOS DE ENVIO =========
+        $detalle = new Detalle();
+        $detalle->descripcion   = "AGENCIA";
+        $detalle->nombre        = "AGENCIA";
+        $detalle->simbolo       = 'AGENCIA';
+        $detalle->estado        = 'ACTIVO';
+        $detalle->tabla_id      = 35;
+        $detalle->editable      = 1;
+        $detalle->save();
+
+        $detalle = new Detalle();
+        $detalle->descripcion   = "DELIVERY";
+        $detalle->nombre        = "DELIVERY";
+        $detalle->simbolo       = 'DELIVERY';
+        $detalle->estado        = 'ACTIVO';
+        $detalle->tabla_id      = 35;
+        $detalle->editable      = 1;
+        $detalle->save();
+
+        $detalle = new Detalle();
+        $detalle->descripcion   = "RECOJO EN TIENDA";
+        $detalle->nombre        = "RECOJO EN TIENDA";
+        $detalle->simbolo       = 'RECOJO EN TIENDA';
+        $detalle->estado        = 'ACTIVO';
+        $detalle->tabla_id      = 35;
+        $detalle->editable      = 1;
+        $detalle->save();
+
         //---------TIPO PAGO-----------
 
         $tipo = new TipoPago();

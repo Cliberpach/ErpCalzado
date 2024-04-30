@@ -471,7 +471,7 @@
                                     <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">ENVÍO:</td>
                                     <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
                                         <div class="input-group">
-                                            <span class="input-group-text" id="basic-addon1">
+                                            <span class="input-group-text" id="basic-addon1"  @click.prevent="setDataEnvio">
                                                 <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>                                                    
                                             </span>
                                             <input style="width: 10px;" v-model="monto_envio"  type="text" class="form-control"  aria-label="PRECIO ENVÍO" aria-describedby="basic-addon1">
@@ -516,7 +516,7 @@
         <!-- <ModalCodigoPrecioMenorVue :estadoPrecioMenor="estadoPrecioMenor"
             @addCodigoPrecioMenor="SaveCodigoPrecioMenor" />
         <ModalEditaDetalleVue :item.sync="itemLote" :detalles.sync="tablaDetalles" /> -->
-
+        <ModalEnvioVue @newCliente="formAddCliente" />
         </div>
         <!-- FIN COLUMNA -->
     </div>
@@ -525,6 +525,7 @@
 <script>
 
 // import ModalLotesVue from '../ModalLotes.vue';
+import ModalEnvioVue from "./ModalEnvio.vue";
 import { Empresa } from "../../interfaces/Empresa.js";
 import ModalCodigoPrecioMenorVue from './ModalCodigoPrecioMenor.vue';
 import { RedondearDecimales } from "../../helpers.js";
@@ -536,6 +537,7 @@ export default {
     name: "TablaProductos",
     components: {
     // ModalLotesVue,
+    ModalEnvioVue,
     ModalCodigoPrecioMenorVue,
     ModalEditaDetalleVue,
     TablaProductos
@@ -827,6 +829,12 @@ export default {
         });
     },
     methods: {
+        NuevoCliente() {
+            $("#modal_cliente").modal("show");
+        },
+        setDataEnvio() {
+            $("#modal_envio").modal("show");
+        },
         validarDescuento(producto_id,color_id,event){
            
             //==== CONTROLANDO DE QUE EL VALOR SEA UN NÚMERO ====
