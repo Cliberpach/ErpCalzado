@@ -32,4 +32,16 @@ class ConsultasAjaxController extends Controller
 
         return response()->json($tipos_envio);
     }
+
+    public function getEmpresasEnvio($tipo_envio){
+        try {
+            $empresas_envio     =   DB::select(' select * from empresas_envio as ee
+                                    where ee.tipo_envio=?',[$tipo_envio]); 
+
+            return response()->json(['success'=>true,'empresas_envio'=>$empresas_envio]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>"ERROR EN EL SERVIDOR",'exception'=>$th->getMessage()]);
+        }
+    }
+
 }

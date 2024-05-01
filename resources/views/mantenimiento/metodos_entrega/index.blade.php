@@ -1,7 +1,13 @@
-@extends('layout') @section('content')
+@extends('layout') 
+
+@section('content')
+    @include('mantenimiento.metodos_entrega.modal_create')
+    @include('mantenimiento.metodos_entrega.modal_edit')
+    @include('mantenimiento.metodos_entrega.modal_sedes')
 
 @section('mantenimiento-active', 'active')
 @section('metodo_entrega-active', 'active')
+
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
@@ -16,9 +22,9 @@
         </ol>
     </div>
     <div class="col-lg-2 col-md-2">
-        <button id="btn_añadir_vendedor" class="btn btn-block btn-w-m btn-primary m-t-md">
+        <a data-toggle="modal" data-target="#modal_create_metodo_entrega" class="btn btn-block btn-w-m btn-primary m-t-md" href="#" >
             <i class="fa fa-plus-square"></i> Añadir nuevo
-        </button>
+        </a>
     </div>
 </div>
 
@@ -28,12 +34,10 @@
             <div class="ibox ">
                 <div class="ibox-content">
                     <div class="table-responsive">
-                        <table class="table dataTables-vendedor table-striped table-bordered table-hover"  style="text-transform:uppercase">
+                        <table class="table dataTables-metodos_entrega table-striped table-bordered table-hover"  style="text-transform:uppercase">
                             <thead>
                             <tr>
                                 <th class="text-center">EMPRESA</th>
-                                <th class="text-center">SEDE</th>
-                                <th class="text-center">DIRECCION</th>
                                 <th class="text-center">TIPO_ENVIO</th>
                                 <th class="text-center">FECHA</th>
                                 <th class="text-center">ACCIONES</th>
@@ -51,22 +55,48 @@
 </div>
 
 @stop
+
 @push('styles')
     <!-- DataTable -->
     <link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
+    <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
+    <style>
+        .search-length-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.buttons-container{
+    display: flex;
+    justify-content:end;
+}
+    </style>
 @endpush
 
 @push('scripts')
+
     <!-- DataTable -->
     <script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
     <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
+    <!-- Select2 -->
+    <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
     <script>
+        let sedes_data_table    =   null;
 
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded',()=>{
+
+            $(".select2_form").select2({
+                placeholder: "SELECCIONAR",
+                allowClear: true,
+                height: '200px',
+                width: '100%',
+            });
+
+            sedes_data_table    =   dataTableSedes();
 
             // DataTables
-            $('.dataTables-vendedor').DataTable({
+            $('.dataTables-metodos_entrega').DataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [
                     {
@@ -98,27 +128,37 @@
                 "ajax": "{{ route('mantenimiento.metodo_entrega.getTable')}}",
                 "columns": [
                     {data: 'empresa', className:"text-center"},
-                    {data: 'sede', className:"text-left"},
-                    {data: 'direccion', className:"text-center"},
                     {data: 'tipo_envio', className:"text-center"},
                     {data: 'fecha', className:"text-center"},
                     {
                         data: null,
                         className:"text-center",
                         render: function(data) {
-                            //Ruta Detalle
+                           
                             var url_detalle = '{{ route("mantenimiento.vendedor.show", ":id")}}';
                             url_detalle = url_detalle.replace(':id',data.id);
 
-                            //Ruta Modificar
-                            var url_editar = '{{ route("mantenimiento.metodo_entrega.edit", ":id")}}';
-                            url_editar = url_editar.replace(':id',data.id);
+                           
+              
 
-                            return "<div class='btn-group'>" +
-                                "<a class='btn btn-success btn-sm' href='"+url_detalle+"' title='Detalle'><i class='fa fa-eye'></i></a>" +
-                                "<a class='btn btn-warning btn-sm modificarDetalle' href='"+url_editar+"' title='Modificar'><i class='fa fa-edit'></i></a>" +
-                                "<a class='btn btn-danger btn-sm' href='#' onclick='eliminar("+data.id+")' title='Eliminar'><i class='fa fa-trash'></i></a>" +
-                                "</div>";
+                            var accionesHtml = "<div class='btn-group'>" +
+                        "<button type='button' class='btn btn-primary btn-sm dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Acciones</button>" +
+                        "<div class='dropdown-menu'>" +
+                            "<a class='dropdown-item' href='"+url_detalle+"' title='Detalle'><i class='fa fa-eye'></i> Detalle</a>" +
+                            "<div class='dropdown-divider'></div>" + 
+                            "<a class='dropdown-item modificarDetalle' onclick='editarMetodoEntrega("+data.id+")' href='#' title='Modificar'><i class='fa fa-edit'></i> Modificar</a>" +
+                            "<div class='dropdown-divider'></div>"; 
+
+                            if (data.tipo_envio === "AGENCIA") {
+                                accionesHtml += "<a class='dropdown-item' href='#' onclick='sedes("+data.id+")' title='Sedes'><i class='fa fa-building'></i> Sedes</a>" +
+                                                "<div class='dropdown-divider'></div>"; 
+                            }
+
+                            accionesHtml += "<a class='dropdown-item' href='#' onclick='eliminar("+data.id+")' title='Eliminar'><i class='fa fa-trash'></i> Eliminar</a>" +
+                                            "</div>" +
+                                            "</div>";
+
+                            return accionesHtml;
                         }
                     }
 
@@ -129,9 +169,11 @@
                 "order": [[ 0, "desc" ]],
             });
 
-            // Eventos
-            $('#btn_añadir_vendedor').on('click', añadirVendedor);
-        });
+            eventsSedes();
+            eventsCreate();
+            eventsUpdate();
+        })
+      
 
         //Controlar Error
         $.fn.DataTable.ext.errMode = 'throw';
@@ -152,6 +194,55 @@
 
         function editarEmpleado(url) {
             window.location = url;
+        }
+
+        async function sedes(id){
+            //===== OBTENEMOS LAS SEDES =====
+            try {
+                const res   =   await axios.get(route('mantenimiento.metodo_entrega.getSedes',id));
+                console.log(res);
+                if(res.data.success){
+                    pintarSedes(res.data.sedes);
+                    document.querySelector('#agencia_id').value =   id;
+                    $('#modal_sedes').modal('show');
+                }else{
+                    toastr.error(`${res.data.message} - ${res.data.exception}`,'ERROR AL OBTENER LAS SEDES');
+                }
+            } catch (error) {
+                
+            }
+        }
+
+        async function editarMetodoEntrega(id){
+            try {
+                const res   =   await axios.get(route('mantenimiento.metodo_entrega.getMetodoEntrega',id));
+                console.log(res);
+                if(res.data.success){
+                    document.querySelector('#empresa_envio_id').value   =   id;
+                    setFormEdit(res.data.metodo_entrega);
+                    $('#modal_edit_metodo_entrega').modal('show');
+                }
+            } catch (error) {
+                
+            }
+        }
+
+        function setFormEdit(metodo_entrega){
+            const empresa       =   metodo_entrega.empresa;   
+            const tipo_envio    =   metodo_entrega.tipo_envio;
+            document.querySelector('#empresa_edit').value    =   empresa;
+
+            var opcionSeleccionada = $('#tipo_envio').find('option').filter(function() {
+                return $(this).text() == tipo_envio;
+            });
+
+            if (opcionSeleccionada.length > 0) {
+                var valorSeleccionado = opcionSeleccionada.val();
+                        
+                $('#tipo_envio_edit').val(valorSeleccionado).trigger('change');
+            } else {
+                console.error("No se encontró ninguna opción con el texto:", textoSeleccionado);
+            }
         }
 
         function eliminar(id) {

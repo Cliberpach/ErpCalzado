@@ -826,10 +826,7 @@ class DocumentoController extends Controller
     }
     public function devolverCantidad($devolucion)
     {                 
-        
-       
-            // if ($devolucion->producto_id != 0) {
-                
+            // if ($devolucion->producto_id != 0) {   
             if ($devolucion->producto != 0) {
                 //$lote = LoteProducto::findOrFail($devolucion->producto_id);
                 // $lote = ProductoColorTalla::where('producto_id', $devolucion->producto)

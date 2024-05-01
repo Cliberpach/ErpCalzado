@@ -119,7 +119,18 @@
                                 <div class="row">
                                     <div class="col-3">
                                         <v-select v-model="tipo_envio" :options="tipos_envios" :reduce="te=>te"
-                                                label="descripcion"></v-select>
+                                                label="descripcion" ></v-select>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-4">
+                                        <label for="" style="font-weight: bold;">EMPRESAS</label>
+                                        <v-select v-model="empresa_envio" :options="empresas_envio" :reduce="ee=>ee"
+                                                label="empresa"></v-select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="" style="font-weight: bold;">SEDES</label>
+                                       
                                     </div>
                                 </div>
                                 <!-- <div class="row">
@@ -182,6 +193,7 @@ export default {
     data() {
         return {
             loading: false,
+            empresas_envio:[],
             tipos_envios:[],
             tipoDocumentos: [],
             tipoClientes: [],
@@ -206,6 +218,10 @@ export default {
             tipo_envio:{
                 id:187,
                 descripcion:"AGENCIA"
+            },
+            empresa_envio:{
+                id:0,
+                empresa:"SELECCIONAR"
             },
             formCliente: {
                 tipo_documento: "",
@@ -259,17 +275,18 @@ export default {
             },
             loadingProvincias: false,
             loadingDistritos: false,
-            newClienteSuccess: {
-                documento: "",
-                id: 0,
-                nombre: "",
-                tabladetalles_id: 0,
-                tipo_documento: ""
-            },
+           
             maxlength:8
         }
     },
     watch: {
+        tipo_envio(value){
+            console.log('tipo envio seleccionado');
+            console.log(value.descripcion);
+
+            //====== OBTENIENDO EMPRESAS DE ENVIO =====
+            this.getEmpresasEnvio(value.descripcion);
+        },
         tipoDocumentos(value) {
             this.tipo_documento = value.length > 0 ? value[0].simbolo : "";
         },
@@ -406,36 +423,11 @@ export default {
         this.getTipoCliente();
         this.getDepartamentos();
         this.getTipoEnvios();
+        this.getEmpresasEnvio(this.tipo_envio.descripcion);
     },
     methods: {
         async Guardar() {
-            try {
-                this.loading = true;
-                const { data } = await this.axios.post(route('ventas.cliente.storeFast'), this.formCliente);
-                const { cliente, dataCliente, mensaje, result } = data;
-                toastr.success(mensaje);
-                this.newClienteSuccess = {
-                    cliente:`${cliente.tipo_documento}:${cliente.documento}-${cliente.nombre}`,
-                    documento: cliente.documento,
-                    id: cliente.id,
-                    nombre: cliente.nombre,
-                    tabladetalles_id: cliente.tabladetalles_id,
-                    tipo_documento: cliente.tipo_documento
-                }
-                
-                if (result != "success")
-                    throw "Errores";
-
-                this.$emit("newCliente", {
-                    cliente: this.newClienteSuccess,
-                    dataCliente
-                });
-                $("#modal_cliente").modal("hide");
-                
-                this.loading = false;
-            } catch (ex) {
-                alert("Ocurrio un error");
-            }
+          
         },
         async getTipoDocumento() {
             try {
@@ -587,9 +579,24 @@ export default {
             try {
                 const { data }      = await this.axios.get(route("consulta.ajax.getTipoEnvios"));
                 this.tipos_envios  = data;
-                console.log(data);
+                //console.log(data);
             } catch (ex) {
 
+            }
+        },
+        async getEmpresasEnvio(envio) {
+            try { 
+                const { data }      = await this.axios.get(route("consulta.ajax.getEmpresasEnvio",envio));
+                
+                if(data.success){
+                    this.empresas_envio  = data.empresas_envio;
+                    console.log(data);
+                }else
+                {
+                    toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER EMPRESAS DE ENVÍO');
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR EN EL SERVIDOR');
             }
         }
     }

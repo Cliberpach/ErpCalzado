@@ -180,9 +180,11 @@ function(){
         Route::get('/getTable', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@getTable')->name('mantenimiento.metodo_entrega.getTable');
         Route::get('/registrar', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@create')->name('mantenimiento.metodo_entrega.create');
         Route::post('/registrar', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@store')->name('mantenimiento.metodo_entrega.store');
-        Route::get('/edit/{id}', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@edit')->name('mantenimiento.metodo_entrega.edit');
-        Route::put('/actualizar/{id}', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@update')->name('mantenimiento.metodo_entrega.update');
+        Route::get('/get-metodo-entrega/{id}', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@getMetodoEntrega')->name('mantenimiento.metodo_entrega.getMetodoEntrega');
+        Route::post('/update', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@update')->name('mantenimiento.metodo_entrega.update');
         Route::get('/destroy/{id}', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@destroy')->name('mantenimiento.metodo_entrega.destroy');
+        Route::get('/get-sedes/{agencia_id}', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@getSedes')->name('mantenimiento.metodo_entrega.getSedes');
+        Route::post('/create-sede', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@createSede')->name('mantenimiento.metodo_entrega.createSede');
 
        
     });
@@ -888,6 +890,7 @@ function(){
         Route::get("departamentos","ConsultasAjaxController@getDepartamentos")->name("consulta.ajax.getDepartamentos");
         Route::get("codigo-precio-menor","ConsultasAjaxController@getCodigoPrecioMenor")->name("consulta.ajax.getCodigoPrecioMenor");
         Route::get("tipo-envios","ConsultasAjaxController@getTipoEnvios")->name("consulta.ajax.getTipoEnvios");
+        Route::get("get-empresas-envio/{tipo_envio}","ConsultasAjaxController@getEmpresasEnvio")->name("consulta.ajax.getEmpresasEnvio");
 
     });
 });

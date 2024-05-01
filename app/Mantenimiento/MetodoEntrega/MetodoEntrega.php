@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MetodoEntrega extends Model
 {
-    protected $table = 'metodos_entrega';
+    protected $table = 'empresas_envio';
     protected $guarded =[];
 
    

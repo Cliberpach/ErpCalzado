@@ -117,15 +117,9 @@
                                 <div class="col-12 col-md-6">
                                     <div class="form-group">
                                         <label class="required" for="distrito">Distrito</label>
-                                        <select required class="select2_form" name="distrito" id="distrito"   >
+                                        <select required class="select2_form" name="distrito" id="distrito">
                                            
                                         </select>
-                                        {{-- <v-select v-model="distrito" :options="Distritos" :reduce="d=>d"
-                                            label="text"></v-select> --}}
-                                        <!-- <select id="distrito" name="distrito" class="select2_form form-control"
-                                            style="width: 100%">
-                                            <option></option>
-                                        </select> -->
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6">

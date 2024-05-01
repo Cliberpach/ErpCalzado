@@ -516,7 +516,7 @@
         <!-- <ModalCodigoPrecioMenorVue :estadoPrecioMenor="estadoPrecioMenor"
             @addCodigoPrecioMenor="SaveCodigoPrecioMenor" />
         <ModalEditaDetalleVue :item.sync="itemLote" :detalles.sync="tablaDetalles" /> -->
-        <ModalEnvioVue @newCliente="formAddCliente" />
+        <ModalEnvioVue  />
         </div>
         <!-- FIN COLUMNA -->
     </div>
