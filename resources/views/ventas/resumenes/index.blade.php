@@ -299,8 +299,9 @@
         } catch (error) {
             console.log(error);
             console.error('Error al reenviar el resumen:', error);
-            toastr.error(error,'CONSULTA INCORRECTA');
-
+            toastr.error(error.response.data, 'ERROR EN EL SERVIDOR', {
+                timeOut: 0 
+            });
         }finally{
             document.querySelector('.loader-container').style.display = 'none'; 
         }
