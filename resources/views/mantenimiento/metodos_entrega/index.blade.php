@@ -149,7 +149,7 @@
                             "<a class='dropdown-item modificarDetalle' onclick='editarMetodoEntrega("+data.id+")' href='#' title='Modificar'><i class='fa fa-edit'></i> Modificar</a>" +
                             "<div class='dropdown-divider'></div>"; 
 
-                            if (data.tipo_envio === "AGENCIA") {
+                            if (data.tipo_envio === "AGENCIA" || data.tipo_envio === "RECOJO EN TIENDA") {
                                 accionesHtml += "<a class='dropdown-item' href='#' onclick='sedes("+data.id+")' title='Sedes'><i class='fa fa-building'></i> Sedes</a>" +
                                                 "<div class='dropdown-divider'></div>"; 
                             }

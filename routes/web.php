@@ -891,6 +891,7 @@ function(){
         Route::get("codigo-precio-menor","ConsultasAjaxController@getCodigoPrecioMenor")->name("consulta.ajax.getCodigoPrecioMenor");
         Route::get("tipo-envios","ConsultasAjaxController@getTipoEnvios")->name("consulta.ajax.getTipoEnvios");
         Route::get("get-empresas-envio/{tipo_envio}","ConsultasAjaxController@getEmpresasEnvio")->name("consulta.ajax.getEmpresasEnvio");
+        Route::get("get-sedes-envio/{empresa_envio_id}/{ubigeo}","ConsultasAjaxController@getSedesEnvio")->name("consulta.ajax.getSedesEnvio");
 
     });
 });

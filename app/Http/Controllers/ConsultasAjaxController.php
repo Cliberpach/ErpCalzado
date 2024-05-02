@@ -44,4 +44,25 @@ class ConsultasAjaxController extends Controller
         }
     }
 
+    public function getSedesEnvio($empresa_envio_id,$ubigeo){
+        try {
+            $ubigeo             =   json_decode($ubigeo);
+
+            $departamento       =   $ubigeo[0];
+            $provincia          =   $ubigeo[1];
+            $distrito           =   $ubigeo[2];
+
+
+
+            $sedes_envio    =   DB::select('select * from empresa_envio_sedes as ees
+                                where ees.empresa_envio_id=? and departamento=? 
+                                and provincia=? and distrito=?',[$empresa_envio_id,$departamento->nombre,
+                                $provincia->text,$distrito->text]);
+                                
+            return response()->json(['success'=>true,'sedes_envio'=>$sedes_envio]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>"ERROR EN EL SERVIDOR",'exception'=>$th->getMessage()]);
+        }
+    }
+
 }

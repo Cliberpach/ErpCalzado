@@ -12,76 +12,8 @@
                     <small class="font-bold">Registrar</small>
                 </div>
                 <div class="modal-body content_cliente" :class="{'sk__loading':loading}">
-                    <form id="frmCliente" class="formulario" @submit.prevent="Guardar">
+                    <form id="frmEnvio" class="formulario" @submit.prevent="Guardar">
                         <div class="row">
-                            <!-- <div class="col-12 col-md-6">
-                                <div class="row">
-                                    <div class="col-12 col-md-6">
-                                        <div class="form-group">
-                                            <label class="required" for="tipo_documento">Tipo de documento</label>
-                                            <v-select v-model="tipo_documento" :options="tipoDocumentos"
-                                                :reduce="tp=>tp.simbolo" label="simbolo"></v-select>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-6">
-                                        <div class="form-group">
-                                            <label class="required" for="documento">Nro. Documento</label>
-
-                                            <div class="input-group">
-                                                <input type="text" id="documento" name="documento" class="form-control"
-                                                    :maxlength="maxlength" v-model="formCliente.documento" required>
-                                                <span class="input-group-append">
-                                                    <button type="button" style="color:white" class="btn btn-primary"
-                                                        @click.prevent="consultarDocumento"
-                                                        :disabled="(tipo_documento == 'RUC' || tipo_documento=='DNI') ? false: true">
-                                                        <i class="fa fa-search"></i>
-                                                        <span id="entidad">{{ entidad }}</span>
-                                                    </button>
-                                                </span>
-
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-12 col-md-6">
-                                        <div class="form-group">
-                                            <label class="required" for="tipo_cliente">Tipo Cliente</label>
-                                            <v-select v-model="tipo_cliente_id" :options="tipoClientes"
-                                                :reduce="tc=>tc.id" label="descripcion"></v-select>
-                                        </div>
-                                    </div>
-                                    <input type="hidden" id="codigo_verificacion" name="codigo_verificacion">
-                                    <div class="col-12 col-md-6">
-                                        <div class="form-group">
-                                            <label class="" for="activo">Estado</label>
-                                            <input type="text" id="activo" name="activo"
-                                                class="form-control text-center" v-model="formCliente.activo" readonly>
-
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label class="required" id="lblNombre" for="nombre">Nombre</label>
-                                            <input type="text" id="nombre" name="nombre" class="form-control"
-                                                maxlength="191" v-model="formCliente.nombre" required>
-
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label for="direccion" class="required">Dirección Fiscal</label>
-                                            <input type="text" id="direccion" name="direccion" class="form-control"
-                                                maxlength="191" onkeyup="return mayus(this)" required
-                                                v-model="formCliente.direccion">
-
-                                        </div>
-                                    </div>
-                                </div>
-                            </div> -->
                             <div class="col-12 col-md-12">
                                 <label for="" style="font-weight: bold;">UBIGEO</label>
                                 <div class="row">
@@ -89,28 +21,28 @@
                                         <div class="form-group">
                                             <label class="required" for="departamento">Departamento</label>
                                             <v-select v-model="departamento" :options="Departamentos" :reduce="d=>d"
-                                                label="nombre"></v-select>
+                                             required   label="nombre" :clearable="false"></v-select>
                                         </div>
                                     </div>
                                     <div class="col-3 col-md-3">
                                         <div class="form-group">
                                             <label class="required" for="provincia">Provincia</label>
                                             <v-select v-model="provincia" :options="Provincias" :reduce="p=>p"
-                                                label="text"></v-select>
+                                                required   label="text" :clearable="false"></v-select>
                                         </div>
                                     </div>
                                     <div class="col-3 col-md-3">
                                         <div class="form-group">
                                             <label class="required" for="distrito">Distrito</label>
                                             <v-select v-model="distrito" :options="Distritos" :reduce="d=>d"
-                                                label="text"></v-select>
+                                                required    label="text" :clearable="false"></v-select>
                                         </div>
                                     </div>
                                     <div class="col-3 col-md-3">
                                         <div class="form-group">
                                             <label class="required" for="zona">Zona</label>
-                                            <input type="text" id="zona" name="zona" v-model="formCliente.zona"
-                                                class=" text-center form-control" readonly>
+                                            <input type="text" id="zona" name="zona" v-model="departamento.zona"
+                                            required   class=" text-center form-control" readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -119,46 +51,50 @@
                                 <div class="row">
                                     <div class="col-3">
                                         <v-select v-model="tipo_envio" :options="tipos_envios" :reduce="te=>te"
-                                                label="descripcion" ></v-select>
+                                            required :clearable="false" label="descripcion" ></v-select>
+                                    </div>
+                                    <div class="col-3 d-flex align-items-center" v-if="mostrarColumnaContraentrega">
+                                        <input id="check_contraentrega" type="checkbox" v-model="contraentrega" class="form-control">
+                                        <label for="check_contraentrega" class="mb-0" style="margin-right: 95px;font-weight: bold;">CONTRAENTREGA</label>
                                     </div>
                                 </div>
                                 <div class="row mt-3">
                                     <div class="col-4">
-                                        <label for="" style="font-weight: bold;">EMPRESAS</label>
-                                        <v-select v-model="empresa_envio" :options="empresas_envio" :reduce="ee=>ee"
-                                                label="empresa"></v-select>
+                                        <label required for="vselectEmpresa" style="font-weight: bold;">EMPRESAS</label>
+                                        <v-select  v-model="empresa_envio" :options="empresas_envio" :reduce="ee=>ee"
+                                            label="empresa" id="vselectEmpresa"   ref="vselectEmpresa"></v-select>
                                     </div>
                                     <div class="col-6">
                                         <label for="" style="font-weight: bold;">SEDES</label>
-                                       
+                                        <v-select :required="mostrar_combo_sedes" v-model="sede_envio"  :options="sedes_envio" :reduce="se=>se"
+                                        v-if="mostrar_combo_sedes"        label="direccion"></v-select>
+                                        <input :required="!mostrar_combo_sedes" readonly class="form-control" v-if="!mostrar_combo_sedes" type="text" v-model="sede_envio.direccion">
+
                                     </div>
                                 </div>
-                                <!-- <div class="row">
-                                    <div class="col-12 col-md-6">
-                                        <div class="form-group">
-                                            <label for="telefono_movil" class="required">Teléfono móvil</label>
-                                            <input type="text" id="telefono_movil" name="telefono_movil"
-                                                class="form-control" onkeypress="return isNroPhone(event)" maxlength="9"
-                                                required v-model="formCliente.telefono_movil">
-
-                                        </div>
+                                <hr>
+                                <label for="" style="font-weight: bold;">DATOS DEL DESTINATARIO</label>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <label class="required" for="dni_destinatario">Nro. DNI</label>
+                                            <div class="input-group">
+                                                <input type="text" id="dni_destinatario"  class="form-control"
+                                                    :maxlength="maxlength" v-model="destinatario.dni" required>
+                                                <span class="input-group-append">
+                                                    <button type="button" style="color:white" class="btn btn-primary"
+                                                        @click.prevent="consultarDocumento">
+                                                        <i class="fa fa-search"></i>
+                                                        <span id="entidad">{{ entidad }}</span>
+                                                    </button>
+                                                </span>
+                                            </div>
                                     </div>
-                                    <div class="col-12 col-md-6">
-                                        <div class="form-group">
-                                            <label for="telefono_fijo">Teléfono fijo</label>
-                                            <input type="text" id="telefono_fijo" name="telefono_fijo"
-                                                class="form-control" onkeypress="return isNroPhone(event)" maxlength="9"
-                                                v-model="formCliente.telefono_fijo">
-                                        </div>
+                                    <div class="col-8">
+                                        <label for="nombres_destinatario">Nombres</label>
+                                        <input required type="text" id="nombres_destinatario" v-model=destinatario.nombres 
+                                        class="form-control">
                                     </div>
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label for="correo_electronico">Correo electr&oacute;nico</label>
-                                            <input type="text" id="correo_electronico" name="correo_electronico"
-                                                class="form-control" v-model="formCliente.correo_electronico">
-                                        </div>
-                                    </div>
-                                </div> -->
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -177,10 +113,10 @@
                             marcados con asterisco (*) son obligatorios.</small>
                     </div>
                     <div class="col-md-6 text-right">
-                        <button type="submit" class="btn btn-primary btn-sm" form="frmCliente" style="color:white;"><i
+                        <button type="submit" class="btn btn-primary btn-sm" form="frmEnvio" style="color:white;"><i
                                 class="fa fa-save"></i> Guardar</button>
                         <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" @click.prevent="Cerrar"><i
-                                class="fa fa-times"></i> Cancelar</button>
+                                class="fa fa-times"></i> Cerrar</button>
                     </div>
                 </div>
             </div>
@@ -190,30 +126,37 @@
 <script>
 export default {
     name: "ModalEnvio",
+    props: ['cliente'],
     data() {
         return {
             loading: false,
+            contraentrega:false,
+            mostrarColumnaContraentrega:false,
+            mostrar_combo_sedes:true,
             empresas_envio:[],
+            sedes_envio:[],
             tipos_envios:[],
             tipoDocumentos: [],
             tipoClientes: [],
             Departamentos: [],
             Provincias: [],
             Distritos: [],
-            tipo_documento: "",
-            tipo_cliente_id: "",
+            destinatario:{
+                dni:"",
+                nombres:""
+            },
             departamento: {
                 id: 0,
-                nombre: "",
+                nombre: "SELECCIONAR",
                 zona: ""
             },
             provincia: {
                 id: 0,
-                text: ""
+                text: "SELECCIONAR"
             },
             distrito: {
                 id: 0,
-                text: ""
+                text: "SELECCIONAR"
             },
             tipo_envio:{
                 id:187,
@@ -223,21 +166,19 @@ export default {
                 id:0,
                 empresa:"SELECCIONAR"
             },
-            formCliente: {
-                tipo_documento: "",
-                tipo_cliente_id: "",
-                departamento: 0,
-                provincia: 0,
-                distrito: 0,
-                zona: "",
-                nombre: "",
-                documento: "",
-                direccion: "Direccion Trujillo",
-                telefono_movil: "999999999",
-                correo_electronico: "",
-                telefono_fijo: "",
-                codigo_verificacion: "",
-                activo: "SIN VERIFICAR"
+            sede_envio:{
+                id:0,
+                empresa_envio_id:0,
+                direccion:"SELECCIONAR"
+            }, 
+            formEnvio: {
+                departamento: {},
+                provincia: {},
+                distrito: {},
+                tipo_envio: {},
+                empresa_envio: {},
+                sede_envio: {},
+                destinatario: {}
             },
             entidad: "Entidad",
             dataDNI: {
@@ -280,12 +221,82 @@ export default {
         }
     },
     watch: {
-        tipo_envio(value){
-            console.log('tipo envio seleccionado');
-            console.log(value.descripcion);
+        cliente(value){
+            console.log(value)
+            if(value.tipo_documento === "DNI"){
+                if(value.documento === "99999999"){
+                    this.destinatario.dni       =   "";
+                    this.destinatario.nombres   =   "";
+                    return;
+                }
+                this.destinatario.dni       =   value.documento;
+                this.destinatario.nombres   =   value.nombre;
+            }
+            if(value.tipo_documento === "RUC"){
+                this.destinatario.dni       =   "";
+                this.destinatario.nombres   =   "";
+            } 
+        },
+        empresa_envio(value){
+            console.log('empresa envio seleccionada');
+            //====== LIMPIAR LAS SEDES ======
+            this.sede_envio =   {
+                id:0,
+                empresa_envio_id:0,
+                direccion:"SELECCIONAR"
+            }
 
-            //====== OBTENIENDO EMPRESAS DE ENVIO =====
-            this.getEmpresasEnvio(value.descripcion);
+            //======= EN CASO ELIMINE MI ELECCIÓN ======
+            if(!value){
+                //==== COLOCAR EN VALOR SELECCIONAR =====
+                this.empresa_envio  =   {
+                    id:0,
+                    empresa:"SELECCIONAR"
+                }  
+                this.sedes_envio    =   [];
+            }
+            
+            if(value && value.id !== 0){
+                if(this.tipo_envio.descripcion  === "DELIVERY"){
+                    this.sede_envio =   {
+                        id:0,
+                        empresa_envio_id:0,
+                        direccion:value.empresa
+                    }
+                }
+                const ubigeo    =  JSON.stringify([this.departamento,this.provincia,this.distrito]);
+                this.getSedesEnvio(value.id,ubigeo);
+            } 
+        },
+        tipo_envio(value){
+            //=======  LIMPIAR EMPRESA ENVIO ===
+            this.empresa_envio  =   {
+                    id:0,
+                    empresa:"SELECCIONAR"
+            };
+
+            //==== LIMPIAR SEDE ENVIO =====
+            this.sede_envio =   {
+                id:0,
+                empresa_envio_id:0,
+                direccion:"SELECCIONAR"
+            }
+            this.sedes_envio    =   [];
+           
+            if(value){
+                console.log('tipo envio seleccionado');
+                console.log(value.descripcion);
+                if(value.descripcion === "DELIVERY"){
+                    this.mostrar_combo_sedes            =   false;
+                    this.mostrarColumnaContraentrega    =   true;
+                }else{
+                    this.mostrar_combo_sedes            =   true;
+                    this.mostrarColumnaContraentrega    =   false;
+                }
+                //====== OBTENIENDO EMPRESAS DE ENVIO =====
+                this.getEmpresasEnvio(value.descripcion);
+            }
+  
         },
         tipoDocumentos(value) {
             this.tipo_documento = value.length > 0 ? value[0].simbolo : "";
@@ -317,16 +328,59 @@ export default {
             }
         },
         departamento(value) {
-            this.formCliente.zona           = value ? value.zona : "";
-            this.formCliente.departamento   = value ? value.id : 0;
-            this.$nextTick(this.getProvincias);
+            if(value){
+                console.log(`DEPARTAMENTO: `);
+                console.log(value);
+                //=======  LIMPIAR EMPRESA ENVIO ===
+                this.empresa_envio  =   {
+                    id:0,
+                    empresa:"SELECCIONAR"
+                };
+                //==== LIMPIAR SEDE ENVIO =====
+                this.sede_envio =   {
+                    id:0,
+                    empresa_envio_id:0,
+                    direccion:"SELECCIONAR"
+                }
+                // this.formCliente.zona           = value ? value.zona : "";
+                // this.formCliente.departamento   = value ? value.id : 0;
+                this.$nextTick(this.getProvincias);
+            }
         },
         provincia(value) {
-            this.formCliente.provincia = value ? value.id : 0;
-            this.$nextTick(this.getDistritos);
+            if(value){
+                console.log(`PROVINCIA: `);
+                console.log(value);
+                //=======  LIMPIAR EMPRESA ENVIO ===
+                this.empresa_envio  =   {
+                    id:0,
+                    empresa:"SELECCIONAR"
+                };
+                //==== LIMPIAR SEDE ENVIO =====
+                this.sede_envio =   {
+                    id:0,
+                    empresa_envio_id:0,
+                    direccion:"SELECCIONAR"
+                }
+                // this.formCliente.provincia = value ? value.id : 0;
+                this.$nextTick(this.getDistritos);
+            }
         },
         distrito(value) {
-            this.formCliente.distrito = value ? value.id : 0;
+            console.log(`DISTRITO: `);
+            console.log(value);
+             //=======  LIMPIAR EMPRESA ENVIO ===
+             this.empresa_envio  =   {
+                id:0,
+                empresa:"SELECCIONAR"
+            };
+            //==== LIMPIAR SEDE ENVIO =====
+            this.sede_envio =   {
+                id:0,
+                empresa_envio_id:0,
+                direccion:"SELECCIONAR"
+            }
+            // this.formCliente.distrito = value ? value.id : 0;
         },
         tipo_documento(value) {
             if(value){
@@ -418,29 +472,58 @@ export default {
             }
         },
     },
-    created() {
-        this.getTipoDocumento();
-        this.getTipoCliente();
-        this.getDepartamentos();
-        this.getTipoEnvios();
-        this.getEmpresasEnvio(this.tipo_envio.descripcion);
+    async created() {
+        this.loading    =   true;
+        await this.getTipoDocumento();
+        await this.getTipoCliente();
+        await this.getDepartamentos();
+        await this.getTipoEnvios();
+        await this.getEmpresasEnvio(this.tipo_envio.descripcion);
+        this.loading    =   false;
     },
     methods: {
         async Guardar() {
-          
+          if(this.empresa_envio.empresa === "SELECCIONAR"){
+            toastr.error('SELECCIONE UNA EMPRESA DE ENVÍO',"ERROR");
+            return;
+          }
+          if(this.sede_envio.direccion === "SELECCIONAR"){
+            toastr.error('SELECCIONE UNA SEDE DE ENVÍO',"ERROR");
+            return;
+          }
+          if(this.destinatario.dni.length < 8){
+            toastr.error('INGRESE UN DNI VÁLIDO PARA EL DESTINATARIO',"ERROR");
+            return;
+          }
+          if(this.destinatario.nombres.length == 0){
+            toastr.error('DEBE INGRESAR EL NOMBRE DEL DESTINATARIO',"ERROR");
+            return;
+          }
+          //====== GUARDANDO DATA DE ENVIO ======
+          this.formEnvio.departamento   =   this.departamento;
+          this.formEnvio.provincia      =   this.provincia;
+          this.formEnvio.distrito       =   this.distrito;
+          this.formEnvio.tipo_envio     =   this.tipo_envio;
+          this.formEnvio.empresa_envio  =   this.empresa_envio;
+          this.formEnvio.sede_envio     =   this.sede_envio;
+          this.formEnvio.destinatario   =   this.destinatario;
+          toastr.success('DATOS DE ENVÍO GUARDADOS','OPERACIÓN COMPLETADA');
+          console.log('FORMULARIO ENVIO');
+          console.log(this.formEnvio);
+          this.$emit('addDataEnvio', this.formEnvio);
         },
         async getTipoDocumento() {
             try {
-                const { data } = await this.axios.get(route("consulta.ajax.getTipoDocumentos"));
-                this.tipoDocumentos = data;
+                const { data }      =   await this.axios.get(route("consulta.ajax.getTipoDocumentos"));
+                this.tipoDocumentos =   data;
             } catch (ex) {
 
             }
         },
         async getTipoCliente() {
             try {
-                const { data } = await this.axios.get(route("consulta.ajax.tipoClientes"));
-                this.tipoClientes = data;
+                const { data }      = await this.axios.get(route("consulta.ajax.tipoClientes"));
+                this.tipoClientes   = data;
             } catch (ex) {
 
             }
@@ -455,24 +538,28 @@ export default {
         },
         async getProvincias() {
             try {
+                this.loading    =   true;
                 const { data } = await this.axios.post(route('mantenimiento.ubigeo.provincias'), {
-                    departamento_id: this.formCliente.departamento
+                    departamento_id: this.departamento.id
                 });
                 const { error, message, provincias } = data;
                 this.Provincias = provincias;
                 this.loadingProvincias = true;
+                this.loading    =   false;
             } catch (ex) {
 
             }
         },
         async getDistritos() {
             try {
+                this.loading    =   true;
                 const { data } = await this.axios.post(route('mantenimiento.ubigeo.distritos'), {
-                    provincia_id: this.formCliente.provincia
+                    provincia_id: this.provincia.id
                 });
                 const { error, message, distritos } = data;
                 this.Distritos = distritos;
                 this.loadingDistritos = true;
+                this.loading    =   false;
             } catch (ex) {
 
             }
@@ -480,50 +567,28 @@ export default {
         async consultarDocumento() {
             try {
                 this.loading = true;
-                const { data } = await this.axios.post(route('ventas.cliente.getDocumento'), {
-                    tipo_documento: this.tipo_documento,
-                    documento: this.formCliente.documento,
-                    id: null
-                });
-                const { existe } = data;
-                if (existe) {
-                    this.loading = false;
-                    toastr.error('El ' + this.tipo_documento + ' ingresado ya se encuentra registrado para un cliente',
-                        'Registrado');
+               
+                if (this.destinatario.dni.length === 8) {
+                    this.consultarAPI();
                 } else {
-                    if (this.tipo_documento === "DNI") {
-                        if (this.formCliente.documento.length === 8) {
-                            this.consultarAPI();
-                        } else {
-                            this.loading = false;
-                            toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
-                        }
-                    } else if (this.tipo_documento === "RUC") {
-                        if (this.formCliente.documento.length === 11) {
-                            this.consultarAPI();
-                        } else {
-                            this.loading = false;
-                            toastr.error('El RUC debe de contar con 11 dígitos', 'Error');
-                        }
-                    }
+                        this.loading = false;
+                    toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
                 }
+                
             } catch (ex) {
                 alert("Error en consultarDocumento" + ex);
             }
         },
         async consultarAPI() {
             try {
-                let tipoDoc = this.tipo_documento;
-                let documento = this.formCliente.documento;
-                let url = tipoDoc == "DNI" ? route('getApidni', { dni: documento }) : route('getApiruc', { ruc: documento });
-                const { data } = await this.axios.get(url);
-                if (tipoDoc == "DNI") {
-                    this.CamposDNI(data);
-                }
+                let documento   = this.destinatario.dni;
+                let url =  route('getApidni', { dni: documento });
 
-                if (tipoDoc == "RUC") {
-                    this.CamposRUC(data);
-                }
+                const { data } = await this.axios.get(url);
+                
+                this.CamposDNI(data);
+                
+
             } catch (ex) {
                 this.loading = false;
                 alert("Error en consultarAPI" + ex);
@@ -534,6 +599,7 @@ export default {
             if (success) {
                 this.dataDNI = data;
                 this.dataDNI.buscado = true;
+                this.destinatario.nombres   =  data.nombres +' '+data.apellido_paterno + ' '+data.apellido_materno;
                 this.loading = false;
             } else {
 
@@ -578,7 +644,7 @@ export default {
         async getTipoEnvios() {
             try {
                 const { data }      = await this.axios.get(route("consulta.ajax.getTipoEnvios"));
-                this.tipos_envios  = data;
+                this.tipos_envios   = data;
                 //console.log(data);
             } catch (ex) {
 
@@ -586,7 +652,8 @@ export default {
         },
         async getEmpresasEnvio(envio) {
             try { 
-                const { data }      = await this.axios.get(route("consulta.ajax.getEmpresasEnvio",envio));
+                this.loading        =   true;
+                const { data }      =   await this.axios.get(route("consulta.ajax.getEmpresasEnvio",envio));
                 
                 if(data.success){
                     this.empresas_envio  = data.empresas_envio;
@@ -597,6 +664,26 @@ export default {
                 }
             } catch (error) {
                 toastr.error(error,'ERROR EN EL SERVIDOR');
+            }finally{
+                this.loading        =   false;
+            }
+        },
+        async getSedesEnvio(empresa_envio_id,ubigeo) {
+            try { 
+                this.loading        =   true;
+                const { data }      = await this.axios.get(route("consulta.ajax.getSedesEnvio",{empresa_envio_id,ubigeo}));
+                
+                if(data.success){
+                    this.sedes_envio  = data.sedes_envio;
+                    console.log(data);
+                }else
+                {
+                    toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER EMPRESAS DE ENVÍO');
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR EN EL SERVIDOR');
+            }finally{
+                this.loading        =   false;
             }
         }
     }

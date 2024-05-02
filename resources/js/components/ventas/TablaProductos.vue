@@ -516,7 +516,7 @@
         <!-- <ModalCodigoPrecioMenorVue :estadoPrecioMenor="estadoPrecioMenor"
             @addCodigoPrecioMenor="SaveCodigoPrecioMenor" />
         <ModalEditaDetalleVue :item.sync="itemLote" :detalles.sync="tablaDetalles" /> -->
-        <ModalEnvioVue  />
+        <ModalEnvioVue :cliente="cliente" @addDataEnvio="addDataEnvio"/>
         </div>
         <!-- FIN COLUMNA -->
     </div>
@@ -543,7 +543,7 @@ export default {
     TablaProductos
 },
     props: ["fullaccessTable", "btnDisabled", "parametros",
-     "productoTabla", "TotalesObj", 'idcotizacion','modelos','tallas'],
+     "productoTabla", "TotalesObj", 'idcotizacion','modelos','tallas','cliente'],
     data() {
         return {
             monto_embalaje:0,
@@ -814,7 +814,9 @@ export default {
         }
     },
     created() {
-        this.ObtenerCodigoPrecioMenor();
+        console.log('Cliente:');
+        console.log(this.cliente);
+        //this.ObtenerCodigoPrecioMenor();
         //============= en caso la ventanta se cierre ===============
         window.addEventListener('beforeunload', async () => {
             console.log('saliendo...',this.asegurarCierre);
@@ -829,6 +831,9 @@ export default {
         });
     },
     methods: {
+        addDataEnvio(value){
+            this.$emit('addDataEnvio', value);
+        },
         NuevoCliente() {
             $("#modal_cliente").modal("show");
         },

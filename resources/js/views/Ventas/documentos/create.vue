@@ -134,12 +134,13 @@
                                 </div>
                             </form>
                             <hr>
-                            <TablaProductos @addProductoDetalle="AddProductoDetalles"
+                            <TablaProductos @addProductoDetalle="AddProductoDetalles" @addDataEnvio="addDataEnvio"
                                 :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto"
                                 :parametros="paramsLotes"
                                 :modelos="initData.modelos"
                                 :tallas="initData.tallas" :precio_envio="formCreate.precio_envio"
                                 :precio_despacho="formCreate.precio_despacho"
+                                :cliente="cliente_id"
                             ref="tablaDetalles" />
 
                             <div class="hr-line-dashed"></div>
@@ -177,6 +178,7 @@
         </div>
 
         <ModalClienteVue @newCliente="formAddCliente" />
+
     </div>
 </template>
 
@@ -239,7 +241,8 @@ export default {
                 monto_total_igv: 0,
                 monto_total: 0,
                 tipo_cliente_documento: null,
-                moneda: "SOLES"
+                moneda: "SOLES",
+                data_envio:{}
             },
             tipo_venta: "",
             condicion_id: "",
@@ -367,6 +370,11 @@ export default {
         }
     },
     methods: {
+        addDataEnvio(value){
+            // const { departamento,provincia,distrito,tipo_envio,empresa_envio,sede_envio,destinatario } = value;
+            this.formCreate.data_envio             = value;
+            console.log(this.formCreate);
+        },
         formatearDetalle(detalles){
             if(detalles.length>0){
                 let carritoFormateado   =   [];
@@ -417,11 +425,10 @@ export default {
         },
         //======= obteniendo carrito del componente hijo TablaProductos.vue ==========
         AddProductoDetalles(value) {
-
             const { detalles, totales } = value;
-            this.productos_tabla    =   this.formatearDetalle(detalles);
+            this.productos_tabla        =   this.formatearDetalle(detalles);
             //this.productos_tabla    = detalles;
-            this.formCreate = Object.assign(this.formCreate, totales);
+            this.formCreate             = Object.assign(this.formCreate, totales);
             console.log(this.formCreate);
         },
         Grabar() {
