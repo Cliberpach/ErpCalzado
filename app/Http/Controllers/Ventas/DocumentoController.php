@@ -9,6 +9,7 @@ use App\Ventas\Cliente;
 use App\Ventas\Retencion;
 use App\Ventas\Cotizacion;
 use App\Ventas\ErrorVenta;
+use App\Ventas\EnvioVenta;
 use App\Almacenes\Producto;
 use App\Pos\MovimientoCaja;
 use Illuminate\Http\Request;
@@ -1700,6 +1701,31 @@ class DocumentoController extends Controller
                     //$lote->estado = '0';
                 }
                 //$lote->update();
+            }
+
+            //======== GUARDANDO DATA DE ENVIO =========
+            $data_envio     =   json_decode($request->get('data_envio'));
+            if ($data_envio) {
+                $envio_venta                        =   new EnvioVenta();
+                $envio_venta->documento_id          =   $documento->id;
+                $envio_venta->departamento          =   $data_envio->departamento->nombre;
+                $envio_venta->provincia             =   $data_envio->provincia->text;
+                $envio_venta->distrito              =   $data_envio->distrito->text;
+                $envio_venta->empresa_envio_id      =   $data_envio->empresa_envio->id;
+                $envio_venta->empresa_envio_nombre  =   $data_envio->empresa_envio->empresa;
+                $envio_venta->sede_envio_id         =   $data_envio->sede_envio->id;
+                $envio_venta->sede_envio_nombre     =   $data_envio->sede_envio->direccion;
+                $envio_venta->tipo_envio            =   $data_envio->tipo_envio->descripcion;
+                $envio_venta->destinatario_dni      =   $data_envio->destinatario->dni;
+                $envio_venta->destinatario_nombre   =   $data_envio->destinatario->nombres;
+                $envio_venta->cliente_id            =   $documento->cliente_id;
+                $envio_venta->cliente_nombre        =   $documento->cliente;
+                $envio_venta->contraentrega         =   $data_envio->contraentrega?"SI":"NO";
+                $envio_venta->monto_envio           =   $documento->monto_envio;
+                $envio_venta->envio_gratis          =   $data_envio->envio_gratis?"SI":"NO";
+                $envio_venta->entrega_domicilio     =   $data_envio->entrega_domicilio?"SI":"NO";
+                $envio_venta->direccion_entrega     =   $data_envio->direccion_entrega;
+                $envio_venta->save();
             }
 
             // if ($request->convertir) {

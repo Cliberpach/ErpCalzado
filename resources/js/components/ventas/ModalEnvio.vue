@@ -49,7 +49,7 @@
                                 <hr>
                                 <label for="" style="font-weight: bold;">TIPO DE ENVÍO</label>
                                 <div class="row">
-                                    <div class="col-3">
+                                    <div class="col-4">
                                         <v-select v-model="tipo_envio" :options="tipos_envios" :reduce="te=>te"
                                             required :clearable="false" label="descripcion" ></v-select>
                                     </div>
@@ -57,8 +57,12 @@
                                         <input id="check_contraentrega" type="checkbox" v-model="contraentrega" class="form-control">
                                         <label for="check_contraentrega" class="mb-0" style="margin-right: 95px;font-weight: bold;">CONTRAENTREGA</label>
                                     </div>
+                                    <div class="col-5 d-flex align-items-center">
+                                        <input id="check_envio_gratis" type="checkbox" v-model="envio_gratis" class="form-control">
+                                        <label for="check_envio_gratis" class="mb-0" style="margin-right: 350px;font-weight: bold;">ENVIO GRATIS</label>
+                                    </div>
                                 </div>
-                                <div class="row mt-3">
+                                <div class="row mt-4">
                                     <div class="col-4">
                                         <label required for="vselectEmpresa" style="font-weight: bold;">EMPRESAS</label>
                                         <v-select  v-model="empresa_envio" :options="empresas_envio" :reduce="ee=>ee"
@@ -70,6 +74,22 @@
                                         v-if="mostrar_combo_sedes"        label="direccion"></v-select>
                                         <input :required="!mostrar_combo_sedes" readonly class="form-control" v-if="!mostrar_combo_sedes" type="text" v-model="sede_envio.direccion">
 
+                                    </div>
+                                </div>
+                                <div class="row mt-3" v-if="mostrar_entrega_domicilio">
+                                    <div class="col-4 d-flex align-items-center">
+                                        <div class="row" style="width: 100%;">
+                                            <div class="col-2 pr-0 d-flex align-items-center">
+                                                <input style="width: 50px;" id="check_entrega_domicilio" type="checkbox" v-model="entrega_domicilio" class="form-control">
+                                            </div>
+                                            <div class="col-9 pl-0">
+                                                <label for="check_entrega_domicilio" class="mb-0" style="font-weight: bold;">ENTREGA EN DOMICILIO</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-7">
+                                        <label for="">DIRECCION DE ENTREGA</label>
+                                        <input :readonly="!entrega_domicilio" type="text" class="form-control" v-model="direccion_entrega">
                                     </div>
                                 </div>
                                 <hr>
@@ -130,9 +150,13 @@ export default {
     data() {
         return {
             loading: false,
+            direccion_entrega:"",
+            entrega_domicilio:false,
             contraentrega:false,
+            envio_gratis:false,
             mostrarColumnaContraentrega:false,
             mostrar_combo_sedes:true,
+            mostrar_entrega_domicilio:true,
             empresas_envio:[],
             sedes_envio:[],
             tipos_envios:[],
@@ -216,11 +240,16 @@ export default {
             },
             loadingProvincias: false,
             loadingDistritos: false,
-           
             maxlength:8
         }
     },
     watch: {
+        entrega_domicilio(value){
+            if(!value){
+                //====== LIMPIAR LA DIRECCION DE ENTREGA =========
+                this.direccion_entrega  =   "";
+            }
+        },
         cliente(value){
             console.log(value)
             if(value.tipo_documento === "DNI"){
@@ -284,15 +313,41 @@ export default {
             this.sedes_envio    =   [];
            
             if(value){
-                console.log('tipo envio seleccionado');
-                console.log(value.descripcion);
+                //====== AGENCIA ======
+                /*  ->TIENE SEDES  
+                    ->NO HAY CONTRAENTREGA
+                    ->PUEDE HABER ENTREGA A DOMICILIO
+                */
+                if(value.descripcion === "AGENCIA"){
+                    this.mostrar_combo_sedes            =   true;
+                    this.mostrarColumnaContraentrega    =   false;
+                    this.mostrar_entrega_domicilio      =   true;
+                }
+
+                //====== DELIVERY ======
+                /*  ->NO TIENE SEDES  
+                    ->PUEDE HABER CONTRAENTREGA
+                    ->HAY ENTREGA A DOMICILIO SIEMPRE
+                */
                 if(value.descripcion === "DELIVERY"){
                     this.mostrar_combo_sedes            =   false;
                     this.mostrarColumnaContraentrega    =   true;
-                }else{
+                    this.mostrar_entrega_domicilio      =   true;
+                    this.entrega_domicilio              =   true;
+                }
+                
+                //====== RECOJO EN TIENDA ======
+                /*  ->TIENE SEDES  
+                    ->NO HAY CONTRAENTREGA
+                    ->NO HAY ENTREGA A DOMICILIO
+                */
+                if(value.descripcion === "RECOJO EN TIENDA"){
                     this.mostrar_combo_sedes            =   true;
                     this.mostrarColumnaContraentrega    =   false;
+                    this.mostrar_entrega_domicilio      =   false;
+                    this.entrega_domicilio              =   false;
                 }
+
                 //====== OBTENIENDO EMPRESAS DE ENVIO =====
                 this.getEmpresasEnvio(value.descripcion);
             }
@@ -500,17 +555,22 @@ export default {
             return;
           }
           //====== GUARDANDO DATA DE ENVIO ======
-          this.formEnvio.departamento   =   this.departamento;
-          this.formEnvio.provincia      =   this.provincia;
-          this.formEnvio.distrito       =   this.distrito;
-          this.formEnvio.tipo_envio     =   this.tipo_envio;
-          this.formEnvio.empresa_envio  =   this.empresa_envio;
-          this.formEnvio.sede_envio     =   this.sede_envio;
-          this.formEnvio.destinatario   =   this.destinatario;
+          this.formEnvio.departamento       =   this.departamento;
+          this.formEnvio.provincia          =   this.provincia;
+          this.formEnvio.distrito           =   this.distrito;
+          this.formEnvio.tipo_envio         =   this.tipo_envio;
+          this.formEnvio.empresa_envio      =   this.empresa_envio;
+          this.formEnvio.sede_envio         =   this.sede_envio;
+          this.formEnvio.destinatario       =   this.destinatario;
+          this.formEnvio.contraentrega      =   this.contraentrega;
+          this.formEnvio.direccion_entrega  =   this.direccion_entrega;
+          this.formEnvio.entrega_domicilio  =   this.entrega_domicilio;
+          this.formEnvio.envio_gratis       =   this.envio_gratis;
+
           toastr.success('DATOS DE ENVÍO GUARDADOS','OPERACIÓN COMPLETADA');
           console.log('FORMULARIO ENVIO');
           console.log(this.formEnvio);
-          this.$emit('addDataEnvio', this.formEnvio);
+          this.$emit('addDataEnvio',JSON.stringify(this.formEnvio));
         },
         async getTipoDocumento() {
             try {
