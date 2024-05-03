@@ -1465,13 +1465,13 @@ class DocumentoController extends Controller
 
             //CLIENTE
             $cliente = Cliente::findOrFail($request->get('cliente_id'));
-            $documento->tipo_documento_cliente = $cliente->tipo_documento;
-            $documento->documento_cliente = $cliente->documento;
-            $documento->direccion_cliente = $cliente->direccion;
-            $documento->cliente = $cliente->nombre;
-            $documento->cliente_id = $request->get('cliente_id'); //OBTENER TIENDA DEL CLIENTE
+            $documento->tipo_documento_cliente  = $cliente->tipo_documento;
+            $documento->documento_cliente       = $cliente->documento;
+            $documento->direccion_cliente       = $cliente->direccion;
+            $documento->cliente                 = $cliente->nombre;
+            $documento->cliente_id              = $request->get('cliente_id'); //OBTENER TIENDA DEL CLIENTE
 
-            $documento->tipo_venta = $request->get('tipo_venta');   //boleta,factura,nota_venta
+            $documento->tipo_venta              = $request->get('tipo_venta');   //boleta,factura,nota_venta
 
             //CONDICION(TIPO DE PAGO: CONTADO O CREDITO)
             $cadena = explode('-', $request->get('condicion_id'));
@@ -1687,12 +1687,7 @@ class DocumentoController extends Controller
                         $kardex->save();
                     }
                    
-                //if ($lote->cantidad == 0) {
-                //         $lote->estado = '0';
-                //     }
-                //     $lote->update();
-                // }
-
+       
                 if ($lote->stock == 0) {
                     DB::update('UPDATE producto_color_tallas 
                     SET estado = ? 
@@ -1700,12 +1695,12 @@ class DocumentoController extends Controller
                     ['0', $producto->producto_id, $producto->color_id, $producto->talla_id]);        
                     //$lote->estado = '0';
                 }
-                //$lote->update();
             }
 
             //======== GUARDANDO DATA DE ENVIO =========
             $data_envio     =   json_decode($request->get('data_envio'));
-            if ($data_envio) {
+            
+            if (!empty((array)$data_envio)) {
                 $envio_venta                        =   new EnvioVenta();
                 $envio_venta->documento_id          =   $documento->id;
                 $envio_venta->departamento          =   $data_envio->departamento->nombre;
@@ -1725,9 +1720,47 @@ class DocumentoController extends Controller
                 $envio_venta->envio_gratis          =   $data_envio->envio_gratis?"SI":"NO";
                 $envio_venta->entrega_domicilio     =   $data_envio->entrega_domicilio?"SI":"NO";
                 $envio_venta->direccion_entrega     =   $data_envio->direccion_entrega;
+                $envio_venta->documento_nro         =   $envio_prev['serie_correlativo'];
+                $envio_venta->fecha_envio_propuesta =   $data_envio->fecha_envio_propuesta;
+                $envio_venta->origen_venta          =   $data_envio->origen_venta->descripcion;
+                $envio_venta->observaciones         =   $data_envio->observaciones;
+                $envio_venta->save();
+            }else{
+                //======== OBTENER EMPRESA ENVÍO =======
+                $empresa_envio                      =   DB::select('select ee.id,ee.empresa,ee.tipo_envio
+                                                        from empresas_envio as ee
+                                                        where ee.empresa="MERRIS"')[0];
+                
+                $sede_envio                         =   DB::select('select ees.id,ees.direccion 
+                                                        from empresa_envio_sedes as ees
+                                                        where ees.empresa_envio_id=?',[$empresa_envio->id])[0];
+              
+                $envio_venta                        =   new EnvioVenta();
+                $envio_venta->documento_id          =   $documento->id;
+                $envio_venta->departamento          =   $documento->clienteEntidad->getDepartamento();
+                $envio_venta->provincia             =   $documento->clienteEntidad->getProvincia();
+                $envio_venta->distrito              =   $documento->clienteEntidad->getDistrito();
+                $envio_venta->empresa_envio_id      =   $empresa_envio->id;
+                $envio_venta->empresa_envio_nombre  =   $empresa_envio->empresa;
+                $envio_venta->sede_envio_id         =   $sede_envio->id;
+                $envio_venta->sede_envio_nombre     =   $sede_envio->direccion;
+                $envio_venta->tipo_envio            =   $empresa_envio->tipo_envio;
+                $envio_venta->destinatario_dni      =   $documento->documento_cliente;
+                $envio_venta->destinatario_nombre   =   $documento->cliente;
+                $envio_venta->cliente_id            =   $documento->cliente_id;
+                $envio_venta->cliente_nombre        =   $documento->cliente;
+                $envio_venta->contraentrega         =   "NO";
+                $envio_venta->monto_envio           =   $documento->monto_envio;
+                $envio_venta->envio_gratis          =   "NO";
+                $envio_venta->entrega_domicilio     =   "NO";
+                $envio_venta->direccion_entrega     =   null;
+                $envio_venta->documento_nro         =   $envio_prev['serie_correlativo'];
+                $envio_venta->fecha_envio_propuesta =   null;
+                $envio_venta->origen_venta          =   "WHATSAPP";
+                $envio_venta->observaciones         =   null;
                 $envio_venta->save();
             }
-
+           
             // if ($request->convertir) {
             //     $doc_a_convertir = Documento::find($request->convertir);
             //     $doc_a_convertir->convertir = $documento->id;

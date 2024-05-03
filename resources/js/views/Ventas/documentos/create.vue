@@ -242,7 +242,7 @@ export default {
                 monto_total: 0,
                 tipo_cliente_documento: null,
                 moneda: "SOLES",
-                data_envio:{}
+                data_envio: JSON.stringify({})
             },
             tipo_venta: "",
             condicion_id: "",

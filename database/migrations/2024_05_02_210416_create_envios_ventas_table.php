@@ -36,7 +36,12 @@ class CreateEnviosVentasTable extends Migration
             $table->decimal('monto_envio', 10, 2);
             $table->char('envio_gratis', 2);
             $table->char('entrega_domicilio', 2);
-            $table->string('direccion_entrega');
+            $table->string('direccion_entrega')->nullable();
+            $table->string('documento_nro');
+            $table->date('fecha_envio');
+            $table->string('origen_venta');
+            $table->text('observaciones')->nullable();
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
             $table->timestamps();
         });
     }

@@ -504,6 +504,33 @@ function(){
         Route::post('devolver-stock-logico', 'Ventas\PedidoController@devolverStockLogico')->name('ventas.pedidos.devolverStockLogico');
     });
 
+     // Despachos
+     Route::prefix('ventas/despachos')->group(function() {
+
+        Route::get('/', 'Ventas\DespachoController@index')->name('ventas.despachos.index');
+        Route::get('/getTable', 'Ventas\DespachoController@getTable')->name('ventas.despachos.getTable');
+        Route::get('/showDetalles/{documento_id}', 'Ventas\DespachoController@showDetalles')->name('ventas.despachos.showDetalles');
+
+        // Route::get('/registrar', 'Ventas\ClienteController@create')->name('ventas.cliente.create');
+        // Route::post('/registrar', 'Ventas\ClienteController@store')->name('ventas.cliente.store');
+        // Route::post('/registrarFast', 'Ventas\ClienteController@storeFast')->name('ventas.cliente.storeFast');
+        // Route::get('/actualizar/{id}', 'Ventas\ClienteController@edit')->name('ventas.cliente.edit');
+        // Route::put('/actualizar/{id}', 'Ventas\ClienteController@update')->name('ventas.cliente.update');
+        // Route::get('/datos/{id}', 'Ventas\ClienteController@show')->name('ventas.cliente.show');
+        // Route::get('/destroy/{id}', 'Ventas\ClienteController@destroy')->name('ventas.cliente.destroy');
+        // Route::post('/getDocumento', 'Ventas\ClienteController@getDocumento')->name('ventas.cliente.getDocumento');
+        // Route::post('/getCustomer', 'Ventas\ClienteController@getCustomer')->name('ventas.cliente.getcustomer');
+        // //Tiendas
+        // Route::get('tiendas/index/{id}', 'Ventas\TiendaController@index')->name('clientes.tienda.index');
+        // Route::get('tiendas/getShop/{id}','Ventas\TiendaController@getShop')->name('clientes.tienda.shop');
+        // Route::get('tiendas/create/{id}', 'Ventas\TiendaController@create')->name('clientes.tienda.create');
+        // Route::post('tiendas/store/', 'Ventas\TiendaController@store')->name('clientes.tienda.store');
+        // Route::put('tiendas/update/{id}', 'Ventas\TiendaController@update')->name('clientes.tienda.update');
+        // Route::get('tiendas/destroy/{id}', 'Ventas\TiendaController@destroy')->name('clientes.tienda.destroy');
+        // Route::get('tiendas/show/{id}', 'Ventas\TiendaController@show')->name('clientes.tienda.show');
+        // Route::get('tiendas/actualizar/{id}', 'Ventas\TiendaController@edit')->name('clientes.tienda.edit');
+    });
+
     //COMPROBANTES ELECTRONICOS
     Route::prefix('comprobantes/electronicos')->group(function(){
         Route::get('/', 'Ventas\Electronico\ComprobanteController@index')->name('ventas.comprobantes');
@@ -892,6 +919,7 @@ function(){
         Route::get("tipo-envios","ConsultasAjaxController@getTipoEnvios")->name("consulta.ajax.getTipoEnvios");
         Route::get("get-empresas-envio/{tipo_envio}","ConsultasAjaxController@getEmpresasEnvio")->name("consulta.ajax.getEmpresasEnvio");
         Route::get("get-sedes-envio/{empresa_envio_id}/{ubigeo}","ConsultasAjaxController@getSedesEnvio")->name("consulta.ajax.getSedesEnvio");
+        Route::get("get-origenes-ventas","ConsultasAjaxController@getOrigenesVentas")->name("consulta.ajax.getOrigenesVentas");
 
     });
 });

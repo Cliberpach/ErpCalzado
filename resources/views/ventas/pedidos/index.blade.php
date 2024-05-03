@@ -342,15 +342,10 @@
 
     $('#modal_historial_atenciones').on('show.bs.modal', async function (event) {
        
-    //    if(table){
-    //        table.destroy();
-    //    }
-    //    resetearTabla();
 
        var button = $(event.relatedTarget) 
        const pedido_id   = button.data('pedido-id');
 
-    //    let filas = ``;
 
         document.querySelector('.pedido_id_span').textContent    =   pedido_id;
 
@@ -367,10 +362,6 @@
         
         }
         
-    //     var modal = $(this)
-    //     modal.find('.modal-title').text('Stocks: ' + product_name)
-    //     modal.find('.product_name').text(product_name);
-    //     cargarDataTables();
     })
 
 

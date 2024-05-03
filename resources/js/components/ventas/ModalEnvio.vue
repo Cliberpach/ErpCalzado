@@ -3,7 +3,7 @@
         <div class="modal-dialog modal-lg ">
             <div class="modal-content animated bounceInRight">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" @click.prevent="Cerrar">
+                    <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                         <span class="sr-only">Close</span>
                     </button>
@@ -15,8 +15,15 @@
                     <form id="frmEnvio" class="formulario" @submit.prevent="Guardar">
                         <div class="row">
                             <div class="col-12 col-md-12">
-                                <label for="" style="font-weight: bold;">UBIGEO</label>
-                                <div class="row">
+                                <div class="row justify-content-between">
+                                    <div class="col-6">
+                                        <label for="" style="font-weight: bold;">UBIGEO</label>
+                                    </div>
+                                    <div class="col-6 d-flex justify-content-end">
+                                        <button @click="borrarEnvio" type="button" class="btn btn-danger">BORRAR ENVÍO</button>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
                                     <div class="col-3 col-md-3">
                                         <div class="form-group">
                                             <label class="required" for="departamento">Departamento</label>
@@ -64,12 +71,12 @@
                                 </div>
                                 <div class="row mt-4">
                                     <div class="col-4">
-                                        <label required for="vselectEmpresa" style="font-weight: bold;">EMPRESAS</label>
+                                        <label class="required" for="vselectEmpresa" style="font-weight: bold;">EMPRESAS</label>
                                         <v-select  v-model="empresa_envio" :options="empresas_envio" :reduce="ee=>ee"
                                             label="empresa" id="vselectEmpresa"   ref="vselectEmpresa"></v-select>
                                     </div>
                                     <div class="col-6">
-                                        <label for="" style="font-weight: bold;">SEDES</label>
+                                        <label class="required" for="" style="font-weight: bold;">SEDES</label>
                                         <v-select :required="mostrar_combo_sedes" v-model="sede_envio"  :options="sedes_envio" :reduce="se=>se"
                                         v-if="mostrar_combo_sedes"        label="direccion"></v-select>
                                         <input :required="!mostrar_combo_sedes" readonly class="form-control" v-if="!mostrar_combo_sedes" type="text" v-model="sede_envio.direccion">
@@ -93,6 +100,22 @@
                                     </div>
                                 </div>
                                 <hr>
+                                <div class="row">
+                                    <div class="col-3">
+                                        <label for="origen_venta" style="font-weight: bold;">ORIGEN VENTA</label>
+                                        <v-select  v-model="origen_venta"  :options="origenes_ventas" :reduce="ov=>ov"
+                                        label="descripcion" :clearable="false"></v-select>
+                                    </div>
+                                    <div class="col-3">
+                                        <label for="fecha_envio" style="font-weight: bold;">FECHA ENVÍO</label>
+                                        <input id="fecha_envio" v-model="fecha_envio" type="date" class="form-control">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="observaciones" style="font-weight: bold;">OBSERVACIÓN</label>
+                                        <textarea id="observaciones" v-model="observaciones" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                                <hr>
                                 <label for="" style="font-weight: bold;">DATOS DEL DESTINATARIO</label>
                                 <div class="row">
                                     <div class="col-4">
@@ -110,7 +133,7 @@
                                             </div>
                                     </div>
                                     <div class="col-8">
-                                        <label for="nombres_destinatario">Nombres</label>
+                                        <label class="required" for="nombres_destinatario">Nombres</label>
                                         <input required type="text" id="nombres_destinatario" v-model=destinatario.nombres 
                                         class="form-control">
                                     </div>
@@ -135,7 +158,7 @@
                     <div class="col-md-6 text-right">
                         <button type="submit" class="btn btn-primary btn-sm" form="frmEnvio" style="color:white;"><i
                                 class="fa fa-save"></i> Guardar</button>
-                        <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" @click.prevent="Cerrar"><i
+                        <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i
                                 class="fa fa-times"></i> Cerrar</button>
                     </div>
                 </div>
@@ -157,14 +180,16 @@ export default {
             mostrarColumnaContraentrega:false,
             mostrar_combo_sedes:true,
             mostrar_entrega_domicilio:true,
+            origenes_ventas:[],
             empresas_envio:[],
             sedes_envio:[],
             tipos_envios:[],
-            tipoDocumentos: [],
-            tipoClientes: [],
             Departamentos: [],
             Provincias: [],
             Distritos: [],
+            origen_venta:{descripcion:"SELECCIONAR"},
+            fecha_envio:"",
+            observaciones:"",
             destinatario:{
                 dni:"",
                 nombres:""
@@ -244,6 +269,11 @@ export default {
         }
     },
     watch: {
+        fecha_envio(value){
+            if(value.length == 0){
+                this.setFechaEnvioDefault();
+            }
+        },
         entrega_domicilio(value){
             if(!value){
                 //====== LIMPIAR LA DIRECCION DE ENTREGA =========
@@ -353,9 +383,6 @@ export default {
             }
   
         },
-        tipoDocumentos(value) {
-            this.tipo_documento = value.length > 0 ? value[0].simbolo : "";
-        },
         tipoClientes(value) {
             this.tipo_cliente_id = value.length > 0 ? value[0].id : "";
         },
@@ -391,14 +418,13 @@ export default {
                     id:0,
                     empresa:"SELECCIONAR"
                 };
-                //==== LIMPIAR SEDE ENVIO =====
-                this.sede_envio =   {
-                    id:0,
-                    empresa_envio_id:0,
-                    direccion:"SELECCIONAR"
-                }
-                // this.formCliente.zona           = value ? value.zona : "";
-                // this.formCliente.departamento   = value ? value.id : 0;
+                //======= LIMPIANDO SEDES =====
+                this.sedes_envio    =   [];
+                this.sede_envio     =   {
+                                            id:0,
+                                            empresa_envio_id:0,
+                                            direccion:"SELECCIONAR"
+                                        };
                 this.$nextTick(this.getProvincias);
             }
         },
@@ -406,36 +432,40 @@ export default {
             if(value){
                 console.log(`PROVINCIA: `);
                 console.log(value);
+
                 //=======  LIMPIAR EMPRESA ENVIO ===
                 this.empresa_envio  =   {
                     id:0,
                     empresa:"SELECCIONAR"
                 };
-                //==== LIMPIAR SEDE ENVIO =====
-                this.sede_envio =   {
-                    id:0,
-                    empresa_envio_id:0,
-                    direccion:"SELECCIONAR"
-                }
-                // this.formCliente.provincia = value ? value.id : 0;
+
+                //======= LIMPIANDO SEDES =====
+                this.sedes_envio    =   [];
+                this.sede_envio     =   {
+                                            id:0,
+                                            empresa_envio_id:0,
+                                            direccion:"SELECCIONAR"
+                                        };
+
                 this.$nextTick(this.getDistritos);
             }
         },
         distrito(value) {
             console.log(`DISTRITO: `);
             console.log(value);
-             //=======  LIMPIAR EMPRESA ENVIO ===
+            //=======  LIMPIAR EMPRESA ENVIO ===
              this.empresa_envio  =   {
                 id:0,
                 empresa:"SELECCIONAR"
             };
-            //==== LIMPIAR SEDE ENVIO =====
-            this.sede_envio =   {
-                id:0,
-                empresa_envio_id:0,
-                direccion:"SELECCIONAR"
-            }
-            // this.formCliente.distrito = value ? value.id : 0;
+
+            //======= LIMPIANDO SEDES =====
+            this.sedes_envio    =   [];
+            this.sede_envio     =   {
+                                    id:0,
+                                    empresa_envio_id:0,
+                                    direccion:"SELECCIONAR"
+                                    };
         },
         tipo_documento(value) {
             if(value){
@@ -529,14 +559,45 @@ export default {
     },
     async created() {
         this.loading    =   true;
-        await this.getTipoDocumento();
-        await this.getTipoCliente();
+        await this.setFechaEnvioDefault();
         await this.getDepartamentos();
         await this.getTipoEnvios();
+        await this.getOrigenesVentas();
         await this.getEmpresasEnvio(this.tipo_envio.descripcion);
         this.loading    =   false;
     },
     methods: {
+        borrarEnvio(){
+            this.formEnvio      =   {};
+            console.log(this.formEnvio);
+            this.destinatario   =   {
+                                        dni:"",
+                                        nombres:""
+                                    };
+            this.empresa_envio  =   {
+                                        id:0,
+                                        empresa:"SELECCIONAR"
+                                    };
+            this.sede_envio     =   {
+                                        id:0,
+                                        empresa_envio_id:0,
+                                        direccion:"SELECCIONAR"
+                                    };
+
+            this.observaciones  =   "";
+            this.sedes          =   [];   
+            this.$emit('addDataEnvio',JSON.stringify(this.formEnvio));
+            toastr.success("ENVÍO BORRADO","OPERACIÓN COMPLETADA");
+        },
+        setFechaEnvioDefault(){
+            const today = new Date();
+
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); 
+            const day = String(today.getDate()).padStart(2, '0'); 
+
+            this.fecha_envio = `${year}-${month}-${day}`;
+        },
         async Guardar() {
           if(this.empresa_envio.empresa === "SELECCIONAR"){
             toastr.error('SELECCIONE UNA EMPRESA DE ENVÍO',"ERROR");
@@ -554,31 +615,27 @@ export default {
             toastr.error('DEBE INGRESAR EL NOMBRE DEL DESTINATARIO',"ERROR");
             return;
           }
+         
           //====== GUARDANDO DATA DE ENVIO ======
-          this.formEnvio.departamento       =   this.departamento;
-          this.formEnvio.provincia          =   this.provincia;
-          this.formEnvio.distrito           =   this.distrito;
-          this.formEnvio.tipo_envio         =   this.tipo_envio;
-          this.formEnvio.empresa_envio      =   this.empresa_envio;
-          this.formEnvio.sede_envio         =   this.sede_envio;
-          this.formEnvio.destinatario       =   this.destinatario;
-          this.formEnvio.contraentrega      =   this.contraentrega;
-          this.formEnvio.direccion_entrega  =   this.direccion_entrega;
-          this.formEnvio.entrega_domicilio  =   this.entrega_domicilio;
-          this.formEnvio.envio_gratis       =   this.envio_gratis;
+          this.formEnvio.departamento           =   this.departamento;
+          this.formEnvio.provincia              =   this.provincia;
+          this.formEnvio.distrito               =   this.distrito;
+          this.formEnvio.tipo_envio             =   this.tipo_envio;
+          this.formEnvio.empresa_envio          =   this.empresa_envio;
+          this.formEnvio.sede_envio             =   this.sede_envio;
+          this.formEnvio.destinatario           =   this.destinatario;
+          this.formEnvio.contraentrega          =   this.contraentrega;
+          this.formEnvio.direccion_entrega      =   this.direccion_entrega;
+          this.formEnvio.entrega_domicilio      =   this.entrega_domicilio;
+          this.formEnvio.envio_gratis           =   this.envio_gratis;
+          this.formEnvio.origen_venta           =   this.origen_venta;
+          this.formEnvio.fecha_envio_propuesta  =   this.fecha_envio;
+          this.formEnvio.observaciones          =   this.observaciones;
 
           toastr.success('DATOS DE ENVÍO GUARDADOS','OPERACIÓN COMPLETADA');
           console.log('FORMULARIO ENVIO');
           console.log(this.formEnvio);
           this.$emit('addDataEnvio',JSON.stringify(this.formEnvio));
-        },
-        async getTipoDocumento() {
-            try {
-                const { data }      =   await this.axios.get(route("consulta.ajax.getTipoDocumentos"));
-                this.tipoDocumentos =   data;
-            } catch (ex) {
-
-            }
         },
         async getTipoCliente() {
             try {
@@ -592,6 +649,7 @@ export default {
             try {
                 const { data }      = await this.axios.get(route("consulta.ajax.getDepartamentos"));
                 this.Departamentos  = data;
+               
             } catch (ex) {
 
             }
@@ -675,32 +733,32 @@ export default {
 
         },
        
-        Cerrar(){
+        // Cerrar(){
 
-            this.departamento = {
-                id: 13,
-                nombre: "LA LIBERTAD",
-                zona: "NORTE"
-            };
-            this.formCliente={
-                tipo_documento: "",
-                tipo_cliente_id: "",
-                departamento: 0,
-                provincia: 0,
-                distrito: 0,
-                zona: "",
-                nombre: "",
-                documento: "",
-                direccion: "Direccion Trujillo",
-                telefono_movil: "999999999",
-                correo_electronico: "",
-                telefono_fijo: "",
-                codigo_verificacion: "",
-                activo: "SIN VERIFICAR"
-            }
-            this.tipo_documento="DNI";
-            this.tipo_cliente_id=121;
-        },
+        //     this.departamento = {
+        //         id: 13,
+        //         nombre: "LA LIBERTAD",
+        //         zona: "NORTE"
+        //     };
+        //     this.formCliente={
+        //         tipo_documento: "",
+        //         tipo_cliente_id: "",
+        //         departamento: 0,
+        //         provincia: 0,
+        //         distrito: 0,
+        //         zona: "",
+        //         nombre: "",
+        //         documento: "",
+        //         direccion: "Direccion Trujillo",
+        //         telefono_movil: "999999999",
+        //         correo_electronico: "",
+        //         telefono_fijo: "",
+        //         codigo_verificacion: "",
+        //         activo: "SIN VERIFICAR"
+        //     }
+        //     this.tipo_documento="DNI";
+        //     this.tipo_cliente_id=121;
+        // },
         async getTipoEnvios() {
             try {
                 const { data }      = await this.axios.get(route("consulta.ajax.getTipoEnvios"));
@@ -736,6 +794,41 @@ export default {
                 if(data.success){
                     this.sedes_envio  = data.sedes_envio;
                     console.log(data);
+                }else
+                {
+                    toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER EMPRESAS DE ENVÍO');
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR EN EL SERVIDOR');
+            }finally{
+                this.loading        =   false;
+            }
+        },
+        async getOrigenesVentas() {
+            try { 
+                this.loading        =   true;
+                const { data }      = await this.axios.get(route("consulta.ajax.getOrigenesVentas"));
+                
+                if(data.success){
+                    this.origenes_ventas    =   data.origenes_ventas;
+                    console.log(data);
+
+                    //======= COLOCANDO POR DEFECTO WATHSAPP ====
+                    if(data.origenes_ventas.length > 0){
+
+                        const index_ov  = data.origenes_ventas.findIndex((ov)=>{
+                            return ov.descripcion == "WATHSAPP";
+                        })
+
+                        if(index_ov !== -1){
+                            this.origen_venta   =   {descripcion:data.origenes_ventas[index_ov].descripcion};
+                        }else{
+                            this.origen_venta   =   data.origenes_ventas[0].descripcion;
+                        }
+
+                    }else{
+                        this.origen_venta       =   {descripcion:"SIN DATOS"};
+                    }
                 }else
                 {
                     toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER EMPRESAS DE ENVÍO');

@@ -52,8 +52,6 @@ class ConsultasAjaxController extends Controller
             $provincia          =   $ubigeo[1];
             $distrito           =   $ubigeo[2];
 
-
-
             $sedes_envio    =   DB::select('select * from empresa_envio_sedes as ees
                                 where ees.empresa_envio_id=? and departamento=? 
                                 and provincia=? and distrito=?',[$empresa_envio_id,$departamento->nombre,
@@ -65,4 +63,15 @@ class ConsultasAjaxController extends Controller
         }
     }
 
+
+    public function getOrigenesVentas(){
+        try {
+            $origenes_ventas    =   DB::select('select td.descripcion from tabladetalles as td 
+                                    where td.tabla_id="36"');
+
+            return response()->json(['success'=>true,'origenes_ventas'=>$origenes_ventas]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>"ERROR EN EL SERVIDOR",'exception'=>$th->getMessage()]);
+        }
+    }
 }

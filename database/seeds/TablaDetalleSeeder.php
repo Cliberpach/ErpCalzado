@@ -1469,6 +1469,43 @@ class TablaDetalleSeeder extends Seeder
         $detalle->editable      = 1;
         $detalle->save();
 
+         //======= ORIGENES VENTAS =========
+        $detalle = new Detalle();
+        $detalle->descripcion   = "WATHSAPP";
+        $detalle->nombre        = "WATHSAPP";
+        $detalle->simbolo       = 'WSSP';
+        $detalle->estado        = 'ACTIVO';
+        $detalle->tabla_id      = 36;
+        $detalle->editable      = 1;
+        $detalle->save();
+ 
+         $detalle = new Detalle();
+         $detalle->descripcion   = "FACEBOOK";
+         $detalle->nombre        = "FACEBOOK";
+         $detalle->simbolo       = 'FB';
+         $detalle->estado        = 'ACTIVO';
+         $detalle->tabla_id      = 36;
+         $detalle->editable      = 1;
+         $detalle->save();
+ 
+        $detalle = new Detalle();
+        $detalle->descripcion   = "INSTAGRAM";
+        $detalle->nombre        = "INSTAGRAM";
+        $detalle->simbolo       = 'IG';
+        $detalle->estado        = 'ACTIVO';
+        $detalle->tabla_id      = 36;
+        $detalle->editable      = 1;
+        $detalle->save();
+
+        $detalle = new Detalle();
+        $detalle->descripcion   = "TIKTOK";
+        $detalle->nombre        = "TIKTOK";
+        $detalle->simbolo       = 'TT';
+        $detalle->estado        = 'ACTIVO';
+        $detalle->tabla_id      = 36;
+        $detalle->editable      = 1;
+        $detalle->save();
+
         //---------TIPO PAGO-----------
 
         $tipo = new TipoPago();
