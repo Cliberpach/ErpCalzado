@@ -35,7 +35,7 @@
                                     <label for="direccion" style="font-weight: bold;">
                                         DIRECCIÓN EMPRESA<span style="color: rgb(227, 160, 36);font-weight: bold;">*</span>
                                     </label>
-                                    <input required id="direccion" name="direccion" class="form-control" placeholder="INGRESE UNA DIRECCIÓN"></input>
+                                    <input id="direccion_sede" required id="direccion" name="direccion" class="form-control" placeholder="INGRESE UNA DIRECCIÓN"></input>
                                 </div>
                                 <div class="form-group col-lg-6 col-xs-12 mt-3">
                                     <label class="required" style="font-weight: bold;">Departamento</label>
@@ -157,16 +157,23 @@
                 }
             });
 
-            document.querySelector('#formSede').addEventListener('submit',async (e)=>{
-                e.preventDefault();
+            document.querySelector('#tab1-tab').addEventListener('click',()=>{
                 document.querySelector('#btn-guardar-sede').disabled    =   true;
+            })
+
+            document.querySelector('#tab2-tab').addEventListener('click',()=>{
+                document.querySelector('#btn-guardar-sede').disabled    =   false;
+            })
+
+            document.querySelector('#formSede').addEventListener('submit',async (e)=>{
+                document.querySelector('#btn-guardar-sede').disabled    =   true;
+                e.preventDefault();
                 try {
                     const formData  =   new FormData(e.target);
                     const res       =   await   axios.post(route('mantenimiento.metodo_entrega.createSede'),formData);
                     console.log(res);
                     if(res.data.success){
-                        //======= LIMPIANDO FORMULARIO =====
-                        //e.target.reset();
+                        clearFormSedes();
                         //======== DIBUJANDO LA NUEVA SEDE =======
                         const nueva_sede    =   res.data.nueva_sede;
                         sedes_data_table.row.add([
@@ -176,7 +183,6 @@
                         ]).draw();
                         //====== REDIRIGIENDO A LISTADO DE SEDES =====
                         document.querySelector('#tab1-tab').click();
-                        document.querySelector('#btn-guardar-sede').disabled    =   false;
                         //====== MOSTRANDO ALERTA =======
                         toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
                     }else{
@@ -188,6 +194,10 @@
                 }
             })
 
+        }
+
+        function clearFormSedes(){
+            document.querySelector('#direccion_sede').value     =   "";
         }
 
         function dataTableSedes(){
