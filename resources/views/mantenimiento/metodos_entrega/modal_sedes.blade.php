@@ -165,7 +165,7 @@
                     console.log(res);
                     if(res.data.success){
                         //======= LIMPIANDO FORMULARIO =====
-                        e.target.reset();
+                        //e.target.reset();
                         //======== DIBUJANDO LA NUEVA SEDE =======
                         const nueva_sede    =   res.data.nueva_sede;
                         sedes_data_table.row.add([
