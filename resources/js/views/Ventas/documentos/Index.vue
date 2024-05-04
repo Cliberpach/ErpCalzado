@@ -39,7 +39,8 @@
                                             style="text-transform: uppercase" ref="table-documentos">
                                             <thead class="">
                                                 <tr>
-                                                    <th class="text-center letrapequeña bg-white">C.O</th>
+                                                    <th class="text-center letrapequeña bg-white">COT</th>
+                                                    <th class="text-center letrapequeña bg-white">CV</th>
                                                     <th class="text-center letrapequeña bg-white"># DOC</th>
                                                     <th class="text-center letrapequeña bg-white">FECHA DOC.</th>
                                                     <th class="text-center letrapequeña bg-white">CLIENTE</th>
@@ -59,6 +60,9 @@
                                                             <input v-if="item.cotizacion_venta" type="checkbox" disabled
                                                                 checked />
                                                             <input v-else type="checkbox" disabled />
+                                                        </td>
+                                                        <td class="letrapequeña text-center">
+                                                            {{ item.doc_convertido }}
                                                         </td>
                                                         <td class="letrapequeña text-center">
                                                             {{ item.numero_doc }}

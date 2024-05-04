@@ -116,6 +116,7 @@
                                         <th class="text-center">FECHA</th>
                                         <th class="text-center">CANTIDAD</th>
                                         <th class="text-center">PRECIO</th>
+                                        <th class="text-center">CONVERTIDO</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -225,6 +226,10 @@
             /* background-color: #CFCFCF !important; */
         }
 
+
+        .azulito-leve {
+            background-color: #d4e4f1 !important; 
+        }
     </style>
 @endpush
 
@@ -526,6 +531,11 @@
                         data: 'precio_unitario_nuevo',
                         name: 'precio_unitario_nuevo',
                         className: "letrapequeña"
+                    },
+                    {
+                        data: 'convertir',
+                        name: 'convertir',
+                        className: "letrapequeña"
                     }
                 ],
                 "language": {
@@ -534,6 +544,11 @@
                 "order": [
                     [0, "desc"]
                 ],
+                "createdRow": function(row, data, dataIndex) {
+                    if (data.convertir !== '-') {
+                        $(row).addClass('azulito-leve');
+                    }
+                }
 
 
             });

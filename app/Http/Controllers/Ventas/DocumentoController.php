@@ -155,32 +155,33 @@ class DocumentoController extends Controller
         
         foreach ($documentos as $key => $value) {
             $colleccion->push([
-                'id' => $value->id,
-                "tipo_venta"=>$value->tablaDetalles->nombre,
-                'numero_doc' => $value->numero_doc,
-                'serie' => $value->serie,
-                'correlativo' => $value->correlativo,
-                'cliente' => $value->cliente,
-                'empresa' => $value->empresa,
-                'importe' => $value->importe,
-                'efectivo' => $value->efectivo,
-                'tipo_pago_id' => $value->tipo_pago_id,
-                'ruta_pago' => $value->ruta_pago,
-                'cliente_id' => $value->cliente_id,
-                'convertir' => $value->convertir,
-                'empresa_id' => $value->empresa_id,
-                'cotizacion_venta' => $value->cotizacion_venta,
-                'fecha_documento' => $value->fecha_documento,
-                'estado_pago' => $value->estado_pago,
-                'condicion_id' => $value->condicion_id,
-                'sunat' => $value->sunat,
-                'regularize' => $value->regularize,
-                'contingencia' => $value->contingencia,
-                'sunat_contingencia' => $value->sunat_contingencia,
-                'documento_cliente' => $value->documento_cliente,
-                'code' => $value->code,
-                'total' => $value->total,
-                'total_pagar' =>$value->total_pagar,
+                'id'                =>  $value->id,
+                "tipo_venta"        =>  $value->tablaDetalles->nombre,
+                'numero_doc'        =>  $value->numero_doc,
+                'serie'             =>  $value->serie,
+                'correlativo'       =>  $value->correlativo,
+                'cliente'           =>  $value->cliente,
+                'empresa'           =>  $value->empresa,
+                'importe'           =>  $value->importe,
+                'efectivo'          =>  $value->efectivo,
+                'tipo_pago_id'      =>  $value->tipo_pago_id,
+                'ruta_pago'         =>  $value->ruta_pago,
+                'cliente_id'        =>  $value->cliente_id,
+                'convertir'         =>  $value->convertir,
+                'doc_convertido'    =>  $value->doc_convertido(),
+                'empresa_id'        =>  $value->empresa_id,
+                'cotizacion_venta'  =>  $value->cotizacion_venta,
+                'fecha_documento'   =>  $value->fecha_documento,
+                'estado_pago'       =>  $value->estado_pago,
+                'condicion_id'      =>  $value->condicion_id,
+                'sunat'             =>  $value->sunat,
+                'regularize'        =>  $value->regularize,
+                'contingencia'      =>  $value->contingencia,
+                'sunat_contingencia'=>  $value->sunat_contingencia,
+                'documento_cliente' =>  $value->documento_cliente,
+                'code'              =>  $value->code,
+                'total'             =>  $value->total,
+                'total_pagar'       =>  $value->total_pagar,
                 'dias' => $value->dias,
                 'notas' => $value->notas,
                 "condicion"=>$value->condicion->descripcion,
@@ -1510,12 +1511,11 @@ class DocumentoController extends Controller
             $documento->importe         = $request->get('importe');
             $documento->efectivo        = $request->get('efectivo');
 
-            
-
+            //======= DESDE STORE -> CONVERTIR HAS FALSE ======
             if ($request->convertir) {
                 $documento->convertir = $request->convertir;
             } else {
-                 $documento->convertir = null;
+                $documento->convertir = null;
             }
 
             if (!empty($request->get('tipo_pago_id')) && $condicion->descripcion == 'CONTADO') {
@@ -1696,6 +1696,7 @@ class DocumentoController extends Controller
                     //$lote->estado = '0';
                 }
             }
+
 
             //======== GUARDANDO DATA DE ENVIO =========
             $data_envio     =   json_decode($request->get('data_envio'));

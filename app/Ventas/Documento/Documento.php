@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Mantenimiento\Tabla\Detalle as TablaDetalle;
 use App\Ventas\CuentaCliente;
 use App\Ventas\RetencionDetalle;
+use Illuminate\Support\Facades\DB;
 
 class Documento extends Model
 {
@@ -131,6 +132,20 @@ class Documento extends Model
             return "-";
         else
             return strval($venta->nombre);
+    }
+
+    public function doc_convertido():string
+    {
+        $documento_convertido_id        =   $this->convertir;
+        $doc_convertido                 =   DB::select('select cd.serie,cd.correlativo 
+                                            from cotizacion_documento as cd
+                                            where id=?',[$documento_convertido_id]);  
+        
+        if(count($doc_convertido)>0){
+            return $doc_convertido[0]->serie.'-'.$doc_convertido[0]->correlativo;
+        }else{
+            return "-";
+        }
     }
 
     public function descripcionTipo(): string

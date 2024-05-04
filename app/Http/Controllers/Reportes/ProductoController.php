@@ -71,15 +71,17 @@ class ProductoController extends Controller
             ->where("color_id",$color_id)
             ->where("talla_id",$talla_id)
             ->get();
+          
             $coleccion = collect([]);
             foreach ($ventas as $producto) {
                 $coleccion->push([
-                    'cliente' => $producto->documento->clienteEntidad->nombre,
-                    'documento' => $producto->documento->nombreTipo(),
-                    'numero' => $producto->documento->serie . '-' . $producto->documento->correlativo,
-                    'fecha_emision' => $producto->documento->fecha_atencion,
-                    'cantidad' => $producto->cantidad,
-                    'precio_unitario_nuevo' => $producto->precio_unitario_nuevo,
+                    'cliente'               =>  $producto->documento->clienteEntidad->nombre,
+                    'documento'             =>  $producto->documento->nombreTipo(),
+                    'numero'                =>  $producto->documento->serie . '-' . $producto->documento->correlativo,
+                    'fecha_emision'         =>  $producto->documento->fecha_atencion,
+                    'cantidad'              =>  $producto->cantidad,
+                    'precio_unitario_nuevo' =>  $producto->precio_unitario_nuevo,
+                    'convertir'             =>  $producto->documento->doc_convertido()    
                     // 'fecha_vencimiento' => $producto->documento->fecha_vencimiento,
                     // 'medida' => $producto->producto->medidaCompleta(),
                 ]);
