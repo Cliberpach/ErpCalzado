@@ -61,7 +61,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-12 d-flex justify-content-end">
-                                    <button type="submit" class="btn btn-primary btn-sm" style="color:white;"><i
+                                    <button type="submit" id="btn-guardar-sede" class="btn btn-primary btn-sm" style="color:white;"><i
                                         class="fa fa-save"></i> Guardar</button>
                                 </div>
                             </div>
@@ -159,6 +159,7 @@
 
             document.querySelector('#formSede').addEventListener('submit',async (e)=>{
                 e.preventDefault();
+                document.querySelector('#btn-guardar-sede').disabled    =   true;
                 try {
                     const formData  =   new FormData(e.target);
                     const res       =   await   axios.post(route('mantenimiento.metodo_entrega.createSede'),formData);
@@ -175,13 +176,15 @@
                         ]).draw();
                         //====== REDIRIGIENDO A LISTADO DE SEDES =====
                         document.querySelector('#tab1-tab').click();
+                        document.querySelector('#btn-guardar-sede').disabled    =   false;
                         //====== MOSTRANDO ALERTA =======
                         toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
                     }else{
+                        document.querySelector('#btn-guardar-sede').disabled    =   false;
                         toastr.error(`${res.data.message} - ${res.data.exception}`,'ERROR');
                     }
                 } catch (error) {
-                    
+                    document.querySelector('#btn-guardar-sede').disabled    =   false;
                 }
             })
 
