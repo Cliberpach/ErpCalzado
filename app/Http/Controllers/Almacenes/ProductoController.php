@@ -103,8 +103,8 @@ class ProductoController extends Controller
             'precio1' => 'required',
             'precio2' => 'required',
             'precio3' => 'required',
-            'costo'=>['required','numeric'
-            ,'min:0'],
+            //'costo'=>['required','numeric'
+            //,'min:0'],
             // 'stock_minimo' => 'required|numeric',
             // 'precio_venta_minimo' => 'numeric|nullable',
             // 'precio_venta_maximo' => 'numeric|nullable',
@@ -123,9 +123,9 @@ class ProductoController extends Controller
             'categoria.required' => 'El campo Categoria es obligatorio',
             'almacen.required' => 'El campo Almacen es obligatorio',
             'medida.required' => 'El campo Unidad de medida es obligatorio',
-            'costo.required'=>'Ingresar un valor al campo costo',
-            'costo.min'=>'Ingresar un costo mayor o igual que 0',
-            'costo.numeric'=>'Ingresar un numero en el campo costo',
+            //'costo.required'=>'Ingresar un valor al campo costo',
+            //'costo.min'=>'Ingresar un costo mayor o igual que 0',
+            //'costo.numeric'=>'Ingresar un numero en el campo costo',
             'precio1.required'=>'El campo precio 1 es obligatorio',
             'precio2.required'=>'El campo precio 2 es obligatorio',
             'precio3.required'=>'El campo precio 3 es obligatorio',
@@ -144,18 +144,19 @@ class ProductoController extends Controller
 
             //guardando producto
             $producto = new Producto();
-            $producto->codigo = $request->get('codigo');
-            $producto->codigo_barra = $request->get('codigo_barra');
-            $producto->nombre = $request->get('nombre');
-            $producto->marca_id = $request->get('marca');
-            $producto->almacen_id = $request->get('almacen');
-            $producto->categoria_id = $request->get('categoria');
-            $producto->modelo_id = $request->get('modelo');
-            $producto->medida = $request->get('medida');
-            $producto->precio_venta_1 = $request->get('precio1');
-            $producto->precio_venta_2 = $request->get('precio2');
-            $producto->precio_venta_3 = $request->get('precio3');
-            $producto->costo=$request->get('costo');
+            $producto->codigo           =   $request->get('codigo');
+            $producto->codigo_barra     =   $request->get('codigo_barra');
+            $producto->nombre           =   $request->get('nombre');
+            $producto->marca_id         =   $request->get('marca');
+            $producto->almacen_id       =   $request->get('almacen');
+            $producto->categoria_id     =   $request->get('categoria');
+            $producto->modelo_id        =   $request->get('modelo');
+            $producto->medida           =   $request->get('medida');
+            $producto->precio_venta_1   =   $request->get('precio1');
+            $producto->precio_venta_2   =   $request->get('precio2');
+            $producto->precio_venta_3   =   $request->get('precio3');
+            $producto->costo            =   $request->get('costo')?$request->get('costo'):0;  
+
             // $producto->peso_producto = $request->get('peso_producto') ? $request->get('peso_producto') : 0;
             // $producto->stock_minimo = $request->get('stock_minimo');
             // $producto->precio_venta_minimo = $request->get('precio_venta_minimo');
@@ -297,18 +298,19 @@ class ProductoController extends Controller
 
         Validator::make($data, $rules, $message)->validate();
 
-        $producto = Producto::findOrFail($id);
-        $producto->codigo = $request->get('codigo');
-        $producto->nombre = $request->get('nombre');
-        $producto->marca_id = $request->get('marca');
-        $producto->almacen_id = $request->get('almacen');
-        $producto->categoria_id = $request->get('categoria');
-        $producto->modelo_id = $request->get('modelo');
-        $producto->precio_venta_1 = $request->get('precio1');
-        $producto->precio_venta_2 = $request->get('precio2');
-        $producto->precio_venta_3 = $request->get('precio3');
-        $producto->medida = $request->get('medida');
-        $producto->codigo_barra = $request->get('codigo_barra');
+        $producto                   =   Producto::findOrFail($id);
+        $producto->codigo           =   $request->get('codigo');
+        $producto->nombre           =   $request->get('nombre');
+        $producto->marca_id         =   $request->get('marca');
+        $producto->almacen_id       =   $request->get('almacen');
+        $producto->categoria_id     =   $request->get('categoria');
+        $producto->modelo_id        =   $request->get('modelo');
+        $producto->precio_venta_1   =   $request->get('precio1');
+        $producto->precio_venta_2   =   $request->get('precio2');
+        $producto->precio_venta_3   =   $request->get('precio3');
+        $producto->medida           =   $request->get('medida');
+        $producto->codigo_barra     =   $request->get('codigo_barra');
+        $producto->costo            =   $request->get('costo')?$request->get('costo'):0;  
         // $producto->peso_producto = $request->get('peso_producto') ? $request->get('peso_producto') : 0;
         // $producto->stock_minimo = $request->get('stock_minimo');
         // $producto->precio_venta_minimo = $request->get('precio_venta_minimo');

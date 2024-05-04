@@ -226,8 +226,7 @@
                                     <div class="col-lg-6 col-12">
                                         <div class="form-group">
                                             <label class="required">COSTO</label>
-                                             
-                                            <input class="form-control {{ $errors->has('costo') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="costo" name="costo"  value="{{ old('costo')}}"/>
+                                            <input value="0" class="form-control {{ $errors->has('costo') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="costo" name="costo"  value="{{ old('costo')}}"/>
                                             @if ($errors->has('costo'))
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $errors->first('costo') }}</strong>
