@@ -78,10 +78,10 @@
     <link href="/Inspinia/css/plugins/toastr/toastr.min.css" rel="stylesheet">
 
     <!-- FONTAWESOME PREMIUM 6.0 -->
-    <link href="https://cdn.jsdelivr.net/gh/eliyantosarage/font-awesome-pro@main/fontawesome-pro-6.5.1-web/css/all.min.css" rel="stylesheet">
+    {{-- <link href="https://cdn.jsdelivr.net/gh/eliyantosarage/font-awesome-pro@main/fontawesome-pro-6.5.1-web/css/all.min.css" rel="stylesheet"> --}}
     
     <!-- FONTAWESOME 5.0 FREE -->
-    {{-- <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script> --}}
+    <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 
     @stack('styles')
 
