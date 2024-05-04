@@ -148,6 +148,20 @@ class Documento extends Model
         }
     }
 
+    public function usuario():string 
+    {
+        $usuario_id         =   $this->user_id;
+        $usuario            =   DB::select('select u.usuario as usuario_nombre 
+                                from users as u   
+                                where u.id=?',[$usuario_id]);
+
+        if(count($usuario)>0){
+            return $usuario[0]->usuario_nombre;
+        }else{
+            return "-";
+        }
+    }
+
     public function descripcionTipo(): string
     {
         $venta = tipos_venta()->where('id', $this->tipo_venta)->first();

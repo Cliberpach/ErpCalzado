@@ -81,7 +81,8 @@ class ProductoController extends Controller
                     'fecha_emision'         =>  $producto->documento->fecha_atencion,
                     'cantidad'              =>  $producto->cantidad,
                     'precio_unitario_nuevo' =>  $producto->precio_unitario_nuevo,
-                    'convertir'             =>  $producto->documento->doc_convertido()    
+                    'convertir'             =>  $producto->documento->doc_convertido(),
+                    'usuario'               =>  $producto->documento->usuario()    
                     // 'fecha_vencimiento' => $producto->documento->fecha_vencimiento,
                     // 'medida' => $producto->producto->medidaCompleta(),
                 ]);
@@ -173,7 +174,7 @@ class ProductoController extends Controller
                     ->where('color_id', $color_id)
                     ->where('talla_id', $talla_id)
                     ->join('nota_ingreso', 'detalle_nota_ingreso.nota_ingreso_id', '=', 'nota_ingreso.id')
-                    ->select('detalle_nota_ingreso.*', 'nota_ingreso.usuario')
+                    ->select('detalle_nota_ingreso.*', 'nota_ingreso.usuario','nota_ingreso.created_at')
                     ->get();
 
         $coleccion = collect([]);
@@ -190,7 +191,8 @@ class ProductoController extends Controller
                 'id'                => $ingreso->id,
                 'moneda'            => $ingreso->nota_ingreso->moneda,
                 'medida'            => $ingreso->producto->medidaCompleta(),
-                'usuario'           => $ingreso->usuario
+                'usuario'           => $ingreso->usuario,
+                'fecha'             => $ingreso->created_at->format('Y-m-d H:i:s')
                 //'medida' => $ingreso->loteProducto->producto->medidaCompleta(),
             ]);
         }

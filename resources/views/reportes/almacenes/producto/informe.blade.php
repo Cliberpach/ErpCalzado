@@ -111,6 +111,7 @@
                                 <thead>
                                     <tr>
                                         <th class="text-center">CLIENTE</th>
+                                        <th class="text-center">USUARIO</th>
                                         <th class="text-center">DOCUMENTO</th>
                                         <th class="text-center">NUMERO</th>
                                         <th class="text-center">FECHA</th>
@@ -151,6 +152,7 @@
                                         <th class="text-center">DESTINO</th>
                                         <th class="text-center">CANTIDAD</th>
                                         <th class="text-center">USUARIO</th>
+                                        <th class="text-center">FECHA</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -508,6 +510,11 @@
                         className: "letrapequeña"
                     },
                     {
+                        data: 'usuario',
+                        name: 'usuario',
+                        className: "letrapequeña"
+                    },
+                    {
                         data: 'documento',
                         name: 'documento',
                         className: "letrapequeña"
@@ -682,6 +689,11 @@
                         name: 'usuario',
                         className: "letrapequeña"
                     },
+                    {
+                        data: 'fecha',
+                        name: 'fecha',
+                        className: "letrapequeña"
+                    }
                 ],
                 "language": {
                     "url": "{{ asset('Spanish.json') }}"
