@@ -835,6 +835,8 @@ function(){
         Route::post('updateIngreso', 'Reportes\ProductoController@updateIngreso')->name('reporte.producto.updateIngreso');
         // Route::get('getTable', 'Reportes\ProductoController@getTable')->name('reporte.producto.getTable');
         Route::get('getProductos', 'Reportes\ProductoController@getProductos')->name('reporte.producto.getProductos');
+        Route::get('excelProductos', 'Reportes\ProductoController@excelProductos')->name('reporte.producto.excelProductos');
+
 
     });
 

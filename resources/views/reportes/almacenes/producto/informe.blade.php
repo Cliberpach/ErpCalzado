@@ -41,7 +41,7 @@
                                         <th class="text-center">COLOR</th>
                                         <th class="text-center">TALLA</th>
                                         <th class="text-center">MODELO</th>
-                                        <th class="text-center">MARCA</th>
+                                        <th class="text-center">CATEGORÍA</th>
                                         <th class="text-center">STOCK</th>
                                     </tr>
                                 </thead>
@@ -709,24 +709,41 @@
         function loadTable() {
             $('.dataTables-producto').DataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
-                "buttons": [{
-                        extend: 'excelHtml5',
-                        text: '<i class="fa fa-file-excel-o"></i> Excel',
-                        titleAttr: 'Excel',
-                        title: 'CONSULTA PRODUCTOS'
-                    },
-                    {
-                        titleAttr: 'Imprimir',
-                        extend: 'print',
-                        text: '<i class="fa fa-print"></i> Imprimir',
-                        customize: function(win) {
-                            $(win.document.body).addClass('white-bg');
-                            $(win.document.body).css('font-size', '10px');
-                            $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
+                "buttons": [
+                        {
+                            text: '<i class="fa fa-file-excel-o"></i> Excel',
+                            titleAttr: 'Excel',
+                            title: 'CONSULTA PRODUCTOS',
+                            action: function(e, dt, node, config) {
+                                
+                            },
+                            init: function(api, node, config) {
+                            // Agregar un atributo href al botón para definir la ruta deseada
+                            $(node).attr('href', '{{ route('reporte.producto.excelProductos') }}');
+                            // Manejar el clic en el botón para abrir la URL en una nueva ventana
+                            $(node).on('click', function() {
+                                window.open($(this).attr('href'), '_blank');
+                            });
                         }
-                    }
+                        }
+                    // {
+                    //     extend: 'excelHtml5',
+                    //     text: '<i class="fa fa-file-excel-o"></i> Excel',
+                    //     titleAttr: 'Excel',
+                    //     title: 'CONSULTA PRODUCTOS'
+                    // },
+                    // {
+                    //     titleAttr: 'Imprimir',
+                    //     extend: 'print',
+                    //     text: '<i class="fa fa-print"></i> Imprimir',
+                    //     customize: function(win) {
+                    //         $(win.document.body).addClass('white-bg');
+                    //         $(win.document.body).css('font-size', '10px');
+                    //         $(win.document.body).find('table')
+                    //             .addClass('compact')
+                    //             .css('font-size', 'inherit');
+                    //     }
+                    // }
                 ],
                 "bPaginate": true,
                 "serverSide": true,
@@ -800,5 +817,8 @@
             $('#modal_costo_update #total').val(data.total);
             $('#modal_costo_update').modal('show');
         });
+
+      
     </script>
+
 @endpush

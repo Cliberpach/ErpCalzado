@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
+use App\Exports\Reportes\PI\Producto_PI;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductoController extends Controller
 {
@@ -289,5 +291,9 @@ class ProductoController extends Controller
                 // ->orderBy('colores.id', 'asc')
                 // ->orderBy('tallas.id', 'asc')
         )->toJson();
+    }
+
+    public function excelProductos(){
+        return Excel::download(new Producto_PI(), 'productos_pi.xlsx');
     }
 }
