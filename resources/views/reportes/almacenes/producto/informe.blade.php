@@ -186,7 +186,7 @@
                                         <th class="text-center">ORIGEN</th>
                                         <th class="text-center">DESTINO</th>
                                         <th class="text-center">CANTIDAD</th>
-                                        <th class="text-center">MEDIDA</th>
+                                        <th class="text-center">USUARIO</th>
                                         <th class="text-center">FECHA</th>
                                     </tr>
                                 </thead>
@@ -612,8 +612,8 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'medida',
-                        name: 'medida',
+                        data: 'usuario',
+                        name: 'usuario',
                         className: "letrapequeña"
                     },
                     {

@@ -145,6 +145,7 @@ class ProductoController extends Controller
             'nota_salidad.origen',
             'nota_salidad.destino',
             'nota_salidad.fecha',
+            'nota_salidad.usuario',
             //'lote_productos.codigo_lote',
             'tabladetalles.descripcion as unidad'
         )
@@ -156,12 +157,13 @@ class ProductoController extends Controller
         $coleccion = collect([]);
         foreach ($salidas as $salida) {
             $coleccion->push([
-                'origen' => $salida->origen,
-                'destino' => $salida->destino,
-                'cantidad' => $salida->cantidad,
+                'origen'    =>  $salida->origen,
+                'destino'   =>  $salida->destino,
+                'cantidad'  =>  $salida->cantidad,
                 //'lote' => $salida->codigo_lote,
                 'fecha'     =>  $salida->fecha,
-                'medida' => $salida->unidad,
+                'medida'    =>  $salida->unidad,
+                'usuario'   =>  $salida->usuario
             ]);
         }
         return DataTables::of($coleccion)->make(true);
