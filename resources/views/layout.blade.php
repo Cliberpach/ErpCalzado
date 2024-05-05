@@ -12,6 +12,10 @@
     <link rel="icon" href="/img/siscom.ico" />
 
     <style>
+        .swal2-cancel {
+            margin-right: 10px; 
+        }
+
         .list-alerts {
             max-height: calc(100vh - 325px);
             overflow-y: auto;
@@ -124,14 +128,14 @@
                         @if(auth()->check() && auth()->user()->roles()->where('name', 'ADMIN')->exists())
                             <li>
                                 <a href="javascript:void(0);" onclick="restaurarStock()" title="RESTAURAR STOCK">
-                                    <i class="fa-regular fa-hourglass-clock"></i> RESTAURAR STOCK
+                                    <i class="fas fa-balance-scale"></i> RESTAURAR STOCK
                                 </a>
                             </li>
-                            <li>
+                            {{-- <li>
                                 <a href="{{route('descargarBD')}}" title="DESCARGAR BD">
                                     <i class="fa-solid fa-database"></i> DATABASE
                                 </a>
-                            </li>                        
+                            </li>                         --}}
                         @endif
                     </ul>
                     <ul class="nav navbar-top-links navbar-right" id="appNotify">
@@ -405,17 +409,49 @@
 
     async function restaurarStock(){
         try {
-            const res   =   await axios.post(route('restaurarStock'));
-            console.log(res);
-            if(res.data.success){
-                const message   =   res.data.message;
-                toastr.success(message,'OPERACIÓN COMPLETADA');
-            }else{
-                const message       =   res.data.message;
-                const exception   =   res.data.exception;
+            const swalWithBootstrapButtons = Swal.mixin({
+            customClass: {
+                confirmButton: "btn btn-success",
+                cancelButton: "btn btn-danger"
+            },
+            buttonsStyling: false
+            });
+            swalWithBootstrapButtons.fire({
+            title: "Desea emparejar el stock?",
+            text: "Esta acción no es reversible!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí!",
+            cancelButtonText: "No, cancelar!",
+            reverseButtons: true
+            }).then(async (result) => {
+            if (result.isConfirmed) {
 
-                toastr.error(`${message} - ${exception}`,'ERROR');
+                const res   =   await axios.post(route('restaurarStock'));
+                console.log(res);
+                if(res.data.success){
+                    const message   =   res.data.message;
+                    toastr.success(message,'OPERACIÓN COMPLETADA');
+                }else{
+                    const message       =   res.data.message;
+                    const exception   =   res.data.exception;
+
+                    toastr.error(`${message} - ${exception}`,'ERROR');
+                }
+
+            } else if (
+                /* Read more about handling dismissals below */
+                result.dismiss === Swal.DismissReason.cancel
+            ) {
+                swalWithBootstrapButtons.fire({
+                title: "Operación cancelada",
+                text: "No se realizaron acciones",
+                icon: "error"
+                });
             }
+            });
+
+           
         } catch (error) {
             console.log(error)
             toastr.error(`${error.response.data.message}`,'ERROR EN EL SERVIDOR');  
