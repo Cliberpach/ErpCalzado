@@ -120,7 +120,7 @@
 
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-md-4">
+                                            <!-- <div class="col-12 col-md-4">
                                                 <div class="form-group">
                                                     <label>
                                                         <input type="checkbox" class="i-checks" name="envio_sunat"
@@ -128,7 +128,7 @@
                                                         <b class="text-danger">Enviar a Sunat</b>
                                                     </label>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                         </div>
                                     </div>
                                 </div>

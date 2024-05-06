@@ -244,7 +244,7 @@
                                                 {{ printStockLogico(pc.producto_id, pc.color_id, t.id) }}
                                             </span>
                                         </td>
-                                        <td style="width: 5%;" v-if="printStockLogico(pc.producto_id, pc.color_id, t.id) !== 0">
+                                        <td style="width: 5%;" v-if="printStockLogico(pc.producto_id, pc.color_id, t.id) > 0">
                                             <input
                                             type="text"
                                             class="form-control inputCantidad inputCantidadColor"

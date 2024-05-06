@@ -20,7 +20,7 @@ class DespachoController extends Controller
     {
         $envios_ventas  = EnvioVenta::select('documento_nro', 'cliente_nombre','fecha_envio_propuesta','fecha_envio','created_at','tipo_envio',
                             'empresa_envio_nombre','sede_envio_nombre','departamento','provincia','distrito',
-                            'contraentrega','destinatario_nombre','monto_envio','envio_gratis','entrega_domicilio',
+                            'destinatario_nombre','tipo_pago_envio','monto_envio','entrega_domicilio',
                             'direccion_entrega','estado','documento_id') 
                         ->where('estado', 'ACTIVO')
                         ->orderBy('id', 'desc') 
@@ -38,10 +38,9 @@ class DespachoController extends Controller
                 'empresa_envio_nombre'  =>  $envio_venta->empresa_envio_nombre,
                 'sede_envio_nombre'     =>  $envio_venta->sede_envio_nombre,
                 'ubigeo'                =>  $envio_venta->departamento.' - '.$envio_venta->provincia.' - '.$envio_venta->distrito,
-                'pago'                  =>  $envio_venta->contraentrega==="SI"?"CONTRAENTREGA":"PAGAR ENVÍO",
+                'tipo_pago_envio'       =>  $envio_venta->tipo_pago_envio,
                 'destinatario_nombre'   =>  $envio_venta->destinatario_nombre,
                 'monto_envio'           =>  $envio_venta->monto_envio,
-                'envio_gratis'          =>  $envio_venta->envio_gratis,
                 'entrega_domicilio'     =>  $envio_venta->entrega_domicilio,
                 'direccion_entrega'     =>  $envio_venta->direccion_entrega,
                 'estado'                =>  $envio_venta->estado,

@@ -54,19 +54,16 @@
                                     </div>
                                 </div>
                                 <hr>
-                                <label for="" style="font-weight: bold;">TIPO DE ENVÍO</label>
                                 <div class="row">
                                     <div class="col-4">
+                                        <label for="" style="font-weight: bold;">TIPO DE ENVÍO</label>
                                         <v-select v-model="tipo_envio" :options="tipos_envios" :reduce="te=>te"
                                             required :clearable="false" label="descripcion" ></v-select>
                                     </div>
-                                    <div class="col-3 d-flex align-items-center" v-if="mostrarColumnaContraentrega">
-                                        <input id="check_contraentrega" type="checkbox" v-model="contraentrega" class="form-control">
-                                        <label for="check_contraentrega" class="mb-0" style="margin-right: 95px;font-weight: bold;">CONTRAENTREGA</label>
-                                    </div>
-                                    <div class="col-5 d-flex align-items-center">
-                                        <input id="check_envio_gratis" type="checkbox" v-model="envio_gratis" class="form-control">
-                                        <label for="check_envio_gratis" class="mb-0" style="margin-right: 350px;font-weight: bold;">ENVIO GRATIS</label>
+                                    <div class="col-4">
+                                        <label for="" style="font-weight: bold;">TIPO PAGO</label>
+                                        <v-select v-model="tipo_pago_envio" :options="tipos_pago_envio" :reduce="tp=>tp"
+                                            required :clearable="false" label="descripcion" ></v-select>
                                     </div>
                                 </div>
                                 <div class="row mt-4">
@@ -95,8 +92,9 @@
                                         </div>
                                     </div>
                                     <div class="col-7">
-                                        <label for="">DIRECCION DE ENTREGA</label>
-                                        <input :readonly="!entrega_domicilio" type="text" class="form-control" v-model="direccion_entrega">
+                                        <label :class="{ 'required': entrega_domicilio }" for="">DIRECCION DE ENTREGA</label>
+                                        <input :readonly="!entrega_domicilio" :required="entrega_domicilio" type="text" class="form-control" 
+                                        v-model="direccion_entrega">
                                     </div>
                                 </div>
                                 <hr>
@@ -127,7 +125,7 @@
                                                     <button type="button" style="color:white" class="btn btn-primary"
                                                         @click.prevent="consultarDocumento">
                                                         <i class="fa fa-search"></i>
-                                                        <span id="entidad">{{ entidad }}</span>
+                                                        <span id="entidad"> CONSULTAR</span>
                                                     </button>
                                                 </span>
                                             </div>
@@ -175,9 +173,11 @@ export default {
             loading: false,
             direccion_entrega:"",
             entrega_domicilio:false,
-            contraentrega:false,
-            envio_gratis:false,
-            mostrarColumnaContraentrega:false,
+            tipos_pago_envio:[],
+            tipo_pago_envio:{
+                id:0,
+                descripcion:"SELECCIONAR"
+            },
             mostrar_combo_sedes:true,
             mostrar_entrega_domicilio:true,
             origenes_ventas:[],
@@ -350,7 +350,6 @@ export default {
                 */
                 if(value.descripcion === "AGENCIA"){
                     this.mostrar_combo_sedes            =   true;
-                    this.mostrarColumnaContraentrega    =   false;
                     this.mostrar_entrega_domicilio      =   true;
                 }
 
@@ -361,7 +360,6 @@ export default {
                 */
                 if(value.descripcion === "DELIVERY"){
                     this.mostrar_combo_sedes            =   false;
-                    this.mostrarColumnaContraentrega    =   true;
                     this.mostrar_entrega_domicilio      =   true;
                     this.entrega_domicilio              =   true;
                 }
@@ -373,7 +371,6 @@ export default {
                 */
                 if(value.descripcion === "RECOJO EN TIENDA"){
                     this.mostrar_combo_sedes            =   true;
-                    this.mostrarColumnaContraentrega    =   false;
                     this.mostrar_entrega_domicilio      =   false;
                     this.entrega_domicilio              =   false;
                 }
@@ -562,6 +559,7 @@ export default {
         await this.setFechaEnvioDefault();
         await this.getDepartamentos();
         await this.getTipoEnvios();
+        await this.getTiposPagoEnvio();
         await this.getOrigenesVentas();
         await this.getEmpresasEnvio(this.tipo_envio.descripcion);
         this.loading    =   false;
@@ -587,6 +585,7 @@ export default {
             this.observaciones  =   "";
             this.sedes          =   [];   
             this.$emit('addDataEnvio',JSON.stringify(this.formEnvio));
+            $("#modal_envio").modal("hide");
             toastr.success("ENVÍO BORRADO","OPERACIÓN COMPLETADA");
         },
         setFechaEnvioDefault(){
@@ -624,18 +623,18 @@ export default {
           this.formEnvio.empresa_envio          =   this.empresa_envio;
           this.formEnvio.sede_envio             =   this.sede_envio;
           this.formEnvio.destinatario           =   this.destinatario;
-          this.formEnvio.contraentrega          =   this.contraentrega;
           this.formEnvio.direccion_entrega      =   this.direccion_entrega;
           this.formEnvio.entrega_domicilio      =   this.entrega_domicilio;
-          this.formEnvio.envio_gratis           =   this.envio_gratis;
           this.formEnvio.origen_venta           =   this.origen_venta;
           this.formEnvio.fecha_envio_propuesta  =   this.fecha_envio;
           this.formEnvio.observaciones          =   this.observaciones;
+          this.formEnvio.tipo_pago_envio        =   this.tipo_pago_envio;
 
-          toastr.success('DATOS DE ENVÍO GUARDADOS','OPERACIÓN COMPLETADA');
           console.log('FORMULARIO ENVIO');
           console.log(this.formEnvio);
           this.$emit('addDataEnvio',JSON.stringify(this.formEnvio));
+          toastr.success('DATOS DE ENVÍO GUARDADOS','OPERACIÓN COMPLETADA');
+          $("#modal_envio").modal("hide");
         },
         async getTipoCliente() {
             try {
@@ -828,10 +827,40 @@ export default {
 
                     }else{
                         this.origen_venta       =   {descripcion:"SIN DATOS"};
+                        toastr.error("REGISTRE ORÍGENES DE VENTA EN TABLAS GENERALES",'ERROR AL OBTENER ORÍGENES DE VENTA');
                     }
                 }else
                 {
-                    toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER EMPRESAS DE ENVÍO');
+                    toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER ORÍGENES DE VENTA');
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR EN EL SERVIDOR');
+            }finally{
+                this.loading        =   false;
+            }
+        },
+        async getTiposPagoEnvio() {
+            try { 
+                this.loading        =   true;
+                const { data }      = await this.axios.get(route("consulta.ajax.getTiposPagoEnvio"));
+                
+                if(data.success){
+                    this.tipos_pago_envio    =   data.tipos_pago_envio;
+                    console.log(data);
+
+                    //========= COLOCANDO PRIMERA OPCIÓN POR DEFECTO ======
+                    if(data.tipos_pago_envio.length > 0){
+                        this.tipo_pago_envio   =   {
+                            id:this.tipos_pago_envio[0].id,
+                            descripcion:this.tipos_pago_envio[0].descripcion
+                        };
+                    }else{
+                        this.tipo_pago_envio       =   {id:0,descripcion:"SIN DATOS"};
+                        toastr.error("REGISTRE TIPOS DE PAGO ENVÍO EN TABLAS GENERALES",'ERROR AL OBTENER ORÍGENES DE VENTA');
+                    }
+                }else
+                {
+                    toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER TIPOS PAGO DE ENVÍO');
                 }
             } catch (error) {
                 toastr.error(error,'ERROR EN EL SERVIDOR');

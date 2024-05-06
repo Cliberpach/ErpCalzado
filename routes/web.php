@@ -922,6 +922,7 @@ function(){
         Route::get("get-empresas-envio/{tipo_envio}","ConsultasAjaxController@getEmpresasEnvio")->name("consulta.ajax.getEmpresasEnvio");
         Route::get("get-sedes-envio/{empresa_envio_id}/{ubigeo}","ConsultasAjaxController@getSedesEnvio")->name("consulta.ajax.getSedesEnvio");
         Route::get("get-origenes-ventas","ConsultasAjaxController@getOrigenesVentas")->name("consulta.ajax.getOrigenesVentas");
+        Route::get("get-tipos-pago-envio","ConsultasAjaxController@getTiposPagoEnvio")->name("consulta.ajax.getTiposPagoEnvio");
 
     });
 });

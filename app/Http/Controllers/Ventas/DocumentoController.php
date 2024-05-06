@@ -1716,9 +1716,8 @@ class DocumentoController extends Controller
                 $envio_venta->destinatario_nombre   =   $data_envio->destinatario->nombres;
                 $envio_venta->cliente_id            =   $documento->cliente_id;
                 $envio_venta->cliente_nombre        =   $documento->cliente;
-                $envio_venta->contraentrega         =   $data_envio->contraentrega?"SI":"NO";
+                $envio_venta->tipo_pago_envio       =   $data_envio->tipo_pago_envio->descripcion;
                 $envio_venta->monto_envio           =   $documento->monto_envio;
-                $envio_venta->envio_gratis          =   $data_envio->envio_gratis?"SI":"NO";
                 $envio_venta->entrega_domicilio     =   $data_envio->entrega_domicilio?"SI":"NO";
                 $envio_venta->direccion_entrega     =   $data_envio->direccion_entrega;
                 $envio_venta->documento_nro         =   $envio_prev['serie_correlativo'];
@@ -1750,9 +1749,8 @@ class DocumentoController extends Controller
                 $envio_venta->destinatario_nombre   =   $documento->cliente;
                 $envio_venta->cliente_id            =   $documento->cliente_id;
                 $envio_venta->cliente_nombre        =   $documento->cliente;
-                $envio_venta->contraentrega         =   "NO";
+                $envio_venta->tipo_pago_envio       =   "-";
                 $envio_venta->monto_envio           =   $documento->monto_envio;
-                $envio_venta->envio_gratis          =   "NO";
                 $envio_venta->entrega_domicilio     =   "NO";
                 $envio_venta->direccion_entrega     =   null;
                 $envio_venta->documento_nro         =   $envio_prev['serie_correlativo'];

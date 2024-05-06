@@ -32,9 +32,8 @@ class CreateEnviosVentasTable extends Migration
             $table->unsignedInteger('cliente_id');
             $table->foreign('cliente_id')->references('id')->on('clientes');            
             $table->string('cliente_nombre');
-            $table->char('contraentrega', 2);
+            $table->string('tipo_pago_envio');
             $table->decimal('monto_envio', 10, 2);
-            $table->char('envio_gratis', 2);
             $table->char('entrega_domicilio', 2);
             $table->string('direccion_entrega')->nullable();
             $table->string('documento_nro');

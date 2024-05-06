@@ -28,7 +28,7 @@ class ConsultasAjaxController extends Controller
     public function getTipoEnvios(){
         $tipos_envio    =   DB::select('select td.id,td.descripcion from tablas as t 
         inner join tabladetalles as td  on t.id=td.tabla_id
-        where t.id=35');
+        where t.id=35 and td.estado="ACTIVO"');
 
         return response()->json($tipos_envio);
     }
@@ -36,7 +36,7 @@ class ConsultasAjaxController extends Controller
     public function getEmpresasEnvio($tipo_envio){
         try {
             $empresas_envio     =   DB::select(' select * from empresas_envio as ee
-                                    where ee.tipo_envio=?',[$tipo_envio]); 
+                                    where ee.tipo_envio=? and ee.estado="ACTIVO"',[$tipo_envio]); 
 
             return response()->json(['success'=>true,'empresas_envio'=>$empresas_envio]);
         } catch (\Throwable $th) {
@@ -53,8 +53,9 @@ class ConsultasAjaxController extends Controller
             $distrito           =   $ubigeo[2];
 
             $sedes_envio    =   DB::select('select * from empresa_envio_sedes as ees
-                                where ees.empresa_envio_id=? and departamento=? 
-                                and provincia=? and distrito=?',[$empresa_envio_id,$departamento->nombre,
+                                where ees.empresa_envio_id=? and ees.departamento=? 
+                                and ees.provincia=? and ees.distrito=? and ees.estado="ACTIVO"',
+                                [$empresa_envio_id,$departamento->nombre,
                                 $provincia->text,$distrito->text]);
                                 
             return response()->json(['success'=>true,'sedes_envio'=>$sedes_envio]);
@@ -67,9 +68,20 @@ class ConsultasAjaxController extends Controller
     public function getOrigenesVentas(){
         try {
             $origenes_ventas    =   DB::select('select td.descripcion from tabladetalles as td 
-                                    where td.tabla_id="36"');
+                                    where td.tabla_id="36" and td.estado="ACTIVO" ');
 
             return response()->json(['success'=>true,'origenes_ventas'=>$origenes_ventas]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>"ERROR EN EL SERVIDOR",'exception'=>$th->getMessage()]);
+        }
+    }
+
+    public function getTiposPagoEnvio(){
+        try {
+            $tipos_pago_envio    =   DB::select('select td.descripcion from tabladetalles as td 
+                                    where td.tabla_id="37" and td.estado="ACTIVO" ');
+
+            return response()->json(['success'=>true,'tipos_pago_envio'=>$tipos_pago_envio]);
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>"ERROR EN EL SERVIDOR",'exception'=>$th->getMessage()]);
         }

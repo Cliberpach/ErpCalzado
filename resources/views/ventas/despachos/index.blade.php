@@ -51,10 +51,9 @@
                                         <th class="text-center">EMPRESA</th>
                                         <th class="text-center">SEDE</th>
                                         <th class="text-center">UBIGEO</th>
-                                        <th class="text-center">PAGO</th>
                                         <th class="text-center">DESTINATARIO</th>
+                                        <th class="text-center">TIPO PAGO</th>
                                         <th class="text-center">MONTO ENVÍO</th>
-                                        <th class="text-center">ENVÍO GRATIS</th>
                                         <th class="text-center">ENVÍO DOMICILIO</th>
                                         <th class="text-center">DIRECCIÓN DOMICILIO</th>
                                         <th class="text-center">ESTADO</th>
@@ -160,21 +159,18 @@
                         className: "text-center letrapequeña"
                     },
                     {
-                        data: 'pago',
+                        data: 'destinatario_nombre',
                         className: "text-center letrapequeña"
                     },
                     {
-                        data: 'destinatario_nombre',
+                        data: 'tipo_pago_envio',
                         className: "text-center letrapequeña"
                     },
                     {
                         data: 'monto_envio',
                         className: "text-center letrapequeña"
                     },
-                    {
-                        data: 'envio_gratis',
-                        className: "text-center letrapequeña"
-                    },
+                  
                     {
                         data: 'entrega_domicilio',
                         className: "text-center letrapequeña"
