@@ -651,27 +651,34 @@ export default {
         monto_envio: {
             handler(value) {
                 let valor = value;
-                if (typeof valor !== 'string') {
-                    valor = ''; // Si valor no es una cadena, se establece como cadena vacía
-                }
-                if (valor.toString().trim().length === 0) {
-                    this.monto_envio = 0;
-                } else {
-                    // Expresión regular para permitir números enteros o decimales con un máximo de un punto decimal
-                    valor = valor.replace(/^0+/, '0'); // Reemplazar ceros a la izquierda solo con uno
-                    valor = valor.replace(/[^\d.]/g, ''); // Eliminar caracteres no numéricos excepto el punto decimal
-                    // Asegurar que solo haya un punto decimal
-                    valor = valor.replace(/(\..*)\./g, '$1');
+             
+                // console.log('MONTO ENVÍO')
+                // console.log(value);
+                // console.log(typeof value);
+
+                if (!/^\d*\.?\d*$/.test(valor)) {
+                    //========= PERMITIR ENTEROS Y DECIMALES ========
+                    valor   = valor.replace(/^0+/, '0'); 
+                    //======= ELIMINAR CARACTERES NO NUMÉRICOS, EXCEPTO EL PUNTO DECIMAL =======
+                    valor   = valor.replace(/[^\d.]/g, ''); 
+                    //========= PERMITIR SOLO 1 PUNTO DECIMAL =====
+                    valor   = valor.replace(/(\..*)\./g, '$1');
                     this.monto_envio = valor;
+                    return;
                 }
 
+                // console.log('CALCULANDO MONTOS')
+                //======== RECALCULAR MONTOS =======
                 this.calcularMontos();
+
+                const monto_embalaje_aux    =   this.monto_embalaje.length>0?this.monto_embalaje:0;
+                const monto_envio_aux       =   this.monto_envio.length>0?this.monto_envio:0;
                 const montos = {
                     monto_sub_total: parseFloat(this.monto_subtotal),
                     monto_total_igv: parseFloat(this.monto_igv),
                     monto_total: parseFloat(this.monto_total),
-                    monto_embalaje: parseFloat(this.monto_embalaje),
-                    monto_envio: parseFloat(this.monto_envio),
+                    monto_embalaje: parseFloat(monto_embalaje_aux),
+                    monto_envio: parseFloat(monto_envio_aux),
                     monto_total_pagar: parseFloat(this.monto_total_pagar)
                 };
 
@@ -685,29 +692,37 @@ export default {
         monto_embalaje: {
             handler(value) {
                 let valor = value;
-                if (typeof valor !== 'string') {
-                    valor = ''; // Si valor no es una cadena, se establece como cadena vacía
-                }
-                if (valor.toString().trim().length === 0) {
-                    this.monto_embalaje = 0;
-                } else {
-                    // Expresión regular para permitir números enteros o decimales con un máximo de un punto decimal
-                    valor = valor.replace(/^0+/, '0'); // Reemplazar ceros a la izquierda solo con uno
-                    valor = valor.replace(/[^\d.]/g, ''); // Eliminar caracteres no numéricos excepto el punto decimal
-                    // Asegurar que solo haya un punto decimal
-                    valor = valor.replace(/(\..*)\./g, '$1');
+             
+                // console.log('MONTO EMBALAJE')
+                // console.log(value);
+                // console.log(typeof value);
+
+                if (!/^\d*\.?\d*$/.test(valor)) {
+                    //========= PERMITIR ENTEROS Y DECIMALES ========
+                    valor   = valor.replace(/^0+/, '0'); 
+                    //======= ELIMINAR CARACTERES NO NUMÉRICOS, EXCEPTO EL PUNTO DECIMAL =======
+                     valor   = valor.replace(/[^\d.]/g, ''); 
+                    //========= PERMITIR SOLO 1 PUNTO DECIMAL =====
+                    valor   = valor.replace(/(\..*)\./g, '$1');
                     this.monto_embalaje = valor;
+                    return;
                 }
 
+                // console.log('CALCULANDO MONTOS')
+                //======== RECALCULAR MONTOS =======
                 this.calcularMontos();
+
+                const monto_embalaje_aux    =   this.monto_embalaje.length>0?this.monto_embalaje:0;
+                const monto_envio_aux    =   this.monto_envio.length>0?this.monto_envio:0;
                 const montos = {
                     monto_sub_total: parseFloat(this.monto_subtotal),
                     monto_total_igv: parseFloat(this.monto_igv),
                     monto_total: parseFloat(this.monto_total),
-                    monto_embalaje: parseFloat(this.monto_embalaje),
-                    monto_envio: parseFloat(this.monto_envio),
+                    monto_embalaje: parseFloat(monto_embalaje_aux),
+                    monto_envio: parseFloat(monto_envio_aux),
                     monto_total_pagar: parseFloat(this.monto_total_pagar)
                 };
+
                 this.$emit('addProductoDetalle', {
                     detalles:   this.carrito,
                     totales :   montos
@@ -936,18 +951,20 @@ export default {
                 descuento += parseFloat(producto.monto_descuento);
             })
 
-            //========= precio de productos en el carrito + embalaje + envío =============
-            totalConIgv     =   subtotal + parseFloat(this.monto_embalaje)+parseFloat(this.monto_envio);
-            totalSinIgv     =   totalConIgv/1.18
-            igv             =   totalConIgv-totalSinIgv;
-            
+            //========= PRECIO PRODUCTOS EN CARRITO + PRECIO EMBALAJE + PRECIO ENVÍO =============
+            //====== PERMITIR BORRAR EL 0 DEL INPUT EMBALAJE, EVITAR ERROR DE VALOR NAN =======
+            const   monto_embalaje_aux  =   this.monto_embalaje.length>0? parseFloat(this.monto_embalaje):0;
+            const   monto_envio_aux     =   this.monto_envio.length>0? parseFloat(this.monto_envio):0;
 
+            totalConIgv             =   subtotal + parseFloat(monto_embalaje_aux)+parseFloat(monto_envio_aux);
+            totalSinIgv             =   totalConIgv/1.18
+            igv                     =   totalConIgv-totalSinIgv;
+            
             this.monto_total_pagar  =   totalConIgv;
             this.monto_igv          =   igv;
             this.monto_total        =   totalSinIgv;
             this.monto_subtotal     =   subtotal;
             this.monto_descuento    =   descuento;
-
         },
         async getStockLogico(inputCantidad){
             const producto_id           =   inputCantidad.getAttribute('data-producto-id');
@@ -1144,14 +1161,14 @@ export default {
             }
         },
         formarProducto(ic){
-            const producto_id = ic.getAttribute('data-producto-id');
-            const producto_nombre = ic.getAttribute('data-producto-nombre');
-            const color_id = ic.getAttribute('data-color-id');
-            const color_nombre = ic.getAttribute('data-color-nombre');
-            const talla_id = ic.getAttribute('data-talla-id');
-            const talla_nombre = ic.getAttribute('data-talla-nombre');
-            const precio_venta = document.querySelector(`#precio-venta-${producto_id}`).value;
-            const cantidad     = ic.value?ic.value:0;
+            const producto_id       = ic.getAttribute('data-producto-id');
+            const producto_nombre   = ic.getAttribute('data-producto-nombre');
+            const color_id          = ic.getAttribute('data-color-id');
+            const color_nombre      = ic.getAttribute('data-color-nombre');
+            const talla_id          = ic.getAttribute('data-talla-id');
+            const talla_nombre      = ic.getAttribute('data-talla-nombre');
+            const precio_venta      = document.querySelector(`#precio-venta-${producto_id}`).value;
+            const cantidad          = ic.value?ic.value:0;
 
             const monto_descuento           =   0.0;
             const porcentaje_descuento      =   0.0;
