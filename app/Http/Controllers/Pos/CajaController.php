@@ -286,7 +286,6 @@ class CajaController extends Controller
        
         // $this->authorize('haveaccess','pos.MovimientoCaja.indexMovimiento');
         $this->authorize('haveaccess','movimiento_caja.create');
-
         $data=$request->all();
         $rules=[
             'caja'=>'required',
