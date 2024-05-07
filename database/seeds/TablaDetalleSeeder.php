@@ -982,9 +982,37 @@ class TablaDetalleSeeder extends Seeder
         $detalle->save();
 
         $detalle = new Detalle();
-        $detalle->descripcion = "NOTA DE CRÉDITO";
+        $detalle->descripcion = "RESUMEN DIARIO DE BOLETAS";
+        $detalle->nombre = "RESUMEN DIARIO DE BOLETAS";
+        $detalle->simbolo = 'R';
+        $detalle->parametro = 'R';
+        $detalle->estado = 'ACTIVO';
+        $detalle->tabla_id = 21;
+        $detalle->editable = 1;
+        $detalle->save();
+
+        $detalle = new Detalle();
+        $detalle->descripcion = "NOTA DE CRÉDITO FACTURA";
         $detalle->simbolo = '07';
         $detalle->parametro = 'FF';
+        $detalle->estado = 'ACTIVO';
+        $detalle->tabla_id = 21;
+        $detalle->editable = 1;
+        $detalle->save();
+
+        $detalle = new Detalle();
+        $detalle->descripcion = "NOTA DE DEVOLUCIÓN";
+        $detalle->simbolo = 'NN';
+        $detalle->parametro = 'NN';
+        $detalle->estado = 'ACTIVO';
+        $detalle->tabla_id = 21;
+        $detalle->editable = 1;
+        $detalle->save();
+
+        $detalle = new Detalle();
+        $detalle->descripcion = "NOTA DE CRÉDITO BOLETA";
+        $detalle->simbolo = 'BB';
+        $detalle->parametro = 'BB';
         $detalle->estado = 'ACTIVO';
         $detalle->tabla_id = 21;
         $detalle->editable = 1;

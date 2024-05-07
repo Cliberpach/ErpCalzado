@@ -147,7 +147,7 @@
                                             <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_categoria"  class="btn btn-primary" href="#">
                                                 <i class="fas fa-plus"></i>    
                                             </a> 
-                                            <select id="categoria" name="categoria" value="{{old('categoria', $producto->categoria_id)}}"class="select2_form form-control {{ $errors->has('categoria') ? ' is-invalid' : '' }}">
+                                            <select required id="categoria" name="categoria" value="{{old('categoria', $producto->categoria_id)}}"class="select2_form form-control {{ $errors->has('categoria') ? ' is-invalid' : '' }}">
                                                 <option></option>
                                                 @foreach($categorias as $categoria)
                                                     <option value="{{ $categoria->id }}" {{ (old('categoria', $producto->categoria_id) == $categoria->id ? "selected" : "") }} >{{ $categoria->descripcion }}</option>
@@ -263,7 +263,7 @@
                                         <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_modelo"  class="btn btn-primary" href="#">
                                             <i class="fas fa-plus"></i>    
                                         </a>
-                                        <select id="modelo" name="modelo" value="{{old('modelo', $producto->modelo_id)}}"class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}">
+                                        <select required id="modelo" name="modelo" value="{{old('modelo', $producto->modelo_id)}}"class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}">
                                             <option></option>
                                             @foreach($modelos as $modelo)
                                                 <option value="{{ $modelo->id }}" {{ (old('modelo', $producto->modelo_id) == $modelo->id ? "selected" : "") }} >{{ $modelo->descripcion }}</option>
@@ -279,7 +279,7 @@
                                     <div class="col-lg-4 col-12">
                                         <div class="form-group">
                                             <label class="required form-label">PRECIO 1</label>
-                                            <input value="{{$producto->precio_venta_1}}" class="form-control" type="number" step="0.01" inputmode="decimal" id="precio1" name="precio1" />
+                                            <input required value="{{$producto->precio_venta_1}}" class="form-control" type="number" step="0.01" inputmode="decimal" id="precio1" name="precio1" />
                                             @if ($errors->has('precio1'))
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $errors->first('precio1') }}</strong>
@@ -290,7 +290,7 @@
                                     <div class="col-lg-4 col-12">
                                         <div class="form-group">
                                             <label class="required form-label">PRECIO 2</label>
-                                            <input value="{{$producto->precio_venta_2}}" class="form-control" type="number" step="0.01" inputmode="decimal" id="precio2" name="precio2" />
+                                            <input required value="{{$producto->precio_venta_2}}" class="form-control" type="number" step="0.01" inputmode="decimal" id="precio2" name="precio2" />
                                             @if ($errors->has('precio2'))
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $errors->first('precio2') }}</strong>
@@ -301,7 +301,7 @@
                                     <div class="col-lg-4 col-12">
                                         <div class="form-group">
                                             <label class="required form-label">PRECIO 3</label>
-                                            <input value="{{$producto->precio_venta_3}}" class="form-control" type="number" step="0.01" inputmode="decimal" id="precio3" name="precio3" />
+                                            <input required value="{{$producto->precio_venta_3}}" class="form-control" type="number" step="0.01" inputmode="decimal" id="precio3" name="precio3" />
                                             @if ($errors->has('precio3'))
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $errors->first('precio3') }}</strong>
@@ -311,7 +311,7 @@
                                     </div>
                                     <div class="col-lg-6 col-12">
                                         <div class="form-group">
-                                            <label class="required">COSTO</label>
+                                            <label>COSTO</label>
                                             <input value="{{$producto->costo}}" class="form-control {{ $errors->has('costo') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="costo" name="costo"  value="{{ old('costo')}}"/>
                                             @if ($errors->has('costo'))
                                                 <span class="invalid-feedback" role="alert">

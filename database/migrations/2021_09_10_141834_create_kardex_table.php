@@ -15,12 +15,16 @@ class CreateKardexTable extends Migration
     {
         Schema::create('kardex', function (Blueprint $table) {
             $table->id();
+
             $table->unsignedInteger('producto_id');
             $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
+
             $table->unsignedInteger('color_id');
             $table->foreign('color_id')->references('id')->on('colores')->onDelete('cascade');
+
             $table->unsignedInteger('talla_id');
             $table->foreign('talla_id')->references('id')->on('tallas')->onDelete('cascade');
+            
             $table->text('origen')->nullable();
             $table->text('accion')->nullable();
             $table->text('numero_doc')->nullable();
@@ -31,7 +35,7 @@ class CreateKardexTable extends Migration
             $table->unsignedDecimal('importe', 15,2)->nullable();
             $table->unsignedDecimal('stock', 15,2); 
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
-            $table->unsignedInteger('documento_id');
+            $table->unsignedInteger('documento_id')->nullable();
             $table->timestamps();
         });
     }

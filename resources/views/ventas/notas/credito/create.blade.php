@@ -721,8 +721,8 @@
             //====== BUSCANDO SI EL DETALLE TIENE DEVOLUCIÓN AGREGADA ====
             inputCantidadDevolver.value = parseInt(item[0].cantidad);
             inputDescripcion.value      = `${item[0].modelo_nombre}-${item[0].producto_nombre}-${item[0].color_nombre}-${item[0].talla_nombre} `;
-            inputPrecioUnitario.value   = parseFloat(item[0].precio_unitario).toFixed(2);
-            inputImporte.value          = parseFloat(item[0].importe).toFixed(2);
+            inputPrecioUnitario.value   = parseFloat(item[0].precio_unitario_nuevo).toFixed(2);
+            inputImporte.value          = parseFloat(item[0].importe_nuevo).toFixed(2);
             inputProductoId.value       = item_.producto_id;
             inputColorId.value          = item_.color_id;
             inputTallaId.value          = item_.talla_id;
@@ -843,8 +843,8 @@
                 talla_nombre        :   detalle.talla_nombre,
                 modelo_nombre       :   detalle.modelo_nombre,
                 cantidad_devolver   :   detalle.cantidad,
-                precio_unitario     :   detalle.precio_unitario,
-                importe             :   parseFloat(detalle.cantidad)*parseFloat(detalle.precio_unitario)
+                precio_unitario     :   detalle.precio_unitario_nuevo,
+                importe             :   parseFloat(detalle.cantidad)*parseFloat(detalle.precio_unitario_nuevo)
             };
 
             devoluciones.push(item_devolver);
@@ -896,8 +896,8 @@
                         <th scope="row"></th>
                         <td>${parseInt(detalle.cantidad)}</td>
                         <td>${detalle.modelo_nombre} - ${detalle.producto_nombre} - ${detalle.color_nombre} - ${detalle.talla_nombre}</td>
-                        <td>${(Math.round(detalle.precio_unitario * 100) / 100).toFixed(2)}</td>
-                        <td>${(Math.round(detalle.importe * 100) / 100).toFixed(2)}</td>
+                        <td>${(Math.round(detalle.precio_unitario_nuevo * 100) / 100).toFixed(2)}</td>
+                        <td>${(Math.round(detalle.importe_nuevo * 100) / 100).toFixed(2)}</td>
                         ${cod_motivo === '07' ?
                             `<td>
                                 

@@ -119,7 +119,7 @@
                                             <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_categoria"  class="btn btn-primary" href="#">
                                                 <i class="fas fa-plus"></i>    
                                             </a> 
-                                            <select id="categoria" name="categoria" class="select2_form form-control {{ $errors->has('familia') ? ' is-invalid' : '' }}">
+                                            <select required id="categoria" name="categoria" class="select2_form form-control {{ $errors->has('familia') ? ' is-invalid' : '' }}">
                                                 <option></option>
                                                 @foreach($categorias as $categoria)
                                                     <option value="{{ $categoria->id }}" {{ (old('categoria') == $categoria->id ? "selected" : "") }} >{{ $categoria->descripcion }}</option>
@@ -164,7 +164,7 @@
                                             <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_modelo"  class="btn btn-primary" href="#">
                                                 <i class="fas fa-plus"></i>    
                                             </a> 
-                                            <select id="modelo" name="modelo" class="select2_form form-control {{ $errors->has('familia') ? ' is-invalid' : '' }}">
+                                            <select required id="modelo" name="modelo" class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}">
                                                 <option></option>
                                                 @foreach($modelos as $modelo)
                                                     <option value="{{ $modelo->id }}" {{ (old('modelo') == $modelo->id ? "selected" : "") }} >{{ $modelo->descripcion }}</option>
@@ -193,7 +193,7 @@
                                     <div class="col-lg-4 col-12">
                                         <div class="form-group">
                                             <label class="required form-label">PRECIO 1</label>
-                                            <input class="form-control  {{ $errors->has('precio1') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="precio1" name="precio1" />
+                                            <input required class="form-control  {{ $errors->has('precio1') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="precio1" name="precio1" />
                                             @if ($errors->has('precio1'))
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $errors->first('precio1') }}</strong>
@@ -204,7 +204,7 @@
                                     <div class="col-lg-4 col-12">
                                         <div class="form-group">
                                             <label class="required form-label">PRECIO 2</label>
-                                            <input class="form-control  {{ $errors->has('precio2') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="precio2" name="precio2" />
+                                            <input required class="form-control  {{ $errors->has('precio2') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="precio2" name="precio2" />
                                             @if ($errors->has('precio2'))
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $errors->first('precio2') }}</strong>
@@ -215,7 +215,7 @@
                                     <div class="col-lg-4 col-12">
                                         <div class="form-group">
                                             <label class="required form-label">PRECIO 3</label>
-                                            <input class="form-control {{ $errors->has('precio3') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="precio3" name="precio3" />
+                                            <input required class="form-control {{ $errors->has('precio3') ? ' is-invalid' : '' }}" type="number" step="0.01" inputmode="decimal" id="precio3" name="precio3" />
                                             @if ($errors->has('precio3'))
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $errors->first('precio3') }}</strong>

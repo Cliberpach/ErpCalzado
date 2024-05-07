@@ -120,8 +120,8 @@ class NotaController extends Controller
                 $item['modelo_nombre']     =   $detalle->nombre_modelo;
                 $item['cantidad']          =   $detalle->cantidad - $detalle->detalles->sum('cantidad');
                 // $item['cantidad']       =   $detalle->cantidad;
-                $item['precio_unitario']   =   $detalle->precio_unitario;
-                $item['importe']           =   $detalle->importe;
+                $item['precio_unitario_nuevo']   =   $detalle->precio_unitario_nuevo;
+                $item['importe_nuevo']           =   $detalle->importe_nuevo;
                 $coleccion_detalles[]   =   $item;
             }
         }
@@ -200,9 +200,10 @@ class NotaController extends Controller
 
             }
 
-         
+            
 
             $documento = Documento::find($request->get('documento_id'));
+            
 
             $igv = $documento->igv ? $documento->igv : 18;
 
@@ -370,18 +371,21 @@ class NotaController extends Controller
             $gestion = "NOTA DE DEBITO";
             crearRegistro($nota , $descripcion , $gestion);
 
-            $envio_prev = self::sunat_prev($nota->id);
-
-            if(!isset($request->nota_venta))
-            {
-                if(!$envio_prev['success']){
-                    DB::rollBack();
-                    return response()->json([
-                         'success' => false,
-                         'mensaje'=> $envio_prev['mensaje']
-                    ]);
-                }
+            //======== OBTENER CORRELATIVO ======
+            $envio_prev = self::sunat_prev($nota->id,$documento->tipo_venta);
+           
+            if(!$envio_prev['success']){
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'mensaje'=> $envio_prev['mensaje']
+                ]);
+            }else{
+                $nota->serie        =   $envio_prev['serie'];
+                $nota->correlativo  =   $envio_prev['correlativo'];
+                $nota->update();
             }
+            
 
             DB::commit();
             if(!isset($request->nota_venta))
@@ -399,7 +403,7 @@ class NotaController extends Controller
             //========== ENVIO A SUNAT ======
             //======= ENVIAR A SUNAT CUANDO NO SEA NOTA DE VENTA ========
             if(!$request->has('nota_venta')){
-                $this->sunat($nota->id);
+               $this->sunat($nota->id);
             }
 
             Session::flash('success', $text);
@@ -412,6 +416,7 @@ class NotaController extends Controller
         catch(Exception $e)
         {
             DB::rollBack();
+           
             return response()->json([
                 'success' => false,
                 'mensaje'=> $e->getMessage(),
@@ -503,7 +508,7 @@ class NotaController extends Controller
         );
 
         $nota_json= json_encode($arreglo_nota);
-        $data = pdfNotaapi($nota_json);
+        //$data = pdfNotaapi($nota_json);
 
         $name = $nota->serie.'-'.$nota->correlativo.'.pdf';
 
@@ -517,7 +522,7 @@ class NotaController extends Controller
 
         $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'comprobantessiscom'.DIRECTORY_SEPARATOR.'notas'.DIRECTORY_SEPARATOR.$name);
 
-        file_put_contents($pathToFile, $data);
+        //file_put_contents($pathToFile, $data);
 
         if($nota->ruta_qr === null)
         {
@@ -571,9 +576,9 @@ class NotaController extends Controller
 
     public function show_dev($id)
     {
-        $nota = Nota::with(['documento'])->findOrFail($id);
-        $empresa = Empresa::first();
-        $detalles = NotaDetalle::where('nota_id',$id)->get();
+        $nota       = Nota::with(['documento'])->findOrFail($id);
+        $empresa    = Empresa::first();
+        $detalles   = NotaDetalle::where('nota_id',$id)->get();
 
         $legends = self::obtenerLeyenda($nota);
         $legends = json_encode($legends,true);
@@ -598,79 +603,109 @@ class NotaController extends Controller
             "nota_venta" => 1,
             ])->setPaper('a4')->setWarnings(false);
 
-        $pdf->save(public_path().'/storage/comprobantessiscom/notas/'.$name);
+        $pdf->save(storage_path().'/app/public/comprobantessiscom/notas/'.$name);
+        //$pdf->save(public_path().'/storage/comprobantessiscom/notas/'.$name);
         return $pdf->stream($name);
     }
 
     public function obtenerCorrelativo($nota, $numeracion)
     {
-        if(empty($nota->correlativo))
-        {
-            $serie_comprobantes = DB::table('empresa_numeracion_facturaciones')
-            ->join('empresas','empresas.id','=','empresa_numeracion_facturaciones.empresa_id')
-            ->join('cotizacion_documento','cotizacion_documento.empresa_id','=','empresas.id')
-            ->join('nota_electronica','nota_electronica.documento_id','=','cotizacion_documento.id')
-            ->when($nota->tipo_nota, function ($query, $request) {
-                if ($request == '1') {
-                    return $query->where('empresa_numeracion_facturaciones.tipo_comprobante',131);
-                }else{
-                    return $query->where('empresa_numeracion_facturaciones.tipo_comprobante',130);
+        //dd($numeracion->serie);
+        //========= OJO : NUMERACIÓN CONTIENE  SERIE , EMISIÓN INICIADA 1:0 , NUMERO INICIAR ===========
+
+        //======== SI LA NOTA AÚN NO TIENE CORRELATIVO =======
+        if(!$nota->correlativo){
+            //====== PARA NOTAS DE CRÉDITO ======
+            if($nota->tipo_nota == '0'){
+
+                //===== EMISIÓN NO INICIADA =====
+                if($numeracion->emision_iniciada == "0"){
+                    //====== CORRELATIVO IGUAL AL NRO INICIAR =======
+                    return $numeracion->numero_iniciar;
                 }
-            })
-            ->where('empresa_numeracion_facturaciones.empresa_id',$nota->empresa_id)
-            ->whereIn('nota_electronica.tipDocAfectado', ['01', '03'])
-            ->select('nota_electronica.*','empresa_numeracion_facturaciones.*')
-            ->orderBy('nota_electronica.correlativo','DESC')
-            ->get();
 
-            if ($nota->tipDocAfectado == '04') {
-                $serie_comprobantes = DB::table('empresa_numeracion_facturaciones')
-                ->join('empresas', 'empresas.id', '=', 'empresa_numeracion_facturaciones.empresa_id')
-                ->join('cotizacion_documento', 'cotizacion_documento.empresa_id', '=', 'empresas.id')
-                ->join('nota_electronica', 'nota_electronica.documento_id', '=', 'cotizacion_documento.id')
-                ->when($nota->tipo_nota, function ($query, $request) {
-                    if ($request == '1') {
-                        return $query->where('empresa_numeracion_facturaciones.tipo_comprobante', 131);
-                    } else {
-                        return $query->where('empresa_numeracion_facturaciones.tipo_comprobante', 130);
-                    }
-                })
-                    ->where('empresa_numeracion_facturaciones.empresa_id', $nota->empresa_id)
-                    ->where('nota_electronica.tipDocAfectado', '04')
-                    ->select('nota_electronica.*', 'empresa_numeracion_facturaciones.*')
-                    ->orderBy('nota_electronica.correlativo', 'DESC')
-                    ->get();
-            }
-
-
-            if (count($serie_comprobantes) === 1) {
-                //OBTENER EL DOCUMENTO INICIADO
-                $nota->correlativo = $numeracion->numero_iniciar;
-                $nota->serie = $numeracion->serie;//$numeracion->serie;
-                $nota->update();
-
-                //ACTUALIZAR LA NUMERACION (SE REALIZO EL INICIO)
-                self::actualizarNumeracion($numeracion);
-                return $nota->correlativo;
-
-            }else{
-                //NOTA ES NUEVO EN SUNAT
-                if($nota->sunat != '1' ){
-                    $ultimo_comprobante = $serie_comprobantes->first();
-                    $nota->correlativo = $ultimo_comprobante->correlativo+1;
-                    $nota->serie = $numeracion->serie;//$numeracion->serie;
-                    $nota->update();
-
-                    //ACTUALIZAR LA NUMERACION (SE REALIZO EL INICIO)
-                    self::actualizarNumeracion($numeracion);
-                    return $nota->correlativo;
+                //======== EMISIÓN YA INICIADA ======
+                if($numeracion->emision_iniciada == "1"){
+                    //====== CORRELATIVO SERÁ EL SIGUIENTE A LA ULTIMA NOTA ELECTRONICA ==========//
+                    //====== DEL MISMO TIPO BB01,FF01,NN01 ======= //
+                    $cantidad_notas =   DB::select('select count(*) as cantidad_notas 
+                                            from nota_electronica as ne
+                                            where ne.serie=?',[$numeracion->serie]);
+                    
+                    return $cantidad_notas[0]->cantidad_notas+1;
                 }
             }
         }
-        else
-        {
-            return $nota->correlativo;
-        }
+        // if(empty($nota->correlativo))
+        // {
+        //     $serie_comprobantes = DB::table('empresa_numeracion_facturaciones')
+        //     ->join('empresas','empresas.id','=','empresa_numeracion_facturaciones.empresa_id')
+        //     ->join('cotizacion_documento','cotizacion_documento.empresa_id','=','empresas.id')
+        //     ->join('nota_electronica','nota_electronica.documento_id','=','cotizacion_documento.id')
+        //     ->when($nota->tipo_nota, function ($query, $request) {
+        //         //======= TIPO NOTA :0 CRÉDITO - 1:DÉBITO =======
+        //         if ($request == '1') {
+        //             //======= 131 NOTA DÉBITO ========
+        //             return $query->where('empresa_numeracion_facturaciones.tipo_comprobante',131);
+        //         }else{
+        //             //====== 130 NOTA CRÉDITO =========
+        //             return $query->where('empresa_numeracion_facturaciones.tipo_comprobante',130);
+        //         }
+        //     })
+        //     ->where('empresa_numeracion_facturaciones.empresa_id',$nota->empresa_id)
+        //     ->whereIn('nota_electronica.tipDocAfectado', ['01', '03'])
+        //     ->select('nota_electronica.*','empresa_numeracion_facturaciones.*')
+        //     ->orderBy('nota_electronica.correlativo','DESC')
+        //     ->get();
+
+        //     if ($nota->tipDocAfectado == '04') {
+        //         $serie_comprobantes = DB::table('empresa_numeracion_facturaciones')
+        //         ->join('empresas', 'empresas.id', '=', 'empresa_numeracion_facturaciones.empresa_id')
+        //         ->join('cotizacion_documento', 'cotizacion_documento.empresa_id', '=', 'empresas.id')
+        //         ->join('nota_electronica', 'nota_electronica.documento_id', '=', 'cotizacion_documento.id')
+        //         ->when($nota->tipo_nota, function ($query, $request) {
+        //             if ($request == '1') {
+        //                 return $query->where('empresa_numeracion_facturaciones.tipo_comprobante', 131);
+        //             } else {
+        //                 return $query->where('empresa_numeracion_facturaciones.tipo_comprobante', 130);
+        //             }
+        //         })
+        //             ->where('empresa_numeracion_facturaciones.empresa_id', $nota->empresa_id)
+        //             ->where('nota_electronica.tipDocAfectado', '04')
+        //             ->select('nota_electronica.*', 'empresa_numeracion_facturaciones.*')
+        //             ->orderBy('nota_electronica.correlativo', 'DESC')
+        //             ->get();
+        //     }
+
+
+        //     if (count($serie_comprobantes) === 1) {
+        //         //OBTENER EL DOCUMENTO INICIADO
+        //         $nota->correlativo  = $numeracion->numero_iniciar;
+        //         $nota->serie        = $numeracion->serie;//$numeracion->serie;
+        //         $nota->update();
+
+        //         //ACTUALIZAR LA NUMERACION (SE REALIZO EL INICIO)
+        //         self::actualizarNumeracion($numeracion);
+        //         return $nota->correlativo;
+
+        //     }else{
+        //         //NOTA ES NUEVO EN SUNAT
+        //         if($nota->sunat != '1' ){
+        //             $ultimo_comprobante = $serie_comprobantes->first();
+        //             $nota->correlativo = $ultimo_comprobante->correlativo+1;
+        //             $nota->serie = $numeracion->serie;//$numeracion->serie;
+        //             $nota->update();
+
+        //             //ACTUALIZAR LA NUMERACION (SE REALIZO EL INICIO)
+        //             self::actualizarNumeracion($numeracion);
+        //             return $nota->correlativo;
+        //         }
+        //     }
+        // }
+        // else
+        // {
+        //     return $nota->correlativo;
+        // }
     }
 
     public function actualizarNumeracion($numeracion)
@@ -679,30 +714,57 @@ class NotaController extends Controller
         $numeracion->update();
     }
 
-    public function numeracion($nota)
+    public function numeracion($nota,$tipo_venta)
     {
         // $nota = Nota::findOrFail($id);
+
+        //======== BUSCAR SI ESTÁ ACTIVADA LA EMISIÓN DE NOTAS DE CREDITO O DÉBITO EN LA EMPRESA ======
+        $numeracion =   null;
 
         //======= 1=NOTA DÉBITO ======
         if ($nota->tipo_nota == '1') {
             $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')->where('tipo_comprobante',131)->first();
         }else{
             //===== NOTA CRÉDITO = 0 ======
-            //====== 130 => NOTA CRÉDITO FACTURA FF01 =====
-            $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')->where('tipo_comprobante',130)->first();
-            //====== 201 => NOTA CRÉDITO BOLETA BB01 =====
-            $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')->where('tipo_comprobante',201)->first();
-            //====== 202 => NOTA DE DEVOLUCIÓN NN01 =====
-            $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')->where('tipo_comprobante',202)->first();
+
+            //======== FACTURAS ======
+            if($tipo_venta == 127){
+                //====== 130 => NOTA CRÉDITO FACTURA FF01 =====
+                $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')
+                ->where('descripcion',"NOTA DE CRÉDITO FACTURA")->first();
+            }
+
+            //======== BOLETAS ======
+            if($tipo_venta == 128){
+                //====== 201 => NOTA CRÉDITO BOLETA BB01 =====
+                $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')
+                ->where('descripcion',"NOTA DE CRÉDITO BOLETA")->first();
+            }
+          
+            //======== NOTAS DE VENTA ======
+            if($tipo_venta == 129){
+                //====== 202 => NOTA DE DEVOLUCIÓN NN01 =====
+                $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')
+                ->where('descripcion',"NOTA DE DEVOLUCIÓN")->first();
+            }
+          
         }
 
         if ($numeracion) {
             $resultado = ($numeracion)->exists();
-            $enviar = [
-                'existe' => ($resultado == true) ? true : false,
-                'numeracion' => $numeracion,
-                'correlativo' => self::obtenerCorrelativo($nota,$numeracion)
-            ];
+            if($resultado){
+                $enviar = [
+                    'existe'        => true,
+                    'numeracion'    => $numeracion,
+                    'correlativo'   => self::obtenerCorrelativo($nota,$numeracion),
+                    'serie'         => $numeracion->serie
+                ];
+            }else{
+                $enviar = [
+                    'existe'        => false
+                ];
+            }
+           
             $collection = collect($enviar);
             return  $collection;
         }
@@ -712,34 +774,33 @@ class NotaController extends Controller
     {
         try
         {
-            $nota = Nota::findOrFail($id);
-            $documento = Documento::find($nota->documento_id);
-            $detalles = NotaDetalle::where('nota_id',$id)->get();
+            $nota       = Nota::findOrFail($id);
+            $documento  = Documento::find($nota->documento_id);
+            $detalles   = NotaDetalle::where('nota_id',$id)->get();
             //OBTENER CORRELATIVO DE LA NOTA CREDITO / DEBITO
-            $existe = self::numeracion($nota);
-            $nota = Nota::findOrFail($id);
+            $existe     = self::numeracion($nota,$documento->tipo_venta);
+            $nota       = Nota::findOrFail($id);
             if($existe){
                 if ($existe->get('existe') == true) {
                     if ($nota->sunat != '1') {
                         //ARREGLO COMPROBANTE
                         $arreglo_nota = array(
-                            "tipDocAfectado" => $nota->tipDocAfectado,
-                            "numDocfectado" => $nota->numDocfectado,
-                            "codMotivo" => $nota->codMotivo,
-                            "desMotivo" => $nota->desMotivo,
-                            "tipoDoc" => $nota->tipoDoc,
-                            "fechaEmision" => self::obtenerFecha($nota->fechaEmision),
-                            "tipoMoneda" => $nota->tipoMoneda,
-                            "serie" => $nota->tipDocAfectado === '03' ? 'BB01' : 'FF01',//$existe->get('numeracion')->serie,
-                            "correlativo" => $nota->correlativo,
+                            "tipDocAfectado"    => $nota->tipDocAfectado,
+                            "numDocfectado"     => $nota->numDocfectado,
+                            "codMotivo"         => $nota->codMotivo,
+                            "desMotivo"         => $nota->desMotivo,
+                            "tipoDoc"           => $nota->tipoDoc,
+                            "fechaEmision"      => self::obtenerFecha($nota->fechaEmision),
+                            "tipoMoneda"        => $nota->tipoMoneda,
+                            "serie"             => $nota->serie,
+                            // "serie" => $nota->tipDocAfectado === '03' ? 'BB01' : 'FF01',//$existe->get('numeracion')->serie,
+                            "correlativo"       => $nota->correlativo,
                             "company" => array(
-                                "ruc" => $nota->ruc_empresa,
-                                "razonSocial" => $nota->empresa,
+                                "ruc"           => $nota->ruc_empresa,
+                                "razonSocial"   => $nota->empresa,
                                 "address" => array(
                                     "direccion" => $nota->direccion_fiscal_empresa,
                                 )),
-
-
                             "client" => array(
                                 "tipoDoc" =>  $nota->cod_tipo_documento_cliente,
                                 "numDoc" => $nota->documento_cliente,
@@ -749,13 +810,13 @@ class NotaController extends Controller
                                 )
                             ),
 
-                            "mtoOperGravadas" =>  floatval($nota->mtoOperGravadas),
-                            "mtoIGV" => floatval($nota->mtoIGV),
-                            "totalImpuestos" => floatval($nota->totalImpuestos),
-                            "mtoImpVenta" => floatval($nota->mtoImpVenta),
-                            "ublVersion" =>  $nota->ublVersion,
-                            "details" => self::obtenerProductos($detalles),
-                            "legends" =>  self::obtenerLeyenda($nota),
+                            "mtoOperGravadas"   =>  floatval($nota->mtoOperGravadas),
+                            "mtoIGV"            =>  floatval($nota->mtoIGV),
+                            "totalImpuestos"    =>  floatval($nota->totalImpuestos),
+                            "mtoImpVenta"       =>  floatval($nota->mtoImpVenta),
+                            "ublVersion"        =>  $nota->ublVersion,
+                            "details"           =>  self::obtenerProductos($detalles),
+                            "legends"           =>  self::obtenerLeyenda($nota),
                         );
 
                         // return $arreglo_nota;
@@ -903,16 +964,17 @@ class NotaController extends Controller
         }
     }
 
-    public function sunat_prev($id)
+    public function sunat_prev($nota_id,$tipo_venta)
     {
         try
         {
-            $nota = Nota::findOrFail($id);
+            $nota = Nota::findOrFail($nota_id);
             //OBTENER CORRELATIVO DE LA NOTA CREDITO / DEBITO
-            $existe = self::numeracion($nota);
-            if($existe){
-                if ($existe->get('existe') == true) {
-                    return array('success' => true,'mensaje' => 'Nota validada.');
+            $res_numeracion = self::numeracion($nota,$tipo_venta);
+            if($res_numeracion){
+                if ($res_numeracion->get('existe') == true) {
+                    return array('success' => true,'mensaje' => 'Nota validada.',
+                    'correlativo' => $res_numeracion->get('correlativo'),'serie'=>$res_numeracion->get('serie'));
                 }else{
                     return array('success' => false,'mensaje' => 'Nota de crédito no se encuentra registrado en la empresa.');
                 }
