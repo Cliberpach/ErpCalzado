@@ -683,14 +683,20 @@ class NotaController extends Controller
     {
         // $nota = Nota::findOrFail($id);
 
+        //======= 1=NOTA DÉBITO ======
         if ($nota->tipo_nota == '1') {
             $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')->where('tipo_comprobante',131)->first();
         }else{
+            //===== NOTA CRÉDITO = 0 ======
+            //====== 130 => NOTA CRÉDITO FACTURA FF01 =====
             $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')->where('tipo_comprobante',130)->first();
+            //====== 201 => NOTA CRÉDITO BOLETA BB01 =====
+            $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')->where('tipo_comprobante',201)->first();
+            //====== 202 => NOTA DE DEVOLUCIÓN NN01 =====
+            $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')->where('tipo_comprobante',202)->first();
         }
 
         if ($numeracion) {
-
             $resultado = ($numeracion)->exists();
             $enviar = [
                 'existe' => ($resultado == true) ? true : false,

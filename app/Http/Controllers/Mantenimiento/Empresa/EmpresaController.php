@@ -608,7 +608,8 @@ class EmpresaController extends Controller
     {
         $tipos = tipos_venta();
         foreach ($tipos as $tipo) {
-            if ($id== '130' || $id== '131' ) {
+            //====== 130 N.E FACTURAS FF01 | 131 N.D | 201 N.E BOLETAS BB01 | 202 NOTA DEVOLUCION NN01 ========
+            if ($id== '130' || $id== '131' || $id=='201' || $id=="202") {
                 if ($tipo->id == $id ) {
                     $empresas_numeracion = Numeracion::where('tipo_comprobante', $id)->where('estado','ACTIVO')->get();
                     $serie = $tipo->parametro.'0'.(count($empresas_numeracion)+1);
