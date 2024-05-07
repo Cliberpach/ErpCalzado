@@ -284,7 +284,8 @@ class CajaController extends Controller
     public function aperturaCaja(Request $request)
     {
        
-        $this->authorize('haveaccess','pos.MovimientoCaja.indexMovimiento');
+        // $this->authorize('haveaccess','pos.MovimientoCaja.indexMovimiento');
+        $this->authorize('haveaccess','movimiento_caja.create');
         $data=$request->all();
         $rules=[
             'caja'=>'required',
