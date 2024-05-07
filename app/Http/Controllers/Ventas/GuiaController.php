@@ -249,7 +249,7 @@ class GuiaController extends Controller
 
             if($request->has('documento_id'))
             {   
-                dd('hay documento_id');
+               
                 $guia = Guia::where('documento_id',$request->get('documento_id'))->get();
                 $documento = Documento::find($request->get('documento_id'));
                 if (count($guia) == 0) {

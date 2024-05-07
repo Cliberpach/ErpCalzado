@@ -2210,7 +2210,7 @@ class DocumentoController extends Controller
             $detalles = Detalle::where('documento_id', $id)->where('eliminado', '0')->get();
             if ((int) $documento->tipo_venta == 127 || (int) $documento->tipo_venta == 128) {
                 if ($documento->sunat == '0' || $documento->sunat == '2') {
-
+                    //dd('aaa');
                     //ARREGLO COMPROBANTE
                     $arreglo_comprobante = array(
                         "tipoOperacion" => $documento->tipoOperacion(),
@@ -2249,13 +2249,13 @@ class DocumentoController extends Controller
 
                     $comprobante = json_encode($arreglo_comprobante);
 
-                    $data = generarComprobanteapi($comprobante, $documento->empresa_id);
+                    //$data = generarComprobanteapi($comprobante, $documento->empresa_id);
                     $name = $documento->id . '.pdf';
                     $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes' . DIRECTORY_SEPARATOR . $name);
                     if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes'))) {
                         mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes'));
                     }
-                    file_put_contents($pathToFile, $data);
+                    //file_put_contents($pathToFile, $data);
                     //return response()->file($pathToFile);
                     $empresa = Empresa::first();
 

@@ -397,9 +397,10 @@ class NotaController extends Controller
             }
 
             //========== ENVIO A SUNAT ======
-            $this->sunat($nota->id);
-
-    
+            //======= ENVIAR A SUNAT CUANDO NO SEA NOTA DE VENTA ========
+            if(!$request->has('nota_venta')){
+                $this->sunat($nota->id);
+            }
 
             Session::flash('success', $text);
             return response()->json([
