@@ -8,7 +8,7 @@
                     <span class="sr-only">Close</span>
                 </button>
                 {{-- <i class="fa fa-user-plus modal-icon"></i> --}}
-                <i class="fa-solid fa-memo-circle-info modal-icon"></i>
+                <i class="fas fa-info-circle modal-icon"></i>
                 <h4 class="modal-title">DETALLE</h4>
                 <small class="font-bold">Registrar</small>
             </div>
@@ -16,19 +16,22 @@
                 @include('components.overlay_search')
                 @include('components.overlay_save')
 
-                <table class="table table-hover" id="table-detalles-doc">
-                    <thead>
-                      <tr>
-                        <th scope="col">PRODUCTO</th>
-                        <th scope="col">COLOR</th>
-                        <th scope="col">TALLA</th>
-                        <th scope="col">CANTIDAD</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                     
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-hover" id="table-detalles-doc">
+                        <thead>
+                          <tr>
+                            <th scope="col">PRODUCTO</th>
+                            <th scope="col">COLOR</th>
+                            <th scope="col">TALLA</th>
+                            <th scope="col">CANTIDAD</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                         
+                        </tbody>
+                    </table>
+                </div>
+                
 
                 <div class="sk-spinner sk-spinner-wave d-none">
                     <div class="sk-rect1"></div>

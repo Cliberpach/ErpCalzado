@@ -795,7 +795,7 @@ export default {
                     console.log(data);
                 }else
                 {
-                    toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER EMPRESAS DE ENVÍO');
+                    toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER SEDES DE ENVÍO');
                 }
             } catch (error) {
                 toastr.error(error,'ERROR EN EL SERVIDOR');
@@ -856,7 +856,7 @@ export default {
                         };
                     }else{
                         this.tipo_pago_envio       =   {id:0,descripcion:"SIN DATOS"};
-                        toastr.error("REGISTRE TIPOS DE PAGO ENVÍO EN TABLAS GENERALES",'ERROR AL OBTENER ORÍGENES DE VENTA');
+                        toastr.error("REGISTRE TIPOS DE PAGO ENVÍO EN TABLAS GENERALES",'ERROR AL OBTENER TIPOS PAGO ENVÍO');
                     }
                 }else
                 {

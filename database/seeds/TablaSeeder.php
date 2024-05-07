@@ -231,6 +231,18 @@ class TablaSeeder extends Seeder
         $tabla->editable = '1';
         $tabla->save();
 
+        //36
+        $tabla = new General();
+        $tabla->descripcion = 'ORIGENES VENTAS';
+        $tabla->sigla = 'OV';
+        $tabla->editable = '0';
+        $tabla->save();
 
+        //37
+        $tabla = new General();
+        $tabla->descripcion = 'TIPOS PAGO ENVIO';
+        $tabla->sigla = 'TPE';
+        $tabla->editable = '0';
+        $tabla->save();
     }
 }

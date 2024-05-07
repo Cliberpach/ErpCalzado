@@ -214,7 +214,7 @@
                                         <ul class='dropdown-menu'>
                                             <li><a class='dropdown-item' href='javascript:void(0);' onclick="verDetalles(${data.documento_id})" title='Modificar' ><b><i class='fa fa-eye'></i>Detalle</a></b></li>
                                             <li class='dropdown-divider'></li>
-                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="imprimirEnvio(${data.documento_id})" title='Imprimir' ><b><i class='fa fa-eye'></i>Imprimir</a></b></li>
+                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="imprimirEnvio(${data.documento_id})" title='Imprimir' ><b><i class="fas fa-print"></i>Imprimir</a></b></li>
                                         </ul>
                                     </div>`;
                         }
@@ -227,7 +227,11 @@
                 "order": [],
             });
 
+            //========= DATATABLE DE TABLA DETALLES ======
             detallesDataTable   =   dataTableDetalles();
+
+            //======= EVENTS =======
+            eventsModalBultos();
         });
 
         //Controlar Error
@@ -279,8 +283,10 @@
             detallesDataTable.draw();
         }
 
-        function imprimirEnvio(){
+        function imprimirEnvio(documento_id){
+            document.querySelector('#documento_id').value   = documento_id;   
             $('#modal-bultos').modal('show'); 
+
         }
 
         function eliminar(id) {

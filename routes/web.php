@@ -510,6 +510,8 @@ function(){
         Route::get('/', 'Ventas\DespachoController@index')->name('ventas.despachos.index');
         Route::get('/getTable', 'Ventas\DespachoController@getTable')->name('ventas.despachos.getTable');
         Route::get('/showDetalles/{documento_id}', 'Ventas\DespachoController@showDetalles')->name('ventas.despachos.showDetalles');
+        Route::get('/pdfBultos/{documento_id}/{nro_bultos}', 'Ventas\DespachoController@pdfBultos')->name('ventas.despachos.pdfBultos');
+
 
         // Route::get('/registrar', 'Ventas\ClienteController@create')->name('ventas.cliente.create');
         // Route::post('/registrar', 'Ventas\ClienteController@store')->name('ventas.cliente.store');

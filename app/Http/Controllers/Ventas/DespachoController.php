@@ -8,6 +8,8 @@ use App\Ventas\EnvioVenta;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade as PDF;
+use App\Mantenimiento\Empresa\Empresa;
 
 class DespachoController extends Controller
 {
@@ -60,6 +62,20 @@ class DespachoController extends Controller
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>"ERROR EN EL SERVIDOR",'exception'=>$th->getMessage()]);
         }
+    }
+
+    public function pdfBultos($documento_id,$nro_bultos){
+        $empresa = Empresa::first();
+        
+        $pdf = PDF::loadview('ventas.despachos.pdf-bultos', [
+            'empresa'       =>  $empresa,
+            'nro_bultos'    =>  $nro_bultos
+        ])->setPaper('a4')
+        ->setPaper('a4', 'landscape')
+        ->setWarnings(false);
+
+        return $pdf->stream('nombre_del_archivo.pdf');
+        dd($documento_id .'-'.$nro_bultos);
     }
 
 }

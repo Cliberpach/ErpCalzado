@@ -1506,6 +1506,34 @@ class TablaDetalleSeeder extends Seeder
         $detalle->editable      = 1;
         $detalle->save();
 
+        //====== TIPOS PAGO ENVÍO ======
+        $detalle = new Detalle();
+        $detalle->descripcion   = "PAGAR ENVÍO";
+        $detalle->nombre        = "PAGAR ENVÍO";
+        $detalle->simbolo       = 'PAGAR ENVÍO';
+        $detalle->estado        = 'ACTIVO';
+        $detalle->tabla_id      = 37;
+        $detalle->editable      = 1;
+        $detalle->save();
+
+        $detalle = new Detalle();
+        $detalle->descripcion   = "ENVÍO GRATIS";
+        $detalle->nombre        = "ENVÍO GRATIS";
+        $detalle->simbolo       = 'ENVÍO GRATIS';
+        $detalle->estado        = 'ACTIVO';
+        $detalle->tabla_id      = 37;
+        $detalle->editable      = 1;
+        $detalle->save();
+
+        $detalle = new Detalle();
+        $detalle->descripcion   = "CONTRAENTREGA";
+        $detalle->nombre        = "CONTRAENTREGA";
+        $detalle->simbolo       = 'CONTRAENTREGA';
+        $detalle->estado        = 'ACTIVO';
+        $detalle->tabla_id      = 37;
+        $detalle->editable      = 1;
+        $detalle->save();
+
         //---------TIPO PAGO-----------
 
         $tipo = new TipoPago();
