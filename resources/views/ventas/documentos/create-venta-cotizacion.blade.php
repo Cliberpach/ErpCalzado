@@ -1,4 +1,5 @@
 @extends('layout') @section('content')
+@include('ventas.documentos.modal-envio')
 
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
@@ -37,6 +38,7 @@
 
                         @if (!empty($cotizacion))
                             <input type="hidden" name="cotizacion_id" value="{{ $cotizacion->id }}">
+                            <input type="hidden" name="data_envio" id="data_envio">
                         @endif
                         <div class="row">
                             <div class="col-12 col-md-6 b-r">
@@ -269,11 +271,11 @@
                                             @endif
                                         </div>
                                     </div>
-                                    <div class="col-12 col-md-6">
+                                    {{-- <div class="col-12 col-md-6">
                                         <div class="form-group">
                                             <label> <input type="checkbox" class="i-checks" name="envio_sunat" id="envio_sunat" value="1"> <b class="text-danger">Enviar a Sunat</b> </label>
                                         </div>
-                                    </div>
+                                    </div> --}}
                                 </div>
 
                                 <div class="row d-none">
@@ -494,10 +496,10 @@
 </div>
 
 
-@include('ventas.documentos.modal')
-@include('ventas.documentos.modalLote')
+{{-- @include('ventas.documentos.modal') --}}
+{{-- @include('ventas.documentos.modalLote')
 @include('ventas.documentos.modalCliente')
-@include('ventas.documentos.modalCodigo')
+@include('ventas.documentos.modalCodigo') --}}
 @stop
 @push('styles')
 <link href="{{ asset('Inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css') }}"
@@ -571,16 +573,24 @@
     let carritoFormateado   =   [];
     let asegurarCierre      =   2;
 
-    document.addEventListener('DOMContentLoaded',()=>{
+    document.addEventListener('DOMContentLoaded',async()=>{
         cargarProductosPrevios();
-       
         setAsegurarCierre();
         getClientes();
         cargarChecks();
         cargarSelect2();
         showAlertas();
         formatearDetalle();
+
+        setUbicacionDepartamento(13,'first');
+        await getTipoEnvios();
+        await getTiposPagoEnvio();
+        await getOrigenesVentas();
+        const tipo_envio    =   $("#tipo_envio").select2('data')[0].text;
+        console.log(tipo_envio)
+        await getEmpresasEnvio(tipo_envio);
         events();
+        eventsModalEnvio();
     })
 
 
@@ -638,6 +648,29 @@
             // console.log(formObject);
         })
 
+
+        //=========== MODAL DESPACHO =========
+        document.querySelector('#btn-envio').addEventListener('click',()=>{
+            //======= COLCANDO EN MODAL ENVIO EL NOMBRE DEL CLIENTE =======
+            const cliente_nombre            =   $("#cliente_id").find('option:selected').text();
+
+            const nroDocumento              =   cliente_nombre.split(':')[1].split('-')[0].trim();
+            const cliente_nombre_recortado  =   cliente_nombre.split('-')[1].trim()
+
+            console.log(cliente_nombre);
+            console.log(cliente_nombre_recortado);
+            console.log(nroDocumento);
+
+            //===== COLOCAR SOLO DNIS QUE NO SEA DE CLIENTE VARIOS =========
+            if(nroDocumento.trim().length === 8 && nroDocumento.trim()!= "99999999"){
+                document.querySelector('#dni_destinatario').value       =   nroDocumento;
+                document.querySelector('#nombres_destinatario').value   =   cliente_nombre_recortado;  
+            }
+            
+
+            //========= ABRIR MODAL ENVÍO =======
+            $("#modal_envio").modal("show");
+        })
     }
 
     function setAsegurarCierre(){

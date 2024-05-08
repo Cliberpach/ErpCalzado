@@ -639,7 +639,7 @@
     </style>
 @endpush
 
-@push('scripts')
+
     <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
     <script src="{{ asset('Inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
     <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
@@ -1291,6 +1291,7 @@
         }
 
         function zonaDepartamento(depar) {
+            //y dale u
             // alert(depar.value)
             @foreach (departamentos() as $departamento)
                 if ("{{ $departamento->id }}" == depar.value){
@@ -1480,4 +1481,4 @@
         })
 
     </script>
-@endpush
+

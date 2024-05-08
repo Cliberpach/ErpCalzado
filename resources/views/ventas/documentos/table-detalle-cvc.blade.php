@@ -37,7 +37,7 @@
             <td  colspan="{{count($tallas) + 3 }}" style="font-weight: bold;text-align:end;">ENVÍO:</td>
             <td  class="td-envio" colspan="1" style="font-weight: bold;text-align:end;">
               <div class="input-group">
-                <span class="input-group-text" id="monto-envio">
+                <span class="input-group-text" id="btn-envio">
                   <i class="fas fa-truck"></i>
                 </span>
                 <input disabled style="width: 10px;"  type="text" class="form-control envio" value="{{$cotizacion->monto_envio}}" aria-label="Username" aria-describedby="basic-addon1">

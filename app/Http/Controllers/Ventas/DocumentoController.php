@@ -608,7 +608,6 @@ class DocumentoController extends Controller
 
             $tallas = Talla::all();
            
-
             return view('ventas.documentos.create-venta-cotizacion', [
                 'cotizacion'    =>  $cotizacion,
                 'empresas'      =>  $empresas,
@@ -622,7 +621,8 @@ class DocumentoController extends Controller
                 'dolar'         =>  $dolar,
                 'detalle'       =>  $detalleValidado,
                 'tallas'        =>  $tallas,
-                'cantidadErrores'   =>  $cantidadErrores
+                'cantidadErrores'   =>  $cantidadErrores,
+                'departamentos'     =>  departamentos()
             ]);
            
 

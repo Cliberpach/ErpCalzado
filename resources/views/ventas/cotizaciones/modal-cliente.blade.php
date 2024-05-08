@@ -212,6 +212,7 @@
     }
 
     async function setUbicacionDepartamento(dep_id,provincia_id){
+        
         const departamento_id   =   dep_id;
         console.log(`provincia: ${provincia_id}`);
        
@@ -510,3 +511,4 @@
     
 
 </script>
+
