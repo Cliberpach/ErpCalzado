@@ -1564,6 +1564,7 @@ class DocumentoController extends Controller
             //          $lote->update();
             //      }
             // }
+       
 
             foreach ($productotabla as $producto) {
 
@@ -1613,7 +1614,8 @@ class DocumentoController extends Controller
                     //$lote->cantidad = $lote->cantidad - $producto->cantidad;
                     //$lote->stock = $lote->stock - $producto->cantidad;
 
-                    if(!$request->has('convertir') && $request->get('regularizar') == 'NO'){
+                    //====== RESTAR STOCK SI NO ES CONVERSIÓN NI REGULARIZACIÓN =======
+                    if(!$request->has('convertir') && !$request->has('regularizar')){
                         //===== ACTUALIZANDO STOCK ===========
                         DB::update('UPDATE producto_color_tallas 
                         SET stock = stock - ? 

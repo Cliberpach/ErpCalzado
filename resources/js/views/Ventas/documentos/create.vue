@@ -219,7 +219,6 @@ export default {
                 tallas:[],
             },
             formCreate: {
-                regularizar:"NO",
                 fecha_documento_campo: "",
                 fecha_atencion_campo: "",
                 fecha_vencimiento_campo: "",
