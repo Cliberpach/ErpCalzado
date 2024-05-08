@@ -37,7 +37,8 @@ class CreateEnviosVentasTable extends Migration
             $table->char('entrega_domicilio', 2);
             $table->string('direccion_entrega')->nullable();
             $table->string('documento_nro');
-            $table->date('fecha_envio');
+            $table->date('fecha_envio')->nullable();
+            $table->date('fecha_envio_propuesta');
             $table->string('origen_venta');
             $table->text('observaciones')->nullable();
             $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');

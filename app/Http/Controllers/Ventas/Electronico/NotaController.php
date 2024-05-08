@@ -373,6 +373,7 @@ class NotaController extends Controller
 
             //======== OBTENER CORRELATIVO ======
             $envio_prev = self::sunat_prev($nota->id,$documento->tipo_venta);
+            
            
             if(!$envio_prev['success']){
                 DB::rollBack();
@@ -384,9 +385,15 @@ class NotaController extends Controller
                 $nota->serie        =   $envio_prev['serie'];
                 $nota->correlativo  =   $envio_prev['correlativo'];
                 $nota->update();
+
+                //======= SI LA EMISIÓN NO HA INICIADO, ACTUALIZAR =======
+                if($envio_prev['model_numeracion']->emision_iniciada == 0){
+                    DB::table('empresa_numeracion_facturaciones')
+                    ->where('id', $envio_prev['model_numeracion']->id)
+                    ->update(['emision_iniciada' => '1']);
+                }
             }
             
-
             DB::commit();
             if(!isset($request->nota_venta))
             {
@@ -400,20 +407,14 @@ class NotaController extends Controller
                  $text = 'Nota de devolución creada, se creo un egreso con el monto de la nota de devolución.';
             }
 
-            //========== ENVIO A SUNAT ======
-            //======= ENVIAR A SUNAT CUANDO NO SEA NOTA DE VENTA ========
-            if(!$request->has('nota_venta')){
-               $this->sunat($nota->id);
-            }
-
             Session::flash('success', $text);
             return response()->json([
-                 'success' => true,
-                 'nota_id'=> $nota->id
+                'success' => true,
+                'nota_id'=> $nota->id
             ]);
 
         }
-        catch(Exception $e)
+        catch(Throwable $e)
         {
             DB::rollBack();
            
@@ -423,7 +424,15 @@ class NotaController extends Controller
                 'excepcion' => $e->getMessage()
             ]);
         }
-    
+
+
+        // //======= ENVÍO A SUNAT =======
+        // //======= ENVIAR A SUNAT CUANDO NO SEA NOTA DE VENTA ========
+        // if(!$request->has('nota_venta')){
+        //     $res_send_sunat   = $this->sunat($nota->id,'fetch');
+        //     //dd($res_send_sunat);
+        // }
+
     }
 
 
@@ -628,11 +637,12 @@ class NotaController extends Controller
                 if($numeracion->emision_iniciada == "1"){
                     //====== CORRELATIVO SERÁ EL SIGUIENTE A LA ULTIMA NOTA ELECTRONICA ==========//
                     //====== DEL MISMO TIPO BB01,FF01,NN01 ======= //
-                    $cantidad_notas =   DB::select('select count(*) as cantidad_notas 
+                    $ultima_nota =   DB::select('select ne.correlativo
                                             from nota_electronica as ne
-                                            where ne.serie=?',[$numeracion->serie]);
+                                            where ne.serie=?
+                                            order by ne.id desc',[$numeracion->serie]);
                     
-                    return $cantidad_notas[0]->cantidad_notas+1;
+                    return $ultima_nota[0]->correlativo+1;
                 }
             }
         }
@@ -719,7 +729,8 @@ class NotaController extends Controller
         // $nota = Nota::findOrFail($id);
 
         //======== BUSCAR SI ESTÁ ACTIVADA LA EMISIÓN DE NOTAS DE CREDITO O DÉBITO EN LA EMPRESA ======
-        $numeracion =   null;
+        $numeracion         =   null;
+        $tipo_comprobante   =   null;
 
         //======= 1=NOTA DÉBITO ======
         if ($nota->tipo_nota == '1') {
@@ -729,24 +740,30 @@ class NotaController extends Controller
 
             //======== FACTURAS ======
             if($tipo_venta == 127){
-                //====== 130 => NOTA CRÉDITO FACTURA FF01 =====
-                $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')
-                ->where('descripcion',"NOTA DE CRÉDITO FACTURA")->first();
+                //====== NOTA CRÉDITO FACTURA FF01 =====
+                //====== BUSCANDO CODIGO DE NOTA CREDITO FACTURA =====
+                $tipo_comprobante =   DB::select('select td.id from tabladetalles as td
+                                        where td.descripcion="NOTA DE CRÉDITO FACTURA"');
             }
 
             //======== BOLETAS ======
             if($tipo_venta == 128){
-                //====== 201 => NOTA CRÉDITO BOLETA BB01 =====
-                $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')
-                ->where('descripcion',"NOTA DE CRÉDITO BOLETA")->first();
+                $tipo_comprobante =   DB::select('select td.id from tabladetalles as td
+                                        where td.descripcion="NOTA DE CRÉDITO BOLETA"');
+                //====== NOTA CRÉDITO BOLETA BB01 =====
             }
           
             //======== NOTAS DE VENTA ======
             if($tipo_venta == 129){
-                //====== 202 => NOTA DE DEVOLUCIÓN NN01 =====
-                $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')
-                ->where('descripcion',"NOTA DE DEVOLUCIÓN")->first();
+                //====== NOTA DE DEVOLUCIÓN NN01 =====
+                $tipo_comprobante =   DB::select('select td.id from tabladetalles as td
+                                        where td.descripcion="NOTA DE DEVOLUCIÓN"');
             }
+
+            if(count($tipo_comprobante)>0){
+                $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')
+                ->where('tipo_comprobante',$tipo_comprobante[0]->id)->first();
+            } 
           
         }
 
@@ -770,7 +787,8 @@ class NotaController extends Controller
         }
     }
 
-    public function sunat($id)
+
+    public function sunat($id,$modo="http")
     {
         try
         {
@@ -780,6 +798,7 @@ class NotaController extends Controller
             //OBTENER CORRELATIVO DE LA NOTA CREDITO / DEBITO
             $existe     = self::numeracion($nota,$documento->tipo_venta);
             $nota       = Nota::findOrFail($id);
+
             if($existe){
                 if ($existe->get('existe') == true) {
                     if ($nota->sunat != '1') {
@@ -885,13 +904,15 @@ class NotaController extends Controller
                                 $gestion = "NOTAS ELECTRONICAS";
                                 crearRegistro($nota, $descripcion, $gestion);
 
-                                Session::flash('success', 'Nota enviada a Sunat con exito.');
-                                Session::flash('sunat_exito', '1');
-                                Session::flash('id_sunat', $json_sunat->sunatResponse->cdrResponse->id);
-                                Session::flash('descripcion_sunat', $json_sunat->sunatResponse->cdrResponse->description);
-
-                              
-                                return redirect()->route('ventas.notas', $documento->id)->with('sunat_exito', 'success');
+                                if($modo == "http"){
+                                    Session::flash('success', 'Nota enviada a Sunat con exito.');
+                                    Session::flash('sunat_exito', '1');
+                                    Session::flash('id_sunat', $json_sunat->sunatResponse->cdrResponse->id);
+                                    Session::flash('descripcion_sunat', $json_sunat->sunatResponse->cdrResponse->description);
+    
+                                    return redirect()->route('ventas.notas', $documento->id)->with('sunat_exito', 'success');
+                                }
+                             
                             }
                             else {
                                 $nota->sunat = '0';
@@ -904,12 +925,15 @@ class NotaController extends Controller
 
                                 $nota->update();
                                 
-                                Session::flash('error', 'Nota electronica sin exito en el envio a sunat.');
-                                Session::flash('sunat_error', '1');
-                                Session::flash('id_sunat', $id_sunat);
-                                Session::flash('descripcion_sunat', $descripcion_sunat);
-
-                                return redirect()->route('ventas.notas', $documento->id)->with('sunat_error', 'error');
+                                if($modo == "http"){
+                                    Session::flash('error', 'Nota electronica sin exito en el envio a sunat.');
+                                    Session::flash('sunat_error', '1');
+                                    Session::flash('id_sunat', $id_sunat);
+                                    Session::flash('descripcion_sunat', $descripcion_sunat);
+    
+                                    return redirect()->route('ventas.notas', $documento->id)->with('sunat_error', 'error');
+                                }
+                               
                             }
                         }else{
 
@@ -956,11 +980,20 @@ class NotaController extends Controller
                 Session::flash('error','Empresa sin parametros para emitir comprobantes electronicos');
                 return redirect()->route('ventas.notas',$documento->id);
             }
+
         }
-        catch(Exception $e)
-        {
-            Session::flash('error','Ocurrio un error, si el error persiste contactar al administrador del sistema.');
-            return redirect()->route('ventas.notas',$documento->id);
+        catch(\Throwable  $e)
+        {   
+            
+            if($modo    ==  "http"){
+                Session::flash('error','Ocurrio un error, si el error persiste contactar al administrador del sistema.');
+                return redirect()->route('ventas.notas',$documento->id);
+            }
+
+            if($modo    ==  "fetch"){
+                return ['success'=>false,'message'=>"ERROR EN EL ENVÍO A SUNAT",'exception'=>$e->getMessage()];
+            }
+            
         }
     }
 
@@ -974,7 +1007,8 @@ class NotaController extends Controller
             if($res_numeracion){
                 if ($res_numeracion->get('existe') == true) {
                     return array('success' => true,'mensaje' => 'Nota validada.',
-                    'correlativo' => $res_numeracion->get('correlativo'),'serie'=>$res_numeracion->get('serie'));
+                    'correlativo' => $res_numeracion->get('correlativo'),'serie'=>$res_numeracion->get('serie'),
+                    'model_numeracion' => $res_numeracion->get('numeracion'));
                 }else{
                     return array('success' => false,'mensaje' => 'Nota de crédito no se encuentra registrado en la empresa.');
                 }

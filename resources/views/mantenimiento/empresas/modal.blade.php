@@ -873,6 +873,11 @@ $('#formulario_comprobante_numero').submit(function(e) {
 })
 
 function agregarNumeracion(){
+    if($('#serie_comprobante').val() == "NO EXISTE"){
+        toastr.error('EL COMPROBANTE NO SE ENCUENTRA EN LA TABLA DETALLES', 'ERROR EN EL SERVIDOR', { time: 0 });
+        return;
+    }
+
     var t = $('.dataTables-numeracion').DataTable();
         t.row.add(
                 {

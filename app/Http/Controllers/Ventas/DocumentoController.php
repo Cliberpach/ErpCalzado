@@ -1451,7 +1451,7 @@ class DocumentoController extends Controller
                 ]);
             }
 
-            
+      
             $documento = new Documento();
             $documento->fecha_documento = $request->get('fecha_documento_campo');
             $documento->fecha_atencion = $request->get('fecha_atencion_campo');
@@ -1492,7 +1492,7 @@ class DocumentoController extends Controller
             $monto_descuento    =   $request->get('monto_descuento')??0;
             $porcentaje_descuento = ($monto_descuento*100)/($monto_total_pagar);
 
-
+          
             
             $documento->sub_total           = $monto_sub_total;
             $documento->monto_embalaje      = $monto_embalaje;  
@@ -1501,7 +1501,6 @@ class DocumentoController extends Controller
             $documento->total_igv           = $monto_total_igv;
             $documento->total_pagar         = $monto_total_pagar;  
             $documento->igv                 = $request->get('igv') ? $request->get('igv') : 18;
-
                
             $documento->monto_descuento         =   $monto_descuento;
             $documento->porcentaje_descuento    =   $porcentaje_descuento;   
@@ -1530,13 +1529,18 @@ class DocumentoController extends Controller
 
             $documento->save();
             
+
+            
             //NUMERO DE DOC DE VENTA
             $numero_doc = $documento->id;
             $documento->numero_doc = 'VENTA-' . $numero_doc;
             $documento->update();
 
+            
+
             //===== OBTENIENDO CORRELATIVO Y SERIE =====
             $envio_prev =   self::sunat($documento->id);
+            
             //====== VERIFICANDO SI EL TIPO DE DOCUMENTO ESTÁ ACTIVO EN LA EMPRESA =======
             if (!$envio_prev['success']) {
                 DB::rollBack();
@@ -1545,6 +1549,8 @@ class DocumentoController extends Controller
                     'mensaje' => $envio_prev['mensaje'],
                 ]);
            }
+
+          
            
             //=========== DETALLE DEL DOCUMENTO =======
             //Llenado de los articulos
@@ -1560,6 +1566,7 @@ class DocumentoController extends Controller
             // }
 
             foreach ($productotabla as $producto) {
+
                  
                 $lote = ProductoColorTalla::where('producto_id', $producto->producto_id)
                         ->where('color_id', $producto->color_id)
@@ -1697,10 +1704,10 @@ class DocumentoController extends Controller
                 }
             }
 
-
+        
             //======== GUARDANDO DATA DE ENVIO =========
             $data_envio     =   json_decode($request->get('data_envio'));
-            
+           
             if (!empty((array)$data_envio)) {
                 $envio_venta                        =   new EnvioVenta();
                 $envio_venta->documento_id          =   $documento->id;
@@ -1726,6 +1733,7 @@ class DocumentoController extends Controller
                 $envio_venta->observaciones         =   $data_envio->observaciones;
                 $envio_venta->save();
             }else{
+                
                 //======== OBTENER EMPRESA ENVÍO =======
                 $empresa_envio                      =   DB::select('select ee.id,ee.empresa,ee.tipo_envio
                                                         from empresas_envio as ee
@@ -1759,7 +1767,7 @@ class DocumentoController extends Controller
                 $envio_venta->observaciones         =   null;
                 $envio_venta->save();
             }
-           
+         
             // if ($request->convertir) {
             //     $doc_a_convertir = Documento::find($request->convertir);
             //     $doc_a_convertir->convertir = $documento->id;
@@ -2721,6 +2729,7 @@ class DocumentoController extends Controller
             $documento = Documento::findOrFail($id);
             //OBTENER CORRELATIVO DEL COMPROBANTE ELECTRONICO
             $existe = event(new DocumentoNumeracion($documento));
+           
             if ($existe[0]) {
                 if ($existe[0]->get('existe') == true) {
                     return array('success' => true,'mensaje' => 'Documento validado.',

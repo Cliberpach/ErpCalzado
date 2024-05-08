@@ -53,7 +53,8 @@ class ConsultarTipoNumeracion
 
                 //ACTUALIZAR LA NUMERACION (SE REALIZO EL INICIO)
                 self::actualizarNumeracion($numeracion);
-                return $documento->correlativo;
+                return ['correlativo' =>    $documento->correlativo,
+                            'serie'       =>    $documento->serie];
 
             }else{
                 //DOCUMENTO DE VENTA ES NUEVO EN SUNAT

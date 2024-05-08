@@ -606,10 +606,17 @@ class EmpresaController extends Controller
 
     public function serie($id)
     {
-        $tipos = tipos_venta();
+        $tipos      = tipos_venta();
+        $resultado  = $tipos->where('id', $id)->first();
+
+        if(!$resultado){
+            return "NO EXISTE";
+        }
+
+        $tipo_comprobante   =   $resultado->descripcion;   
         foreach ($tipos as $tipo) {
             //====== 130 N.E FACTURAS FF01 | 131 N.D | 201 N.E BOLETAS BB01 | 202 NOTA DEVOLUCION NN01 ========
-            if ($id== '130' || $id== '131' || $id=='201' || $id=="202") {
+            if ($tipo_comprobante === 'NOTA DE CRÉDITO FACTURA' || $tipo_comprobante === 'NOTA DE DEVOLUCIÓN' || $tipo_comprobante === 'NOTA DE CRÉDITO BOLETA' || $tipo_comprobante === "NOTA DE DÉBITO") {
                 if ($tipo->id == $id ) {
                     $empresas_numeracion = Numeracion::where('tipo_comprobante', $id)->where('estado','ACTIVO')->get();
                     $serie = $tipo->parametro.'0'.(count($empresas_numeracion)+1);
