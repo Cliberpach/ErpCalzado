@@ -288,14 +288,15 @@ class CajaController extends Controller
         $this->authorize('haveaccess','movimiento_caja.create');
         $data=$request->all();
         $rules=[
-            'caja'=>'required',
-            'turno'=>'required',
-            'saldo_inicial'=>'required'
+            'caja'              =>'required',
+            'turno'             =>'required',
+            'saldo_inicial'     =>'required',
+            'colaborador_id'    =>  'required'
          ];
 
          $message = [
             'caja.required' => 'Seleccionar una caja  es Obligatorio',
-            'colaborador_id.required' => 'El campo destino  es Obligatorio',
+            'colaborador_id.required' => 'El campo cajero es obligatorio',
             'turno.required'=>'El campo turno es obligatorio',
             'saldo_inicial.required'=>'Ingresar un saldo en caja',
         ];

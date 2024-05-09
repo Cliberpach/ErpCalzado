@@ -149,11 +149,12 @@
         event.preventDefault();
         let cant= document.querySelectorAll('input[name="usuarioVentas[]"]');
         let form= document.getElementById('crear_caja_movimiento');
-        if(cant.length>0){
-            form.submit();
-        }else{
-            alert('Seleccione al menos un usuairo de ventas para la apertura de caja');
-        }
+        form.submit();
+        //if(cant.length>0){
+        //    form.submit();
+        //}else{
+        //    alert('Seleccione al menos un usuairo de ventas para la apertura de caja');
+        //}
 
     }
     function verificarSeleccion(id) {

@@ -8,7 +8,7 @@
                 </button>
                 <i class="fa fa-cogs modal-icon"></i>
                 <h4 class="modal-title">Caja</h4>
-                <small class="font-bold">Apertura de Cajaa</small>
+                <small class="font-bold">Apertura de Caja</small>
             </div>
             <div class="modal-body">
                 <form role="form" action="{{ route('Caja.apertura') }}" method="POST" id="crear_caja_movimiento">
