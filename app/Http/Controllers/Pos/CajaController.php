@@ -110,7 +110,7 @@ class CajaController extends Controller
     public function indexMovimiento()
     {
         //Obtengo id de usuarios cajeros ocupados
-        $cajerosOcupados= DetallesMovimientoCaja::select('detalles_movimiento_caja.usuario_id')
+        $cajerosOcupados = DetallesMovimientoCaja::select('detalles_movimiento_caja.usuario_id')
         ->join('movimiento_caja as mc','mc.id','=','detalles_movimiento_caja.movimiento_id')
         ->join('caja as c','c.id','=','mc.caja_id')
         ->join('users as u','u.id','=','detalles_movimiento_caja.usuario_id')
@@ -118,8 +118,10 @@ class CajaController extends Controller
         ->join('roles as r','r.id','=','ru.role_id')
         ->where('r.name','LIKE','%CAJE%')
         ->where('c.estado_caja','LIKE','%ABIERTA%')
+        ->where('mc.estado_movimiento','APERTURA')
         ->distinct()
         ->get();
+
 
 
         $getCajerosOcupados='';
@@ -162,7 +164,7 @@ class CajaController extends Controller
         ->join('role_user as ru','ru.user_id','=','u.id')
         ->join('roles as r','r.id','=','ru.role_id')
         ->where('r.name','LIKE','%venta%')
-        ->where('c.estado_caja','LIKE','%abierta%')
+        ->where('c.estado_caja','LIKE','%ABIERTA%')
         ->whereNull('detalles_movimiento_caja.fecha_salida')
         ->distinct()
         ->get();

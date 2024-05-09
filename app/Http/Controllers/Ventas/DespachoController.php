@@ -67,7 +67,7 @@ class DespachoController extends Controller
     public function pdfBultos($documento_id,$nro_bultos){
         $empresa = Empresa::first();
         
-        $pdf = PDF::loadview('ventas.despachos.pdf-bultos', [
+        $pdf = PDF::loadview('ventas.despachos.pdf-bultos.pdf2', [
             'empresa'       =>  $empresa,
             'nro_bultos'    =>  $nro_bultos
         ])->setPaper('a4')
