@@ -132,6 +132,44 @@
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-title">
+                        <h5>Notas de Crédito</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link d-none">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table dataTables-notas-credito table-striped table-bordered table-hover"
+                                style="text-transform:uppercase">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">CLIENTE</th>
+                                        <th class="text-center">USUARIO</th>
+                                        <th class="text-center">DOC AFEC</th>
+                                        <th class="text-center">NUMERO</th>
+                                        <th class="text-center">FECHA</th>
+                                        <th class="text-center">CANTIDAD</th>
+                                        <th class="text-center">PRECIO</th>
+                                        <th class="text-center">MOTIVO</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
                         <h5>Ingresos</h5>
                         <div class="ibox-tools">
                             <a class="collapse-link">
@@ -300,6 +338,34 @@
                     [0, "desc"]
                 ],
             });
+            $('.dataTables-notas-credito').dataTable({
+                "dom": '<"html5buttons"B>lTfgitp',
+                "buttons": [{
+                        extend: 'excelHtml5',
+                        text: '<i class="fa fa-file-excel-o"></i> Excel',
+                        titleAttr: 'Excel',
+                        title: 'CONSULTA NOTAS CRÉDITO'
+                    },
+                    {
+                        titleAttr: 'Imprimir',
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Imprimir',
+                        customize: function(win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ],
+                "language": {
+                    "url": "{{ asset('Spanish.json') }}"
+                },
+                "order": [
+                    [0, "desc"]
+                ],
+            });
             $('.dataTables-salidas').dataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
@@ -367,11 +433,12 @@
             });
 
             //DOBLE CLICK EN LOTES
-            $('.dataTables-producto').on('dblclick', 'tbody td', function() {
+            $('.dataTables-producto').on('click', 'tbody td', function() {
                 var instancia   = $('.dataTables-producto').DataTable();
                 var producto    = instancia.row(this).data();
                 llenarCompras(producto.producto_id,producto.color_id,producto.talla_id);
                 llenarVentas(producto.producto_id,producto.color_id,producto.talla_id);
+                llenarNotasCredito(producto.producto_id,producto.color_id,producto.talla_id);
                 llenarSalidas(producto.producto_id,producto.color_id,producto.talla_id);
                 
                 llenarIngresos(producto.producto_id,producto.color_id,producto.talla_id);
@@ -542,6 +609,100 @@
                     {
                         data: 'convertir',
                         name: 'convertir',
+                        className: "letrapequeña"
+                    }
+                ],
+                "language": {
+                    "url": "{{ asset('Spanish.json') }}"
+                },
+                "order": [
+                    [3, "desc"]
+                ],
+                "createdRow": function(row, data, dataIndex) {
+                    if (data.convertir !== '-') {
+                        $(row).addClass('azulito-leve');
+                    }
+                }
+
+
+            });
+        }
+
+
+        function llenarNotasCredito(producto_id,color_id,talla_id) {
+            $('.dataTables-notas-credito').dataTable().fnDestroy();
+            let url = '{{ route('reporte.producto.llenarNotasCredito', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            url = url.replace(":producto_id", producto_id);
+            url = url.replace(":color_id", color_id);
+            url = url.replace(":talla_id", talla_id);
+            
+            $('.dataTables-notas-credito').DataTable({
+                "dom": '<"html5buttons"B>lTfgitp',
+                "buttons": [{
+                        extend: 'excelHtml5',
+                        text: '<i class="fa fa-file-excel-o"></i> Excel',
+                        titleAttr: 'Excel',
+                        title: 'CONSULTA NOTAS CRÉDITO'
+                    },
+                    {
+                        titleAttr: 'Imprimir',
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Imprimir',
+                        customize: function(win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ],
+                "bPaginate": true,
+                "bLengthChange": true,
+                "bFilter": true,
+                "bInfo": true,
+                "bAutoWidth": false,
+                "ajax": url,
+                "columns": [
+
+                    {
+                        data: 'cliente',
+                        name: 'cliente',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'usuario',
+                        name: 'usuario',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'doc_afec',
+                        name: 'doc_afec',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'numero',
+                        name: 'numero',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'fecha_emision',
+                        name: 'fecha_emision',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'cantidad',
+                        name: 'cantidad',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'precio_unitario_nuevo',
+                        name: 'precio_unitario_nuevo',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'motivo',
+                        name: 'motivo',
                         className: "letrapequeña"
                     }
                 ],
@@ -805,7 +966,7 @@
             return false;
         }
 
-        $(".dataTables-ingresos").on('dblclick', '.editCosto', function() {
+        $(".dataTables-ingresos").on('click', '.editCosto', function() {
             var data = $(".dataTables-ingresos").dataTable().fnGetData($(this).closest('tr'));
             $('#modal_costo_update .pago-title').html(data.nombre)
             $('#modal_costo_update .pago-subtitle').html(data.numero);

@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
 use App\Exports\Reportes\PI\Producto_PI;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Ventas\Nota;
+use App\Ventas\NotaDetalle;
+
 
 class ProductoController extends Controller
 {
@@ -133,6 +136,45 @@ class ProductoController extends Controller
         //         "ex"=>$ex
         //     ]);
         // }
+    }
+
+    public function llenarNotasCredito($producto_id,$color_id,$talla_id)
+    {
+        ini_set('memory_limit', '1024M');
+        
+        try{
+            $detalle_notas_credito = NotaDetalle::orderBy('id', 'desc')
+            ->where("producto_id",$producto_id)
+            ->where("color_id",$color_id)
+            ->where("talla_id",$talla_id)
+            ->get();
+          
+            $coleccion = collect([]);
+            foreach ($detalle_notas_credito as $producto) {
+                $coleccion->push([
+                    'cliente'               =>  $producto->nota_dev->cliente,
+                    'usuario'               =>  $producto->nota_dev->user->usuario,
+                    'doc_afec'              =>  $producto->nota_dev->numDocfectado,
+                    'fecha_emision'         =>  $producto->nota_dev->fecha_atencion,
+                    'numero'                =>  $producto->nota_dev->serie.'-'.$producto->nota_dev->correlativo,
+                    'fecha_emision'         =>  $producto->nota_dev->fechaEmision,
+                    'cantidad'              =>  $producto->cantidad,
+                    'precio_unitario_nuevo' =>  $producto->mtoPrecioUnitario,
+                    'motivo'                =>  $producto->nota_dev->desMotivo    
+                ]);
+            }
+            return DataTables::of($coleccion)->make(true);
+        }catch(\Exception $ex){
+            dd($ex->getMessage());
+            return response()->json([
+                "data"=> [],
+                "draw"=> 0,
+                "input"=>"1664832061783",
+                "recordsFiltered"=>0,
+                "recordsTotal"=> 0,
+                "ex"=>$ex
+            ]);
+        }
     }
 
     public function llenarSalidas($producto_id,$color_id,$talla_id)

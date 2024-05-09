@@ -72,6 +72,11 @@ class Nota extends Model
         return $this->belongsTo('App\Ventas\Documento\Documento','documento_id');
     }
 
+    public function user()
+    {
+        return $this->belongsTo('App\User');
+    }
+
     protected static function booted()
     {
         static::created(function(Nota $nota){
