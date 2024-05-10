@@ -20,17 +20,17 @@ class DespachoController extends Controller
 
     public function getTable()
     {
-        $envios_ventas  = EnvioVenta::select('documento_nro', 'cliente_nombre','fecha_envio_propuesta','fecha_envio','created_at','tipo_envio',
+        $envios_ventas  = EnvioVenta::select('id','documento_nro', 'cliente_nombre','fecha_envio_propuesta','fecha_envio','created_at','tipo_envio',
                             'empresa_envio_nombre','sede_envio_nombre','departamento','provincia','distrito',
-                            'destinatario_nombre','tipo_pago_envio','monto_envio','entrega_domicilio',
+                            'destinatario_nombre','destinatario_dni','tipo_pago_envio','monto_envio','entrega_domicilio',
                             'direccion_entrega','estado','documento_id') 
-                        ->where('estado', 'ACTIVO')
                         ->orderBy('id', 'desc') 
                         ->get();
 
         $coleccion = collect([]);
         foreach($envios_ventas as $envio_venta) {
             $coleccion->push([
+                'id'                    =>  $envio_venta->id,
                 'documento_nro'         =>  $envio_venta->documento_nro,
                 'cliente_nombre'        =>  $envio_venta->cliente_nombre,
                 'fecha_envio_propuesta' =>  $envio_venta->fecha_envio_propuesta,
@@ -42,6 +42,7 @@ class DespachoController extends Controller
                 'ubigeo'                =>  $envio_venta->departamento.' - '.$envio_venta->provincia.' - '.$envio_venta->distrito,
                 'tipo_pago_envio'       =>  $envio_venta->tipo_pago_envio,
                 'destinatario_nombre'   =>  $envio_venta->destinatario_nombre,
+                'destinatario_dni'      =>  $envio_venta->destinatario_dni,
                 'monto_envio'           =>  $envio_venta->monto_envio,
                 'entrega_domicilio'     =>  $envio_venta->entrega_domicilio,
                 'direccion_entrega'     =>  $envio_venta->direccion_entrega,
@@ -64,18 +65,74 @@ class DespachoController extends Controller
         }
     }
 
-    public function pdfBultos($documento_id,$nro_bultos){
+    public function pdfBultos($documento_id, $despacho_id, $nro_bultos)
+    {
+        set_time_limit(300);
         $empresa = Empresa::first();
+        
+        $despacho = DB::select('SELECT ev.distrito, ev.destinatario_nombre, ev.documento_nro,ev.cliente_nombre,
+                        ev.destinatario_dni, ev.cliente_celular, ev.entrega_domicilio, ev.direccion_entrega,
+                        ev.created_at
+                        FROM envios_ventas AS ev
+                        WHERE ev.id=? AND ev.documento_id=?', [$despacho_id, $documento_id]);
         
         $pdf = PDF::loadview('ventas.despachos.pdf-bultos.pdf2', [
             'empresa'       =>  $empresa,
-            'nro_bultos'    =>  $nro_bultos
+            'nro_bultos'    =>  $nro_bultos,
+            'despacho'      =>  $despacho[0]
         ])->setPaper('a4')
         ->setPaper('a4', 'landscape')
         ->setWarnings(false);
+        
+        return $pdf->stream($despacho[0]->distrito.'-'.$despacho[0]->cliente_nombre.'-'.$despacho[0]->created_at.'.pdf');
+    }
 
-        return $pdf->stream('nombre_del_archivo.pdf');
-        dd($documento_id .'-'.$nro_bultos);
+    
+
+
+    public function setEmbalaje(Request $request){
+
+        try {
+            DB::beginTransaction();
+            //======= ACTUALIZANDO DESPACHO ========
+            DB::table('envios_ventas')
+            ->where('id', $request->get('despacho_id')) 
+            ->where('documento_id', $request->get('documento_id')) 
+            ->update(['estado' => 'EMBALADO']);
+
+            DB::commit();
+
+            return response()->json(['success'=>true,'message'=>"ENVÍO EMBALADO"]);
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['success'=>false,'message'=>"ERROR EN EL SERVIDOR",
+            'exception'=>$th->getMessage()]);
+        }
+
+    }
+
+
+    public function setDespacho(Request $request){
+
+        try {
+            DB::beginTransaction();
+            //======= ACTUALIZANDO DESPACHO ========
+            DB::table('envios_ventas')
+            ->where('id', $request->get('despacho_id')) 
+            ->where('documento_id', $request->get('documento_id')) 
+            ->update(['estado' => 'DESPACHADO']);
+
+            DB::commit();
+
+            return response()->json(['success'=>true,'message'=>"ENVÍO DESPACHADO"]);
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['success'=>false,'message'=>"ERROR EN EL SERVIDOR",
+            'exception'=>$th->getMessage()]);
+        }
+
     }
 
 }

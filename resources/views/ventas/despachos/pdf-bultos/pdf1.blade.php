@@ -3,8 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DESPACHO</title>
+    <title>{{$despacho->distrito.'-'.$despacho->cliente_nombre.'-'.$despacho->created_at}}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    
     <style>
+        .documento_nro_text{
+            font-family: "Lato", sans-serif;
+            font-weight: 700;
+            font-size: 23px;
+        }
+
         .cargo-table {
             width: 100%;
             border-collapse: collapse; /* Combina los bordes de las celdas en una sola línea */
@@ -39,11 +51,10 @@
 
         .origen-text{
           font-size: 55px; /* Tamaño del texto "REMITENTE" */
-          display: inline-block;
+          display: inline;
           width:42%;
           margin: 0px; /* Elimina el margen */
           padding: 0px; /* Elimina el padding */
-          border: 1px blue solid;
         }
         .linea-costado {
           display: inline-block; /* Mostrar como elemento en línea */
@@ -55,6 +66,7 @@
 
         .remitente-text{
           font-size: 30px;
+          font-weight: bold;
         }
         .linea-individual{
           border-bottom: 4px solid #000; 
@@ -62,11 +74,11 @@
 
         .ruc-text{
           font-size: 30px; /* Tamaño del texto "REMITENTE" */
-          display: inline-block;
+          display: inline;
           width:15%;
-          margin: 20px 0 0 0; /* Elimina el margen */
+          margin: 0; /* Elimina el margen */
           padding: 0; /* Elimina el padding */
-          border: 1px blue solid;
+          font-weight: bold;
           
         }
         .linea-costado-ruc {
@@ -86,11 +98,11 @@
 
         .celular-text{
           font-size: 30px; /* Tamaño del texto "REMITENTE" */
-          display: inline-block;
+          display: inline;
           width:30%;
-          margin: 20px 0 0 0; /* Elimina el margen */
+          margin: 0; /* Elimina el margen */
           padding: 0; /* Elimina el padding */
-          border: 1px blue solid;
+          font-weight: bold;
         }
         .linea-costado-celular {
           display: inline-block; /* Mostrar como elemento en línea */
@@ -99,27 +111,25 @@
           margin:0px;
           padding:0px;
         }
-        .domicilio-check{
-          width: 15%;
-          height: 50px;
-          border: 1px solid black;
-          display: inline-block;
-          margin-top: 20px;
-        }
+    
+    
+
         .domicilio-text{
           width: 50%;
           display: inline-block;
           font-weight: bold;
           font-size: 17px;
+          margin:0;
+          padding:0;
+          vertical-align: middle;
         }
 
         .destino-text{
           font-size: 55px; /* Tamaño del texto "REMITENTE" */
-          display: inline-block;
+          display: inline;
           width:48%;
           margin: 0px; /* Elimina el margen */
           padding: 0px; /* Elimina el padding */
-          border: 1px blue solid;
         }
         .linea-costado-destino {
           display: inline-block; /* Mostrar como elemento en línea */
@@ -129,6 +139,38 @@
           padding:0px;
         }
 
+
+        .razon-text,
+        .consignado-text{
+            font-family: "Roboto", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+            font-size: 30px;
+            margin:7px 0;
+            padding:0;
+        }
+
+        .empresa_ruc,
+        .destinatario_dni,
+        .empresa_celular,
+        .direccion_entrega{
+            font-family: "Roboto", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+            font-size: 22px;
+            margin:7px 0;
+            padding:0;
+        }
+
+        .empresa_origen{
+            font-family: "Roboto", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+            font-size: 22px;
+            margin:7px 0;
+            padding:0;
+        }
+
     </style>
 </head>
 <body>
@@ -136,7 +178,7 @@
   <table class="cargo-table" style="width: 100%;">
     <tbody>
       <tr style="width: 100%;">
-        <td class="logo-cell logo" style="border: solid 1px black;">
+        <td class="logo-cell logo" >
           @if($empresa->ruta_logo)
             <img src="{{ base_path() . '/storage/app/'.$empresa->ruta_logo }}" class="img-fluid" style="width:50%;">
           @else
@@ -144,77 +186,82 @@
           @endif
         </td>
         <td class="nro-doc-cell">
-          <div class="nro-doc-box">NRO DOC</div>
+          <div class="nro-doc-box"><p style="margin:0;padding:0;" class="documento_nro_text">{{$despacho->documento_nro}}</p></div>
         </td>
       </tr>
       <tr style="width: 100%;">
-        <td style="border: solid 1px black;" style="width: 50%;">
+        <td  style="width: 50%;">
           <table style="width:100%;">
             <tr>
-              <td style="border: solid 1px black;padding:0;margin:0;">
-                  <p class="origen-text">ORIGEN</p>
-                  <span class="linea-costado"></span>
+              <td style="padding:0;margin:0;">
+                <p class="origen-text">ORIGEN: </p>
+                <span class="empresa_origen" style="font-size: 35px;display:inline;margin:0;padding:0;">{{$empresa->direccion_llegada}}</span>
               </td>
             </tr>
             <tr>
-              <td style="border:solid 1px black;padding:0;" class="remitente-text">REMITENTE:</td>
+              <td style="padding:0;" class="remitente-text">REMITENTE: </td>
             </tr>
             <tr >
-              <td  class="linea-individual" style="margin-top: 10px;height:20px;"></td>
+              <td style="margin-top: 10px;height:20px;"><p class="razon-text">{{$empresa->razon_social_abreviada}}</p></td>
             </tr>
             <tr>
-              <td style="border:solid 1px black;padding:0;">
-                <p class="ruc-text">RUC:</p> <span class="linea-costado-ruc"></span>
+              <td style="padding:0;">
+                <p class="ruc-text">RUC:</p> <span class="empresa_ruc">{{$empresa->ruc}}</span>
               </td> 
             </tr>
             <tr>
-              <td style="border:solid 1px black;padding:0;">
-                <p class="celular-text">CELULAR:</p> <span class="linea-costado-celular"></span>
+              <td style="padding:0;">
+                <p class="celular-text">CELULAR:</p> <span class="empresa_celular">{{$empresa->celular}}</span>
               </td> 
             </tr>
             <tr>
               <td style="text-align: center;">
                 <div class="cuadro-numeracion" style="text-align: center;vertical-align:middle;font-size:50px;">
-                  <p>{{'1/'.($i+1)}}</p>
+                  <p>{{($i+1).'/'.$nro_bultos}}</p>
                 </div>
               </td>
             </tr>
           </table>
         </td>
-        <td style="border: solid 1px black;" style="width: 50%;">
+        <td  style="width: 50%;">
           <table style="width:100%;">
             <tr>
-              <td style="border: solid 1px black;padding:0;margin:0;">
-                  <p class="destino-text">DESTINO</p>
-                  <span class="linea-costado-destino"></span>
+              <td style="margin:0;">
+                <p class="destino-text">DESTINO: </p>
+                <span class="empresa_origen" style="font-size: 35px;display:inline;margin:0;padding:0;">{{$despacho->distrito}}</span>
               </td>
             </tr>
             <tr>
-              <td style="border:solid 1px black;padding:0;" class="remitente-text">CONSIGNADO:</td>
+              <td style="padding:0;" class="remitente-text">CONSIGNADO:</td>
             </tr>
             <tr >
-              <td  class="linea-individual" style="margin-top: 10px;height:20px;"></td>
+                <td style="margin-top: 10px;height:20px;"><p class="consignado-text">{{$despacho->destinatario_nombre}}</p></td>
             </tr>
             <tr>
-              <td style="border:solid 1px black;padding:0;">
-                <p class="ruc-text">DNI:</p> <span class="linea-costado-ruc"></span>
+              <td style="padding:0;">
+                <p class="ruc-text">DNI:</p> <span class="destinatario_dni">{{$despacho->destinatario_dni}}</span>
               </td> 
             </tr>
             <tr>
-              <td style="border:solid 1px black;padding:0;">
-                <p class="celular-text">CELULAR:</p> <span class="linea-costado-celular"></span>
+              <td style="padding:0 0 20px 0;">
+                <p class="celular-text">CELULAR:</p> <span class="empresa_celular">{{$despacho->cliente_celular}}</span>
               </td> 
             </tr>
             <tr>
-              <td style="border:solid 1px black;padding:0;">
-                <div class="domicilio-check"></div> <p class="domicilio-text">ENTREGA EN DOMICILIO</p>
+              <td style="padding:0;">
+                @if ($despacho->entrega_domicilio   === "SI")
+                    <img style="width: 44px;vertical-align:middle;" src="{{ public_path() . '/img/check_true.png' }}" class="img-fluid">
+                @endif
+                @if ($despacho->entrega_domicilio === "NO")
+                    <img style="width: 44px;vertical-align:middle;" src="{{ public_path() . '/img/check_false.png' }}" class="img-fluid">
+                @endif
+                <p class="domicilio-text">ENTREGA EN DOMICILIO</p>
               </td> 
             </tr>
-            <tr>
-              <td class="linea-individual" style="margin-top: 10px;height:20px;"></td>
-          </tr>
           <tr>
-              <td class="linea-individual" style="margin-top: 10px;height:20px;"></td>
+                <td style="margin-top: 10px;height:85px;">
+                    <p class="direccion_entrega">{{$despacho->direccion_entrega}}</p>
+                </td>
           </tr>
           </table>
         </td>

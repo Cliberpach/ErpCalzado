@@ -906,7 +906,6 @@ class DocumentoController extends Controller
 
         }
 
-      
         return $validaciones;
     }
 
@@ -1733,6 +1732,7 @@ class DocumentoController extends Controller
                 $envio_venta->fecha_envio_propuesta =   $data_envio->fecha_envio_propuesta;
                 $envio_venta->origen_venta          =   $data_envio->origen_venta->descripcion;
                 $envio_venta->observaciones         =   $data_envio->observaciones;
+                $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
                 $envio_venta->save();
             }else{
                 
@@ -1767,6 +1767,7 @@ class DocumentoController extends Controller
                 $envio_venta->fecha_envio_propuesta =   null;
                 $envio_venta->origen_venta          =   "WHATSAPP";
                 $envio_venta->observaciones         =   null;
+                $envio_venta->estado                =   'DESPACHADO';
                 $envio_venta->save();
             }
          

@@ -32,6 +32,7 @@ class CreateEnviosVentasTable extends Migration
             $table->unsignedInteger('cliente_id');
             $table->foreign('cliente_id')->references('id')->on('clientes');            
             $table->string('cliente_nombre');
+            $table->string('cliente_celular');
             $table->string('tipo_pago_envio');
             $table->decimal('monto_envio', 10, 2);
             $table->char('entrega_domicilio', 2);
@@ -41,7 +42,7 @@ class CreateEnviosVentasTable extends Migration
             $table->date('fecha_envio_propuesta');
             $table->string('origen_venta');
             $table->text('observaciones')->nullable();
-            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
+            $table->enum('estado', ['PENDIENTE', 'EMBALADO','DESPACHADO'])->default('PENDIENTE');
             $table->timestamps();
         });
     }

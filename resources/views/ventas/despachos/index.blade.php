@@ -15,14 +15,14 @@
                 </li>
             </ol>
         </div>
-        <div class="col-lg-2 col-md-2">
+        {{-- <div class="col-lg-2 col-md-2">
             <button id="btn_añadir_cliente" class="btn btn-block btn-w-m btn-primary m-t-md">
                 <i class="fa fa-plus-square"></i> Añadir nuevo
             </button>
             <button id="btn_file_cliente" class="btn btn-block btn-w-m btn-primary m-t-md">
                 <i class="fa fa-file-excel-o"></i> Importar Excel
             </button>
-        </div>
+        </div> --}}
     </div>
 
     <div class="wrapper wrapper-content animated fadeInRight">
@@ -31,7 +31,7 @@
                 <div class="ibox ">
                     <div class="ibox-content">
                         <div class="table-responsive">
-                            <table class="table dataTables-cliente table-striped table-bordered table-hover"
+                            <table class="table dataTables-despacho table-striped table-bordered table-hover"
                                 style="text-transform:uppercase">
                                 <thead>
                                     {{-- <tr>
@@ -50,8 +50,9 @@
                                         <th class="text-center">TIPO ENVIO</th>
                                         <th class="text-center">EMPRESA</th>
                                         <th class="text-center">SEDE</th>
-                                        <th class="text-center">UBIGEO</th>
-                                        <th class="text-center">DESTINATARIO</th>
+                                        <th class="text-center">DESTINO</th>
+                                        <th class="text-center">DEST NOMBRE</th>
+                                        <th class="text-center">DEST DNI</th>
                                         <th class="text-center">TIPO PAGO</th>
                                         <th class="text-center">MONTO ENVÍO</th>
                                         <th class="text-center">ENVÍO DOMICILIO</th>
@@ -80,6 +81,47 @@
             font-size: 11px;
         }
 
+        .envio-despachado{
+            background-color: rgb(220, 255, 255) !important;
+        }
+
+        .envio-embalado{
+            background-color: rgb(239, 244, 213) !important;
+        }
+
+        .col-estado-pendiente {
+            border: 2px solid #FF5A5F;
+            background-color: #FF5A5F;
+            color: #FFFFFF;
+            font-weight: bold;
+            border-radius: 7px; 
+            padding: 0 5px; 
+            text-align: center;
+            display: inline-block;
+        }
+
+        .col-estado-despachado {
+            border: 2px solid #014c5b; 
+            background-color: #014c5b; 
+            color: #FFFFFF;
+            font-weight: bold;
+            border-radius: 7px; 
+            padding: 0 5px; 
+            text-align: center;
+            display: inline-block; 
+        }
+
+        .col-estado-embalado {
+            border: 2px solid #566003;
+            background-color: #566003; 
+            color: #FFFFFF;
+            font-weight: bold;
+            border-radius: 7px; 
+            padding: 0 5px; 
+            text-align: center; 
+            display: inline-block;
+        }
+
     </style>
 @endpush
 
@@ -94,7 +136,7 @@
         $(document).ready(function() {
             
             // DataTables
-            $('.dataTables-cliente').DataTable({
+            $('.dataTables-despacho').DataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
                         extend: 'excelHtml5',
@@ -121,6 +163,7 @@
                 "bInfo": true,
                 "bAutoWidth": false,
                 "processing": true,
+                "serverSide":true,
                 "ajax": "{{ route('ventas.despachos.getTable') }}",
                 "columns": [{
                         data: 'documento_nro',
@@ -163,6 +206,10 @@
                         className: "text-center letrapequeña"
                     },
                     {
+                        data: 'destinatario_dni',
+                        className: "text-center letrapequeña"
+                    },
+                    {
                         data: 'tipo_pago_envio',
                         className: "text-center letrapequeña"
                     },
@@ -181,7 +228,20 @@
                     },
                     {
                         data: 'estado',
-                        className: "text-center letrapequeña"
+                        className: "text-center letrapequeña",
+                        render: function(data) {
+                            let estado  =   '';
+                            if(data == "PENDIENTE"){
+                                estado  =   `<div class="col-estado-pendiente">${data}</div>`;  
+                            }
+                            if(data == "EMBALADO"){
+                                estado  =   `<div class="col-estado-embalado">${data}</div>`;  
+                            }
+                            if(data == "DESPACHADO"){
+                                estado  =   `<div class="col-estado-despachado">${data}</div>`;  
+                            }
+                            return estado;
+                        }
                     },
                     {
                         data: null,
@@ -191,36 +251,46 @@
                             var url_detalle = '{{ route('ventas.despachos.showDetalles', ':id') }}';
                             url_detalle = url_detalle.replace(':id', data.id);
 
-                            // //Ruta Modificar
-                            // var url_editar = '{{ route('ventas.cliente.edit', ':id') }}';
-                            // url_editar = url_editar.replace(':id', data.id);
+                           
+                                //======== ACCIONES ========
+                                let acciones    =   `<div class='btn-group' style='text-transform:capitalize;'><button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class='fa fa-bars'></i></button>
+                                                        <ul class='dropdown-menu'>
+                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="verDetalles(${data.documento_id})" title='Modificar' ><b><i class='fa fa-eye'></i> Detalle</a></b></li>
+                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="imprimirEnvio(${data.documento_id},${data.id})" title='Imprimir' ><b><i class="fas fa-print"></i> Imprimir</a></b></li>
+                                                       `;
+                                                    
+                                if(data.estado == "PENDIENTE"){
+                                    acciones+=  `<li class='dropdown-divider'></li>
+                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="embalar(${data.documento_id},${data.id})" title='Embalar' ><b><i class="fas fa-tape"></i> Embalar</a></b></li>
+                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="despachar(${data.documento_id},${data.id})" title='Despachar' ><b><i class="fas fa-people-carry"></i> Despachar</a></b></li>
+                                                    </ul>
+                                                    </div>`;
+                                }
 
-                            // //Ruta Tiendas
-                            // var url_tienda = '{{ route('clientes.tienda.index', ':id') }}';
-                            // url_tienda = url_tienda.replace(':id', data.id);
+                                if(data.estado == "EMBALADO"){
+                                    acciones+=  `<li class='dropdown-divider'></li>
+                                                <li><a class='dropdown-item' href='javascript:void(0);' onclick="despachar(${data.documento_id},${data.id})" title='Despachar' ><b><i class="fas fa-people-carry"></i> Despachar</a></b></li>
+                                                </ul></div>`;
+                                }
 
-                           /* return "<div class='btn-group'>" +
-                                "<a class='btn btn-primary btn-sm' href='" + url_tienda +
-                                "' title='Tiendas'><i class='fa fa-shopping-cart'></i></a>" +
-                                "<a class='btn btn-success btn-sm' href='" + url_detalle +
-                                "' title='Detalle'><i class='fa fa-eye'></i></a>" +
-                                "<a class='btn btn-warning btn-sm modificarDetalle' href='" +
-                                url_editar + "' title='Modificar'><i class='fa fa-edit'></i></a>" +
-                                "<a class='btn btn-danger btn-sm' href='#' onclick='eliminar(" +
-                                data.id + ")' title='Eliminar'><i class='fa fa-trash'></i></a>" +
-                                "</div>";*/
+                                if(data.estado == "DESPACHADO"){
+                                    acciones+=  `</ul></div>`;
+                                }
 
-                            return `<div class='btn-group' style='text-transform:capitalize;'><button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class='fa fa-bars'></i></button>
-                                        <ul class='dropdown-menu'>
-                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="verDetalles(${data.documento_id})" title='Modificar' ><b><i class='fa fa-eye'></i>Detalle</a></b></li>
-                                            <li class='dropdown-divider'></li>
-                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="imprimirEnvio(${data.documento_id})" title='Imprimir' ><b><i class="fas fa-print"></i>Imprimir</a></b></li>
-                                        </ul>
-                                    </div>`;
+                            return acciones;
                         }
                     }
 
                 ],
+                "createdRow": function(row, data, dataIndex) {
+                    if (data.estado === 'EMBALADO') {
+                        $(row).addClass('envio-embalado');
+                    }
+                    if (data.estado === 'DESPACHADO') {
+                        $(row).addClass('envio-despachado');
+                    }
+                    $('td', row).css('vertical-align', 'middle');
+                },
                 "language": {
                     "url": "{{ asset('Spanish.json') }}"
                 },
@@ -283,43 +353,143 @@
             detallesDataTable.draw();
         }
 
-        function imprimirEnvio(documento_id){
+        function imprimirEnvio(documento_id,despacho_id){
             document.querySelector('#documento_id').value   = documento_id;   
+            document.querySelector('#despacho_id').value    = despacho_id;   
+
             $('#modal-bultos').modal('show'); 
 
         }
 
-        function eliminar(id) {
-            Swal.fire({
-                title: 'Opción Eliminar',
-                text: "¿Seguro que desea guardar cambios?",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: "#1ab394",
-                confirmButtonText: 'Si, Confirmar',
-                cancelButtonText: "No, Cancelar",
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    //Ruta Eliminar
-                    var url_eliminar = '{{ route('ventas.cliente.destroy', ':id') }}';
-                    url_eliminar = url_eliminar.replace(':id', id);
-                    $(location).attr('href', url_eliminar);
+        //========= EMBALAR =========
+        function embalar(documento_id,despacho_id){
+            //======= OBTENER LOS DATOS DEL DESPACHO ======
+            var miTabla = $('.dataTables-despacho').DataTable();
 
-                } else if (
-                    /* Read more about handling dismissals below */
-                    result.dismiss === Swal.DismissReason.cancel
-                ) {
-                    swalWithBootstrapButtons.fire(
-                        'Cancelado',
-                        'La Solicitud se ha cancelado.',
-                        'error'
-                    )
+            const fila = miTabla.rows().data().filter(function (value, index) {
+                return value['id'] == despacho_id;
+            });
+          
+            let descripcion =   ``;
+
+            if(fila.length>0){
+                descripcion +=  `DESTINO: ${fila[0].ubigeo}
+                                DESTINATARIO: ${fila[0].destinatario_nombre} - ${fila[0].destinatario_dni}`;
+            }
+
+            //======== ALERTA =========
+            Swal.fire({
+                title: "Desea embalar el envío?",
+                text: descripcion,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sí, embalar!",
+                showLoaderOnConfirm: true, 
+                allowOutsideClick: false, 
+                preConfirm: async () => {
+                    const res = await setEmbalaje(despacho_id, documento_id);
+                    return res;
                 }
-            })
+                }).then((result) => {
+                    if (result.value.success) {
+                        
+                        Swal.fire(result.value.message, descripcion, "success");
+                    }else{
+                        Swal.fire(`${result.value.message} - ${result.value.exception}`, descripcion, "error");
+                    }
+                });
         }
-        $("#btn_file_cliente").on('click', function () {
-            $("#modal_file").modal('show');
-        });
+
+
+        async function setEmbalaje(despacho_id,documento_id){
+            try {
+                
+                const res   =   await axios.post(route('ventas.despachos.setEmbalaje'),{
+                    despacho_id,
+                    documento_id
+                })
+
+                if(res.data.success){
+                    //======= PINTANDO ESTADO EN DATATABLE ======
+                    const fila          =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id);
+                    const indiceFila    =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id).index();
+                    await fila.cell(indiceFila,0).data('EMBALADO').draw();
+                    //toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                }
+
+                return res.data;
+
+            } catch (error) {
+                
+            }
+        }
+
+
+        function despachar(documento_id,despacho_id){
+            //======= OBTENER LOS DATOS DEL DESPACHO ======
+            var miTabla = $('.dataTables-despacho').DataTable();
+
+            const fila = miTabla.rows().data().filter(function (value, index) {
+                return value['id'] == despacho_id;
+            });
+
+            let descripcion =   ``;
+
+            if(fila.length>0){
+                descripcion +=  `DESTINO: ${fila[0].ubigeo}
+                                DESTINATARIO: ${fila[0].destinatario_nombre} - ${fila[0].destinatario_dni}`;
+            }
+
+            //======== ALERTA =========
+            Swal.fire({
+                title: "Desea despachar el envío?",
+                text: descripcion,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sí, despachar!",
+                showLoaderOnConfirm: true, 
+                allowOutsideClick: false, 
+                preConfirm: async () => {
+                    const res = await setDespacho(despacho_id, documento_id);
+                    return res;
+                }
+                }).then((result) => {
+                    if (result.value.success) {
+                        
+                        Swal.fire(result.value.message, descripcion, "success");
+                    }else{
+                        Swal.fire(`${result.value.message} - ${result.value.exception}`, descripcion, "error");
+                    }
+                });
+         }
+
+
+         async function setDespacho(despacho_id,documento_id){
+            try {
+                
+                const res   =   await axios.post(route('ventas.despachos.setDespacho'),{
+                    despacho_id,
+                    documento_id
+                })
+
+                if(res.data.success){
+                    //======= PINTANDO ESTADO EN DATATABLE ======
+                    const fila          =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id);
+                    const indiceFila    =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id).index();
+                    await fila.cell(indiceFila,0).data('DESPACHADO').draw();
+                    //toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                }
+
+                return res.data;
+
+            } catch (error) {
+                
+            }
+        }
 
     </script>
 @endpush
