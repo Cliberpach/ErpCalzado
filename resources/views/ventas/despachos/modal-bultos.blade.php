@@ -14,7 +14,7 @@
                 @include('components.overlay_search')
                 @include('components.overlay_save')
 
-               <form action="" id="form-pdf-bultos" method="post" target="_blank" onsubmit="window.open('about:blank', 'popup', 'width=800,height=800,scrollbars=yes,status=yes,resizable=yes,screenx=100,screeny=100');">
+               <form action="" id="form-pdf-bultos" method="post">
                     <div class="row">
                         <div class="col-12">
                             <input type="text" hidden id="documento_id">
