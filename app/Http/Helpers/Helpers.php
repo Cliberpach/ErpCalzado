@@ -1386,6 +1386,7 @@ if (!function_exists('cuadreMovimientoCajaIngresosVenta')) {
     function cuadreMovimientoCajaIngresosVenta(MovimientoCaja $movimiento)
     {
         $totalIngresos = 0;
+
         foreach ($movimiento->detalleMovimientoVentas as $item) {
             if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA') { // && $item->documento->sunat != '2'
                 $totalIngresos = $totalIngresos + ($item->documento->importe + $item->documento->efectivo);
@@ -1411,16 +1412,30 @@ if (!function_exists('cuadreMovimientoCajaIngresosVentaElectronico')) {
 }
 
 if (!function_exists('cuadreMovimientoCajaIngresosVentaResum')) {
-    function cuadreMovimientoCajaIngresosVentaResum(MovimientoCaja $movimiento)
+    function cuadreMovimientoCajaIngresosVentaResum(MovimientoCaja $movimiento,$tipo_pago)
     {
         $totalIngresos = 0;
+
+        //====== TIPO PAGO (4) => INGRESOS TOTALES SIN IMPORTAR EL TIPO DE PAGO =======
+        if($tipo_pago == 4){
+            foreach ($movimiento->detalleMovimientoVentas as $item) {
+                if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA') { // && $item->documento->sunat != '2'
+                    if ($item->documento->tipo_pago_id == 1 || $item->documento->tipo_pago_id == 2 || $item->documento->tipo_pago_id == 3) {
+                        $totalIngresos = $totalIngresos + $item->documento->importe;
+                    }
+                }
+            }
+        }
+
+        //======= INGRESO POR TIPO DE PAGO ESPECÍFICO =======
         foreach ($movimiento->detalleMovimientoVentas as $item) {
             if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA') { // && $item->documento->sunat != '2'
-                if ($item->documento->tipo_pago_id == 1 || $item->documento->tipo_pago_id == 2 || $item->documento->tipo_pago_id == 3) {
+                if ($item->documento->tipo_pago_id == $tipo_pago) {
                     $totalIngresos = $totalIngresos + $item->documento->importe;
                 }
             }
         }
+
         return $totalIngresos;
 
     //    if($id == 1)
@@ -1456,8 +1471,28 @@ if (!function_exists('cuadreMovimientoCajaIngresosVentaResum')) {
 if (!function_exists('obtenerTotalIngresosPorTipoPago')) {
     function obtenerTotalIngresosPorTipoPago(MovimientoCaja $movimiento)
     {
+        //===== OBTENER TIPOS DE PAGO =====
+        $tipos_pago =   tipos_pago();
         //======= OBTENER LOS DOCUMENTOS DE VENTA ENLAZADOS AL MOVIMIENTO ======
         $docs_venta     =   $movimiento->detalleMovimientoVentas;
+        
+        $res    =   [];
+        //====== PARA CADA TIPO DE PAGO ======
+        foreach ($tipos_pago as $tipo_pago) {
+            $resultado  =   ['tipo_pago'                =>  $tipo_pago->descripcion,
+                            'monto_total_ingresos'      =>  0];
+
+            //======= CALCULAR TOTAL INGRESOS ======
+            foreach ($docs_venta as $doc_venta) {
+                if($doc_venta->documento->tipo_pago_id == $tipo_pago->id){
+                    $resultado['monto_total_ingresos']  +=  $doc_venta->documento->importe;
+                }
+            }
+
+            $res[]  =   (object)$resultado;
+        } 
+        
+        return $res;
     }
 }
 
@@ -1575,11 +1610,24 @@ if (!function_exists('cuadreMovimientoCajaEgresosEgreso')) {
 }
 
 if (!function_exists('cuadreMovimientoCajaEgresosEgresoResum')) {
-    function cuadreMovimientoCajaEgresosEgresoResum($movimiento)
+    function cuadreMovimientoCajaEgresosEgresoResum($movimiento,$tipo_pago)
     {
         $totalEgresos = 0;
+        
+         //====== TIPO PAGO (4) => INGRESOS TOTALES SIN IMPORTAR EL TIPO DE PAGO =======
+        if($tipo_pago == 4){
+            foreach ($movimiento->detalleMoviemientoEgresos as $key => $item) {
+                if($item->egreso->estado == 'ACTIVO' && $item->egreso->tipo_pago_id >0)
+                {
+                    $totalEgresos = $totalEgresos + $item->egreso->monto;
+                }
+            }
+            return $totalEgresos;
+        }
+
+
         foreach ($movimiento->detalleMoviemientoEgresos as $key => $item) {
-            if($item->egreso->estado == 'ACTIVO')
+            if($item->egreso->estado == 'ACTIVO' && $item->egreso->tipo_pago_id == $tipo_pago)
             {
                 $totalEgresos = $totalEgresos + $item->egreso->monto;
             }

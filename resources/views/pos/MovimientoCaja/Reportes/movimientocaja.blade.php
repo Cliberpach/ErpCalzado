@@ -400,9 +400,9 @@
                     <td colspan="4"
                         style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
                     </td>
-                    @foreach (tipos_pago() as $tipo)
+                    @foreach (tipos_pago() as $tipo_pago)
                         <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">
-                            {{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento, $tipo->id), 2) }}</td>
+                            {{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento, $tipo_pago->id), 2) }}</td>
                     @endforeach
                 </tr>
             </tbody>

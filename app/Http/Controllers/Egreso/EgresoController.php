@@ -49,9 +49,10 @@ class EgresoController extends Controller
         $egreso->usuario = Auth()->user()->usuario;
         $egreso->user_id = auth()->user()->id;
         $egreso->save();
-        $detalleMovimientoEgreso = new DetalleMovimientoEgresosCaja();
-        $detalleMovimientoEgreso->mcaja_id = movimientoUser()->id;
-        $detalleMovimientoEgreso->egreso_id = $egreso->id;
+        $detalleMovimientoEgreso                =   new DetalleMovimientoEgresosCaja();
+        //$detalleMovimientoEgreso->mcaja_id = movimientoUser()->id;
+        $detalleMovimientoEgreso->mcaja_id      =   movimientoUser()->movimiento_id;
+        $detalleMovimientoEgreso->egreso_id     =   $egreso->id;
         $detalleMovimientoEgreso->save();
 
 

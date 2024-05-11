@@ -405,11 +405,11 @@ class CajaController extends Controller
         //     cuadreMovimientoCajaEgresosPagoResum($movimiento, 1);
 
         $ingresos =
-        cuadreMovimientoCajaIngresosVentaResum($movimiento)+
+        cuadreMovimientoCajaIngresosVentaResum($movimiento,4)+
         cuadreMovimientoCajaIngresosCobranzaResum($movimiento);
 
         $egresos =
-            cuadreMovimientoCajaEgresosEgresoResum($movimiento)+
+            cuadreMovimientoCajaEgresosEgresoResum($movimiento,4)+
             cuadreMovimientoCajaEgresosPagoResum($movimiento);
 
 
@@ -493,17 +493,16 @@ class CajaController extends Controller
         ->where('detalles_movimiento_caja.movimiento_id','=',$id)
         ->get();
 
-   
-      
-
+        $totalIngresosPorTipoPago   =   obtenerTotalIngresosPorTipoPago($movimiento);
         $empresa = Empresa::first();
         $fecha = Carbon::now()->toDateString();
 
         $pdf = PDF::loadview('pos.MovimientoCaja.Reportes.movimientocaja', [
-            'movimiento' => $movimiento,
-            'empresa' => $empresa,
-            'fecha' => $fecha,
-            'usuarios'=>$usuarios,
+            'movimiento'                =>  $movimiento,
+            'empresa'                   =>  $empresa,
+            'fecha'                     =>  $fecha,
+            'usuarios'                  =>  $usuarios,
+            'totalIngresosPorTipoPago'  =>  $totalIngresosPorTipoPago
         ])
             ->setPaper('a4')
             ->setWarnings(false);
