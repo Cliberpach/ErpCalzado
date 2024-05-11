@@ -394,14 +394,25 @@ class CajaController extends Controller
     {
         $movimiento = MovimientoCaja::findOrFail($request->id);
         $colaborador = $movimiento->colaborador;
+        // $ingresos =
+        //     cuadreMovimientoCajaIngresosVentaResum($movimiento, 1) -
+        //     cuadreMovimientoDevolucionesResum($movimiento, 1) +
+        //     cuadreMovimientoCajaIngresosCobranzaResum($movimiento, 1);
+       
+        // $egresos =
+        //     cuadreMovimientoCajaEgresosEgresoResum($movimiento, 1) -
+        //     cuadreMovimientoDevolucionesResum($movimiento, 1) +
+        //     cuadreMovimientoCajaEgresosPagoResum($movimiento, 1);
+
         $ingresos =
-            cuadreMovimientoCajaIngresosVentaResum($movimiento, 1) -
-            cuadreMovimientoDevolucionesResum($movimiento, 1) +
-            cuadreMovimientoCajaIngresosCobranzaResum($movimiento, 1);
+        cuadreMovimientoCajaIngresosVentaResum($movimiento)+
+        cuadreMovimientoCajaIngresosCobranzaResum($movimiento);
+
         $egresos =
-            cuadreMovimientoCajaEgresosEgresoResum($movimiento, 1) -
-            cuadreMovimientoDevolucionesResum($movimiento, 1) +
-            cuadreMovimientoCajaEgresosPagoResum($movimiento, 1);
+            cuadreMovimientoCajaEgresosEgresoResum($movimiento)+
+            cuadreMovimientoCajaEgresosPagoResum($movimiento);
+
+
         return [
             'caja' => $movimiento->caja->nombre,
             'monto_inicial' => $movimiento->monto_inicial,
@@ -475,11 +486,16 @@ class CajaController extends Controller
     public function reporteMovimiento($id)
     {
         $movimiento = MovimientoCaja::findOrFail($id);
+        
         $usuarios=DetallesMovimientoCaja::select('u.id','u.usuario','detalles_movimiento_caja.fecha_entrada','detalles_movimiento_caja.fecha_salida')
         ->join('users as u','u.id','=','detalles_movimiento_caja.usuario_id')
         ->join('user_persona as up','up.user_id','=','u.id')
         ->where('detalles_movimiento_caja.movimiento_id','=',$id)
         ->get();
+
+   
+      
+
         $empresa = Empresa::first();
         $fecha = Carbon::now()->toDateString();
 
@@ -496,9 +512,11 @@ class CajaController extends Controller
     private function ObtenerTotales($id)
     {
         $movimiento = MovimientoCaja::findOrFail($id);
+        // $TotalVentaDelDia =
+        //     (float) cuadreMovimientoCajaIngresosVenta($movimiento) -
+        //     (float) cuadreMovimientoDevoluciones($movimiento);
         $TotalVentaDelDia =
-            (float) cuadreMovimientoCajaIngresosVenta($movimiento) -
-            (float) cuadreMovimientoDevoluciones($movimiento);
+            (float) cuadreMovimientoCajaIngresosVenta($movimiento);
         return [
             'TotalVentaDelDia' => $TotalVentaDelDia,
         ];

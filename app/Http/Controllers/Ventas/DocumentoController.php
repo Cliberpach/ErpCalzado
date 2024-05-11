@@ -342,16 +342,16 @@ class DocumentoController extends Controller
             $data = $request->all();
 
             $rules = [
-                'tipo_pago_id' => 'required',
-                'efectivo' => 'required',
-                'importe' => 'required',
+                'tipo_pago_id'  => 'required',
+                'efectivo'      => 'required',
+                'importe'       => 'required',
 
             ];
 
             $message = [
                 'tipo_pago_id.required' => 'El campo modo de pago es obligatorio.',
-                'importe.required' => 'El campo importe es obligatorio.',
-                'efectivo.required' => 'El campo efectivo es obligatorio.',
+                'importe.required'      => 'El campo importe es obligatorio.',
+                'efectivo.required'     => 'El campo efectivo es obligatorio.',
             ];
 
             $validator = Validator::make($data, $rules, $message);
@@ -370,11 +370,11 @@ class DocumentoController extends Controller
 
             $documento = Documento::find($request->venta_id);
 
-            $documento->tipo_pago_id = $request->get('tipo_pago_id');
-            $documento->importe = $request->get('importe');
-            $documento->efectivo = $request->get('efectivo');
-            $documento->estado_pago = 'PAGADA';
-            $documento->banco_empresa_id = $request->get('cuenta_id');
+            $documento->tipo_pago_id        = $request->get('tipo_pago_id');
+            $documento->importe             = $request->get('importe');
+            $documento->efectivo            = $request->get('efectivo');
+            $documento->estado_pago         = 'PAGADA';
+            $documento->banco_empresa_id    = $request->get('cuenta_id');
             if ($request->hasFile('imagen')) {
                 if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'))) {
                     mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'));
@@ -384,13 +384,13 @@ class DocumentoController extends Controller
             $documento->update();
 
             if ($documento->convertir) {
-                $doc_convertido = Documento::find($documento->convertir);
-                $doc_convertido->estado_pago = $documento->estado_pago;
-                $doc_convertido->importe = $documento->importe;
-                $doc_convertido->efectivo = $documento->efectivo;
-                $doc_convertido->tipo_pago_id = $documento->tipo_pago_id;
-                $doc_convertido->banco_empresa_id = $documento->banco_empresa_id;
-                $doc_convertido->ruta_pago = $documento->ruta_pago;
+                $doc_convertido                     = Documento::find($documento->convertir);
+                $doc_convertido->estado_pago        = $documento->estado_pago;
+                $doc_convertido->importe            = $documento->importe;
+                $doc_convertido->efectivo           = $documento->efectivo;
+                $doc_convertido->tipo_pago_id       = $documento->tipo_pago_id;
+                $doc_convertido->banco_empresa_id   = $documento->banco_empresa_id;
+                $doc_convertido->ruta_pago          = $documento->ruta_pago;
                 $doc_convertido->update();
             }
 
@@ -1767,7 +1767,7 @@ class DocumentoController extends Controller
                 $envio_venta->fecha_envio_propuesta =   null;
                 $envio_venta->origen_venta          =   "WHATSAPP";
                 $envio_venta->observaciones         =   null;
-                $envio_venta->estado                =   'DESPACHADO';
+                $envio_venta->estado                =   'PENDIENTE';
                 $envio_venta->save();
             }
          
@@ -1790,8 +1790,8 @@ class DocumentoController extends Controller
 
             $detalle                = new DetalleMovimientoVentaCaja();
             $detalle->cdocumento_id = $documento->id;
-            $detalle->mcaja_id      = movimientoUser()->id;
-            
+            $detalle->mcaja_id      = movimientoUser()->movimiento_id;
+            //$detalle->mcaja_id      = movimientoUser()->id;
             $detalle->save();
 
             ////$envio_prev =   $this->ObtenerCorrelativoVentas($documento);

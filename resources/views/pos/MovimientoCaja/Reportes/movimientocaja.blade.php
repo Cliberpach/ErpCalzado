@@ -372,10 +372,11 @@
                                 @endif
                             </td>
                             <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $ventas->documento->total }}
+                                {{ $ventas->documento->total_pagar }}
                             </td>
                             @foreach (tipos_pago() as $tipo)
-                                @if ($tipo->id == 1)
+                            {{-- EFECTIVO --}}
+                                @if ($tipo->id == 1)        
                                     @if ($tipo->id == $ventas->documento->tipo_pago_id)
                                         <td style="text-align: center; border-right: 2px solid #52BE80">
                                             {{ $ventas->documento->importe }}</td>';
