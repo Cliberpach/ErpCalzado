@@ -168,7 +168,7 @@
                         title: 'Pedidos'
                     }
                 ],
-                dom: '<"buttons-container"B><"search-length-container"lf>t',
+                dom: '<"buttons-container"B><"search-length-container"lf>tp',
                 bProcessing: true,
                 data:data,
                 columns: [
@@ -436,7 +436,7 @@
                         title: 'DETALLES DEL PEDIDO'
                     },
                 ], 
-            dom: '<"buttons-container"B><"search-length-container"lf>t',
+            dom: '<"buttons-container"B><"search-length-container"lf>tp',
             bProcessing: true,
             language: {
                     processing:     "Procesando datos...",
@@ -505,7 +505,7 @@
                         title: 'ATENCIONES DEL PEDIDO'
                     },
                 ], 
-            dom: '<"buttons-container"B><"search-length-container"lf>t',
+            dom: '<"buttons-container"B><"search-length-container"lf>tp',
             bProcessing: true,
             language: {
                     processing:     "Procesando datos...",

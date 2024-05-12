@@ -62,14 +62,16 @@
     <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
     <style>
         .search-length-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.buttons-container{
-    display: flex;
-    justify-content:end;
-}
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .buttons-container{
+            display: flex;
+            justify-content:end;
+        }
+       
+     
     </style>
 @endpush
 

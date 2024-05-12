@@ -1307,7 +1307,7 @@ if (!function_exists('movimientoUser')) {
             */
 
             return DB::select('select dmc.movimiento_id from detalles_movimiento_caja as dmc
-            where dmc.usuario_id=? and dmc.fecha_salida is null',[Auth::user()->id])[0];
+            where dmc.usuario_id=? and dmc.fecha_salida is null',[Auth::user()->id]);
 
 
             // if (FullAccess() || PuntoVenta()) {

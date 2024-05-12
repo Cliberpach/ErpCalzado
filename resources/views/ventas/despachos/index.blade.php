@@ -44,6 +44,7 @@
                                     <tr>
                                         <th class="text-center">DOC</th>
                                         <th class="text-center">CLIENTE</th>
+                                        <th class="text-center">CLIENTE CELULAR</th>
                                         <th class="text-center">FEC PROPUESTA</th>
                                         <th class="text-center">FEC ENVIO</th>
                                         <th class="text-center">FEC REGISTRO</th>
@@ -171,6 +172,10 @@
                     },
                     {
                         data: 'cliente_nombre',
+                        className: "text-left letrapequeña"
+                    },
+                    {
+                        data: 'cliente_celular',
                         className: "text-left letrapequeña"
                     },
                     {

@@ -185,6 +185,8 @@ function(){
         Route::get('/destroy/{id}', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@destroy')->name('mantenimiento.metodo_entrega.destroy');
         Route::get('/get-sedes/{agencia_id}', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@getSedes')->name('mantenimiento.metodo_entrega.getSedes');
         Route::post('/create-sede', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@createSede')->name('mantenimiento.metodo_entrega.createSede');
+        Route::post('/update-sede', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@updateSede')->name('mantenimiento.metodo_entrega.updateSede');
+        Route::post('/delete-sede', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@deleteSede')->name('mantenimiento.metodo_entrega.deleteSede');
 
        
     });

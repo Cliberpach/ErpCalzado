@@ -1788,11 +1788,30 @@ class DocumentoController extends Controller
             //     $documento->update();
             // }
 
-            $detalle                = new DetalleMovimientoVentaCaja();
-            $detalle->cdocumento_id = $documento->id;
-            $detalle->mcaja_id      = movimientoUser()->movimiento_id;
+
+            //========== VERIFICANDO SI EL USUARIO ESTÁ PARTICIPANDO DE ALGUNA CAJA ACTUALMENTE ==========
+            $caja_usuario           =   movimientoUser();
+            
+
+            if(count($caja_usuario) == 1){
+                $detalle                = new DetalleMovimientoVentaCaja();
+                $detalle->cdocumento_id = $documento->id;
+                $detalle->mcaja_id      = movimientoUser()[0]->movimiento_id;
+                $detalle->save();
+            }
+            
+            if(count($caja_usuario) == 0 ){
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'mensaje' => "USTED NO SE ENCUENTRA PARTICIPANDO EN NINGUNA CAJA ACTUALMENTE",
+                ]);
+            }
+
+         
+         
             //$detalle->mcaja_id      = movimientoUser()->id;
-            $detalle->save();
+           
 
             ////$envio_prev =   $this->ObtenerCorrelativoVentas($documento);
             //$envio_prev =   self::sunat($documento->id);

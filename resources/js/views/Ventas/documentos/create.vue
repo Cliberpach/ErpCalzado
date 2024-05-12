@@ -488,7 +488,7 @@ export default {
                         } else {
                             document.querySelector('#btn_grabar').disabled=false;
                             this.loading = false;
-                            toastr.error('Error al crear documento de venta', 'Error');
+                            toastr.error(data.mensaje, 'Error al crear doc de venta',{time:0});
                         }
                      }
                 }

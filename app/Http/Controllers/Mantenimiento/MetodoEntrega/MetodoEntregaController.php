@@ -182,7 +182,7 @@ class MetodoEntregaController extends Controller
     public function getSedes($agencia_id){
         try {
             $sedes  = DB::select('select * from empresa_envio_sedes as ees
-                        where ees.empresa_envio_id=?',[$agencia_id]);
+                        where ees.empresa_envio_id=? and ees.estado="ACTIVO"',[$agencia_id]);
 
             return response()->json(['success'=>true,'sedes'=>$sedes]);
         } catch (\Throwable $th) {
@@ -264,4 +264,104 @@ class MetodoEntregaController extends Controller
             return response()->json(['success'=>false,'message'=>'ERROR EN EL SERVIDOR','exception'=>$th->getMessage()]);
         }
     }
+
+    public function updateSede(Request $request){
+        $this->authorize('haveaccess','metodo_entrega.index');
+        $data = $request->all();
+       
+        $rules = [
+            'agencia'           => 'required',
+            'sede'              =>  'required',
+            'direccion'         => 'required',
+            'departamento'      => 'required',
+            'provincia'         => 'required',
+            'distrito'          => 'required',
+        ];
+
+        $messages = [
+            'agencia.required'      => 'El campo agencia es obligatorio.',
+            'sede.required'         => 'La sede es requerida',
+            'direccion.required'    => 'El campo dirección es obligatorio.',
+            'departamento.required' => 'El campo departamento es obligatorio.',
+            'provincia.required'    => 'El campo provincia es obligatorio.',
+            'distrito.required'     => 'El campo distrito es obligatorio.',
+        ];
+        
+        Validator::make($data, $rules, $messages)->validate();
+
+        //======== CREANDO LA SEDE ======
+        DB::beginTransaction();
+        try {
+            if (strlen($request->get('departamento')) === 1) {
+                $departamento_id = '0' . $request->get('departamento');
+            }else{
+                $departamento_id    =   $request->get('departamento');   
+            }
+    
+            if (strlen($request->get('provincia')) === 3) {
+                $provincia_id       = '0' . $request->get('provincia');
+            }else{
+                $provincia_id       =   $request->get('provincia');   
+            }
+    
+            if (strlen($request->get('distrito')) === 5) {
+                $distrito_id       = '0' . $request->get('distrito');
+            }else{
+                $distrito_id       =   $request->get('distrito');   
+            }
+
+            $departamento   =   DB::select ('select d.nombre from departamentos as d
+            where d.id=?',[$departamento_id]);
+
+            $provincia      =   DB::select ('select p.nombre from provincias as p
+            where p.id=?',[$provincia_id]);
+
+            $distrito       =   DB::select ('select d.nombre from distritos as d
+            where d.id=?',[$distrito_id]);
+
+            $sede_empresa_envio                 =   EmpresaEnvioSede::find($request->get('sede'));
+            $sede_empresa_envio->direccion      =   $request->get('direccion');
+            $sede_empresa_envio->departamento   =   $departamento[0]->nombre;
+            $sede_empresa_envio->provincia      =   $provincia[0]->nombre;
+            $sede_empresa_envio->distrito       =   $distrito[0]->nombre;
+            $sede_empresa_envio->update();
+          
+            DB::commit();
+
+            $sede_actualizada   =   EmpresaEnvioSede::find($request->get('sede'));
+            $message            =   'SE ACTUALIZÓ LA SEDE';
+
+            return response()->json(['success'=>true,'message'=>$message,'sede_actualizada' =>  $sede_empresa_envio]);
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['success'=>false,'message'=>'ERROR EN EL SERVIDOR','exception'=>$th->getMessage()]);
+        }
+    }
+
+    public function deleteSede(Request $request){
+        $this->authorize('haveaccess','metodo_entrega.index');
+        $data = $request->all();
+       
+        //======== CREANDO LA SEDE ======
+        DB::beginTransaction();
+        try {
+            $sede_empresa_envio                 =   EmpresaEnvioSede::find($request->get('sede_id'));
+            $sede_empresa_envio->estado         =   'ANULADO';
+            $sede_empresa_envio->update();
+          
+            DB::commit();
+
+            $sede_actualizada   =   EmpresaEnvioSede::find($request->get('sede'));
+            $message            =   'SE ELIMINÓ LA SEDE: '.$sede_empresa_envio->direccion.' - '.$sede_empresa_envio->departamento
+            .' - '.$sede_empresa_envio->provincia.' - '.$sede_empresa_envio->distrito;
+
+            return response()->json(['success'=>true,'message'=>$message,'sede_id'=>$sede_empresa_envio->id]);
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['success'=>false,'message'=>'ERROR EN EL SERVIDOR','exception'=>$th->getMessage()]);
+        }
+    }
+
 }

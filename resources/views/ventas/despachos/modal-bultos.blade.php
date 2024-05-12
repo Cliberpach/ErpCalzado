@@ -76,7 +76,7 @@
         const urlFinal = url.replace(':documento_id', documento_id).replace(':despacho_id', despacho_id)
         .replace(':nro_bultos', nro_bultos);
 
-        window.location.href = urlFinal;
+        window.open(urlFinal, '_blank');
         document.querySelector('#nro_bultos').value  =   '';
     }
 </script>     

@@ -20,10 +20,10 @@ class DespachoController extends Controller
 
     public function getTable()
     {
-        $envios_ventas  = EnvioVenta::select('id','documento_nro', 'cliente_nombre','fecha_envio_propuesta','fecha_envio','created_at','tipo_envio',
-                            'empresa_envio_nombre','sede_envio_nombre','departamento','provincia','distrito',
-                            'destinatario_nombre','destinatario_dni','tipo_pago_envio','monto_envio','entrega_domicilio',
-                            'direccion_entrega','estado','documento_id') 
+        $envios_ventas  = EnvioVenta::select('id','documento_nro', 'cliente_nombre','cliente_celular','fecha_envio_propuesta','fecha_envio',
+                            'created_at','tipo_envio','empresa_envio_nombre','sede_envio_nombre','departamento','provincia',
+                            'distrito','destinatario_nombre','destinatario_dni','tipo_pago_envio','monto_envio',
+                            'entrega_domicilio','direccion_entrega','estado','documento_id') 
                         ->orderBy('id', 'desc') 
                         ->get();
 
@@ -33,6 +33,7 @@ class DespachoController extends Controller
                 'id'                    =>  $envio_venta->id,
                 'documento_nro'         =>  $envio_venta->documento_nro,
                 'cliente_nombre'        =>  $envio_venta->cliente_nombre,
+                'cliente_celular'       =>  $envio_venta->cliente_celular,
                 'fecha_envio_propuesta' =>  $envio_venta->fecha_envio_propuesta,
                 'fecha_envio'           =>  $envio_venta->fecha_envio?$envio_venta->fecha_envio:"-",
                 'fecha_registro'        =>  Carbon::parse($envio_venta->created_at)->format('Y-m-d H:i:s'),
@@ -72,7 +73,7 @@ class DespachoController extends Controller
         
         $despacho = DB::select('SELECT ev.distrito, ev.destinatario_nombre, ev.documento_nro,ev.cliente_nombre,
                         ev.destinatario_dni, ev.cliente_celular, ev.entrega_domicilio, ev.direccion_entrega,
-                        ev.created_at
+                        ev.created_at,ev.empresa_envio_nombre,ev.tipo_pago_envio
                         FROM envios_ventas AS ev
                         WHERE ev.id=? AND ev.documento_id=?', [$despacho_id, $documento_id]);
         

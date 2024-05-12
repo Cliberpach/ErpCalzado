@@ -63,7 +63,7 @@
 
     
         .cuadro-content {
-            width: 90%;
+            width: 98%;
             vertical-align: middle;
             display: inline-block;
         }
@@ -85,8 +85,10 @@
             font-family: "Cedarville Cursive", cursive;
             margin:0;
             padding:0;
-           
+        }
 
+        .empresa-envio{
+            font-size: 29px;
         }
         
 
@@ -116,18 +118,25 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row" style="width:100%;">
+            <div class="cuadro-content" style="border:1px black solid;">
+                <p class="nombre_destinatario" >{{$despacho->destinatario_nombre}}</p>
+                <p class="doc_destinatario">{{$despacho->destinatario_dni}}  
+                    {{$despacho->cliente_celular? ' - '.$despacho->cliente_celular:''}}</p> 
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:-50px;">
             <div>
                 <p class="destino-text" style="vertical-align: middle;">{{$despacho->distrito}}</p>
             </div>
         </div>
 
-        <div class="row" style="width:100%;">
-            <div class="cuadro-content" style="border:1px black solid;margin-bottom:1px;">
-                <p class="nombre_destinatario" >{{$despacho->destinatario_nombre}}</p>
-                <p class="doc_destinatario">{{$despacho->destinatario_dni}}</p> 
-            </div>
+        <div class="row" style="margin-top:-15px;">
+            <p style="margin:0;padding:0;" class="empresa-envio">{{$despacho->empresa_envio_nombre.' - '.$despacho->tipo_pago_envio}}</p>
         </div>
+
+      
 
         <div class="row">
             <p class="redes-text">Nuestras Redes Sociales</p>
