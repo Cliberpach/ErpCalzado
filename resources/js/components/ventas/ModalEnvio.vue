@@ -56,12 +56,12 @@
                                 <hr>
                                 <div class="row">
                                     <div class="col-4">
-                                        <label for="" style="font-weight: bold;">TIPO DE ENVÍO</label>
+                                        <label class="required" for="" style="font-weight: bold;">TIPO DE ENVÍO</label>
                                         <v-select v-model="tipo_envio" :options="tipos_envios" :reduce="te=>te"
                                             required :clearable="false" label="descripcion" ></v-select>
                                     </div>
                                     <div class="col-4">
-                                        <label for="" style="font-weight: bold;">TIPO PAGO</label>
+                                        <label class="required" for="" style="font-weight: bold;">TIPO PAGO</label>
                                         <v-select v-model="tipo_pago_envio" :options="tipos_pago_envio" :reduce="tp=>tp"
                                             required :clearable="false" label="descripcion" ></v-select>
                                     </div>
@@ -92,7 +92,7 @@
                                         </div>
                                     </div>
                                     <div class="col-7">
-                                        <label :class="{ 'required': entrega_domicilio }" for="">DIRECCION DE ENTREGA</label>
+                                        <label :class="{ 'required': entrega_domicilio }" for="" style="font-weight: bold;">DIRECCION DE ENTREGA</label>
                                         <input :readonly="!entrega_domicilio" :required="entrega_domicilio" type="text" class="form-control" 
                                         v-model="direccion_entrega">
                                     </div>
@@ -170,6 +170,8 @@ export default {
     props: ['cliente'],
     data() {
         return {
+            despacho:null,
+            mode:'create',
             loading: false,
             direccion_entrega:"",
             entrega_domicilio:false,
@@ -281,7 +283,6 @@ export default {
             }
         },
         cliente(value){
-            console.log(value)
             if(value.tipo_documento === "DNI"){
                 if(value.documento === "99999999"){
                     this.destinatario.dni       =   "";
@@ -297,7 +298,6 @@ export default {
             } 
         },
         empresa_envio(value){
-            console.log('empresa envio seleccionada');
             //====== LIMPIAR LAS SEDES ======
             this.sede_envio =   {
                 id:0,
@@ -323,6 +323,7 @@ export default {
                         direccion:value.empresa
                     }
                 }
+
                 const ubigeo    =  JSON.stringify([this.departamento,this.provincia,this.distrito]);
                 this.getSedesEnvio(value.id,ubigeo);
             } 
@@ -330,8 +331,8 @@ export default {
         tipo_envio(value){
             //=======  LIMPIAR EMPRESA ENVIO ===
             this.empresa_envio  =   {
-                    id:0,
-                    empresa:"SELECCIONAR"
+                     id:0,
+                     empresa:"SELECCIONAR"
             };
 
             //==== LIMPIAR SEDE ENVIO =====
@@ -391,25 +392,39 @@ export default {
             };
         },
         Provincias(value) {
-            if (!this.dataDNI.buscado && this.loadingProvincias) {
-                this.provincia = value.length > 0 ? value[0] : null;
-            }
-            if (!this.dataRUC.buscado && this.loadingProvincias) {
-                this.provincia = value.length > 0 ? value[0] : null;
-            }
+            if(this.despacho){
+               
+               const provincia_filter   =   value.filter((d)=>{
+                        return d.text === this.despacho.provincia;
+               })
+
+               this.provincia =   provincia_filter[0];
+ 
+           }else{
+               this.provincia = value.length > 0 ? value[0] : null;
+           }
+       
         },
         Distritos(value) {
-            if (!this.dataDNI.buscado && this.loadingDistritos) {
+            //====== EN MODO EDICIÓN, COLOCAR EL DISTRITO DEL DESPACHO ======
+            if(this.despacho){
+               
+                const distrito_filter   =   value.filter((d)=>{
+                         return d.text === this.despacho.distrito;
+                })
+
+                this.distrito   =   distrito_filter[0];
+                //======= UBIGEO COMPLETADO =====
+                console.log('UBIGEO COMPLETADO');
+                this.$emit('ubigeoCompletado'); 
+  
+            }else{
                 this.distrito = value.length > 0 ? value[0] : null;
             }
-            if (!this.dataRUC.buscado && this.loadingDistritos) {
-                this.distrito = value.length > 0 ? value[0] : null;
-            }
+
         },
         departamento(value) {
             if(value){
-                console.log(`DEPARTAMENTO: `);
-                console.log(value);
                 //=======  LIMPIAR EMPRESA ENVIO ===
                 this.empresa_envio  =   {
                     id:0,
@@ -427,9 +442,7 @@ export default {
         },
         provincia(value) {
             if(value){
-                console.log(`PROVINCIA: `);
-                console.log(value);
-
+              
                 //=======  LIMPIAR EMPRESA ENVIO ===
                 this.empresa_envio  =   {
                     id:0,
@@ -437,21 +450,19 @@ export default {
                 };
 
                 //======= LIMPIANDO SEDES =====
-                this.sedes_envio    =   [];
+                //this.sedes_envio    =   [];
                 this.sede_envio     =   {
                                             id:0,
                                             empresa_envio_id:0,
                                             direccion:"SELECCIONAR"
                                         };
-
                 this.$nextTick(this.getDistritos);
             }
         },
         distrito(value) {
-            console.log(`DISTRITO: `);
-            console.log(value);
+            
             //=======  LIMPIAR EMPRESA ENVIO ===
-             this.empresa_envio  =   {
+            this.empresa_envio  =   {
                 id:0,
                 empresa:"SELECCIONAR"
             };
@@ -565,9 +576,127 @@ export default {
         this.loading    =   false;
     },
     methods: {
+        async metodoHijo(despacho,documento_id){
+
+            this.formEnvio.documento_id     =   documento_id;
+
+            if(despacho.length == 0){
+                toastr.warning('PODRÁ CREAR DATOS DE DESPACHO','EL DOCUMENTO NO TIENE DATOS DE DESPACHO');
+                return;
+            }
+
+            this.mode           =   'edit';
+            this.departamento   =   {};
+            console.log('----');
+            this.despacho       =   despacho[0];
+            
+            if(despacho.length == 1){                
+                //======== COLOCAR DATA EN EL MODAL ========
+                const departamento  =   despacho[0].departamento;
+                
+                const departamento_filter   =   this.Departamentos.filter((d)=>{
+                    return d.nombre === departamento;
+                });
+
+                if(departamento_filter.length === 1){
+                    console.log('COLOCANDO UBIGEO');
+                  this.departamento   =   departamento_filter[0];
+                }
+
+
+                //=========== ESPERAR A QUE EL UBIGEO SE COLOQUE COMPLETAMENTE ==========
+                await Promise.all([
+                    new Promise((resolve) => {
+                        this.$once('ubigeoCompletado', resolve);
+                    })
+                ]);
+                
+                console.log('COLOCANDO TIPO PAGO ENVÍO');
+
+                //======= COLOCAR TIPO PAGO ENVIO =======
+                const tipo_pago_envio_filter =   this.tipos_pago_envio.filter((te)=>{
+                    return te.descripcion === despacho[0].tipo_pago_envio;
+                })
+                if(tipo_pago_envio_filter.length === 1){
+                    this.tipo_pago_envio =   tipo_pago_envio_filter[0];
+                }
+
+               
+                console.log('COLOCANDO TIPO ENVÍO Y CARGANDO EMPRESAS ENVÍO')
+                //======== COLOCAR TIPO DE ENVIO =======
+                this.tipo_envio         =   {};
+                const tipo_envio_filter =   this.tipos_envios.filter((te)=>{
+                       return te.descripcion === despacho[0].tipo_envio;
+                })
+                if(tipo_envio_filter.length === 1){
+                    this.tipo_envio =   tipo_envio_filter[0];
+                }
+
+                await Promise.all([
+                    new Promise((resolve) => {
+                        this.$once('tipoEnvioColocadoEmpresasEnvioCargadas', resolve);
+                    })
+                ]);
+
+                //============ COLOCANDO EMPRESA ENVÍO ========
+                console.log('COLOCANDO EMPRESA ENVÍO Y CARGANDO SEDES ENVÍO');
+                const empresa_envio_filter =   this.empresas_envio.filter((ee)=>{
+                    return ee.empresa === this.despacho.empresa_envio_nombre;
+                })
+
+                if(empresa_envio_filter.length === 1){
+                    this.empresa_envio      =   empresa_envio_filter[0];
+                }
+
+                await Promise.all([
+                    new Promise((resolve) => {
+                        this.$once('empresasColocadasSedesCargadas', resolve);
+                    })
+                ]);
+
+                console.log('COLOCANDO SEDE ENVÍO')
+                //========= COLOCANDO SEDE ENVÍO ========
+                const sede_envio_filter =   this.sedes_envio.filter((se)=>{
+                    return se.direccion === this.despacho.sede_envio_nombre;
+                })
+
+                if(sede_envio_filter.length === 1){
+                    this.sede_envio      =   sede_envio_filter[0];
+                }
+                console.log('SEDE ENVÍO COLOCADA');
+
+                //========== COLOCANDO ENTREGA DOMICILIO ========
+                if(this.despacho.entrega_domicilio === "SI"){
+                    this.entrega_domicilio  =   true;
+                    this.direccion_entrega  =   this.despacho.direccion_entrega;   
+                }
+
+                if(this.despacho.entrega_domicilio === "NO"){
+                    this.entrega_domicilio  =   false;
+                    this.direccion_entrega  =   '';   
+                }
+
+                //========= COLOCANDO ORIGEN VENTA =========
+                this.origen_venta   =   {descripcion:this.despacho.origen_venta};
+
+                //========= COLOCANDO FECHA ENVÍO PROPUESTA =======
+                this.fecha_envio    =   '';
+                this.fecha_envio    =   this.despacho.fecha_envio_propuesta;
+
+                //====== COLOCANDO OBSERVACIONES =======
+                this.observaciones  =   '';
+                this.observaciones  =   this.despacho.observaciones;
+
+                //======= COLOCANDO DNI Y NOMBRES DEL DESTINATARIO =====
+                this.destinatario   =   {dni:this.despacho.destinatario_dni,nombres:this.despacho.destinatario_nombre};
+
+                this.despacho   =   null;
+               
+
+            }
+        },
         borrarEnvio(){
             this.formEnvio      =   {};
-            console.log(this.formEnvio);
             this.destinatario   =   {
                                         dni:"",
                                         nombres:""
@@ -632,8 +761,17 @@ export default {
 
           console.log('FORMULARIO ENVIO');
           console.log(this.formEnvio);
-          this.$emit('addDataEnvio',JSON.stringify(this.formEnvio));
-          toastr.success('DATOS DE ENVÍO GUARDADOS','OPERACIÓN COMPLETADA');
+
+          if(this.mode == "create"){
+            this.$emit('addDataEnvio',JSON.stringify(this.formEnvio));
+            toastr.success('DATOS DE ENVÍO GUARDADOS','OPERACIÓN COMPLETADA');
+          }
+
+          if(this.mode == "edit"){  
+            this.$emit('updateDataEnvio',JSON.stringify(this.formEnvio));
+            toastr.success('DATOS DE ENVÍO ACTUALIZADOS','OPERACIÓN COMPLETADA');
+          }
+         
           $("#modal_envio").modal("hide");
         },
         async getTipoCliente() {
@@ -663,6 +801,9 @@ export default {
                 this.Provincias = provincias;
                 this.loadingProvincias = true;
                 this.loading    =   false;
+                if(this.despacho){
+                    this.provincia.text =   this.despacho.provincia;
+                }
             } catch (ex) {
 
             }
@@ -774,7 +915,9 @@ export default {
                 
                 if(data.success){
                     this.empresas_envio  = data.empresas_envio;
-                    console.log(data);
+                    console.log('TIPO ENVÍO COLOCADO Y EMPRESAS ENVÍO CARGADAS')
+                    this.$emit('tipoEnvioColocadoEmpresasEnvioCargadas'); 
+                    
                 }else
                 {
                     toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER EMPRESAS DE ENVÍO');
@@ -790,9 +933,11 @@ export default {
                 this.loading        =   true;
                 const { data }      = await this.axios.get(route("consulta.ajax.getSedesEnvio",{empresa_envio_id,ubigeo}));
                 
-                if(data.success){
+                if(data.success){   
                     this.sedes_envio  = data.sedes_envio;
-                    console.log(data);
+                    console.log(data.sedes_envio);
+                    console.log('EMPRESA ENVIO COLOCADA Y SEDES ENVIO CARGADAS');
+                    this.$emit('empresasColocadasSedesCargadas');
                 }else
                 {
                     toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER SEDES DE ENVÍO');
@@ -810,7 +955,6 @@ export default {
                 
                 if(data.success){
                     this.origenes_ventas    =   data.origenes_ventas;
-                    console.log(data);
 
                     //======= COLOCANDO POR DEFECTO WATHSAPP ====
                     if(data.origenes_ventas.length > 0){
@@ -846,7 +990,6 @@ export default {
                 
                 if(data.success){
                     this.tipos_pago_envio    =   data.tipos_pago_envio;
-                    console.log(data);
 
                     //========= COLOCANDO PRIMERA OPCIÓN POR DEFECTO ======
                     if(data.tipos_pago_envio.length > 0){

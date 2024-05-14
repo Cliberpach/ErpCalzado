@@ -515,7 +515,8 @@ function(){
         Route::get('/pdfBultos/{documento_id}/{despacho_id}/{nro_bultos}', 'Ventas\DespachoController@pdfBultos')->name('ventas.despachos.pdfBultos');
         Route::post('/setEmbalaje', 'Ventas\DespachoController@setEmbalaje')->name('ventas.despachos.setEmbalaje');
         Route::post('/setDespacho', 'Ventas\DespachoController@setDespacho')->name('ventas.despachos.setDespacho');
-
+        Route::get('get-despacho/{documento_id}','Ventas\DespachoController@getDespacho')->name('ventas.despachos.getDespacho');
+        Route::post('/updateDespacho', 'Ventas\DespachoController@updateDespacho')->name('ventas.despachos.updateDespacho');
 
         // Route::get('/registrar', 'Ventas\ClienteController@create')->name('ventas.cliente.create');
         // Route::post('/registrar', 'Ventas\ClienteController@store')->name('ventas.cliente.store');

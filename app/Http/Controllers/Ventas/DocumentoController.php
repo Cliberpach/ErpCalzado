@@ -1450,6 +1450,7 @@ class DocumentoController extends Controller
                 ]);
             }
 
+
       
             $documento = new Documento();
             $documento->fecha_documento = $request->get('fecha_documento_campo');
@@ -1527,16 +1528,32 @@ class DocumentoController extends Controller
             $documento->cotizacion_venta = $request->get('cotizacion_id'); //correcto
 
             $documento->save();
+
+            //========== VERIFICANDO SI EL USUARIO ESTÁ PARTICIPANDO DE ALGUNA CAJA ACTUALMENTE ==========
+            $caja_usuario           =   movimientoUser();
+            
+            if(count($caja_usuario) == 1){
+                $detalle                = new DetalleMovimientoVentaCaja();
+                $detalle->cdocumento_id = $documento->id;
+                $detalle->mcaja_id      = movimientoUser()[0]->movimiento_id;
+                $detalle->save();
+            }
+              
+            if(count($caja_usuario) == 0 ){
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'mensaje' => "USTED NO SE ENCUENTRA PARTICIPANDO EN NINGUNA CAJA ACTUALMENTE",
+                ]);
+            }
             
 
-            
-            //NUMERO DE DOC DE VENTA
+            //=========== NUMERO DOC VENTA =======
             $numero_doc = $documento->id;
             $documento->numero_doc = 'VENTA-' . $numero_doc;
             $documento->update();
 
             
-
             //===== OBTENIENDO CORRELATIVO Y SERIE =====
             $envio_prev =   self::sunat($documento->id);
             
@@ -1747,9 +1764,9 @@ class DocumentoController extends Controller
               
                 $envio_venta                        =   new EnvioVenta();
                 $envio_venta->documento_id          =   $documento->id;
-                $envio_venta->departamento          =   $documento->clienteEntidad->getDepartamento();
-                $envio_venta->provincia             =   $documento->clienteEntidad->getProvincia();
-                $envio_venta->distrito              =   $documento->clienteEntidad->getDistrito();
+                $envio_venta->departamento          =   "LA LIBERTAD";
+                $envio_venta->provincia             =   "TRUJILLO";
+                $envio_venta->distrito              =   "TRUJILLO";
                 $envio_venta->empresa_envio_id      =   $empresa_envio->id;
                 $envio_venta->empresa_envio_nombre  =   $empresa_envio->empresa;
                 $envio_venta->sede_envio_id         =   $sede_envio->id;
@@ -1789,27 +1806,6 @@ class DocumentoController extends Controller
             // }
 
 
-            //========== VERIFICANDO SI EL USUARIO ESTÁ PARTICIPANDO DE ALGUNA CAJA ACTUALMENTE ==========
-            $caja_usuario           =   movimientoUser();
-            
-
-            if(count($caja_usuario) == 1){
-                $detalle                = new DetalleMovimientoVentaCaja();
-                $detalle->cdocumento_id = $documento->id;
-                $detalle->mcaja_id      = movimientoUser()[0]->movimiento_id;
-                $detalle->save();
-            }
-            
-            if(count($caja_usuario) == 0 ){
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'mensaje' => "USTED NO SE ENCUENTRA PARTICIPANDO EN NINGUNA CAJA ACTUALMENTE",
-                ]);
-            }
-
-         
-         
             //$detalle->mcaja_id      = movimientoUser()->id;
            
 

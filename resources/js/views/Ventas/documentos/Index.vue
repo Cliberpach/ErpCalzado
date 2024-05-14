@@ -257,6 +257,10 @@
                                                                 
                                                                 </template>
 
+                                                                <span class="input-group-text btn btn-light" id="basic-addon1" @click.prevent="setDataEnvio(item.id)">
+                                                                    <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>                                                    
+                                                                </span>
+
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -339,17 +343,21 @@
         </div>
         <ModalVentasVue :ventasPendientes="ventasPendientes" :imgDefault="imginicial" :modoPagos="modopagos" />
         <ModalPdfDownloadVue :pdfData.sync="pdfData" />
+        <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" ref="modalEnvioRef"/>
     </div>
 </template>
 <script>
 import ModalPdfDownloadVue from '../../../components/ventas/ModalPdfDownload.vue';
 import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
+import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
+import { Alert } from 'bootstrap';
 export default {
     name: "VentaLista",
     props: ["imginicial"],
     components: {
         ModalVentasVue,
-        ModalPdfDownloadVue
+        ModalPdfDownloadVue,
+        ModalEnvioVue
     },
     data() {
         return {
@@ -432,6 +440,34 @@ export default {
         await this.Lista();
     },
     methods: {
+        async updateDataEnvio(data_envio){
+            try {
+                const res   =   await axios.post(route('ventas.despachos.updateDespacho'),data_envio);
+                console.log(res);
+            } catch (error) {
+                
+            }
+           
+        },
+        async setDataEnvio(documento_id) {
+            //========= TRAER LA DATA DE ENVÍO DEL DOCUMENTO ========
+            try {
+                const res   =   await axios.get(route('ventas.despachos.getDespacho',documento_id));
+                //console.log(res);
+                if(res.data.success){
+                    //======= PASAR DATA DESPACHO AL MODAL ENVÍO =========
+                    this.$refs.modalEnvioRef.metodoHijo(res.data.despacho,documento_id);
+
+                    $("#modal_envio").modal("show");
+
+                }else{
+                    toastr.error(res.data.exception,res.data.message);
+                }
+            } catch (error) {
+                
+            }
+            
+        },
         async Lista() {
             try {
                 this.loading = true;

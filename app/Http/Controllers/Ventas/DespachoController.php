@@ -136,4 +136,53 @@ class DespachoController extends Controller
 
     }
 
+
+    public function getDespacho($documento_id){
+        try {
+            $despacho   =   EnvioVenta::where('documento_id',$documento_id)->get();
+            return response()->json(['success'=>true,'despacho'=>$despacho]);   
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>"ERROR EN EL SERVIDOR",'exception'=>$th->getMessage()]);
+        }
+    }
+
+    public function updateDespacho(Request $request){
+        try {
+            DB::beginTransaction();
+            //======== OBTENER EL DOCUMENTO ID =======
+            $jsonData       = $request->getContent();
+
+            $data_envio     = json_decode($jsonData);
+
+            $documento_id                       =   $data_envio->documento_id;
+
+            //====== ACTUALIZAR DESPACHO ========
+            $envio_venta                                =   EnvioVenta::where('documento_id', $documento_id)->first();
+            $envio_venta->departamento              =   $data_envio->departamento->nombre;
+            $envio_venta->provincia                 =   $data_envio->provincia->text;
+            $envio_venta->distrito                  =   $data_envio->distrito->text;
+            $envio_venta->empresa_envio_id          =   $data_envio->empresa_envio->id;
+            $envio_venta->empresa_envio_nombre      =   $data_envio->empresa_envio->empresa;
+            $envio_venta->sede_envio_id             =   $data_envio->sede_envio->id;
+            $envio_venta->sede_envio_nombre         =   $data_envio->sede_envio->direccion;
+            $envio_venta->tipo_envio                =   $data_envio->tipo_envio->descripcion;
+            $envio_venta->destinatario_dni          =   $data_envio->destinatario->dni;
+            $envio_venta->destinatario_nombre       =   $data_envio->destinatario->nombres;
+            $envio_venta->tipo_pago_envio           =   $data_envio->tipo_pago_envio->descripcion;
+            $envio_venta->entrega_domicilio         =   $data_envio->entrega_domicilio?"SI":"NO";
+            $envio_venta->direccion_entrega         =   $data_envio->direccion_entrega;
+            $envio_venta->fecha_envio_propuesta     =   $data_envio->fecha_envio_propuesta;
+            $envio_venta->origen_venta              =   $data_envio->origen_venta->descripcion;
+            $envio_venta->observaciones             =   $data_envio->observaciones;
+            $envio_venta->update();
+            
+            DB::commit();
+          
+            return response()->json(['success'=>true,'formEnvio'=> $data_envio ]);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['success'=>false,'exception'=>$th->getMessage()]);
+
+        }
+    }
 }
