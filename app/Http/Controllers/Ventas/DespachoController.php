@@ -133,11 +133,13 @@ class DespachoController extends Controller
 
         try {
             DB::beginTransaction();
+            $fecha_actual = Carbon::now()->format('Ymd');
+
             //======= ACTUALIZANDO DESPACHO ========
             DB::table('envios_ventas')
             ->where('id', $request->get('despacho_id')) 
             ->where('documento_id', $request->get('documento_id')) 
-            ->update(['estado' => 'DESPACHADO']);
+            ->update(['estado' => 'DESPACHADO','fecha_envio' => $fecha_actual]);
 
             DB::commit();
 
