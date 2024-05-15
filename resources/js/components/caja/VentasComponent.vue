@@ -280,7 +280,7 @@
         </div>
 
         <div class="modal inmodal" id="modal_pago_show" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-lg" style="max-width: 60%;">
                 <div class="modal-content animated bounceInRight">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal">
@@ -338,8 +338,9 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6">
+
                                     <div class="form-group">
-                                        <label id="imagen_label">Imagen:</label>
+                                        <label id="imagen_label">Imagen 1:</label>
                                         <div class="custom-file">
                                             <input id="imagen_update" type="file" name="imagen" class="custom-file-input" accept="image/*" @change="changeImageShow()">
 
@@ -350,6 +351,19 @@
                                             <input type="hidden" name="ruta_pago" id="ruta_pago">
                                         </div>
                                     </div>
+                                    <div class="form-group">
+                                        <label id="imagen_label">Imagen 2:</label>
+                                        <div class="custom-file">
+                                            <input id="imagen_update_2" type="file" name="imagen_2" class="custom-file-input" accept="image/*" @change="changeImageShow2()">
+
+                                            <label for="imagen_2" id="imagen_txt_2"
+                                                class="custom-file-label selected">Seleccionar</label>
+
+                                            <div class="invalid-feedback"><b><span id="error-imagen-2"></span></b></div>
+                                            <input type="hidden" name="ruta_pago_2" id="ruta_pago_2">
+                                        </div>
+                                    </div>
+
                                     <div class="form-group row justify-content-center">
                                         <div class="col-6 align-content-center">
                                             <div class="row justify-content-end">
@@ -359,8 +373,22 @@
                                             </div>
                                             <div class="row justify-content-center">
                                                 <p>
-                                                    <img class="imagen_update" alt="IMG" >
+
+                                                    <img class="imagen_update" alt="IMG" style="width:140px;object-fit: cover;">
                                                     <input id="url_imagen" name="url_imagen" type="hidden" value="">
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 align-content-center">
+                                            <div class="row justify-content-end">
+                                                <a href="javascript:void(0);" id="limpiar_imagen_2"  @click="limpiarImagenShow2()">
+                                                    <span class="badge badge-danger">x</span>
+                                                </a>
+                                            </div>
+                                            <div class="row justify-content-center">
+                                                <p>
+                                                    <img class="imagen_update_2" alt="IMG"  height="200px" style="width:140px;border-radius:10%;object-fit: cover;">
+                                                    <input id="url_imagen_2" name="url_imagen_2" type="hidden" value="">
                                                 </p>
                                             </div>
                                         </div>
@@ -381,6 +409,9 @@
     </div>
 </template>
 <script>
+
+
+
 import Axios from "axios";
 import "datatables.net-bs4";
 import "datatables.net-buttons-bs4";
@@ -427,6 +458,8 @@ export default {
         };
     },
     mounted() {
+      
+
         let $this = this;
         for(let i = 0; i < $this.modospago.length; i++)
         {
@@ -476,12 +509,21 @@ export default {
         });
 
         $this.table.on('click','.verPago',function(){
-            let data = $this.table.row($(this).closest("tr")).data();
-           $('#modal_pago_show .pago-title').html(data.numero_doc);
-            $('#modal_pago_show #div_cuentas').addClass('d-none');
+            //========== LIMPIANDO LABEL QUE LLEVA EL NOMBRE DE LA IMG =======
+            document.querySelector('#modal_pago_show #imagen_txt').textContent   =   'Seleccionar';
+            document.querySelector('#modal_pago_show #imagen_txt_2').textContent   =   'Seleccionar';
 
+
+            //======== EXTRAYENDO DATA DE LA FILA ================
+            let data = $this.table.row($(this).closest("tr")).data();
+
+            //========== COLOCANDO INFORMACIÓN DE LA FILA EN EL MODAL ==========
+            $('#modal_pago_show .pago-title').html(data.numero_doc);
+            $('#modal_pago_show #div_cuentas').addClass('d-none');
+            //======== COLOCANDO RUTA_PAGO EN EL INPUT TYPE HIDDEN RUTA_PAGO =======
             $('#modal_pago_show #ruta_pago').val(data.ruta_pago)
-            
+            $('#modal_pago_show #ruta_pago_2').val(data.ruta_pago_2)
+
             let pago = {
                 code: data.tipo_pago_id,
                 label: data.tipo_pago
@@ -497,9 +539,9 @@ export default {
             $this.form_show.monto_venta     = data.total
             $this.form_show.venta_id        = data.id
 
-            //======== CUADRO DONDE SE VISUALIZA LA IMAGEN =======
-            let $imagenPrevisualizacion = document.querySelector("#modal_pago_show .imagen_update");
+           
 
+            //========= PARA LA IMAGEN 1 =======
             if(data.ruta_pago)
             {
                 let ruta    = data.ruta_pago;
@@ -508,18 +550,43 @@ export default {
                ruta        = '/storage'+ruta;
                
                 
-                //========= INPUT FILE =======
-                let $inputPrevisualizacion  = document.querySelector("#modal_pago_show #imagen_update");
-                $inputPrevisualizacion.src  = ruta;
-                $imagenPrevisualizacion.src = ruta;
-                
-                $('#modal_pago_show .custom-file-label').addClass("selected").html(data.serie+'-'+data.correlativo+'.jpg');
+                //======== CUADRO DONDE SE VISUALIZA LA IMAGEN =======
+                let imagenPrevisualizacion = document.querySelector("#modal_pago_show .imagen_update");
+                imagenPrevisualizacion.src = ruta;
+
+                //======== COLOCANDO NOMBRE DE LA IMG EN EL LABEL =========
+                const imgName   = ruta.split('/').pop();
+                $('#modal_pago_show #imagen_txt').addClass("selected").html(imgName);
             }
             else
             {
                 $('#modal_pago_show #imagen_update').val('');
-                $imagenPrevisualizacion = document.querySelector("#modal_pago_show .imagen_update");
-                $imagenPrevisualizacion.src = "/img/default.png";
+                let imagenPrevisualizacion = document.querySelector("#modal_pago_show .imagen_update");
+                imagenPrevisualizacion.src = "/img/default.png";
+            }
+
+            //======== PARA LA IMAGEN 2 ============
+            if(data.ruta_pago_2)
+            {
+                let ruta    = data.ruta_pago_2;
+              
+               ruta        = ruta.replace('public','');
+               ruta        = '/storage'+ruta;
+               
+                
+                //========= INPUT FILE =======
+                let inputPrevisualizacion  = document.querySelector("#modal_pago_show .imagen_update_2");
+                inputPrevisualizacion.src = ruta;
+                
+                //======== COLOCANDO NOMBRE DE LA IMG EN EL LABEL =========
+                const imgName   = ruta.split('/').pop();
+                $('#modal_pago_show #imagen_txt_2').addClass("selected").html(imgName);
+            }
+            else
+            {
+                $('#modal_pago_show #imagen_update').val('');
+                let imagenPrevisualizacion = document.querySelector("#modal_pago_show .imagen_update_2");
+                imagenPrevisualizacion.src = "/img/default.png";
             }
 
             if(data.cuenta_id)
@@ -541,6 +608,8 @@ export default {
             $('#modal_pago_show .pago-subtitle').html(data.cliente);
             $('#modal_pago_show').modal('show');
         });
+
+     
     },
     methods: {
         irHome: function() {
@@ -1179,9 +1248,18 @@ export default {
         {
             $('.imagen_update').attr("src", "/img/default.png")
             var fileName = "Seleccionar"
-            $('#modal_pago_show .custom-file-label').addClass("selected").html(fileName);
+            $('#modal_pago_show #imagen_txt').addClass("selected").html(fileName);
             $('#imagen_update').val('')
             $('#modal_pago_show #ruta_pago').val('')
+            this.form_show.image = null
+        },
+        limpiarImagenShow2: function()
+        {
+            $('.imagen_update_2').attr("src", "/img/default.png")
+            var fileName = "Seleccionar"
+            $('#modal_pago_show #imagen_txt_2').addClass("selected").html(fileName);
+            $('#imagen_update_2').val('')
+            $('#modal_pago_show #ruta_pago_2').val('')
             this.form_show.image = null
         },
         changeImageShow: function()
@@ -1203,6 +1281,27 @@ export default {
                 this.form_show.image = null
                 toastr.error('Extensión inválida, formatos admitidos (.jpg . jpeg . png)', 'Error');
                 $('.imagen_update').attr("src", "/img/default.png")
+            }
+        },
+        changeImageShow2: function()
+        {
+            var fileInput = document.getElementById('imagen_update_2');
+            var filePath = fileInput.value;
+            var allowedExtensions = /(.jpg|.jpeg|.png)$/i;
+            let $imagenPrevisualizacion = document.querySelector(".imagen_update_2");
+            if (allowedExtensions.exec(filePath)) {
+                var userFile = document.getElementById('imagen_update_2');
+                userFile.src = URL.createObjectURL(event.target.files[0]);
+                this.form_show.image = event.target.files[0]
+                console.log(this.form_show.image)
+                var data = userFile.src;
+                $imagenPrevisualizacion.src = data;
+                let fileName = $('#imagen_update_2').val().split('\\').pop();
+                $('#imagen_update_2').next('#modal_pago_show .custom-file-label').addClass("selected").html(fileName);
+            } else {
+                this.form_show.image = null
+                toastr.error('Extensión inválida, formatos admitidos (.jpg . jpeg . png)', 'Error');
+                $('.imagen_update_2').attr("src", "/img/default.png")
             }
         },
         setSelectedCuentaShow: function(value)

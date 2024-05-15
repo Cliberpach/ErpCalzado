@@ -83,7 +83,7 @@ div.content-envio.sk__loading::after {
                                 <div class="col-3 col-md-3">
                                     <div class="form-group">
                                         <label class="required" for="distrito">Distrito</label>
-                                        <select class="select2_form form-control" name="distrito" id="distrito">
+                                        <select class="select2_form form-control" name="distrito" id="distrito" onchange="setDistrito()">
                                            
                                         </select>
                                         {{-- <v-select v-model="distrito" :options="Distritos" :reduce="d=>d"
@@ -279,6 +279,13 @@ div.content-envio.sk__loading::after {
     }
 
     async function setUbicacionProvincia(prov_id,distrito_id){
+        //====== LIMPIAR SEDES =======
+        $('#sede_envio').empty();
+        $('#sede_envio').val(null).trigger('change');
+
+        //====== DESELECCIONAR EMPRESAS ENVIO ======
+        $('#empresa_envio').val(null).trigger('change');
+
         if(prov_id){
             const provincia_id      =   prov_id;
             const distritos         =   await getDistritos(provincia_id);
@@ -289,6 +296,15 @@ div.content-envio.sk__loading::after {
             $('#distrito').empty();
             $('#distrito').val(null).trigger('change');
         }
+    }
+
+    function setDistrito(){
+        //====== LIMPIAR SEDES =======
+        $('#sede_envio').empty();
+        $('#sede_envio').val(null).trigger('change');
+
+        //====== DESELECCIONAR EMPRESAS ENVIO ======
+        $('#empresa_envio').val(null).trigger('change');
     }
 
     function getZona(departamento_id){

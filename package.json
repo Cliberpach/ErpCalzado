@@ -37,6 +37,7 @@
         "jszip": "^3.7.1",
         "laravel-echo": "^1.11.3",
         "laravel-vue-pagination": "^4.0.0",
+        "lightbox2": "^2.11.4",
         "moment": "^2.29.3",
         "pdfmake": "^0.2.2",
         "pusher-js": "^7.0.3",

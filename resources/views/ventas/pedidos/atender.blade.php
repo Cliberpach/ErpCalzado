@@ -2,7 +2,7 @@
 
 @section('ventas-active', 'active')
 @section('pedidos-active', 'active')
-
+@include('ventas.documentos.modal-envio')
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
@@ -238,6 +238,8 @@
                                 <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ $pedido->monto_descuento }}">
                                 <input type="hidden" name="monto_total" id="monto_total"            value="{{$pedido->total}}">
                                 <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{$pedido->total_pagar}}">
+                                
+                                <input type="hidden" name="data_envio" id="data_envio">
 
                             </form>
                         </div>
@@ -367,10 +369,19 @@
     const data_send     =   [];
     let secureClosure   =   1;  //======= 1:DEVUELVE STOCKS_LOGICOS  2: NO DEVUELVE STOCKS_LOGICOS =======
 
-    document.addEventListener('DOMContentLoaded',()=>{
+    document.addEventListener('DOMContentLoaded',async ()=>{
         loadSelect2();
         cargarProductosPrevios();
+
+        setUbicacionDepartamento(13,'first');
+        await getTipoEnvios();
+        await getTiposPagoEnvio();
+        await getOrigenesVentas();
+        await getTipoDocumento();
+        const tipo_envio    =   $("#tipo_envio").select2('data')[0].text;
+        await getEmpresasEnvio(tipo_envio);
         events();
+        eventsModalEnvio();
     })
 
 
@@ -461,6 +472,42 @@
 
         });
 
+
+          //=========== MODAL DESPACHO =========
+          document.querySelector('.btn-envio').addEventListener('click',()=>{
+            //======= COLCANDO EN MODAL ENVIO EL NOMBRE DEL CLIENTE =======
+            const cliente_nombre            =   $("#cliente").find('option:selected').text();
+            console.log(cliente_nombre);
+            const nroDocumento              =   cliente_nombre.split(':')[1].split('-')[0].trim();
+            const cliente_nombre_recortado  =   cliente_nombre.split('-')[1].trim()
+            const tipo_documento            =   cliente_nombre.split(':')[0];
+
+            console.log(cliente_nombre);
+            console.log(cliente_nombre_recortado);
+            console.log(nroDocumento);
+
+            if(tipo_documento === "DNI" || tipo_documento === "CARNET EXT."){
+                //====== COLOCAR TEXTO DEL SPAN =====
+                document.querySelector('.span-tipo-doc-dest').textContent     =   tipo_documento;
+                //====== SELECCIONAR LA OPCIÓN RESPECTIVA EN SELECT TIPO DOC DEST ======
+                if(tipo_documento === "DNI"){
+                    $('#tipo_doc_destinatario').val(0).trigger('change');
+                    if(nroDocumento.trim() != "99999999"){
+                        document.querySelector('#nro_doc_destinatario').value   =   nroDocumento;
+                        document.querySelector('#nro_doc_destinatario').value   =   nroDocumento;
+                        document.querySelector('#nombres_destinatario').value   =   cliente_nombre_recortado;
+                    }
+                }
+                if(tipo_documento === "CARNET EXT."){
+                    $('#tipo_doc_destinatario').val(1).trigger('change');
+                    document.querySelector('#nro_doc_destinatario').value   =   nroDocumento;
+                    document.querySelector('#nombres_destinatario').value   =   cliente_nombre_recortado;
+                }                
+            }
+         
+            //========= ABRIR MODAL ENVÍO =======
+            $("#modal_envio").modal("show");
+        })
     }
 
     //====== SELECT2 =======

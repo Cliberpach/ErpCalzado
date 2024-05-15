@@ -68,6 +68,7 @@ class CajaController extends Controller
                 'empresa' => $documento->empresaEntidad->razon_social,
                 'tipo_pago_id' => $documento->tipo_pago_id,
                 'tipo_pago' => $documento->tipo_pago ? $documento->tipo_pago->descripcion : null,
+                'ruta_pago_2'   =>  $documento->ruta_pago_2,
                 'ruta_pago' => $documento->ruta_pago,
                 'banco_empresa_id' => $documento->banco_empresa_id,
                 'banco_empresa' => $documento->bancoPagado ? $documento->bancoPagado->descripcion : null,
@@ -257,6 +258,7 @@ class CajaController extends Controller
     }
     public function updatePago(Request $request)
     {
+     
         try
         {
             DB::beginTransaction();
@@ -293,7 +295,11 @@ class CajaController extends Controller
             $documento->efectivo = $request->get('efectivo');
             $documento->estado_pago = 'PAGADA';
             $documento->banco_empresa_id = $request->get('cuenta_id');
-            $ruta_pago = $documento->ruta_pago;
+            $ruta_pago      =   $documento->ruta_pago;
+            $ruta_pago_2    =   $documento->ruta_pago_2;
+
+
+            //========== PARA IMAGEN 1 ========
             if($request->hasFile('imagen')){
                 //Eliminar Archivo anterior
                 if($ruta_pago)
@@ -318,6 +324,32 @@ class CajaController extends Controller
                     }
                 }
             }
+
+            //========== PARA IMAGEN 2 ========
+            if($request->hasFile('imagen_2')){
+                //Eliminar Archivo anterior
+                if($ruta_pago_2)
+                {
+                    self::deleteImage($ruta_pago_2);
+                }
+                //Agregar nuevo archivo
+                if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'pagos'))) {
+                    mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'pagos'));
+                }
+
+                $extension              =   $request->file('imagen_2')->getClientOriginalExtension();
+                $nombreImagenPago       =   $documento->serie.'-'.$documento->correlativo.'-2'.'.'.$extension;
+                $documento->ruta_pago_2 =   $request->file('imagen_2')->storeAs('public/pagos',$nombreImagenPago);
+            }else{
+                if ($request->get('ruta_pago_2') == null || $request->get('ruta_pago_2') == "") {
+                    $documento->ruta_pago_2 = "";
+                    if($ruta_pago_2)
+                    {
+                        self::deleteImage($ruta_pago_2);
+                    }
+                }
+            }
+
             $documento->update();
 
             if ($documento->convertir) {

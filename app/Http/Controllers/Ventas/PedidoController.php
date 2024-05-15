@@ -63,6 +63,7 @@ class PedidoController extends Controller
         $tipos_documento    =   tipos_documento();
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();
+
         
         return view('ventas.pedidos.create',compact('empresas','clientes','vendedor_actual','condiciones',
                                             'modelos','tallas','tipos_documento','departamentos','tipo_clientes'));
@@ -554,11 +555,12 @@ class PedidoController extends Controller
                 });
             }
 
+            $departamentos = departamentos();
         
             DB::commit();
             return view('ventas.pedidos.atender',compact('atencion_detalle','empresas','clientes',
                                                 'vendedor_actual','condiciones',
-                                                'modelos','tallas','pedido','tipoVentas'));
+                                                'modelos','tallas','pedido','tipoVentas','departamentos'));
         } catch (\Throwable $th) {
             DB::rollback();
             dd($th->getMessage());

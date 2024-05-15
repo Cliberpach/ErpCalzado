@@ -8,6 +8,7 @@ require('./bootstrap');
 import vSelect from 'vue-select';
 
 
+
 window.Vue = require('vue');
 
 

@@ -8,6 +8,7 @@
 @stop
 @section('vue-css')
 <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+
 <style>
     .imagen {
         width: 200px;
@@ -20,7 +21,6 @@
         height: 200px;
         border-radius: 10%;
     }
-
 </style>
 @stop
 @section('vue-js')
