@@ -3569,6 +3569,7 @@ class DocumentoController extends Controller
     public function regularizarVenta(Request $request){
         try {
             DB::beginTransaction();
+            
             $documento_id   =   $request->get('documento_id');
 
             //======= OBTENIENDO DOCUMENTO DE VENTA ANTIGUO ====
@@ -3623,6 +3624,8 @@ class DocumentoController extends Controller
             $res_store  =   $this->store($request_doc_nuevo);
             
             $res_store  =   $res_store->getData();
+
+            
             
             //====== MANEJANDO RESPUESTA ======
             //====== CASO I - DOC VENTA NUEVO GENERADO CORRECTAMENTE =======
@@ -3649,6 +3652,7 @@ class DocumentoController extends Controller
                 'message'=>$message]);
 
             }else{
+                
                 //====== ERROR AL GENERAR EL DOC VENTA NUEVO ======
                 //======= VERIFICAMOS SI EL ERROR ES DE VALIDACIÓN ======
                 if (property_exists($res_store, 'errors')) {
@@ -3658,10 +3662,11 @@ class DocumentoController extends Controller
                     'data'      =>  $res_store->data,
                     'type'      =>  'VALIDATION']);
                 }
+                
                 //======== ERROR EN LAS OPERACIONES SOBRE LA BD =======
                 return response()->json(['success'=>false,
                 'message'   =>$res_store->mensaje,
-                'exception' =>$res_store->excepcion,
+                'exception' =>property_exists($res_store, 'excepcion')?$res_store->excepcion:'',
                 'type'      =>  "DB"]);
             }
 
