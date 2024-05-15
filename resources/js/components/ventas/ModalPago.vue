@@ -75,6 +75,16 @@
                                         <div class="invalid-feedback"><b><span id="error-imagen"></span></b></div>
 
                                     </div>
+                                    <div class="custom-file">
+                                        <input id="imagen2" type="file" @change="changeImagen2" name="imagen2"
+                                            class="custom-file-input" accept="image/*">
+
+                                        <label for="imagen2" id="imagen_txt2"
+                                            class="custom-file-label selected">Seleccionar</label>
+
+                                        <div class="invalid-feedback"><b><span id="error-imagen"></span></b></div>
+
+                                    </div>
                                 </div>
                                 <div class="form-group row justify-content-center">
                                     <div class="col-6 align-content-center">
@@ -91,6 +101,20 @@
                                             </p>
                                         </div>
                                     </div>
+                                    <div class="col-6 align-content-center">
+                                        <div class="row justify-content-end">
+                                            <a href="javascript:void(0);" id="limpiar_imagen2"
+                                                @click.prevent="LimpiarImgen2">
+                                                <span class="badge badge-danger">x</span>
+                                            </a>
+                                        </div>
+                                        <div class="row justify-content-center">
+                                            <p>
+                                                <img width="200px" height="200px" class="imagen2 modalPago" :src="imgDefault" alt="">
+                                                <input id="url_imagen2" name="url_imagen2" type="hidden" value="">
+                                            </p>
+                                        </div>
+                                    </div> 
                                 </div>
                             </div>
                         </div>
@@ -118,6 +142,7 @@ export default {
     props: {
         modoPagos: [],
         imgDefault: "",
+        imgDefault2: "/img/default.png",
         cuentas: [],
         pagos: null
     },
@@ -245,21 +270,44 @@ export default {
         },
         changeImagen() {
             try {
-                var fileInput = document.getElementById('imagen');
-                var filePath = fileInput.value;
-                var allowedExtensions = /(.jpg|.jpeg|.png)$/i;
+                var fileInput               = document.getElementById('imagen');
+                var filePath                = fileInput.value;
+                var allowedExtensions       = /(.jpg|.jpeg|.png)$/i;
                 let $imagenPrevisualizacion = document.querySelector(".imagen");
 
                 if (allowedExtensions.exec(filePath)) {
-                    var userFile = document.getElementById('imagen');
-                    userFile.src = URL.createObjectURL(event.target.files[0]);
-                    var data = userFile.src;
+                    var userFile                = document.getElementById('imagen');
+                    userFile.src                = URL.createObjectURL(event.target.files[0]);
+                    var data                    = userFile.src;
+                    $imagenPrevisualizacion.src = data;
+                    let fileName = $(this).val().split('\\').pop();
+                    console.log(fileName);
+                    $(this).next('.custom-file-label').addClass("selected").html(fileName);
+                } else {
+                    toastr.error('Extensión inválida, formatos admitidos (.jpg . jpeg . png)', 'Error');
+                    $('.imagen').attr("src", this.imgDefault);
+                }
+            } catch (ex) {
+
+            }
+        },
+        changeImagen2() {
+            try {
+                var fileInput               = document.getElementById('imagen2');
+                var filePath                = fileInput.value;
+                var allowedExtensions       = /(.jpg|.jpeg|.png)$/i;
+                let $imagenPrevisualizacion = document.querySelector(".imagen2");
+
+                if (allowedExtensions.exec(filePath)) {
+                    var userFile                = document.getElementById('imagen2');
+                    userFile.src                = URL.createObjectURL(event.target.files[0]);
+                    var data                    = userFile.src;
                     $imagenPrevisualizacion.src = data;
                     let fileName = $(this).val().split('\\').pop();
                     $(this).next('.custom-file-label').addClass("selected").html(fileName);
                 } else {
                     toastr.error('Extensión inválida, formatos admitidos (.jpg . jpeg . png)', 'Error');
-                    $('.imagen').attr("src", this.imgDefault);
+                    $('.imagen2').attr("src", this.imgDefault);
                 }
             } catch (ex) {
 
@@ -270,6 +318,12 @@ export default {
             var fileName = "Seleccionar"
             $('.custom-file-label').addClass("selected").html(fileName);
             $('#imagen').val('');
+        },
+        LimpiarImgen2() {
+            $('.imagen2').attr("src", this.imgDefault)
+            var fileName = "Seleccionar"
+            $('.custom-file-label').addClass("selected").html(fileName);
+            $('#imagen2').val('');
         },
         Limpiar() {
             this.LimpiarImgen();

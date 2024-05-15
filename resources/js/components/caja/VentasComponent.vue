@@ -359,7 +359,7 @@
                                             </div>
                                             <div class="row justify-content-center">
                                                 <p>
-                                                    <img class="imagen_update" alt="IMG">
+                                                    <img class="imagen_update" alt="IMG" >
                                                     <input id="url_imagen" name="url_imagen" type="hidden" value="">
                                                 </p>
                                             </div>
@@ -481,7 +481,7 @@ export default {
             $('#modal_pago_show #div_cuentas').addClass('d-none');
 
             $('#modal_pago_show #ruta_pago').val(data.ruta_pago)
-
+            
             let pago = {
                 code: data.tipo_pago_id,
                 label: data.tipo_pago
@@ -494,17 +494,25 @@ export default {
 
             $this.setSelectedPagoShow(pago)
             $this.setSelectedCuentaShow(cuenta)
-            $this.form_show.monto_venta = data.total
-            $this.form_show.venta_id = data.id
+            $this.form_show.monto_venta     = data.total
+            $this.form_show.venta_id        = data.id
+
+            //======== CUADRO DONDE SE VISUALIZA LA IMAGEN =======
             let $imagenPrevisualizacion = document.querySelector("#modal_pago_show .imagen_update");
+
             if(data.ruta_pago)
             {
-                let ruta = data.ruta_pago;
-                ruta = ruta.replace('public','');
-                ruta = '/storage'+ruta;
-                let $inputPrevisualizacion = document.querySelector("#modal_pago_show #imagen_update");
-                $inputPrevisualizacion.src = ruta;
+                let ruta    = data.ruta_pago;
+              
+               ruta        = ruta.replace('public','');
+               ruta        = '/storage'+ruta;
+               
+                console.log(ruta);
+                //========= INPUT FILE =======
+                let $inputPrevisualizacion  = document.querySelector("#modal_pago_show #imagen_update");
+                $inputPrevisualizacion.src  = ruta;
                 $imagenPrevisualizacion.src = ruta;
+                
                 $('#modal_pago_show .custom-file-label').addClass("selected").html(data.serie+'-'+data.correlativo+'.jpg');
             }
             else

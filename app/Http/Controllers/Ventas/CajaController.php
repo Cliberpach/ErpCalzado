@@ -174,6 +174,7 @@ class CajaController extends Controller
 
     public function storePago(Request $request)
     {
+        
         try
         {
             DB::beginTransaction();
@@ -222,7 +223,7 @@ class CajaController extends Controller
                 if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'pagos'))) {
                     mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'pagos'));
                 }
-                $documento->ruta_pago = $request->file('imagen')->store('public/pagos');
+                $documento->ruta_pago = $request->file('imagen')->store('public/pagos',$documento->serie.'-'.$documento->correlativo);
             }
             $documento->update();
 
@@ -303,7 +304,11 @@ class CajaController extends Controller
                 if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'pagos'))) {
                     mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'pagos'));
                 }
-                $documento->ruta_pago = $request->file('imagen')->store('public/pagos');
+
+                $extension              =   $request->file('imagen')->getClientOriginalExtension();
+                $nombreImagenPago       =   $documento->serie.'-'.$documento->correlativo.'.'.$extension;
+                $documento->ruta_pago   =   $request->file('imagen')->storeAs('public/pagos',$nombreImagenPago);
+                
             }else{
                 if ($request->get('ruta_pago') == null || $request->get('ruta_pago') == "") {
                     $documento->ruta_pago = "";

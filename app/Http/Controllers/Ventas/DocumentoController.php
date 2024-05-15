@@ -371,6 +371,7 @@ class DocumentoController extends Controller
                 return redirect()->route('ventas.documento.index');
             }
 
+            
             $documento = Documento::find($request->venta_id);
 
             $documento->tipo_pago_id        = $request->get('tipo_pago_id');
@@ -378,12 +379,25 @@ class DocumentoController extends Controller
             $documento->efectivo            = $request->get('efectivo');
             $documento->estado_pago         = 'PAGADA';
             $documento->banco_empresa_id    = $request->get('cuenta_id');
+
             if ($request->hasFile('imagen')) {
                 if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'))) {
                     mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'));
                 }
-                $documento->ruta_pago = $request->file('imagen')->store('public/pagos');
+                $extension              =   $request->file('imagen')->getClientOriginalExtension();
+                $nombreImagenPago       =   $documento->serie.'-'.$documento->correlativo.'.'.$extension;
+                $documento->ruta_pago   =   $request->file('imagen')->storeAs('public/pagos',$nombreImagenPago);
             }
+
+            if ($request->hasFile('imagen2')) {
+                if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'))) {
+                    mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'));
+                }
+                $extension              =   $request->file('imagen2')->getClientOriginalExtension();
+                $nombreImagenPago       =   $documento->serie.'-'.$documento->correlativo.'-2'.'.'.$extension;
+                $documento->ruta_pago   =   $request->file('imagen2')->storeAs('public/pagos',$nombreImagenPago);
+            }
+
             $documento->update();
 
             if ($documento->convertir) {
