@@ -395,7 +395,7 @@ class DocumentoController extends Controller
                 }
                 $extension              =   $request->file('imagen2')->getClientOriginalExtension();
                 $nombreImagenPago       =   $documento->serie.'-'.$documento->correlativo.'-2'.'.'.$extension;
-                $documento->ruta_pago   =   $request->file('imagen2')->storeAs('public/pagos',$nombreImagenPago);
+                $documento->ruta_pago_2   =   $request->file('imagen2')->storeAs('public/pagos',$nombreImagenPago);
             }
 
             $documento->update();

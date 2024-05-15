@@ -66,7 +66,7 @@
                                     <label id="imagen_label">Imagen:</label>
 
                                     <div class="custom-file">
-                                        <input id="imagen" type="file" @change="changeImagen" name="imagen"
+                                        <input id="imagen" type="file" @change="changeImagen()" name="imagen"
                                             class="custom-file-input" accept="image/*">
 
                                         <label for="imagen" id="imagen_txt"
@@ -269,6 +269,8 @@ export default {
             }
         },
         changeImagen() {
+            console.log(document.querySelector('#imagen'));
+         
             try {
                 var fileInput               = document.getElementById('imagen');
                 var filePath                = fileInput.value;
@@ -276,13 +278,15 @@ export default {
                 let $imagenPrevisualizacion = document.querySelector(".imagen");
 
                 if (allowedExtensions.exec(filePath)) {
+               
                     var userFile                = document.getElementById('imagen');
                     userFile.src                = URL.createObjectURL(event.target.files[0]);
                     var data                    = userFile.src;
                     $imagenPrevisualizacion.src = data;
-                    let fileName = $(this).val().split('\\').pop();
-                    console.log(fileName);
-                    $(this).next('.custom-file-label').addClass("selected").html(fileName);
+                    //======= OBTENIENDO NAME DE LA IMG CARGADA EL INPUT FILE =========
+                    const inputImagen                                   =   document.querySelector('#imagen');
+                    const fileName                                      =   inputImagen.files[0].name;
+                    document.querySelector('#imagen_txt').textContent   =   fileName;
                 } else {
                     toastr.error('Extensión inválida, formatos admitidos (.jpg . jpeg . png)', 'Error');
                     $('.imagen').attr("src", this.imgDefault);
@@ -303,8 +307,10 @@ export default {
                     userFile.src                = URL.createObjectURL(event.target.files[0]);
                     var data                    = userFile.src;
                     $imagenPrevisualizacion.src = data;
-                    let fileName = $(this).val().split('\\').pop();
-                    $(this).next('.custom-file-label').addClass("selected").html(fileName);
+                    //======= OBTENIENDO NAME DE LA IMG CARGADA EL INPUT FILE =========
+                    const inputImagen                                   =   document.querySelector('#imagen2');
+                    const fileName                                      =   inputImagen.files[0].name;
+                    document.querySelector('#imagen_txt2').textContent  =   fileName;
                 } else {
                     toastr.error('Extensión inválida, formatos admitidos (.jpg . jpeg . png)', 'Error');
                     $('.imagen2').attr("src", this.imgDefault);
@@ -316,17 +322,18 @@ export default {
         LimpiarImgen() {
             $('.imagen').attr("src", this.imgDefault)
             var fileName = "Seleccionar"
-            $('.custom-file-label').addClass("selected").html(fileName);
+            $('#imagen_txt').addClass("selected").html(fileName);
             $('#imagen').val('');
         },
         LimpiarImgen2() {
             $('.imagen2').attr("src", this.imgDefault)
             var fileName = "Seleccionar"
-            $('.custom-file-label').addClass("selected").html(fileName);
+            $('#imagen_txt2').addClass("selected").html(fileName);
             $('#imagen2').val('');
         },
         Limpiar() {
             this.LimpiarImgen();
+            this.LimpiarImgen2();
             this.pagoForm = {
                 cliente: "",
                 condicion: "",

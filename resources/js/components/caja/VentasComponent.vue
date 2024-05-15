@@ -507,7 +507,7 @@ export default {
                ruta        = ruta.replace('public','');
                ruta        = '/storage'+ruta;
                
-                console.log(ruta);
+                
                 //========= INPUT FILE =======
                 let $inputPrevisualizacion  = document.querySelector("#modal_pago_show #imagen_update");
                 $inputPrevisualizacion.src  = ruta;
