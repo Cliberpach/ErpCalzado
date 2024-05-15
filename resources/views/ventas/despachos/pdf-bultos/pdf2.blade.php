@@ -154,13 +154,13 @@
         @endif
 
 
-        @if ($despacho->entrega_domicilio === "NO" && !$despacho->obs_rotulo)
+        @if ($despacho->entrega_domicilio === "NO" || !$despacho->obs_rotulo)
             <div class="row" style="margin-bottom:50px;">
                 <p style="margin:0;padding:0;" class="empresa-envio">{{$despacho->empresa_envio_nombre.' - '.$despacho->tipo_pago_envio}}</p>
             </div>
         @endif
 
-      
+        
 
         @if ($despacho->obs_rotulo)
             <div class="row" style="margin-bottom:-10px;">
