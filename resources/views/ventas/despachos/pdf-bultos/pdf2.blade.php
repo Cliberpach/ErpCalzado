@@ -132,28 +132,38 @@
             </div>
         </div>
 
+      
         <div class="row" style="margin-top:-30px;">
             <div>
                 <p class="destino-text" style="vertical-align: middle;">{{$despacho->distrito}}</p>
             </div>
         </div>
+      
 
 
         @if ($despacho->entrega_domicilio === "SI")
             <div class="row" style="margin-bottom:0;">
-                <p style="margin:0;padding:0;" class="empresa-envio">
+                <p class="empresa-envio" style="margin:0;padding:0;font-size:22px;">
                     <span style="font-weight: bold;">ENVÍO DOMIC: </span>
                     {{$despacho->direccion_entrega}}
                 </p>
             </div>
+            <div class="row" style="margin-bottom:0px;">
+                <p style="margin:0;padding:0;" class="empresa-envio">{{$despacho->empresa_envio_nombre.' - '.$despacho->tipo_pago_envio}}</p>
+            </div>
         @endif
 
-        <div class="row" style="margin-bottom:0;">
-            <p style="margin:0;padding:0;" class="empresa-envio">{{$despacho->empresa_envio_nombre.' - '.$despacho->tipo_pago_envio}}</p>
-        </div>
+
+        @if ($despacho->entrega_domicilio === "NO" && !$despacho->obs_rotulo)
+            <div class="row" style="margin-bottom:50px;">
+                <p style="margin:0;padding:0;" class="empresa-envio">{{$despacho->empresa_envio_nombre.' - '.$despacho->tipo_pago_envio}}</p>
+            </div>
+        @endif
+
+      
 
         @if ($despacho->obs_rotulo)
-            <div class="row" style="margin-bottom:0;">
+            <div class="row" style="margin-bottom:-10px;">
                 <p style="margin:0;padding:0;" class="observaciones">
                     <span style="font-weight: bold;">OBSERVACIÓN: </span>
                     {{$despacho->obs_rotulo}}
@@ -163,7 +173,7 @@
        
 
         <div class="row">
-            <p class="redes-text">Nuestras Redes Sociales</p>
+            <p class="redes-text" style="margin-bottom:-10px;">Nuestras Redes Sociales</p>
         </div>
 
         <div class="row" style="margin-bottom:0px;margin-top:0;">
