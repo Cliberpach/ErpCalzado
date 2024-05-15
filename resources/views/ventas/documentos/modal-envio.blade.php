@@ -164,21 +164,34 @@ div.content-envio.sk__loading::after {
                                     <label for="fecha_envio" style="font-weight: bold;">FECHA ENVÍO</label>
                                     <input id="fecha_envio" name="fecha_envio" type="date" class="form-control" value="<?php echo date('Y-m-d'); ?>">
                                 </div>
-                                <div class="col-6">
-                                    <label for="observaciones" style="font-weight: bold;">OBSERVACIÓN</label>
-                                    <textarea id="observaciones" name="observaciones" class="form-control"></textarea>
+                                <div class="col-3">
+                                    <label for="observaciones" style="font-weight: bold;">OBS RÓTULO</label>
+                                    <textarea maxlength="20" id="obs-rotulo" name="obs-rotulo" class="form-control"></textarea>
+                                </div>
+                                <div class="col-3">
+                                    <label for="observaciones" style="font-weight: bold;">OBS DESPACHO</label>
+                                    <textarea id="obs-despacho" name="obs-rotulo" class="form-control"></textarea>
                                 </div>
                             </div>
                             <hr>
                             <label for="" style="font-weight: bold;">DATOS DEL DESTINATARIO</label>
                             <div class="row">
+                                <div class="col-3">
+                                    <label class="required" for="tipo_doc_destinatario">TIPO DOCUMENTO</label>
+                                    <select onchange="cambiarTipoDocDest(this.value)" class="form form-control" 
+                                    name="tipo_doc_destinatario" id="tipo_doc_destinatario">
+
+                                    </select>
+                                </div>
                                 <div class="col-4">
-                                    <label class="required" for="dni_destinatario">Nro. DNI</label>
+                                    <label class="required" for="nro_doc_destinatario">Nro. 
+                                        <span class="span-tipo-doc-dest"></span>
+                                    </label>
                                         <div class="input-group">
-                                            <input type="text" id="dni_destinatario" class="form-control" 
+                                            <input type="text" id="nro_doc_destinatario" class="form-control" 
                                             maxlength="8" required>
 
-                                            <span class="input-group-append">
+                                            <span class="input-group-append" id="btn-consultar-dni">
                                                 <button type="button" style="color:white" class="btn btn-primary"
                                                     onclick="consultarDocumento()">
                                                     <i class="fa fa-search"></i>
@@ -187,7 +200,7 @@ div.content-envio.sk__loading::after {
                                             </span>
                                         </div>
                                 </div>
-                                <div class="col-8">
+                                <div class="col-5">
                                     <label class="required" for="nombres_destinatario">Nombres</label>
                                     <input required type="text" id="nombres_destinatario" 
                                     class="form-control"> 
@@ -634,7 +647,7 @@ div.content-envio.sk__loading::after {
             try {
                 mostrarAnimacion();
 
-                const dni_destinatario  =   document.querySelector('#dni_destinatario').value;
+                const dni_destinatario  =   document.querySelector('#nro_doc_destinatario').value;
                 if (dni_destinatario.length === 8) {
                     await consultarAPI(dni_destinatario);
                     ocultarAnimacion();
@@ -671,6 +684,60 @@ div.content-envio.sk__loading::after {
             } else {
 
             }
+    }
+
+    async function getTipoDocumento() {
+        try {
+            const { data }      = await this.axios.get(route("consulta.ajax.getTipoDocumentos"));
+
+            //======== SELECCIONAMOS DNI Y CARNET EXTRANJERÍA ======
+                
+            const tipoDocumentosFilter  =   data.filter((td)=>{
+                return td.id == 6 || td.id == 7;
+            })
+
+            pintarTiposDocumento(tipoDocumentosFilter);
+
+        } catch (ex) {
+
+        }
+    }
+
+    function pintarTiposDocumento(tipos_documento){
+        data    =   [];
+        tipos_documento.forEach((td,index) => {
+            data.push({id:index,text:td.simbolo});  
+        });
+
+        $("#tipo_doc_destinatario").select2({
+            data: data,
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            width: '100%',
+        })
+
+        //=========== CONFIGURACIÓN VISTA ========
+        //const destinatario_tipo_doc  =   $("#tipo_doc_destinatario").find('option:selected').text();
+        // if(destinatario_tipo_doc === "CARNET EXT."){
+        //     document.querySelector('#btn-consultar-dni').style.display  =   'none';
+        // }
+        // document.querySelector('.span-tipo-doc-dest').textContent     =   destinatario_tipo_doc;
+    }
+
+    function cambiarTipoDocDest(tipo_doc_dest){
+        document.querySelector('#nro_doc_destinatario').value   =   '';
+        
+        //======== 0:DNI  1:CARNET EXT. ======
+        if(tipo_doc_dest.length == 0 || tipo_doc_dest == 1){
+            document.querySelector('#btn-consultar-dni').style.display  =   'none';
+        }
+        if(tipo_doc_dest == 0 && tipo_doc_dest.length === 1){
+            document.querySelector('#btn-consultar-dni').style.display  =   'block';
+        }
+
+        const destinatario_tipo_doc  =   $("#tipo_doc_destinatario").find('option:selected').text();
+        document.querySelector('.span-tipo-doc-dest').textContent     =   destinatario_tipo_doc;
+
     }
 
     function guardarEnvio(){
@@ -715,10 +782,18 @@ div.content-envio.sk__loading::after {
             return;
         }
 
-        if(document.querySelector('#dni_destinatario').value < 8){
-            toastr.error('INGRESE UN DNI VÁLIDO PARA EL DESTINATARIO',"ERROR");
-           return;
+        const tipo_doc_destinatario =   $("#tipo_doc_destinatario").find('option:selected').text();
+        if(tipo_doc_destinatario === "DNI"){
+            if(document.querySelector('#nro_doc_destinatario').value !== 8){
+                toastr.error('INGRESE UN NRO DOCUMENTO VÁLIDO PARA EL DESTINATARIO',"ERROR");
+                return;
+            }
         }
+        if(tipo_doc_destinatario.length === 0){
+            toastr.error('SELECCIONE UN TIPO DE DOCUMENTO');
+            return;
+        }
+       
 
         if(document.querySelector('#nombres_destinatario').value == 0){
             toastr.error('DEBE INGRESAR EL NOMBRE DEL DESTINATARIO',"ERROR");
@@ -738,17 +813,20 @@ div.content-envio.sk__loading::after {
         const empresa_envio =   {id:$("#empresa_envio").val(),empresa:$("#empresa_envio").find('option:selected').text()};
         const sede_envio    =   {id:$("#sede_envio").val(),direccion:$("#sede_envio").find('option:selected').text()};
         const tipo_envio    =   {descripcion:$("#tipo_envio").find('option:selected').text()};
-        const destinatario  =   {dni:document.querySelector('#dni_destinatario').value,nombres:document.querySelector('#nombres_destinatario').value};
+        const destinatario  =   {nro_documento:document.querySelector('#nro_doc_destinatario').value,
+                                nombres:document.querySelector('#nombres_destinatario').value,
+                                tipo_documento:$("#tipo_doc_destinatario").find('option:selected').text()};
         const tipo_pago_envio   =   {descripcion:$("#tipo_pago_envio").find('option:selected').text()};
         const entrega_domicilio =   document.querySelector('#check_entrega_domicilio').checked;
         const direccion_entrega =   document.querySelector('#direccion_entrega').value;
         const fecha_envio_propuesta =   document.querySelector('#fecha_envio').value; 
         const origen_venta          =   {descripcion:$("#origen_venta").find('option:selected').text()==''?'WATHSAPP':$("#origen_venta").find('option:selected').text()};
-        const observaciones         =   document.querySelector('#observaciones').value;
+        const obs_rotulo         =   document.querySelector('#obs-rotulo').value;
+        const obs_despacho       =   document.querySelector('#obs-despacho').value;
 
         const form_envio    =   {departamento,provincia,distrito,empresa_envio,sede_envio,tipo_envio,
                                 destinatario,tipo_pago_envio,entrega_domicilio,direccion_entrega,fecha_envio_propuesta,
-                                origen_venta,observaciones};
+                                origen_venta,obs_rotulo,obs_despacho};
         
 
         console.log(form_envio);

@@ -108,29 +108,39 @@
                                         <label for="fecha_envio" style="font-weight: bold;">FECHA ENVÍO</label>
                                         <input id="fecha_envio" v-model="fecha_envio" type="date" class="form-control">
                                     </div>
-                                    <div class="col-6">
-                                        <label for="observaciones" style="font-weight: bold;">OBSERVACIÓN</label>
-                                        <textarea id="observaciones" v-model="observaciones" class="form-control"></textarea>
+                                    <div class="col-3">
+                                        <label for="obs_rotulo" style="font-weight: bold;">OBS RÓTULO</label>
+                                        <textarea maxlength="20"  id="obs_rotulo" v-model="obs_rotulo" class="form-control"></textarea>
+                                    </div>
+                                    <div class="col-3">
+                                        <label for="obs_despacho" style="font-weight: bold;">OBS DESPACHO</label>
+                                        <textarea id="obs_despacho" v-model="obs_despacho" class="form-control"></textarea>
                                     </div>
                                 </div>
                                 <hr>
                                 <label for="" style="font-weight: bold;">DATOS DEL DESTINATARIO</label>
                                 <div class="row">
-                                    <div class="col-4">
-                                        <label class="required" for="dni_destinatario">Nro. DNI</label>
-                                            <div class="input-group">
-                                                <input type="text" id="dni_destinatario"  class="form-control"
-                                                    :maxlength="maxlength" v-model="destinatario.dni" required>
-                                                <span class="input-group-append">
-                                                    <button type="button" style="color:white" class="btn btn-primary"
-                                                        @click.prevent="consultarDocumento">
-                                                        <i class="fa fa-search"></i>
-                                                        <span id="entidad"> CONSULTAR</span>
-                                                    </button>
-                                                </span>
-                                            </div>
+                                    <div class="col-3">
+                                        <label class="required" for="origen_venta" style="font-weight: bold;">TIPO DOC</label>
+                                        <v-select  v-model="destinatario.tipo_documento"  :options="tipoDocumentos" :reduce="td=>td"
+                                        label="" :clearable="false"></v-select>
                                     </div>
-                                    <div class="col-8">
+                                    <div class="col-4">
+                                        <label class="required" for="dni_destinatario">Nro. {{ destinatario.tipo_documento }}</label>
+                                        <div class="input-group">
+                                            <input type="text" id="dni_destinatario"  class="form-control"
+                                            :maxlength="maxLengthDocumento" v-model="destinatario.nro_documento" required>
+                                            <span class="input-group-append">
+                                                <button type="button" style="color:white" class="btn btn-primary"
+                                                v-if="destinatario.tipo_documento == 'DNI'"
+                                                @click.prevent="consultarDocumento">
+                                                    <i class="fa fa-search"></i>
+                                                    <span id="entidad"> CONSULTAR</span>
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-5">
                                         <label class="required" for="nombres_destinatario">Nombres</label>
                                         <input required type="text" id="nombres_destinatario" v-model=destinatario.nombres 
                                         class="form-control">
@@ -170,6 +180,7 @@ export default {
     props: ['cliente'],
     data() {
         return {
+            tipoDocumentos:[],
             despacho:null,
             mode:'create',
             loading: false,
@@ -191,9 +202,11 @@ export default {
             Distritos: [],
             origen_venta:{descripcion:"SELECCIONAR"},
             fecha_envio:"",
-            observaciones:"",
+            obs_rotulo:"",
+            obs_despacho:"",
             destinatario:{
-                dni:"",
+                tipo_documento:"SELECCIONAR",
+                nro_documento:"",
                 nombres:""
             },
             departamento: {
@@ -267,7 +280,16 @@ export default {
             },
             loadingProvincias: false,
             loadingDistritos: false,
-            maxlength:8
+            maxlength: 8
+        }
+    },
+    computed:{
+        maxLengthDocumento() {
+            
+            if(this.destinatario.tipo_documento === "DNI" && this.destinatario.nro_documento.length >8){
+                this.destinatario.nro_documento =   '';
+            }
+            return this.destinatario.tipo_documento === 'DNI' ? 8 : 20;
         }
     },
     watch: {
@@ -282,20 +304,20 @@ export default {
                 this.direccion_entrega  =   "";
             }
         },
-        cliente(value){
-            if(value.tipo_documento === "DNI"){
-                if(value.documento === "99999999"){
-                    this.destinatario.dni       =   "";
-                    this.destinatario.nombres   =   "";
-                    return;
+        async cliente(value){
+            console.log(value);
+
+            this.destinatario.nro_documento         =   "";
+            this.destinatario.nombres               =   "";
+
+            if(value.tipo_documento === "DNI" || value.tipo_documento === "CARNET EXT."){
+                this.destinatario.tipo_documento    =   value.tipo_documento;
+                if(value.documento !== "99999999"){
+                    this.destinatario.nro_documento     =   value.documento;
+                    this.destinatario.nombres           =   value.nombre;
                 }
-                this.destinatario.dni       =   value.documento;
-                this.destinatario.nombres   =   value.nombre;
-            }
-            if(value.tipo_documento === "RUC"){
-                this.destinatario.dni       =   "";
-                this.destinatario.nombres   =   "";
-            } 
+            }  
+           
         },
         empresa_envio(value){
             //====== LIMPIAR LAS SEDES ======
@@ -570,6 +592,7 @@ export default {
         await this.setFechaEnvioDefault();
         await this.getDepartamentos();
         await this.getTipoEnvios();
+        await this.getTipoDocumento();
         await this.getTiposPagoEnvio();
         await this.getOrigenesVentas();
         await this.getEmpresasEnvio(this.tipo_envio.descripcion);
@@ -577,7 +600,7 @@ export default {
     },
     methods: {
         async metodoHijo(despacho,documento_id){
-
+            this.loading    =   true;
             this.formEnvio.documento_id     =   documento_id;
 
             if(despacho.length == 0){
@@ -684,15 +707,22 @@ export default {
                 this.fecha_envio    =   this.despacho.fecha_envio_propuesta;
 
                 //====== COLOCANDO OBSERVACIONES =======
-                this.observaciones  =   '';
-                this.observaciones  =   this.despacho.observaciones;
+                this.obs_rotulo  =   '';
+                this.obs_rotulo  =   this.despacho.obs_rotulo;
+                this.obs_despacho  =   '';
+                this.obs_despacho  =   this.despacho.obs_despacho;
 
-                //======= COLOCANDO DNI Y NOMBRES DEL DESTINATARIO =====
-                this.destinatario   =   {dni:this.despacho.destinatario_dni,nombres:this.despacho.destinatario_nombre};
+                //======= COLOCANDO TIPO DOCUMENTO DESTINATARIO =====
+                const tipo_doc      =   this.tipoDocumentos.filter((td)=>{
+                    return td === this.despacho.destinatario_tipo_doc;
+                })
+
+                this.destinatario.tipo_documento    =   tipo_doc[0];
+                this.destinatario.nro_documento     =   this.despacho.destinatario_nro_doc;
+                this.destinatario.nombres           =   this.despacho.destinatario_nombre;
 
                 this.despacho   =   null;
-               
-
+                this.loading    =   false;
             }
         },
         borrarEnvio(){
@@ -735,7 +765,7 @@ export default {
             toastr.error('SELECCIONE UNA SEDE DE ENVÍO',"ERROR");
             return;
           }
-          if(this.destinatario.dni.length < 8){
+          if(this.destinatario.nro_documento.length < 8){
             toastr.error('INGRESE UN DNI VÁLIDO PARA EL DESTINATARIO',"ERROR");
             return;
           }
@@ -756,7 +786,8 @@ export default {
           this.formEnvio.entrega_domicilio      =   this.entrega_domicilio;
           this.formEnvio.origen_venta           =   this.origen_venta;
           this.formEnvio.fecha_envio_propuesta  =   this.fecha_envio;
-          this.formEnvio.observaciones          =   this.observaciones;
+          this.formEnvio.obs_rotulo             =   this.obs_rotulo;
+          this.formEnvio.obs_despacho           =   this.obs_despacho;
           this.formEnvio.tipo_pago_envio        =   this.tipo_pago_envio;
 
           console.log('FORMULARIO ENVIO');
@@ -826,7 +857,7 @@ export default {
             try {
                 this.loading = true;
                
-                if (this.destinatario.dni.length === 8) {
+                if (this.destinatario.nro_documento.length === 8) {
                     this.consultarAPI();
                 } else {
                         this.loading = false;
@@ -839,7 +870,7 @@ export default {
         },
         async consultarAPI() {
             try {
-                let documento   = this.destinatario.dni;
+                let documento   = this.destinatario.nro_documento;
                 let url =  route('getApidni', { dni: documento });
 
                 const { data } = await this.axios.get(url);
@@ -1009,6 +1040,31 @@ export default {
                 toastr.error(error,'ERROR EN EL SERVIDOR');
             }finally{
                 this.loading        =   false;
+            }
+        },
+        async getTipoDocumento() {
+            try {
+                const { data }      = await this.axios.get(route("consulta.ajax.getTipoDocumentos"));
+
+                //======== SELECCIONAMOS DNI Y CARNET EXTRANJERÍA ======
+                const tipoDocumentosFilter  =  []; 
+                
+                data.forEach((td)=>{
+                   
+                    if(td.id == 6 || td.id == 7){
+                        tipoDocumentosFilter.push(td.simbolo);
+                    } 
+                })
+
+                if(tipoDocumentosFilter.length > 0){
+                    this.destinatario.tipo_documento        =   tipoDocumentosFilter[0];         
+                    this.tipoDocumentos                     =   tipoDocumentosFilter;
+                }
+
+
+                
+            } catch (ex) {
+
             }
         }
     }

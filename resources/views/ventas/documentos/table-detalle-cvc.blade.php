@@ -38,7 +38,7 @@
             <td  class="td-envio" colspan="1" style="font-weight: bold;text-align:end;">
               <div class="input-group">
                 <span class="input-group-text" id="btn-envio">
-                  <i class="fas fa-truck"></i>
+                  <i class="fas fa-truck btn btn-light"></i>
                 </span>
                 <input disabled style="width: 10px;"  type="text" class="form-control envio" value="{{$cotizacion->monto_envio}}" aria-label="Username" aria-describedby="basic-addon1">
               </div>

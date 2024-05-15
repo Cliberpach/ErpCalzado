@@ -586,8 +586,8 @@
         await getTipoEnvios();
         await getTiposPagoEnvio();
         await getOrigenesVentas();
+        await getTipoDocumento();
         const tipo_envio    =   $("#tipo_envio").select2('data')[0].text;
-        console.log(tipo_envio)
         await getEmpresasEnvio(tipo_envio);
         events();
         eventsModalEnvio();
@@ -656,18 +656,31 @@
 
             const nroDocumento              =   cliente_nombre.split(':')[1].split('-')[0].trim();
             const cliente_nombre_recortado  =   cliente_nombre.split('-')[1].trim()
+            const tipo_documento            =   cliente_nombre.split(':')[0];
 
             console.log(cliente_nombre);
             console.log(cliente_nombre_recortado);
             console.log(nroDocumento);
 
-            //===== COLOCAR SOLO DNIS QUE NO SEA DE CLIENTE VARIOS =========
-            if(nroDocumento.trim().length === 8 && nroDocumento.trim()!= "99999999"){
-                document.querySelector('#dni_destinatario').value       =   nroDocumento;
-                document.querySelector('#nombres_destinatario').value   =   cliente_nombre_recortado;  
+            if(tipo_documento === "DNI" || tipo_documento === "CARNET EXT."){
+                //====== COLOCAR TEXTO DEL SPAN =====
+                document.querySelector('.span-tipo-doc-dest').textContent     =   tipo_documento;
+                //====== SELECCIONAR LA OPCIÓN RESPECTIVA EN SELECT TIPO DOC DEST ======
+                if(tipo_documento === "DNI"){
+                    $('#tipo_doc_destinatario').val(0).trigger('change');
+                    if(nroDocumento.trim() != "99999999"){
+                        document.querySelector('#nro_doc_destinatario').value   =   nroDocumento;
+                        document.querySelector('#nro_doc_destinatario').value   =   nroDocumento;
+                        document.querySelector('#nombres_destinatario').value   =   cliente_nombre_recortado;
+                    }
+                }
+                if(tipo_documento === "CARNET EXT."){
+                    $('#tipo_doc_destinatario').val(1).trigger('change');
+                    document.querySelector('#nro_doc_destinatario').value   =   nroDocumento;
+                    document.querySelector('#nombres_destinatario').value   =   cliente_nombre_recortado;
+                }                
             }
-            
-
+         
             //========= ABRIR MODAL ENVÍO =======
             $("#modal_envio").modal("show");
         })
@@ -739,13 +752,13 @@
                     cargarProductos();
                     
 
-                    document.getElementById("moneda").disabled = false;
-                    document.getElementById("observacion").disabled = false;
-                    document.getElementById("fecha_documento_campo").disabled = false;
-                    document.getElementById("fecha_atencion_campo").disabled = false;
-                    document.getElementById("empresa_id").disabled = false;
-                    document.getElementById("cliente_id").disabled = false;
-                    document.getElementById("condicion_id").disabled = false;
+                    document.getElementById("moneda").disabled                  = false;
+                    document.getElementById("observacion").disabled             = false;
+                    document.getElementById("fecha_documento_campo").disabled   = false;
+                    document.getElementById("fecha_atencion_campo").disabled    = false;
+                    document.getElementById("empresa_id").disabled              = false;
+                    document.getElementById("cliente_id").disabled              = false;
+                    document.getElementById("condicion_id").disabled            = false;
                     //HABILITAR EL CARGAR PAGINA
                     // $('#asegurarCierre').val(2)
 
@@ -816,7 +829,6 @@
                                         {
                                             let mensaje = sHtmlErrores("result.value.data.mensajes");
                                             toastr.error(mensaje);
-                                            //$('#asegurarCierre').val(1);
                                             asegurarCierre = 1;
                                             document.getElementById("moneda").disabled = true;
                                             document.getElementById("observacion").disabled = true;
@@ -827,21 +839,25 @@
                                                 document.getElementById("cliente_id").disabled = true;
                                             @endif
                                         }
-                                        else if(result.success)
+                                        
+                                        if(result.success)
                                         {
                                             toastr.success('¡Documento de venta creado!','Exito')
 
-                                            let id = result.documento_id;
-                                            var url_open_pdf = '{{ route("ventas.documento.comprobante", ":id")}}';
-                                            url_open_pdf = url_open_pdf.replace(':id',id+'-80');
+                                            let id              = result.documento_id;
+                                            var url_open_pdf    = '{{ route("ventas.documento.comprobante", ":id")}}';
+                                            url_open_pdf        = url_open_pdf.replace(':id',id+'-80');
+                                            asegurarCierre      = 2;
+
                                             window.open(url_open_pdf,'Comprobante SISCOM','location=1, status=1, scrollbars=1,width=900, height=600');
 
-                                            // $('#asegurarCierre').val(2);
-                                            asegurarCierre = 2;
-
                                             location = "{{ route('ventas.documento.index') }}";
+                                        }else{
+                                            toastr.error(result.mensaje,'ERROR AL GENERAR EL DOC DE VENTA');
+                                            asegurarCierre  =   1;
                                         }
-                                    
+
+                                         
                                 })
                                 .catch(error => {
                                     alert('error');
@@ -855,6 +871,13 @@
                                 asegurarCierre  =   1;
                                 btnGrabar.disabled = false;
                                 console.log(asegurarCierre);
+                                document.getElementById("moneda").disabled                  = true;
+                                document.getElementById("observacion").disabled             = true;
+                                document.getElementById("fecha_documento_campo").disabled   = true;
+                                document.getElementById("fecha_atencion_campo").disabled    = true;
+                                document.getElementById("empresa_id").disabled              = true;
+                                document.getElementById("cliente_id").disabled              = true;
+                                document.getElementById("condicion_id").disabled            = true;
                             }
                     });
 

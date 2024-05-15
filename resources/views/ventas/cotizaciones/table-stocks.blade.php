@@ -47,7 +47,7 @@
           <td  class="td-envio" colspan="1" style="font-weight: bold;text-align:end;">
             <div class="input-group">
               <span class="input-group-text" id="monto-envio">
-                <i class="fa-solid fa-truck-bolt"></i>             
+                <i class="fas fa-truck"></i>             
               </span>
               <input style="width: 10px;"  type="text" class="form-control envio" value="0" aria-label="Username" aria-describedby="basic-addon1">
             </div>

@@ -15,17 +15,31 @@ class DespachoController extends Controller
 {
     public function index(){
         $this->authorize('haveaccess','despachos.index');
-        return view('ventas.despachos.index');
+
+        $clientes       =   DB::select('select c.id,c.nombre from clientes as c');
+        
+        return view('ventas.despachos.index',compact('clientes'));
     }
 
-    public function getTable()
+    public function getTable(Request $request)
     {
-        $envios_ventas  = EnvioVenta::select('id','documento_nro', 'cliente_nombre','cliente_celular','fecha_envio_propuesta','fecha_envio',
-                            'created_at','tipo_envio','empresa_envio_nombre','sede_envio_nombre','departamento','provincia',
-                            'distrito','destinatario_nombre','destinatario_dni','tipo_pago_envio','monto_envio',
-                            'entrega_domicilio','direccion_entrega','estado','documento_id') 
-                        ->orderBy('id', 'desc') 
-                        ->get();
+        $fecha_inicio = $request->get('fecha_inicio');
+        $fecha_fin = $request->get('fecha_fin');
+    
+        $envios_ventas = EnvioVenta::orderBy('id', 'desc');
+    
+        if ($fecha_inicio) {
+            $envios_ventas = $envios_ventas->whereDate('created_at', '>=', $fecha_inicio);
+        } 
+        if ($fecha_fin) {
+            $envios_ventas = $envios_ventas->whereDate('created_at', '<=', $fecha_fin);
+        }
+    
+        $envios_ventas = $envios_ventas->get();
+        
+       
+
+       
 
         $coleccion = collect([]);
         foreach($envios_ventas as $envio_venta) {
@@ -43,12 +57,13 @@ class DespachoController extends Controller
                 'ubigeo'                =>  $envio_venta->departamento.' - '.$envio_venta->provincia.' - '.$envio_venta->distrito,
                 'tipo_pago_envio'       =>  $envio_venta->tipo_pago_envio,
                 'destinatario_nombre'   =>  $envio_venta->destinatario_nombre,
-                'destinatario_dni'      =>  $envio_venta->destinatario_dni,
+                'destinatario_nro_doc'  =>  $envio_venta->destinatario_tipo_doc.': '.$envio_venta->destinatario_nro_doc,
                 'monto_envio'           =>  $envio_venta->monto_envio,
                 'entrega_domicilio'     =>  $envio_venta->entrega_domicilio,
                 'direccion_entrega'     =>  $envio_venta->direccion_entrega,
                 'estado'                =>  $envio_venta->estado,
-                'documento_id'          =>  $envio_venta->documento_id
+                'documento_id'          =>  $envio_venta->documento_id,
+                'obs_despacho'          =>  $envio_venta->obs_despacho
                 ]);
         }
         return DataTables::of($coleccion)->toJson();
@@ -72,8 +87,8 @@ class DespachoController extends Controller
         $empresa = Empresa::first();
         
         $despacho = DB::select('SELECT ev.distrito, ev.destinatario_nombre, ev.documento_nro,ev.cliente_nombre,
-                        ev.destinatario_dni, ev.cliente_celular, ev.entrega_domicilio, ev.direccion_entrega,
-                        ev.created_at,ev.empresa_envio_nombre,ev.tipo_pago_envio
+                        ev.destinatario_tipo_doc,ev.destinatario_nro_doc, ev.cliente_celular, ev.entrega_domicilio, 
+                        ev.direccion_entrega,ev.created_at,ev.empresa_envio_nombre,ev.tipo_pago_envio,ev.obs_rotulo
                         FROM envios_ventas AS ev
                         WHERE ev.id=? AND ev.documento_id=?', [$despacho_id, $documento_id]);
         
@@ -166,14 +181,16 @@ class DespachoController extends Controller
             $envio_venta->sede_envio_id             =   $data_envio->sede_envio->id;
             $envio_venta->sede_envio_nombre         =   $data_envio->sede_envio->direccion;
             $envio_venta->tipo_envio                =   $data_envio->tipo_envio->descripcion;
-            $envio_venta->destinatario_dni          =   $data_envio->destinatario->dni;
+            $envio_venta->destinatario_tipo_doc     =   $data_envio->destinatario->tipo_documento;
+            $envio_venta->destinatario_nro_doc      =   $data_envio->destinatario->nro_documento;
             $envio_venta->destinatario_nombre       =   $data_envio->destinatario->nombres;
             $envio_venta->tipo_pago_envio           =   $data_envio->tipo_pago_envio->descripcion;
             $envio_venta->entrega_domicilio         =   $data_envio->entrega_domicilio?"SI":"NO";
             $envio_venta->direccion_entrega         =   $data_envio->direccion_entrega;
             $envio_venta->fecha_envio_propuesta     =   $data_envio->fecha_envio_propuesta;
             $envio_venta->origen_venta              =   $data_envio->origen_venta->descripcion;
-            $envio_venta->observaciones             =   $data_envio->observaciones;
+            $envio_venta->obs_rotulo                =   $data_envio->obs_rotulo;
+            $envio_venta->obs_despacho              =   $data_envio->obs_despacho;
             $envio_venta->update();
             
             DB::commit();

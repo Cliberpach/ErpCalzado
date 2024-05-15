@@ -21,7 +21,7 @@
 
         .container {
             width: 100%;
-            margin: 0 auto 0 auto;
+            margin: -30px 0  0 auto;
             text-align: center;
         }
 
@@ -55,10 +55,12 @@
 
 
         .destino-text{
-            font-size: 75px;
+            font-size: 55px;
             font-family: "Vast Shadow", serif;
             padding:0;
             margin:0;
+            letter-spacing: -1px; 
+            line-height: 0.6; 
         }
 
     
@@ -75,7 +77,7 @@
         }
 
         .doc_destinatario{
-            font-size: 40px;
+            font-size: 33px;
             font-weight: bold;
             margin-bottom: 15px;
         }
@@ -89,6 +91,10 @@
 
         .empresa-envio{
             font-size: 29px;
+        }
+
+        .observaciones{
+            font-size: 22px;
         }
         
 
@@ -121,22 +127,40 @@
         <div class="row" style="width:100%;">
             <div class="cuadro-content" style="border:1px black solid;">
                 <p class="nombre_destinatario" >{{$despacho->destinatario_nombre}}</p>
-                <p class="doc_destinatario">{{$despacho->destinatario_dni}}  
-                    {{$despacho->cliente_celular? ' - '.$despacho->cliente_celular:''}}</p> 
+                <p class="doc_destinatario"> {{$despacho->destinatario_tipo_doc.': '.$despacho->destinatario_nro_doc}}  
+                    {{$despacho->cliente_celular? ' - '.'CEL: '.$despacho->cliente_celular:''}}</p> 
             </div>
         </div>
 
-        <div class="row" style="margin-top:-50px;">
+        <div class="row" style="margin-top:-30px;">
             <div>
                 <p class="destino-text" style="vertical-align: middle;">{{$despacho->distrito}}</p>
             </div>
         </div>
 
-        <div class="row" style="margin-top:-15px;">
+
+        @if ($despacho->entrega_domicilio === "SI")
+            <div class="row" style="margin-bottom:0;">
+                <p style="margin:0;padding:0;" class="empresa-envio">
+                    <span style="font-weight: bold;">ENVÍO DOMIC: </span>
+                    {{$despacho->direccion_entrega}}
+                </p>
+            </div>
+        @endif
+
+        <div class="row" style="margin-bottom:0;">
             <p style="margin:0;padding:0;" class="empresa-envio">{{$despacho->empresa_envio_nombre.' - '.$despacho->tipo_pago_envio}}</p>
         </div>
 
-      
+        @if ($despacho->obs_rotulo)
+            <div class="row" style="margin-bottom:0;">
+                <p style="margin:0;padding:0;" class="observaciones">
+                    <span style="font-weight: bold;">OBSERVACIÓN: </span>
+                    {{$despacho->obs_rotulo}}
+                </p>
+            </div>
+        @endif
+       
 
         <div class="row">
             <p class="redes-text">Nuestras Redes Sociales</p>

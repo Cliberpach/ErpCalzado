@@ -83,36 +83,38 @@ class DocumentoController extends Controller
         $colleccion = collect([]);
         $documentos = Documento::query()
             ->select([
-                'id',
-                'tipo_venta',
-                DB::raw('(CONCAT(serie, "-" ,correlativo)) as numero_doc'),
-                'serie',
-                'correlativo',
-                'cliente',
-                'empresa',
-                'importe',
-                'efectivo',
-                'tipo_pago_id',
-                'ruta_pago',
-                'cliente_id',
-                'convertir',
-                'empresa_id',
-                'cotizacion_venta',
-                'fecha_documento',
-                'estado_pago',
-                'condicion_id',
-                'sunat',
-                'regularize',
-                'contingencia',
-                'sunat_contingencia',
-                'documento_cliente',
-                'estado',
-                DB::raw('json_unquote(json_extract(getRegularizeResponse, "$.code")) as code'),
-                'total',
-                'total_pagar',
-                DB::raw('DATEDIFF( now(),fecha_documento) as dias'),
-                DB::raw('(select count(id) from nota_electronica where documento_id = cotizacion_documento.id) as notas'),
-            ])
+                'cotizacion_documento.id',
+                'cotizacion_documento.tipo_venta',
+                DB::raw('(CONCAT(cotizacion_documento.serie, "-" ,cotizacion_documento.correlativo)) as numero_doc'),
+                'cotizacion_documento.serie',
+                'cotizacion_documento.correlativo',
+                'cotizacion_documento.cliente',
+                'cotizacion_documento.empresa',
+                'cotizacion_documento.importe',
+                'cotizacion_documento.efectivo',
+                'cotizacion_documento.tipo_pago_id',
+                'cotizacion_documento.ruta_pago',
+                'cotizacion_documento.cliente_id',
+                'cotizacion_documento.convertir',
+                'cotizacion_documento.empresa_id',
+                'cotizacion_documento.cotizacion_venta',
+                'cotizacion_documento.fecha_documento',
+                'cotizacion_documento.estado_pago',
+                'cotizacion_documento.condicion_id',
+                'cotizacion_documento.sunat',
+                'cotizacion_documento.regularize',
+                'cotizacion_documento.contingencia',
+                'cotizacion_documento.sunat_contingencia',
+                'cotizacion_documento.documento_cliente',
+                'cotizacion_documento.estado',
+                DB::raw('json_unquote(json_extract(cotizacion_documento.getRegularizeResponse, "$.code")) as code'),
+                'cotizacion_documento.total',
+                'cotizacion_documento.total_pagar',
+                DB::raw('DATEDIFF( now(),cotizacion_documento.fecha_documento) as dias'),
+                DB::raw('(select count(nota_electronica.id) from nota_electronica where nota_electronica.documento_id = cotizacion_documento.id) as notas'),
+                'envios_ventas.estado AS estado_despacho'
+            ])    
+            ->leftJoin('envios_ventas', 'cotizacion_documento.id', '=', 'envios_ventas.documento_id') 
             ->with([
                 "condicion" => function ($query) {
                     return $query->select();
@@ -123,7 +125,7 @@ class DocumentoController extends Controller
                 "clienteEntidad"=>function($query){
                     return $query->select(['id','correo_electronico','telefono_movil','telefono_fijo',]);
                 }
-            ])->where('estado', '<>', "ANULADO");
+            ])->where('cotizacion_documento.estado', '<>', "ANULADO");
         if (!PuntoVenta() && !FullAccess()) {
             $documentos = $documentos->where('user_id', Auth::user()->id);
         }
@@ -182,13 +184,14 @@ class DocumentoController extends Controller
                 'code'              =>  $value->code,
                 'total'             =>  $value->total,
                 'total_pagar'       =>  $value->total_pagar,
-                'dias' => $value->dias,
-                'notas' => $value->notas,
-                "condicion"=>$value->condicion->descripcion,
-                "tipo_venta_id"=>$value->tipo_venta,
-                "correo"=>$value->clienteEntidad->correo_electronico,
-                "telefonoMovil"=>$value->clienteEntidad->telefono_movil,
-                "estado"=> $value->estado
+                'dias'              =>  $value->dias,
+                'notas'             =>  $value->notas,
+                "condicion"         =>  $value->condicion->descripcion,
+                "tipo_venta_id"     =>  $value->tipo_venta,
+                "correo"            =>  $value->clienteEntidad->correo_electronico,
+                "telefonoMovil"     =>  $value->clienteEntidad->telefono_movil,
+                "estado"            =>  $value->estado,
+                "estado_despacho"   =>  $value->estado_despacho
             ]);
         }
 
@@ -1529,6 +1532,7 @@ class DocumentoController extends Controller
 
             $documento->save();
 
+
             //========== VERIFICANDO SI EL USUARIO ESTÁ PARTICIPANDO DE ALGUNA CAJA ACTUALMENTE ==========
             $caja_usuario           =   movimientoUser();
             
@@ -1724,69 +1728,79 @@ class DocumentoController extends Controller
 
         
             //======== GUARDANDO DATA DE ENVIO =========
-            $data_envio     =   json_decode($request->get('data_envio'));
+            //======= CONTROL PARA EVITAR QUE SE GENERE DATA ENVIO AL EDITAR O CONVERTIR DOC VENTA ==========
+            if($request->has('data_envio')){
+
+                $data_envio     =   json_decode($request->get('data_envio'));
            
-            if (!empty((array)$data_envio)) {
-                $envio_venta                        =   new EnvioVenta();
-                $envio_venta->documento_id          =   $documento->id;
-                $envio_venta->departamento          =   $data_envio->departamento->nombre;
-                $envio_venta->provincia             =   $data_envio->provincia->text;
-                $envio_venta->distrito              =   $data_envio->distrito->text;
-                $envio_venta->empresa_envio_id      =   $data_envio->empresa_envio->id;
-                $envio_venta->empresa_envio_nombre  =   $data_envio->empresa_envio->empresa;
-                $envio_venta->sede_envio_id         =   $data_envio->sede_envio->id;
-                $envio_venta->sede_envio_nombre     =   $data_envio->sede_envio->direccion;
-                $envio_venta->tipo_envio            =   $data_envio->tipo_envio->descripcion;
-                $envio_venta->destinatario_dni      =   $data_envio->destinatario->dni;
-                $envio_venta->destinatario_nombre   =   $data_envio->destinatario->nombres;
-                $envio_venta->cliente_id            =   $documento->cliente_id;
-                $envio_venta->cliente_nombre        =   $documento->cliente;
-                $envio_venta->tipo_pago_envio       =   $data_envio->tipo_pago_envio->descripcion;
-                $envio_venta->monto_envio           =   $documento->monto_envio;
-                $envio_venta->entrega_domicilio     =   $data_envio->entrega_domicilio?"SI":"NO";
-                $envio_venta->direccion_entrega     =   $data_envio->direccion_entrega;
-                $envio_venta->documento_nro         =   $envio_prev['serie_correlativo'];
-                $envio_venta->fecha_envio_propuesta =   $data_envio->fecha_envio_propuesta;
-                $envio_venta->origen_venta          =   $data_envio->origen_venta->descripcion;
-                $envio_venta->observaciones         =   $data_envio->observaciones;
-                $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
-                $envio_venta->save();
-            }else{
+                if (!empty((array)$data_envio)) {
+                    $envio_venta                        =   new EnvioVenta();
+                    $envio_venta->documento_id          =   $documento->id;
+                    $envio_venta->departamento          =   $data_envio->departamento->nombre;
+                    $envio_venta->provincia             =   $data_envio->provincia->text;
+                    $envio_venta->distrito              =   $data_envio->distrito->text;
+                    $envio_venta->empresa_envio_id      =   $data_envio->empresa_envio->id;
+                    $envio_venta->empresa_envio_nombre  =   $data_envio->empresa_envio->empresa;
+                    $envio_venta->sede_envio_id         =   $data_envio->sede_envio->id;
+                    $envio_venta->sede_envio_nombre     =   $data_envio->sede_envio->direccion;
+                    $envio_venta->tipo_envio            =   $data_envio->tipo_envio->descripcion;
+                    $envio_venta->destinatario_tipo_doc =   $data_envio->destinatario->tipo_documento;
+                    $envio_venta->destinatario_nro_doc  =   $data_envio->destinatario->nro_documento;
+                    $envio_venta->destinatario_nombre   =   $data_envio->destinatario->nombres;
+                    $envio_venta->cliente_id            =   $documento->cliente_id;
+                    $envio_venta->cliente_nombre        =   $documento->cliente;
+                    $envio_venta->tipo_pago_envio       =   $data_envio->tipo_pago_envio->descripcion;
+                    $envio_venta->monto_envio           =   $documento->monto_envio;
+                    $envio_venta->entrega_domicilio     =   $data_envio->entrega_domicilio?"SI":"NO";
+                    $envio_venta->direccion_entrega     =   $data_envio->direccion_entrega;
+                    $envio_venta->documento_nro         =   $envio_prev['serie_correlativo'];
+                    $envio_venta->fecha_envio_propuesta =   $data_envio->fecha_envio_propuesta;
+                    $envio_venta->origen_venta          =   $data_envio->origen_venta->descripcion;
+                    $envio_venta->obs_rotulo            =   $data_envio->obs_rotulo;
+                    $envio_venta->obs_despacho          =   $data_envio->obs_despacho;
+                    $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
+                    $envio_venta->save();
+                }else{
+                    
+                    //======== OBTENER EMPRESA ENVÍO =======
+                    $empresa_envio                      =   DB::select('select ee.id,ee.empresa,ee.tipo_envio
+                                                            from empresas_envio as ee
+                                                            where ee.empresa="MERRIS"')[0];
+                    
+                    $sede_envio                         =   DB::select('select ees.id,ees.direccion 
+                                                            from empresa_envio_sedes as ees
+                                                            where ees.empresa_envio_id=?',[$empresa_envio->id])[0];
                 
-                //======== OBTENER EMPRESA ENVÍO =======
-                $empresa_envio                      =   DB::select('select ee.id,ee.empresa,ee.tipo_envio
-                                                        from empresas_envio as ee
-                                                        where ee.empresa="MERRIS"')[0];
-                
-                $sede_envio                         =   DB::select('select ees.id,ees.direccion 
-                                                        from empresa_envio_sedes as ees
-                                                        where ees.empresa_envio_id=?',[$empresa_envio->id])[0];
-              
-                $envio_venta                        =   new EnvioVenta();
-                $envio_venta->documento_id          =   $documento->id;
-                $envio_venta->departamento          =   "LA LIBERTAD";
-                $envio_venta->provincia             =   "TRUJILLO";
-                $envio_venta->distrito              =   "TRUJILLO";
-                $envio_venta->empresa_envio_id      =   $empresa_envio->id;
-                $envio_venta->empresa_envio_nombre  =   $empresa_envio->empresa;
-                $envio_venta->sede_envio_id         =   $sede_envio->id;
-                $envio_venta->sede_envio_nombre     =   $sede_envio->direccion;
-                $envio_venta->tipo_envio            =   $empresa_envio->tipo_envio;
-                $envio_venta->destinatario_dni      =   $documento->documento_cliente;
-                $envio_venta->destinatario_nombre   =   $documento->cliente;
-                $envio_venta->cliente_id            =   $documento->cliente_id;
-                $envio_venta->cliente_nombre        =   $documento->cliente;
-                $envio_venta->tipo_pago_envio       =   "-";
-                $envio_venta->monto_envio           =   $documento->monto_envio;
-                $envio_venta->entrega_domicilio     =   "NO";
-                $envio_venta->direccion_entrega     =   null;
-                $envio_venta->documento_nro         =   $envio_prev['serie_correlativo'];
-                $envio_venta->fecha_envio_propuesta =   null;
-                $envio_venta->origen_venta          =   "WHATSAPP";
-                $envio_venta->observaciones         =   null;
-                $envio_venta->estado                =   'PENDIENTE';
-                $envio_venta->save();
+                    $envio_venta                        =   new EnvioVenta();
+                    $envio_venta->documento_id          =   $documento->id;
+                    $envio_venta->departamento          =   "LA LIBERTAD";
+                    $envio_venta->provincia             =   "TRUJILLO";
+                    $envio_venta->distrito              =   "TRUJILLO";
+                    $envio_venta->empresa_envio_id      =   $empresa_envio->id;
+                    $envio_venta->empresa_envio_nombre  =   $empresa_envio->empresa;
+                    $envio_venta->sede_envio_id         =   $sede_envio->id;
+                    $envio_venta->sede_envio_nombre     =   $sede_envio->direccion;
+                    $envio_venta->tipo_envio            =   $empresa_envio->tipo_envio;
+                    $envio_venta->destinatario_tipo_doc =   $documento->tipo_documento_cliente;
+                    $envio_venta->destinatario_nro_doc  =   $documento->documento_cliente;
+                    $envio_venta->destinatario_nombre   =   $documento->cliente;
+                    $envio_venta->cliente_id            =   $documento->cliente_id;
+                    $envio_venta->cliente_nombre        =   $documento->cliente;
+                    $envio_venta->tipo_pago_envio       =   "-";
+                    $envio_venta->monto_envio           =   $documento->monto_envio;
+                    $envio_venta->entrega_domicilio     =   "NO";
+                    $envio_venta->direccion_entrega     =   null;
+                    $envio_venta->documento_nro         =   $envio_prev['serie_correlativo'];
+                    $envio_venta->fecha_envio_propuesta =   null;
+                    $envio_venta->origen_venta          =   "WHATSAPP";
+                    $envio_venta->obs_despacho          =   null;
+                    $envio_venta->obs_rotulo            =   null;
+                    $envio_venta->estado                =   'PENDIENTE';
+                    $envio_venta->save();
+                }
+
             }
+            
          
             // if ($request->convertir) {
             //     $doc_a_convertir = Documento::find($request->convertir);

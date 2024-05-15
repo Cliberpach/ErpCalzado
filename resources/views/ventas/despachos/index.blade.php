@@ -30,43 +30,76 @@
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-content">
-                        <div class="table-responsive">
-                            <table class="table dataTables-despacho table-striped table-bordered table-hover"
-                                style="text-transform:uppercase">
-                                <thead>
-                                    {{-- <tr>
-
-                                        <th colspan="4" class="text-center">CLIENTES</th>
-                                        <th colspan="4" class="text-center">UBICACIONES</th>
-                                        <th colspan="1" class="text-center"></th>
-
-                                    </tr> --}}
-                                    <tr>
-                                        <th class="text-center">DOC</th>
-                                        <th class="text-center">CLIENTE</th>
-                                        <th class="text-center">CLIENTE CELULAR</th>
-                                        <th class="text-center">FEC PROPUESTA</th>
-                                        <th class="text-center">FEC ENVIO</th>
-                                        <th class="text-center">FEC REGISTRO</th>
-                                        <th class="text-center">TIPO ENVIO</th>
-                                        <th class="text-center">EMPRESA</th>
-                                        <th class="text-center">SEDE</th>
-                                        <th class="text-center">DESTINO</th>
-                                        <th class="text-center">DEST NOMBRE</th>
-                                        <th class="text-center">DEST DNI</th>
-                                        <th class="text-center">TIPO PAGO</th>
-                                        <th class="text-center">MONTO ENVÍO</th>
-                                        <th class="text-center">ENVÍO DOMICILIO</th>
-                                        <th class="text-center">DIRECCIÓN DOMICILIO</th>
-                                        <th class="text-center">ESTADO</th>
-                                        <th class="text-center">ACCIONES</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                </tbody>
-                            </table>
+                        <div class="row mb-5">
+                            <div class="col-3">
+                                <label for="filtroEstado" style="font-weight: bold;">ESTADO:</label>
+                                <select id="filtroEstado" class="form-control select2_form" onchange="filtrarDespachosEstado(this.value)">
+                                    <option value="PENDIENTE">PENDIENTE</option>
+                                    <option value="EMBALADO">EMBALADO</option>
+                                    <option value="DESPACHADO">DESPACHADO</option>
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="filtroCliente" style="font-weight: bold;">CLIENTE:</label>
+                                <select id="filtroCliente" class="form-control select2_form" onchange="filtrarDespachosCliente(this.value)">
+                                    @foreach ($clientes as $cliente)
+                                        <option value="{{$cliente->id}}">{{$cliente->nombre}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                          
+                            <div class="col-3">
+                                <label for="filtroFechaInicio" style="font-weight: bold;">FEC INICIO:</label>
+                                <input type="date" class="form form-control" id="filtroFechaInicio" onchange="filtrarDespachoFechaInic(this.value)">
+                            </div>
+                            <div class="col-3">
+                                <label for="filtroFechaFin" style="font-weight: bold;">FEC FIN:</label>
+                                <input type="date" class="form form-control" id="filtroFechaFin" onchange="filtrarDespachoFechaFin(this.value)">
+                            </div> 
                         </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="table-responsive">
+                                    <table class="table dataTables-despacho table-striped table-bordered table-hover"
+                                        style="text-transform:uppercase">
+                                        <thead>
+                                            {{-- <tr>
+        
+                                                <th colspan="4" class="text-center">CLIENTES</th>
+                                                <th colspan="4" class="text-center">UBICACIONES</th>
+                                                <th colspan="1" class="text-center"></th>
+        
+                                            </tr> --}}
+                                            <tr>
+                                                <th class="text-center">DOC</th>
+                                                <th class="text-center">CLIENTE</th>
+                                                <th class="text-center">CLIENTE CELULAR</th>
+                                                <th class="text-center">FEC PROPUESTA</th>
+                                                <th class="text-center">FEC ENVIO</th>
+                                                <th class="text-center">FEC REGISTRO</th>
+                                                <th class="text-center">TIPO ENVIO</th>
+                                                <th class="text-center">EMPRESA</th>
+                                                <th class="text-center">SEDE</th>
+                                                <th class="text-center">DESTINO</th>
+                                                <th class="text-center">DEST NOMBRE</th>
+                                                <th class="text-center">DEST DOC</th>
+                                                <th class="text-center">TIPO PAGO</th>
+                                                <th class="text-center">MONTO ENVÍO</th>
+                                                <th class="text-center">ENVÍO DOMICILIO</th>
+                                                <th class="text-center">DIRECCIÓN DOMICILIO</th>
+                                                <th class="text-center">OBS DESPACHO</th>
+                                                <th class="text-center" >ESTADO</th>
+                                                <th class="text-center">ACCIONES</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+        
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                       
                     </div>
                 </div>
             </div>
@@ -77,6 +110,9 @@
 @push('styles')
     <!-- DataTable -->
     <link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.7/css/dataTables.dataTables.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.2/css/dataTables.dateTime.min.css">
     <style>
         .letrapequeña {
             font-size: 11px;
@@ -130,13 +166,24 @@
     <!-- DataTable -->
     <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
     <script>
         let detallesDataTable;
 
         $(document).ready(function() {
             
-            // DataTables
+            $(".select2_form").select2({
+                placeholder: "SELECCIONAR",
+                allowClear: true,
+                height: '200px',
+                width: '100%',
+            });
+
+          
+
+            
+            //========= DATATABLE DESPACHO =======
             $('.dataTables-despacho').DataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
@@ -165,7 +212,14 @@
                 "bAutoWidth": false,
                 "processing": true,
                 "serverSide":true,
-                "ajax": "{{ route('ventas.despachos.getTable') }}",
+                "ajax": {
+                    "url": "{{ route('ventas.despachos.getTable') }}",
+                    "type": "GET",
+                    "data": function(d) {
+                        d.fecha_inicio = $('#filtroFechaInicio').val();
+                        d.fecha_fin = $('#filtroFechaFin').val();
+                    }
+                },
                 "columns": [{
                         data: 'documento_nro',
                         className: "text-center letrapequeña"
@@ -211,7 +265,7 @@
                         className: "text-center letrapequeña"
                     },
                     {
-                        data: 'destinatario_dni',
+                        data: 'destinatario_nro_doc',
                         className: "text-center letrapequeña"
                     },
                     {
@@ -229,6 +283,10 @@
                     },
                     {
                         data: 'direccion_entrega',
+                        className: "text-center letrapequeña"
+                    },
+                    {
+                        data: 'obs_despacho',
                         className: "text-center letrapequeña"
                     },
                     {
@@ -300,7 +358,13 @@
                     "url": "{{ asset('Spanish.json') }}"
                 },
                 "order": [],
+                "columnDefs": [
+                    { "searchable": false, "targets": 5 } 
+                ]
+                
             });
+            $('#filtroEstado').val(null).trigger('change');
+            $('#filtroCliente').val(null).trigger('change');
 
             //========= DATATABLE DE TABLA DETALLES ======
             detallesDataTable   =   dataTableDetalles();
@@ -379,7 +443,7 @@
 
             if(fila.length>0){
                 descripcion +=  `DESTINO: ${fila[0].ubigeo}
-                                DESTINATARIO: ${fila[0].destinatario_nombre} - ${fila[0].destinatario_dni}`;
+                                DESTINATARIO: ${fila[0].destinatario_nombre} - ${fila[0].destinatario_nro_doc}`;
             }
 
             //======== ALERTA =========
@@ -444,7 +508,7 @@
 
             if(fila.length>0){
                 descripcion +=  `DESTINO: ${fila[0].ubigeo}
-                                DESTINATARIO: ${fila[0].destinatario_nombre} - ${fila[0].destinatario_dni}`;
+                                DESTINATARIO: ${fila[0].destinatario_nombre} - ${fila[0].destinatario_nro_doc}`;
             }
 
             //======== ALERTA =========
@@ -473,7 +537,7 @@
          }
 
 
-         async function setDespacho(despacho_id,documento_id){
+        async function setDespacho(despacho_id,documento_id){
             try {
                 
                 const res   =   await axios.post(route('ventas.despachos.setDespacho'),{
@@ -486,7 +550,6 @@
                     const fila          =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id);
                     const indiceFila    =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id).index();
                     await fila.cell(indiceFila,0).data('DESPACHADO').draw();
-                    //toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
                 }
 
                 return res.data;
@@ -495,6 +558,45 @@
                 
             }
         }
+
+        function filtrarDespachosEstado(estado_despacho){
+            $('.dataTables-despacho').DataTable().column('17').search(estado_despacho).draw();
+        }
+
+        function filtrarDespachosCliente(cliente_despacho){
+            const clienteSeleccionado = $('#filtroCliente').find('option:selected').text();
+            $('.dataTables-despacho').DataTable().column('1').search(clienteSeleccionado).draw();
+        }
+
+        function filtrarDespachoFechaInic(fecha_inicio){
+
+            const fi    =   document.querySelector('#filtroFechaInicio').value;
+            const ff    =   document.querySelector('#filtroFechaFin').value;
+
+            if((fi.toString().trim().length >0 && ff.toString().trim().length >0) & (fi > ff) ){
+                document.querySelector('#filtroFechaInicio').value  =   '';
+                toastr.error('FECHA INICIO DEBE SER MENOR O IGUAL A FECHA FIN','ERROR FECHAS');
+                $('.dataTables-despacho').DataTable().ajax.reload();
+
+                return;
+            }
+
+            $('.dataTables-despacho').DataTable().ajax.reload();
+        }
+        function filtrarDespachoFechaFin(fecha_fin){
+            const fi    =   document.querySelector('#filtroFechaInicio').value;
+            const ff    =   document.querySelector('#filtroFechaFin').value;
+
+            if((fi.toString().trim().length >0 && ff.toString().trim().length >0) & (ff < fi) ){
+                document.querySelector('#filtroFechaFin').value  =   '';
+                toastr.error('FECHA FIN DEBE SER MAYOR O IGUAL A FECHA INICIO','ERROR FECHAS');
+                $('.dataTables-despacho').DataTable().ajax.reload();
+                return;
+            }
+
+            $('.dataTables-despacho').DataTable().ajax.reload();
+        }
+        
 
     </script>
 @endpush
