@@ -730,10 +730,14 @@ div.content-envio.sk__loading::after {
         //======== 0:DNI  1:CARNET EXT. ======
         if(tipo_doc_dest.length == 0 || tipo_doc_dest == 1){
             document.querySelector('#btn-consultar-dni').style.display  =   'none';
+            document.querySelector('#nro_doc_destinatario').maxLength   =   20;
         }
         if(tipo_doc_dest == 0 && tipo_doc_dest.length === 1){
             document.querySelector('#btn-consultar-dni').style.display  =   'block';
+            document.querySelector('#nro_doc_destinatario').maxLength   =   8;
         }
+
+    
 
         const destinatario_tipo_doc  =   $("#tipo_doc_destinatario").find('option:selected').text();
         document.querySelector('.span-tipo-doc-dest').textContent     =   destinatario_tipo_doc;
@@ -784,7 +788,7 @@ div.content-envio.sk__loading::after {
 
         const tipo_doc_destinatario =   $("#tipo_doc_destinatario").find('option:selected').text();
         if(tipo_doc_destinatario === "DNI"){
-            if(document.querySelector('#nro_doc_destinatario').value !== 8){
+            if(document.querySelector('#nro_doc_destinatario').value.length !== 8){
                 toastr.error('INGRESE UN NRO DOCUMENTO VÁLIDO PARA EL DESTINATARIO',"ERROR");
                 return;
             }
