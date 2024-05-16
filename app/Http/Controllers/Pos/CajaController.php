@@ -368,6 +368,7 @@ class CajaController extends Controller
 
     public function cerrarCaja(Request $request)
     {
+        
         $movimiento = MovimientoCaja::findOrFail($request->movimiento_id);
         $movimiento->estado_movimiento = 'CIERRE';
         $movimiento->fecha_cierre = date('Y-m-d h:i:s');
@@ -388,6 +389,25 @@ class CajaController extends Controller
         }
 
         return redirect()->route('Caja.Movimiento.index');
+    }
+
+    public function verificarVentasNoPagadas($movimiento_id){
+
+        try {
+            $docs_no_pagados       =  DB::select('select cd.serie,cd.correlativo 
+                                        from detalle_movimiento_venta as dmv 
+                                        inner join cotizacion_documento as cd on cd.id=dmv.cdocumento_id
+                                        where cd.estado_pago="PENDIENTE" and mcaja_id=?
+                                        group by cd.serie,cd.correlativo',[$movimiento_id]);
+
+            
+
+            return response()->json(['success'=>true,'docs_no_pagados'=>$docs_no_pagados]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>"ERROR EN EL SERVIDOR AL CONSULTAR DOCS VENTA NO PAGADOS",
+                                        'exception'=>$th->getMessage()]);
+        }
+       
     }
 
     public function cajaDatosCierre(Request $request)

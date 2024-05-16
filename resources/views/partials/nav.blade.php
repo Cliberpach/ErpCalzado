@@ -31,7 +31,7 @@
 </li>
 @endcan
 
-@can('restore', [Auth::user(),['caja.index','movimiento_caja.index','egreso.index']])
+@can('restore', [Auth::user(),['caja.index','movimiento_caja.index','egreso.index','recibos_caja.index']])
 <li class="@yield('caja-chica-active')">
     <a href="#"><i class="fa fa-archive"></i> <span class="nav-label">Caja Chica</span><span
             class="fa arrow"></span></a>
@@ -44,6 +44,9 @@
         @endcan
         @can('haveaccess', 'egreso.index')
         <li class="@yield('egreso-active')"> <a href="{{ route('Egreso.index') }}"><i class="fa fa-arrow-right"></i> Egreso</a></li>
+        @endcan
+        @can('haveaccess', 'recibos_caja.index')
+        <li class="@yield('recibos_caja-active')"> <a href="{{ route('recibos_caja.index') }}"><i class="fa fa-arrow-right"></i> Recibos Caja</a></li>
         @endcan
     </ul>
 </li>

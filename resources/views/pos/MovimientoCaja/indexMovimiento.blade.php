@@ -145,6 +145,12 @@
     var cuerpo_colaborades = document.querySelector('#modal_detalles_colaboradores table tbody');
     let btnEnviar = document.getElementById('btnEnviarAperturaCaja');
 
+    document.addEventListener('DOMContentLoaded',()=>{
+        iniciarDataTableMovimientos();
+        eventsCerrarCaja();
+    })
+
+
     function verificarUsuariosVentas(event){
         event.preventDefault();
         let cant= document.querySelectorAll('input[name="usuarioVentas[]"]');
@@ -221,8 +227,7 @@
     }
 
 
-
-    $(function() {
+    function iniciarDataTableMovimientos(){
         var table = $('.dataTables-cajas').DataTable({
             "dom": '<"html5buttons"B>lTfgitp',
             "buttons": [{
@@ -370,7 +375,10 @@
         $(document).on("click", "#reload", function() {
             table.draw();
         });
-    });
+    }
+  
+       
+   
 
     function reporte(id) {
         var url = "{{ route('Caja.reporte.movimiento', ':id') }}"

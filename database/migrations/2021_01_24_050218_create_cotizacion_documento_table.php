@@ -55,6 +55,8 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->longText('hash')->nullable();
 
             $table->longText('ruta_pago')->nullable();
+            $table->longText('ruta_pago_2')->nullable();
+
             $table->unsignedInteger('banco_empresa_id')->unsigned()->nullable();
             $table->foreign('banco_empresa_id')
                   ->references('id')->on('banco_empresas')
