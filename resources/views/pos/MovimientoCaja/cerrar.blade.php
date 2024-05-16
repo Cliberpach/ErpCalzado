@@ -78,35 +78,10 @@
         });
 
         function eventsCerrarCaja(){
-            document.querySelector('#form-cerrar-caja').addEventListener('submit',async (e)=>{
-                e.preventDefault();
-                const movimiento_id     =   document.querySelector('#movimiento_id').value;
-                if(movimiento_id){
-                    const res_validacion_docs   =  await validarVentasNoPagadas(movimiento_id);
-                    if(res_validacion_docs){
-                        e.target.submit();
-                    }
-                }
-            })
+            
         }
 
-        async function validarVentasNoPagadas(movimiento_id){    
-            const res =  await axios.get('{{ route('caja.movimiento.verificarVentasNoPagadas', ['movimiento_id' => ':movimiento_id']) }}'.replace(':movimiento_id', movimiento_id))
-               
-            if(res.data.success){
-                if(res.data.docs_no_pagados.length === 0){
-                    return true;
-                }else{
-                    res.data.docs_no_pagados.forEach((dn)=>{
-                        toastr.error(`${dn.serie}-${dn.correlativo}`, 'DEBE PAGAR EL DOC DE VENTA PARA PODER CERRAR CAJA', { timeOut: 0, extendedTimeOut: 0 });
-                    })
-                    return false;
-                }
-            }else{
-                toastr.error(res.data.exception,res.data.message)
-                return false;
-            }
-        }
+       
         
     </script>
 @endpush

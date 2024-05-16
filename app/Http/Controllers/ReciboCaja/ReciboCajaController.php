@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\ReciboCajaRequest;
+use Illuminate\Support\Facades\Session;
 
 class ReciboCajaController extends Controller
 {
@@ -46,6 +47,7 @@ class ReciboCajaController extends Controller
     }
 
     public function create(){
+        
         $tipos_documento    =   tipos_documento();
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();
@@ -72,14 +74,23 @@ class ReciboCajaController extends Controller
 
         DB::beginTransaction();
         try {
-            dd($request->all());
-            $recibo_caja    =   new ReciboCaja();
+            $recibo_caja                =   new ReciboCaja();
+            $recibo_caja->caja_id       =   $request->get('caja_id');
+            $recibo_caja->user_id       =   Auth::user()->id;
+            $recibo_caja->cliente_id    =   $request->get('cliente_id');
+            $recibo_caja->monto         =   $request->get('monto');
+            $recibo_caja->metodo_pago   =   $request->get('metodo_pago');
+            $recibo_caja->save();
             
+            DB::commit();
+            Session::flash('recibo_caja_success', 'RECIBO CAJA REGISTRADO');
+            return view('recibos_caja.index');
         } catch (\Throwable $th) {
-            //throw $th;
+            DB::rollback();
+            Session::flash('recibo_caja_error', $th->getMessage());
+            return redirect()->back();        
         }
        
-      
     }
 
     public function buscarCajaApertUsuario(){
@@ -90,14 +101,14 @@ class ReciboCajaController extends Controller
                                     inner join movimiento_caja as mc  on dmc.movimiento_id=mc.id
                                     inner join caja as c on c.id=mc.caja_id
                                     where estado_movimiento = "APERTURA" and dmc.usuario_id=?',[Auth::user()->id]);
-
+            
             if(count($caja_aperturada) === 0){
                 return response()->json(['success'=>false,
                 'message'=>"USTED NO SE ENCUENTRA ASOCIADO A NINGUNA CAJA APERTURADA ACTUALMENTE"]);
             }else{
                 return response()->json(['success'=>true,'message'=>'EL RECIBO SE ASIGNARÁ A LA CAJA: '.
                 $caja_aperturada[0]->nombre,
-                'caja_id'=>$caja_aperturada->caja_id]);
+                'caja_id'=>$caja_aperturada[0]->caja_id]);
             }
         } catch (\Throwable $th) {
            return response()->json(['success'=>false,'message'=>'ERROR EN EL SERVIDOR AL BUSCAR LA CAJA DEL USUARIO',

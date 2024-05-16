@@ -30,6 +30,7 @@ class ReciboCajaRequest extends FormRequest
             'vendedor' => 'required|exists:vendedores,id',
             'cliente' => 'required|exists:clientes,id',
             'monto' => 'required|numeric|min:0',
+            'metodo_pago'   =>  'required'
         ];
     }
 
@@ -49,6 +50,7 @@ class ReciboCajaRequest extends FormRequest
             'monto.required' => 'El campo monto es obligatorio.',
             'monto.numeric' => 'El campo monto debe ser un número.',
             'monto.min' => 'El campo monto debe ser un número positivo.',
+            'metodo_pago.required'  =>  'El campo método de pago es obligatorio'
         ];
     }
 }

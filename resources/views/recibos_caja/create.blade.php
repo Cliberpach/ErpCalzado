@@ -128,6 +128,25 @@
 
                                     <div class="col-lg-6 col-md-6">
                                         <div class="row">
+                                            <div class="col-lg-6 col-md-6">
+                                                <label for="metodo_pago">METOD. PAGO</label>
+                                                <select required name="metodo_pago" id="metodo_pago" class="form-control select2_form">
+                                                    <option value="EFECTIVO" {{ old('metodo_pago') == 'EFECTIVO' ? 'selected' : '' }}>EFECTIVO</option>
+                                                    <option value="TRANSFERENCIA" {{ old('metodo_pago') == 'TRANSFERENCIA' ? 'selected' : '' }}>TRANSFERENCIA</option>
+                                                    <option value="YAPE/PLIN" {{ old('metodo_pago') == 'YAPE/PLIN' ? 'selected' : '' }}>YAPE/PLIN</option>
+                                                </select>                                                
+                                            </div>
+                                            <div class="col-lg-6 col-md-6">
+                                                <label for="monto_recibo">Monto</label>
+                                                <input id="monto_recibo" type="text" name="monto" class="form-control" min="0" value="{{ old('monto') }}">
+                                                @error('monto')
+                                                    <div class="alert alert-danger">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6">
+                                        <div class="row">
                                             <div class="col-lg-6 col-md-6 select-required">
                                                 <div class="form-group">
                                                     <label class="required">Cliente:
@@ -155,15 +174,9 @@
                                                     @endif
                                                 </div>
                                             </div>
-                                            <div class="col-lg-6 col-md-6">
-                                                <label for="monto_recibo">Monto</label>
-                                                <input  id="monto_recibo" type="text" name="monto" class="form-control" min="0">
-                                                @error('monto')
-                                                    <div class="alert alert-danger">{{ $message }}</div>
-                                                @enderror
-                                            </div>
                                         </div>
                                     </div>
+
                                     <!-- OBTENER TIPO DE CLIENTE -->
                                     <input type="hidden" name="" id="tipo_cliente">
                                     <!-- OBTENER DATOS DEL PRODUCTO -->
@@ -194,9 +207,7 @@
                                         class="btn btn-w-m btn-default">
                                         <i class="fa fa-arrow-left"></i> Regresar
                                     </a>
-                                    {{-- <button type="submit" id="btn_grabar" form="form_registrar_cotizacion" class="btn btn-w-m btn-primary">
-                                        <i class="fa fa-save"></i> Grabar
-                                    </button> --}}
+                                
                                     <button type="submit" id="btn_grabar" form="form-recibos-caja" class="btn btn-w-m btn-primary">
                                         <i class="fa fa-save"></i> Grabar
                                     </button>
@@ -208,10 +219,6 @@
             </div>
         </div>
     </div>
-</div>
-
-<div id="reg_clientes">
-    <modal-cliente></modal-cliente>
 </div>
 
 @stop
@@ -334,6 +341,12 @@
 
 </script>
 
+
+@if(Session::has('recibo_caja_error'))
+    <script>
+        toastr.error('{{ Session::get('recibo_caja_error') }}','ERROR EN EL SERVIDOR');
+    </script>
+@endif
 @endpush
 
 

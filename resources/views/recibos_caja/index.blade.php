@@ -77,6 +77,11 @@
         toastr.error("{{ Session::get('error_validacion_caja') }}");
     </script>
 @endif
+@if(Session::has('recibo_caja_success'))
+    <script>
+        toastr.success('{{ Session::get('recibo_caja_success') }}','OPERACIÓN COMPLETADA');
+    </script>
+@endif
 
 <script>
 

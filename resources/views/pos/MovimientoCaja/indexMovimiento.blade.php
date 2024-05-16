@@ -386,22 +386,28 @@
         window.open(url, "REPORTE CAJA", "width=900, height=600")
     }
 
-    function cerrarCaja(id) {
-        axios.get("{{ route('Caja.datos.cierre') }}", {
-            params: {
-                id: id
+    //========= TRAER DATOS DEL MOVIMIENTO CAJA Y ABRIR MODAL CERRAR CAJA =======
+    async function cerrarCaja(id) {
+        if(id){
+            const res_validacion_docs   =  await validarVentasNoPagadas(id);
+            if(res_validacion_docs){
+                axios.get("{{ route('Caja.datos.cierre') }}", {
+                params: {
+                    id: id
+                }
+                }).then((value) => {
+                    var datos = value.data;
+                    $("#modal_cerrar_caja #movimiento_id").val(id);
+                    $("#modal_cerrar_caja #caja").val(datos.caja);
+                    $("#modal_cerrar_caja #colaborador").val(datos.colaborador);
+                    $("#modal_cerrar_caja #monto_inicial").val(datos.monto_inicial);
+                    $("#modal_cerrar_caja #ingreso").val(convertFloat(datos.ingresos).toFixed(2));
+                    $("#modal_cerrar_caja #egreso").val(convertFloat(datos.egresos).toFixed(2));
+                    $("#modal_cerrar_caja #saldo").val(convertFloat(datos.saldo).toFixed(2));
+                    $("#modal_cerrar_caja").modal("show");
+                }).catch((value) => {})
             }
-        }).then((value) => {
-            var datos = value.data;
-            $("#modal_cerrar_caja #movimiento_id").val(id);
-            $("#modal_cerrar_caja #caja").val(datos.caja);
-            $("#modal_cerrar_caja #colaborador").val(datos.colaborador);
-            $("#modal_cerrar_caja #monto_inicial").val(datos.monto_inicial);
-            $("#modal_cerrar_caja #ingreso").val(convertFloat(datos.ingresos).toFixed(2));
-            $("#modal_cerrar_caja #egreso").val(convertFloat(datos.egresos).toFixed(2));
-            $("#modal_cerrar_caja #saldo").val(convertFloat(datos.saldo).toFixed(2));
-            $("#modal_cerrar_caja").modal("show");
-        }).catch((value) => {})
+        }
     }
 
     $(".btn-modal").click(function(e) {
@@ -410,6 +416,23 @@
     });
 
 
+
+    async function validarVentasNoPagadas(movimiento_id){    
+        const res =  await axios.get('{{ route('caja.movimiento.verificarVentasNoPagadas', ['movimiento_id' => ':movimiento_id']) }}'.replace(':movimiento_id', movimiento_id))
+        if(res.data.success){
+            if(res.data.docs_no_pagados.length === 0){
+                return true;
+            }else{
+                res.data.docs_no_pagados.forEach((dn)=>{
+                    toastr.error(`${dn.serie}-${dn.correlativo}`, 'DEBE PAGAR EL DOC DE VENTA PARA PODER CERRAR CAJA', { timeOut: 0, extendedTimeOut: 0 });
+                })
+                return false;
+            }
+        }else{
+            toastr.error(res.data.exception,res.data.message)
+            return false;
+        }
+    }
 
     function formatoMoneda(monto) {
         let res = new Intl.NumberFormat("es-PE", {
