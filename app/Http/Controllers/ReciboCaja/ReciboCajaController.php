@@ -77,14 +77,14 @@ class ReciboCajaController extends Controller
             $recibo_caja                =   new ReciboCaja();
             $recibo_caja->caja_id       =   $request->get('caja_id');
             $recibo_caja->user_id       =   Auth::user()->id;
-            $recibo_caja->cliente_id    =   $request->get('cliente_id');
+            $recibo_caja->cliente_id    =   $request->get('cliente');
             $recibo_caja->monto         =   $request->get('monto');
             $recibo_caja->metodo_pago   =   $request->get('metodo_pago');
             $recibo_caja->save();
             
             DB::commit();
             Session::flash('recibo_caja_success', 'RECIBO CAJA REGISTRADO');
-            return view('recibos_caja.index');
+            return redirect()->route('recibos_caja.index');        
         } catch (\Throwable $th) {
             DB::rollback();
             Session::flash('recibo_caja_error', $th->getMessage());

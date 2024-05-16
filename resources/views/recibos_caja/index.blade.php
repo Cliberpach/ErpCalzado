@@ -35,7 +35,6 @@
                             style="text-transform:uppercase">
                             <thead>
                                 <tr>
-                                    <th class="text-center">PEDIDO</th>
                                     <th class="text-center">FECHA</th>
                                     <th class="text-center">CLIENTE</th>
                                     <th class="text-center">USUARIO</th>
