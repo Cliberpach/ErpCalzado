@@ -439,6 +439,7 @@ function(){
         Route::post('/storePago', 'Ventas\DocumentoController@storePago')->name('ventas.documento.storePago');
         Route::post('/updatePago', 'Ventas\DocumentoController@updatePago')->name('ventas.documento.updatePago');
         Route::post('/getCuentas', 'Ventas\DocumentoController@getCuentas')->name('ventas.documento.getCuentas');
+        Route::get('/getRecibosCaja/{cliente_id}', 'Ventas\DocumentoController@getRecibosCaja')->name('ventas.documento.getRecibosCaja');
 
         Route::post('quantity', 'Ventas\DocumentoController@quantity')->name('ventas.documento.cantidad');
         Route::post('devolver/cantidad', 'Ventas\DocumentoController@returnQuantity')->name('ventas.documento.devolver.cantidades');

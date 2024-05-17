@@ -411,11 +411,69 @@ class DocumentoController extends Controller
                 $doc_convertido->update();
             }
 
+            //========== CANJEANDO RECIBOS DE CAJA ========
+            if($request->get('modo_pago') === "4-RECIBO DE CAJA"){
+                //======== OBTENEMOS TODOS LOS RECIBOS DE CAJA DEL CLIENTE ==========
+                $recibos_caja_cliente   =   DB::select('select * from recibos_caja as rc 
+                                            where rc.cliente_id=? and rc.saldo>0
+                                            and rc.estado="ACTIVO" 
+                                            and (rc.estado_servicio="LIBRE" or rc.estado_servicio="USANDO")
+                                            order by rc.created_at',
+                                            [$documento->cliente_id]);
+
+                $total_pagar    =   $documento->total_pagar;  // 1400
+
+                
+                $saldo_total_cobrado        =   0;
+
+                //========= RESTAMOS SALDO EN ORDEN ASC POR FECHA DE CREACIÓN =========
+                foreach ($recibos_caja_cliente as $recibo) {
+                    //======== SI EL SALDO DEL RECIBO ES MAYOR O IGUAL AL TOTAL PAGAR, CONSUMIR EL TOTAL PAGAR EN EL RECIBO ========
+                    if($recibo->saldo >= $total_pagar){
+                        $saldo_restante             =   $recibo->saldo - $total_pagar;
+                        $nuevo_estado_servicio      =   $saldo_restante==0?'CANJEADO':'USANDO';  
+
+                        DB::table('recibos_caja')
+                        ->where('id', $recibo->id)
+                        ->update(['saldo' => $saldo_restante ,
+                        'estado_servicio' => $nuevo_estado_recibo
+                        ]);
+                        break;
+                    }else{
+                        
+                        $aux                    =   $saldo_total_cobrado + $recibo->saldo;
+                        $nuevo_saldo_recibo     =   0;
+                        $nuevo_estado_servicio  =   '';
+
+                        //===== SI CUBRE EL MONTO DE LA VENTA,CONSUME TODO EL SALDO DEL RECIBO =========
+                        if($aux <= $total_pagar){
+                            $saldo_total_cobrado    +=  $recibo->saldo;
+                            $nuevo_saldo_recibo     =   0;
+                            $nuevo_estado_servicio  =   'CANJEADO';
+                        }else{
+                            //======= SI SOBREPASA EL MONTO DE VENTA, CONSUME UNA PARTE DEL SALDO DEL RECIBO =======
+                            $monto_faltante         =   $total_pagar - $saldo_total_cobrado;
+                            $nuevo_saldo_recibo     =   $recibo->saldo - $monto_faltante;
+                            $saldo_total_cobrado    +=  $monto_faltante;
+                            $nuevo_estado_servicio  =   'USANDO';
+                        }
+                        DB::table('recibos_caja')
+                        ->where('id', $recibo->id)
+                        ->update(['saldo' => $nuevo_saldo_recibo ,
+                        'estado_servicio' => $nuevo_estado_servicio
+                        ]);
+
+                    }
+                }
+            }
+
+
             DB::commit();
             Session::flash('success', 'Documento pagado con exito.');
             return redirect()->route('ventas.documento.index');
         } catch (Exception $e) {
             DB::rollBack();
+            dd( $e->getMessage());
             Session::flash('error', $e->getMessage());
             return redirect()->route('ventas.documento.index');
         }
@@ -3696,5 +3754,20 @@ class DocumentoController extends Controller
 
         }
 
+    }
+
+
+    public function getRecibosCaja($cliente_id){
+        try {
+            $recibos_caja   =   DB::select('select rc.*, CONCAT("RC-", rc.id, " : SALDO: ", rc.saldo) AS label_recibo
+                                from recibos_caja as rc
+                                where rc.cliente_id=? and rc.saldo > 0
+                                order by rc.created_at',[$cliente_id]);
+
+            return response()->json(['success'=>true,'recibos_caja'=>$recibos_caja]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>'ERROR AL OBTENER RECIBOS DE CAJA DEL CLIENTE',
+            'exception'=>$th->getMessage()]);
+        }
     }
 }

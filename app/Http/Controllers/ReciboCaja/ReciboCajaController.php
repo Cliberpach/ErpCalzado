@@ -25,7 +25,7 @@ class ReciboCajaController extends Controller
     {
         $datos = ReciboCaja::select('recibos_caja.created_at as fecha_recibo', 'clientes.nombre as cliente_nombre',
                 'users.usuario as usuario_nombre', 'recibos_caja.metodo_pago', 'recibos_caja.monto', 'recibos_caja.estado',
-                'recibos_caja.estado_servicio')
+                'recibos_caja.estado_servicio','recibos_caja.saldo')
             ->join('users', 'recibos_caja.user_id', '=', 'users.id')
             ->join('clientes', 'recibos_caja.cliente_id', '=', 'clientes.id')
             ->where('recibos_caja.estado', 'ACTIVO')
@@ -34,13 +34,14 @@ class ReciboCajaController extends Controller
         $data = array();
         foreach ($datos as $key => $value) {
             array_push($data, array(
-                'fecha_recibo'      => $value->fecha_recibo,
-                'cliente_nombre'    => $value->cliente_nombre,
-                'usuario_nombre'    => $value->usuario_nombre,
-                'metodo_pago'       => $value->metodo_pago,
-                'monto'             => $value->monto,
-                'estado'            => $value->estado,
-                'estado_servicio'   => $value->estado_servicio
+                'fecha_recibo'      =>  $value->fecha_recibo,
+                'cliente_nombre'    =>  $value->cliente_nombre,
+                'usuario_nombre'    =>  $value->usuario_nombre,
+                'metodo_pago'       =>  $value->metodo_pago,
+                'monto'             =>  $value->monto,
+                'estado'            =>  $value->estado,
+                'estado_servicio'   =>  $value->estado_servicio,
+                'saldo'             =>  $value->saldo
             ));
         }
         return DataTables::of($data)->toJson();
@@ -79,6 +80,7 @@ class ReciboCajaController extends Controller
             $recibo_caja->user_id       =   Auth::user()->id;
             $recibo_caja->cliente_id    =   $request->get('cliente');
             $recibo_caja->monto         =   $request->get('monto');
+            $recibo_caja->saldo         =   $request->get('monto');
             $recibo_caja->metodo_pago   =   $request->get('metodo_pago');
             $recibo_caja->save();
             

@@ -344,7 +344,7 @@
                 </div>
             </div>
         </div>
-        <ModalVentasVue :ventasPendientes="ventasPendientes" :imgDefault="imginicial" :modoPagos="modopagos" />
+        <ModalVentasVue :ventasPendientes="ventasPendientes" :imgDefault="imginicial" :modoPagos="modopagos" :cliente_id="cliente_id"/>
         <ModalPdfDownloadVue :pdfData.sync="pdfData" />
         <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" ref="modalEnvioRef"/>
     </div>
@@ -383,6 +383,7 @@ export default {
             },
             fechaInicial: this.$moment().format("YYYY-MM-DD"),
             cliente: "",
+            cliente_id:null,
             numero_doc:"",
             ventasPendientes: [],
             loading: false,
@@ -629,8 +630,9 @@ export default {
                             },
                             success: function (response) {
                                 if (response.success) {
-                                    const { ventas } = response;
-                                    me.ventasPendientes = ventas;
+                                    const { ventas }    =   response;
+                                    me.ventasPendientes =   ventas;
+                                    me.cliente_id       =   item.cliente_id;
                                     $('#modal_ventas').modal('show');
 
                                     // timerInterval = 0;

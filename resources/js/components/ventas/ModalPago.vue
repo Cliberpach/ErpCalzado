@@ -7,7 +7,7 @@
                         <span aria-hidden="true">&times;</span>
                         <span class="sr-only">Close</span>
                     </button>
-                    <h4 class="modal-title pago-title">{{ pagoForm.numero_doc }}</h4>
+                    <h4 class="modal-title pago-title">{{ pagoForm.numero_doc }} - {{ cliente_id }}</h4>
                     <small class="font-bold pago-subtitle">{{ pagoForm.cliente }}</small>
                 </div>
                 <div class="modal-body">
@@ -26,6 +26,22 @@
                                     <input type="text" class="form-control" id="tipo_pago_id" name="tipo_pago_id"
                                         readonly v-model="pagoForm.tipo_pago_id">
                                 </div>
+                                <div class="form-group row" >
+                                    <div class="col-4">
+                                        <label class="col-form-label">Saldo del cliente</label>
+                                        <input readonly class="form-control" type="text" v-model="saldoRecibosCaja">
+                                    </div>
+                                    <div class="col-3" :class="{ 'd-none': !mostrarRecibosCaja }" style="display: flex; align-items: flex-end; justify-content: flex-end;">
+                                        <button type="button" class="btn btn-primary">VER RECIBOS</button>
+                                    </div>
+                                    <!-- <v-select
+                                        v-model="recibos_caja_elegidos"
+                                        :options="recibos_caja_disponibles"
+                                        :multiple="true"
+                                        placeholder="Seleccionar recibos de caja"
+                                        :searchable="true"
+                                        label="label_recibo"></v-select> -->
+                                </div>
                                 <div class="form-group">
                                     <label class="col-form-label required">Monto</label>
                                     <input type="text" class="form-control" id="monto_venta" name="monto_venta" readonly
@@ -34,8 +50,8 @@
                                 <div class="form-group">
                                     <label class="col-form-label required">Efectivo</label>
                                     <input type="text" class="form-control" id="efectivo" name="efectivo"
-                                        @keyup="changeEfectivo()" v-model="pagoForm.efectivo"
-                                        :readonly="ModoPagos =='EFECTIVO' ? true : false">
+                                        v-model="pagoForm.efectivo"
+                                        @input="changeEfectivo($event.target.value)" :readonly="ModoPagos =='EFECTIVO' ? true : false">
                                 </div>
                                 <div class="form-group">
                                     <label class="col-form-label required">Modo de pago</label>
@@ -48,7 +64,7 @@
                                 <div class="form-group">
                                     <label class="col-form-label required">Importe</label>
                                     <input type="text" class="form-control" id="importe" name="importe"
-                                        @keyup="changeImporte()" v-model="pagoForm.importe"
+                                         v-model="pagoForm.importe" @input="changeImporte($event.target.value)"
                                         :readonly="ModoPagos == 'EFECTIVO' ? true : false">
                                 </div>
                                 <div class="form-group" id="div_cuentas" v-if="ModoPagos =='TRANSFERENCIA'">
@@ -144,10 +160,14 @@ export default {
         imgDefault: "",
         imgDefault2: "/img/default.png",
         cuentas: [],
-        pagos: null
+        pagos: null,
+        cliente_id:null,
+        recibos_caja:[],
+        saldoRecibosCaja:0,
     },
     data() {
         return {
+            mostrarRecibosCaja:false,
             pagoForm: {
                 cliente: "",
                 condicion: "",
@@ -232,44 +252,113 @@ export default {
         },
         changeModoPago() {
             try {
+
+                if(this.ModoPagos !== "RECIBO DE CAJA"){
+                    this.mostrarRecibosCaja     =   false;
+                }
+                
+                if(this.ModoPagos === "RECIBO DE CAJA"){
+                    this.mostrarRecibosCaja     =   true;
+                    
+                    if(this.saldoRecibosCaja >= this.pagoForm.monto_venta){
+                        this.pagoForm.importe   =   this.pagoForm.monto_venta;
+                    }else{
+                        this.pagoForm.importe       =   this.saldoRecibosCaja;
+                        this.pagoForm.efectivo      =   parseFloat(this.pagoForm.monto_venta)-parseFloat(this.saldoRecibosCaja);
+                    } 
+
+                }
+
                 if (this.ModoPagos == "EFECTIVO") {
                     this.pagoForm.efectivo = "0.00";
                     this.pagoForm.importe = this.pagoForm.monto_venta;
                 }
+
             } catch (ex) {
 
             }
         },
-        changeEfectivo() {
+        changeEfectivo(value) {
             try {
+                //========= ELIMINAMOS CARACTERES NO NUMÉRICOS =======
+                const valorFiltrado     =   value.replace(/[^0-9.]/g, '');
+                this.pagoForm.efectivo  =   valorFiltrado;
+                
+                //======= SI EL VALOR FILTRADO TIENE ALGO =====
+                if(valorFiltrado){
 
-                let monto = convertFloat(this.pagoForm.monto_venta);
-                let efectivo = convertFloat(this.pagoForm.efectivo);
+                    //======= EVITAR QUE EL VALOR FILTRADO SEA MAYOR AL MONTO DE VENTA =======
+                    if(parseFloat(valorFiltrado) > parseFloat(this.pagoForm.monto_venta)){
+                        const cleanedValue      =   valorFiltrado.slice(0, -1);
+                        this.pagoForm.efectivo  =   cleanedValue;
+                        return;
+                    }
+                    //======== CALCULAMOS AUTOMÁTICAMENTE EL VALOR DE IMPORTE ======
+                    let monto       =   parseFloat(this.pagoForm.monto_venta);
+                    let efectivo    =   parseFloat(valorFiltrado);
+                    
+                    if (this.ModoPagos !== 'EFECTIVO') {
+                        let diferencia          = monto - efectivo;
+                        this.pagoForm.importe   = parseFloat(diferencia);
+                    }
 
-                if (this.ModoPagos != 'EFECTIVO') {
-                    let diferencia = monto - efectivo;
-                    this.pagoForm.importe = diferencia.toFixed(2);
+                }else{
+                    //======= SI EL VALOR FILTRADO NO TIENE NADA =======
+                    this.pagoForm.importe   =   this.pagoForm.monto_venta;
                 }
+
+                if(this.ModoPagos   === "RECIBO DE CAJA"){
+                    //======= SI EL IMPORTE ES MAYOR AL SALDO DE CAJA
+                    if(parseFloat(this.pagoForm.importe) > parseFloat(this.saldoRecibosCaja)){
+                        this.pagoForm.importe   =   this.saldoRecibosCaja;
+                    }
+                }
+
             } catch (ex) {
                 alert(ex);
             }
         },
-        changeImporte() {
+        changeImporte(value) {
             try {
+                //========= ELIMINAMOS CARACTERES NO NUMÉRICOS =======
+                const valorFiltrado     =   value.replace(/[^0-9.]/g, '');
+                this.pagoForm.importe   =   valorFiltrado;
+                
+                //======= SI EL VALOR FILTRADO TIENE ALGO =====
+                if(valorFiltrado){
 
-                let monto = convertFloat(this.pagoForm.monto_venta);
-                let importe = convertFloat(this.pagoForm.importe);
-
-                if (this.ModoPagos != 'EFECTIVO') {
-                    let diferencia = monto - importe;
-                    this.pagoForm.efectivo = diferencia.toFixed(2);
+                    //======= EVITAR QUE EL VALOR FILTRADO SEA MAYOR AL MONTO DE VENTA =======
+                    if(parseFloat(valorFiltrado) > parseFloat(this.pagoForm.monto_venta)){
+                        const cleanedValue      =   valorFiltrado.slice(0, -1);
+                        this.pagoForm.importe  =   cleanedValue;
+                        return;
+                    }
+                    //======== CALCULAMOS AUTOMÁTICAMENTE EL VALOR DE IMPORTE ======
+                    let monto       =   parseFloat(this.pagoForm.monto_venta);
+                    let importe     =   parseFloat(valorFiltrado);
+                    
+                    if (this.ModoPagos !== 'EFECTIVO') {
+                        let diferencia              = monto - importe;
+                        this.pagoForm.efectivo   = parseFloat(diferencia);
+                    }
+                }else{
+                    //======= SI EL VALOR FILTRADO NO TIENE NADA =======
+                    this.pagoForm.efectivo   =   this.pagoForm.monto_venta;
                 }
-            } catch (ex) {
 
+                if(this.ModoPagos   === "RECIBO DE CAJA"){
+                    //======= SI EL IMPORTE ES MAYOR AL SALDO DE CAJA
+                    if(parseFloat(this.pagoForm.importe) > parseFloat(this.saldoRecibosCaja)){
+                        this.pagoForm.importe   =   this.saldoRecibosCaja;
+                        this.pagoForm.efectivo  =   parseFloat(this.pagoForm.monto_venta) - parseFloat(this.pagoForm.importe);
+                    }
+                }
+
+            } catch (ex) {
+                alert(ex);
             }
         },
         changeImagen() {
-            console.log(document.querySelector('#imagen'));
          
             try {
                 var fileInput               = document.getElementById('imagen');
@@ -365,7 +454,7 @@ export default {
         }
     },
     mounted() {
-        this.token = $('meta[name=csrf-token]').attr("content");
+        this.token = $('meta[name=csrf-token]').attr("content");  
     }
 }
 </script>

@@ -40,6 +40,7 @@
                                     <th class="text-center">USUARIO</th>
                                     <th class="text-center">MET. PAGO</th>
                                     <th class="text-center">MONTO</th>
+                                    <th class="text-center">SALDO</th>
                                     <th class="text-center">ESTADO</th>
                                     <th class="text-center">ESTADO SERV</th>
                                     <th class="text-center">ACCIONES</th>
@@ -148,6 +149,10 @@
                 },
                 {
                     data: 'monto',
+                    className: "text-center"
+                },
+                {
+                    data: 'saldo',
                     className: "text-center"
                 },
                 {
