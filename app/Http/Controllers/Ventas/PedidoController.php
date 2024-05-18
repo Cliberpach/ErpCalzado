@@ -927,4 +927,9 @@ class PedidoController extends Controller
 
     }
 
+
+    public function generarRecibo($pedido_id){
+        
+    }
+
 }

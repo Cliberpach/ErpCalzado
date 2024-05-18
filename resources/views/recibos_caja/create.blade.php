@@ -183,7 +183,7 @@
                                     <input type="hidden" name="" id="presentacion_producto">
                                     <input type="hidden" name="" id="codigo_nombre_producto">
 
-                                    <input type="hidden" name="caja_id" id="caja_id">
+                                    <input type="hidden" name="movimiento_id" id="movimiento_id">
                                 </div>
                             </form>
                         </div>
@@ -322,7 +322,7 @@
             let validacion    =   true;
 
             if(res.data.success){
-                document.querySelector('#caja_id').value    =   res.data.caja_id;
+                document.querySelector('#movimiento_id').value    =   res.data.movimiento_id;
                 toastr.success(res.data.message,'CAJA VERIFICADA');
             }
 

@@ -75,14 +75,19 @@ class ReciboCajaController extends Controller
 
         DB::beginTransaction();
         try {
+            //========= GUARDAR EL RECIBO DE CAJA EN EL MOVIMIENTO DEL USUARIO =========
+            
+
             $recibo_caja                =   new ReciboCaja();
-            $recibo_caja->caja_id       =   $request->get('caja_id');
+            $recibo_caja->movimiento_id =   $request->get('movimiento_id');
             $recibo_caja->user_id       =   Auth::user()->id;
             $recibo_caja->cliente_id    =   $request->get('cliente');
             $recibo_caja->monto         =   $request->get('monto');
             $recibo_caja->saldo         =   $request->get('monto');
             $recibo_caja->metodo_pago   =   $request->get('metodo_pago');
             $recibo_caja->save();
+
+           
             
             DB::commit();
             Session::flash('recibo_caja_success', 'RECIBO CAJA REGISTRADO');
@@ -99,7 +104,7 @@ class ReciboCajaController extends Controller
 
         try {
             //========== VERIFICAR SI EL USUARIO SE ENCUENTRA EN ALGUNA CAJA APERTURADA ===========
-            $caja_aperturada    =   DB::select('select mc.caja_id,c.nombre from detalles_movimiento_caja as dmc
+            $caja_aperturada    =   DB::select('select mc.id as movimiento_id,c.nombre from detalles_movimiento_caja as dmc
                                     inner join movimiento_caja as mc  on dmc.movimiento_id=mc.id
                                     inner join caja as c on c.id=mc.caja_id
                                     where estado_movimiento = "APERTURA" and dmc.usuario_id=?',[Auth::user()->id]);
@@ -110,14 +115,12 @@ class ReciboCajaController extends Controller
             }else{
                 return response()->json(['success'=>true,'message'=>'EL RECIBO SE ASIGNARÁ A LA CAJA: '.
                 $caja_aperturada[0]->nombre,
-                'caja_id'=>$caja_aperturada[0]->caja_id]);
+                'movimiento_id'=>$caja_aperturada[0]->movimiento_id]);
             }
         } catch (\Throwable $th) {
            return response()->json(['success'=>false,'message'=>'ERROR EN EL SERVIDOR AL BUSCAR LA CAJA DEL USUARIO',
                                 'exception'=>$th->getMessage()]);
         }
       
-
-
     }
 }

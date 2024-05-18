@@ -204,6 +204,7 @@
                                 </form>
                             </li> 
                             <li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${data}" data-target="#modal_historial_atenciones"  title='Eliminar'><b><i class="fas fa-history"></i> Historial Atenciones</a></b></li> 
+                            <li><a class='dropdown-item' data-pedido-id="${data}"  title='Recibo'><b><i class="fas fa-receipt"></i> Generar Recibo</a></b></li> 
                             </ul></div>
                             `;
                         }

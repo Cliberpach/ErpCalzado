@@ -546,6 +546,66 @@
         </table>
     </div>
     <br>
+    <span style="text-transform: uppercase;font-size:15px">RECIBOS DE CAJA</span>
+    <div class="cuerpo">
+        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th style="text-align: center; border-right: 2px solid #52BE80;">ID RECIBO </th>
+                    <th style="text-align: center;border-right: 2px solid #52BE80">DESCRIPCION</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
+                    @php
+                        $cont = 0;
+                        while ($cont < count(tipos_pago())) {
+                            if ($cont == count(tipos_pago()) - 1) {
+                                echo '<th style="text-align: center;">' . tipos_pago()[$cont]->descripcion . '</th>';
+                            } else {
+                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">' .
+                                    tipos_pago()[$cont]->descripcion .
+                                    '</th>';
+                            }
+                            $cont++;
+                        }
+                    @endphp
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach ($recibos as $recibo)
+                    @if ($recibo->estado == 'ACTIVO')
+                        <tr>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                {{'RC-'.$recibo->id }}</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                {{  $recibo->cliente_nombre.'-'.$recibo->estado_servicio }}</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                {{ $recibo->monto }}</td>
+                            @foreach (tipos_pago() as $tipo)
+                               
+                                @if ($tipo->descripcion == $recibo->metodo_pago)
+                                    <td style="text-align: center; border-right: 2px solid #52BE80">
+                                            {{ $recibo->monto }}</td>';
+                                @else
+                                    <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
+                                @endif
+                                
+                            @endforeach
+                        </tr>
+                    @endif
+                @endforeach
+                <tr>
+                    <td colspan="3"
+                        style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
+                    </td>
+                    @foreach (tipos_pago() as $tipo)
+                        <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">
+                            {{ number_format(cuadreMovimientoCajaEgresosEgresoResum($movimiento, $tipo->id), 2) }}</td>
+                    @endforeach
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <br>
     <span style="text-transform: uppercase;font-size:15px">PAGOS PROVEEDORES</span>
     <br>
     <div class="cuerpo">
@@ -801,7 +861,7 @@
                                 </td>
                                 <td style="text-align:right; padding: 5px;">
                                     <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoCajaIngresosVenta($movimiento) - cuadreMovimientoDevoluciones($movimiento), 2) }}
+                                        {{ number_format(cuadreMovimientoCajaIngresosVenta($movimiento) + cuadreMovimientoCajaIngresosRecibo($movimiento)  - cuadreMovimientoDevoluciones($movimiento), 2) }}
                                     </p>
                                 </td>
                             </tr>

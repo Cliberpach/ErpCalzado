@@ -425,7 +425,8 @@ class CajaController extends Controller
         //     cuadreMovimientoCajaEgresosPagoResum($movimiento, 1);
 
         $ingresos =
-        cuadreMovimientoCajaIngresosVentaResum($movimiento,4)+
+        cuadreMovimientoCajaIngresosVentaResum($movimiento,5)+
+        cuadreMovimientoCajaIngresosRecibo($movimiento)+
         cuadreMovimientoCajaIngresosCobranzaResum($movimiento);
 
         $egresos =
@@ -513,6 +514,11 @@ class CajaController extends Controller
         ->where('detalles_movimiento_caja.movimiento_id','=',$id)
         ->get();
 
+        $recibos                    =   DB::select('select rc.*,c.nombre as cliente_nombre 
+                                        from recibos_caja as rc 
+                                        inner join clientes as c on c.id=rc.cliente_id 
+                                        where rc.movimiento_id=?',[$id]);
+        
         $totalIngresosPorTipoPago   =   obtenerTotalIngresosPorTipoPago($movimiento);
         $empresa = Empresa::first();
         $fecha = Carbon::now()->toDateString();
@@ -522,7 +528,8 @@ class CajaController extends Controller
             'empresa'                   =>  $empresa,
             'fecha'                     =>  $fecha,
             'usuarios'                  =>  $usuarios,
-            'totalIngresosPorTipoPago'  =>  $totalIngresosPorTipoPago
+            'totalIngresosPorTipoPago'  =>  $totalIngresosPorTipoPago,
+            'recibos'                   =>  $recibos
         ])
             ->setPaper('a4')
             ->setWarnings(false);
@@ -535,9 +542,13 @@ class CajaController extends Controller
         //     (float) cuadreMovimientoCajaIngresosVenta($movimiento) -
         //     (float) cuadreMovimientoDevoluciones($movimiento);
         $TotalVentaDelDia =
-            (float) cuadreMovimientoCajaIngresosVenta($movimiento);
+            (float) cuadreMovimientoCajaIngresosVenta($movimiento)+
+            (float) cuadreMovimientoCajaIngresosRecibo($movimiento);
+        
         return [
             'TotalVentaDelDia' => $TotalVentaDelDia,
         ];
     }
+
+
 }

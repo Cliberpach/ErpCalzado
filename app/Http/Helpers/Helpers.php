@@ -1387,14 +1387,37 @@ if (!function_exists('cuadreMovimientoCajaIngresosVenta')) {
     {
         $totalIngresos = 0;
 
+        //====== BUSCAR LOS DOCUMENTOS VENTA QUE NO SE ENCUENTREN PAGADOS CON RECIBOS =========
         foreach ($movimiento->detalleMovimientoVentas as $item) {
-            if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA') { // && $item->documento->sunat != '2'
+            if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA' && $item->documento->tipo_pago_id!='4') { // && $item->documento->sunat != '2'
                 $totalIngresos = $totalIngresos + ($item->documento->importe + $item->documento->efectivo);
             }
         }
+
         return $totalIngresos;
     }
 }
+
+
+
+//========== CALCULAR INGRESOS EN RECIBOS ==============
+if (!function_exists('cuadreMovimientoCajaIngresosRecibo')) {
+    function cuadreMovimientoCajaIngresosRecibo(MovimientoCaja $movimiento)
+    {
+        $totalIngresos = 0;
+        //======== OBTENER TODOS LOS RECIBOS DE DICHO MOVIMIENTO =========
+        $recibos        =   DB::select('select * from recibos_caja as rc 
+                            where rc.movimiento_id=?',[$movimiento->id]);
+    
+
+        foreach ($recibos as $item) {
+            $totalIngresos  +=  $item->monto;
+        }
+
+        return $totalIngresos;
+    }
+}
+
 
 if (!function_exists('cuadreMovimientoCajaIngresosVentaElectronico')) {
     function cuadreMovimientoCajaIngresosVentaElectronico(MovimientoCaja $movimiento)
@@ -1411,29 +1434,34 @@ if (!function_exists('cuadreMovimientoCajaIngresosVentaElectronico')) {
     }
 }
 
+//========== CALCULA EL TOTAL DE INGRESOS EN DOCS VENTAS QUE NO SE PAGARON CON RECIBOS =========
 if (!function_exists('cuadreMovimientoCajaIngresosVentaResum')) {
     function cuadreMovimientoCajaIngresosVentaResum(MovimientoCaja $movimiento,$tipo_pago)
     {
         $totalIngresos = 0;
 
-        //====== TIPO PAGO (4) => INGRESOS TOTALES SIN IMPORTAR EL TIPO DE PAGO =======
-        if($tipo_pago == 4){
+        //====== TIPO PAGO (5) => INGRESOS TOTALES SIN IMPORTAR EL TIPO DE PAGO =======
+        if($tipo_pago == 5){
+
             foreach ($movimiento->detalleMovimientoVentas as $item) {
                 if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA') { // && $item->documento->sunat != '2'
-                    if ($item->documento->tipo_pago_id == 1 || $item->documento->tipo_pago_id == 2 || $item->documento->tipo_pago_id == 3) {
-                        $totalIngresos = $totalIngresos + $item->documento->importe;
+                    if ($item->documento->tipo_pago_id == 1 || $item->documento->tipo_pago_id == 2 || $item->documento->tipo_pago_id == 3 || $item->documento->tipo_pago_id !== 4) {
+                        $totalIngresos = $totalIngresos + $item->documento->importe + $item->documento->efectivo;
                     }
                 }
             }
-        }
 
-        //======= INGRESO POR TIPO DE PAGO ESPECÍFICO =======
-        foreach ($movimiento->detalleMovimientoVentas as $item) {
-            if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA') { // && $item->documento->sunat != '2'
-                if ($item->documento->tipo_pago_id == $tipo_pago) {
-                    $totalIngresos = $totalIngresos + $item->documento->importe;
+        }else{
+
+            //======= INGRESO POR TIPO DE PAGO ESPECÍFICO =======
+            foreach ($movimiento->detalleMovimientoVentas as $item) {
+                if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA') { // && $item->documento->sunat != '2'
+                    if ($item->documento->tipo_pago_id == $tipo_pago) {
+                        $totalIngresos = $totalIngresos + $item->documento->importe + $item->documento->efectivo;
+                    }
                 }
             }
+
         }
 
         return $totalIngresos;
@@ -1568,6 +1596,7 @@ if (!function_exists('cuadreMovimientoCajaIngresosCobranzaResum')) {
             foreach ($movimiento->detalleCuentaCliente as $item) {
                  $totalIngresos = $totalIngresos  + $item->monto;
             }
+
         return $totalIngresos;
 
         // if($id == 1)
