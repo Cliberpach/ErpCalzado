@@ -204,7 +204,7 @@
                                 </form>
                             </li> 
                             <li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${data}" data-target="#modal_historial_atenciones"  title='Eliminar'><b><i class="fas fa-history"></i> Historial Atenciones</a></b></li> 
-                            <li><a class='dropdown-item' data-pedido-id="${data}"  title='Recibo'><b><i class="fas fa-receipt"></i> Generar Recibo</a></b></li> 
+                            <li><a class='dropdown-item' href="javascript:void(0);" onclick="generarRecibo(${data})"  title='Recibo'><b><i class="fas fa-receipt"></i> Generar Recibo</a></b></li> 
                             </ul></div>
                             `;
                         }
@@ -586,6 +586,43 @@
                 document.querySelector('#fecha_inicio').value  =   fecha_fin;
             }
             document.querySelector('#fecha_inicio').setAttribute('max',fecha_fin);
+        }
+    }
+
+    async function generarRecibo(pedido_id){
+        const res_caja_apert        =   await buscarCajaApertUsuario();
+        
+        //======= REDIRIGIR A CREAR RECIBO DE CAJA ======
+        if(res_caja_apert){
+            var url = "{{ route('recibos_caja.create', ':id') }}";
+            url = url.replace(':id', pedido_id);
+            window.location.href = url;
+        }
+        
+    }
+
+
+    //========= BUSCAR CAJA APERTURADA DE USUARIO =========== 
+    async function buscarCajaApertUsuario() {
+        try {
+            const res   = await axios.get(route('recibos_caja.buscarCajaApertUsuario'));
+            console.log(res);
+            let validacion    =   true;
+
+            if(res.data.success){
+                toastr.success(res.data.message,'CAJA VERIFICADA');
+            }
+
+            if(!res.data.success){
+                validacion  =   false;
+                toastr.error(res.data.message,'CAJA VERIFICADA');
+            }
+
+            return validacion;
+
+        } catch (error) {
+            toastr.error('ERROR EN EL SERVIDOR','ERROR');
+            return false;
         }
     }
 </script>

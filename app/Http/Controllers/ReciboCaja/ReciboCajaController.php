@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\ReciboCajaRequest;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 
 class ReciboCajaController extends Controller
 {
@@ -47,7 +48,7 @@ class ReciboCajaController extends Controller
         return DataTables::of($data)->toJson();
     }
 
-    public function create(){
+    public function create($pedido_id=null){
         
         $tipos_documento    =   tipos_documento();
         $departamentos      =   departamentos();
@@ -64,15 +65,19 @@ class ReciboCajaController extends Controller
         where up.user_id = ?',[Auth::id()]);
         $vendedor_actual    =   $vendedor_actual?$vendedor_actual[0]->id:null;
 
-
+        $pedido_entidad     =   null;
+        if($pedido_id){
+            $pedido_entidad     =   DB::select('select p.cliente_id,p.total_pagar 
+                                    from pedidos as p
+                                    where p.id=?',[$pedido_id]);  
+        }
 
 
         return view('recibos_caja.create',compact('vendedor_actual','empresas',
-        'clientes', 'fecha_hoy', 'condiciones','tipos_documento','departamentos','tipo_clientes'));
+        'clientes', 'fecha_hoy', 'condiciones','tipos_documento','departamentos','tipo_clientes','pedido_entidad'));
     }
 
     public function store(ReciboCajaRequest $request){
-
         DB::beginTransaction();
         try {
             //========= GUARDAR EL RECIBO DE CAJA EN EL MOVIMIENTO DEL USUARIO =========
@@ -85,9 +90,29 @@ class ReciboCajaController extends Controller
             $recibo_caja->monto         =   $request->get('monto');
             $recibo_caja->saldo         =   $request->get('monto');
             $recibo_caja->metodo_pago   =   $request->get('metodo_pago');
+            $recibo_caja->observacion   =   $request->get('recibo_observacion');
             $recibo_caja->save();
+            
 
-           
+
+            if ($request->hasFile('recibo_imagen_1')) {
+                $imagen1        = $request->file('recibo_imagen_1');
+                Storage::makeDirectory('public/pagos_recibos');
+                $nombreImagen1 = 'RC-'.$recibo_caja->id.'-pago-1'. '.' . $imagen1->getClientOriginalExtension();
+                $imagen1Path = $imagen1->storeAs('pagos_recibos', $nombreImagen1, 'public');
+                $recibo_caja->img_pago      =   'public/pagos_recibos/'.$nombreImagen1;
+                $recibo_caja->update();
+            }
+
+            if ($request->hasFile('recibo_imagen_2')) {
+                $imagen1        = $request->file('recibo_imagen_2');
+                Storage::makeDirectory('public/pagos_recibos');
+                $nombreImagen2 = 'RC-'.$recibo_caja->id.'-pago-2'. '.' . $imagen1->getClientOriginalExtension();
+                $imagen2Path = $imagen1->storeAs('pagos_recibos', $nombreImagen2, 'public');
+                $recibo_caja->img_pago_2      =   'public/pagos_recibos/'.$nombreImagen2;
+                $recibo_caja->update();
+            }
+
             
             DB::commit();
             Session::flash('recibo_caja_success', 'RECIBO CAJA REGISTRADO');

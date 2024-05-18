@@ -30,7 +30,7 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form action="{{ route('recibos_caja.store') }}" method="POST"
+                            <form action="{{ route('recibos_caja.store') }}" method="POST" enctype="multipart/form-data"
                                 id="form-recibos-caja">
                                 @csrf
                                 <div class="row">
@@ -138,7 +138,13 @@
                                             </div>
                                             <div class="col-lg-6 col-md-6">
                                                 <label for="monto_recibo">Monto</label>
-                                                <input id="monto_recibo" type="text" name="monto" class="form-control" min="0" value="{{ old('monto') }}">
+                                               
+                                                @if ($pedido_entidad)
+                                                    <input id="monto_recibo" type="text" name="monto" class="form-control" min="0" value="{{ old('monto', $pedido_entidad[0]->total_pagar) }}">
+                                                @else
+                                                    <input id="monto_recibo" type="text" name="monto" class="form-control" min="0" value="{{ old('monto')}}">
+                                                @endif
+                                                
                                                 @error('monto')
                                                     <div class="alert alert-danger">{{ $message }}</div>
                                                 @enderror
@@ -147,7 +153,7 @@
                                     </div>
                                     <div class="col-lg-6 col-md-6">
                                         <div class="row">
-                                            <div class="col-lg-6 col-md-6 select-required">
+                                            <div class="col-lg-6 col-md-6">
                                                 <div class="form-group">
                                                     <label class="required">Cliente:
                                                         <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
@@ -161,7 +167,13 @@
                                                         @foreach ($clientes as $cliente)
                                                             <option @if ($cliente->id == 1)
                                                                 selected
-                                                            @endif value="{{ $cliente->id }}"
+                                                            @endif 
+                                                            @if ($pedido_entidad)
+                                                                @if ($pedido_entidad[0]->cliente_id == $cliente->id)
+                                                                    selected
+                                                                @endif
+                                                            @endif
+                                                            value="{{ $cliente->id }}"
                                                                 {{ old('cliente') == $cliente->id ? 'selected' : '' }}>
                                                                 {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
                                                             </option>
@@ -174,8 +186,16 @@
                                                     @endif
                                                 </div>
                                             </div>
+                                            <div class="col-lg-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label for="recibo_observacion" >OBSERVACIÓN</label>
+                                                    <textarea class="form-control" maxlength="50" name="recibo_observacion" id="recibo_observacion" cols="50" rows="3"></textarea>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+
+                                   
 
                                     <!-- OBTENER TIPO DE CLIENTE -->
                                     <input type="hidden" name="" id="tipo_cliente">
@@ -185,14 +205,48 @@
 
                                     <input type="hidden" name="movimiento_id" id="movimiento_id">
                                 </div>
+
+                                <hr>
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                        <label for="" style="font-weight:bold;">Imagen 1</label>
+                                        <div class="input-group mb-3">
+                                            <div class="input-group-prepend">
+                                              <button class="btn btn-outline-secondary" type="button" id="btn-limpiar-img_1">
+                                                <i class="fas fa-times"></i>
+                                              </button>
+                                            </div>
+                                            <div class="custom-file">
+                                              <input height="200px" style="object-fit: cover;" accept="image/*" type="file" class="custom-file-input" id="recibo_imagen_1" aria-describedby="btn-limpiar-img_1" name="recibo_imagen_1">
+                                              <label id="lbl_recibo_imagen_1" class="custom-file-label" for="recibo_imagen_1">Seleccionar imagen</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 d-flex justify-content-center" style="border: 2px dashed rgba(0,0,0,0.5);">
+                                            <img id="recibo_imagen_1_preview" src="{{ asset('img/recibo_img_default.png') }}" alt="Vista previa de la imagen" style="height:200px;width:300px;object-fit:contain;">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                        <label for="" style="font-weight:bold;">Imagen 2</label>
+                                        <div class="input-group mb-3">
+                                            <div class="input-group-prepend">
+                                              <button class="btn btn-outline-secondary" type="button" id="btn-limpiar-img_2">
+                                                <i class="fas fa-times"></i>
+                                              </button>
+                                            </div>
+                                            <div class="custom-file">
+                                              <input accept="image/*" type="file" class="custom-file-input" id="recibo_imagen_2" aria-describedby="btn-limpiar-img_2" name="recibo_imagen_2">
+                                              <label id="lbl_recibo_imagen_2" class="custom-file-label" for="recibo_imagen_2">Seleccionar imagen</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 d-flex justify-content-center" style="border: 2px dashed rgba(0,0,0,0.5);">
+                                            <img id="recibo_imagen_2_preview"  src="{{ asset('img/recibo_img_default.png') }}" alt="Vista previa de la imagen" style="height:200px;width:100%;object-fit:contain;">
+                                        </div>
+                                    </div>
+                                </div>
                             </form>
                         </div>
                     </div>
-                    <hr>
-                  
-
-                  
-
+                   
                     <div class="hr-line-dashed"></div>
                     <div class="row">
                         <div class="col-lg-12">
@@ -203,7 +257,7 @@
                                         (<label class="required"></label>) son obligatorios.</small>
                                 </div>
                                 <div class="col-md-6 text-right">
-                                    <a href="{{ route('almacenes.producto.index') }}" id="btn_cancelar"
+                                    <a href="{{ route('recibos_caja.index') }}" id="btn_cancelar"
                                         class="btn btn-w-m btn-default">
                                         <i class="fa fa-arrow-left"></i> Regresar
                                     </a>
@@ -296,9 +350,61 @@
             }
            
         })
+
+        document.querySelector('#recibo_imagen_1').addEventListener('input',(e)=>{
+
+            //========== SI HAY ALGUNA IMAGEN REGISTRADA =========
+            const imagen    =   e.target.files[0];
+            
+            if(imagen){
+                const imagen_name                                           =   imagen.name;
+                document.querySelector('#lbl_recibo_imagen_1').textContent  =   imagen_name;
+                vistaPreviaImg('recibo_imagen_1_preview',imagen);
+
+            }else{
+                document.querySelector('#lbl_recibo_imagen_1').textContent  =   'Seleccionar imagen';
+                document.querySelector('#recibo_imagen_1_preview').value    =   '';
+            }
+        })
+
+        document.querySelector('#recibo_imagen_2').addEventListener('input',(e)=>{
+            //========== SI HAY ALGUNA IMAGEN REGISTRADA =========
+            const imagen    =   e.target.files[0];
+
+            if(imagen){
+                const imagen_name                                           =   imagen.name;
+                document.querySelector('#lbl_recibo_imagen_2').textContent  =   imagen_name;
+                vistaPreviaImg('recibo_imagen_2_preview',imagen);
+            }else{
+                document.querySelector('#lbl_recibo_imagen_2').textContent  =   'Seleccionar imagen';
+                document.querySelector('#recibo_imagen_2_preview').value    =   '';
+            }
+        })
+
+        document.getElementById("btn-limpiar-img_1").addEventListener("click", function() {
+            document.getElementById("recibo_imagen_1_preview").src      =   "{{ asset('img/recibo_img_default.png') }}";
+            document.getElementById("recibo_imagen_1").value            =   "";
+            document.querySelector('#lbl_recibo_imagen_1').textContent  =   'Seleccionar imagen';
+        });
+
+        document.getElementById("btn-limpiar-img_2").addEventListener("click", function() {
+            document.getElementById("recibo_imagen_2_preview").src      =   "{{ asset('img/recibo_img_default.png') }}";
+            document.getElementById("recibo_imagen_2").value            =   "";
+            document.querySelector('#lbl_recibo_imagen_2').textContent  =   'Seleccionar imagen';
+        });
     }
 
+    function vistaPreviaImg(id_element_img,imagen){
+        const reader = new FileReader();
 
+        reader.onload = function(event) {
+            const imgElement            = document.querySelector(`#${id_element_img}`);
+            imgElement.src              = event.target.result;
+            imgElement.style.display    = 'block'; 
+        }
+
+        reader.readAsDataURL(imagen);
+    }
 
     function loadSelect2(){
         $(".select2_form").select2({

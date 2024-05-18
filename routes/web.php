@@ -505,6 +505,8 @@ function(){
         Route::get('get-atenciones-pedido/{pedido_id}','Ventas\PedidoController@getAtenciones')->name('ventas.pedidos.getAtenciones');
         Route::get('get-pedido-detalles/{pedido_id}','Ventas\PedidoController@getPedidoDetalles')->name('ventas.pedidos.getPedidoDetalles');
         Route::post('devolver-stock-logico', 'Ventas\PedidoController@devolverStockLogico')->name('ventas.pedidos.devolverStockLogico');
+        // Route::get('generarRecibo/{pedido_id}','Ventas\PedidoController@generarRecibo')->name('ventas.pedidos.generarRecibo');
+
     });
 
      // Despachos
@@ -621,7 +623,7 @@ function(){
     Route::prefix('recibos_caja')->group(function () {
         Route::get('index','ReciboCaja\ReciboCajaController@index')->name('recibos_caja.index');
         Route::get('getRecibosCaja','ReciboCaja\ReciboCajaController@getRecibosCaja')->name('recibos_caja.getRecibosCaja');
-        Route::get('create', 'ReciboCaja\ReciboCajaController@create')->name('recibos_caja.create')->middleware('recibos_caja.create');
+        Route::get('create/{pedido_id?}', 'ReciboCaja\ReciboCajaController@create')->name('recibos_caja.create')->middleware('recibos_caja.create');
         Route::post('store', 'ReciboCaja\ReciboCajaController@store')->name('recibos_caja.store');
         Route::get('buscarCajaApertUsuario','ReciboCaja\ReciboCajaController@buscarCajaApertUsuario')->name('recibos_caja.buscarCajaApertUsuario');
 

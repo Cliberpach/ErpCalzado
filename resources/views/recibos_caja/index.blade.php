@@ -20,7 +20,7 @@
       
     </div>
     <div class="col-lg-2 col-md-2">
-        <button id="btn_añadir_cotizacion" class="btn btn-block btn-w-m btn-primary m-t-md">
+        <button id="btn_añadir_recibo" class="btn btn-block btn-w-m btn-primary m-t-md">
             <i class="fa fa-plus-square"></i> Añadir nuevo
         </button>
     </div>
@@ -92,7 +92,7 @@
     })
 
     function events(){
-        document.querySelector('#btn_añadir_cotizacion').addEventListener('click',()=>{
+        document.querySelector('#btn_añadir_recibo').addEventListener('click',()=>{
             registrarRecibo();
         })
     }
