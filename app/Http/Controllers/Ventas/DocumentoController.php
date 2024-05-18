@@ -411,6 +411,7 @@ class DocumentoController extends Controller
                 $doc_convertido->update();
             }
 
+
             //========== CANJEANDO RECIBOS DE CAJA ========
             if($request->get('modo_pago') === "4-RECIBO DE CAJA"){
                 //======== OBTENEMOS TODOS LOS RECIBOS DE CAJA DEL CLIENTE ==========
@@ -421,50 +422,82 @@ class DocumentoController extends Controller
                                             order by rc.created_at',
                                             [$documento->cliente_id]);
 
-                $total_pagar    =   $documento->total_pagar;  // 1400
-
-                
-                $saldo_total_cobrado        =   0;
+                $total_pendiente    =   $documento->total_pagar;  
 
                 //========= RESTAMOS SALDO EN ORDEN ASC POR FECHA DE CREACIÓN =========
                 foreach ($recibos_caja_cliente as $recibo) {
-                    //======== SI EL SALDO DEL RECIBO ES MAYOR O IGUAL AL TOTAL PAGAR, CONSUMIR EL TOTAL PAGAR EN EL RECIBO ========
-                    if($recibo->saldo >= $total_pagar){
-                        $saldo_restante             =   $recibo->saldo - $total_pagar;
-                        $nuevo_estado_servicio      =   $saldo_restante==0?'CANJEADO':'USANDO';  
 
-                        DB::table('recibos_caja')
-                        ->where('id', $recibo->id)
-                        ->update(['saldo' => $saldo_restante ,
-                        'estado_servicio' => $nuevo_estado_recibo
-                        ]);
-                        break;
-                    }else{
-                        
-                        $aux                    =   $saldo_total_cobrado + $recibo->saldo;
-                        $nuevo_saldo_recibo     =   0;
-                        $nuevo_estado_servicio  =   '';
+                    $saldo_recibo       =   $recibo->saldo;
 
-                        //===== SI CUBRE EL MONTO DE LA VENTA,CONSUME TODO EL SALDO DEL RECIBO =========
-                        if($aux <= $total_pagar){
-                            $saldo_total_cobrado    +=  $recibo->saldo;
-                            $nuevo_saldo_recibo     =   0;
-                            $nuevo_estado_servicio  =   'CANJEADO';
-                        }else{
-                            //======= SI SOBREPASA EL MONTO DE VENTA, CONSUME UNA PARTE DEL SALDO DEL RECIBO =======
-                            $monto_faltante         =   $total_pagar - $saldo_total_cobrado;
-                            $nuevo_saldo_recibo     =   $recibo->saldo - $monto_faltante;
-                            $saldo_total_cobrado    +=  $monto_faltante;
-                            $nuevo_estado_servicio  =   'USANDO';
-                        }
+                    //======= SI EL TOTAL PENDIENTE >= SALDO DEL RECIBO CAJA ========
+                    if($total_pendiente >= $saldo_recibo){
+                        //======= GUARDAMOS SALDO ANTERIOR DEL RECIBO =======
+                        $saldo_anterior_recibo          =       $recibo->saldo;
+                        //======= CONSUMIR TODO EL SALDO DEL RECIBO ========
+                        $nuevo_saldo_recibo             =       0;
+                        //======= NUEVO ESTADO DEL RECIBO ========
+                        $nuevo_estado_servicio_recibo   =   'CANJEADO';
+                        //========= TOTAL PENDIENTE BAJA SEGÚN EL SALDO DEL RECIBO =========
+                        $total_pendiente                -=      $saldo_recibo;
+
+                        //======= ACTUALIZAMOS EL RECIBO ========
                         DB::table('recibos_caja')
                         ->where('id', $recibo->id)
                         ->update(['saldo' => $nuevo_saldo_recibo ,
-                        'estado_servicio' => $nuevo_estado_servicio
+                        'estado_servicio' => $nuevo_estado_servicio_recibo,
+                        'updated_at' => now()
                         ]);
 
+                        //========= GRABAMOS EL DETALLE DE USO DEL RECIBO ======
+                        DB::table('recibos_caja_detalle')
+                        ->insert([
+                            'recibo_id'    => $recibo->id,
+                            'documento_id' => $documento->id,
+                            'saldo_antes'  => $saldo_anterior_recibo,
+                            'monto_usado'  => $saldo_recibo,
+                            'saldo_despues'=> $nuevo_saldo_recibo,
+                            'created_at'   => now(),
+                            'updated_at'   => now()
+                        ]);
+                        
+                    }else{
+                    //======= SI EL TOTAL PENDIENTE ES MENOR AL SALDO DEL RECIBO ========
+                        //======== SALDO ANTERIOR RECIBO =========
+                        $saldo_anterior_recibo          =   $recibo->saldo;
+                        //======== MONTO USADO ===========
+                        $monto_usado                    =   $total_pendiente;
+                        //======== CONSUMIR UNA PARTE DEL SALDO DEL RECIBO =======
+                        $nuevo_saldo_recibo             =   $recibo->saldo  -   $total_pendiente;
+                        //======== TOTAL PENDIENTE BAJA A 0 =======
+                        $total_pendiente                =   0;
+                        //======== ACTUALIZAR ESTADO DEL RECIBO =========
+                        $nuevo_estado_servicio_recibo   =   'USANDO';
+
+                        //======= ACTUALIZAMOS EL RECIBO ========
+                        DB::table('recibos_caja')
+                        ->where('id', $recibo->id)
+                        ->update(['saldo' => $nuevo_saldo_recibo ,
+                        'estado_servicio' => $nuevo_estado_servicio_recibo,
+                        'updated_at' => now()
+                        ]);
+
+                        //========= GRABAMOS EL DETALLE DE USO DEL RECIBO ======
+                        DB::table('recibos_caja_detalle')
+                        ->insert(['recibo_id'   =>  $recibo->id ,
+                          'documento_id'          =>  $documento->id,
+                          'saldo_antes'           =>  $saldo_anterior_recibo,
+                          'monto_usado'           =>  $monto_usado,
+                          'saldo_despues'         =>  $nuevo_saldo_recibo, 
+                          'created_at'            =>  now(),
+                          'updated_at'            =>  now()
+                        ]);
                     }
-                }
+                    
+                    //======== DETENER EL BUCLE SI EL TOTAL PENDIENTE ES 0 ========
+                    if($total_pendiente === 0){
+                        break;
+                    }
+                }   
             }
 
 
