@@ -1900,7 +1900,7 @@ class DocumentoController extends Controller
                     $envio_venta->origen_venta          =   "WHATSAPP";
                     $envio_venta->obs_despacho          =   null;
                     $envio_venta->obs_rotulo            =   null;
-                    $envio_venta->estado                =   'PENDIENTE';
+                    $envio_venta->estado                =   'DESPACHADO';
                     $envio_venta->save();
                 }
 
