@@ -228,5 +228,15 @@
         e.preventDefault();
         $("#modal_crear_egreso").modal("show");
     });
+
+
+    @if(Session::has('egreso_error_mov'))
+            toastr.error('{{ Session::get('egreso_error_mov') }}', 'ERROR');
+    @endif
+
+    @if(Session::has('egreso_success'))
+            toastr.success('{{ Session::get('egreso_success') }}', 'OPERACIÓN COMPLETADA');
+    @endif
+
 </script>
 @endpush
