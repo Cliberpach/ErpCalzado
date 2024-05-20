@@ -210,25 +210,17 @@ class NotaSalidadController extends Controller
     public function show($id)
     {
         $this->authorize('haveaccess','nota_salida.index');
-        $notasalidad=NotaSalidad::findOrFail($id);
-        $data=array();
-        $detallenotasalidad=DB::table('detalle_nota_salidad')->where('nota_salidad_id',$notasalidad->id)->get();
-        foreach($detallenotasalidad as $fila)
-        {
-            $lote = LoteProducto::find($fila->lote_id);
-            $producto =Producto::find($fila->producto_id);
-            array_push($data,array(
-                    'producto_id'=>$fila->producto_id,
-                    'codigo'=>$producto->codigo,
-                    'cantidad'=>$fila->cantidad,
-                    'lote'=>$lote->codigo_lote,
-                    'producto'=>$producto->nombre,
-                    'costo' => $lote->detalle_compra ? $lote->detalle_compra->precio : 0.00,
-                    'precio'=> $producto->precio_venta_minimo,
-                    'lote_id' => $fila->lote_id
-            ));
-        }
-
+        $notasalidad        =   NotaSalidad::findOrFail($id);
+        $detallenotasalidad =   DB::select('select dns.id,dns.producto_id,dns.color_id,dns.talla_id,
+                                p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre,
+                                dns.cantidad
+                                from detalle_nota_salidad as dns
+                                inner join productos as p on p.id=dns.producto_id
+                                inner join colores as c on c.id=dns.color_id
+                                inner join tallas as t on t.id=dns.talla_id
+                                where dns.id=?',[$id]);
+        
+        
         $fullaccess = false;
 
         if(count(Auth::user()->roles)>0)
@@ -244,15 +236,20 @@ class NotaSalidadController extends Controller
                 $cont = $cont + 1;
             }
         }
-        $origenes=  General::find(28)->detalles;
-        $destinos=  General::find(29)->detalles;
-        $lotes=DB::table('lote_productos')->get();
-        $usuarios=User::get();
-        $productos=Producto::where('estado','ACTIVO')->get();
+        $origenes   =   General::find(28)->detalles;
+        $destinos   =   General::find(29)->detalles;
+        $usuarios   =   User::get();
+        $tallas     =   Talla::where('estado','ACTIVO')->get();
+
         return view('almacenes.nota_salidad.show',[
-        "origenes"=>$origenes,'destinos'=>$destinos,
-       'usuarios'=>$usuarios,
-        'productos'=>$productos,'lotes'=>$lotes,'notasalidad'=>$notasalidad,'detalle'=>json_encode($data),'fullaccess'=>$fullaccess]);
+            "origenes"      =>  $origenes,
+            'destinos'      =>  $destinos,
+            'usuarios'      =>  $usuarios,
+            'notasalidad'   =>  $notasalidad,
+            'detalle'       =>  $detallenotasalidad,
+            'fullaccess'    =>  $fullaccess,
+            'tallas'        =>  $tallas
+        ]);
     }
 
     /**
@@ -282,8 +279,9 @@ class NotaSalidadController extends Controller
         $origenes=  General::find(28)->detalles;
         $destinos=  General::find(29)->detalles;
         $lotes=DB::table('lote_productos')->get();
-        $usuarios=User::get();
-        $productos=Producto::where('estado','ACTIVO')->get();
+        $usuarios   =   User::get();
+        $tallas     =   Talla::where('estado','ACTIVO')->get();
+
         return view('almacenes.nota_salidad.edit',[
         "origenes"=>$origenes,'destinos'=>$destinos,
        'usuarios'=>$usuarios,
