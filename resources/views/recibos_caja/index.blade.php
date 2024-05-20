@@ -238,13 +238,11 @@
             cancelButtonText: "No, Cancelar",
         }).then((result) => {
             if (result.isConfirmed) {
-                //Ruta Eliminar
-                var url_eliminar = '{{ route('Egreso.destroy', ':id') }}';
-                url_eliminar = url_eliminar.replace(':id', id);
+                var url_eliminar    = '{{ route('recibos_caja.destroy', ':id') }}';
+                url_eliminar        = url_eliminar.replace(':recibo_caja_id', id);
                 $(location).attr('href', url_eliminar);
 
             } else if (
-                /* Read more about handling dismissals below */
                 result.dismiss === Swal.DismissReason.cancel
             ) {
                 swalWithBootstrapButtons.fire(

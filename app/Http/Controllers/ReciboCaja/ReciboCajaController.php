@@ -232,6 +232,44 @@ class ReciboCajaController extends Controller
         }
     }
 
+    public function destroy(Request $request,$recibo_caja_id){
+        $recibo_caja        =   DB::select('select * from recibos_caja as rc
+                                    where rc.id=?',[$recibo_caja_id])[0];
+
+        $usuario_destroy    =   Auth::user()->id;
+
+        //======= VALIDAR QUE SOLO EL CREADOR DEL RECIBO,PUEDA EDITAR EL RECIBO ==========
+        if($usuario_editar !== $recibo_caja->user_id){
+            Session::flash('recibo_caja_error', 'SOLO EL USUARIO QUE CREÓ EL RECIBO PUEDE ELIMINARLO');
+            return redirect()->back();  
+        }
+
+        //======== VALIDAR QUE EL RECIBO SOLO SE EDITE SI ESTÁ EN ESTADO DE SERVICIO LIBRE =========
+        if($recibo_caja->estado_servicio !== "LIBRE"){
+            Session::flash('recibo_caja_error', 'SOLO PUEDEN ELIMINARSE RECIBOS ANTES DE SU USO');
+            return redirect()->back();  
+        }
+
+        //======== VALIDAR QUE LA EDICIÓN SE REALIZE SOLO SI EL MOVIMIENTO DEL USUARIO ESTÁ APERTURADO =======
+        $movimiento   =   DB::select('select mc.estado_movimiento from movimiento_caja as mc
+                        where mc.id=?',[$recibo_caja->movimiento_id]);
+       
+        if($movimiento[0]->estado_movimiento === "CIERRE"){
+            Session::flash('recibo_caja_error', 'EL MOVIMIENTO DE CAJA DEL USUARIO HA CERRADO');
+            return redirect()->back();  
+        }
+
+        DB::table('recibos_caja')
+        ->where('id', $recibo_caja_id)
+        ->update([
+            'updated_at'    =>  Carbon::now(),
+            'estado'        =>  'ANULADO'
+        ]);
+
+        Session::flash('recibo_caja_success', 'RECIBO CAJA ELIMINADO');
+        return redirect()->route('recibos_caja.index');        
+    }
+
     public function buscarCajaApertUsuario(){
 
         try {

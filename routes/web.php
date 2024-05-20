@@ -629,6 +629,7 @@ function(){
         Route::get('buscarCajaApertUsuario','ReciboCaja\ReciboCajaController@buscarCajaApertUsuario')->name('recibos_caja.buscarCajaApertUsuario');
         Route::get('pdf/{size}/{recibo_caja_id}','ReciboCaja\ReciboCajaController@pdf')->name('recibos_caja.pdf');
         Route::put('recibos_caja/{recibo_caja_id}', 'ReciboCaja\ReciboCajaController@update')->name('recibos_caja.update');
+        Route::put('recibos_caja/{recibo_caja_id}', 'ReciboCaja\ReciboCajaController@destroy')->name('recibos_caja.destroy');
 
         
         // Route::get('getEgreso','Egreso\EgresoController@getEgreso')->name('Egreso.getEgreso');

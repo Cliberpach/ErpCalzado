@@ -365,6 +365,8 @@ class NotaSalidadController extends Controller
          return redirect()->route('almacenes.nota_salidad.index')->with('guardar', 'success');
     }
 
+    
+
     /**
      * Remove the specified resource from storage.
      *
