@@ -6,7 +6,7 @@
 <div class="row wrapper border-bottom white-bg page-heading">
 
     <div class="col-lg-12">
-       <h2  style="text-transform:uppercase"><b>VER NUEVAS NOTA DE SALIDAD</b></h2>
+       <h2  style="text-transform:uppercase"><b>VER NOTA DE SALIDA</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{route('home')}}">Panel de Control</a>
@@ -71,7 +71,11 @@
                                         <select name="destino" id="destino" class="form-control" disabled>
                                             <option value="">Seleccionar Destino</option>
                                             @foreach ($destinos as $tabla)
-                                                <option {{ $notasalidad->destino == $tabla->descripcion ? 'selected' : '' }} value="{{$tabla->id}}">{{$tabla->descripcion}}</option>
+
+                                                <option {{ $notasalidad->destino == $tabla->descripcion ? 'selected' : '' }} 
+                                                    value="{{$tabla->id}}">
+                                                    {{$tabla->descripcion}}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -85,7 +89,6 @@
                                 </div>
                             </div>
 
-                            <input type="hidden" id="notadetalle" name="notadetalle" value="{{$detalle}}">
 
                         <hr>
                         <div class="row">
@@ -96,29 +99,8 @@
                                     </div>
                                     <div class="panel-body">
                                         <hr>
-
                                         <div class="table-responsive">
-                                            <table
-                                                class="table dataTables-ingreso table-striped table-bordered table-hover"
-                                                 onkeyup="return mayus(this)">
-                                                <thead>
-                                                    <tr>
-                                                        <th></th>
-                                                        <th class="text-center">Codigo</th>
-                                                        <th class="text-center">Cantidad</th>
-                    									<th class="text-center">Producto-Lote</th>
-                    									<th class="text-center">Costo</th>
-                    									<th class="text-center">Precio</th>
-                                                        <th></th>
-                                                        <th></th>
-
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-
-                                                </tbody>
-
-                                            </table>
+                                            @include('almacenes.nota_salidad.table-detalles')
                                         </div>
                                     </div>
                                 </div>
@@ -178,84 +160,47 @@
 <script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 <script>
-//Select2
-$(".select2_form").select2({
-    placeholder: "SELECCIONAR",
-    allowClear: true,
-    width: '100%',
-});
 
 
 
-$(document).ready(function() {
 
-    $('.dataTables-ingreso').DataTable({
-        "bPaginate": true,
-        "bLengthChange": true,
-        "bFilter": true,
-        "bInfo": true,
-        "bAutoWidth": false,
-        "language": {
-            "url": "{{asset('Spanish.json')}}"
-        },
-
-        "columnDefs": [{
-                "targets": [0],
-                "visible": false,
-                "searchable": false
-            },
-            {
-
-                "targets": [1],
-                className: "text-center",
-            },
-            {
-                "targets": [2],
-                className: "text-center",
-            },
-            {
-                "targets": [3],
-                className: "text-center",
-            },
-            {
-                "targets": [4],
-                className: "text-center",
-            },
-            {
-                "targets": [5],
-                className: "text-center",
-            },
-            {
-                "targets": [6],
-                "visible": false,
-                "searchable": false
-            },
-            {
-                "targets": [7],
-                "visible": false,
-                "searchable": false
-            },
-
-        ],
-
-    });
-
-    var detalle = JSON.parse($("#notadetalle").val());
-    var t = $('.dataTables-ingreso').DataTable();
-        for (var i = 0; i < detalle.length; i++) {
-        t.row.add([
-                detalle[i].producto_id,
-                detalle[i].codigo,
-                detalle[i].cantidad,
-                detalle[i].producto+"-"+detalle[i].lote,
-                detalle[i].costo,
-                detalle[i].precio,
-                detalle[i].producto_id,
-                detalle[i].lote_id
-            ]).draw(false);
-        }
-
+document.addEventListener('DOMContentLoaded',()=>{
+    cargarSelect2();
+    pintarDetalleNotaSalida();
 })
+
+
+function cargarSelect2(){
+    $(".select2_form").select2({
+        placeholder: "SELECCIONAR",
+        allowClear: true,
+        width: '100%',
+    });
+}
+
+function pintarDetalleNotaSalida(){
+    const detalles          =   @json($detalle);
+    const tallas            =   @json($tallas);
+    const bodyTablaDetalles =   document.querySelector('#table-detalle-notasalida tbody');
+    let fila              =   ``;
+ 
+    detalles.forEach((d)=>{
+        fila    +=  `<tr>
+                        <th scope="row"></th>
+                        <td style="font-weight:bold;">${d.producto_nombre} - ${d.color_nombre}</td>`;
+
+        tallas.forEach((t)=>{
+            if(t.id == d.talla_id ){
+                fila    +=  `<td style="font-weight:bold;">${d.cantidad}</td>`;
+            }else{
+                fila    +=  `<td></td>`;
+            }
+        })
+
+        fila    +=      `</tr>`;  
+    })
+    bodyTablaDetalles.innerHTML      =   fila;
+}
 
 </script>
 @endpush
