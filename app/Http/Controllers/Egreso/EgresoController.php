@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Barryvdh\DomPDF\Facade as PDF;
+use Illuminate\Support\Facades\Session;
 
 class EgresoController extends Controller
 {
@@ -49,13 +50,24 @@ class EgresoController extends Controller
         $egreso->usuario = Auth()->user()->usuario;
         $egreso->user_id = auth()->user()->id;
         $egreso->save();
-        $detalleMovimientoEgreso                =   new DetalleMovimientoEgresosCaja();
-        //$detalleMovimientoEgreso->mcaja_id = movimientoUser()->id;
-        $detalleMovimientoEgreso->mcaja_id      =   movimientoUser()->movimiento_id;
-        $detalleMovimientoEgreso->egreso_id     =   $egreso->id;
-        $detalleMovimientoEgreso->save();
 
+        //======= VERIFICANDO SI EL USUARIO SE ENCUENTRA EN UNA CAJA CON MOV APERTURADO =====
+        $movimientoUser     =   movimientoUser();
 
+        if(count($movimientoUser)   === 0){
+            Session::flash('egreso_error_mov', 'DEBE PERTENECER A UNA CAJA CON MOVIMIENTO APERTURADO');
+            return redirect()->route('Egreso.index');
+        }
+
+        if(count($movimientoUser) === 1){
+            $detalleMovimientoEgreso                =   new DetalleMovimientoEgresosCaja();           
+            $detalleMovimientoEgreso->mcaja_id      =   movimientoUser()[0]->movimiento_id;
+            $detalleMovimientoEgreso->egreso_id     =   $egreso->id;
+            $detalleMovimientoEgreso->save();
+            Session::flash('egreso_success', 'EGRESO REGISTRADO');
+        }
+
+      
         return redirect()->route('Egreso.index');
     }
     public function update(Request $request, $id)
