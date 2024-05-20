@@ -30,9 +30,10 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form action="{{ route('recibos_caja.store') }}" method="POST" enctype="multipart/form-data"
+                            <form action="{{ route('recibos_caja.update', $recibo_caja->id) }}" method="POST" enctype="multipart/form-data"
                                 id="form-recibos-caja">
                                 @csrf
+                                @method('PUT')
                                 <div class="row">
                                     <div class="col-12">
                                         <h4><b>Datos Generales</b></h4>
@@ -131,20 +132,24 @@
                                             <div class="col-lg-6 col-md-6">
                                                 <label for="metodo_pago">METOD. PAGO</label>
                                                 <select required name="metodo_pago" id="metodo_pago" class="form-control select2_form">
-                                                    <option value="EFECTIVO" {{ old('metodo_pago') == 'EFECTIVO' ? 'selected' : '' }}>EFECTIVO</option>
-                                                    <option value="TRANSFERENCIA" {{ old('metodo_pago') == 'TRANSFERENCIA' ? 'selected' : '' }}>TRANSFERENCIA</option>
-                                                    <option value="YAPE/PLIN" {{ old('metodo_pago') == 'YAPE/PLIN' ? 'selected' : '' }}>YAPE/PLIN</option>
+                                                    <option value="EFECTIVO" {{ old('metodo_pago') == 'EFECTIVO' ? 'selected' : '' }}
+                                                        @if ("EFECTIVO" === $recibo_caja->metodo_pago) selected @endif>
+                                                        EFECTIVO
+                                                    </option>
+                                                    <option value="TRANSFERENCIA" {{ old('metodo_pago') == 'TRANSFERENCIA' ? 'selected' : '' }}
+                                                        @if ("TRANSFERENCIA" === $recibo_caja->metodo_pago) selected @endif>
+                                                    </option>
+                                                    <option value="YAPE/PLIN" {{ old('metodo_pago') == 'YAPE/PLIN' ? 'selected' : '' }}
+                                                    @if ("YAPE/PLIN" === $recibo_caja->metodo_pago) selected @endif>
+                                                        YAPE/PLIN
+                                                    </option>
                                                 </select>                                                
                                             </div>
                                             <div class="col-lg-6 col-md-6">
                                                 <label for="monto_recibo">Monto</label>
                                                
-                                                @if ($pedido_entidad)
-                                                    <input id="monto_recibo" type="text" name="monto" class="form-control" min="0" value="{{ old('monto', $pedido_entidad[0]->total_pagar) }}">
-                                                @else
-                                                    <input id="monto_recibo" type="text" name="monto" class="form-control" min="0" value="{{ old('monto')}}">
-                                                @endif
-                                                
+                                                <input id="monto_recibo" type="text" name="monto" class="form-control" min="0" value="{{ old('monto') ?? $recibo_caja->monto }}">
+                                             
                                                 @error('monto')
                                                     <div class="alert alert-danger">{{ $message }}</div>
                                                 @enderror
@@ -165,14 +170,14 @@
                                                         required>
                                                         <option></option>
                                                         @foreach ($clientes as $cliente)
-                                                            <option @if ($cliente->id == 1)
+                                                            <option 
+                                                            @if ($cliente->id == 1)
                                                                 selected
                                                             @endif 
-                                                            @if ($pedido_entidad)
-                                                                @if ($pedido_entidad[0]->cliente_id == $cliente->id)
-                                                                    selected
-                                                                @endif
+                                                            @if ($cliente->id === $recibo_caja->cliente_id)
+                                                                selected
                                                             @endif
+                                                          
                                                             value="{{ $cliente->id }}"
                                                                 {{ old('cliente') == $cliente->id ? 'selected' : '' }}>
                                                                 {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
@@ -189,15 +194,7 @@
                                             <div class="col-lg-6 col-md-6">
                                                 <div class="form-group">
                                                     <label for="recibo_observacion" >OBSERVACIÓN</label>
-                                                    @if ($pedido_entidad)
-                                                        <textarea class="form-control" maxlength="50" name="recibo_observacion" id="recibo_observacion" cols="50" rows="3">
-                                                        {{'PEDIDO-'.$pedido_entidad[0]->pedido_nro}}
-                                                        </textarea>
-                                                    @else
-                                                        <textarea class="form-control" maxlength="50" name="recibo_observacion" id="recibo_observacion" cols="50" rows="3">
-                                                        </textarea>
-                                                    @endif
-                                                    
+                                                    <textarea class="form-control" maxlength="50" name="recibo_observacion" id="recibo_observacion" cols="50" rows="3">{{$recibo_caja->observacion}}</textarea>                                                
                                                 </div>
                                             </div>
                                         </div>
@@ -225,12 +222,20 @@
                                               </button>
                                             </div>
                                             <div class="custom-file">
-                                              <input height="200px" style="object-fit: cover;" accept="image/*" type="file" class="custom-file-input" id="recibo_imagen_1" aria-describedby="btn-limpiar-img_1" name="recibo_imagen_1">
-                                              <label id="lbl_recibo_imagen_1" class="custom-file-label" for="recibo_imagen_1">Seleccionar imagen</label>
+                                                <input height="200px" style="object-fit: cover;" accept="image/*" type="file" class="custom-file-input" id="recibo_imagen_1" aria-describedby="btn-limpiar-img_1" name="recibo_imagen_1">
+                                                @if ($recibo_caja->img_pago)
+                                                    <label id="lbl_recibo_imagen_1" class="custom-file-label" for="recibo_imagen_1">{{basename($recibo_caja->img_pago)}}</label>
+                                                @else
+                                                    <label id="lbl_recibo_imagen_1" class="custom-file-label" for="recibo_imagen_1">Seleccionar imagen</label>
+                                                @endif
                                             </div>
                                         </div>
                                         <div class="col-12 d-flex justify-content-center" style="border: 2px dashed rgba(0,0,0,0.5);">
-                                            <img id="recibo_imagen_1_preview" src="{{ asset('img/recibo_img_default.png') }}" alt="Vista previa de la imagen" style="height:200px;width:300px;object-fit:contain;">
+                                            @if ($recibo_caja->img_pago)
+                                                <img id="recibo_imagen_1_preview" src="{{ asset('storage/'.$recibo_caja->img_pago) }}" alt="Vista previa de la imagen" style="height:200px;width:300px;object-fit:contain;">
+                                            @else
+                                                <img id="recibo_imagen_1_preview"  src="{{ asset('img/recibo_img_default.png') }}" alt="Vista previa de la imagen" style="height:200px;width:100%;object-fit:contain;"> 
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
@@ -242,12 +247,20 @@
                                               </button>
                                             </div>
                                             <div class="custom-file">
-                                              <input accept="image/*" type="file" class="custom-file-input" id="recibo_imagen_2" aria-describedby="btn-limpiar-img_2" name="recibo_imagen_2">
-                                              <label id="lbl_recibo_imagen_2" class="custom-file-label" for="recibo_imagen_2">Seleccionar imagen</label>
+                                                <input accept="image/*" type="file" class="custom-file-input" id="recibo_imagen_2" aria-describedby="btn-limpiar-img_2" name="recibo_imagen_2">
+                                                @if ($recibo_caja->img_pago_2)
+                                                    <label id="lbl_recibo_imagen_2" class="custom-file-label" for="recibo_imagen_2">{{basename($recibo_caja->img_pago_2)}}</label>
+                                                @else
+                                                    <label id="lbl_recibo_imagen_2" class="custom-file-label" for="recibo_imagen_2">Seleccionar imagen</label>
+                                                @endif
                                             </div>
                                         </div>
                                         <div class="col-12 d-flex justify-content-center" style="border: 2px dashed rgba(0,0,0,0.5);">
-                                            <img id="recibo_imagen_2_preview"  src="{{ asset('img/recibo_img_default.png') }}" alt="Vista previa de la imagen" style="height:200px;width:100%;object-fit:contain;">
+                                            @if ($recibo_caja->img_pago_2)
+                                                <img id="recibo_imagen_2_preview"  src="{{ asset('storage/'.$recibo_caja->img_pago_2) }}" alt="Vista previa de la imagen" style="height:200px;width:100%;object-fit:contain;">
+                                            @else
+                                                <img id="recibo_imagen_2_preview"  src="{{ asset('img/recibo_img_default.png') }}" alt="Vista previa de la imagen" style="height:200px;width:100%;object-fit:contain;"> 
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -334,8 +347,8 @@
                     buttonsStyling: false
                     });
                     swalWithBootstrapButtons.fire({
-                    title: "Registrar recibo de caja?",
-                    text: "Se creará un recibo nuevo!",
+                    title: "Editar recibo de caja?",
+                    text: "Se actualizará el recibo!",
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonText: "Sí!",

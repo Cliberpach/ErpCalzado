@@ -624,8 +624,11 @@ function(){
         Route::get('index','ReciboCaja\ReciboCajaController@index')->name('recibos_caja.index');
         Route::get('getRecibosCaja','ReciboCaja\ReciboCajaController@getRecibosCaja')->name('recibos_caja.getRecibosCaja');
         Route::get('create/{pedido_id?}', 'ReciboCaja\ReciboCajaController@create')->name('recibos_caja.create')->middleware('recibos_caja.create');
+        Route::get('edit/{recibo_caja_id}', 'ReciboCaja\ReciboCajaController@edit')->name('recibos_caja.edit')->middleware('recibos_caja.create');
         Route::post('store', 'ReciboCaja\ReciboCajaController@store')->name('recibos_caja.store');
         Route::get('buscarCajaApertUsuario','ReciboCaja\ReciboCajaController@buscarCajaApertUsuario')->name('recibos_caja.buscarCajaApertUsuario');
+        Route::get('pdf/{size}/{recibo_caja_id}','ReciboCaja\ReciboCajaController@pdf')->name('recibos_caja.pdf');
+        Route::put('recibos_caja/{recibo_caja_id}', 'ReciboCaja\ReciboCajaController@update')->name('recibos_caja.update');
 
         
         // Route::get('getEgreso','Egreso\EgresoController@getEgreso')->name('Egreso.getEgreso');

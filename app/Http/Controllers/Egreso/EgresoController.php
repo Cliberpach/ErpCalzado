@@ -70,6 +70,7 @@ class EgresoController extends Controller
       
         return redirect()->route('Egreso.index');
     }
+    
     public function update(Request $request, $id)
     {
         $egreso = Egreso::findOrFail($id);
@@ -83,10 +84,12 @@ class EgresoController extends Controller
         $egreso->save();
         return redirect()->route('Egreso.index');
     }
+
     public function getEgreso(Request $request)
     {
         return Egreso::findOrFail($request->id);
     }
+
     public function destroy($id)
     {
         $egreso = Egreso::findOrFail($id);
@@ -94,6 +97,7 @@ class EgresoController extends Controller
         $egreso->save();
         return redirect()->route('Egreso.index');
     }
+
     public function recibo(Request $request, $size)
     {
         $egreso = Egreso::findOrFail($request->egreso_id);
@@ -107,4 +111,5 @@ class EgresoController extends Controller
         }
         return $pdf->stream('recibo.pdf');
     }
+
 }

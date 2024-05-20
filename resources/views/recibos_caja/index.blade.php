@@ -2,9 +2,7 @@
 
 @section('recibos_caja-active', 'active')
 @section('caja-chica-active', 'active')
-@include('Egreso.create')
-@include('Egreso.edit')
-@include('Egreso.modalImpreso')
+@include('recibos_caja.modalImpreso')
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
         <h2 style="text-transform:uppercase"><b>Lista de Recibos Caja</b></h2>
@@ -80,6 +78,11 @@
 @if(Session::has('recibo_caja_success'))
     <script>
         toastr.success('{{ Session::get('recibo_caja_success') }}','OPERACIÓN COMPLETADA');
+    </script>
+@endif
+@if(Session::has('recibo_caja_error'))
+    <script>
+        toastr.error('{{ Session::get('recibo_caja_error') }}','ERROR');
     </script>
 @endif
 
@@ -175,11 +178,11 @@
 
                         return "<div class='btn-group'>" +
                             "<a class='btn btn-primary btn-sm' style='color:white;' onclick='imprimir(" +
-                            data.id + ")' title='Modificar'><i class='fa fa-file-pdf-o'></i></a>" +
-                            "<a class='btn btn-warning btn-sm' style='color:white;' onclick='editar(" + data
+                            data.id + ")' title='PDF'><i class='fa fa-file-pdf-o'></i></a>" +
+                            "<a href='javascript:void(0)' class='btn btn-warning btn-sm' style='color:white;' onclick='editar(" + data
                             .id + ")' title='Modificar'><i class='fa fa-edit'></i></a>" +
                             "<a class='btn btn-danger btn-sm' href='#' onclick='eliminar(" + data.id +
-                            ")' title='Eliminar'><i class='fa fa-trash'></i></a></div>"
+                            ")' title='Eliminar'><i class='fa fa-trash'></i></a></div>";
 
 
 
@@ -210,35 +213,18 @@
 
     function imprimir(id) {
 
-        $("#frm_imprimir #egreso_id").val(id)
+        $("#recibo_caja_id").val(id)
         $("#modal_imprimir").modal("show");
-        //  var url = "{{ route('Egreso.recibo', ':id') }}"
+        //var url = "{{ route('Egreso.recibo', ':id') }}"
         // window.location.href= url.replace(":id", id)
     }
 
     function editar(id) {
-        axios.get("{{ route('Egreso.getEgreso') }}", {
-            params: {
-                id: id
-            }
-        }).then((value) => {
-            console.log(value)
-            var url = "{{ route('Egreso.update', ':id') }}"
-            url = url.replace(':id', id)
-            $("#frm_editar_egreso").attr('action', url);
-            $("#modal_editar_egreso #descripcion_editar").html(value.data.descripcion)
-            $("#modal_editar_egreso #importe_editar").val(value.data.importe)
-            $("#modal_editar_egreso #monto_editar").val(value.data.monto)
-            $("#modal_editar_egreso #efectivo_editar").val(value.data.efectivo)
-            $("#modal_editar_egreso #documento_editar").val(value.data.documento)
-            $("#modal_editar_egreso #cuenta_editar").val(value.data.cuenta_id).trigger('change');
-            $("#modal_editar_egreso #modo_pago_editar").val(value.data.tipo_pago_id).trigger('change');
-            //$("#modal_editar_egreso #tipo_documento_editar").val(value.data.tipodocumento_id).trigger('change');
-            $("#modal_editar_egreso").modal("show");
-        }).catch((value) => {
-
-        })
-
+        var url = "{{ route('recibos_caja.edit', ['recibo_caja_id' => ':id']) }}";
+    
+        url = url.replace(':id', id);
+    
+        window.location.href = url;
     }
 
     function eliminar(id) {
