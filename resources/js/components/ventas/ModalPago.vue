@@ -32,15 +32,10 @@
                                         <input readonly class="form-control" type="text" v-model="saldoRecibosCaja">
                                     </div>
                                     <div class="col-3" :class="{ 'd-none': !mostrarRecibosCaja }" style="display: flex; align-items: flex-end; justify-content: flex-end;">
-                                        <button type="button" class="btn btn-primary">VER RECIBOS</button>
+                                        <button @click="verRecibosCaja"  type="button" class="btn btn-primary">
+                                            {{ txtBtnVerRecibos }}
+                                        </button>
                                     </div>
-                                    <!-- <v-select
-                                        v-model="recibos_caja_elegidos"
-                                        :options="recibos_caja_disponibles"
-                                        :multiple="true"
-                                        placeholder="Seleccionar recibos de caja"
-                                        :searchable="true"
-                                        label="label_recibo"></v-select> -->
                                 </div>
                                 <div class="form-group">
                                     <label class="col-form-label required">Monto</label>
@@ -57,8 +52,9 @@
                                     <label class="col-form-label required">Modo de pago</label>
                                     <select name="modo_pago" id="modo_pago" v-model="modo_pago" class="custom-select"
                                         @change="changeModoPago()">
-                                        <option v-for="(item,index) in modoPagos" :key="index"
+                                        <option v-for="(item,index) in modoPagosFiltrados" :key="index"
                                             :value="item.id+'-'+item.descripcion">{{ item.descripcion }}</option>
+
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -77,7 +73,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-12 col-md-6">
+                            <div class="col-12 col-md-6 col-imagenes-pago" :class="{ 'd-none': !mostrarColImgPago }">
                                 <div class="form-group">
                                     <label id="imagen_label">Imagen:</label>
 
@@ -133,6 +129,32 @@
                                     </div> 
                                 </div>
                             </div>
+                            <div class="col-12 col-md-6 col-recibos-cliente" :class="{ 'd-none': !mostrarColRecibosCliente }">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">FECHA</th>
+                                                <th scope="col">USUARIO</th>
+                                                <th scope="col">MET PAGO</th>
+                                                <th scope="col">MONTO</th>
+                                                <th scope="col">SALDO</th>
+                                                <th scope="col">ESTADO</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(recibo, index) in recibos_caja" :key="index">
+                                                <th scope="row">{{ recibo.created_at }}</th>
+                                                <td>{{ recibo.user_nombre }}</td>
+                                                <td>{{ recibo.metodo_pago }}</td>
+                                                <td>{{ recibo.monto }}</td>
+                                                <td>{{ recibo.saldo }}</td>
+                                                <td>{{ recibo.estado_servicio }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -153,6 +175,8 @@
     </div>
 </template>
 <script>
+
+
 export default {
     name: "ModalPago",
     props: {
@@ -167,6 +191,9 @@ export default {
     },
     data() {
         return {
+            txtBtnVerRecibos:"VER RECIBOS",
+            mostrarColImgPago:true,
+            mostrarColRecibosCliente:false,
             mostrarRecibosCaja:false,
             pagoForm: {
                 cliente: "",
@@ -210,6 +237,16 @@ export default {
         },
         RouteStore() {
             return route('ventas.documento.storePago');
+        },
+        modoPagosFiltrados() {
+            if (this.saldoRecibosCaja === 0) {
+                this.mostrarRecibosCaja         =   false;
+                this.mostrarColRecibosCliente   =   false;
+                this.mostrarColImgPago          =   true;
+                return this.modoPagos.filter(item => item.descripcion !== "RECIBO DE CAJA");
+            } else {
+                return this.modoPagos;
+            }
         }
     },
     watch: {
@@ -233,16 +270,35 @@ export default {
         }
     },
     methods: {
+        verRecibosCaja(){
+            this.mostrarColImgPago          =   !this.mostrarColImgPago;
+            this.mostrarColRecibosCliente   =   !this.mostrarColRecibosCliente;
+
+            if(this.mostrarColRecibosCliente){
+                this.txtBtnVerRecibos   =   "OCULTAR RECIBOS";
+            }else{
+                this.txtBtnVerRecibos   =   "VER RECIBOS";
+            }
+            console.log(this.recibos_caja);
+            
+        },
         Pagar(e) {
             try {
-                let importe = !isNaN(Number(this.pagoForm.importe)) ? Number(this.pagoForm.importe) : 0;
-                let efectivo = !isNaN(Number(this.pagoForm.efectivo)) ? Number(this.pagoForm.efectivo) : 0;
+                let importe     =   !isNaN(Number(this.pagoForm.importe)) ? Number(this.pagoForm.importe) : 0;
+                let efectivo    =   !isNaN(Number(this.pagoForm.efectivo)) ? Number(this.pagoForm.efectivo) : 0;
+                let monto       =   parseFloat(this.pagoForm.monto_venta);  
 
-                if (importe == 0 && efectivo == 0)
+                if (importe == 0 && efectivo == 0){
                     throw "Ingrese al menos un monto";
+                }
 
-                if (this.ModoPagos == "TRANSFERENCIA" && this.cuentaId == "")
+                if (this.ModoPagos == "TRANSFERENCIA" && this.cuentaId == ""){
                     throw "Seleccione una cuenta";
+                }
+
+                if((importe + efectivo) < monto){
+                    throw "DEBE CUBRIR EL MONTO TOTAL DEL DOCUMENTO DE VENTA";
+                }
 
                 return true;
             } catch (ex) {
@@ -255,9 +311,15 @@ export default {
 
                 if(this.ModoPagos !== "RECIBO DE CAJA"){
                     this.mostrarRecibosCaja     =   false;
+                    this.pagoForm.efectivo      =   0;
+                    this.pagoForm.importe       =   this.pagoForm.monto_venta;
+                    this.mostrarColRecibosCliente   =   false;
+                    this.mostrarColImgPago          =   true;
+                    this.txtBtnVerRecibos           =   'VER RECIBOS';
                 }
                 
                 if(this.ModoPagos === "RECIBO DE CAJA"){
+                    this.pagoForm.efectivo      =   0;
                     this.mostrarRecibosCaja     =   true;
                     
                     if(this.saldoRecibosCaja >= this.pagoForm.monto_venta){
@@ -270,8 +332,8 @@ export default {
                 }
 
                 if (this.ModoPagos == "EFECTIVO") {
-                    this.pagoForm.efectivo = "0.00";
-                    this.pagoForm.importe = this.pagoForm.monto_venta;
+                    this.pagoForm.efectivo  = "0.00";
+                    this.pagoForm.importe   = this.pagoForm.monto_venta;
                 }
 
             } catch (ex) {

@@ -64,6 +64,12 @@
 <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
 
+@if(Session::has('error'))
+    <script>    
+        toastr.error('{{ Session::get('error') }}', 'Error');
+    </script>
+@endif
+
 <script>
     $(document).ready(function() {
 
@@ -95,6 +101,7 @@
             "bInfo": true,
             "bAutoWidth": false,
             "processing": true,
+            "serverSide":true,
             "ajax": "{{ route('ventas.cotizacion.getTable') }}",
             "columns": [{
                     data: 'id',
@@ -261,6 +268,8 @@
             }
         })
     }
+
+
 
     @if (!empty($id))
         Swal.fire({

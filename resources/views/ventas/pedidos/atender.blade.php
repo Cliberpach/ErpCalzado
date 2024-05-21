@@ -288,10 +288,10 @@
                                         (<label class="required"></label>) son obligatorios.</small>
                                 </div>
                                 <div class="col-md-6 text-right">
-                                    <a href="{{ route('ventas.pedidos.index') }}" id="btn_cancelar"
+                                    <button type="button" id="btn_regresar_atend"
                                         class="btn btn-w-m btn-default">
                                         <i class="fa fa-arrow-left"></i> Regresar
-                                    </a>
+                                </button>
                                    
                                     <button type="submit" id="btn_grabar" form="form-pedido-doc-venta" class="btn btn-w-m btn-primary">
                                         <i class="fa fa-save"></i> Grabar
@@ -386,6 +386,15 @@
 
 
     function events(){
+
+        document.querySelector('#btn_regresar_atend').addEventListener('click',(e)=>{
+            event.target.disabled = true;
+    
+            event.target.innerHTML = '<i class="fa fa-arrow-left"></i> Regresando...';
+
+            window.location.href = "{{ route('ventas.pedidos.index') }}";
+        })
+
         //======== EDITAR INPUT CANTIDAD ATENDIDA =======
         document.addEventListener('input',(e)=>{
             if(e.target.classList.contains('inputCantidadAtender')){

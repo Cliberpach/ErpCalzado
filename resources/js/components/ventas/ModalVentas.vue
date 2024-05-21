@@ -120,33 +120,6 @@ export default {
                             Swal.resumeTimer();
                         }
                     }
-
-                    
-
-
-                    // $.ajax({
-                    //     dataType: 'json',
-                    //     type: 'post',
-                    //     url: route('ventas.documento.getCuentas'),
-                    //     data: {
-                    //         '_token': $('meta[name=csrf-token]').val(),
-                    //         'empresa_id': item.empresa_id
-                    //     },
-                    //     success: function (response) {
-                            
-                    //         if (response.success) {
-                    //             console.log(item)
-                    //             me.cuentas = response.cuentas;
-                    //             me.formPago = item;
-                    //             $("#modal_pago").modal("show");
-                    //             timerInterval = 0;
-                    //             Swal.resumeTimer();
-                    //         } else {
-                    //             timerInterval = 0;
-                    //             Swal.resumeTimer();
-                    //         }
-                    //     }
-                    // });
                 },
                 willClose: () => {
                     clearInterval(timerInterval)
@@ -171,6 +144,7 @@ export default {
         },
         async getRecibosCaja(cliente_id){
             try {
+                this.saldoRecibosCaja   =   0;
                 const res       =   await axios.get(route('ventas.documento.getRecibosCaja',cliente_id));
                 if(res.data.success){
                     //========== COLOCAMOS LOS RECIBOS =========

@@ -116,7 +116,6 @@
 @endpush
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
@@ -535,6 +534,35 @@
     }
 
     function eliminarPedido(pedido_id) {
+
+        //======== VALIDAR ESTADO DEL PEDIDO ======
+        const pedido    =   pedidos_data_table.rows().data().filter(function (value, index) {
+            return value['id'] == pedido_id;
+        });
+
+        if(pedido.length >0){
+            const estado    =   pedido[0].estado;
+                   
+            if(estado === "ATENDIENDO"){
+                toastr.error('EL PEDIDO NO PUEDE SER ELIMINADO','PEDIDO EN PROCESO');
+                return;
+            }
+
+            if(estado === "FINALIZADO"){
+                toastr.error('EL PEDIDO NO PUEDE SER ELIMINADO','PEDIDO FINALIZADO');
+                return;
+            }
+
+            if(estado === "ANULADO"){
+                toastr.error('EL PEDIDO NO PUEDE SER ELIMINADO','PEDIDO ANULADO');
+                return;
+            }
+               
+        }else{
+            toastr.error('ERROR EN EL ID DEL PEDIDO','PEDIDO NO ENCONTRADO');
+            return;
+        } 
+
         Swal.fire({
             title: "ESTÁS SEGURO DE ELIMINARLO?",
             text: "NO SE PODRÁ REVERTIR ESTA ACCIÓN!",

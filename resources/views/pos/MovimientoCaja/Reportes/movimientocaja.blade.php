@@ -599,7 +599,7 @@
                     </td>
                     @foreach (tipos_pago() as $tipo)
                         <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">
-                            {{ number_format(cuadreMovimientoCajaEgresosEgresoResum($movimiento, $tipo->id), 2) }}</td>
+                            {{ number_format(calcularTotalesRecibosCaja($movimiento, $tipo->descripcion), 2) }}</td>
                     @endforeach
                 </tr>
             </tbody>

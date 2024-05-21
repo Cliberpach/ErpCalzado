@@ -1407,7 +1407,7 @@ if (!function_exists('cuadreMovimientoCajaIngresosRecibo')) {
         $totalIngresos = 0;
         //======== OBTENER TODOS LOS RECIBOS DE DICHO MOVIMIENTO =========
         $recibos        =   DB::select('select * from recibos_caja as rc 
-                            where rc.movimiento_id=?',[$movimiento->id]);
+                            where rc.movimiento_id=? and rc.estado="ACTIVO"',[$movimiento->id]);
     
 
         foreach ($recibos as $item) {
@@ -1495,6 +1495,23 @@ if (!function_exists('cuadreMovimientoCajaIngresosVentaResum')) {
     //    }
     }
 }
+
+if (!function_exists('calcularTotalesRecibosCaja')) {
+    function calcularTotalesRecibosCaja(MovimientoCaja $movimiento,$tipo_pago)
+    {
+        $recibos    =   DB::select('select rc.monto,rc.metodo_pago,rc.estado 
+                        from recibos_caja as rc where rc.movimiento_id=?',[$movimiento->id]);
+        $total      =   0;
+        foreach ($recibos as $recibo) {
+            if($recibo->metodo_pago == $tipo_pago && $recibo->estado === "ACTIVO"){
+                $total+= $recibo->monto;
+            }
+        }
+
+        return $total;
+    }
+}
+
 
 if (!function_exists('obtenerTotalIngresosPorTipoPago')) {
     function obtenerTotalIngresosPorTipoPago(MovimientoCaja $movimiento)

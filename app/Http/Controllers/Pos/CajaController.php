@@ -394,10 +394,11 @@ class CajaController extends Controller
     public function verificarVentasNoPagadas($movimiento_id){
 
         try {
+            //========= BUSCAMOS LOS DOCS DE VENTA NO PAGADOS, EXCEPTO LOS CONVERTIDOS ===========
             $docs_no_pagados       =  DB::select('select cd.serie,cd.correlativo 
                                         from detalle_movimiento_venta as dmv 
                                         inner join cotizacion_documento as cd on cd.id=dmv.cdocumento_id
-                                        where cd.estado_pago="PENDIENTE" and mcaja_id=?
+                                        where cd.estado_pago="PENDIENTE" and mcaja_id=? and cd.convertir is null
                                         group by cd.serie,cd.correlativo',[$movimiento_id]);
 
             

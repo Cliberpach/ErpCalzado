@@ -190,12 +190,9 @@
                                                 <div class="form-group">
                                                     <label for="recibo_observacion" >OBSERVACIÓN</label>
                                                     @if ($pedido_entidad)
-                                                        <textarea class="form-control" maxlength="50" name="recibo_observacion" id="recibo_observacion" cols="50" rows="3">
-                                                        {{'PEDIDO-'.$pedido_entidad[0]->pedido_nro}}
-                                                        </textarea>
+                                                        <textarea class="form-control" maxlength="50" name="recibo_observacion" id="recibo_observacion" cols="50" rows="3">{{'PEDIDO-'.$pedido_entidad[0]->pedido_nro}}</textarea>
                                                     @else
-                                                        <textarea class="form-control" maxlength="50" name="recibo_observacion" id="recibo_observacion" cols="50" rows="3">
-                                                        </textarea>
+                                                        <textarea class="form-control" maxlength="50" name="recibo_observacion" id="recibo_observacion" cols="50" rows="3"></textarea>
                                                     @endif
                                                     
                                                 </div>

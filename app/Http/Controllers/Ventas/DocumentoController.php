@@ -3792,10 +3792,11 @@ class DocumentoController extends Controller
 
     public function getRecibosCaja($cliente_id){
         try {
-            $recibos_caja   =   DB::select('select rc.*, CONCAT("RC-", rc.id, " : SALDO: ", rc.saldo) AS label_recibo
+            $recibos_caja   =   DB::select('select rc.*,u.usuario as user_nombre
                                 from recibos_caja as rc
-                                where rc.cliente_id=? and rc.saldo > 0
-                                order by rc.created_at',[$cliente_id]);
+                                inner join users as u on u.id=rc.user_id
+                                where rc.cliente_id=? and rc.saldo > 0 and rc.estado="ACTIVO" and rc.estado_servicio <> "CANJEADO"
+                                order by rc.created_at desc',[$cliente_id]);
 
             return response()->json(['success'=>true,'recibos_caja'=>$recibos_caja]);
         } catch (\Throwable $th) {

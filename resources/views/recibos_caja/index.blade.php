@@ -3,6 +3,8 @@
 @section('recibos_caja-active', 'active')
 @section('caja-chica-active', 'active')
 @include('recibos_caja.modalImpreso')
+@include('recibos_caja.modal_detalles')
+
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
         <h2 style="text-transform:uppercase"><b>Lista de Recibos Caja</b></h2>
@@ -90,8 +92,9 @@
 
     document.addEventListener('DOMContentLoaded',()=>{
         iniciarDataTable();
-
+        loadDataTableDetallesRecibo();
         events();
+
     })
 
     function events(){
@@ -176,16 +179,31 @@
                         url_edit = url_edit.replace(':id', data.id);
 
 
-                        return "<div class='btn-group'>" +
-                            "<a class='btn btn-primary btn-sm' style='color:white;' onclick='imprimir(" +
-                            data.id + ")' title='PDF'><i class='fa fa-file-pdf-o'></i></a>" +
-                            "<a href='javascript:void(0)' class='btn btn-warning btn-sm' style='color:white;' onclick='editar(" + data
-                            .id + ")' title='Modificar'><i class='fa fa-edit'></i></a>" +
-                            "<a class='btn btn-danger btn-sm' href='#' onclick='eliminar(" + data.id +
-                            ")' title='Eliminar'><i class='fa fa-trash'></i></a></div>";
-
-
-
+                        return `<div class="btn-group">
+                                    <div class="dropdown">
+                                        <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fas fa-bars"></i>
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                            <a class="dropdown-item" href="javascript:void(0);" onclick="imprimir(${data.id})">
+                                                <i class="fas fa-file-pdf"></i> PDF
+                                            </a>
+                                            <a class="dropdown-item" href="javascript:void(0);" onclick="editar(${data.id})">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </a>
+                                            <a class="dropdown-item" href="javascript:void(0);" onclick="eliminar(${data.id})">
+                                                <i class="fas fa-trash-alt"></i> Eliminar
+                                            </a>
+                                            <a class="dropdown-item" href="javascript:void(0);" onclick="detalleReciboCaja(${data.id})">
+                                                <i class="fas fa-info-circle"></i> Detalle
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <form id="form-eliminar-${data.id}" action="{{ route('recibos_caja.destroy', ':id') }}" method="POST" style="display:none;">
+                                        @csrf
+                                        @method('PUT')
+                                    </form>
+                                </div>`;
                     }
                 }
 
@@ -238,9 +256,10 @@
             cancelButtonText: "No, Cancelar",
         }).then((result) => {
             if (result.isConfirmed) {
-                var url_eliminar    = '{{ route('recibos_caja.destroy', ':id') }}';
-                url_eliminar        = url_eliminar.replace(':recibo_caja_id', id);
-                $(location).attr('href', url_eliminar);
+                var form = document.getElementById(`form-eliminar-${id}`);
+                var url_eliminar = form.action.replace(':id', id);
+                form.action = url_eliminar;
+                form.submit();
 
             } else if (
                 result.dismiss === Swal.DismissReason.cancel
@@ -276,6 +295,23 @@
         } catch (error) {
             toastr.error('ERROR EN EL SERVIDOR','ERROR');
             return false;
+        }
+    }
+
+    async function detalleReciboCaja(recibo_caja_id){
+        try {
+            const res    =   await axios.get(route('recibos_caja.detalles',recibo_caja_id));
+            if(res.data.success){
+                pintarDetallesRecibo(res.data.detalles);
+                $("#modal_detalles_recibos_caja").modal("show");
+                
+                //======== MOSTRAR DATA =====
+                console.log(res.data.detalles);
+            }else{
+                toastr.error(res.data.exception,res.data.message);
+            }
+        } catch (error) {
+            toastr.error(error,'ERROR EN LA SOLICITUD DETALLES RECIBO DE CAJA');
         }
     }
 </script>

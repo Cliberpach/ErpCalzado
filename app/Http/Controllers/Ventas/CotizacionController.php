@@ -38,20 +38,29 @@ class CotizacionController extends Controller
 
     public function getTable()
     {
-        $cotizaciones = Cotizacion::where('estado', '<>', 'ANULADO')->orderBy('id', 'desc')->get();
-        $coleccion = collect([]);
-        foreach($cotizaciones as $cotizacion) {
-            $coleccion->push([
-                'id' => $cotizacion->id,
-                'empresa' => $cotizacion->empresa->razon_social,
-                'cliente' => $cotizacion->cliente->nombre,
-                'fecha_documento' => Carbon::parse($cotizacion->fecha_documento)->format( 'd/m/Y'),
-                'total_pagar' => $cotizacion->total_pagar,
-                'estado' => $cotizacion->estado,
-                'documento' => $cotizacion->documento ? '1' : '0'
-            ]);
-        }
-        return DataTables::of($coleccion)->toJson();
+        //$cotizaciones = Cotizacion::where('estado', '<>', 'ANULADO')->orderBy('id', 'desc')->get();
+
+        $cotizaciones   =   DB::select('select co.id,e.razon_social as empresa,cl.nombre as cliente,co.fecha_documento,
+                            co.total_pagar,co.estado,IF(cd.cotizacion_venta IS NULL, "0", "1") as documento
+                            from cotizaciones  as co
+                            left join cotizacion_documento as cd on cd.cotizacion_venta=co.id
+                            inner join empresas as e on e.id=co.empresa_id
+                            inner join clientes as cl on cl.id=co.cliente_id');
+        
+        //$cotizaciones = collect($cotizaciones);
+        // $coleccion = collect([]);
+        // foreach($cotizaciones as $cotizacion) {
+        //     $coleccion->push([
+        //         'id' => $cotizacion->id,
+        //         'empresa' => $cotizacion->empresa->razon_social,
+        //         'cliente' => $cotizacion->cliente->nombre,
+        //         'fecha_documento' => Carbon::parse($cotizacion->fecha_documento)->format( 'd/m/Y'),
+        //         'total_pagar' => $cotizacion->total_pagar,
+        //         'estado' => $cotizacion->estado,
+        //         'documento' => $cotizacion->documento ? '1' : '0'
+        //     ]);
+        // }
+        return DataTables::of($cotizaciones)->toJson();
     }
 
     public function create()
@@ -205,6 +214,14 @@ class CotizacionController extends Controller
 
     public function edit($id)
     {
+        //=========== SI LA COTIZACIÓN TIENE UN DOC DE VENTA, YA NO PUEDE MODIFICARSE =========
+        $exists_doc_venta   =   DB::table('cotizacion_documento')->where('cotizacion_venta', $id)->exists();
+        if($exists_doc_venta){
+            Session::flash('error','NO PUEDE MODIFICAR UNA COTIZACIÓN QUE TIENE UN DOCUMENTO DE VENTA GENERADO');
+            return redirect()->back();
+        }
+
+
         $tipos_documento    =   tipos_documento();
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();

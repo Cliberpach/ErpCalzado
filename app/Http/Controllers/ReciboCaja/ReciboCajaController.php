@@ -92,7 +92,7 @@ class ReciboCajaController extends Controller
             $recibo_caja->monto         =   $request->get('monto');
             $recibo_caja->saldo         =   $request->get('monto');
             $recibo_caja->metodo_pago   =   $request->get('metodo_pago');
-            $recibo_caja->observacion   =   $request->get('recibo_observacion');
+            $recibo_caja->observacion   =   trim($request->get('recibo_observacion'));            
             $recibo_caja->save();
             
 
@@ -239,7 +239,7 @@ class ReciboCajaController extends Controller
         $usuario_destroy    =   Auth::user()->id;
 
         //======= VALIDAR QUE SOLO EL CREADOR DEL RECIBO,PUEDA EDITAR EL RECIBO ==========
-        if($usuario_editar !== $recibo_caja->user_id){
+        if($usuario_destroy !== $recibo_caja->user_id){
             Session::flash('recibo_caja_error', 'SOLO EL USUARIO QUE CREÓ EL RECIBO PUEDE ELIMINARLO');
             return redirect()->back();  
         }
@@ -315,5 +315,23 @@ class ReciboCajaController extends Controller
             $pdf = PDF::loadView('recibos_caja.Imprimir.normal', compact('recibo_caja','empresa'));
         }
         return $pdf->stream('recibo.pdf');
+    }
+
+
+    public function detalles($recibo_caja_id){
+        try {
+            $detalles       =   DB::select('select cd.serie as documento_serie,cd.correlativo as documento_correlativo,
+                                rcd.saldo_antes,rcd.monto_usado,rcd.saldo_despues,rcd.created_at as fecha_uso,u.usuario
+                                from recibos_caja_detalle as rcd
+                                inner join cotizacion_documento as cd on cd.id=rcd.documento_id
+                                inner join users as u on u.id=cd.user_id
+                                where rcd.recibo_id=?
+                                order by rcd.id desc',[$recibo_caja_id]);
+
+            return response()->json(['success'=>true,'detalles'=>$detalles]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>'ERROR EN EL SERVIDOR AL OBTENER DETALLES DEL RECIBO',
+            'exception'=>$th->getMessage()]);
+        }
     }
 }
