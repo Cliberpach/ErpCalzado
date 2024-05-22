@@ -3789,7 +3789,6 @@ class DocumentoController extends Controller
 
     }
 
-
     public function getRecibosCaja($cliente_id){
         try {
             $recibos_caja   =   DB::select('select rc.*,u.usuario as user_nombre

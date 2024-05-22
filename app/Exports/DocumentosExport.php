@@ -133,8 +133,8 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
         if($this->tipo == 126) //Ventas
         {
             //$ventas = Documento::where('estado','!=','ANULADO');
-            $ventas = Documento::all();
-
+            $ventas = Documento::query();
+            
             if($this->fecha_desde && $this->fecha_hasta)
             {
                 $ventas = $ventas->whereBetween('fecha_documento', [$this->fecha_desde, $this->fecha_hasta]);
@@ -149,6 +149,7 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
             ->orderBy('serie', 'asc')
             ->orderBy('correlativo', 'asc')
             ->get();
+
 
             $coleccion = collect();
             foreach($ventas as $doc){
