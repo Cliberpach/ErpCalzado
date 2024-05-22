@@ -42,7 +42,7 @@ class NotaIngresoController extends Controller
     }
     public function gettable()
     {
-        $data = DB::table("nota_ingreso as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
+        //$data = DB::table("nota_ingreso as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
         $detalles = DB::select('select distinct p.nombre as producto_nombre,ni.id as nota_ingreso_id,ni.observacion
                 from nota_ingreso as ni 
                 inner join detalle_nota_ingreso as dni
