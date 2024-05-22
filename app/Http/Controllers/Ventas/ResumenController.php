@@ -17,6 +17,7 @@ use Greenter\Model\Summary\SummaryPerception;
 use Greenter\Ws\Services\SunatEndpoints;
 use DateTime;
 use Illuminate\Support\Facades\Response; 
+use Yajra\DataTables\Facades\DataTables;
 
 
 require __DIR__ . '/../../../../vendor/autoload.php';
@@ -24,9 +25,15 @@ require __DIR__ . '/../../../../vendor/autoload.php';
 class ResumenController extends Controller
 {
     public function index(){
-        $resumenes = Resumen::orderByDesc('id')->get();
+        //$resumenes = Resumen::orderByDesc('id')->get();
 
-        return view('ventas.resumenes.index',compact('resumenes'));
+        return view('ventas.resumenes.index');
+    }
+
+    public function getResumenes(Request $request){
+        $resumenes  =   DB::select('select * from resumenes as r');
+
+        return DataTables::of($resumenes)->toJson();
     }
 
     public function getComprobantes($fechaComprobantes){

@@ -481,6 +481,7 @@ function(){
         Route::post('/store', 'Ventas\ResumenController@store')->name('ventas.resumenes.store');
         Route::post('/consultar', 'Ventas\ResumenController@consultarTicket')->name('ventas.resumenes.consultar');
         Route::post('/reenviar', 'Ventas\ResumenController@reenviarSunat')->name('ventas.resumenes.reenviar');
+        Route::get('getResumenes', 'Ventas\ResumenController@getResumenes')->name('ventas.resumenes.getResumenes');
 
         //  Route::post('/updatePago', 'Ventas\CajaController@updatePago')->name('ventas.caja.updatePago');
     });

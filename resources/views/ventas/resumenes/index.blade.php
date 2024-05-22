@@ -96,95 +96,12 @@
                                     <th class="text-center">ESTADO</th>
                                     <th class="text-center">TICKET</th>
                                     <th class="text-center">DESCARGAS</th>
-                                    <th class="text-center">ACCIONES</th>
+                                    <th class="text-center">ACCIONES</th> 
                                     
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($resumenes as $resumen)
-                                    <tr>
-                                        <th scope="row">{{$resumen->id}}</th>
-                                        <td>{{$resumen->created_at}}</td>
-                                        <td>{{$resumen->fecha_comprobantes}}</td>
-                                        <td>{{$resumen->serie.'-'.$resumen->correlativo}}</td>
-
-                                        @if ($resumen->send_sunat == 1)
-                                            @if ($resumen->code_estado == '0')
-                                                <td>
-                                                    <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #e5f9e0; color: #176e2f; font-weight: bold;text-align:center;">
-                                                        ACEPTADO
-                                                    </p>
-                                                </td>  
-                                            @endif
-                                            @if ($resumen->code_estado == '99')
-                                                <td>
-                                                    <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #efd5d5; color: #be1919; font-weight: bold;text-align:center;">
-                                                        Enviado con errores
-                                                    </p>
-                                                </td>  
-                                            @endif
-                                            @if ($resumen->code_estado == '98')
-                                                <td>
-                                                    <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #c0d5f5; color: #033bd6; font-weight: bold;text-align:center;">
-                                                        EN PROCESO
-                                                    </p>
-                                                </td>  
-                                            @endif
-                                            @if ($resumen->code_estado == null)
-                                                <td>
-                                                    <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #c0d5f5; color: #033bd6; font-weight: bold;text-align:center;">
-                                                        ENVIADO
-                                                    </p>
-                                                </td>  
-                                            @endif
-                                        @endif
-                                        @if ($resumen->send_sunat == 0)
-                                            <td>
-                                                <p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #f8f9e0; color: #ad8a14; font-weight: bold;text-align:center;">
-                                                    ERROR EN EL ENVÍO
-                                                </p>
-                                            </td>
-                                        @endif
-
-                                        <td>{{$resumen->ticket}}</td>
-                                        <td style="white-space: nowrap;">
-                                            <div style="display: flex; justify-content: center;">
-                                                @if ($resumen->ruta_xml)
-                                                    <form action="{{ route('ventas.resumenes.getXml', $resumen->id) }}" method="get">
-                                                        <button type="submit" class="btn btn-primary btn-xml">
-                                                            XML
-                                                        </button>
-                                                    </form>
-                                                @endif
-                                                @if ($resumen->ruta_cdr)
-                                                    <form style="margin-left:3px;" action="{{ route('ventas.resumenes.getCdr', $resumen->id) }}" method="get">
-                                                        <button type="submit" class="btn btn-primary btn-xml">
-                                                            CDR
-                                                        </button>
-                                                    </form>
-                                                @endif
-                                            </div>
-                                        </td>
-                                        
-                                        <td>
-                                            @if ($resumen->code_estado == '98')
-                                                <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-consultar-resumen">
-                                                    CONSULTAR
-                                                </button>
-                                            @endif
-                                            @if ($resumen->send_sunat == 1 && $resumen->ticket && $resumen->code_estado==null)
-                                                <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-consultar-resumen">
-                                                    CONSULTAR
-                                                </button>
-                                            @endif
-                                            @if ($resumen->send_sunat == '0' && !$resumen->ticket)
-                                            <button type="button" data-resumen-id="{{$resumen->id}}" class="btn btn-primary btn-reenviar-resumen">
-                                                REENVIAR
-                                            </button>
-                                        @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
+                               
                             </tbody>
                         </table>
 
@@ -199,6 +116,11 @@
 
 @stop
 @push('styles')
+<style>
+    .swal2-container {
+        z-index: 9999 !important; 
+    }
+</style>
     <!-- DataTable -->
     <link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/dist/toastr.min.css">
@@ -245,7 +167,35 @@
             if(e.target.classList.contains('btn-guardar-resumen')){
                const valido   = validaciones();
                 if(valido){
-                   saveSendResumen();
+                    const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: "btn btn-success",
+                        cancelButton: "btn btn-danger"
+                    },
+                    buttonsStyling: false
+                    });
+                    swalWithBootstrapButtons.fire({
+                    title: "Desea registrar y enviar un nuevo resúmen de boletas?",
+                    text: "Acción no reversible!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí!",
+                    cancelButtonText: "No, cancelar!",
+                    reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            saveSendResumen();
+                        } else if (
+                            /* Read more about handling dismissals below */
+                            result.dismiss === Swal.DismissReason.cancel
+                        ) {
+                            swalWithBootstrapButtons.fire({
+                            title: "Operación cancelada",
+                            text: "No se realizaron acciones",
+                            icon: "error"
+                            });
+                        }
+                    });
                 }
             }
         })
@@ -421,10 +371,92 @@
   
 
     function cargarDataTable(){
+        const getResumenesUrl = "{{ route('ventas.resumenes.getResumenes') }}";
+
         tableResumenes = new DataTable('#table-resumenes',
         {
+            serverSide: true,
+            ajax: {
+                url: getResumenesUrl,
+                type: 'GET' 
+            },
+            columns: [
+                { data: 'id' },
+                { data: 'created_at' },
+                { data: 'fecha_comprobantes' },
+                { 
+                    data: null, 
+                    render: function(data, type, row) {
+                        return data.serie + '-' + data.correlativo;
+                    }
+                },
+                { 
+                    data: null, 
+                    render: function(data, type, row) {
+                        if(data.send_sunat == '0'){
+                            return "NO ENVIADO";
+                        }
+                        if(data.send_sunat == '1'){
+                            return "ENVIADO";
+                        }
+                    }
+                },
+                { data: 'ticket', title: 'ticket' },
+                { 
+                    data: null, 
+                    render: function(data, type, row) {
+                        var html = `<td style="white-space: nowrap;"><div style="display: flex; justify-content: center;">`;
+                        
+                        if (data.ruta_xml) {
+                            let urlGetXml       =   "{{ route('ventas.resumenes.getXml', ['resumen_id' => ':resumen_id']) }}";
+                            urlGetXml           =   urlGetXml.replace(':resumen_id', data.id);
+
+                            html += `<form action="${urlGetXml}" method="get">`;
+                            html += `<button type="submit" class="btn btn-primary btn-xml">XML</button>`;
+                            html += `</form>`;
+                        }
+                                                
+                        if (data.ruta_cdr) {
+                            let urlGetCdr     = "{{ route('ventas.resumenes.getCdr', ['resumen_id' => ':resumen_id']) }}";
+                            let url_getCdr    = urlGetCdr.replace(':resumen_id', data.id);
+
+
+                            html += `<form style="margin-left:3px;" action="${url_getCdr}" method="get">`;
+                            html += `<button type="submit" class="btn btn-primary btn-xml">CDR</button>`;
+                            html += `</form>`;
+                        }
+                                                
+                        html += `</div></td>`;
+                        
+                        return html;
+                    }
+                },
+                { 
+                    data: null, 
+                    render: function(data, type, row) {
+                        var html = '<td>';
+                        
+                        if (data.code_estado == '98') {
+                            html += '<button type="button" data-resumen-id="' + data.id + '" class="btn btn-primary btn-consultar-resumen">CONSULTAR</button>';
+                        }
+                        
+                        if (data.send_sunat == 1 && data.ticket && !data.code_estado) {
+                            html += '<button type="button" data-resumen-id="' + data.id + '" class="btn btn-primary btn-consultar-resumen">CONSULTAR</button>';
+                        }
+                        
+                        if (data.send_sunat == '0' && !data.ticket) {
+                            html += '<button type="button" data-resumen-id="' + data.id + '" class="btn btn-primary btn-reenviar-resumen">REENVIAR</button>';
+                        }
+                        
+                        html += '</td>';
+                        
+                        return html;
+                    }
+                }
+                
+            ],
             language: {
-                processing:     "Traitement en cours...",
+                processing:     "Cargando resúmenes",
                 search:         "BUSCAR: ",
                 lengthMenu:    "MOSTRAR _MENU_ RESÚMENES",
                 info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ RESÚMENES",
