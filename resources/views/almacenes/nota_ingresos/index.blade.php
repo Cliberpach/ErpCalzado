@@ -41,6 +41,7 @@
                                     <th class="text-center">Usuario</th>
                                     <th class="text-center">Fecha Registro</th>
                                     <th class="text-center">Productos</th>
+                                    <th class="text-center">Observación</th>
                                     <th class="text-center">ACCIONES</th>
                                 </tr>
                             </thead>
@@ -142,6 +143,7 @@ $(document).ready(function() {
             { data: 'usuario',className: "text-center"},
             { data: 'created_at',className: "text-center"},
             { data: 'cadena_detalles',className: "text-center"},
+            { data: 'observacion',className: "text-center"},
             {
                 data: null,
                 className: "text-center",
