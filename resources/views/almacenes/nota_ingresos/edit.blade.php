@@ -6,7 +6,7 @@
 <div class="row wrapper border-bottom white-bg page-heading">
 
     <div class="col-lg-12">
-       <h2  style="text-transform:uppercase"><b>ACTUALIZAR NOTA DE INGRESO</b></h2>
+       <h2  style="text-transform:uppercase"><b>VER NOTA DE INGRESO</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{route('home')}}">Panel de Control</a>
@@ -15,7 +15,7 @@
                 <a href="{{route('almacenes.nota_ingreso.index')}}">NOTA DE INGRESOS</a>
             </li>
             <li class="breadcrumb-item active">
-                <strong>ACTUALIZAR</strong>
+                <strong>VER</strong>
             </li>
 
         </ol>
@@ -67,7 +67,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-12 col-md-3">
+                                        <div class="col-12 col-md-3 d-none">
                                             <label class="required">Moneda: </label>
                                             <select
                                                 disabled
@@ -89,7 +89,7 @@
                                         <div class="col-12 col-md-3">
                                             <div class="form-group">
                                                 <label class="required">Origen</label>
-                                                <select name="origen" id="origen" class="select2_form form-control {{ $errors->has('origen') ? ' is-invalid' : '' }}">
+                                                <select disabled name="origen" id="origen" class="select2_form form-control {{ $errors->has('origen') ? ' is-invalid' : '' }}">
                                                     <option value="">Seleccionar Origen</option>
                                                     @foreach ($origenes as  $tabla)
                                                         <option {{ $notaingreso->origen == $tabla->descripcion ? 'selected' : '' }}  value="{{$tabla->id}}">{{$tabla->descripcion}}</option>
@@ -100,13 +100,17 @@
                                         <div class="col-12 col-md-3">
                                             <div class="form-group">
                                                 <label>Destino</label>
-                                                <select name="destino" id="destino" class="select2_form form-control {{ $errors->has('destino') ? ' is-invalid' : '' }}">
+                                                <select disabled name="destino" id="destino" class="select2_form form-control {{ $errors->has('destino') ? ' is-invalid' : '' }}">
                                                     <option value="">Seleccionar Destino</option>
                                                     @foreach ($destinos as $tabla)
                                                         <option {{ $notaingreso->destino == $tabla->descripcion ? 'selected' : '' }} value="{{$tabla->id}}">{{$tabla->descripcion}}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
+                                        </div>
+                                        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                            <label for="observacion">OBSERVACIÓN</label>
+                                            <textarea disabled name="observacion" id="observacion" cols="30" rows="3">{{$notaingreso->observacion}}</textarea>
                                         </div>
                                     </div>
 

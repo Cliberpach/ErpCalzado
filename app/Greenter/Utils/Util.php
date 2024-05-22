@@ -59,8 +59,8 @@ final class Util
          * Usuario = MODDATOS
          * Clave   = moddatos
          */
-        //$see->setClaveSOL('20000000001', 'MODDATOS', 'moddatos');
-        $see->setClaveSOL('20611904020', 'SISCOMFA', 'Merry321');
+        $see->setClaveSOL('20000000001', 'MODDATOS', 'moddatos');
+        //$see->setClaveSOL('20611904020', 'SISCOMFA', 'Merry321');
         $see->setCachePath(__DIR__ . '/../cache');
 
         return $see;

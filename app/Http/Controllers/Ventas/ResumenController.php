@@ -176,10 +176,10 @@ class ResumenController extends Controller
     
             //==== ENVIANDO A SUNAT ======
             //===== MODO BETA ======
-            //$see = $util->getSee(SunatEndpoints::FE_BETA);
+            $see = $util->getSee(SunatEndpoints::FE_BETA);
     
             //===== MODO PRODUCCION =====
-            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
+            //$see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
     
             $res = $see->send($sum);
     
@@ -262,8 +262,8 @@ class ResumenController extends Controller
             $util = Util::getInstance();
 
             //===== INICIAR ENDPOINTS SUNAT ====
-            //$see = $util->getSee(SunatEndpoints::FE_BETA);
-            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
+            $see = $util->getSee(SunatEndpoints::FE_BETA);
+            //$see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
 
             $res_ticket     =   $see->getStatus($ticket);
 

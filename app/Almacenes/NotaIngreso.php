@@ -14,6 +14,7 @@ class NotaIngreso extends Model
         'destino',
         'usuario',
         'estado',
+        'observacion'
         // 'moneda',
         // 'tipo_cambio',
         // 'dolar',

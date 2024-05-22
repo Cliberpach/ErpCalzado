@@ -49,7 +49,7 @@
                                             <input type="hidden" id="numero"  name="numero" class="form-control" value="{{$ngenerado}}" >
 
 
-                                        <div class="col-12 col-md-3"  id="fecha">
+                                        <div class="col-12 col-lg-3 col-md-3"  id="fecha">
                                             <label>Fecha</label>
                                             <div class="input-group date">
                                                 <span class="input-group-addon">
@@ -66,7 +66,7 @@
                                                 @endif
                                             </div>
                                         </div>
-                                        <div class="col-12 col-md-3">
+                                        <div class="col-12 col-md-3 d-none">
 
                                             <label class="required">Moneda</label>
                                             <select
@@ -90,7 +90,7 @@
                                             <input type="hidden" id="moneda" name="moneda" value="SOLES">
 
                                         </div>
-                                        <div class="col-12 col-md-3">
+                                        <div class="col-12 col-lg-3 col-md-3">
                                             <label class="required">Origen</label>
                                             <select name="origen" id="origen" class="select2_form form-control {{ $errors->has('origen') ? ' is-invalid' : '' }}" required>
                                                 <option value="">Seleccionar Origen</option>
@@ -104,7 +104,7 @@
                                             </span>
                                             @endif
                                         </div>
-                                        <div class="col-12 col-md-3">
+                                        <div class="col-12 col-lg-3 col-md-3">
                                             <label>Destino</label>
                                             <select name="destino" id="destino" class="select2_form form-control {{ $errors->has('destino') ? ' is-invalid' : '' }}">
                                                 <option value="">Seleccionar Destino</option>
@@ -118,8 +118,10 @@
                                             </span>
                                             @endif
                                         </div>
-
-
+                                        <div class="col-12 col-lg-3 col-md-3">
+                                            <label for="observacion">OBSERVACIÓN</label>
+                                            <textarea class="form-control" name="observacion" id="observacion" cols="30" rows="3"></textarea>
+                                        </div>
                                     </div>
                                 </div>
                                 <input type="hidden" id="notadetalle_tabla" name="notadetalle_tabla[]">

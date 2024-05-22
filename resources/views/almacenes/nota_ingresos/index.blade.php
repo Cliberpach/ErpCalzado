@@ -41,6 +41,7 @@
                                     <th class="text-center">Usuario</th>
                                     <th class="text-center">Fecha Registro</th>
                                     <th class="text-center">Productos</th>
+                                    <th class="text-center">Observación</th>
                                     <th class="text-center">ACCIONES</th>
                                 </tr>
                             </thead>
@@ -142,6 +143,7 @@ $(document).ready(function() {
             { data: 'usuario',className: "text-center"},
             { data: 'created_at',className: "text-center"},
             { data: 'cadena_detalles',className: "text-center"},
+            { data: 'observacion',className: "text-center"},
             {
                 data: null,
                 className: "text-center",
@@ -152,7 +154,7 @@ $(document).ready(function() {
                     var url_editar = '{{ route("almacenes.nota_ingreso.edit", ":id")}}';
                     url_editar = url_editar.replace(':id', data.id);
 
-                    return "<a href='"+url_editar+"' class='btn btn-info btn-sm'><i class='fa fa-pencil'></i></a>"
+                    return "<a href='"+url_editar+"' class='btn btn-info btn-sm'><i class='fas fa-eye'></i></a>"
                 }
             }
 

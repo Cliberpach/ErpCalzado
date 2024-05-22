@@ -43,7 +43,7 @@ class NotaIngresoController extends Controller
     public function gettable()
     {
         $data = DB::table("nota_ingreso as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
-        $detalles = DB::select('select distinct p.nombre as producto_nombre,ni.id as nota_ingreso_id 
+        $detalles = DB::select('select distinct p.nombre as producto_nombre,ni.id as nota_ingreso_id,ni.observacion
                 from nota_ingreso as ni 
                 inner join detalle_nota_ingreso as dni
                 on ni.id=dni.nota_ingreso_id
@@ -175,9 +175,10 @@ class NotaIngresoController extends Controller
             $destino = DB::table('tabladetalles')->where('id', $request->destino)->first();
             $notaingreso->destino = $destino->descripcion;
        }
-        $origen = DB::table('tabladetalles')->where('id', $request->origen)->first();
-        $notaingreso->origen    = $origen->descripcion;
-        $notaingreso->usuario   = Auth()->user()->usuario;
+        $origen                     = DB::table('tabladetalles')->where('id', $request->origen)->first();
+        $notaingreso->origen        = $origen->descripcion;
+        $notaingreso->usuario       = Auth()->user()->usuario;
+        $notaingreso->observacion   =   $request->get('observacion');
         // $notaingreso->total = $request->get('monto_total');
         // $notaingreso->moneda = $request->get('moneda');
         // $notaingreso->tipo_cambio = $dolar;
