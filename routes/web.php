@@ -859,6 +859,18 @@ function(){
     });
 
 
+    // Consultas - CONTABILIDAD
+    Route::prefix('consultas/contabilidad')->group(function(){
+
+        Route::get('index', 'Consultas\ContabilidadController@index')->name('consultas.contabilidad.index');
+        Route::post('getTable','Consultas\ContabilidadController@getTable')->name('consultas.contabilidad.getTable');
+        // Route::get('getDownload','Consultas\DocumentoController@getDownload')->name('consultas.documento.getDownload');
+        // Route::get('convertir/{id}','Consultas\DocumentoController@convertir')->name('consultas.documento.convertir');
+
+    });
+
+
+
     // Reportes - Producto - informe
     Route::prefix('reportes/producto')->group(function(){
 

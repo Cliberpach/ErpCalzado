@@ -149,7 +149,7 @@
 </li>
 @endcan
 
-@can('restore', [Auth::user(),['consulta_documento.index','consulta_venta_documento.index','consulta_venta_cotizacion.index','consulta_venta_documento_no.index','consulta_compras_orden.index','consulta_compras_documento.index','consulta_cuenta_proveedor.index','consulta_cuenta_cliente.index','consulta_nota_salida.index','consulta_nota_ingreso.index','consulta_utilidad_bruta.index']])
+@can('restore', [Auth::user(),['consulta_documento.index','consulta_venta_documento.index','consulta_venta_cotizacion.index','consulta_venta_documento_no.index','consulta_compras_orden.index','consulta_compras_documento.index','consulta_cuenta_proveedor.index','consulta_cuenta_cliente.index','consulta_nota_salida.index','consulta_nota_ingreso.index','consulta_utilidad_bruta.index','contabilidad.index']])
 <li class="@yield('consulta-active')">
     <a href="#"><i class="fa fa-question-circle"></i> <span class="nav-label">Consulta </span><span
             class="fa arrow"></span></a>
@@ -215,6 +215,9 @@
         @endcan
         @can('haveaccess','consulta_utilidad_bruta.index')
         <li class="@yield('utilidad_bruta-active')"><a href="{{ route('consultas.caja.utilidad.index') }}">Utilidad Bruta</a></li>
+        @endcan
+        @can('haveaccess','contabilidad.index')
+        <li class="@yield('contabilidad-active')"><a href="{{ route('consultas.contabilidad.index') }}">Contabilidad</a></li>
         @endcan
     </ul>
 </li>
