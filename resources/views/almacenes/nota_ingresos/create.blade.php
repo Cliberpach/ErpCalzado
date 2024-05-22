@@ -66,7 +66,7 @@
                                                 @endif
                                             </div>
                                         </div>
-                                        <div class="col-12 col-md-3">
+                                        <div class="col-12 col-md-3 d-none">
 
                                             <label class="required">Moneda</label>
                                             <select
@@ -118,7 +118,10 @@
                                             </span>
                                             @endif
                                         </div>
-
+                                        <div class="col-12 col-lg-3 col-md-3">
+                                            <label for="observacion">OBSERVACIÓN</label>
+                                            <textarea class="form-control" name="observacion" id="observacion" cols="30" rows="3"></textarea>
+                                        </div>
 
                                     </div>
                                 </div>

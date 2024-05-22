@@ -154,7 +154,7 @@ $(document).ready(function() {
                     var url_editar = '{{ route("almacenes.nota_ingreso.edit", ":id")}}';
                     url_editar = url_editar.replace(':id', data.id);
 
-                    return "<a href='"+url_editar+"' class='btn btn-info btn-sm'><i class='fa fa-pencil'></i></a>"
+                    return "<a href='"+url_editar+"' class='btn btn-info btn-sm'><i class='fas fa-eye'></i></a>"
                 }
             }
 

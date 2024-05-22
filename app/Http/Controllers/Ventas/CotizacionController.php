@@ -45,7 +45,9 @@ class CotizacionController extends Controller
                             from cotizaciones  as co
                             left join cotizacion_documento as cd on cd.cotizacion_venta=co.id
                             inner join empresas as e on e.id=co.empresa_id
-                            inner join clientes as cl on cl.id=co.cliente_id');
+                            inner join clientes as cl on cl.id=co.cliente_id
+                            where co.user_id=?
+                            order by co.id desc',[Auth::user()->id]);
         
         //$cotizaciones = collect($cotizaciones);
         // $coleccion = collect([]);
