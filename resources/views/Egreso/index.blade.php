@@ -144,10 +144,7 @@
                         "<a class='btn btn-warning btn-sm' style='color:white;' onclick='editar(" + data
                         .id + ")' title='Modificar'><i class='fa fa-edit'></i></a>" +
                         "<a class='btn btn-danger btn-sm' href='#' onclick='eliminar(" + data.id +
-                        ")' title='Eliminar'><i class='fa fa-trash'></i></a></div>"
-
-
-
+                        ")' title='Eliminar'><i class='fa fa-trash'></i></a></div>";
                 }
             }
 

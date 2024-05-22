@@ -96,9 +96,11 @@ class ResumenController extends Controller
             //===== ENVIANDO A SUNAT ======
             $res    =   $this->sendSunat($comprobantes,$fecha_comprobantes,$resumen);
 
+            $nuevo_resumen      =   DB::select('select * from resumenes as r
+                                    where r.id=?',[$resumen->id])[0];
             return response()
             ->json(
-            [   'res_store'    => ['type'=> 'success','message'=>'RESUMEN REGISTRADO','nuevo_resumen'=>$resumen],
+            [   'res_store'    => ['type'=> 'success','message'=>'RESUMEN REGISTRADO','nuevo_resumen'=>$nuevo_resumen],
                 'fecha'         =>  $fecha_comprobantes,
                 'res_send'      =>  $res
             ]);
@@ -346,6 +348,15 @@ class ResumenController extends Controller
 
             $resumen->update();  
 
+            //======= ARCHIVO YA PRESENTADO ANTERIORMENTE ========
+            if($resumen->cdr_response_code == 2223 ){
+                //======== MARCAR COMO ENVIADO =======
+                $resumen->regularize    =   0;
+                $resumen->send_sunat    =   1;
+                $resumen->code_estado   =   0;
+                $resumen->update();
+            }
+
             $respuesta  =   ['type'  =>'success',
             'message'       =>$message,
             'exception'     =>$code_estado,
@@ -382,13 +393,13 @@ class ResumenController extends Controller
     }
 
     public function reenviarSunat(Request $request){
-        $resumen_id =   json_decode($request->get('resumen_id'));
+        $resumen_id     =   json_decode($request->get('resumen_id'));
 
         $resumen        =   Resumen::findOrFail($resumen_id);
         $ticket         =   $resumen->ticket;
         $summary_name   =   $resumen->summary_name;
         $comprobantes   =   DB::select('select * from resumenes_detalles as rd 
-        where rd.resumen_id=?',[$resumen->id]);
+                            where rd.resumen_id=?',[$resumen->id]);
 
         $resumen->update();
         $res    =   $this->sendSunat($comprobantes,$resumen->fecha_comprobantes,$resumen);

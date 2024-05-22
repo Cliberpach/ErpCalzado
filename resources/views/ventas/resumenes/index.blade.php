@@ -236,14 +236,13 @@
             console.log(response);
             if(response.status == 200){
                 if(response.data.res_send.type == 'error'){
-                    toastr.success(response.data.res_send.message,'ERROR EN EL ENVÍO A SUNAT');
+                    toastr.error(response.data.res_send.exception,response.data.res_send.message,{timeOut:0});
                     return;
                 }
                 if(response.data.res_send.type == 'success'){
                     actualizarDataTable(resumen_id,response.data.resumen);
                     toastr.success(response.data.res_send.message,'RESUMEN ENVIADO A SUNAT');
-                }
-                
+                }  
             }
           
         } catch (error) {
@@ -292,83 +291,8 @@
     function actualizarDataTable(resumen_id,res_consulta) {
         //===== OBTENIENDO EL NRO DE FILA DE ACUERDO AL RESUMEN_ID =====
         const indiceFila    =   tableResumenes.row((idx,data) => data[0] == resumen_id).index();
-        const fila          =   tableResumenes.row((idx,data) => data[0] == resumen_id);
-
-        //====== ACTUALIZANDO DATA DE LA FILA ========
-        //==== ESTADO - COLUMNA 4, DEL 0 AL 7 ====
-        let resumen_estado  =   ``;
-        
-        if(res_consulta.code_estado == 0){
-            resumen_estado  =   `<p class="mb-0" style="padding:2px;border-radius: 10px; 
-                                background-color: #e5f9e0; color: #176e2f; font-weight: bold;text-align:center;">
-                                ACEPTADO</p>`;
-        }
-
-         if(res_consulta.code_estado == 98){
-            resumen_estado  =   ` <p class="mb-0" style="padding:2px;border-radius: 10px; 
-                                background-color: #c0d5f5; color: #033bd6; font-weight: bold;text-align:center;">
-                                EN PROCESO</p>`;
-        }
-
-        if(res_consulta.code_estado == 99){
-            resumen_estado  =   `<p class="mb-0" style="padding:2px;border-radius: 10px; 
-                                background-color: #efd5d5; color: #be1919; font-weight: bold;text-align:center;">
-                                Enviado con errores</p>`;
-        }
-
-        fila.cell(indiceFila,4).data(resumen_estado).draw();
-
-        //======= ACTUALIZANDO COLUMNA DEL CDR ==========
-        let descargarArchivos   =   ``;
-
-        
-        descargarArchivos = `<div style="display: flex; justify-content: center;">`;
-
-        descargarArchivos +=    `<form action="{{ route('ventas.resumenes.getXml', ':resumenId') }}" 
-                                method="get">
-                                    <button type="submit" class="btn btn-primary btn-xml">
-                                            XML
-                                    </button>
-                                </form>`.replace(':resumenId', resumen_id);  
-
-        if(res_consulta.ruta_cdr){
-            descargarArchivos +=    `<form style="margin-left:3px;" action="{{ route('ventas.resumenes.getCdr', ':resumenId') }}" 
-                                    method="get">
-                                        <button type="submit" class="btn btn-primary btn-xml">
-                                            CDR
-                                        </button>
-                                    </form>`.replace(':resumenId', resumen_id);                          
-        }
-        
-        descargarArchivos+=`</div>`;  
-
-        fila.cell(indiceFila,6).data(descargarArchivos).draw();
-
-        //====== ACTUALIZANDO COLUMNA DE LAS ACCIONES ======
-        let acciones    =   ``;
-        if (res_consulta.code_estado == 98) {
-            acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
-                class="btn btn-primary btn-consultar-resumen">
-                CONSULTAR</button>`;
-        }
-        if (res_consulta.code_estado == 0) {
-            acciones+=``;
-        }
-        if (res_consulta.send_sunat == 0 && !res_consulta.ticket) {
-            acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
-                class="btn btn-primary btn-reenviar-resumen">
-                REENVIAR</button>`;
-        }
-        if (res_consulta.send_sunat == 1 && 'ticket' in res_consulta && !res_consulta.code_estado) {
-            acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
-                class="btn btn-primary btn-consultar-resumen">
-                CONSULTAR</button>`;
-        }
-
-        fila.cell(indiceFila,7).data(acciones).draw();
+        tableResumenes.row(indiceFila).data(res_consulta).draw();
     }
-
-  
 
     function cargarDataTable(){
         const getResumenesUrl = "{{ route('ventas.resumenes.getResumenes') }}";
@@ -381,7 +305,7 @@
                 type: 'GET' 
             },
             columns: [
-                { data: 'id' },
+                { data: 'id'},
                 { data: 'created_at' },
                 { data: 'fecha_comprobantes' },
                 { 
@@ -393,12 +317,34 @@
                 { 
                     data: null, 
                     render: function(data, type, row) {
-                        if(data.send_sunat == '0'){
-                            return "NO ENVIADO";
+
+                        //======= ENVIADO A SUNAT ======
+                        if(data.send_sunat == 1){
+                            //===== ACEPTADO POR SUNAT =====
+                            if(data.code_estado == '0'){
+                                return `<span class="badge badge-success">ACEPTADO</span>`;
+                            }
+                            //====== RESPUESTA DE SUNAT "ERRORES EN EL ARCHIVO" ====
+                            if(data.code_estado == 99){
+                                return `<span class="badge badge-danger">ENVIADO CON ERRORES</span>`;
+                            }
+                            //===== EN PROCESO =====
+                            if(data.code_estado == 98){
+                                return `<span class="badge badge-warning">EN PROCESO</span>`;
+                            }
+                            if(!data.code_estado){
+                                return `<span class="badge badge-primary">ENVIADO</span>`;
+                            }
                         }
-                        if(data.send_sunat == '1'){
-                            return "ENVIADO";
+                      
+                        //====== AÚN NO ENVIADO A SUNAT =====
+                        if(data.send_sunat == 0){
+                            //======== ERRORES HTTP,ETC ======
+                            if(data.response_error && !data.ticket){
+                                return `<span class="badge badge-danger">ERROR AL ENVIAR</span>`;
+                            }
                         }
+
                     }
                 },
                 { data: 'ticket', title: 'ticket' },
@@ -434,26 +380,26 @@
                 { 
                     data: null, 
                     render: function(data, type, row) {
-                        var html = '<td>';
+                        var html = '<td><div class="btn-group">';
                         
-                        if (data.code_estado == '98') {
-                            html += '<button type="button" data-resumen-id="' + data.id + '" class="btn btn-primary btn-consultar-resumen">CONSULTAR</button>';
-                        }
+                            if (data.send_sunat == 1) {
+                                if (data.code_estado == '98' || (data.ticket && !data.code_estado)) {
+                                    html += `<button type="button" data-resumen-id="${data.id}" class="btn btn-primary btn-consultar-resumen">CONSULTAR</button>`;
+                                }
+                            }
+
+                            if (data.send_sunat == 0 && !data.ticket) {
+                                html += `<button type="button" data-resumen-id="${data.id}" class="btn btn-primary btn-reenviar-resumen">REENVIAR</button>`;
+                            }
+
+                            html += `<i class="fas fa-eye btn btn-success"></i>`; 
+                       
                         
-                        if (data.send_sunat == 1 && data.ticket && !data.code_estado) {
-                            html += '<button type="button" data-resumen-id="' + data.id + '" class="btn btn-primary btn-consultar-resumen">CONSULTAR</button>';
-                        }
-                        
-                        if (data.send_sunat == '0' && !data.ticket) {
-                            html += '<button type="button" data-resumen-id="' + data.id + '" class="btn btn-primary btn-reenviar-resumen">REENVIAR</button>';
-                        }
-                        
-                        html += '</td>';
+                        html += '</div></td>';
                         
                         return html;
                     }
-                }
-                
+                } 
             ],
             language: {
                 processing:     "Cargando resúmenes",
@@ -533,98 +479,7 @@
 
     //====== PINTAR NUEVO RESUMEN =====
     function addNewResumen(resumen){
-        //====== CONSTRUYENDO HTML DE ESTADO =======
-        let resumen_estado  =   ``;
-        if(resumen.send_sunat == 1){
-
-            if(resumen.code_estado == 0){
-                resumen_estado  =   `<p class="mb-0" style="padding:2px;border-radius: 10px; 
-                                    background-color: #e5f9e0; color: #176e2f; font-weight: bold;text-align:center;">
-                                    ACEPTADO</p>`;
-            }
-
-            if(resumen.code_estado == 98){
-                resumen_estado  =   ` <p class="mb-0" style="padding:2px;border-radius: 10px; 
-                                    background-color: #c0d5f5; color: #033bd6; font-weight: bold;text-align:center;">
-                                    EN PROCESO</p>`;
-            }
-
-            if(resumen.code_estado == 99){
-                resumen_estado  =   `<p class="mb-0" style="padding:2px;border-radius: 10px; 
-                                    background-color: #efd5d5; color: #be1919; font-weight: bold;text-align:center;">
-                                    Enviado con errores</p>`;
-            }
-
-            if(!resumen.code_estado){
-                resumen_estado  =   `<p class="mb-0" style="padding:2px;border-radius: 10px; background-color: #c0d5f5; color: #033bd6; font-weight: bold;text-align:center;">
-                                    ENVIADO</p>`;
-            }
-
-        }
-        if(resumen.send_sunat == 0){
-            resumen_estado  =   ` <p class="mb-0" style="padding:2px;border-radius: 10px; 
-                                background-color: #f8f9e0; color: #ad8a14; font-weight: bold;text-align:center;">
-                                ERROR EN EL ENVÍO</p>`;
-        }
-
-        let descargarArchivos   =   ``;
-
-        if(resumen.ruta_xml || resumen.ruta_cdr){
-            descargarArchivos = `<div style="display: flex; justify-content: center;">`;
-                if(resumen.ruta_xml){
-                    descargarArchivos +=    `<form action="{{ route('ventas.resumenes.getXml', ':resumenId') }}" 
-                                            method="get">
-                                                <button type="submit" class="btn btn-primary btn-xml">
-                                                    XML
-                                                </button>
-                                            </form>`.replace(':resumenId', resumen.id);                       
-                }
-                if(resumen.ruta_cdr){
-                    descargarArchivos +=    `<form style="margin-left:3px;" action="{{ route('ventas.resumenes.getCdr', ':resumenId') }}" 
-                                            method="get">
-                                                <button type="submit" class="btn btn-primary btn-xml">
-                                                    CDR
-                                                </button>
-                                            </form>`.replace(':resumenId', resumen.id);                       
-                }
-                descargarArchivos+=`</div>`;   
-        }
-
-        let acciones    =   ``;
-        if (resumen.code_estado == 98) {
-            acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
-                class="btn btn-primary btn-consultar-resumen">
-                CONSULTAR</button>`;
-        }
-        if (resumen.send_sunat == 0 && !resumen.ticket) {
-            acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
-                class="btn btn-primary btn-reenviar-resumen">
-                REENVIAR</button>`;
-        }
-        if (resumen.send_sunat == 1 && 'ticket' in resumen) {
-            acciones+=`<button type="button" data-resumen-id="${resumen.id}" 
-                class="btn btn-primary btn-consultar-resumen">
-                CONSULTAR</button>`;
-        }
-       
-       
-        //========= OBTENIENDO TICKET ======
-        let ticket  =   '';
-        if('ticket' in resumen){
-            ticket  =   resumen.ticket;
-        }
-       
-
-        tableResumenes.row
-        .add([resumen.id,
-            resumen.created_at, 
-            resumen.fecha_comprobantes,
-            `${resumen.serie}-${resumen.correlativo}`,
-            resumen_estado,
-            ticket,
-            descargarArchivos,
-            acciones,
-        ]).draw()
+        tableResumenes.row.add(resumen).draw();
     }
 
     //==== ELIMINAR COMPROBANTE DEL CARRITO ======
