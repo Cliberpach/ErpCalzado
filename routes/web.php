@@ -864,6 +864,8 @@ function(){
 
         Route::get('index', 'Consultas\ContabilidadController@index')->name('consultas.contabilidad.index');
         Route::post('getTable','Consultas\ContabilidadController@getTable')->name('consultas.contabilidad.getTable');
+        Route::get('getDownload','Consultas\ContabilidadController@getDownload')->name('consultas.contabilidad.getDownload');
+
         // Route::get('getDownload','Consultas\DocumentoController@getDownload')->name('consultas.documento.getDownload');
         // Route::get('convertir/{id}','Consultas\DocumentoController@convertir')->name('consultas.documento.convertir');
 

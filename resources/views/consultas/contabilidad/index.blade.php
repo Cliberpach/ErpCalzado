@@ -308,7 +308,7 @@
 
         if(verificar)
         {
-            window.location = '/consultas/documentos/getDownload?fecha_desde='+fecha_desde+'&fecha_hasta='+fecha_hasta+'&tipo='+tipo+'&user='+user;
+            window.location = '/consultas/contabilidad/getDownload?fecha_desde='+fecha_desde+'&fecha_hasta='+fecha_hasta+'&tipo='+tipo+'&user='+user;
         }
         return false;
     }
