@@ -116,7 +116,7 @@ class ResumenController extends Controller
 
     public function isActive(){
         //===== 186 EN PRODUCCION - 190 EN LOCALHOST =====
-        $resumenActive  = DB::table('empresa_numeracion_facturaciones')->where('tipo_comprobante', 186)->exists();
+        $resumenActive  = DB::table('empresa_numeracion_facturaciones')->where('serie', 'R001')->exists();
         return response()->json(['resumenActive'=>$resumenActive]);
     }
 
@@ -185,10 +185,10 @@ class ResumenController extends Controller
     
             //==== ENVIANDO A SUNAT ======
             //===== MODO BETA ======
-            $see = $util->getSee(SunatEndpoints::FE_BETA);
+            //$see = $util->getSee(SunatEndpoints::FE_BETA);
     
             //===== MODO PRODUCCION =====
-            //$see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
+            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
     
             $res = $see->send($sum);
     
@@ -271,8 +271,8 @@ class ResumenController extends Controller
             $util = Util::getInstance();
 
             //===== INICIAR ENDPOINTS SUNAT ====
-            $see = $util->getSee(SunatEndpoints::FE_BETA);
-            //$see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
+            //$see = $util->getSee(SunatEndpoints::FE_BETA);
+            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
 
             $res_ticket     =   $see->getStatus($ticket);
 
