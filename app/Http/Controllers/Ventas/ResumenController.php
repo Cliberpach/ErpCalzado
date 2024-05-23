@@ -278,7 +278,7 @@ class ResumenController extends Controller
 
             $code_estado    =   $res_ticket->getCode();
             $cdr            =   $res_ticket->getCdrResponse();
-
+           
     
             //====== ENVIO CORRECTO Y CDR RECIBIDO ======
             if($code_estado == 0){
@@ -358,9 +358,9 @@ class ResumenController extends Controller
             }
 
             $respuesta  =   ['type'  =>'success',
-            'message'       =>$message,
-            'exception'     =>$code_estado,
-            'resumen'       =>$resumen];   
+            'message'           =>$message,
+            'code_estado'       =>$code_estado,
+            'resumen'           =>$resumen];   
             
             return response()->json([ 'res'=>$respuesta  ]);
 
@@ -411,4 +411,22 @@ class ResumenController extends Controller
             'resumen'       =>  $resumen
         ]);
     }
+
+
+    public function getDetallesResumen($resumen_id){
+        try {
+            $resumen_detalle    =   DB::select('select rd.resumen_id, rd.documento_serie,rd.documento_correlativo,
+                                    rd.documento_total,rd.documento_igv,rd.documento_subtotal,cd.cliente,
+                                    rd.documento_doc_cliente,cd.created_at as fecha
+                                    from resumenes_detalles as rd
+                                    inner join cotizacion_documento as cd on cd.id=rd.documento_id 
+                                    where rd.resumen_id=?',[$resumen_id]);
+
+            return response()->json(['success'=>true,'resumen_detalle'=>$resumen_detalle]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>'ERROR AL OBTENER EL DETALLE DEL RESÚMEN',
+            'exception'=>$th->getMessage()]);
+        }
+    }
+
 }

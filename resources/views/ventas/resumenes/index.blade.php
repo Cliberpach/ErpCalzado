@@ -3,6 +3,8 @@
 @section('resumenes-active', 'active')
 
 @include('ventas.resumenes.modal_add')
+@include('ventas.resumenes.modal_detalles')
+
 <style>
     .loader {
      display: inline-block;
@@ -144,7 +146,8 @@
 
     document.addEventListener('DOMContentLoaded',()=>{
         events();
-        cargarDataTable()
+        cargarDataTable();
+        loadDataTableDetallesResumen();
     })
 
     function events(){
@@ -159,6 +162,10 @@
                 const resumen_id    =   e.target.getAttribute('data-resumen-id');
 
                 reenviarResumen(resumen_id);
+            }
+            if(e.target.classList.contains('btn-detalle-resumen')){
+                const resumen_id    =   e.target.getAttribute('data-resumen-id');
+                verDetalleResumen(resumen_id);
             }
         })
 
@@ -272,7 +279,25 @@
                     return;
                 }
                 if(response.data.res.type == 'success'){
+                    if(response.data.res.code_estado == "0125"){
+                        toastr.error('NO SE PUDO OBTENER LA CONSTANCIA','ERROR AL CONSULTAR EL RESUMEN');
+                        return;
+                    }
+                    if(response.data.res.code_estado == "0126"){
+                        toastr.error('EL TICKET NO LE PERTENECE AL USUARIO','ERROR AL CONSULTAR EL RESUMEN');
+                        return;
+                    }
+                    if(response.data.res.code_estado == "0127"){
+                        toastr.error('EL TICKET NO EXISTE','ERROR AL CONSULTAR EL RESUMEN');
+                        return;
+                    }
+                    if(response.data.res.code_estado == "0130"){
+                        toastr.error('El sistema no puede responder su solicitud. (No se pudo obtener el ticket de proceso)','ERROR AL CONSULTAR EL RESUMEN');
+                        return;
+                    }
+
                     actualizarDataTable(resumen_id,response.data.res.resumen);
+                    
                     toastr.success(response.data.res.message,'CONSULTA COMPLETADA');
                 }
                 
@@ -289,9 +314,17 @@
 
     //========== ACTUALIZAR DATATABLE ==============
     function actualizarDataTable(resumen_id,res_consulta) {
-        //===== OBTENIENDO EL NRO DE FILA DE ACUERDO AL RESUMEN_ID =====
-        const indiceFila    =   tableResumenes.row((idx,data) => data[0] == resumen_id).index();
-        tableResumenes.row(indiceFila).data(res_consulta).draw();
+
+        const rowIndex = tableResumenes.rows().indexes().filter(function(index) {
+            return tableResumenes.row(index).data().id == resumen_id;
+        });
+
+        if (rowIndex.length > 0) {
+            tableResumenes.row(rowIndex[0]).data(res_consulta).draw();
+        } else {
+           toastr.error('NO SE ENCONTRÓ LA FILA CON LOS DATOS RESPECTIVOS','RECARGUE LA PÁGINA PARA CORREGIR');
+        }
+        //tableResumenes.row().data(res_consulta).draw();
     }
 
     function cargarDataTable(){
@@ -392,9 +425,8 @@
                                 html += `<button type="button" data-resumen-id="${data.id}" class="btn btn-primary btn-reenviar-resumen">REENVIAR</button>`;
                             }
 
-                            html += `<i class="fas fa-eye btn btn-success"></i>`; 
+                            html += `<i class="fas fa-eye btn btn-success d-flex align-items-center btn-detalle-resumen" data-resumen-id="${data.id}"></i>`; 
                        
-                        
                         html += '</div></td>';
                         
                         return html;
@@ -491,6 +523,7 @@
 
     //============= ABRIR MODAL CLIENTE =============
     async function openModalResumenes(){
+
         $("#modal_resumenes").modal("show");
         clearTableComprobantes();
         await  isActive();
@@ -580,6 +613,27 @@
         return validacion;
     }
 
+
+    async function verDetalleResumen(resumen_id){
+        const rowIndex = tableResumenes.rows().indexes().filter(function(index) {
+            return tableResumenes.row(index).data().id == resumen_id;
+        });
+        
+
+        if (rowIndex.length > 0) {
+            const fila = tableResumenes.row(rowIndex[0]).data();
+            document.querySelector('#resumen-title').textContent  =   `${fila.serie}-${fila.correlativo}`; 
+
+            await getDetallesResumen(resumen_id);
+
+            $("#modal_resumen_detalle").modal("show");
+        } else {
+            toastr.error('NO SE ENCONTRÓ LA FILA CON EL RESUMEN','RECARGAR LA PÁGINA');
+        }
+
+    }
+
+  
 
 </script>
 @endpush

@@ -133,7 +133,73 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
 
     public function registerEvents(): array
     {
-        return[];
+        return [
+
+            BeforeWriting::class => [self::class, 'beforeWriting'],
+            AfterSheet::class    => function(AfterSheet $event) {
+                $event->sheet->getStyle('A1:X1')->applyFromArray([
+
+                        'fill' => [
+                            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_GRADIENT_LINEAR,
+                            'rotation' => 90,
+                            'startColor' => [
+                                'argb' => '00bbd4',
+                            ],
+                            'endColor' => [
+                                'argb' => '00bbd4',
+                            ],
+                        ],
+
+
+                    ]
+
+                );
+                $event->sheet->getStyle('A1:S1')->applyFromArray([
+                    'fill' => [
+                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_GRADIENT_LINEAR,
+                        'rotation' => 90,
+                        'startColor' => [
+                            'argb' => '1ab394',
+                        ],
+                        'endColor' => [
+                            'argb' => '1ab394',
+                        ],
+                    ],
+
+
+                ]
+
+                );
+
+
+
+               $event->sheet->getColumnDimension('A')->setWidth(20);
+               $event->sheet->getColumnDimension('B')->setWidth(20);
+               $event->sheet->getColumnDimension('C')->setWidth(20);
+               $event->sheet->getColumnDimension('D')->setWidth(20);
+               $event->sheet->getColumnDimension('E')->setWidth(20);
+               $event->sheet->getColumnDimension('F')->setWidth(20);
+               $event->sheet->getColumnDimension('G')->setWidth(20);
+               $event->sheet->getColumnDimension('H')->setWidth(20);
+               $event->sheet->getColumnDimension('I')->setWidth(20);
+               $event->sheet->getColumnDimension('J')->setWidth(20);
+               $event->sheet->getColumnDimension('K')->setWidth(20);
+               $event->sheet->getColumnDimension('L')->setWidth(20);
+               $event->sheet->getColumnDimension('M')->setWidth(20);
+               $event->sheet->getColumnDimension('N')->setWidth(20);
+               $event->sheet->getColumnDimension('O')->setWidth(20);
+               $event->sheet->getColumnDimension('P')->setWidth(20);
+               $event->sheet->getColumnDimension('Q')->setWidth(20);
+               $event->sheet->getColumnDimension('R')->setWidth(20);
+               $event->sheet->getColumnDimension('S')->setWidth(20);
+               $event->sheet->getColumnDimension('T')->setWidth(20);
+               $event->sheet->getColumnDimension('U')->setWidth(20);
+               $event->sheet->getColumnDimension('V')->setWidth(20);
+               $event->sheet->getColumnDimension('W')->setWidth(20);
+               $event->sheet->getColumnDimension('X')->setWidth(20);
+
+            },
+        ];
     }
 
 

@@ -476,14 +476,12 @@ function(){
         Route::get('getXml/{resumen_id}','Ventas\ResumenController@getXml')->name('ventas.resumenes.getXml');
         Route::get('getCdr/{resumen_id}','Ventas\ResumenController@getCdr')->name('ventas.resumenes.getCdr');
 
-        //Route::get('getDocument','Ventas\CajaController@getDocument')->name('ventas.caja.getDocument');
-        // Route::post('getDocumentClient','Ventas\CajaController@getDocumentClient')->name('ventas.caja.getDocumentClient');
         Route::post('/store', 'Ventas\ResumenController@store')->name('ventas.resumenes.store');
         Route::post('/consultar', 'Ventas\ResumenController@consultarTicket')->name('ventas.resumenes.consultar');
         Route::post('/reenviar', 'Ventas\ResumenController@reenviarSunat')->name('ventas.resumenes.reenviar');
         Route::get('getResumenes', 'Ventas\ResumenController@getResumenes')->name('ventas.resumenes.getResumenes');
+        Route::get('getDetalles/{resumen_id}','Ventas\ResumenController@getDetallesResumen')->name('ventas.resumenes.getDetalles');
 
-        //  Route::post('/updatePago', 'Ventas\CajaController@updatePago')->name('ventas.caja.updatePago');
     });
 
     //VENTAS-PEDIDOS
