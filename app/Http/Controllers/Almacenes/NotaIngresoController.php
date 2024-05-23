@@ -42,7 +42,7 @@ class NotaIngresoController extends Controller
     }
     public function gettable()
     {
-        //$data = DB::table("nota_ingreso as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
+        $data = DB::table("nota_ingreso as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
         $detalles = DB::select('select distinct p.nombre as producto_nombre,ni.id as nota_ingreso_id,ni.observacion
                 from nota_ingreso as ni 
                 inner join detalle_nota_ingreso as dni
@@ -50,7 +50,7 @@ class NotaIngresoController extends Controller
                 inner join productos as p
                 on p.id=dni.producto_id');
 
-        foreach ($detalles as $notaIngreso) {
+        foreach ($data as $notaIngreso) {
             
             $detallesFiltrados = array_filter($detalles, function($detalle) use ($notaIngreso) {
                 return $detalle->nota_ingreso_id == $notaIngreso->id;
