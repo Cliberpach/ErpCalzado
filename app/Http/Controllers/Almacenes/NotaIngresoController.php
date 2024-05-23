@@ -50,7 +50,7 @@ class NotaIngresoController extends Controller
                 inner join productos as p
                 on p.id=dni.producto_id');
 
-        foreach ($data as $notaIngreso) {
+        foreach ($detalles as $notaIngreso) {
             
             $detallesFiltrados = array_filter($detalles, function($detalle) use ($notaIngreso) {
                 return $detalle->nota_ingreso_id == $notaIngreso->id;
