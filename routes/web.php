@@ -888,8 +888,8 @@ function(){
         // Route::get('getTable', 'Reportes\ProductoController@getTable')->name('reporte.producto.getTable');
         Route::get('getProductos', 'Reportes\ProductoController@getProductos')->name('reporte.producto.getProductos');
         Route::get('excelProductos', 'Reportes\ProductoController@excelProductos')->name('reporte.producto.excelProductos');
-
-
+        Route::post('generarBarCode', 'Reportes\ProductoController@generarBarCode')->name('reporte.producto.generarBarCode');
+        Route::get('getAdhesivos/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@getAdhesivos')->name('reporte.producto.getAdhesivos');
     });
 
     // Reportes - Producto - stock valorizado

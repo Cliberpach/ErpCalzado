@@ -86,9 +86,6 @@ class DetalleNotaIngreso extends Model
                     $producto_color->save(); 
                 }  
 
-                //========= GENERAR IDENTIFICADOR ÚNICO PARA EL COD BARRAS ========
-                $key            =   generarCodigo(8);
-
                 //====== registrar el stock de producto_color_talla ============
                 $producto                   =    new ProductoColorTalla();
                 $producto->producto_id      =   $detalleNotaIngreso->producto_id;
@@ -96,24 +93,11 @@ class DetalleNotaIngreso extends Model
                 $producto->talla_id         =   $detalleNotaIngreso->talla_id;
                 $producto->stock            =   $cantidadProductos;
                 $producto->stock_logico     =   $cantidadProductos;
-                $producto->codigo_barras    =   $key;  
-                $producto->ruta_cod_barras  =   'public/productos/'.$key.'.png';
                 $producto->save();
 
-                //======== GENERAR IMG DEL COD BARRAS ========
-                $generatorPNG   =   new \Picqer\Barcode\BarcodeGeneratorPNG();
-                $code           =   $generatorPNG->getBarcode($key, $generatorPNG::TYPE_CODE_128);
-                //$data_code      =   base64_decode($code);
-                $name           =   $key.'.png';
-        
-                if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
-                    mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
-                }
-        
-                $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'.DIRECTORY_SEPARATOR.$name);
-        
-                file_put_contents($pathToFile, $code);
             }  
+
+
             
             
             //=========== registrando movimiento ===============

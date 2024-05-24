@@ -37,6 +37,7 @@
                         <div class="col-12">
                             <form action="{{route('almacenes.nota_ingreso.store')}}" method="POST" id="enviar_ingresos">
                                 {{csrf_field()}}
+                                <input type="hidden" name="generarAdhesivos" id="generarAdhesivos">
                                 <div class="col-sm-12">
                                     <h4 class=""><b>Nota de Ingreso</b></h4>
                                     <div class="row">
@@ -723,8 +724,15 @@ div.content-window.sk__loading::after {
     const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle');
     const inputProductos=document.querySelector('#notadetalle_tabla');
    
-    const formNotaIngreso= document.querySelector('#enviar_ingresos');
-    const btnGrabar     =   document.querySelector('#btn_grabar');
+    const formNotaIngreso   = document.querySelector('#enviar_ingresos');
+    const btnGrabar         =   document.querySelector('#btn_grabar');
+    const swalWithBootstrapButtons  =   Swal.mixin({
+                                        customClass: {
+                                            confirmButton: 'btn btn-success',
+                                            cancelButton: 'btn btn-danger',
+                                            },
+                                            buttonsStyling: false
+                                        })
 
     let modelo_id   = null;
     let carrito = [];
@@ -781,18 +789,29 @@ div.content-window.sk__loading::after {
         })
 
         //============ EVENTO ENVIAR FORMULARIO =============
-        formNotaIngreso.addEventListener('submit',(e)=>{
+        formNotaIngreso.addEventListener('submit',async (e)=>{
             e.preventDefault();
-            btnGrabar.disabled=true;
-            console.log(inputProductos);
+            btnGrabar.disabled          =   true;
+            
             if(carrito.length>0){
-                inputProductos.value=JSON.stringify(carrito);
-                const formData = new FormData(formNotaIngreso);
-                formData.forEach((valor, clave) => {
-                    console.log(`${clave}: ${valor}`);
-                });
-                formNotaIngreso.submit();
-                console.log(inputProductos);
+                inputProductos.value    =   JSON.stringify(carrito);
+
+                Swal.fire({
+                    title: 'Generar etiquetas adhesivas?',
+                    text: "Se generarán de acuerdo a la cantidad de cada talla, con un límite de 100 etiquetas - DEBE HABILITAR LAS VENTANAS EMERGENTES EN SU NAVEGADOR",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: "#1ab394",
+                    confirmButtonText: 'Si, generar',
+                    cancelButtonText: "No",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.querySelector('#generarAdhesivos').value   =   'SI';            
+                    }else if (result.dismiss === Swal.DismissReason.cancel) {
+                        document.querySelector('#generarAdhesivos').value   =   'NO';            
+                    }
+                    formNotaIngreso.submit();
+                })
             }else{
                 toastr.error('El detalle de la nota de ingreso está vacío!!!')
                 btnGrabar.disabled = false;
@@ -807,6 +826,8 @@ div.content-window.sk__loading::after {
             }
         })
     }
+
+  
 
     //========= FUNCIÓN ELIMINAR PRODUCTO DEL CARRITO =============
     const eliminarProducto = (productoId,colorId)=>{

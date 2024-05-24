@@ -62,25 +62,17 @@
 </head>
 <body>
     @php
-        $cantidad           =   0;
-        $tipo_impresion     =   "LIBRE";
+        $cantidad           =   $producto->cantidad;
     @endphp
 
-    @foreach ($nota_detalle as $item)
-        @php
-            $cantidad+=$item->cantidad;
-        @endphp
-    @endforeach
-
+ 
     @if ($cantidad >100)
         @php
-            $tipo_impresion = "LIMITADA"
+            $cantidad    =   50;
         @endphp
     @endif
 
-    @if ($tipo_impresion == "LIBRE")
-        @foreach ($nota_detalle as $producto)
-            @for ($i = 0; $i < $producto->cantidad; $i++)
+            @for ($i = 0; $i < $cantidad; $i++)
                 <table>
                     <tr>
                         <td width="40%">
@@ -120,53 +112,6 @@
                     </tr>
                 </table>
             @endfor
-        @endforeach
-    @endif
-
-    @if ($tipo_impresion == "LIMITADA")
-        @foreach ($nota_detalle as $producto)
-            @for ($i = 0; $i < 1; $i++)
-                <table>
-                    <tr>
-                        <td width="40%">
-                            <table>
-                                <tr height="20%">
-                                    <td style="border-bottom:solid 1px black;" >
-                                        @if($empresa->ruta_logo)
-                                            <img src="{{ base_path() . '/storage/app/'.$empresa->ruta_logo }}" class="img-fluid" width="50px;">
-                                        @else
-                                            <img src="{{ public_path() . '/img/default.png' }}" class="img-fluid">
-                                        @endif
-                                    </td>
-                                    <td style="border-bottom:solid 1px black;">
-                                        <p class="datos-empresa">
-                                            <span style="font-weight:bold;">RUC: </span>{{$empresa->ruc}}
-                                        </p>
-                                        <p class="empresa_nombre">{{$empresa->razon_social}}</p>
-                                        <p class="datos-empresa">{{$empresa->direccion_fiscal}}</p>
-                                        <p class="datos-empresa">{{$empresa->correo}}</p>
-                                    </td>
-                                </tr>
-                                <tr height="80%">
-                                    <td colspan="2" style="padding-left:5px;">
-                                        <p class="producto" style="font-size: 6px;text-align: left;">{{$producto->modelo_nombre}}</p>
-                                        <p class="producto" style="font-size: 6px;text-align: left;">{{$producto->producto_nombre}}</p>
-                                        <p class="producto" style="font-size: 6px;text-align: left;">{{$producto->color_nombre}}</p>
-                                        <p class="producto" style="font-size: 6px;text-align: left;">{{$producto->talla_nombre}}</p>
-                                    </td>
-                                    
-                                </tr>
-                            </table>
-                        </td>
-                        <td width="60%" style="vertical-align: middle;text-align:center;border-left:solid 1px black;height:100%;" >
-                            <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class="img-fluid img_cod_barras">
-                            <p style="font-size: 10px;">{{'775'.$producto->modelo_id.$producto->producto_id.$producto->color_id.$producto->talla_id}}</p>
-                        </td>
-                    </tr>
-                </table>
-            @endfor
-        @endforeach
-    @endif
-   
+  
 </body>
 </html>

@@ -29,6 +29,7 @@ use App\Imports\NotaIngreso as ImportsNotaIngreso;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade as PDF;
 use App\Mantenimiento\Empresa\Empresa;
+use App\Almacenes\ProductoColorTalla;
 
 
 class NotaIngresoController extends Controller
@@ -205,41 +206,32 @@ class NotaIngresoController extends Controller
         $notatabla = json_decode($articulosJSON[0]);
 
         foreach ($notatabla as $fila) {
-            // if($request->get('moneda') == 'DOLARES')
-            // {
-            //     $costo_soles = (float) $fila->costo * (float) $dolar;
+            $detalleNotaIngreso                     =   new   DetalleNotaIngreso();
+            $detalleNotaIngreso->nota_ingreso_id    =   $notaingreso->id;
+            $detalleNotaIngreso->producto_id        =   $fila->producto_id;
+            $detalleNotaIngreso->color_id           =   $fila->color_id;
+            $detalleNotaIngreso->talla_id           =   $fila->talla_id;
+            $detalleNotaIngreso->cantidad           =   $fila->cantidad;
+            $detalleNotaIngreso->save();
 
-            //     $costo_dolares = (float) $fila->costo;
-            // }
-            // else
-            // {
-            //     $costo_soles = (float) $fila->costo;
-
-            //     $costo_dolares = (float) $fila->costo / (float) $dolar;
-            // }
-            DetalleNotaIngreso::create([
-                'nota_ingreso_id' => $notaingreso->id,
-                // 'lote' => $fila->lote,
-                'producto_id' => $fila->producto_id,
-                'color_id' => $fila->color_id,
-                'talla_id' => $fila->talla_id,
-                'cantidad' => $fila->cantidad,
-                // 'fecha_vencimiento' => $fila->fechavencimiento,
-                // 'costo' => $fila->costo,
-                // 'costo_soles' => $costo_soles,
-                // 'costo_dolares' => $costo_dolares,
-                // 'valor_ingreso' => $fila->valor_ingreso,
-            ]);
+            $this->generarCodigoBarras($fila);
         }
+
+        
 
         //Registro de actividad
         $descripcion = "SE AGREGÓ LA NOTA DE INGRESO ";
         $gestion = "ALMACEN / NOTA INGRESO";
         crearRegistro($notaingreso, $descripcion, $gestion);
+        
+        Session::flash('succes_store_nota_ingreso', 'NOTA INGRESO REGISTRADA');
 
+        if($request->get('generarAdhesivos') === "SI"){
+            Session::flash('generarAdhesivos', 'GENERANDO ADHESIVOS');
+            Session::flash('nota_id',$notaingreso->id);
+        }
 
-        Session::flash('success', 'NOTA DE INGRESO');
-        return redirect()->route('almacenes.nota_ingreso.index')->with('guardar', 'success');
+        return redirect()->route('almacenes.nota_ingreso.index');
     }
 
     public function storeFast(Request $request)
@@ -662,8 +654,7 @@ class NotaIngresoController extends Controller
                                     'empresa'       =>  $empresa
                                     ])->setPaper($custom_paper)
                                     ->setWarnings(false);
-                        
-                                  
+                             
             return $pdf->stream('etiquetas.pdf');
         } catch (\Throwable $th) {
             Session::flash('nota_ingreso_error_message','ERROR AL GENERAR LAS ETIQUETAS ADHESIVAS');
@@ -672,6 +663,46 @@ class NotaIngresoController extends Controller
             return redirect()->route('almacenes.nota_ingreso.index');
         }
        
+    }
+
+    public function generarCodigoBarras($item){
+        $producto   =   DB::select('select * from producto_color_tallas as pct
+                        where pct.producto_id = ? and
+                        pct.color_id = ? and pct.talla_id = ?',[$item->producto_id,
+                        $item->color_id,$item->talla_id]);
+        
+        //======== SI EL PRODUCTO YA EXISTE ========
+        if(count($producto)>0){
+            //========== REVIZAR QUE NO TENGA COD BARRAS GENERADO =======
+            if(!$producto[0]->codigo_barras && !$producto[0]->ruta_cod_barras){
+                //========= GENERAR IDENTIFICADOR ÚNICO PARA EL COD BARRAS ========
+                $key            =   generarCodigo(8);
+                //======== GENERAR IMG DEL COD BARRAS ========
+                $generatorPNG   =   new \Picqer\Barcode\BarcodeGeneratorPNG();
+                $code           =   $generatorPNG->getBarcode($key, $generatorPNG::TYPE_CODE_128);
+                //$data_code      =   base64_decode($code);
+                $name           =   $key.'.png';
+        
+                if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
+                    mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
+                }
+        
+                $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'.DIRECTORY_SEPARATOR.$name);
+        
+                file_put_contents($pathToFile, $code);
+
+                //======== GUARDAR KEY Y RUTA IMG ========
+                ProductoColorTalla::where('producto_id', $item->producto_id)
+                ->where('color_id', $item->color_id)
+                ->where('talla_id', $item->talla_id)
+                ->update([
+                    'codigo_barras'         =>  $key,
+                    'ruta_cod_barras'       =>  'public/productos/'.$name  
+                ]);
+            }
+        }
+
+
     }
 
 

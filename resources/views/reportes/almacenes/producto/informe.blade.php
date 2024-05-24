@@ -43,7 +43,7 @@
                                         <th class="text-center">MODELO</th>
                                         <th class="text-center">CATEGORÍA</th>
                                         <th class="text-center">STOCK</th>
-                                        <th class="text-center">COD BARRAS</th>
+                                        <th class="text-center">ADHESIVOS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -446,29 +446,61 @@
                 console.log(`${producto.producto_id}-${producto.color_id}-${producto.talla_id}`);
             });
 
-            document.addEventListener('click',(e)=>{
+            document.addEventListener('click',async (e)=>{
                 if(e.target.classList.contains('btn-ver-cod-barras')){
-                    const cod           =   e.target.getAttribute('data-cod');
-                    const img_cod       =   e.target.getAttribute('data-img');
-                  
-                    if(img_cod != "null"){
-                       
-                        const partes    = img_cod.split("public/");
-                        const subcadena = partes[1];
-                       
-                        const base_path_1   =   @json(asset(`storage/`));
-                        document.querySelector('#img_cod_barras').src       = base_path_1+'storage/'+subcadena;  
-                        document.querySelector('#p_cod_barras').textContent = cod;  
-                    }else{
+                    
+                    const producto_id   =   e.target.getAttribute('data-producto');
+                    const color_id      =   e.target.getAttribute('data-color');
+                    const talla_id      =   e.target.getAttribute('data-talla');
+
+                    const   res_generarBarCode  = await generarBarCode(producto_id,color_id,talla_id);
+
+                    if(res_generarBarCode.success){
+                        const cod           =   res_generarBarCode.producto.codigo_barras;
+                        const img_cod       =   res_generarBarCode.producto.ruta_cod_barras;
+
                         document.querySelector('#img_cod_barras').src       = `#`;  
                         document.querySelector('#p_cod_barras').textContent = 'NO TIENE CÓDIGO DE BARRAS';  
+
+                        if(img_cod){
+                            const partes    = img_cod.split("public/");
+                            const subcadena = partes[1];
+                            const base_path_1   =   @json(asset(`storage/`));
+                            document.querySelector('#img_cod_barras').src       = base_path_1+'storage/'+subcadena;  
+                            document.querySelector('#p_cod_barras').textContent = cod;   
+
+                            //========= ESTABLECIENDO RUTA =======
+                            let rutaGenerarAdhesivos = "{{ route('reporte.producto.getAdhesivos', ['producto_id' => 'valor_producto_id', 'color_id' => 'valor_color_id', 'talla_id' => 'valor_talla_id']) }}";
+                            rutaGenerarAdhesivos = rutaGenerarAdhesivos.replace('valor_producto_id', producto_id);
+                            rutaGenerarAdhesivos = rutaGenerarAdhesivos.replace('valor_color_id', color_id);
+                            rutaGenerarAdhesivos = rutaGenerarAdhesivos.replace('valor_talla_id', talla_id);
+
+                            const enlaceGenerarAdhesivos = document.getElementById("ahesivos_item");
+                            enlaceGenerarAdhesivos.setAttribute("href", rutaGenerarAdhesivos);
+                        }
+
+                    }else{
+                        toastr.error(res_generarBarCode.message,res_generarBarCode.exception,{timeOut:0});
                     }
-                    
+
                     $('#modal_cod_barras').modal('show');
                 }
             })
 
         });
+
+        async function generarBarCode(producto_id,color_id,talla_id){    
+            try {
+                const res       =   await axios.post(route('reporte.producto.generarBarCode'),{
+                    producto_id,color_id,talla_id
+                });
+                const data  =   res.data;
+                return data;
+            } catch (error) {
+                toastr.error(error,'ERROR EN LA SOLICITUD AL EMITIR ADHESIVOS');
+                return {'success':false};
+            }
+        }
 
         function llenarCompras(producto_id,color_id,talla_id) {
             $('.dataTables-compras').dataTable().fnDestroy();
@@ -980,8 +1012,8 @@
                         data: null,
                         className: "text-center",
                         render: function (data, type, row) {
-                            return `<button class="btn btn-primary btn-ver-cod-barras" data-img="${row.ruta_cod_barras}"
-                            data-cod="${row.codigo_barras}">VER</button>`;
+                            return `<button class="btn btn-primary btn-ver-cod-barras"  data-producto="${row.producto_id}" 
+                            data-color="${row.color_id}" data-talla="${row.talla_id}">GENERAR</button>`;
                         },
                         orderable: false,
                         searchable: false

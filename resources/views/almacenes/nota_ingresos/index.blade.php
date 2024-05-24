@@ -80,6 +80,12 @@
     @endif
 </script>
 
+<script>
+     @if(Session::has('succes_store_nota_ingreso'))
+        toastr.success('{{ Session::get('succes_store_nota_ingreso') }}','OPERACIÓN COMPLETADA');
+    @endif
+</script>
+
 
 <script>
 $(document).on("click","#importar",function(e)
@@ -121,7 +127,7 @@ $(document).ready(function() {
 
     });
 
-    // DataTables
+    //============ DATATABLE NOTA INGRESO =========
     $('.dataTables-ingreso_mercaderia').DataTable({
         "dom": '<"html5buttons"B>lTfgitp',
         "buttons": [{
@@ -178,7 +184,7 @@ $(document).ready(function() {
                                     <i class="fas fa-eye"></i> VER
                                 </a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="${url_etiquetas}" target="_blank">
+                                <a class="dropdown-item" href="${url_etiquetas}" target="_blank" id="adhesivo_${data.id}">
                                     <i class="fas fa-barcode"></i> GENERAR ETIQUETAS
                                 </a>
                           
@@ -186,8 +192,6 @@ $(document).ready(function() {
                                 
                             </div>
                             </div>`;
-
-                    return `<a href="${url_editar}"><i class="fas fa-eye btn btn-info"></i></a>`;
                 }
             }
 
@@ -198,6 +202,14 @@ $(document).ready(function() {
         "order": [
             [0, "desc"]
         ],
+    });
+
+    $('.dataTables-ingreso_mercaderia').on('init.dt', function () {
+        @if(Session::has('generarAdhesivos') && Session::has('nota_id'))
+            toastr.success('{{ Session::get('generarAdhesivos') }}','CARGANDO');
+            const nota_id   =   '{{ Session::get('nota_id') }}';
+            document.querySelector(`#adhesivo_${nota_id}`).click();
+        @endif
     });
 
 });
@@ -212,7 +224,6 @@ const swalWithBootstrapButtons = Swal.mixin({
     },
     buttonsStyling: false
 })
-
 
 function eliminar(id) {
     Swal.fire({

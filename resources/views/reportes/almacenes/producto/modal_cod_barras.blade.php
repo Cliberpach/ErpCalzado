@@ -13,11 +13,12 @@
             </div>
             <div class="modal-body content_cliente">
                 <div class="row">
-                    <div class="col-12 d-flex justify-content-center">
+                    <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-xs-12 d-flex justify-content-center align-items-center flex-column">
                         <img src="" alt="" id="img_cod_barras" style="height: 50px;object-fit:contain;">
-                    </div>
-                    <div class="col-12 d-flex justify-content-center">
                         <p id="p_cod_barras" style="font-size: 20px;font-weight:bold;"></p>
+                    </div>
+                    <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                        <a target="_blank" href="javascript:void(0);" class="btn btn-success text-white" id="ahesivos_item" > GENERAR ADHESIVOS</a>
                     </div>
                 </div>
             </div>
@@ -33,6 +34,5 @@
                 </div>
             </div>
         </div>
-
     </div>
 </div>

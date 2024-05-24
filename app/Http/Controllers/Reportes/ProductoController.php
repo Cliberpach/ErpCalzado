@@ -18,6 +18,8 @@ use App\Exports\Reportes\PI\Producto_PI;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Ventas\Nota;
 use App\Ventas\NotaDetalle;
+use App\Mantenimiento\Empresa\Empresa;
+use Barryvdh\DomPDF\Facade as PDF;
 
 
 class ProductoController extends Controller
@@ -338,5 +340,63 @@ class ProductoController extends Controller
 
     public function excelProductos(){
         return Excel::download(new Producto_PI(), 'productos_pi.xlsx');
+    }
+
+    public function generarBarCode(Request $request){
+
+        //======= REVIZANDO SI TIENE O NO CODIGO DE BARRAS ========
+        try {
+            $producto_id        =   $request->get('producto_id');
+            $color_id           =   $request->get('color_id');
+            $talla_id           =   $request->get('talla_id');
+
+            $producto           =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,
+                                    p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre,
+                                    m.descripcion as modelo_nombre,pct.ruta_cod_barras,pct.codigo_barras
+                                    from producto_color_tallas as pct
+                                    inner join productos as p on p.id=pct.producto_id
+                                    inner join colores as c on c.id=pct.color_id
+                                    inner join tallas as t on t.id=pct.talla_id
+                                    inner join modelos as m on m.id=p.modelo_id
+                                    where pct.producto_id=? and pct.color_id=?  and pct.talla_id=?',
+                                    [$producto_id,$color_id,$talla_id])[0];
+
+            return response()->json(['success'=>true,'producto'=>$producto]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>'ERROR EN EL SERVIDOR AL OBTENER EL CÓDIGO DE BARRAS',
+            'exception'=>$th->getMessage()]);
+        }
+      
+    }
+
+    public function getAdhesivos($producto_id,$color_id,$talla_id){
+        try {
+            $producto           =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,m.id as modelo_id,
+                                    p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre,
+                                    m.descripcion as modelo_nombre,pct.ruta_cod_barras,pct.codigo_barras,pct.stock as cantidad
+                                    from producto_color_tallas as pct
+                                    inner join productos as p on p.id=pct.producto_id
+                                    inner join colores as c on c.id=pct.color_id
+                                    inner join tallas as t on t.id=pct.talla_id
+                                    inner join modelos as m on m.id=p.modelo_id
+                                    where pct.producto_id=? and pct.color_id=?  and pct.talla_id=?',
+                                    [$producto_id,$color_id,$talla_id])[0];
+
+            $empresa        =   Empresa::first();
+          
+            $width_in_points    = 80 * 72 / 25.4;  // Ancho en puntos (1 pulgada = 25.4 mm)
+            $height_in_points   = 30 * 72 / 25.4; // Alto en puntos
+                                
+            // Establecer el tamaño del papel
+            $custom_paper = array(0, 0, $width_in_points, $height_in_points);
+            $pdf = PDF::loadview('reportes.almacenes.producto.pdf.adhesivo', [
+                                    'producto'      =>  $producto,
+                                    'empresa'       =>  $empresa
+                                    ])->setPaper($custom_paper);
+
+            return $pdf->stream('etiquetas.pdf');
+        } catch (\Throwable $th) {
+            dd($th->getMessage());
+        }
     }
 }
