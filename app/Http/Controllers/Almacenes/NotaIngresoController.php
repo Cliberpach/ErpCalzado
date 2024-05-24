@@ -27,6 +27,9 @@ use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\DataTables;
 use App\Imports\NotaIngreso as ImportsNotaIngreso;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade as PDF;
+use App\Mantenimiento\Empresa\Empresa;
+
 
 class NotaIngresoController extends Controller
 {
@@ -120,11 +123,12 @@ class NotaIngresoController extends Controller
             'tallas' => $tallas
         ]);
     }
-    public function getProductos(Request $request)
-    {
-        $data = DB::table('lote_productos')->where('id', $request->lote_id)->get();
-        return json_encode($data);
-    }
+    
+    // public function getProductos(Request $request)
+    // {
+    //     $data = DB::table('lote_productos')->where('id', $request->lote_id)->get();
+    //     return json_encode($data);
+    // }
 
     /**
      * Store a newly created resource in storage.
@@ -607,4 +611,67 @@ class NotaIngresoController extends Controller
 
         return  Excel::download(new ErrorExcel($data, $errores), 'excel_error.xlsx');
     }
+
+
+    public function getProductos($modelo_id){
+
+        try {
+            $productos      =       DB::select('select p.nombre as producto_nombre,c.descripcion as color_nombre,
+                                    t.descripcion as talla_nombre,pct.stock,pct.stock_logico,p.id as producto_id,
+                                    c.id as color_id,t.id as talla_id
+                                    from producto_color_tallas as pct
+                                    inner join productos as p on p.id=pct.producto_id
+                                    inner join colores as c on c.id=pct.color_id
+                                    inner join tallas as t on t.id=pct.talla_id
+                                    where p.modelo_id=?',[$modelo_id]);
+
+            return response()->json(['success'=>true,'productos'=>$productos]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>'ERROR AL OBTENER LOS PRODUCTOS EN EL SERVIDOR',
+            'exception'=>$th->getMessage()]);
+        }
+
+    }
+
+
+    public function generarEtiquetas($nota_id){
+
+        try {
+            $nota_detalle   =   DB::select('select p.nombre as producto_nombre,c.descripcion as color_nombre,
+                                t.descripcion as talla_nombre,m.descripcion as modelo_nombre,pct.ruta_cod_barras,dni.cantidad
+                                from detalle_nota_ingreso as dni
+                                inner join productos as p on p.id=dni.producto_id
+                                inner join colores as c on c.id=dni.color_id
+                                inner join tallas as t on t.id=dni.talla_id
+                                inner join modelos as m on m.id=p.modelo_id
+                                inner join producto_color_tallas as pct on (pct.producto_id=p.id and pct.color_id=c.id and pct.talla_id=t.id)
+                                where dni.nota_ingreso_id=?',[$nota_id]);
+            
+            $empresa        =   Empresa::first();
+          
+            
+            $width_in_points    = 80 * 72 / 25.4;  // Ancho en puntos (1 pulgada = 25.4 mm)
+            $height_in_points   = 30 * 72 / 25.4; // Alto en puntos
+                                
+            // Establecer el tamaño del papel
+            $custom_paper = array(0, 0, $width_in_points, $height_in_points);
+            $pdf = PDF::loadview('almacenes.productos.pdf.adhesivo', [
+                                    'nota_id'       =>  $nota_id,
+                                    'nota_detalle'  =>  $nota_detalle,
+                                    'empresa'       =>  $empresa
+                                    ])->setPaper($custom_paper)
+                                    ->setWarnings(false);
+                        
+                                  
+            return $pdf->stream('etiquetas.pdf');
+        } catch (\Throwable $th) {
+            Session::flash('nota_ingreso_error_message','ERROR AL GENERAR LAS ETIQUETAS ADHESIVAS');
+            Session::flash('nota_ingreso_error_exception',$th->getMessage());
+
+            return redirect()->route('almacenes.nota_ingreso.index');
+        }
+       
+    }
+
+
 }

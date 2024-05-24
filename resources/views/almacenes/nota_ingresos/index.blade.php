@@ -69,6 +69,19 @@
 <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 
 <script>
+    let message     =   null;
+    let exception   =   null;
+
+    @if(Session::has('nota_ingreso_error_message') && Session::has('nota_ingreso_error_exception'))
+        message         =   "{{ Session::get('nota_ingreso_error_message') }}";   
+        exception       =   "{{ Session::get('nota_ingreso_error_exception') }}";   
+
+        toastr.error(exception,message,{timeOut:0});
+    @endif
+</script>
+
+
+<script>
 $(document).on("click","#importar",function(e)
 {
     $("#modal_file").modal("show");
@@ -148,13 +161,33 @@ $(document).ready(function() {
                 data: null,
                 className: "text-center",
                 render: function(data) {
-                    //Ruta Detalle
 
                     //Ruta Modificar
-                    var url_editar = '{{ route("almacenes.nota_ingreso.edit", ":id")}}';
+                    var url_editar      =   '{{ route("almacenes.nota_ingreso.edit", ":id")}}';
                     url_editar = url_editar.replace(':id', data.id);
 
-                    return "<a href='"+url_editar+"' class='btn btn-info btn-sm'><i class='fas fa-eye'></i></a>"
+                    let url_etiquetas   =   '{{ route("almacenes.nota_ingreso.generarEtiquetas", ":nota_id")}}';   
+                    url_etiquetas       =   url_etiquetas.replace(':nota_id',data.id);
+
+                    return `<div class="btn-group">
+                            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                               Opciones
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="${url_editar}">
+                                    <i class="fas fa-eye"></i> VER
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="${url_etiquetas}">
+                                    <i class="fas fa-barcode"></i> GENERAR ETIQUETAS
+                                </a>
+                          
+                                
+                                
+                            </div>
+                            </div>`;
+
+                    return `<a href="${url_editar}"><i class="fas fa-eye btn btn-info"></i></a>`;
                 }
             }
 

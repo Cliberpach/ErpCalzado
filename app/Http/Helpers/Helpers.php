@@ -1992,10 +1992,16 @@ if (!function_exists('cuentas_cobrar')) {
 if (!function_exists('generarCodigo')) {
     function generarCodigo($longitud)
     {
-        $key = '';
-        $pattern = '1234567890abcdefghijklmnopqrstuvwxyz0987654321ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $max = strlen($pattern)-1;
-        for($i=0;$i < $longitud;$i++) $key .= $pattern[mt_rand(0,$max)];
+        $existe     =   true;
+        while ($existe) {
+            $key = '';
+            $pattern = '1234567890abcdefghijklmnopqrstuvwxyz0987654321ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            $max = strlen($pattern)-1;
+            for($i=0;$i < $longitud;$i++) $key .= $pattern[mt_rand(0,$max)];
+    
+            $existe =  DB::table('productos')->where('codigo_barra', $key)->first();
+        }
+
         return $key;
     }
 }

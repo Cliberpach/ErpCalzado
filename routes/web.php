@@ -288,6 +288,9 @@ function(){
         Route::get('downloadexcel', 'Almacenes\NotaIngresoController@getDownload')->name('almacenes.nota_ingreso.downloadexcel');
         Route::get('downloadproductosexcel', 'Almacenes\NotaIngresoController@getProductosExcel')->name('almacenes.nota_ingreso.downloadproductosexcel');
         Route::get('downloaderrorexcel', 'Almacenes\NotaIngresoController@getErrorExcel')->name('almacenes.nota_ingreso.error_excel');
+        Route::get('/getProductos/{modelo_id}', 'Almacenes\NotaIngresoController@getProductos')->name('almacenes.nota_ingreso.getProductos');
+        Route::get('/generarEtiquetas/{nota_id}', 'Almacenes\NotaIngresoController@generarEtiquetas')->name('almacenes.nota_ingreso.generarEtiquetas');
+
     });
     //NotaSalida
     Route::prefix('almacenes/nota_salidad')->group(function() {
@@ -1005,7 +1008,6 @@ Route::get('ruta', function () {
 
 Route::post('/liberar_colaborador','Pos\CajaController@retirarColaborades')->name('Caja.liberarColaborades');
 Route::get('/get-colaborades/{id}','Pos\CajaController@getColaborades')->name('Caja.getColaborades');
-Route::get('/get-producto-by-modelo/{modelo_id}', 'Almacenes\ProductoController@getProductosByModelo'); //obt
-Route::get('/get-productos-nota-ingreso/{modelo_id}', 'Almacenes\ProductoController@getProductosNotaIngreso');
+Route::get('/get-producto-by-modelo/{modelo_id}', 'Almacenes\ProductoController@getProductosByModelo'); //VENTAS-NOTA SALIDA
 Route::get('/get-stocklogico/{producto_id}/{color_id}/{talla_id}', 'Almacenes\ProductoController@getStockLogico');
 

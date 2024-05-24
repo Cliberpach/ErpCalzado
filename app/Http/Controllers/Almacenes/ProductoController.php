@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
-
+use Picqer\Barcode\BarcodeGeneratorPNG;
 
 class ProductoController extends Controller
 {
@@ -47,8 +47,8 @@ class ProductoController extends Controller
         ->where('tallas.estado', 'ACTIVO')
         ->get();
 
-      
-        
+  
+
         return view('almacenes.productos.index',compact('colores','tallas','stocks'));
     }
 
@@ -158,7 +158,7 @@ class ProductoController extends Controller
             $producto->precio_venta_2   =   $request->get('precio2');
             $producto->precio_venta_3   =   $request->get('precio3');
             $producto->costo            =   $request->get('costo')?$request->get('costo'):0;  
-
+            $producto->save();
             // $producto->peso_producto = $request->get('peso_producto') ? $request->get('peso_producto') : 0;
             // $producto->stock_minimo = $request->get('stock_minimo');
             // $producto->precio_venta_minimo = $request->get('precio_venta_minimo');
@@ -166,7 +166,7 @@ class ProductoController extends Controller
             // $producto->peso_producto = $request->get('peso_producto');
             // $producto->igv = $request->get('igv');
             // $producto->facturacion = $request->get('facturacion_producto');
-            $producto->save();
+            
 
 
             //======= guardamos los colores asignados al producto ========
@@ -185,10 +185,10 @@ class ProductoController extends Controller
 
             if($request->get('codigo_barra'))
             {
-                $generatorPNG = new \Picqer\Barcode\BarcodeGeneratorPNG();
-                $code = base64_encode($generatorPNG->getBarcode($request->get('codigo_barra'), $generatorPNG::TYPE_CODE_128));
-                $data_code = base64_decode($code);
-                $name =  $producto->codigo_barra.'.png';
+                $generatorPNG   =   new \Picqer\Barcode\BarcodeGeneratorPNG();
+                $code           =   base64_encode($generatorPNG->getBarcode($request->get('codigo_barra'), $generatorPNG::TYPE_CODE_128));
+                $data_code      =   base64_decode($code);
+                $name           =   $producto->codigo_barra.'.png';
 
                 if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
                     mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
@@ -612,19 +612,5 @@ class ProductoController extends Controller
         }                    
     }
 
-
-    public function getProductosNotaIngreso($modelo_id){
-        $productos = DB::select('select p.id as producto_id,c.id as color_id,m.id as modelo_id,
-                    p.nombre as producto_nombre,c.descripcion as color_nombre,m.descripcion as modelo_nombre    
-                    from productos as p
-                    inner join producto_colores as pc on pc.producto_id=p.id
-                    inner join colores as c on c.id=pc.color_id
-                    inner join modelos as m on m.id=p.modelo_id
-                    where m.id=? and c.estado="ACTIVO" and p.estado="ACTIVO" 
-                    and m.estado="ACTIVO" and pc.estado="ACTIVO"',
-                    [$modelo_id]);
-
-        return response()->json(["message" => "success" , "productos" => $productos ]);
-    }
 
 }

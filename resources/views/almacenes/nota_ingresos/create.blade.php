@@ -156,8 +156,15 @@
                                                 </div>
                                             </div>
 
-                                            <div class="form-group row mt-3">
+                                            <div class="form-group row mt-3 content-window">
                                                 <div class="col-lg-12">
+                                                    <div class="sk-spinner sk-spinner-wave hide-window" >
+                                                        <div class="sk-rect1"></div>
+                                                        <div class="sk-rect2"></div>
+                                                        <div class="sk-rect3"></div>
+                                                        <div class="sk-rect4"></div>
+                                                        <div class="sk-rect5"></div>
+                                                    </div>
                                                     @include('almacenes.nota_ingresos.tabla-productos')
                                                 </div>
                                             </div>
@@ -302,6 +309,49 @@
 
 <!-- DataTable -->
 <link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
+
+<style>
+    .talla-no-creada{
+        color:rgb(201, 47, 9);
+        font-weight: bold;
+    }
+
+div.content-window {
+    position: relative;
+}
+
+div.content-window.sk__loading::after {
+    content: '';
+    background-color: rgba(255, 255, 255, 0.7);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3000;
+}
+
+.content-window.sk__loading>.sk-spinner.sk-spinner-wave {
+    margin: 0 auto;
+    width: 50px;
+    height: 30px;
+    text-align: center;
+    font-size: 10px;
+}
+
+.content-window.sk__loading>.sk-spinner {
+    display: block;
+    position: absolute;
+    top: 40%;
+    left: 0;
+    right: 0;
+    z-index: 3500;
+}
+
+.content-window .sk-spinner.sk-spinner-wave.hide-window {
+    display: none;
+}
+</style>
 
 @endpush
 
@@ -664,10 +714,10 @@
 <script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
 
 <script>
-    const selectModelo =  document.querySelector('#modelo');
-    const tokenValue = document.querySelector('input[name="_token"]').value;
-    const tallas     = @json($tallas);
-    const colores     = @json($colores);
+    const selectModelo  =  document.querySelector('#modelo');
+    const tokenValue    = document.querySelector('input[name="_token"]').value;
+    const tallas        = @json($tallas);
+    const colores       = @json($colores);
     const bodyTablaProductos  =  document.querySelector('#table-productos tbody');
     const bodyTablaDetalle  =  document.querySelector('#table-detalle tbody');
     const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle');
@@ -682,7 +732,7 @@
 
     document.addEventListener('DOMContentLoaded',()=>{
         events();
-        cargarDataTables();
+        //cargarDataTables();
     })
 
     function events(){
@@ -766,34 +816,37 @@
         })
     }
 
+    function mostrarAnimacion(){
+        document.querySelector('.content-window').classList.add('sk__loading');
+        document.querySelector('.sk-spinner').classList.remove('hide-window');
+    }
+    function ocultarAnimacion(){
+        document.querySelector('.content-window').classList.remove('sk__loading');
+        document.querySelector('.sk-spinner').classList.add('hide-window');
+    }
+
     //============== FUNCIÓN OBTENER PRODUCTOS DE UN MODELO ==============
      
-    function getProductosByModelo(e){
-        modelo_id = e.value;
-        btnAgregarDetalle.disabled=true;
-       
-        if(modelo_id){
-            const url = `/get-productos-nota-ingreso/${modelo_id}`;
-                fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': tokenValue,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                    },
-                })
-                .then(response => response.json())
-                .then(data => {
-                    //console.log(data);
-                    if (table) {
-                        table.destroy();
-                    }
-                    pintarTableStocks(tallas,data.productos);
-                    cargarDataTables();
-                })
+    async function getProductosByModelo(e){
+        modelo_id                   =   e.value;
+        btnAgregarDetalle.disabled  =   true;
+        
 
-                .catch(error => console.error('Error:', error));
-            
+        if(modelo_id){
+            mostrarAnimacion();
+            try {
+                const res       =   await axios.get(route('almacenes.nota_ingreso.getProductos',modelo_id));
+                if(res.data.success){
+                    pintarTableStocks(tallas,res.data.productos);
+                }else{
+                    toastr.error(res.data.exception,res.data.message);
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR AL REALIZAR LA SOLICITUD DE PRODUCTOS');
+            }finally{
+                ocultarAnimacion();
+            }
+             
         }else{
             bodyTablaProductos.innerHTML = ``;
         }
@@ -828,8 +881,13 @@
     const pintarTableStocks = (tallas,productos)=>{
         let options =``;
 
+        const producto_color_procesados      =   [];
+
         productos.forEach((p)=>{
-           
+
+            const llave_producto_color     =   `${p.producto_id}-${p.color_id}`;
+
+            if(!producto_color_procesados.includes(llave_producto_color)){
                 options+=`  <tr>
                                 <th scope="row"  data-color=${p.color_id} >
                                     ${p.color_nombre} 
@@ -842,8 +900,30 @@
                         let htmlTallas = ``;
 
                         tallas.forEach((t)=>{
-                        
-                            htmlTallas +=   `
+
+                            //======= BUSCAMOS SI EXISTE EL PRODUCTO-COLOR-TALLA ========
+                            const existeProducto     =   productos.findIndex((item)=>{
+                                return  item.producto_id == p.producto_id && item.color_id  ==  p.color_id && item.talla_id == t.id;
+                            });
+
+                            let classProducto   =   null;
+                            let stock   =   0;
+                            let message        =   null;
+
+                            existeProducto == -1?stock=0:stock=productos[existeProducto].stock;
+                            existeProducto == -1?classProducto='talla-no-creada':classProducto='talla-creada';
+                            existeProducto == -1?message='AÚN NO SE HA CREADO ESTA TALLA':message=null;
+
+                            let etiquetaStock   =   ``;
+
+                            if(message){
+                                etiquetaStock   =   `<td><p class="${classProducto}" title="${message}" >${stock}</p></td>`;
+                            }else{
+                                etiquetaStock   =   `<td><p class="${classProducto}" >${stock}</p></td>`; 
+                            }
+                            
+                            htmlTallas +=   `   
+                                                ${etiquetaStock}
                                                 <td >
                                                     <input type="text" class="form-control inputCantidad" 
                                                     data-producto-id="${p.producto_id}"
@@ -856,8 +936,13 @@
                         })
                 htmlTallas += `</tr>`;
                 options += htmlTallas;
-           
+
+                //======= MARCANDO PRODUCTO COLOR COMO PROCESADO ========
+                producto_color_procesados.push(llave_producto_color);
+            }
+               
         })
+        
 
         bodyTablaProductos.innerHTML = options;
         btnAgregarDetalle.disabled = false;

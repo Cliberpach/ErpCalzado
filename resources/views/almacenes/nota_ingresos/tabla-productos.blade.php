@@ -17,6 +17,9 @@
           
           @foreach ($tallas as $talla)
               <th scope="col">{{$talla->descripcion}}</th>
+              @if (!isset($carrito))
+                <th scope="col">CANT</th>
+              @endif
           @endforeach
           
          

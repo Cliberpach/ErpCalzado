@@ -1199,6 +1199,17 @@
             coloresAsignados = coloresAsignados.filter((c)=>{return c!=idColor })
         }
 
+        function generarCode() {
+            // Consultamos nuestra BBDD
+            $.ajax({
+                dataType : 'json',
+                type : 'get',
+                url : '{{ route('generarCode') }}',
+            }).done(function (result){
+                $('#codigo_barra').val(result.code)
+            });
+        }
+
 </script>
 
 @endpush

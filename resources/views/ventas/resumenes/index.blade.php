@@ -416,7 +416,7 @@
                         var html = '<td><div class="btn-group">';
                         
                             if (data.send_sunat == 1) {
-                                if (data.code_estado == '98' || (data.ticket && !data.code_estado)) {
+                                if (data.code_estado == 98 || (data.ticket && !data.code_estado)) {
                                     html += `<button type="button" data-resumen-id="${data.id}" class="btn btn-primary btn-consultar-resumen">CONSULTAR</button>`;
                                 }
                             }

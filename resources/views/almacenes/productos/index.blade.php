@@ -93,12 +93,6 @@
 <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
 
-<script>
-    $(document).ready(function() {
-
-    });
-</script>
-
 
 <script>
     const stocks = @json($stocks);
