@@ -178,7 +178,7 @@ $(document).ready(function() {
                                     <i class="fas fa-eye"></i> VER
                                 </a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="${url_etiquetas}">
+                                <a class="dropdown-item" href="${url_etiquetas}" target="_blank">
                                     <i class="fas fa-barcode"></i> GENERAR ETIQUETAS
                                 </a>
                           

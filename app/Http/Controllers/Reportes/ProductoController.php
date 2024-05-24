@@ -318,7 +318,8 @@ class ProductoController extends Controller
             DB::table('productos')
                 ->select('productos.id as producto_id', 'colores.id as color_id', 'tallas.id as talla_id', 'productos.codigo as producto_codigo',
                          'productos.nombre as producto_nombre', 'colores.descripcion as color_nombre', 'tallas.descripcion as talla_nombre',
-                         'modelos.descripcion as modelo_nombre', 'categorias.descripcion as categoria_nombre', 'producto_color_tallas.stock')
+                         'modelos.descripcion as modelo_nombre', 'categorias.descripcion as categoria_nombre', 'producto_color_tallas.stock',
+                         'producto_color_tallas.ruta_cod_barras','producto_color_tallas.codigo_barras')
                 ->join('producto_colores', 'productos.id', '=', 'producto_colores.producto_id')
                 ->join('producto_color_tallas', function ($join) {
                     $join->on('producto_color_tallas.producto_id', '=', 'producto_colores.producto_id')

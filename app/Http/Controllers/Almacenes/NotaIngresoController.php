@@ -638,7 +638,8 @@ class NotaIngresoController extends Controller
 
         try {
             $nota_detalle   =   DB::select('select p.nombre as producto_nombre,c.descripcion as color_nombre,
-                                t.descripcion as talla_nombre,m.descripcion as modelo_nombre,pct.ruta_cod_barras,dni.cantidad
+                                t.descripcion as talla_nombre,m.descripcion as modelo_nombre,pct.ruta_cod_barras,dni.cantidad,
+                                p.id as producto_id,c.id as color_id,t.id as talla_id,m.id as modelo_id
                                 from detalle_nota_ingreso as dni
                                 inner join productos as p on p.id=dni.producto_id
                                 inner join colores as c on c.id=dni.color_id

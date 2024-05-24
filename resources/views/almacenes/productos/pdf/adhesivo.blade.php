@@ -96,10 +96,9 @@
                         </tr>
                     </table>
                 </td>
-                <td width="60%" style="vertical-align: middle;text-align:center;border-left:solid 1px black;" >
-                    
-                        <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class="img-fluid img_cod_barras">
-                    
+                <td width="60%" style="vertical-align: middle;text-align:center;border-left:solid 1px black;height:100%;" >
+                    <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class="img-fluid img_cod_barras">
+                    <p style="font-size: 10px;">{{'775'.$producto->modelo_id.$producto->producto_id.$producto->color_id.$producto->talla_id}}</p>
                 </td>
             </tr>
         </table>

@@ -1,5 +1,5 @@
 @extends('layout') @section('content')
-
+@include('reportes.almacenes.producto.modal_cod_barras')
 
     <div class="row wrapper border-bottom white-bg page-heading">
         <div class="col-lg-12 col-md-12">
@@ -43,6 +43,7 @@
                                         <th class="text-center">MODELO</th>
                                         <th class="text-center">CATEGORÍA</th>
                                         <th class="text-center">STOCK</th>
+                                        <th class="text-center">COD BARRAS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -433,7 +434,7 @@
             });
 
             //DOBLE CLICK EN LOTES
-            $('.dataTables-producto').on('click', 'tbody td', function() {
+            $('.dataTables-producto').on('dblclick', 'tbody td', function() {
                 var instancia   = $('.dataTables-producto').DataTable();
                 var producto    = instancia.row(this).data();
                 llenarCompras(producto.producto_id,producto.color_id,producto.talla_id);
@@ -444,6 +445,28 @@
                 llenarIngresos(producto.producto_id,producto.color_id,producto.talla_id);
                 console.log(`${producto.producto_id}-${producto.color_id}-${producto.talla_id}`);
             });
+
+            document.addEventListener('click',(e)=>{
+                if(e.target.classList.contains('btn-ver-cod-barras')){
+                    const cod           =   e.target.getAttribute('data-cod');
+                    const img_cod       =   e.target.getAttribute('data-img');
+                  
+                    if(img_cod != "null"){
+                       
+                        const partes    = img_cod.split("public/");
+                        const subcadena = partes[1];
+                       
+                        const base_path_1   =   @json(asset(`storage/`));
+                        document.querySelector('#img_cod_barras').src       = base_path_1+'storage/'+subcadena;  
+                        document.querySelector('#p_cod_barras').textContent = cod;  
+                    }else{
+                        document.querySelector('#img_cod_barras').src       = `#`;  
+                        document.querySelector('#p_cod_barras').textContent = 'NO TIENE CÓDIGO DE BARRAS';  
+                    }
+                    
+                    $('#modal_cod_barras').modal('show');
+                }
+            })
 
         });
 
@@ -952,8 +975,17 @@
                         data: 'stock',
                         className: "text-center",
                         name: "producto_color_tallas.stock"
+                    },
+                    {
+                        data: null,
+                        className: "text-center",
+                        render: function (data, type, row) {
+                            return `<button class="btn btn-primary btn-ver-cod-barras" data-img="${row.ruta_cod_barras}"
+                            data-cod="${row.codigo_barras}">VER</button>`;
+                        },
+                        orderable: false,
+                        searchable: false
                     }
-
                 ],
                 "language": {
                     "url": "{{ asset('Spanish.json') }}"
