@@ -18,6 +18,12 @@
                         <p id="p_cod_barras" style="font-size: 20px;font-weight:bold;"></p>
                     </div>
                     <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                        <span style="font-weight: bold;">MODELO: </span><p class="modelo_nombre"></p>
+                        <span style="font-weight: bold;">PRODUCTO: </span><p class="producto_nombre"></p>
+                        <span style="font-weight: bold;">COLOR: </span><p class="color_nombre"></p>
+                        <span style="font-weight: bold;">TALLA: </span><p class="talla_nombre"></p>
+                        <span style="font-weight: bold;">STOCK: </span><p class="producto_stock"></p>
+                        <span style="font-weight: bold;">STOCK_LÓGICO: </span><p class="producto_stock_logico"></p>
                         <a target="_blank" href="javascript:void(0);" class="btn btn-success text-white" id="ahesivos_item" > GENERAR ADHESIVOS</a>
                     </div>
                 </div>
@@ -36,3 +42,23 @@
         </div>
     </div>
 </div>
+
+<script>
+    function setData(producto){
+        document.querySelector('.modelo_nombre').textContent            =   producto.producto.modelo_nombre;
+        document.querySelector('.producto_nombre').textContent          =   producto.producto.producto_nombre;
+        document.querySelector('.color_nombre').textContent             =   producto.producto.color_nombre;
+        document.querySelector('.talla_nombre').textContent             =   producto.producto.talla_nombre;
+        document.querySelector('.producto_stock').textContent           =   producto.producto.stock;
+        document.querySelector('.producto_stock_logico').textContent    =   producto.producto.stock_logico;
+    }
+
+    function clearData(){
+        document.querySelector('.modelo_nombre').textContent            =   '';
+        document.querySelector('.producto_nombre').textContent          =   '';
+        document.querySelector('.color_nombre').textContent             =   '';
+        document.querySelector('.talla_nombre').textContent             =   '';
+        document.querySelector('.producto_stock').textContent           =   '';
+        document.querySelector('.producto_stock_logico').textContent    =   '';
+    }
+</script>

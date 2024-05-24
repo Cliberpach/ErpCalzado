@@ -491,7 +491,7 @@ function(){
     Route::prefix('ventas/pedidos')->group(function(){
 
         Route::get('index', 'Ventas\PedidoController@index')->name('ventas.pedidos.index');
-        Route::post('getTable', 'Ventas\PedidoController@getTable')->name('ventas.pedidos.getTable');
+        Route::get('getTable', 'Ventas\PedidoController@getTable')->name('ventas.pedidos.getTable');
         Route::get('create', 'Ventas\PedidoController@create')->name('ventas.pedidos.create');
         Route::post('atender', 'Ventas\PedidoController@atender')->name('ventas.pedidos.atender');
         Route::post('validar-cantidad-atender', 'Ventas\PedidoController@validarCantidadAtender')->name('ventas.pedidos.validarCantidadAtender');
@@ -507,7 +507,7 @@ function(){
         Route::get('get-atenciones-pedido/{pedido_id}','Ventas\PedidoController@getAtenciones')->name('ventas.pedidos.getAtenciones');
         Route::get('get-pedido-detalles/{pedido_id}','Ventas\PedidoController@getPedidoDetalles')->name('ventas.pedidos.getPedidoDetalles');
         Route::post('devolver-stock-logico', 'Ventas\PedidoController@devolverStockLogico')->name('ventas.pedidos.devolverStockLogico');
-        // Route::get('generarRecibo/{pedido_id}','Ventas\PedidoController@generarRecibo')->name('ventas.pedidos.generarRecibo');
+        Route::get('getExcel/{fecha_inicio?}/{fecha_fin?}/{estado?}', 'Ventas\PedidoController@getExcel')->name('ventas.pedidos.getExcel');
 
     });
 
@@ -523,24 +523,6 @@ function(){
         Route::get('get-despacho/{documento_id}','Ventas\DespachoController@getDespacho')->name('ventas.despachos.getDespacho');
         Route::post('/updateDespacho', 'Ventas\DespachoController@updateDespacho')->name('ventas.despachos.updateDespacho');
 
-        // Route::get('/registrar', 'Ventas\ClienteController@create')->name('ventas.cliente.create');
-        // Route::post('/registrar', 'Ventas\ClienteController@store')->name('ventas.cliente.store');
-        // Route::post('/registrarFast', 'Ventas\ClienteController@storeFast')->name('ventas.cliente.storeFast');
-        // Route::get('/actualizar/{id}', 'Ventas\ClienteController@edit')->name('ventas.cliente.edit');
-        // Route::put('/actualizar/{id}', 'Ventas\ClienteController@update')->name('ventas.cliente.update');
-        // Route::get('/datos/{id}', 'Ventas\ClienteController@show')->name('ventas.cliente.show');
-        // Route::get('/destroy/{id}', 'Ventas\ClienteController@destroy')->name('ventas.cliente.destroy');
-        // Route::post('/getDocumento', 'Ventas\ClienteController@getDocumento')->name('ventas.cliente.getDocumento');
-        // Route::post('/getCustomer', 'Ventas\ClienteController@getCustomer')->name('ventas.cliente.getcustomer');
-        // //Tiendas
-        // Route::get('tiendas/index/{id}', 'Ventas\TiendaController@index')->name('clientes.tienda.index');
-        // Route::get('tiendas/getShop/{id}','Ventas\TiendaController@getShop')->name('clientes.tienda.shop');
-        // Route::get('tiendas/create/{id}', 'Ventas\TiendaController@create')->name('clientes.tienda.create');
-        // Route::post('tiendas/store/', 'Ventas\TiendaController@store')->name('clientes.tienda.store');
-        // Route::put('tiendas/update/{id}', 'Ventas\TiendaController@update')->name('clientes.tienda.update');
-        // Route::get('tiendas/destroy/{id}', 'Ventas\TiendaController@destroy')->name('clientes.tienda.destroy');
-        // Route::get('tiendas/show/{id}', 'Ventas\TiendaController@show')->name('clientes.tienda.show');
-        // Route::get('tiendas/actualizar/{id}', 'Ventas\TiendaController@edit')->name('clientes.tienda.edit');
     });
 
     //COMPROBANTES ELECTRONICOS
@@ -888,7 +870,7 @@ function(){
         // Route::get('getTable', 'Reportes\ProductoController@getTable')->name('reporte.producto.getTable');
         Route::get('getProductos', 'Reportes\ProductoController@getProductos')->name('reporte.producto.getProductos');
         Route::get('excelProductos', 'Reportes\ProductoController@excelProductos')->name('reporte.producto.excelProductos');
-        Route::post('generarBarCode', 'Reportes\ProductoController@generarBarCode')->name('reporte.producto.generarBarCode');
+        Route::post('obtenerBarCode', 'Reportes\ProductoController@obtenerBarCode')->name('reporte.producto.obtenerBarCode');
         Route::get('getAdhesivos/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@getAdhesivos')->name('reporte.producto.getAdhesivos');
     });
 

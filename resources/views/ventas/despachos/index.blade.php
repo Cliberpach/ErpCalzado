@@ -181,8 +181,6 @@
             });
 
           
-
-            
             //========= DATATABLE DESPACHO =======
             $('.dataTables-despacho').DataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
@@ -583,6 +581,7 @@
 
             $('.dataTables-despacho').DataTable().ajax.reload();
         }
+        
         function filtrarDespachoFechaFin(fecha_fin){
             const fi    =   document.querySelector('#filtroFechaInicio').value;
             const ff    =   document.querySelector('#filtroFechaFin').value;

@@ -701,8 +701,6 @@ class NotaIngresoController extends Controller
                 ]);
             }
         }
-
-
     }
 
 

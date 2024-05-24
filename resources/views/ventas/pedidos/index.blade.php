@@ -29,18 +29,28 @@
     <div class="row mb-3">
         <div class="col-9">
             <div class="row">
-                <div class="col-6">
+                <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12">
                     <label for="fecha_inicio" style="font-weight: bold;">Fecha desde:</label>
-                    <input type="date" class="form-control" id="fecha_inicio" value="{{ old('fecha_inicio', now()->format('Y-m-d')) }}" onchange="controlFechas(this)">
+                    <input type="date" class="form-control" id="filtroFechaInicio" value="{{ old('fecha_inicio', now()->format('Y-m-d')) }}" onchange="filtrarDespachoFechaInic(this.value)">
                 </div>
-                <div class="col-6">
+                <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12">
                     <label for="fecha_fin" style="font-weight: bold;">Fecha hasta:</label>
-                    <input type="date" class="form-control" id="fecha_fin" value="{{ now()->format('Y-m-d') }}" onchange="controlFechas(this)">
+                    <input type="date" class="form-control" id="filtroFechaFin" value="{{ now()->format('Y-m-d') }}" onchange="filtrarDespachoFechaFin(this.value)">
                 </div>
+                <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                    <label for="pedido_estado" style="font-weight: bold;">Estado</label>
+                    <select  id="pedido_estado" class="form-control select2_form" onchange="filtrarDespachosEstado(this.value)">
+                        <option value=""></option>
+                        <option value="PENDIENTE">PENDIENTE</option>
+                        <option value="ATENDIENDO">ATENDIENDO</option>
+                        <option value="FINALIZADO">FINALIZADO</option>
+                    </select>
+                </div>
+
             </div>
         </div>
        <div class="col-3 d-flex align-items-end justify-content-end">
-            <button class="btn btn-primary" style="width: 80%" id="btn-filtrar">FILTRAR <i class="fas fa-filter"></i></button>
+
        </div>
     </div>
 
@@ -77,6 +87,7 @@
 @stop
 @push('styles')
 <link href="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.5/b-3.0.2/b-html5-3.0.2/b-print-3.0.2/date-1.5.2/r-3.0.2/sp-2.3.1/datatables.min.css" rel="stylesheet">
+<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 <style>
 .search-length-container {
     display: flex;
@@ -120,6 +131,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <script src="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.5/b-3.0.2/b-html5-3.0.2/b-print-3.0.2/date-1.5.2/r-3.0.2/sp-2.3.1/datatables.min.js"></script>
+<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
+
 <script>
     //======== DATATABLES ====
     let pedidos_data_table  =   null;
@@ -129,30 +142,47 @@
     let atenciones_data_table   =   null;
 
     document.addEventListener('DOMContentLoaded',()=>{
-        events();
+        loadSelect2();
+        loadDataTable();
+        
         eventsModalAtenciones();
-        getTable();
     })
 
-    function events(){
-        document.querySelector('#btn-filtrar').addEventListener('click',(e)=>{
-           getTable();
-        })
+    
+    function loadSelect2(){
+        $(".select2_form").select2({
+                placeholder: "SELECCIONAR",
+                allowClear: true,
+                height: '200px',
+                width: '100%',
+                minimumResultsForSearch: -1 
+        });
     }
 
-    function loadDataTable(data){
-        if(!pedidos_data_table){
-            pedidos_data_table = new DataTable('#pedidos_table',{
-                "order": [
+    function loadDataTable(){
+        const getPedidosUrl = "{{ route('ventas.pedidos.getTable') }}";
+        
+        pedidos_data_table = new DataTable('#pedidos_table',{
+            serverSide: true,
+            ajax: {
+                url: getPedidosUrl,
+                type: 'GET',
+                "data": function(d) {
+                    d.fecha_inicio  = $('#filtroFechaInicio').val();
+                    d.fecha_fin     = $('#filtroFechaFin').val();
+                }
+            },
+            "order": [
                             [0, 'desc']
                         ],
             
-                buttons: [
+            buttons: [
                     {
-                        extend: 'excelHtml5',
-                        className: 'custom-button btn-check', 
-                        text: '<i class="fa fa-file-excel-o" style="font-size:15px;"></i> Excel',
-                        title: 'Pedidos'
+                        text: '<a id="btn-excel-pedidos" href="javascript:void(0);"><i class="fa fa-file-excel-o"></i> Excel</a>',
+                        className: 'custom-button btn-hola',
+                        action: function (e, dt, node, config) {
+                            excelPedidos();
+                        }
                     },
                     {
                         extend: 'pdf',
@@ -166,90 +196,95 @@
                         text: '<i class="fa fa-print"></i> Imprimir',
                         title: 'Pedidos'
                     }
-                ],
-                dom: '<"buttons-container"B><"search-length-container"lf>tp',
-                bProcessing: true,
-                data:data,
-                columns: [
-                    { data: 'id' },
-                    { data: 'cliente_nombre' },
-                    { data: 'fecha_registro' },
-                    { data: 'total_pagar' },
-                    { data: 'user_nombre' },
-                    { data: 'estado' },
-                    { data: 'id',
+            ],
+            dom: '<"buttons-container"B><"search-length-container"lf>tp',
+            bProcessing: true,
+            columns: [
+                { data: 'id' },
+                { data: 'cliente_nombre' },
+                { data: 'fecha_registro' },
+                { data: 'total_pagar' },
+                { data: 'user_nombre' },
+                {
+                        data: 'estado',
+                        className: "text-center",
+                        render: function(data, type, row) {
+                            if (data === 'PENDIENTE') {
+                                return '<span class="badge badge-danger">PENDIENTE</span>';
+                            } else if (data === 'FINALIZADO') {
+                                return '<span class="badge badge-primary">FINALIZADO</span>';
+                            } else if(data === "ATENDIENDO") {
+                                return '<span class="badge badge-success">ATENDIENDO</span>';
+                            }
+                        }
+                },
+                { data: null,
                         className: "text-center",
                         render: function(data, type, row) {
                             let url_reporte = '{{route("ventas.pedidos.reporte", ":id")}}';
-                            url_reporte = url_reporte.replace(':id', data);
+                            url_reporte = url_reporte.replace(':id', row.id);
 
                             const url_atender   =   '{{route("ventas.pedidos.atender")}}';
 
-                            return `
-                            <div class="btn-group" style="text-transform:capitalize;">
-                                <button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class="fa-solid fa-list-timeline"></i></button>
+                            let acciones        =   `<div class="btn-group" style="text-transform:capitalize;">
+                                <button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class="fas fa-bars"></i></button>
                                 <ul class='dropdown-menu dropdown-menu-up'>
+                                    <li><a class='dropdown-item'  target='_blank' href="${url_reporte}" title='Detalle'><b><i class='fa fa-file-pdf-o'></i> Pdf</a></b></li>`;
+                                    
+                            if(row.estado === "PENDIENTE"){
+                                acciones+=`<li><a class='dropdown-item' onclick="modificarPedido(${row.id})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>`;
+                            }
 
-                            <li><a class='dropdown-item'  target='_blank' href="${url_reporte}" title='Detalle'><b><i class='fa fa-file-pdf-o'></i> Pdf</a></b></li>
-                            <li><a class='dropdown-item' onclick="modificarPedido(${data})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li> 
-                            <li><a class='dropdown-item' onclick="eliminarPedido(${data})"  title='Eliminar'><b><i class='fa fa-trash'></i> Eliminar</a></b></li> 
-                            <li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${data}" data-target="#modal_pedido_detalles"  title='Detalles'><b><i class="fas fa-info-circle"></i> Detalles</a></b></li> 
-                            <div class="dropdown-divider"></div>
-                            <li>
-                                <form id="formAtenderPedido_${data}" method="POST" action="${url_atender}">
-                                    @csrf
-                                    <input hidden name="pedido_id" value="${data}"></input>
-                                    <a class='dropdown-item' onclick="atenderPedido(${data})"  title='Atender'><b><i class="fas fa-concierge-bell"></i> Atender</a></b>
-                                </form>
-                            </li> 
-                            <li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${data}" data-target="#modal_historial_atenciones"  title='Eliminar'><b><i class="fas fa-history"></i> Historial Atenciones</a></b></li> 
-                            <li><a class='dropdown-item' href="javascript:void(0);" onclick="generarRecibo(${data})"  title='Recibo'><b><i class="fas fa-receipt"></i> Generar Recibo</a></b></li> 
-                            </ul></div>
-                            `;
+                            acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='Eliminar'><b><i class='fa fa-trash'></i> Eliminar</a></b></li>
+                            <li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_pedido_detalles"  title='Detalles'><b><i class="fas fa-info-circle"></i> Detalles</a></b></li>
+                            <div class="dropdown-divider"></div>`;
+
+                            if(row.estado === "ATENDIENDO" || row.estado === "PENDIENTE"){
+                                acciones+=` <li>
+                                    <form id="formAtenderPedido_${row.id}" method="POST" action="${url_atender}">
+                                        @csrf
+                                        <input hidden name="pedido_id" value="${row.id}"></input>
+                                        <a class='dropdown-item' onclick="atenderPedido(${row.id})"  title='Atender'><b><i class="fas fa-concierge-bell"></i> Atender</a></b>
+                                    </form>
+                                </li> `;
+                            }
+                            acciones+=`<li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_historial_atenciones"  title='Eliminar'><b><i class="fas fa-history"></i> Historial Atenciones</a></b></li>
+                            <li><a class='dropdown-item' href="javascript:void(0);" onclick="generarRecibo(${row.id})"  title='Recibo'><b><i class="fas fa-receipt"></i> Generar Recibo</a></b></li></ul></div>`;
+
+                            return acciones;
                         }
                     }
-                ],
-                language: {
-                    processing:     "Traitement en cours...",
-                    search:         "BUSCAR: ",
-                    lengthMenu:    "MOSTRAR _MENU_ PEDIDOS",
-                    info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ PEDIDOS",
-                    infoEmpty:      "MOSTRANDO 0 PEDIDOS",
-                    infoFiltered:   "(FILTRADO de _MAX_ PEDIDOS)",
-                    infoPostFix:    "",
-                    loadingRecords: "CARGA EN CURSO",
-                    zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
-                    emptyTable:     "NO HAY PEDIDOS DISPONIBLES",
-                    paginate: {
-                        first:      "PRIMERO",
-                        previous:   "ANTERIOR",
-                        next:       "SIGUIENTE",
-                        last:       "ÚLTIMO"
-                    },
-                    aria: {
-                        sortAscending:  ": activer pour trier la colonne par ordre croissant",
-                        sortDescending: ": activer pour trier la colonne par ordre décroissant"
-                    }}
-            })
-        }else{
-            pedidos_data_table.clear().rows.add(data).draw(); 
-        }
+            ],
+            language: getLanguajeDataTable()
+        })
+        
 
         document.querySelector('.dt-buttons').classList.add('btn-group');
     }
 
-    async function getTable(){
-        try {
-            const fecha_inicio  =   document.querySelector('#fecha_inicio').value;
-            const fecha_fin     =   document.querySelector('#fecha_fin').value;
-            const res   =   await   axios.post("{{ route('ventas.pedidos.getTable') }}",{
-                fecha_inicio,
-                fecha_fin
-            });
-            console.log(res);
-            loadDataTable(res.data.message);
-        } catch (error) {
-            
+   
+    function getLanguajeDataTable(){
+        return {
+            processing:     "Traitement en cours...",
+            search:         "BUSCAR: ",
+            lengthMenu:    "MOSTRAR _MENU_ PEDIDOS",
+            info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ PEDIDOS",
+            infoEmpty:      "MOSTRANDO 0 PEDIDOS",
+            infoFiltered:   "(FILTRADO de _MAX_ PEDIDOS)",
+            infoPostFix:    "",
+            loadingRecords: "CARGA EN CURSO",
+            zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+            emptyTable:     "NO HAY PEDIDOS DISPONIBLES",
+            paginate: {
+                first:      "PRIMERO",
+                previous:   "ANTERIOR",
+                next:       "SIGUIENTE",
+                last:       "ÚLTIMO"
+            },
+            aria: {
+                sortAscending:  ": activer pour trier la colonne par ordre croissant",
+                sortDescending: ": activer pour trier la colonne par ordre décroissant"
+            }
         }
     }
 
@@ -653,5 +688,54 @@
             return false;
         }
     }
+
+
+    function filtrarDespachoFechaInic(fecha_inicio){
+
+        const fi    =   document.querySelector('#filtroFechaInicio').value;
+        const ff    =   document.querySelector('#filtroFechaFin').value;
+
+        if((fi.toString().trim().length >0 && ff.toString().trim().length >0) & (fi > ff) ){
+            document.querySelector('#filtroFechaInicio').value  =   '';
+            toastr.error('FECHA INICIO DEBE SER MENOR O IGUAL A FECHA FIN','ERROR FECHAS');
+            pedidos_data_table.ajax.reload();
+
+            return;
+        }
+
+        pedidos_data_table.ajax.reload();
+    }
+
+    function filtrarDespachoFechaFin(fecha_fin){
+            const fi    =   document.querySelector('#filtroFechaInicio').value;
+            const ff    =   document.querySelector('#filtroFechaFin').value;
+
+            if((fi.toString().trim().length >0 && ff.toString().trim().length >0) & (ff < fi) ){
+                document.querySelector('#filtroFechaFin').value  =   '';
+                toastr.error('FECHA FIN DEBE SER MAYOR O IGUAL A FECHA INICIO','ERROR FECHAS');
+                pedidos_data_table.ajax.reload();
+                return;
+            }
+
+            pedidos_data_table.ajax.reload();
+    }
+
+    function filtrarDespachosEstado(pedido_estado){
+        pedidos_data_table.column(5).search(pedido_estado).draw();
+    }
+
+
+    //========== EXCEL PEDIDOS =======
+    function excelPedidos(){
+        const fecha_inicio  =   $('#filtroFechaInicio').val();
+        const fecha_fin     =   $('#filtroFechaFin').val();      
+        const estado        =   document.querySelector('#pedido_estado').value;
+
+        const rutaExcelPedidos  =   @json(route('ventas.pedidos.getExcel'))+`/${fecha_inicio}/${fecha_fin}/${estado}`;
+
+        window.location.href = rutaExcelPedidos;
+        
+    }
+
 </script>
 @endpush

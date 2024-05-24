@@ -23,8 +23,8 @@ class DespachoController extends Controller
 
     public function getTable(Request $request)
     {
-        $fecha_inicio = $request->get('fecha_inicio');
-        $fecha_fin = $request->get('fecha_fin');
+        $fecha_inicio   = $request->get('fecha_inicio');
+        $fecha_fin      = $request->get('fecha_fin');
     
         $envios_ventas = EnvioVenta::orderBy('id', 'desc');
     
@@ -37,10 +37,6 @@ class DespachoController extends Controller
     
         $envios_ventas = $envios_ventas->get();
         
-       
-
-       
-
         $coleccion = collect([]);
         foreach($envios_ventas as $envio_venta) {
             $coleccion->push([

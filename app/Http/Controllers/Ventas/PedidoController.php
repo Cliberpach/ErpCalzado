@@ -22,6 +22,7 @@ use Illuminate\Support\Collection;
 use App\Ventas\Documento\Documento;
 use  App\Http\Controllers\Ventas\DocumentoController;
 use App\Ventas\Documento\Detalle;
+use Yajra\DataTables\Facades\DataTables;
 
 
 
@@ -45,8 +46,9 @@ class PedidoController extends Controller
             $pedidos    =   $pedidos->where('fecha_registro', '<=', $fecha_fin);
         }
         
-        return response()->json(['message'=>$pedidos->get()]);
+        return DataTables::of($pedidos)->toJson();
     }
+
 
     public function create(){
         $empresas           = Empresa::where('estado', 'ACTIVO')->get();
@@ -928,5 +930,9 @@ class PedidoController extends Controller
     }
 
 
-   
+    public function getExcel($fecha_inicio=null,$fecha_fin=null,$estado=null){
+        dd($estado.'-'.$fecha_inicio.'-'.$fecha_fin);
+    }
+
+
 }

@@ -20,7 +20,7 @@ use App\Ventas\Nota;
 use App\Ventas\NotaDetalle;
 use App\Mantenimiento\Empresa\Empresa;
 use Barryvdh\DomPDF\Facade as PDF;
-
+use App\Almacenes\ProductoColorTalla;
 
 class ProductoController extends Controller
 {
@@ -342,7 +342,7 @@ class ProductoController extends Controller
         return Excel::download(new Producto_PI(), 'productos_pi.xlsx');
     }
 
-    public function generarBarCode(Request $request){
+    public function obtenerBarCode(Request $request){
 
         //======= REVIZANDO SI TIENE O NO CODIGO DE BARRAS ========
         try {
@@ -352,7 +352,7 @@ class ProductoController extends Controller
 
             $producto           =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,
                                     p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre,
-                                    m.descripcion as modelo_nombre,pct.ruta_cod_barras,pct.codigo_barras
+                                    m.descripcion as modelo_nombre,pct.ruta_cod_barras,pct.codigo_barras,pct.stock,pct.stock_logico
                                     from producto_color_tallas as pct
                                     inner join productos as p on p.id=pct.producto_id
                                     inner join colores as c on c.id=pct.color_id
@@ -360,8 +360,22 @@ class ProductoController extends Controller
                                     inner join modelos as m on m.id=p.modelo_id
                                     where pct.producto_id=? and pct.color_id=?  and pct.talla_id=?',
                                     [$producto_id,$color_id,$talla_id])[0];
+            
+            $message    =   'VISUALIZANDO CÓDIGO DE BARRAS';
+            if(!$producto->codigo_barras && !$producto->ruta_cod_barras){
+                $res_generarBarCode     =   $this->generarCodigoBarras($producto);
 
-            return response()->json(['success'=>true,'producto'=>$producto]);
+                if(!$res_generarBarCode['success']){
+                    return response()->json(['success'=>false,'message'=>$res_generarBarCode['message'],
+                    'exception'=>$res_generarBarCode['exception']]);
+                }
+
+                $producto->codigo_barras    =   $res_generarBarCode['codigo_barras'];
+                $producto->ruta_cod_barras  =   $res_generarBarCode['ruta_cod_barras'];    
+                $message                    =   $res_generarBarCode['message'];
+            }
+
+            return response()->json(['success'=>true,'producto'=>$producto,'message'=>$message]);
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>'ERROR EN EL SERVIDOR AL OBTENER EL CÓDIGO DE BARRAS',
             'exception'=>$th->getMessage()]);
@@ -399,4 +413,45 @@ class ProductoController extends Controller
             dd($th->getMessage());
         }
     }
+
+
+    public function generarCodigoBarras($producto){
+        DB::beginTransaction();
+
+        try {
+            //========= GENERAR IDENTIFICADOR ÚNICO PARA EL COD BARRAS ========
+            $key            =   generarCodigo(8);
+            //======== GENERAR IMG DEL COD BARRAS ========
+            $generatorPNG   =   new \Picqer\Barcode\BarcodeGeneratorPNG();
+            $code           =   $generatorPNG->getBarcode($key, $generatorPNG::TYPE_CODE_128);
+            $name           =   $key.'.png';
+        
+            if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
+                mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
+            }
+        
+            $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'.DIRECTORY_SEPARATOR.$name);
+        
+            file_put_contents($pathToFile, $code);
+
+            //======== GUARDAR KEY Y RUTA IMG ========
+            ProductoColorTalla::where('producto_id', $producto->producto_id)
+            ->where('color_id', $producto->color_id)
+            ->where('talla_id', $producto->talla_id)
+            ->update([
+                'codigo_barras'         =>  $key,
+                'ruta_cod_barras'       =>  'public/productos/'.$name  
+            ]);
+
+
+            DB::commit();
+            return ['success'=>true,'message'=>"CÓDIGO DE BARRAS GENERADO, EL PRODUCTO NO CONTABA CON UNO",'codigo_barras'=>$key,'ruta_cod_barras'=>'public/productos/'.$name];
+            
+        } catch (\Throwable $th) {
+            DB::rollback();
+           return ['success'=>false,'message'=>"ERROR AL GENERAR CÓDIGO DE BARRAS",'exception'=>$th->getMessage()];
+        }     
+    }
+
+
 }

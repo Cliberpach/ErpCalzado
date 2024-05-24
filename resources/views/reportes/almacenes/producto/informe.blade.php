@@ -454,7 +454,7 @@
                     const talla_id      =   e.target.getAttribute('data-talla');
 
                     const   res_generarBarCode  = await generarBarCode(producto_id,color_id,talla_id);
-
+                    clearData();
                     if(res_generarBarCode.success){
                         const cod           =   res_generarBarCode.producto.codigo_barras;
                         const img_cod       =   res_generarBarCode.producto.ruta_cod_barras;
@@ -477,13 +477,16 @@
 
                             const enlaceGenerarAdhesivos = document.getElementById("ahesivos_item");
                             enlaceGenerarAdhesivos.setAttribute("href", rutaGenerarAdhesivos);
+                            toastr.info(res_generarBarCode.message,'OPERACIÓN COMPLETADA');
+
+                            setData(res_generarBarCode);
+                            $('#modal_cod_barras').modal('show');
                         }
 
                     }else{
                         toastr.error(res_generarBarCode.message,res_generarBarCode.exception,{timeOut:0});
                     }
 
-                    $('#modal_cod_barras').modal('show');
                 }
             })
 
@@ -491,7 +494,7 @@
 
         async function generarBarCode(producto_id,color_id,talla_id){    
             try {
-                const res       =   await axios.post(route('reporte.producto.generarBarCode'),{
+                const res       =   await axios.post(route('reporte.producto.obtenerBarCode'),{
                     producto_id,color_id,talla_id
                 });
                 const data  =   res.data;
@@ -501,6 +504,7 @@
                 return {'success':false};
             }
         }
+
 
         function llenarCompras(producto_id,color_id,talla_id) {
             $('.dataTables-compras').dataTable().fnDestroy();
