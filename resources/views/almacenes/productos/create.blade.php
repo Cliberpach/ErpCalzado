@@ -101,7 +101,7 @@
                                                     @endif
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-md-2">
+                                            <div class="col-12 col-md-2 d-none">
                                                 <div class="form-group">
                                                     <button type="button" class="btn btn-success btn-block" title="Generar" onclick="generarCode()"><i class="fa fa-refresh"></i></button>
                                                 </div>

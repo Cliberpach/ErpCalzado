@@ -97,13 +97,13 @@
                                                     @endif
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-md-2">
+                                            <div class="col-12 col-md-2 d-none">
                                                 <div class="form-group">
                                                     <button type="button" class="btn btn-success btn-block" title="Generar" onclick="generarCode()"><i class="fa fa-refresh"></i></button>
                                                 </div>
                                             </div>
                                             @if ($producto->codigo_barra)
-                                            <div class="col-12 col-md-2">
+                                            <div class="col-12 col-md-2 d-none">
                                                 <div class="form-group">
                                                     <a class="btn btn-primary btn-block" href="{{ route('almacenes.producto.codigoBarras', $producto->id) }}" title="Imprimir"><i class="fa fa-file-excel-o"></i></a>
                                                 </div>
