@@ -22,13 +22,11 @@
                                 <div class="col-12 col-md-6">
                                     <div class="form-group">
                                         <label class="required" for="tipo_documento">Tipo de documento</label>
-                                        <select class="select2_form" name="tipo_documento" id="tipo_documento" onchange="controlNroDoc(this)">
+                                        <select  required class="select2_form" name="tipo_documento" id="tipo_documento" onchange="controlNroDoc(this)">
                                             @foreach ($tipos_documento as $tipo_documento)
                                                 <option value="{{$tipo_documento->id}}">{{$tipo_documento->simbolo}}</option>
                                             @endforeach
                                         </select>
-                                        {{-- <v-select v-model="tipo_documento" :options="tipoDocumentos"
-                                            :reduce="tp=>tp.simbolo" label="simbolo"></v-select> --}}
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6">
@@ -36,7 +34,7 @@
                                         <label class="required" for="documento">Nro. Documento</label>
                                         <div class="input-group">
                                             <input type="text" id="documento" name="documento" class="form-control"
-                                                 required>
+                                                 required maxlength="8">
                                             <button id="btn_consultar_doc" onclick="consultarDocumento()" type="button" style="color:white" class="btn btn-primary">
                                                 <i class="fa fa-search" ></i>
                                                 <span id="entidad"> </span>
@@ -201,14 +199,32 @@
     function controlNroDoc(e){
         const tipoDocSimbolo    =   e.value;
 
-        console.log(e.value);
+        //======= LIMPIAR EL NRO DOC ======
+        inputNroDoc.value   =   '';
+
         if(tipoDocSimbolo == 6 || tipoDocSimbolo == 8){
             inputNroDoc.disabled        =   false;
             btnConsultarDoc.disabled    =   false;
         }else{
-            inputNroDoc.disabled        =   true;
             btnConsultarDoc.disabled    =   true;
         }
+
+        //======= CONTROLANDO LONGITUDES ======
+        //======= DNI ======
+        if(tipoDocSimbolo == 6){
+            inputNroDoc.maxLength   =   8;
+        }
+
+        //======= RUC =======
+        if(tipoDocSimbolo == 8){
+            inputNroDoc.maxLength   =   11;
+        }
+
+        //======= CARNET EXTRANJERÍA =======
+        if(tipoDocSimbolo != 6 &&  tipoDocSimbolo != 8){
+            inputNroDoc.maxLength   =   20;
+        }
+
     }
 
     async function setUbicacionDepartamento(dep_id,provincia_id){

@@ -163,8 +163,8 @@
                             marcados con asterisco (*) son obligatorios.</small>
                     </div>
                     <div class="col-md-6 text-right">
-                        <button type="submit" class="btn btn-primary btn-sm" form="frmCliente" style="color:white;"><i
-                                class="fa fa-save"></i> Guardar</button>
+                        <button id="btn-guardar-cliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente" style="color:white;">
+                            <i class="fa fa-save"></i> Guardar</button>
                         <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" @click.prevent="Cerrar"><i
                                 class="fa fa-times"></i> Cancelar</button>
                     </div>
@@ -305,9 +305,10 @@ export default {
             this.formCliente.distrito = value ? value.id : 0;
         },
         tipo_documento(value) {
+            this.formCliente.documento  =   '';
             if(value){
                 this.formCliente.tipo_documento = value;
-                this.formCliente.activo = "SIN VERIFICAR";
+                this.formCliente.activo         = "SIN VERIFICAR";
                 this.entidad = value == "DNI" ? "Reniec" : (value == "RUC" ? "Sunat" : "Entidad");
 
                 if(value=="DNI"){
@@ -402,31 +403,52 @@ export default {
     methods: {
         async Guardar() {
             try {
+                document.querySelector('#btn-guardar-cliente').disabled     =   true;
+                document.querySelector('#btn-guardar-cliente').innerHTML    =   `<i class="fa fa-save fa-spin"></i> Guardando...`;
+
                 this.loading = true;
-                const { data } = await this.axios.post(route('ventas.cliente.storeFast'), this.formCliente);
-                const { cliente, dataCliente, mensaje, result } = data;
-                toastr.success(mensaje);
-                this.newClienteSuccess = {
-                    cliente:`${cliente.tipo_documento}:${cliente.documento}-${cliente.nombre}`,
-                    documento: cliente.documento,
-                    id: cliente.id,
-                    nombre: cliente.nombre,
-                    tabladetalles_id: cliente.tabladetalles_id,
-                    tipo_documento: cliente.tipo_documento
+                const res = await this.axios.post(route('ventas.cliente.storeFast'), this.formCliente);
+                console.log(res);
+
+                if(res.data.result == "error"){
+                    toastr.error(res.data.data.mensajes.documento[0],'ERROR AL CREAR EL CLIENTE');
+                    return;
+                }
+
+                if(res.data.result == "success"){
+                    const cliente       =   res.data.cliente;
+                    const dataCliente   =   res.data.dataCliente;
+                    const mensaje       =   res.data.mensaje;
+                 
+                    this.newClienteSuccess = {
+                        cliente:`${cliente.tipo_documento}:${cliente.documento}-${cliente.nombre}`,
+                        documento: cliente.documento,
+                        id: cliente.id,
+                        nombre: cliente.nombre,
+                        tabladetalles_id: cliente.tabladetalles_id,
+                        tipo_documento: cliente.tipo_documento
+                    }
+
+                    this.$emit("newCliente", {
+                        cliente: this.newClienteSuccess,
+                        dataCliente
+                    });
+
+                    toastr.success(mensaje,'OPERACIÓN COMPLETADA');
+                    $("#modal_cliente").modal("hide");
+                    return;
+                }
+
+                if(res.data.result != "success"){
+                    toastr.error(res.data.data['mensajes'],'ERROR AL CREAR EL CLIENTE');
                 }
                 
-                if (result != "success")
-                    throw "Errores";
-
-                this.$emit("newCliente", {
-                    cliente: this.newClienteSuccess,
-                    dataCliente
-                });
-                $("#modal_cliente").modal("hide");
-                
-                this.loading = false;
             } catch (ex) {
-                alert("Ocurrio un error");
+                toastr.error(ex,'ERROR AL CREAR EL CLIENTE');
+            }finally{
+                this.loading = false;
+                document.querySelector('#btn-guardar-cliente').disabled     =   false;
+                document.querySelector('#btn-guardar-cliente').innerHTML    =   `<i class="fa fa-save"></i> Guardar`;
             }
         },
         async getTipoDocumento() {
@@ -516,14 +538,23 @@ export default {
                 let tipoDoc = this.tipo_documento;
                 let documento = this.formCliente.documento;
                 let url = tipoDoc == "DNI" ? route('getApidni', { dni: documento }) : route('getApiruc', { ruc: documento });
-                const { data } = await this.axios.get(url);
-                if (tipoDoc == "DNI") {
-                    this.CamposDNI(data);
-                }
+                const res = await this.axios.get(url);
+                
+                if(res.data.success){
+                    const data  =   res.data;
+                    if (tipoDoc == "DNI") {
+                        this.CamposDNI(data);
+                    }
 
-                if (tipoDoc == "RUC") {
-                    this.CamposRUC(data);
+                    if (tipoDoc == "RUC") {
+                        this.CamposRUC(data);
+                    }
+                }else{
+                    document.querySelector('#documento').focus();
+                    this.loading = false;
+                    toastr.error(res.data.message,'ERROR AL CONSULTAR '+tipoDoc);
                 }
+               
             } catch (ex) {
                 this.loading = false;
                 alert("Error en consultarAPI" + ex);

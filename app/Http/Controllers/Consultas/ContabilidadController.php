@@ -419,12 +419,8 @@ class ContabilidadController extends Controller
         $fecha_desde = $request->fecha_desde;
         $fecha_hasta = $request->fecha_hasta;
         $user = $request->user;
-        if($tipo == 132)
-        {
-            return  Excel::download(new GuiaExport($fecha_desde,$fecha_hasta), 'GUIAS_'.$fecha_desde.'-'.$fecha_hasta.'.xlsx');
-        }
-        else {
-            return  Excel::download(new ContabilidadExport($tipo,$fecha_desde,$fecha_hasta,$user), 'INFORME_'.$fecha_desde.'-'.$fecha_hasta.'.xlsx');
-        }
+      
+        return  Excel::download(new ContabilidadExport($tipo,$fecha_desde,$fecha_hasta,$user), 'INFORME_'.$fecha_desde.'-'.$fecha_hasta.'.xlsx');
+        
     }
 }

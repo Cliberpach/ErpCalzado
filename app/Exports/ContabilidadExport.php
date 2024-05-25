@@ -67,7 +67,12 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
     * @return \Illuminate\Support\Collection
     */
     public function collection()
-    {
+    {   
+
+        $tipo_documento     =   DB::select('select * from tabladetalles as td
+                                where td.id=?',[$this->tipo]);
+        
+        
         if($this->tipo == 129 || $this->tipo == 128 || $this->tipo == 127)
         {
             $docs_venta     =   $this->getDocsVenta($this->tipo,$this->fecha_desde,$this->fecha_hasta,$this->user);
@@ -77,13 +82,13 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
 
         if($this->tipo == 126) //Ventas
         {
-           $ventas      =   $this->getFacBolNotasVenta($this->tipo,$this->fecha_desde,$this->fecha_hasta,$this->user);
+           $ventas      =   $this->getFacBolNotasVenta($this->fecha_desde,$this->fecha_hasta,$this->user);
            return collect($ventas);
         }
 
         if($this->tipo == 125) //Fact, Boletas y Nota Crédito
         {
-            $docs   =   $this->getFacBolNotasCre($this->tipo,$this->fecha_desde,$this->fecha_hasta,$this->user);
+            $docs   =   $this->getFacBolNotasCre($this->fecha_desde,$this->fecha_hasta,$this->user);
         
             return collect($docs);        
         }
@@ -128,6 +133,13 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
             }
 
             return $coleccion->sortBy('FECHA');
+        }
+
+        if(count($tipo_documento) > 0){
+            if($tipo_documento[0]->simbolo = "09"){
+                $guias  =    $this->getGuiasRemisionElectronicas($this->fecha_desde,$this->fecha_hasta,$this->user);
+                return collect($guias);
+            }
         }
     }
 
@@ -313,9 +325,9 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
                     cd.estado != 'ANULADO'";
 
         $bindings = [];
-
+       
         if ($fecha_desde && $fecha_hasta) {
-            $query .= " AND cd.fecha_documento BETWEEN ? AND ?";
+            $query .= " AND cd.created_at BETWEEN ? AND ?";
             $bindings[] = $fecha_desde;
             $bindings[] = $fecha_hasta;
         }
@@ -337,7 +349,7 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
         $query = "select 
                 cd.ruc_empresa as `RUC-EMISOR`,
                 td.descripcion as `DOC.`,
-                '-' AS `CODIGO.DOC`,
+                td.simbolo AS `CODIGO.DOC`,
                 cd.created_at as FECHA,
                 CONCAT(cd.serie, '-', cd.correlativo) AS TICKET,
                 cd.empresa as TIENDA,
@@ -394,6 +406,7 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
         $query = "select 
                 n.ruc_empresa `RUC-EMISOR`,
                 'NOTA DE CRÉDITO' as `DOC.`,
+                '07' as `CODIGO.DOC`,
                 n.created_at as FECHA,
                 CONCAT(n.serie, '-', n.correlativo) AS TICKET,
                 n.empresa as TIENDA,
@@ -449,4 +462,54 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
 
         return $resultado_unido;
     }
+
+    function getGuiasRemisionElectronicas($fecha_desde,$fecha_hasta,$user){
+        $query  =   "select 
+                    gr.ruc_empresa  as `RUC-EMISOR`,
+                    'GUÍA DE REMISIÓN ELECTRÓNICA' as `DOC.`,
+                    '09' as `CODIGO.DOC`,
+                    gr.created_at as FECHA,
+                    CONCAT(gr.serie,gr.correlativo) as TICKET,
+                    gr.empresa as TIENDA,
+                    gr.documento_cliente as `RUC/DNI`,
+                    gr.cliente as CLIENTE,
+                    IF(gr.sunat != 2,'VÁLIDO','NO VÁLIDO') as SUNAT,
+                    'PEN' as MONEDA,
+                    '-' as MONTO,
+                    '-' as `OP.GRAVADA`,
+                    '-' as `IGV`,
+                    '-' as `EFECTIVO`,
+                    '-' as `TRANSFERENCIA`,
+                    '-' as `YAPE/PLIN`,
+                    IF(gr.sunat=0,'NO','SI') as ENVIADA,
+                    gr.estado as ESTADO,
+                    gd.nombre_producto as PRODUCTO, 
+                    gd.nombre_color as  COLOR,
+                    gd.nombre_talla as TALLA,
+                    gd.cantidad as CANTIDAD,
+                    '-' as PRECIO,
+                    '-' as IMPORTE 
+                    from guias_remision as gr
+                    inner join guia_detalles as gd  on gr.id=gd.guia_id
+                    where gr.estado != 'ANULADO' ";
+
+        $bindings   =   [];
+        if ($fecha_desde && $fecha_hasta) {
+            $query .= " and gr.created_at between ? and ?";
+            $bindings[] = $fecha_desde;
+            $bindings[] = $fecha_hasta;
+        }
+            
+                    if ($user) {
+                        $query .= " AND gr.user_id = ?";
+                        $bindings[] = $user;
+                    }
+            
+                    $query .= " ORDER BY gr.id ASC";
+            
+        $guias_remision = DB::select($query, $bindings);
+
+        return $guias_remision;     
+    }
+
 }

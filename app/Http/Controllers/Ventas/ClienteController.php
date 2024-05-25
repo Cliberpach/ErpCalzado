@@ -452,8 +452,8 @@ class ClienteController extends Controller
         {
             DB::rollBack();
             return response()->json([
-                'result' => 'error',
-                'data' => array('mensajes' => $e->getMessage())
+                'result'    => 'error',
+                'data'      => array('mensajes' => $e->getMessage())
             ]);
         }
     }

@@ -139,7 +139,14 @@
             </div>
         </div>
       
-
+        @if ($despacho->obs_rotulo)
+            <div class="row" style="margin-bottom:0px;">
+                <p style="margin:0;padding:0;" class="observaciones">
+                    <span style="font-weight: bold;">OBSERVACIÓN: </span>
+                    {{$despacho->obs_rotulo}}
+                </p>
+            </div>
+        @endif
 
         @if ($despacho->entrega_domicilio === "SI")
             <div class="row" style="margin-bottom:0;">
@@ -162,14 +169,7 @@
 
         
 
-        @if ($despacho->obs_rotulo)
-            <div class="row" style="margin-bottom:-10px;">
-                <p style="margin:0;padding:0;" class="observaciones">
-                    <span style="font-weight: bold;">OBSERVACIÓN: </span>
-                    {{$despacho->obs_rotulo}}
-                </p>
-            </div>
-        @endif
+       
        
 
         <div class="row">
