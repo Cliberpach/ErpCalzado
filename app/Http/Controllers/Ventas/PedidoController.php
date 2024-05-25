@@ -23,7 +23,8 @@ use App\Ventas\Documento\Documento;
 use  App\Http\Controllers\Ventas\DocumentoController;
 use App\Ventas\Documento\Detalle;
 use Yajra\DataTables\Facades\DataTables;
-
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\Pedido\PedidosExport;
 
 
 class PedidoController extends Controller
@@ -826,18 +827,24 @@ class PedidoController extends Controller
                 $cant_items_pendientes_pedido       =   PedidoDetalle::where('pedido_id',$pedido_id)
                                                         ->where('cantidad_pendiente','>',0)
                                                         ->count('*');
+                $cant_items_atendidos_pedido        =   PedidoDetalle::where('pedido_id',$pedido_id)
+                                                        ->where('cantidad_atendida','>',0)
+                                                        ->count('*');
 
                 $pedido_actualizar                  =   Pedido::find($pedido_id);
-                if($cant_items_pendientes_pedido < $cant_items_pedido && $cant_items_pendientes_pedido>0){
-                    $pedido_actualizar->estado      =   "ATENDIENDO";
-                }
-                if($cant_items_pendientes_pedido == 0){
+
+                if($cant_items_pendientes_pedido === 0){
                     $pedido_actualizar->estado      =   "FINALIZADO";
                 }
+                
+                if($cant_items_pendientes_pedido > 0 && $cant_items_atendidos_pedido > 0){
+                    $pedido_actualizar->estado      =   "ATENDIENDO";
+                }
 
-                if($cant_items_pendientes_pedido == $cant_items_pedido){
+                if($cant_items_atendidos_pedido === 0){
                     $pedido_actualizar->estado      =   "PENDIENTE";
                 }
+                
                 $pedido_actualizar->save();
                
 
@@ -931,7 +938,12 @@ class PedidoController extends Controller
 
 
     public function getExcel($fecha_inicio=null,$fecha_fin=null,$estado=null){
-        dd($estado.'-'.$fecha_inicio.'-'.$fecha_fin);
+        $fecha_inicio   =   $fecha_inicio=="null"?null:$fecha_inicio;
+        $fecha_fin      =   $fecha_fin=="null"?null:$fecha_fin;
+        $estado         =   $estado=="null"?null:$estado;
+
+
+        return  Excel::download(new PedidosExport($fecha_inicio,$fecha_fin,$estado), 'REPORTE-PEDIDOS'.'.xlsx');
     }
 
 

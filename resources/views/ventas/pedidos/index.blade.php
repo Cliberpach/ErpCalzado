@@ -500,6 +500,9 @@
     }
 
     function pintarTablePedidoAtenciones(pedido_atenciones) {
+        const bodyPedidoDetalles    =   document.querySelector('#table-atenciones-detalles tbody');
+        bodyPedidoDetalles.innerHTML    =   '';
+
         const bodyPedidoAtenciones    =   document.querySelector('#table-pedido-atenciones tbody');
         
         if(atenciones_data_table){
@@ -727,9 +730,9 @@
 
     //========== EXCEL PEDIDOS =======
     function excelPedidos(){
-        const fecha_inicio  =   $('#filtroFechaInicio').val();
-        const fecha_fin     =   $('#filtroFechaFin').val();      
-        const estado        =   document.querySelector('#pedido_estado').value;
+        const fecha_inicio  =   $('#filtroFechaInicio').val()?$('#filtroFechaInicio').val():null;
+        const fecha_fin     =   $('#filtroFechaFin').val()?$('#filtroFechaFin').val():null;      
+        const estado        =   document.querySelector('#pedido_estado').value?document.querySelector('#pedido_estado').value:null;
 
         const rutaExcelPedidos  =   @json(route('ventas.pedidos.getExcel'))+`/${fecha_inicio}/${fecha_fin}/${estado}`;
 
