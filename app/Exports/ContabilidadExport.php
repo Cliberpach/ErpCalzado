@@ -63,6 +63,8 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
         $this->fecha_hasta = $fecha_hasta;
         $this->user = $user;
     }
+
+    
     /**
     * @return \Illuminate\Support\Collection
     */

@@ -13,7 +13,10 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\Exportable;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class PedidosExport implements ShouldAutoSize,WithHeadings,FromArray,WithEvents
 {
@@ -29,8 +32,8 @@ class PedidosExport implements ShouldAutoSize,WithHeadings,FromArray,WithEvents
                         CONCAT('PE-',pe.pedido_nro)  as `N°PEDIDO`,
                         pe.estado as ESTADO_PED,
                         pe.cliente_nombre as CLIENTE,
-                        pe.user_nombre as USUARIO,
-                        pe.created_at as FECHA_PEDIDO,
+                        u.usuario as USUARIO,
+                        cd.created_at as FECHA_ATENCION,
                         pe.total as SUBTOTAL_PEDIDO,
                         pe.total_igv as IGV_PEDIDO,
                         pe.total_pagar as TOTAL_PEDIDO,
@@ -47,13 +50,15 @@ class PedidosExport implements ShouldAutoSize,WithHeadings,FromArray,WithEvents
                         cdd.cantidad as CANTIDAD,
                         cdd.precio_unitario_nuevo as PRECIO,
                         cdd.importe_nuevo as IMPORTE
-                        from pedidos as pe    
+                        from pedidos as pe 
+                        inner join pedidos_detalles as pd on pd.pedido_id=pe.id  
                         left join pedidos_atenciones as pa on pe.id=pa.pedido_id
                         left join cotizacion_documento as cd on cd.id=pa.documento_id
                         left join cotizacion_documento_detalles as cdd on cdd.documento_id=cd.id
                         left join productos as pr on pr.id=cdd.producto_id
                         left join marcas as ma on pr.marca_id=ma.id
                         left join categorias as ca on ca.id=pr.categoria_id
+                        left join users as u on u.id=cd.user_id
                         where 1=1";
 
         $bindings   =   [];
@@ -77,10 +82,134 @@ class PedidosExport implements ShouldAutoSize,WithHeadings,FromArray,WithEvents
          
         $query  .=  ' order by pe.pedido_nro desc,cd.serie asc,cd.correlativo asc';
 
-        $productos      =   DB::select($query,$bindings);
+        $pedidos_docs      =   DB::select($query,$bindings);
 
         
-        return $productos;
+        $query_2    =   "select 
+                        CONCAT('PE-',pe.id) as `PEDIDO`,
+                        pe.estado as ESTADO_DET,
+                        pe.created_at as FECHA_PED,
+                        pe.user_nombre as USUARIO_DET,
+                        pd.producto_nombre as PRODUCTO_DET, 
+                        pd.color_nombre as COLOR_DET,
+                        pd.talla_nombre as TALLA_DET,
+                        pd.cantidad as CANT_SOLICITADA,
+                        pd.cantidad_atendida as CANT_ATENDIDA,
+                        pd.cantidad_pendiente as CANT_PENDIENTE
+                        from pedidos as pe
+                        inner join pedidos_detalles as pd on pd.pedido_id=pe.id
+                        where 1=1";
+
+
+        $bindings   =   [];
+
+        if ($this->fecha_inicio && $this->fecha_fin) {
+            $query_2      .= " and pe.fecha_registro between ? AND ?";
+            $bindings[] = $this->fecha_inicio;
+            $bindings[] = $this->fecha_fin;
+        } elseif ($this->fecha_inicio) {
+            $query_2      .= " and pe.fecha_registro >= ?";
+            $bindings[] = $this->fecha_inicio;
+        } elseif ($this->fecha_fin) {
+            $query_2      .= " and pe.fecha_registro <= ?";
+            $bindings[] = $this->fecha_fin;
+        }
+                
+        if($this->estado){
+            $query_2          .= " and pe.estado = ?";
+            $bindings[]     = $this->estado;
+        }
+                         
+        $query_2  .=  ' order by pe.pedido_nro desc';
+
+        $pedidos_detalles   =   DB::select($query_2,$bindings);
+
+        $data   =   [];
+
+        $cant_1 =   count($pedidos_docs);
+        $cant_2 =   count($pedidos_detalles);
+
+        $order = [
+            "PEDIDO","ESTADO_DET","FECHA_PED","USUARIO_DET", "PRODUCTO_DET", "COLOR_DET", "TALLA_DET", "CANT_SOLICITADA", "CANT_ATENDIDA", "CANT_PENDIENTE",
+            "", "N°PEDIDO", "ESTADO_PED", "CLIENTE", "USUARIO","FECHA_ATENCION", "SUBTOTAL_PEDIDO", "IGV_PEDIDO",
+            "TOTAL_PEDIDO", "DOC_ATEND", "SUBTOTAL", "IGV", "TOTAL", "CATEGORIA", "MARCA", "MODELO", "PRODUCTO",
+            "COLOR", "TALLA", "CANTIDAD", "PRECIO", "IMPORTE"
+        ];
+
+        if($cant_1  >=  $cant_2){
+
+            $index  =   0;
+            foreach ($pedidos_detalles as  $ped) {
+                $pedidos_docs[$index]->PEDIDO           = $ped->PEDIDO;
+                $pedidos_docs[$index]->ESTADO_DET       = $ped->ESTADO_DET;
+                $pedidos_docs[$index]->FECHA_PED        = $ped->FECHA_PED;
+                $pedidos_docs[$index]->USUARIO_DET      = $ped->USUARIO_DET;
+                $pedidos_docs[$index]->PRODUCTO_DET     = $ped->PRODUCTO_DET;
+                $pedidos_docs[$index]->COLOR_DET        = $ped->COLOR_DET;
+                $pedidos_docs[$index]->TALLA_DET        = $ped->TALLA_DET;
+                $pedidos_docs[$index]->CANT_SOLICITADA  = $ped->CANT_SOLICITADA;
+                $pedidos_docs[$index]->CANT_ATENDIDA    = $ped->CANT_ATENDIDA;
+                $pedidos_docs[$index]->CANT_PENDIENTE   = $ped->CANT_PENDIENTE;
+                $pedidos_docs[$index]->{""}             =   '';
+
+               $index++;
+            }
+
+            foreach ($pedidos_docs as &$pedido) {
+                $nuevo_pedido = new \stdClass();
+                foreach ($order as $prop) {
+                    if (property_exists($pedido, $prop)) {
+                        $nuevo_pedido->$prop = $pedido->$prop;
+                    } else {
+                        $nuevo_pedido->$prop = '';
+                    }
+                }
+                $pedido = $nuevo_pedido;
+            }
+           
+            return $pedidos_docs;
+        }else{
+            $index  =   0;
+            foreach ($pedidos_docs as $ped) {
+                $pedidos_detalles[$index]->{""}             =   '';
+                $pedidos_detalles[$index]->{'N°PEDIDO'}     = $ped->{'N°PEDIDO'};
+                $pedidos_detalles[$index]->ESTADO_PED       = $ped->ESTADO_PED;
+                $pedidos_detalles[$index]->CLIENTE          = $ped->CLIENTE;
+                $pedidos_detalles[$index]->USUARIO          = $ped->USUARIO;
+                $pedidos_detalles[$index]->FECHA_PEDIDO     = $ped->FECHA_PEDIDO;
+                $pedidos_detalles[$index]->SUBTOTAL_PEDIDO  = $ped->SUBTOTAL_PEDIDO;
+                $pedidos_detalles[$index]->IGV_PEDIDO       = $ped->IGV_PEDIDO;
+                $pedidos_detalles[$index]->TOTAL_PEDIDO     = $ped->TOTAL_PEDIDO;
+                $pedidos_detalles[$index]->DOC_ATEND        = $ped->DOC_ATEND;
+                $pedidos_detalles[$index]->SUBTOTAL         = $ped->SUBTOTAL;
+                $pedidos_detalles[$index]->IGV              = $ped->IGV;
+                $pedidos_detalles[$index]->TOTAL            = $ped->TOTAL;
+                $pedidos_detalles[$index]->CATEGORIA        = $ped->CATEGORIA;
+                $pedidos_detalles[$index]->MARCA            = $ped->MARCA;
+                $pedidos_detalles[$index]->MODELO           = $ped->MODELO;
+                $pedidos_detalles[$index]->PRODUCTO         = $ped->PRODUCTO;
+                $pedidos_detalles[$index]->COLOR            = $ped->COLOR;
+                $pedidos_detalles[$index]->TALLA            = $ped->TALLA;
+                $pedidos_detalles[$index]->CANTIDAD         = $ped->CANTIDAD;
+                $pedidos_detalles[$index]->PRECIO           = $ped->PRECIO;
+                $pedidos_detalles[$index]->IMPORTE          = $ped->IMPORTE;
+                $index++;
+            }
+
+            foreach ($pedidos_detalles as &$pedido) {
+                $nuevo_pedido = new \stdClass();
+                foreach ($order as $prop) {
+                    if (property_exists($pedido, $prop)) {
+                        $nuevo_pedido->$prop = $pedido->$prop;
+                    } else {
+                        $nuevo_pedido->$prop = '';
+                    }
+                }
+                $pedido = $nuevo_pedido;
+            }
+            return $pedidos_detalles;
+        }      
+          
     }
 
     public function __construct($fecha_inicio,$fecha_fin,$estado)
@@ -93,27 +222,8 @@ class PedidosExport implements ShouldAutoSize,WithHeadings,FromArray,WithEvents
     public function headings(): array
     {
         return [
-            ['N°PEDIDO',
-            'ESTADO_PED',
-            'CLIENTE',
-            'USUARIO',
-            'FECHA_PEDIDO',
-            'SUBTOTAL_PEDIDO',
-            'IGV_PEDIDO',
-            'TOTAL_PEDIDO',
-            'DOC_ATEND',
-            'SUBTOTAL',
-            'IGV',
-            'TOTAL',
-            'CATEGORIA',
-            'MARCA',
-            'MODELO',
-            'PRODUCTO',
-            'COLOR',
-            'TALLA',
-            'CANTIDAD',
-            'PRECIO',
-            'IMPORTE'
+            [
+           
             ]
         ]
        ;
@@ -123,27 +233,82 @@ class PedidosExport implements ShouldAutoSize,WithHeadings,FromArray,WithEvents
         return [
             BeforeWriting::class => [self::class, 'beforeWriting'],
             AfterSheet::class => function (AfterSheet $event) {
-                // Aplicar color a las columnas de A a H
-                $event->sheet->getStyle('A1:H1')->applyFromArray([
-                    'fill' => [
-                        'fillType' => Fill::FILL_GRADIENT_LINEAR,
-                        'rotation' => 90,
-                        'startColor' => ['argb' => '1ab394'],
-                        'endColor' => ['argb' => '1ab394'],
-                    ],
-                ]);
+                // Combinar celdas y colocar texto en la celda combinada
+                $event->sheet->getDelegate()->mergeCells('A1:J1');
+                $event->sheet->getDelegate()->setCellValue('A1', "DETALLES DE PEDIDOS");
+
+                $event->sheet->getDelegate()->mergeCells('L1:AF1');
+                $event->sheet->getDelegate()->setCellValue('L1', "ATENCIONES POR PEDIDO");
+
+                // Ajustar alineación del texto
+                $event->sheet->getDelegate()->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $event->sheet->getDelegate()->getStyle('L1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $event->sheet->getStyle('A1')->getFont()->setBold(true);
+                $event->sheet->getStyle('L1')->getFont()->setBold(true);
+
+                // Ajustar configuración de la página
+                $event->sheet->getDelegate()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+                $event->sheet->getDelegate()->getPageSetup()->setFitToWidth(1);
+                $event->sheet->getDelegate()->getPageSetup()->setFitToHeight(0);
                 
-                // Aplicar color a las columnas de I a U
-                $event->sheet->getStyle('I1:U1')->applyFromArray([
-                    'fill' => [
-                        'fillType' => Fill::FILL_GRADIENT_LINEAR,
-                        'rotation' => 90,
-                        'startColor' => ['argb' => 'ADD8E6'], // Celeste pálido
-                        'endColor' => ['argb' => 'ADD8E6'], // Celeste pálido
-                    ],
-                ]);
+                // Insertar fila para encabezados
+                $event->sheet->insertNewRowBefore(2);
                 
+                //ENCABEZADOS TABLA 1 DETALLES PEDIDOS ========
+                $event->sheet->getStyle('A2:J2')->getFont()->setBold(true);
+                $event->sheet->setCellValue('A2', 'N°PED');
+                $event->sheet->setCellValue('B2', 'ESTADO_PED');
+                $event->sheet->setCellValue('C2', 'FECHA_PED');
+                $event->sheet->setCellValue('D2', 'USER_PED');
+                $event->sheet->setCellValue('E2', 'PRODUCTO_PED');
+                $event->sheet->setCellValue('F2', 'COLOR_PED');
+                $event->sheet->setCellValue('G2', 'TALLA_PED');
+                $event->sheet->setCellValue('H2', 'CANT_SOLICITADA');
+                $event->sheet->setCellValue('I2', 'CANT_ATENDIDA');
+                $event->sheet->setCellValue('J2', 'CANT_PENDIENTE');
+
+                $event->sheet->getStyle('L2:AF2')->getFont()->setBold(true);
+                $event->sheet->setCellValue('L2', 'N°PEDIDO');
+                $event->sheet->setCellValue('M2', 'ESTADO_PED');
+                $event->sheet->setCellValue('N2', 'CLIENTE');
+                $event->sheet->setCellValue('O2', 'USUARIO');
+                $event->sheet->setCellValue('P2', 'FECHA_ATENCION');
+                $event->sheet->setCellValue('Q2', 'SUBTOTAL_PEDIDO');
+                $event->sheet->setCellValue('R2', 'IGV_PEDIDO');
+                $event->sheet->setCellValue('S2', 'TOTAL_PEDIDO');
+                $event->sheet->setCellValue('T2', 'DOC_ATEND');
+                $event->sheet->setCellValue('U2', 'SUBTOTAL');
+                $event->sheet->setCellValue('V2', 'IGV');
+                $event->sheet->setCellValue('W2', 'TOTAL');
+                $event->sheet->setCellValue('X2', 'CATEGORIA');
+                $event->sheet->setCellValue('Y2', 'MARCA');
+                $event->sheet->setCellValue('Z2', 'MODELO');
+                $event->sheet->setCellValue('AA2', 'PRODUCTO');
+                $event->sheet->setCellValue('AB2', 'COLOR');
+                $event->sheet->setCellValue('AC2', 'TALLA');
+                $event->sheet->setCellValue('AD2', 'CANTIDAD');
+                $event->sheet->setCellValue('AE2', 'PRECIO');
+                $event->sheet->setCellValue('AF2', 'IMPORTE');
+
+                //======= PINTANDO ======
+                $event->sheet->getStyle('A1:J1')->applyFromArray([
+                    'font' => ['bold' => true],
+                    'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'DDDDDD']]
+                ]);
+                $event->sheet->getStyle('A2:J2')->applyFromArray([
+                    'font' => ['bold' => true],
+                    'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'DDDDDD']]
+                ]);
+                $event->sheet->getStyle('L1:AF1')->applyFromArray([
+                    'font' => ['bold' => true],
+                    'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'DDDDDD']]
+                ]);
+                $event->sheet->getStyle('L2:AF2')->applyFromArray([
+                    'font' => ['bold' => true],
+                    'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'DDDDDD']]
+                ]);
             },
+           
         ];
     }
 }
