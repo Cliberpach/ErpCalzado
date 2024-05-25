@@ -90,7 +90,7 @@
                                     </div>
                                     <div class="col-12">
                                         <div class="row align-items-end">
-                                            <div class="col-12 col-md-10">
+                                            <div class="col-12 col-md-10 d-none">
                                                 <div class="form-group">
                                                     <label class="">Código de Barra</label>
                                                     <input type="text" id="codigo_barra" class="form-control {{ $errors->has('codigo_barra') ? ' is-invalid' : '' }}" name="codigo_barra" value="{{ old('codigo_barra')}}" maxlength="20">
