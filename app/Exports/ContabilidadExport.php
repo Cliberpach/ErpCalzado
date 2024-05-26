@@ -71,6 +71,7 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
     public function collection()
     {   
 
+        
         $tipo_documento     =   DB::select('select * from tabladetalles as td
                                 where td.id=?',[$this->tipo]);
         
@@ -130,7 +131,6 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
                     'YAPE/PLIN' => '-',
                     'ENVIADA' => $nota->sunat == '1' || $nota->sunat == '2' ? 'SI' : 'NO',
                     'ESTADO'    =>  $nota->estado,
-                    // 'HASH' => $nota->hash
                 ]);
             }
 
@@ -138,9 +138,24 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
         }
 
         if(count($tipo_documento) > 0){
-            if($tipo_documento[0]->simbolo = "09"){
+            if($tipo_documento[0]->simbolo == "09"){
                 $guias  =    $this->getGuiasRemisionElectronicas($this->fecha_desde,$this->fecha_hasta,$this->user);
                 return collect($guias);
+            }
+            if($tipo_documento[0]->simbolo == "NN"){ //======= NOTAS DE DEVOLUCIÓN ========
+                //======== DOC AFECTADO => NOTAS DE VENTA (04) ==========
+                $notas_devolucion   =   $this->getNotasCredito('04',$this->fecha_desde,$this->fecha_hasta,$this->user);
+                return collect($notas_devolucion);
+            }
+            if($tipo_documento[0]->simbolo == "BB"){ //======= NOTAS DE DEVOLUCIÓN ========
+                //======== DOC AFECTADO => NOTAS DE VENTA (04) ==========
+                $notas_devolucion   =   $this->getNotasCredito('03',$this->fecha_desde,$this->fecha_hasta,$this->user);
+                return collect($notas_devolucion);
+            }
+            if($tipo_documento[0]->simbolo == "FF"){ //======= NOTAS DE DEVOLUCIÓN ========
+                //======== DOC AFECTADO => NOTAS DE VENTA (04) ==========
+                $notas_devolucion   =   $this->getNotasCredito('01',$this->fecha_desde,$this->fecha_hasta,$this->user);
+                return collect($notas_devolucion);
             }
         }
     }
@@ -405,58 +420,8 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
 
 
         //========== HALLANDO LAS NOTAS ELECTRÓNICAS ==========
-        $query = "select 
-                n.ruc_empresa `RUC-EMISOR`,
-                'NOTA DE CRÉDITO' as `DOC.`,
-                '07' as `CODIGO.DOC`,
-                n.created_at as FECHA,
-                CONCAT(n.serie, '-', n.correlativo) AS TICKET,
-                n.empresa as TIENDA,
-                n.documento_cliente as `RUC/DNI`,
-                n.cliente as CLIENTE,
-                IF(n.sunat = 2, 'NULO', 'VÁLIDO') as SUNAT,
-                'PEN' as MONEDA,
-                n.mtoImpVenta as MONTO,
-                n.mtoOperGravadas as `OP.GRAVADA`,
-                n.mtoIGV as `IGV`,
-                '-' as EFECTIVO,
-                '-' as TRANSFERENCIA,
-                '-' as `YAPE/PLIN`,
-                IF(n.sunat = 1,'SI','NO') as ENVIADA,
-                'ACTIVO' as ESTADO,
-                p.nombre as PRODUCTO,
-                co.descripcion as COLOR,
-                t.descripcion as TALLA,
-                ned.cantidad as CANTIDAD,
-                ned.mtoPrecioUnitario as PRECIO,
-                ned.cantidad * ned.mtoPrecioUnitario AS IMPORTE
-            FROM 
-                nota_electronica as n inner join nota_electronica_detalle as ned on n.id = ned.nota_id
-                inner join  productos as p on p.id = ned.producto_id
-                inner join  colores as co on co.id=ned.color_id
-                inner join tallas as t on t.id=ned.talla_id
-                inner join modelos as m on m.id=p.modelo_id
-            WHERE 
-                n.estado != 'ANULADO'
-                AND n.tipo_nota = ?
-                AND n.tipDocAfectado != ?";
-
-        $bindings = ["0", "04"];
-
-        if ($fecha_desde && $fecha_hasta) {
-            $query .= " and n.fechaEmision between ? and ?";
-            $bindings[] = $fecha_desde;
-            $bindings[] = $fecha_hasta;
-        }
-
-        if ($user) {
-            $query .= " AND n.user_id = ?";
-            $bindings[] = $user;
-        }
-
-        $query .= " ORDER BY n.id ASC";
-
-        $notas_electronicas = DB::select($query, $bindings);
+        $notas_electronicas =   $this->getNotasCredito(0,$fecha_desde,$fecha_hasta,$user);
+       
 
 
         $resultado_unido = array_merge($docs_venta_fact_bol, $notas_electronicas);
@@ -512,6 +477,106 @@ class ContabilidadExport implements FromCollection,WithHeadings,WithEvents
         $guias_remision = DB::select($query, $bindings);
 
         return $guias_remision;     
+    }
+
+
+    public function getNotasCredito($tipoDocAfectado,$fecha_desde,$fecha_hasta,$user){
+        
+        //========= CONSULTA ==========
+        $query   =   "select 
+                            n.ruc_empresa `RUC-EMISOR`,
+                            ? as `DOC.`,
+                            '07' as `CODIGO.DOC`,
+                            n.created_at as FECHA,
+                            CONCAT(n.serie, '-', n.correlativo) AS TICKET,
+                            n.empresa as TIENDA,
+                            n.documento_cliente as `RUC/DNI`,
+                            n.cliente as CLIENTE,
+                            IF(n.sunat = 2, 'NULO', 'VÁLIDO') as SUNAT,
+                            'PEN' as MONEDA,
+                            n.mtoImpVenta as MONTO,
+                            n.mtoOperGravadas as `OP.GRAVADA`,
+                            n.mtoIGV as `IGV`,
+                            '-' as EFECTIVO,
+                            '-' as TRANSFERENCIA,
+                            '-' as `YAPE/PLIN`,
+                            IF(n.sunat = 1,'SI','NO') as ENVIADA,
+                            'ACTIVO' as ESTADO,
+                            p.nombre as PRODUCTO,
+                            co.descripcion as COLOR,
+                            t.descripcion as TALLA,
+                            ned.cantidad as CANTIDAD,
+                            ned.mtoPrecioUnitario as PRECIO,
+                            ned.cantidad * ned.mtoPrecioUnitario AS IMPORTE
+                        FROM 
+                            nota_electronica as n inner join nota_electronica_detalle as ned on n.id = ned.nota_id
+                            inner join  productos as p on p.id = ned.producto_id
+                            inner join  colores as co on co.id=ned.color_id
+                            inner join tallas as t on t.id=ned.talla_id
+                            inner join modelos as m on m.id=p.modelo_id
+                        WHERE 
+                            n.estado != 'ANULADO'
+                            AND n.tipo_nota = ?";
+
+        //======== TIPO DOC GUARDARÁ EL NOMBRE DE LA NOTA DE CRÉDITO =======
+        $tipo_doc   =   "";
+        //====== VARIABLE PARA EXCLUIR NOTAS DE CRÉDITO ==========
+        $tipoDocAfectadoExcluido    =   null;
+
+        //========= OBTENER SOLO NOTAS DE CRÉDITO QUE AFECTAN A FACTURAS ELECTRÓNICAS ===========
+        if($tipoDocAfectado == "01"){
+            $tipo_doc   =   "NOTA CRÉDITO DE FACTURA";
+        }
+
+        //========= OBTENER SOLO NOTAS DE CRÉDITO QUE AFECTAN A BOLETAS DE VENTA ========
+        if($tipoDocAfectado == "03"){
+            $tipo_doc   =   "NOTA CRÉDITO DE BOLETA";
+        }
+
+        //========== OBTENER NOTAS DE DEVOLUCIÓN ========
+        if($tipoDocAfectado == "04"){
+            $tipo_doc   =   "NOTA DE DEVOLUCIÓN";
+        }
+
+        //======== OBTENER NOTAS DE CRÉDITO EXCLUYENDO LAS NOTAS DE DEVOLUCIÓN QUE SON DE NOTAS DE VENTA =======
+        if($tipoDocAfectado == "0"){
+            $tipo_doc                   =   "NOTA DE CRÉDITO ELECTRÓNICA";
+            $tipoDocAfectadoExcluido    =   '04';
+        }
+
+       //======= COLOCAMOS EL NOMBRE DE LA NOTA DE CRÉDITO Y EL TIPO DE NOTA POR DEFECTO EN 0 ===========
+        $bindings = [$tipo_doc,"0"];
+
+        //========= EN CASO SE QUIERA EXCLUIR NOTAS DE CRÉDITO QUE AFECTEN A CIERTOS DOCUMENTOS  DE VENTA =========
+        if($tipoDocAfectadoExcluido){
+            $query .=   " and n.tipDocAfectado!=?";
+            $bindings[] =   $tipoDocAfectadoExcluido;
+        }else{
+            $query .=   " and n.tipDocAfectado=?";
+            $bindings[] =   $tipoDocAfectado;
+        }
+
+
+        //========= FILTROS DE FECHAS ======
+        if ($fecha_desde && $fecha_hasta) {
+            $query .= " and n.fechaEmision between ? and ?";
+            $bindings[] = $fecha_desde;
+            $bindings[] = $fecha_hasta;
+        }
+
+        //========= FILTRO DE USUARIOS ======
+        if ($user) {
+            $query .= " AND n.user_id = ?";
+            $bindings[] = $user;
+        }
+
+        //======= ORDENAR LAS NOTAS DE CRÉDITO =========
+        $query .= " ORDER BY n.id ASC";
+
+        //======== OBTENER NOTAS DE CRÉDITO =====
+        $notas_electronicas = DB::select($query, $bindings);
+
+        return $notas_electronicas;
     }
 
 }

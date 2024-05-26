@@ -43,7 +43,7 @@ class ContabilidadController extends Controller
                 array_push($users,$user_aux);
             }
         }
-        return view('consultas.contabilidad.index',compact('users'));
+        return view('contabilidad.index',compact('users'));
     }
 
     public function getTable(Request $request){
@@ -84,17 +84,7 @@ class ContabilidadController extends Controller
                     'success' => true,
                     'documentos' => $ventas,
                 ]);
-            }
-            else if($tipo_descripcion[0]->descripcion === 'NOTA DE CRÉDITO FACTURA')  //====== FF01 =====
-            {
-                $resultado      =   $this->getNotasCredito($tipo,"0","01",$fecha_desde,$fecha_hasta,$user);
-
-                return response()->json([
-                    'success' => true,
-                    'documentos' => $resultado,
-                ]);
-            }
-            else if($tipo == 132) //====== GUÍAS REMISIÓN ELECTRÓNICAS ========
+            } else if($tipo == 132) //====== GUÍAS REMISIÓN ELECTRÓNICAS ========
             {
                $guias_remision      =   $this->getGuiasRemision($tipo,$fecha_desde,$fecha_hasta,$user);
 
@@ -103,6 +93,39 @@ class ContabilidadController extends Controller
                     'documentos' => $guias_remision,
                 ]);
             }
+
+
+            if(count($tipo_descripcion)>0){
+                if($tipo_descripcion[0]->simbolo == '07')  //====== FF01 =====  NOTA CRÉDITO DE FACTURAS
+                {
+                    $resultado      =   $this->getNotasCredito($tipo,"0","01",$fecha_desde,$fecha_hasta,$user);
+    
+                    return response()->json([
+                        'success' => true,
+                        'documentos' => $resultado,
+                    ]);
+                }
+                if($tipo_descripcion[0]->simbolo == 'BB')  //====== BB01 ===== NOTA CRÉDITO DE BOLETAS
+                {
+                    $resultado      =   $this->getNotasCredito($tipo,"0","03",$fecha_desde,$fecha_hasta,$user);
+    
+                    return response()->json([
+                        'success' => true,
+                        'documentos' => $resultado,
+                    ]);
+                }
+                if($tipo_descripcion[0]->simbolo == 'NN')  //====== BB01 ===== NOTA DEVOLUCIÓN NN01
+                {
+                    $resultado      =   $this->getNotasCredito($tipo,"0","04",$fecha_desde,$fecha_hasta,$user);
+    
+                    return response()->json([
+                        'success' => true,
+                        'documentos' => $resultado,
+                    ]);
+                }
+            }
+           
+           
             else{
                 $coleccion = collect();
                 return response()->json([
@@ -122,8 +145,9 @@ class ContabilidadController extends Controller
 
 
     public function getNotasCredito($tipo,$tipo_nota,$tipoDocAfectado,$fecha_desde,$fecha_hasta,$user){
+        
         $consulta   =   "select n.id,
-                                'NOTA DE CRÉDITO' as tipo_doc,
+                                ? as tipo_doc,
                                 CONCAT(n.serie, '-', n.correlativo) AS numero,
                                 n.mtoImpVenta as total,
                                 n.sunat as sunat,
@@ -147,27 +171,39 @@ class ContabilidadController extends Controller
                                 and n.tipo_nota = ?
                                 and n.tipDocAfectado = ?";
 
-                $bindings   =   [$tipo,$tipo_nota,$tipoDocAfectado];
+        $tipo_doc   =   "";
+
+        if($tipoDocAfectado == "01"){
+            $tipo_doc   =   "NOTA CRÉDITO DE FACTURA";
+        }
+        if($tipoDocAfectado == "03"){
+            $tipo_doc   =   "NOTA CRÉDITO DE BOLETA";
+        }
+        if($tipoDocAfectado == "04"){
+            $tipo_doc   =   "NOTA DE DEVOLUCIÓN";
+        }
+
+        $bindings   =   [$tipo_doc,$tipo,$tipo_nota,$tipoDocAfectado];
                 
                 
 
-                if($fecha_desde && $fecha_hasta)
-                {
-                    $consulta   .= " and n.fechaEmision between ? and ?";
-                    $bindings[] =   $fecha_desde;
-                    $bindings[] =   $fecha_hasta;
-                }
+        if($fecha_desde && $fecha_hasta)
+        {
+            $consulta   .= " and n.fechaEmision between ? and ?";
+            $bindings[] =   $fecha_desde;
+            $bindings[] =   $fecha_hasta;
+        }
 
-                if ($user) {
-                    $consulta   .= " and n.user_id = ?";
-                    $bindings[] = $user;
-                }
+        if ($user) {
+            $consulta   .= " and n.user_id = ?";
+            $bindings[] = $user;
+        }
 
-                $consulta       .=  " order by n.id asc";
+        $consulta       .=  " order by n.id asc";
 
-                $resultado       =   DB::select($consulta,$bindings);
+        $resultado       =   DB::select($consulta,$bindings);
 
-                return $resultado;
+        return $resultado;
     }
 
     public function getDocsVenta($tipo_venta,$fecha_desde,$fecha_hasta,$user){

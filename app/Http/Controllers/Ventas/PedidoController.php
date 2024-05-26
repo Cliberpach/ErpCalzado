@@ -37,7 +37,7 @@ class PedidoController extends Controller
         $fecha_inicio   =   $request->get('fecha_inicio');
         $fecha_fin      =   $request->get('fecha_fin');
 
-        $pedidos = Pedido::where('estado', '!=', 'ANULADO');
+        $pedidos = Pedido::all();
 
         if($fecha_inicio){
             $pedidos    =   $pedidos->where('fecha_registro', '>=', $fecha_inicio);

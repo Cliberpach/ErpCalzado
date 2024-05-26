@@ -1,7 +1,7 @@
 @extends('layout') @section('content')
 
-@section('consulta-active', 'active')
 @section('contabilidad-active', 'active')
+@section('contabilidad_documentos-active', 'active')
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
@@ -29,7 +29,9 @@
                             <option value="126">Ventas</option>
                             <option value="125">Fact., Boletas y Nota Crédito</option>
                             @foreach(comprobantes_empresa() as $doc)
-                                <option value="{{$doc->tipo_comprobante}}">{{ $doc->descripcion }}</option>
+                                @if ($doc->descripcion !== "RESUMEN DIARIO DE BOLETAS")
+                                    <option value="{{$doc->tipo_comprobante}}">{{ $doc->descripcion }}</option>
+                                @endif
                             @endforeach
                         </select>
                     </div>

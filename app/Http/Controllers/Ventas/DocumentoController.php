@@ -1690,10 +1690,10 @@ class DocumentoController extends Controller
             //      }
             // }
        
-
+            $producto_control    =   null;
+           
             foreach ($productotabla as $producto) {
 
-                 
                 $lote = ProductoColorTalla::where('producto_id', $producto->producto_id)
                         ->where('color_id', $producto->color_id)
                         ->where('talla_id', $producto->talla_id)
@@ -1701,8 +1701,9 @@ class DocumentoController extends Controller
                         ->with('color')
                         ->with('talla')
                         ->firstOrFail();
-                       
-                //$lote = LoteProducto::findOrFail($producto->producto_id);
+
+                $producto_control   =   $lote;
+                $producto_control->cantidad_solicitada  =   $producto->cantidad;
 
                     //==== CALCULANDO MONTOS PARA EL DETALLE ====
                     $importe                =   floatval($producto->cantidad) * floatval($producto->precio_unitario);
@@ -1736,8 +1737,6 @@ class DocumentoController extends Controller
                         //  'valor_venta' => $producto->valor_venta,
                     ]);
                 
-                    //$lote->cantidad = $lote->cantidad - $producto->cantidad;
-                    //$lote->stock = $lote->stock - $producto->cantidad;
 
                     //====== RESTAR STOCK SI NO ES CONVERSIÓN NI REGULARIZACIÓN =======
                     if(!$request->has('convertir') && !$request->has('regularizar')){
@@ -1993,13 +1992,30 @@ class DocumentoController extends Controller
             ]);
             
         } catch (Exception $e) {
+
+            //====== REVERTIR ACCIONES EN LA BD =========
             DB::rollBack();
             Log::info($e);
-            dd($e->getMessage());
+           
+
+            //========== DETALLAR ERROR DE STOCK NEGATIVO ========
+            if($e->getCode() == "22003" && strpos($e->getMessage(), "UPDATE producto_color_tallas") !== false && strpos($e->getMessage(), "SET stock") !== false){
+
+                return response()->json([
+                    'success' => false,
+                    'mensaje' => "ERROR EN EL SERVIDOR", 
+                    'excepcion' => $e->getMessage(),
+                    'codigo' => $e->getCode(),
+                    'producto'  =>  $producto_control
+                ]);
+
+            }
+
             return response()->json([
                 'success' => false,
-                'mensaje' => $e->getMessage(), //'Ocurrio un error porfavor volver a intentar, si el error persiste comunicarse con el administrador del sistema.'
+                'mensaje' => "ERROR EN EL SERVIDOR", 
                 'excepcion' => $e->getMessage(),
+                'codigo' => $e->getCode()
             ]);
         }
     }

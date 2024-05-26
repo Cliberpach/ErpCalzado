@@ -488,7 +488,18 @@ export default {
                         } else {
                             document.querySelector('#btn_grabar').disabled=false;
                             this.loading = false;
-                            toastr.error(data.mensaje, 'Error al crear doc de venta',{time:0});
+                            const excepcion   =   data.excepcion;
+                            if(data.codigo == "22003" && excepcion.includes('UPDATE producto_color_tallas') && excepcion.includes('SET stock')){
+                                toastr.error(`ERROR AL RESTAR STOCK DE: ${data.producto.producto.nombre} (ID: ${data.producto.producto.id}) - 
+                                ${data.producto.color.descripcion} (ID: ${data.producto.color.id}) - 
+                                ${data.producto.talla.descripcion} (ID: ${data.producto.talla.id})
+                                | STOCK: ${data.producto.stock} | CANTIDAD SOLICITADA: ${data.producto.cantidad_solicitada}
+                                RECOMENDACIÓN: Verificar que el producto no se encuentre en algún documento de venta en plena edición.
+                                EN OTRO CASO EL ADMINISTRADOR DEBE EMPAREJAR STOCKS.`,'ERROR EN EL SERVIDOR - STOCKS DESIGUALES',
+                                {timeOut:0, extendedTimeOut: 0,closeButton: true,progressBar: true})
+                                return;
+                            }
+                            toastr.error(data.excepcion,data.mensaje,{timeOut:0});
                         }
                      }
                 }
