@@ -25,6 +25,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Picqer\Barcode\BarcodeGeneratorPNG;
+use Carbon\Carbon;
 
 class ProductoController extends Controller
 {
@@ -441,7 +442,22 @@ class ProductoController extends Controller
         $producto->estado = 'ANULADO';
         $producto->update();
 
-       // $producto->detalles()->update(['estado'=> 'ANULADO']);
+        //========== ANULAMOS PRODUCTO COLORES Y PRODUCTO COLOR TALLAS =========
+        DB::table('producto_colores')
+        ->where('producto_id', $id)
+        ->update([
+            "estado"        =>  'ANULADO',
+            "updated_at"    =>  Carbon::now()
+        ]);
+
+        DB::table('producto_color_tallas')
+        ->where('producto_id', $id)
+        ->update([
+            "estado"        =>  'ANULADO',
+            "updated_at"    =>  Carbon::now()
+        ]);
+
+        // $producto->detalles()->update(['estado'=> 'ANULADO']);
 
         //Registro de actividad
         $descripcion = "SE ELIMINÓ EL PRODUCTO CON LA DESCRIPCION: ". $producto->nombre;

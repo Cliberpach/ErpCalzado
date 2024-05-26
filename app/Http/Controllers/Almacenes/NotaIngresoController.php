@@ -608,14 +608,15 @@ class NotaIngresoController extends Controller
     public function getProductos($modelo_id){
 
         try {
-            $productos      =       DB::select('select p.nombre as producto_nombre,c.descripcion as color_nombre,
-                                    t.descripcion as talla_nombre,pct.stock,pct.stock_logico,p.id as producto_id,
-                                    c.id as color_id,t.id as talla_id
-                                    from producto_color_tallas as pct
-                                    inner join productos as p on p.id=pct.producto_id
-                                    inner join colores as c on c.id=pct.color_id
-                                    inner join tallas as t on t.id=pct.talla_id
-                                    where p.modelo_id=?',[$modelo_id]);
+            $productos      =       DB::select('select p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre, 
+                                    pct.stock,pct.stock_logico,p.id as producto_id, c.id as color_id,t.id as talla_id 
+                                    from producto_colores as pc 
+                                    inner join productos as p on p.id=pc.producto_id 
+                                    inner join colores as c on c.id=pc.color_id 
+                                    left join producto_color_tallas as pct on (pc.color_id=pct.color_id and pc.producto_id=pct.producto_id) 
+                                    left join tallas as t on t.id = pct.talla_id 
+                                    where p.modelo_id=? and p.estado="ACTIVO";
+                                    ',[$modelo_id]);
 
             return response()->json(['success'=>true,'productos'=>$productos]);
         } catch (\Throwable $th) {
