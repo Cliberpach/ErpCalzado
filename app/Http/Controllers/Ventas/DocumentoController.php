@@ -1822,13 +1822,13 @@ class DocumentoController extends Controller
                     }
                    
        
-                if ($lote->stock == 0) {
-                    DB::update('UPDATE producto_color_tallas 
-                    SET estado = ? 
-                    WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
-                    ['0', $producto->producto_id, $producto->color_id, $producto->talla_id]);        
-                    //$lote->estado = '0';
-                }
+                // if ($lote->stock == 0) {
+                //     DB::update('UPDATE producto_color_tallas 
+                //     SET estado = ? 
+                //     WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
+                //     ['0', $producto->producto_id, $producto->color_id, $producto->talla_id]);        
+                //     //$lote->estado = '0';
+                // }
             }
 
         
