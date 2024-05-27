@@ -2147,7 +2147,8 @@ class DocumentoController extends Controller
             'fullaccess'    =>  $fullaccess,
             'fecha_hoy'     =>  $fecha_hoy,
             'tallas'        =>  $tallas,
-            'modelos'       =>  $modelos
+            'modelos'       =>  $modelos,
+            'departamentos'     =>  departamentos()
         ]);
     }
 

@@ -35,9 +35,9 @@
           </tr>
           <tr>
             <td  colspan="{{count($tallas) + 4 }}" style="font-weight: bold;text-align:end;">ENVÍO:</td>
-            <td  class="td-envio" colspan="1" style="font-weight: bold;text-align:end;">
+            <td class="td-envio" colspan="1" style="font-weight: bold;text-align:end;">
               <div class="input-group">
-                <span class="input-group-text" id="monto-envio">
+                <span class="input-group-text btn-envio btn btn-success" id="monto-envio" >
                   <i class="fas fa-truck"></i>
                 </span>
                 <input  style="width: 10px;"  type="text" class="form-control envio" value="{{$documento->monto_envio}}" aria-label="Username" aria-describedby="basic-addon1">

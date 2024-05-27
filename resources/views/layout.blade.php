@@ -91,6 +91,89 @@
 
     <!-- Styles -->
     <link href="/css/style.css" rel="stylesheet">
+
+    <style>
+      
+    .scaling-squares-spinner, .scaling-squares-spinner * {
+        box-sizing: border-box;
+    }
+
+    .scaling-squares-spinner {
+      height: 80px;
+      width: 80px;
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      animation: scaling-squares-animation 1250ms;
+      animation-iteration-count: infinite;
+      transform: rotate(0deg);
+    }
+
+    .scaling-squares-spinner .square {
+      height: calc(65px * 0.25 / 1.3);
+      width: calc(65px * 0.25 / 1.3);
+      margin-right: auto;
+      margin-left: auto;
+      border: calc(65px * 0.04 / 1.3) solid #007148;
+      position: absolute;
+      animation-duration: 1250ms;
+      animation-iteration-count: infinite;
+    }
+
+    .scaling-squares-spinner .square:nth-child(1) {
+      animation-name: scaling-squares-spinner-animation-child-1;
+    }
+
+    .scaling-squares-spinner .square:nth-child(2) {
+      animation-name: scaling-squares-spinner-animation-child-2;
+    }
+
+    .scaling-squares-spinner .square:nth-child(3) {
+      animation-name: scaling-squares-spinner-animation-child-3;
+    }
+
+    .scaling-squares-spinner .square:nth-child(4) {
+      animation-name: scaling-squares-spinner-animation-child-4;
+    }
+
+
+    @keyframes scaling-squares-animation {
+
+      50% {
+        transform: rotate(90deg);
+      }
+
+      100% {
+        transform: rotate(180deg);
+      }
+    }
+
+    @keyframes scaling-squares-spinner-animation-child-1 {
+      50% {
+        transform: translate(150%,150%) scale(2,2);
+      }
+    }
+
+    @keyframes scaling-squares-spinner-animation-child-2 {
+      50% {
+        transform: translate(-150%,150%) scale(2,2);
+      }
+    }
+
+    @keyframes scaling-squares-spinner-animation-child-3 {
+      50% {
+        transform: translate(-150%,-150%) scale(2,2);
+      }
+    }
+
+    @keyframes scaling-squares-spinner-animation-child-4 {
+      50% {
+        transform: translate(150%,-150%) scale(2,2);
+      }
+    }
+    </style>
     
     @routes
 </head>
@@ -151,30 +234,42 @@
                         </li>
 
                     </ul>
-
                 </nav>
             </div>
 
-            <div class="loader-spinner">
-                <div class="centrado" id="onload">
-                    <div class="loadingio-spinner-blocks-zcepr5tohl">
-                        <div class="ldio-6fqlsp2qlpd">
-                            <div style='left:38px;top:38px;animation-delay:0s'></div>
-                            <div style='left:80px;top:38px;animation-delay:0.125s'></div>
-                            <div style='left:122px;top:38px;animation-delay:0.25s'></div>
-                            <div style='left:38px;top:80px;animation-delay:0.875s'></div>
-                            <div style='left:122px;top:80px;animation-delay:0.375s'></div>
-                            <div style='left:38px;top:122px;animation-delay:0.75s'></div>
-                            <div style='left:80px;top:122px;animation-delay:0.625s'></div>
-                            <div style='left:122px;top:122px;animation-delay:0.5s'></div>
+            {{-- <div class="row" style="background-color:white;" id="row-loading-spinner">
+                <div class="col-12 d-flex align-items-center justify-content-center">
+                        <div class="scaling-squares-spinner" :style="spinnerStyle" id="loading-spinner">
+                            <div class="square"></div>
+                            <div class="square"></div>
+                            <div class="square"></div>
+                            <div class="square"></div>
                         </div>
-                    </div>
-
                 </div>
             </div>
+          --}}
+
+          <div class="loader-spinner">
+            <div class="centrado" id="onload">
+                <div class="loadingio-spinner-blocks-zcepr5tohl">
+                    <div class="ldio-6fqlsp2qlpd">
+                        <div style='left:38px;top:38px;animation-delay:0s'></div>
+                        <div style='left:80px;top:38px;animation-delay:0.125s'></div>
+                        <div style='left:122px;top:38px;animation-delay:0.25s'></div>
+                        <div style='left:38px;top:80px;animation-delay:0.875s'></div>
+                        <div style='left:122px;top:80px;animation-delay:0.375s'></div>
+                        <div style='left:38px;top:122px;animation-delay:0.75s'></div>
+                        <div style='left:80px;top:122px;animation-delay:0.625s'></div>
+                        <div style='left:122px;top:122px;animation-delay:0.5s'></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+            
 
 
-            <div id="content-system" style="">
+            <div id="content-system" style="display:none;">
                 <!-- Contenido del Sistema -->
                 @yield('content')
                 <!-- /.Contenido del Sistema -->
@@ -192,6 +287,13 @@
                 </div>
             </div>
 
+
+           
+
+            {{-- <lottie-player src="{{asset('/lottiefile/OCCHcmMEMS.json')}}" background="transparent"
+            speed="1" style="height:200px;" loop autoplay>
+            </lottie-player> --}}
+
         </div>
 
     </div>
@@ -207,6 +309,8 @@
     @stack('scripts-vue-js')
     @yield('vue-js')
     
+    {{-- <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script> --}}
+
 
 
     <!-- Mainly scripts -->
@@ -402,10 +506,10 @@
             })
         }
         //Loader
-        window.addEventListener("load",function(){
-            $('.loader-spinner').hide();
-            $("#content-system").css("display", "");
-        })
+        // window.addEventListener("load",function(){
+        //     $('.loader-spinner').hide();
+        //     $("#content-system").css("display", "");
+        // })
 
     async function restaurarStock(){
         try {
@@ -457,6 +561,13 @@
             toastr.error(`${error.response.data.message}`,'ERROR EN EL SERVIDOR');  
         }
     }
+
+    setTimeout(() => {
+        //document.querySelector('#row-loading-spinner').style.display = "none";
+        $('.loader-spinner').hide();
+        $("#content-system").css("display", "");
+
+    }, 600);
 
 
     </script>

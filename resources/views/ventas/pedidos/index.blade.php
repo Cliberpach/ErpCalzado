@@ -60,7 +60,7 @@
                 <div class="ibox-content">
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered table-hover" id="pedidos_table"
-                            style="text-transform:uppercase">
+                            style="text-transform:uppercase" width="100%">
                             <thead>
                                 <tr>
                                     <th class="text-center">ID</th>

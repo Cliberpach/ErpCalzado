@@ -86,7 +86,7 @@
                     <div class="table-responsive">
 
                         <table class="table dataTables-gui table-striped table-bordered table-hover"
-                        style="text-transform:uppercase" id="table-resumenes">
+                        style="text-transform:uppercase" id="table-resumenes" width="100%">
                             <thead>
                              
                                 <tr>

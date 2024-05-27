@@ -148,7 +148,7 @@ div.content-envio.sk__loading::after {
                                 </div>
                                 <div class="col-7">
                                     <label id="lbl_direccion_entrega" for="direccion_entrega" style="font-weight: bold;">DIRECCION DE ENTREGA</label>
-                                    <input readonly  type="text" class="form-control" id="direccion_entrega" name="direccion_entrega">
+                                    <input maxlength="100" readonly  type="text" class="form-control" id="direccion_entrega" name="direccion_entrega">
                                 </div>
                             </div>
                             <hr>
@@ -481,7 +481,7 @@ div.content-envio.sk__loading::after {
 
    //========== CARGAR EMPRESAS ENVÍO ========
    async function getEmpresasEnvio() {
-
+        mostrarAnimacion();
         //======= SI SE SELECCIONÓ ALGUN TIPO DE ENVÍO =====
         if($("#tipo_envio").select2('data').length > 0){
 
@@ -502,6 +502,7 @@ div.content-envio.sk__loading::after {
             } catch (error) {
                 toastr.error(error,'ERROR EN EL SERVIDOR');
             }finally{
+                ocultarAnimacion();
             }
 
         }else{
@@ -513,6 +514,7 @@ div.content-envio.sk__loading::after {
             //======= LIMPIAR SEDES ENVÍO ======
             $('#sede_envio').empty();
             $('#sede_envio').val(null).trigger('change');
+            ocultarAnimacion();
         }
        
     }
@@ -546,6 +548,7 @@ div.content-envio.sk__loading::after {
 
    //=========== OBTENER SEDES ENVÍO =========
    async function getSedesEnvio() {
+        mostrarAnimacion();
         if($("#empresa_envio").select2('data').length > 0){
             try { 
                 const empresa_envio_id  =    $("#empresa_envio").select2('data')[0].id;
@@ -573,12 +576,14 @@ div.content-envio.sk__loading::after {
             } catch (error) {
                 toastr.error(error,'ERROR EN EL SERVIDOR');
             }finally{
+                ocultarAnimacion();
             }
         }else{
             //======= SI EMPRESA ENVÍO ES NULL ========
             //======= LIMPIAR SEDES ENVÍO ======
             $('#sede_envio').empty();
             $('#sede_envio').val(null).trigger('change');
+            ocultarAnimacion();
         }
     }
 

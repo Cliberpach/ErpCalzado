@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Luecano\NumeroALetras\NumeroALetras;
 use Yajra\DataTables\Facades\DataTables;
-
+use App\Ventas\EnvioVenta;
 use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
 use App\Almacenes\Modelo;
@@ -364,12 +364,14 @@ class NoEnviadosController extends Controller
             'fullaccess' => $fullaccess,
             'fecha_hoy' => $fecha_hoy,
             'tallas'=>$tallas,
-            'modelos' => $modelos
+            'modelos' => $modelos,
+            'departamentos' =>  departamentos()
         ]);
     }
 
     public function update(Request $request, $id)
     {
+
         $this->authorize('haveaccess', 'documento_venta.index');
         ini_set("max_execution_time", 60000);
         try {
@@ -616,6 +618,36 @@ class NoEnviadosController extends Controller
                         ['0', $producto->producto_id, $producto->color_id, $talla->talla_id]);        
                     }
                 }  
+            }
+
+           
+            if($request->has('data_envio')){
+                $data_envio     =  json_decode($request->get('data_envio'));
+
+                if (!empty((array)$data_envio)) {
+                    //====== ACTUALIZAR DESPACHO ========
+                    $envio_venta                                =   EnvioVenta::where('documento_id', $id)->first();
+                    $envio_venta->departamento              =   $data_envio->departamento->nombre;
+                    $envio_venta->provincia                 =   $data_envio->provincia->text;
+                    $envio_venta->distrito                  =   $data_envio->distrito->text;
+                    $envio_venta->empresa_envio_id          =   $data_envio->empresa_envio->id;
+                    $envio_venta->empresa_envio_nombre      =   $data_envio->empresa_envio->empresa;
+                    $envio_venta->sede_envio_id             =   $data_envio->sede_envio->id;
+                    $envio_venta->sede_envio_nombre         =   $data_envio->sede_envio->direccion;
+                    $envio_venta->tipo_envio                =   $data_envio->tipo_envio->descripcion;
+                    $envio_venta->destinatario_tipo_doc     =   $data_envio->destinatario->tipo_documento;
+                    $envio_venta->destinatario_nro_doc      =   $data_envio->destinatario->nro_documento;
+                    $envio_venta->destinatario_nombre       =   $data_envio->destinatario->nombres;
+                    $envio_venta->tipo_pago_envio           =   $data_envio->tipo_pago_envio->descripcion;
+                    $envio_venta->entrega_domicilio         =   $data_envio->entrega_domicilio?"SI":"NO";
+                    $envio_venta->direccion_entrega         =   $data_envio->direccion_entrega;
+                    $envio_venta->fecha_envio_propuesta     =   $data_envio->fecha_envio_propuesta;
+                    $envio_venta->origen_venta              =   $data_envio->origen_venta->descripcion;
+                    $envio_venta->obs_rotulo                =   $data_envio->obs_rotulo;
+                    $envio_venta->obs_despacho              =   $data_envio->obs_despacho;
+                    $envio_venta->estado                    =   "PENDIENTE";
+                    $envio_venta->update();
+                } 
             }
 
            

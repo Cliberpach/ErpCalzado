@@ -1,5 +1,5 @@
 @extends('layout') @section('content')
-
+@include('ventas.documentos.modal-envio')
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
 <style>
@@ -179,6 +179,8 @@
                                 </div>
                             </div>
                         </div>
+                        <input type="hidden" name="data_envio" id="data_envio">
+
                         <div class="row">
                             <div class="col-sm-6 b-r">
                                 <div class="row">
@@ -1790,15 +1792,24 @@
     let modelo_id;
     let asegurarCierre=5;
 
-    document.addEventListener('DOMContentLoaded',()=>{
+    document.addEventListener('DOMContentLoaded',async ()=>{
         changeFormaPago();
         obtenerClientes();
         loadSelect2();
-        events();
-        asegurarCierre=1;
-        // // cargarClientes();       //===== CARGADO DE CLIENTES ========
         cargarProductosPrevios();     //======== FORMATEAR DETALLE ==============
-        console.log(carrito);
+        asegurarCierre=1;
+       
+        //cargarClientes();       //===== CARGADO DE CLIENTES ========
+        await getTipoEnvios();
+        await getTiposPagoEnvio();
+        await getOrigenesVentas();
+        await getTipoDocumento();
+        const tipo_envio    =   $("#tipo_envio").select2('data')[0].text;
+        await getEmpresasEnvio(tipo_envio);
+        setUbicacionDepartamento(13,'first');
+        events();
+        eventsModalEnvio();
+       
     })
 
     function events(){
@@ -1912,6 +1923,42 @@
                     enviarVenta();
                 }
             }
+        })
+
+        //=========== MODAL DESPACHO =========
+        document.querySelector('.btn-envio').addEventListener('click',()=>{
+            //======= COLCANDO EN MODAL ENVIO EL NOMBRE DEL CLIENTE =======
+            const cliente_nombre            =   $("#cliente_id").find('option:selected').text();
+
+            const nroDocumento              =   cliente_nombre.split(':')[1].split('-')[0].trim();
+            const cliente_nombre_recortado  =   cliente_nombre.split('-')[1].trim()
+            const tipo_documento            =   cliente_nombre.split(':')[0];
+
+            console.log(cliente_nombre);
+            console.log(cliente_nombre_recortado);
+            console.log(nroDocumento);
+
+            if(tipo_documento === "DNI" || tipo_documento === "CARNET EXT."){
+                //====== COLOCAR TEXTO DEL SPAN =====
+                document.querySelector('.span-tipo-doc-dest').textContent     =   tipo_documento;
+                //====== SELECCIONAR LA OPCIÓN RESPECTIVA EN SELECT TIPO DOC DEST ======
+                if(tipo_documento === "DNI"){
+                    $('#tipo_doc_destinatario').val(0).trigger('change');
+                    if(nroDocumento.trim() != "99999999"){
+                        document.querySelector('#nro_doc_destinatario').value   =   nroDocumento;
+                        document.querySelector('#nro_doc_destinatario').value   =   nroDocumento;
+                        document.querySelector('#nombres_destinatario').value   =   cliente_nombre_recortado;
+                    }
+                }
+                if(tipo_documento === "CARNET EXT."){
+                    $('#tipo_doc_destinatario').val(1).trigger('change');
+                    document.querySelector('#nro_doc_destinatario').value   =   nroDocumento;
+                    document.querySelector('#nombres_destinatario').value   =   cliente_nombre_recortado;
+                }                
+            }
+         
+            //========= ABRIR MODAL ENVÍO =======
+            $("#modal_envio").modal("show");
         })
     }
 
@@ -2507,6 +2554,7 @@
 
     //======= CARGAR STOCKS LOGICOS DE PRODUCTOS POR MODELO =======
     async function getProductosByModelo(idModelo){
+        mostrarAnimacion();
         modelo_id = idModelo;
         btnAgregarDetalle.disabled=true;
 
@@ -2519,9 +2567,12 @@
                 loadCantPrevias();
             } catch (error) {
                 console.error('Error al obtener productos por modelo:', error);
+            }finally{
+                ocultarAnimacion();
             }
         }else{
             tableStocksBody.innerHTML = ``;
+            ocultarAnimacion();
         }
     }
 
