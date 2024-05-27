@@ -567,7 +567,7 @@
         $('.loader-spinner').hide();
         $("#content-system").css("display", "");
 
-    }, 200);
+    }, 50);
 
 
     </script>
