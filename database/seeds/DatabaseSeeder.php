@@ -82,5 +82,10 @@ class DatabaseSeeder extends Seeder
         $vendedor->tipo_banco = '';
         $vendedor->numero_cuenta = '';
         $vendedor->save();
+
+
+        $this->call(GreenterSeeder::class);
+        $this->call(EmpresaEnvioSeeder::class);
+
     }
 }

@@ -184,11 +184,15 @@ class ResumenController extends Controller
     
     
             //==== ENVIANDO A SUNAT ======
+            $greenter_config    =   DB::select('select * from greenter_config as gc
+                                    where gc.empresa_id=1');
+            dd($greenter_config);
+
             //===== MODO BETA ======
-            //$see = $util->getSee(SunatEndpoints::FE_BETA);
+            $see = $util->getSee(SunatEndpoints::FE_BETA);
     
             //===== MODO PRODUCCION =====
-            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
+            //$see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
     
             $res = $see->send($sum);
     
