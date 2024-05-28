@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB; 
+use Illuminate\Validation\Rule;
 
 class TallaController extends Controller
 {
@@ -42,11 +43,19 @@ class TallaController extends Controller
         $data = $request->all();
 
         $rules = [
-            'descripcion_guardar' => 'required',
+            'descripcion_guardar' => [
+                'required',
+                Rule::unique('tallas', 'descripcion')->where(function ($query) {
+                    return $query->where('estado', 'ACTIVO');
+                }),
+            ],
+
         ];
         
         $message = [
-            'descripcion_guardar.required' => 'El campo Descripción es obligatorio.',
+            'descripcion_guardar.required'  => 'El campo Descripción es obligatorio.',
+            'descripcion_guardar.unique'    => 'La talla ya existe.',
+
         ];
 
         Validator::make($data, $rules, $message)->validate();
@@ -103,11 +112,18 @@ class TallaController extends Controller
 
         $rules = [
             'tabla_id' => 'required',
-            'descripcion' => 'required',
+            'descripcion' => [
+                'required',
+                Rule::unique('tallas', 'descripcion')->where(function ($query) {
+                    return $query->where('estado', 'ACTIVO');
+                }),
+            ],
         ];
         
         $message = [
-            'descripcion.required' => 'El campo Descripción es obligatorio.',
+            'descripcion.required'  => 'El campo Descripción es obligatorio.',
+            'descripcion.unique'     => 'La talla ya existe.',
+
         ];
 
         Validator::make($data, $rules, $message)->validate();

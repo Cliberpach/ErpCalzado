@@ -17,7 +17,8 @@ class CreateCompraDocumentosTable extends Migration
             $table->increments('id');
             $table->date('fecha_emision');
             $table->date('fecha_vencimiento')->nullable();
-            $table->date('fecha_entrega');
+            $table->date('fecha_entrega')->nullable();
+            
             $table->unsignedInteger('empresa_id');
             $table->foreign('empresa_id')->references('id')->on('empresas')->onDelete('cascade');
 

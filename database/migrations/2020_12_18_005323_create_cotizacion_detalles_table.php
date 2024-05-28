@@ -15,13 +15,16 @@ class CreateCotizacionDetallesTable extends Migration
     {
         Schema::create('cotizacion_detalles', function (Blueprint $table) {
             $table->Increments('id');
+            
             $table->unsignedInteger('cotizacion_id');
             $table->foreign('cotizacion_id')->references('id')->on('cotizaciones')->onDelete('cascade');
             
             $table->unsignedInteger('producto_id');
             $table->foreign('producto_id')->references('id')->on('productos');
+
             $table->unsignedInteger('color_id');
             $table->foreign('color_id')->references('id')->on('colores');
+
             $table->unsignedInteger('talla_id');
             $table->foreign('talla_id')->references('id')->on('tallas');
             

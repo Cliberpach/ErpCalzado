@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
+use Illuminate\Validation\Rule;
 
 class MarcaController extends Controller
 {
@@ -37,9 +38,14 @@ class MarcaController extends Controller
     public function store(Request $request){
         $this->authorize('haveaccess','marca.index');
         $data = $request->all();
-
+       
         $rules = [
-            'marca_guardar' => 'required|unique:marcas,marca',
+            'marca_guardar' => [
+                'required',
+                Rule::unique('marcas', 'marca')->where(function ($query) {
+                    return $query->where('estado', 'ACTIVO');
+                }),
+            ]       
         ];
 
         $messages = [
@@ -82,13 +88,18 @@ class MarcaController extends Controller
 
         $rules = [
             'tabla_id' => 'required',
-            'marca' => 'required',
+            'marca' => [
+                'required',
+                Rule::unique('marcas', 'marca')->where(function ($query) {
+                    return $query->where('estado', 'ACTIVO');
+                }),
+            ]   
 
         ];
 
         $message = [
-            'marca.required' => 'El campo Marca es obligatorio.',
-
+            'marca.required'    => 'El campo Marca es obligatorio.',
+            'marca.unique'      => 'La marca ya existe.',
         ];
 
         Validator::make($data, $rules, $message)->validate();
@@ -127,10 +138,11 @@ class MarcaController extends Controller
     public function exist(Request $request)
     {
 
-        $data = $request->all();
-        $marca = $data['marca'];
-        $id = $data['id'];
-        $marca_existe = null;
+        $data           = $request->all();
+        
+        $marca          = $data['marca'];
+        $id             = $data['id'];
+        $marca_existe   = null;
 
         if ($marca && $id) { // edit
             $marca_existe = Marca::where([

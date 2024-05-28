@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB; 
+use Illuminate\Validation\Rule;
 
 class ColorController extends Controller
 {
@@ -122,11 +123,17 @@ class ColorController extends Controller
 
         $rules = [
             'tabla_id' => 'required',
-            'descripcion' => 'required',
+            'descripcion' => [
+                'required',
+                Rule::unique('colores')->where(function ($query) {
+                    return $query->where('estado', 'ACTIVO');
+                }),
+            ],
         ];
         
         $message = [
-            'descripcion.required' => 'El campo Descripción es obligatorio.',
+            'descripcion.required'  => 'El campo Descripción es obligatorio.',
+            'descripcion.unique'    => 'El color ya existe.',
         ];
 
         Validator::make($data, $rules, $message)->validate();

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
+use Illuminate\Validation\Rule;
 
 class CategoriaController extends Controller
 {
@@ -82,11 +83,18 @@ class CategoriaController extends Controller
 
         $rules = [
             'tabla_id' => 'required',
-            'descripcion' => 'required',
+            'descripcion' => [
+                'required',
+                Rule::unique('categorias')->where(function ($query) {
+                    return $query->where('estado', 'ACTIVO');
+                }),
+            ],
         ];
         
         $message = [
-            'descripcion.required' => 'El campo Descripción es obligatorio.',
+            'descripcion.required'  => 'El campo Descripción es obligatorio.',
+            'descripcion.unique'    => 'La categoría ya existe.',
+
         ];
 
         Validator::make($data, $rules, $message)->validate();

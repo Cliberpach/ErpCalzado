@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class AlmacenController extends Controller
 {
@@ -26,19 +27,26 @@ class AlmacenController extends Controller
             )->where('almacenes.estado','ACTIVO')->orderBy('id','DESC')
         )->toJson();
     }
+
     public function store(Request $request){
         
         $this->authorize('haveaccess','almacen.index'); 
         $data = $request->all();
 
         $rules = [
-            'descripcion_guardar' => 'required',
+            'descripcion_guardar' => [
+                'required',
+                Rule::unique('almacenes','descripcion')->where(function ($query) {
+                    return $query->where('estado', 'ACTIVO');
+                }),
+            ],
             'ubicacion_guardar' => 'required',
         ];
         
         $message = [
-            'descripcion_guardar.required' => 'El campo Descripción es obligatorio.',
-            'ubicacion_guardar.required' => 'El campo Ubicación es obligatorio.',
+            'descripcion_guardar.required'  => 'El campo Descripción es obligatorio.',
+            'descripcion_guardar.unique'    => 'El nombre de almacén ya existe.',
+            'ubicacion_guardar.required'    => 'El campo Ubicación es obligatorio.',
         ];
 
         Validator::make($data, $rules, $message)->validate();

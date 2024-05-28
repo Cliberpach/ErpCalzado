@@ -26,11 +26,11 @@ class CreateOrdenesTable extends Migration
                 ->onDelete('cascade');
 
             $table->date('fecha_emision');
-            $table->date('fecha_entrega');
+            $table->date('fecha_entrega')->nullable();
 
             $table->string('modo_compra');
             $table->foreignId('condicion_id')->nullable()->constrained()->onDelete('SET NULL');
-            $table->string('moneda');
+            $table->string('moneda')->nullable();
             $table->string('igv_check',2)->nullable();
             $table->char('igv',3)->nullable();
             $table->unsignedDecimal('tipo_cambio', 15,4)->nullable();

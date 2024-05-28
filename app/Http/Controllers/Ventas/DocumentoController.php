@@ -1831,9 +1831,11 @@ class DocumentoController extends Controller
             }
 
         
+            
             //======== GUARDANDO DATA DE ENVIO =========
             //======= CONTROL PARA EVITAR QUE SE GENERE DATA ENVIO AL EDITAR O CONVERTIR DOC VENTA ==========
             if($request->has('data_envio')){
+
 
                 $data_envio     =   json_decode($request->get('data_envio'));
            
@@ -1865,11 +1867,11 @@ class DocumentoController extends Controller
                     $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
                     $envio_venta->save();
                 }else{
+                   
                     
                     //======== OBTENER EMPRESA ENVÍO =======
                     $empresa_envio                      =   DB::select('select ee.id,ee.empresa,ee.tipo_envio
-                                                            from empresas_envio as ee
-                                                            where ee.empresa="MERRIS"')[0];
+                                                            from empresas_envio as ee')[0];
                     
                     $sede_envio                         =   DB::select('select ees.id,ees.direccion 
                                                             from empresa_envio_sedes as ees
@@ -1900,6 +1902,7 @@ class DocumentoController extends Controller
                     $envio_venta->obs_despacho          =   null;
                     $envio_venta->obs_rotulo            =   null;
                     $envio_venta->estado                =   'DESPACHADO';
+                    $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
                     $envio_venta->save();
                 }
 

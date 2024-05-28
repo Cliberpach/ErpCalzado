@@ -547,5 +547,47 @@ class PermissionsSeeder extends Seeder
             'slug'=>'kardex_salida.index',
             'description'=>'El usuario puede acceder a la vista de Kardex Nota de Salida'
         ]);
+
+        //VENTAS CAJA
+        Permission::create([
+            'name'  => 'Ventas Caja',
+            'slug'=>'ventascaja.index',
+            'description'=>'El usuario puede pagar los documentos de venta.'
+        ]);
+
+        //====== VENTAS RESÚMENES ==========
+        Permission::create([
+            'name'  => 'Ventas Resúmenes',
+            'slug'=>'resumenes.index',
+            'description'=>'El usuario puede acceder a los resúmenes.'
+        ]);
+
+        //====== VENTAS DESPACHOS ==========
+        Permission::create([
+            'name'  => 'Ventas Despacho',
+            'slug'=>'despachos.index',
+            'description'=>'El usuario puede acceder al mantenedor despachos.'
+        ]);
+
+        //====== VENTAS PEDIDOS ==========
+        Permission::create([
+            'name'  => 'Ventas Despacho',
+            'slug'=>'pedidos.index',
+            'description'=>'El usuario puede acceder al mantenedor pedidos.'
+        ]);
+
+        //====== VENTAS RECIBOS CAJA ==========
+        Permission::create([
+            'name'  => 'Mantenedor Recibos Caja',
+            'slug'=>'recibos_caja.index',
+            'description'=>'El usuario podrá acceder al mantenedor de recibos caja.'
+        ]);
+
+        //====== VENTAS RECIBOS CAJA ==========
+        Permission::create([
+            'name'  => 'Contabilidad',
+            'slug'=>'contabilidad.index',
+            'description'=>'El usuario puede acceder a consultas de de documentos de venta.'
+        ]);
     }
 }

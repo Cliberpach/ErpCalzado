@@ -11,7 +11,7 @@
                   NUEVO COLOR  <i class="fas fa-plus"></i>    
                 </a> 
               
-                <table class="table table-striped table-hover" id="table-colores">
+                <table class="table table-striped table-hover" id="table-colores" width="100%">
                     <thead>
                       <tr>
                         <th scope="col" style="text-align: left;">#</th>

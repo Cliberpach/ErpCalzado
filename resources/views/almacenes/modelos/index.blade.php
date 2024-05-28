@@ -1,4 +1,5 @@
 @extends('layout') @section('content')
+
 @include('almacenes.modelos.create')
 @include('almacenes.modelos.create')
 @include('almacenes.modelos.edit')

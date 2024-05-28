@@ -45,7 +45,7 @@ class ModeloController extends Controller
                 Rule::unique('modelos', 'descripcion')->where(function ($query) {
                     return $query->where('estado', 'ACTIVO');
                 }),
-            ],
+            ]
         ];
         
         $messages = [
@@ -87,11 +87,17 @@ class ModeloController extends Controller
 
         $rules = [
             'tabla_id' => 'required',
-            'descripcion' => 'required',
+            'descripcion' => [
+                'required',
+                Rule::unique('modelos', 'descripcion')->where(function ($query) {
+                    return $query->where('estado', 'ACTIVO');
+                }),
+            ]        
         ];
         
         $message = [
-            'descripcion.required' => 'El campo Descripción es obligatorio.',
+            'descripcion.required'  => 'El campo Descripción es obligatorio.',
+            'descripcion.unique'    => 'El modelo ya existe.',
         ];
 
         Validator::make($data, $rules, $message)->validate();

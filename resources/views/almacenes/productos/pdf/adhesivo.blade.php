@@ -134,8 +134,9 @@
                                     <td style="border-bottom:solid 1px black;" >
                                         @if($empresa->ruta_logo)
                                             <img src="{{ base_path() . '/storage/app/'.$empresa->ruta_logo }}" class="img-fluid" width="50px;">
-                                        @else
-                                            <img src="{{ public_path() . '/img/default.png' }}" class="img-fluid">
+                                        @else                  
+                                                      
+                                            <img src="{{  public_path().'/img/default.png'  }}" class="img-fluid" width="50px;">
                                         @endif
                                     </td>
                                     <td style="border-bottom:solid 1px black;">

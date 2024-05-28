@@ -14,22 +14,27 @@ class CreateRecibosCajaTable extends Migration
     public function up()
     {
         Schema::create('recibos_caja', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('pedido_id');
-            $table->foreign('pedido_id')->references('id')->on('pedidos')->onDelete('cascade');
-            $table->foreignId('caja_id')->references('id')->on('caja')->onDelete('cascade');
-            $table->unsignedInteger('user_id');
-            $table->unsignedInteger('cliente_id'); 
-            $table->decimal('monto', 10, 2);
-            $table->string('metodo_pago', 100);
-            $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
-            $table->enum('estado_servicio',['LIBRE','CANJE'])->default('LIBRE');
+            $table->bigIncrements('id');
+            $table->unsignedInteger('user_id')->nullable()->index();
+            $table->unsignedInteger('cliente_id')->nullable()->index();
+            $table->decimal('monto', 10, 2)->nullable();
+            $table->string('metodo_pago', 100)->nullable();
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
+            $table->enum('estado_servicio', ['LIBRE', 'USANDO', 'CANJEADO'])->default('LIBRE');
 
-
-            $table->foreign('user_id')->references('id')->on('users');
-            $table->foreign('cliente_id')->references('id')->on('clientes');
-
+            $table->decimal('saldo', 10, 2)->nullable();
+            $table->unsignedBigInteger('movimiento_id')->nullable()->index();
+            $table->longText('img_pago')->nullable();
+            $table->longText('img_pago_2')->nullable();
+            $table->longText('observacion')->nullable();
             $table->timestamps();
+
+
+            $table->foreign('movimiento_id')->references('id')->on('movimiento_caja')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('cliente_id')->references('id')->on('clientes')->onDelete('cascade');
+
+
         });
     }
 
@@ -40,6 +45,11 @@ class CreateRecibosCajaTable extends Migration
      */
     public function down()
     {
+        Schema::table('recibos_caja', function (Blueprint $table) {
+            $table->dropForeign(['movimiento_id']);
+            $table->dropForeign(['user_id']);
+            $table->dropForeign(['cliente_id']);
+        });
         Schema::dropIfExists('recibos_caja');
     }
 }

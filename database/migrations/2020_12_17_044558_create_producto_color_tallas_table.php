@@ -22,12 +22,15 @@ class CreateProductoColorTallasTable extends Migration
             $table->foreign('color_id')->references('id')->on('colores');
             $table->foreign('talla_id')->references('id')->on('tallas');
 
-            $table->bigInteger('stock');
-            $table->bigInteger('stock_logico');
+            $table->unsignedBigInteger('stock');
+            $table->unsignedBigInteger('stock_logico');
+
+            $table->string('codigo_barras',20)->nullable();
+            $table->longText('ruta_cod_barras')->nullable(); 
 
             $table->timestamps();
             $table->primary(['producto_id', 'color_id','talla_id']); 
-            $table->enum('estado',['0','1'])->default('1');
+            $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
         });
     }
 

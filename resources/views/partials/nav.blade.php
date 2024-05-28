@@ -115,20 +115,27 @@
         <li class="@yield('categoria-active')"><a href="{{ route('almacenes.categorias.index') }}">Categoria</a></li>
         @endcan
         @can('haveaccess', 'marca.index')
-        <li class="@yield('marca-active')"><a href="{{ route('almacenes.marcas.index') }}">Marca</a></li>
+            <li class="@yield('marca-active')"><a href="{{ route('almacenes.marcas.index') }}">Marca</a></li>
         @endcan
-        <li class="@yield('marca-active')"><a href="{{ route('almacenes.modelos.index') }}">Modelo</a></li>
-        <li class="@yield('marca-active')"><a href="{{ route('almacenes.colores.index') }}">Color</a></li>
-        <li class="@yield('marca-active')"><a href="{{ route('almacenes.tallas.index') }}">Talla</a></li>
+
+        @can('haveaccess', 'modelo.index')
+            <li class="@yield('modelo-active')"><a href="{{ route('almacenes.modelos.index') }}">Modelo</a></li>
+        @endcan
+        @can('haveaccess', 'color.index')
+            <li class="@yield('color-active')"><a href="{{ route('almacenes.colores.index') }}">Color</a></li>
+        @endcan
+        @can('haveaccess', 'talla.index')
+            <li class="@yield('talla-active')"><a href="{{ route('almacenes.tallas.index') }}">Talla</a></li>
+        @endcan
 
         @can('haveaccess', 'producto.index')
-        <li class="@yield('producto-active')"><a href="{{ route('almacenes.producto.index') }}">Producto</a></li>
+            <li class="@yield('producto-active')"><a href="{{ route('almacenes.producto.index') }}">Producto</a></li>
         @endcan
         @can('haveaccess', 'nota_ingreso.index')
-        <li class="@yield('nota_ingreso-active')"><a href="{{ route('almacenes.nota_ingreso.index') }}">Nota Ingreso</a></li>
+            <li class="@yield('nota_ingreso-active')"><a href="{{ route('almacenes.nota_ingreso.index') }}">Nota Ingreso</a></li>
         @endcan
         @can('haveaccess', 'nota_salida.index')
-        <li class="@yield('nota_salidad-active')"><a href="{{ route('almacenes.nota_salidad.index') }}">Nota Salida</a></li>
+            <li class="@yield('nota_salidad-active')"><a href="{{ route('almacenes.nota_salidad.index') }}">Nota Salida</a></li>
         @endcan
     </ul>
 </li>

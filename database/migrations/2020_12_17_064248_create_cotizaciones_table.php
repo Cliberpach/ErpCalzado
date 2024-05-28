@@ -15,10 +15,13 @@ class CreateCotizacionesTable extends Migration
     {
         Schema::create('cotizaciones', function (Blueprint $table) {
             $table->Increments('id');
+
             $table->unsignedInteger('empresa_id');
             $table->foreign('empresa_id')->references('id')->on('empresas')->onDelete('cascade');
+            
             $table->unsignedInteger('cliente_id');
             $table->foreign('cliente_id')->references('id')->on('clientes')->onDelete('cascade');
+            
             $table->foreignId('condicion_id')->nullable()->constrained()->onDelete('SET NULL');
 
             $table->unsignedInteger('vendedor_id')->nullable();

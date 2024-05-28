@@ -20,6 +20,7 @@ class CreateNotaIngresoTable extends Migration
             $table->string("origen")->nullable();
             $table->string("destino")->nullable();
             $table->string("usuario");
+            $table->longText("observacion")->nullable();
 
             // $table->string('moneda')->nullable();
             // $table->unsignedDecimal('tipo_cambio', 15, 4)->nullable();

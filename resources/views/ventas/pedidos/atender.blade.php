@@ -571,10 +571,12 @@
                     const documento_id  =   res.data.documento_id;
 
                     toastr.success('¡Documento de venta creado!', 'Exito');
+                    window.location.href = '{{ route('ventas.documento.index') }}';
+                    
                     var url_open_pdf = route("ventas.documento.comprobante", { id: documento_id +"-80"});
                     window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
                     //===> asegurar cierre ===
-                    window.location.href = '{{ route('ventas.documento.index') }}';
+                   
                 }else{
                     secureClosure = 1;
                     const mensaje   =   res.data.mensaje;
