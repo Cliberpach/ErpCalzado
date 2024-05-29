@@ -15,6 +15,7 @@ use Greenter\Report\Resolver\DefaultTemplateResolver;
 use Greenter\Report\XmlUtils;
 use Greenter\See;
 use App\Greenter\data\SharedStore;
+use Exception;
 
 final class Util
 {
@@ -50,13 +51,18 @@ final class Util
         //$certificate = file_get_contents(__DIR__ . '/../certificate/certificate_merris.pem');
 
         //====== OBTENIENDO RUTA DEL CERTIFICADO =======
-       
+        $certificadoPath    =   storage_path('app/public/' . $greenter_config->ruta_certificado);   
 
-        
+        if(!file_exists($certificadoPath)){
+            throw new Exception('No existe el certificado,debe registrar uno en Mantenimiento/Empresas');
+        }
+
+        $certificate    =    file_get_contents($certificadoPath);
 
         if ($certificate === false) {
             throw new Exception('No se pudo cargar el certificado');
         }
+
         $see->setCertificate($certificate);
         /**
          * Clave SOL
@@ -64,8 +70,16 @@ final class Util
          * Usuario = MODDATOS
          * Clave   = moddatos
          */
-        $see->setClaveSOL('20000000001', 'MODDATOS', 'moddatos');
+        //$see->setClaveSOL('20000000001', 'MODDATOS', 'moddatos');
         //$see->setClaveSOL('20611904020', 'SISCOMFA', 'Merry321');
+
+        //========= ESTABLECIENDO CREDENCIALES =======
+        $sol_user   =   $greenter_config->sol_user;
+        $sol_pass   =   $greenter_config->sol_pass;
+        $ruc        =   $greenter_config->ruc;
+
+        $see->setClaveSOL($ruc, $sol_user, $sol_pass);
+        
         $see->setCachePath(__DIR__ . '/../cache');
 
         return $see;

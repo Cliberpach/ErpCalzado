@@ -83,7 +83,7 @@ $result = $see->send($invoice);
 
 // Guardar XML firmado digitalmente.
 file_put_contents($invoice->getName().'.xml',
-                  $see->getFactory()->getLastXml());
+$see->getFactory()->getLastXml());
 
 // Verificamos que la conexión con SUNAT fue exitosa.
 if (!$result->isSuccess()) {

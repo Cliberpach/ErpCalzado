@@ -373,9 +373,10 @@
                         //====== AÚN NO ENVIADO A SUNAT =====
                         if(data.send_sunat == 0){
                             //======== ERRORES HTTP,ETC ======
-                            if(data.response_error && !data.ticket){
+                            if(!data.ticket){
                                 return `<span class="badge badge-danger">ERROR AL ENVIAR</span>`;
                             }
+                           
                         }
 
                     }
@@ -468,12 +469,11 @@
                 'comprobantes': JSON.stringify(listComprobantes),
                 'fecha_comprobantes': JSON.stringify(fecha_comprobantes)
             });
-            console.log(response);
+           // console.log(response);
 
             if(response.status  ==  200){
                 const nuevo_resumen =   response.data.res_store.nuevo_resumen;
                 const type_store    =   response.data.res_store.type;
-                const type_send     =   response.data.res_send.type;
 
                 if(type_store   ==  'success'){
                     addNewResumen(nuevo_resumen);
@@ -486,17 +486,22 @@
                     toastr.error(`${message} | ${exception}`, 'ERROR AL REGISTRAR EL RESUMEN', { timeOut: 0 });
                 }
 
-                if(type_send   ==  'success'){
-                    const message   =   response.data.res_send.message;
+                if('res_send' in response.data){
+                    const type_send     =   response.data.res_send.type;
 
-                    toastr.info(message,'ENVÍO EXITOSO', { timeOut: 0 });
-                }
-                if(type_send   ==  'error'){
-                    const message   =   response.data.res_send.message;
-                    const exception =   response.data.res_send.exception;
+                    if(type_send   ==  'success'){
+                        const message   =   response.data.res_send.message;
 
-                    toastr.error(`${message} | ${exception}`, 'ERROR AL ENVIAR EL RESUMEN', { timeOut: 0 });
+                        toastr.info(message,'ENVÍO EXITOSO', { timeOut: 0 });
+                    }
+                    if(type_send   ==  'error'){
+                        const message   =   response.data.res_send.message;
+                        const exception =   response.data.res_send.exception;
+
+                        toastr.error(`${message} | ${exception}`, 'ERROR AL ENVIAR EL RESUMEN', { timeOut: 0 });
+                    }
                 }
+                
 
             }
         } catch (error) {

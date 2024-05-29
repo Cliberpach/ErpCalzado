@@ -307,12 +307,13 @@ class EmpresaController extends Controller
         $bancos = bancos();
         $monedas = tipos_moneda();
         return view('mantenimiento.empresas.edit', [
-            'empresa' => $empresa ,
-            'bancos' => $bancos,
-            'monedas' => $monedas,
-            'banco' => $banco,
-            'facturacion' => $facturacion,
-            'numeraciones' => $numeraciones,
+            'empresa'           => $empresa ,
+            'bancos'            => $bancos,
+            'monedas'           => $monedas,
+            'banco'             => $banco,
+            'facturacion'       => $facturacion,
+            'numeraciones'      => $numeraciones,
+            "departamentos"     =>  departamentos()
         ]);
 
     }
@@ -322,6 +323,7 @@ class EmpresaController extends Controller
         // ini_set("net_buffer_length", 1000000);
         // ini_set("max_allowed_packet", 1000000000);
         $data = $request->all();
+       
         $rules = [
             'ruc' => ['required','numeric','min:11', Rule::unique('empresas','ruc')->where(function ($query) {
                         $query->whereIn('estado',["ACTIVO"]);
@@ -407,19 +409,39 @@ class EmpresaController extends Controller
         $empresa->nombre_representante = $request->get('nombre_representante');
         $empresa->estado_dni_representante = $request->get('estado_dni_representante');
 
-        $empresa->num_partida = $request->get('num_partida');
-        $empresa->num_asiento = $request->get('num_asiento');
-        $empresa->estado_ruc = $request->get('estado');
-        $empresa->web = $request->get('web');
-        $empresa->facebook = $request->get('facebook');
-        $empresa->instagram = $request->get('instagram');
-        $empresa->ubigeo = $request->get('ubigeo_empresa');
+        $empresa->num_partida       = $request->get('num_partida');
+        $empresa->num_asiento       = $request->get('num_asiento');
+        $empresa->estado_ruc        = $request->get('estado');
+        $empresa->web               = $request->get('web');
+        $empresa->facebook          = $request->get('facebook');
+        $empresa->instagram         = $request->get('instagram');
+        $empresa->ubigeo            = $request->get('ubigeo_empresa');
 
         if ($request->get('estado_fe') == '1'){
             $empresa->estado_fe = '1';
         }else{
             $empresa->estado_fe = '0';
         }
+
+        $departamento_id        =   $request->get('departamento');
+        $provincia_id           =   $request->get('provincia');
+        $distrito_id            =   $request->get('distrito');
+
+        $departamento_id    = str_pad($departamento_id, 2, '0', STR_PAD_LEFT);
+        $provincia_id       = str_pad($provincia_id, 4, '0', STR_PAD_LEFT);
+        $distrito_id        = str_pad($distrito_id, 6, '0', STR_PAD_LEFT);
+
+        $empresa->departamento_id   =   $departamento_id;
+        $empresa->provincia_id      =   $provincia_id;
+        $empresa->distrito_id       =   $distrito_id;
+
+        $departamento               =   DB::select('select d.nombre from departamentos as d where d.id=?',[$departamento_id])[0]->nombre;
+        $provincia                  =   DB::select('select p.nombre from provincias as p where p.id=?',[$provincia_id])[0]->nombre;
+        $distrito                   =   DB::select('select d.nombre from distritos as d where d.id=?',[$distrito_id])[0]->nombre;
+
+        $empresa->departamento      =   $departamento;
+        $empresa->provincia         =   $provincia;
+        $empresa->distrito          =   $distrito;
 
         $empresa->update();
 

@@ -18,6 +18,7 @@ use Greenter\Ws\Services\SunatEndpoints;
 use DateTime;
 use Illuminate\Support\Facades\Response; 
 use Yajra\DataTables\Facades\DataTables;
+use Exception;
 
 
 require __DIR__ . '/../../../../vendor/autoload.php';
@@ -61,6 +62,17 @@ class ResumenController extends Controller
         try {
             //===== INICIAR TRANSACCIÓN =====
             DB::beginTransaction();
+
+            //======= VERIFICANDO SI RESUMENES ESTAN ACTIVOS ======
+
+            $resumenIsActive =    $this->isActive()->getData(true)['resumenActive'];
+
+            if(!$resumenIsActive){
+                return response()
+                ->json([
+                    'res_store'=> ['type'=>'error','message'=>'RÉSUMENES NO SE ENCUENTRA ACTIVO EN LA EMPRESA','exception'=>"ERROR EN EL SERVIDOR"]
+                ]);
+            }
 
             //====== RECEPCIONANDO COMPROBANTES Y FECHA ======
             $comprobantes       =   json_decode($request->get('comprobantes'));
@@ -116,7 +128,13 @@ class ResumenController extends Controller
 
     public function isActive(){
         //===== 186 EN PRODUCCION - 190 EN LOCALHOST =====
-        $resumenActive  = DB::table('empresa_numeracion_facturaciones')->where('serie', 'R001')->exists();
+        $resumenActive = DB::table('empresa_numeracion_facturaciones')
+        ->join('tabladetalles', 'tabladetalles.id', '=', 'empresa_numeracion_facturaciones.tipo_comprobante')
+        ->where('tabladetalles.parametro', 'R')
+        ->where('tabladetalles.tabla_id', 21)
+        ->where('empresa_numeracion_facturaciones.estado','ACTIVO')
+        ->exists();
+       
         return response()->json(['resumenActive'=>$resumenActive]);
     }
 
@@ -134,7 +152,8 @@ class ResumenController extends Controller
         //===== 186 EN PRODUCCION - 190 EN LOCALHOST =====
         $correlativo   =   DB::select('select enf.numero_iniciar 
                                     from empresa_numeracion_facturaciones as enf
-                                    where enf.tipo_comprobante=186')[0]->numero_iniciar;
+                                    inner join tabladetalles as td on td.id=enf.tipo_comprobante
+                                    where td.parametro="R" and td.tabla_id=21 and enf.estado="ACTIVO"')[0]->numero_iniciar;
 
         return $correlativo;
     }
@@ -144,6 +163,18 @@ class ResumenController extends Controller
         $respuesta  =   ['type'=>'','message'=>'','exception'=>''];
 
         try {
+            //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
+            $greenter_config    =   DB::select('select gc.ruta_certificado,gc.id_api_guia_remision,gc.modo,
+              gc.clave_api_guia_remision,e.ruc,e.razon_social,e.direccion_fiscal,e.ubigeo,
+              e.direccion_llegada,ef.sol_user,ef.sol_pass
+              from greenter_config as gc
+              inner join empresas as e on e.id=gc.empresa_id
+              inner join empresa_facturaciones as ef on ef.empresa_id=e.id
+              where gc.empresa_id=1');
+
+            $this->controlConfiguracionGreenter($greenter_config);
+
+
             $util = Util::getInstance();
 
             //====== CONSTRUYENDO DETALLES =====
@@ -183,17 +214,17 @@ class ResumenController extends Controller
             $resumen->update();
     
     
-            //==== ENVIANDO A SUNAT ======
-            $greenter_config    =   DB::select('select * from greenter_config as gc
-                                    where gc.empresa_id=1');
-            dd($greenter_config);
+            if($greenter_config[0]->modo === "BETA"){
+                //===== MODO BETA ======
+                $see = $util->getSee(SunatEndpoints::FE_BETA,$greenter_config[0]);
+            }
 
-            //===== MODO BETA ======
-            $see = $util->getSee(SunatEndpoints::FE_BETA);
-    
-            //===== MODO PRODUCCION =====
-            //$see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
-    
+            if($greenter_config[0]->modo === "PRODUCCION"){
+                //===== MODO PRODUCCION ======
+                $see = $util->getSee(SunatEndpoints::FE_PRODUCCION,$greenter_config[0]);
+            }
+           
+         
             $res = $see->send($sum);
     
             //==== GUARDANDO XML ====
@@ -260,6 +291,23 @@ class ResumenController extends Controller
             'exception'     =>$e->getMessage(),
             'estado'        =>"ERROR EN EL ENVÍO"];
         }   
+    }
+
+
+    public function controlConfiguracionGreenter($greenter_config){
+        if(count($greenter_config) === 0){
+            throw new Exception('NO SE ENCONTRÓ NINGUNA CONFIGURACIÓN PARA GREENTER');
+        }
+
+        if(!$greenter_config[0]->sol_user){
+            throw new Exception('DEBE ESTABLECER LA CREDENCIAL SOL_USER');
+        }
+        if(!$greenter_config[0]->sol_pass){
+            throw new Exception('DEBE ESTABLECER LA CREDENCIAL SOL_PASS');
+        }
+        if ($greenter_config[0]->modo !== "BETA" && $greenter_config[0]->modo !== "PRODUCCION") {
+            throw new Exception('NO SE HA CONFIGURADO EL AMBIENTE BETA O PRODUCCIÓN PARA GREENTER');
+        }
     }
 
 

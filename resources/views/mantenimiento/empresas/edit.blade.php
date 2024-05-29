@@ -200,6 +200,31 @@
                                                         </div>
 
                                                         <div class="form-group">
+                                                            <label class="required" for="departamento">Departamento</label>
+                                                            <select required class="select2_form" name="departamento" id="departamento" onchange="setUbicacionDepartamento(this.value,'first')">
+                                                                @foreach ($departamentos as $departamento)
+                                                                    <option @if ($departamento->id == 13) selected @endif value="{{$departamento->id}}">{{$departamento->nombre}}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+
+                                                       
+                                                        <div class="form-group">
+                                                                <label class="required" for="provincia">Provincia</label>
+                                                                <select required class="select2_form" name="provincia" id="provincia" onchange="setUbicacionProvincia(this.value,'first')" >
+                                                                   
+                                                                </select>
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label class="required" for="distrito">Distrito</label>
+                                                            <select required class="select2_form" name="distrito" id="distrito">
+                                                               
+                                                            </select>
+                                                        </div>
+                                                  
+
+                                                        <div class="form-group">
                                                             <label class="">Correo: </label>
 
                                                             <input type="email"
@@ -1501,6 +1526,127 @@
             }
         }
         return correcto
+    }
+
+    document.addEventListener('DOMContentLoaded',async ()=>{
+      
+      await  setUbigeo();
+
+        
+    })
+
+    async function setUbigeo(){
+        const departamento_id   =   parseInt(@json($empresa->departamento_id));
+        const provincia_id      =   parseInt(@json($empresa->provincia_id));
+        const distrito_id       =   parseInt(@json($empresa->distrito_id));
+
+        //======== DESACTIVAR EVENTS ONCHANGE TEMPORALMENTE ========
+        $('#departamento').removeAttr('onchange');
+        $('#provincia').removeAttr('onchange');
+     
+
+        $('#departamento').val(departamento_id).trigger('change');
+         
+
+        const provincias = await getProvincias(departamento_id);
+        pintarProvincias(provincias,provincia_id);
+
+        const distritos  = await getDistritos(provincia_id);
+        pintarDistritos(distritos,distrito_id);
+
+        document.querySelector('#departamento').onchange = function() {
+            setUbicacionDepartamento(this.value, 'first');
+        };
+        document.querySelector('#provincia').onchange = function() {
+            setUbicacionProvincia(this.value, 'first');
+        };
+
+    }
+
+    async function setUbicacionDepartamento(dep_id,provincia_id){
+        
+        const departamento_id   =   dep_id;
+      
+        const provincias    =   await getProvincias(departamento_id,provincia_id);
+        pintarProvincias(provincias,provincia_id);
+    }
+
+    async function setUbicacionProvincia(prov_id,distrito_id){
+        const provincia_id      =   prov_id;
+        const distritos         =   await getDistritos(provincia_id);
+        pintarDistritos(distritos,distrito_id);
+
+    }
+
+   
+    //======= GET PROVINCIAS ==========
+    async function getProvincias(departamento_id) {
+            try {
+                const { data } = await this.axios.post(route('mantenimiento.ubigeo.provincias'), {
+                    departamento_id
+                });
+                const { error, message, provincias } = data;
+                // this.Provincias = provincias;
+                // this.loadingProvincias = true;
+                return provincias;
+            } catch (ex) {
+
+            }
+    }
+
+    //======== pintar provincias =========
+    function pintarProvincias(provincias,provincia_id){
+        const selectProvincia   =   document.querySelector('#provincia');
+        console.log(provincia_id);
+        let options =   ``;
+        provincias.forEach((provincia)=>{
+            options+= `
+                <option ${provincia.id == provincia_id? 'selected':''} value="${provincia.id}">${provincia.text}</option>
+            `
+        })
+
+        selectProvincia.innerHTML   =   options;
+
+        //====== seleccionar primera opción =======
+        if(provincia_id == 'first'){
+            $(selectProvincia).val($(selectProvincia).find('option').first().val()).trigger('change.select2');
+        }else{
+            $("#provincia").val(provincia_id).trigger("change.select2");
+        }
+    }
+
+    //====== PINTAR DISTRITOS ========
+    async function getDistritos(provincia_id,distrito_id) {
+            try {
+                const { data } = await this.axios.post(route('mantenimiento.ubigeo.distritos'), {
+                    provincia_id
+                });
+                const { error, message, distritos } = data;
+                // this.Distritos = distritos;
+                // this.loadingDistritos = true;
+                return distritos;
+            } catch (ex) {
+
+            }
+    }
+
+    //======== PINTAR DISTRITOS =========
+    function pintarDistritos(distritos,distrito_id){
+        const selectDistrito    =   document.querySelector('#distrito');
+        let options =   ``;
+        distritos.forEach((distrito)=>{
+            options+= `
+                <option value="${distrito.id}">${distrito.text}</option>
+            `
+        })
+
+        selectDistrito.innerHTML   =   options;
+        if(distrito_id == 'first'){
+            //====== seleccionar primera opción =======
+            $(selectDistrito).val($(selectDistrito).find('option').first().val()).trigger('change.select2');
+        }else{
+            $("#distrito").val(distrito_id).trigger("change.select2");
+        }
     }
 
 

@@ -5,25 +5,30 @@ namespace App\Greenter\Data;
 use Illuminate\Http\Request;
 use Greenter\Model\Company\Company;
 use Greenter\Model\Company\Address;
+use Illuminate\Support\Facades\DB;
 
 class SharedStore
 {
     public function getCompany(): Company
     {
+        //======= OBTENIENDO DATA DE EMPRESA =========
+        $empresa    =   DB::select('select * from empresas as e where e.id=1')[0];
+        //====== NOTA COD LOCAL POR DEFECTO 0000 DE LA CENTRAL ======= //
+
         return (new Company())
-            ->setRuc('20611904020')
-            ->setNombreComercial('MERRIS CALZADO')
-            ->setRazonSocial('MERRIS CALZADO E.I.R.L.')
+            ->setRuc($empresa->ruc)
+            ->setNombreComercial($empresa->razon_social_abreviada)
+            ->setRazonSocial($empresa->razon_social)
             ->setAddress((new Address())
-                ->setUbigueo('130101')
-                ->setDistrito('TRUJILLO')
-                ->setProvincia('TRUJILLO')
-                ->setDepartamento('LA LIBERTAD')
-                ->setUrbanizacion('AV ESPAÑA')
-                ->setCodLocal('0000')
-                ->setDireccion('Av España 152'))
-            ->setEmail('merriscalzado@gmail.com')
-            ->setTelephone('954782217');
+                ->setUbigueo($empresa->ubigeo)
+                ->setDistrito($empresa->distrito)
+                ->setProvincia($empresa->provincia)
+                ->setDepartamento($empresa->departamento)
+                ->setUrbanizacion($empresa->urbanizacion)
+                ->setCodLocal($empresa->cod_local)
+                ->setDireccion($empresa->direccion_fiscal))
+            ->setEmail($empresa->correo)
+            ->setTelephone($empresa->celular);
     }
 
     public function getClientPerson(): Client
