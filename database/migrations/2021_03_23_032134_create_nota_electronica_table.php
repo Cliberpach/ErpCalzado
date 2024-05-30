@@ -78,6 +78,15 @@ class CreateNotaElectronicaTable extends Migration
             $table->json('getRegularizeResponse')->nullable();
             $table->enum('regularize', ['0', '1'])->default('0');
 
+            $table->string('response_error_code',10)->nullable();
+            $table->longText('response_error_message')->nullable();
+            $table->string('cd_response_code',10)->nullable();
+            $table->longText('cdr_response_description')->nullable();
+            $table->string('cdr_response_id',10)->nullable();
+            $table->longText('ruta_xml')->nullable();
+            $table->longText('ruta_cdr')->nullable();
+            $table->string('nota_name',150)->nullable();
+
             $table->timestamps();
         });
     }

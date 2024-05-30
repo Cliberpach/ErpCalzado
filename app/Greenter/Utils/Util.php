@@ -180,6 +180,12 @@ HTML;
             if($tipo_comprobante == 128){  //======== FACTURA ====
                 $fileDir    =   public_path('storage/greenter/boletas/cdr');
             }
+            if($tipo_comprobante == '07-03'){
+                $fileDir    =   public_path('storage/greenter/notas_credito_boletas/cdr');
+            }
+            if($tipo_comprobante == '07-01'){
+                $fileDir    =   public_path('storage/greenter/notas_credito_facturas/cdr');
+            }
         }
         
         if($typeFile    ==  "xml"){
@@ -195,6 +201,12 @@ HTML;
             }
             if($tipo_comprobante == 128){   //======== FACTURA =====
                 $fileDir    =   public_path('storage/greenter/boletas/xml');
+            }
+            if($tipo_comprobante == '07-03'){
+                $fileDir    =   public_path('storage/greenter/notas_credito_boletas/xml');
+            }
+            if($tipo_comprobante == '07-01'){
+                $fileDir    =   public_path('storage/greenter/notas_credito_facturas/xml');
             }
         }
 

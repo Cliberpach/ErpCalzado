@@ -520,13 +520,6 @@ class ComprobanteController extends Controller
                     ->setValorVenta($documento->total)
                     ->setSubTotal($documento->total_pagar)
                     ->setMtoImpVenta($documento->total_pagar);
-                    // ->setMtoOperGravadas(200)
-                    // ->setMtoOperExoneradas(100)
-                    // ->setMtoIGV(36)
-                    // ->setTotalImpuestos(36)
-                    // ->setValorVenta(300)
-                    // ->setSubTotal(336)
-                    // ->setMtoImpVenta(336);
 
                 //======== CONSTRUIR DETALLE FACTURA ========
                 $detalles   =   $documento->detalles;
@@ -546,15 +539,7 @@ class ComprobanteController extends Controller
                                 ->setTipAfeIgv('10') // Catalog: 07
                                 ->setTotalImpuestos((float)$detalle->cantidad * ( (float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18 ))
                                 ->setMtoPrecioUnitario($detalle->precio_unitario_nuevo);
-
-                                // ->setMtoValorUnitario(100)
-                                // ->setMtoValorVenta(200)
-                                // ->setMtoBaseIgv(200)
-                                // ->setPorcentajeIgv(18)
-                                // ->setIgv(36)
-                                // ->setTipAfeIgv('10') // Catalog: 07
-                                // ->setTotalImpuestos(36)
-                                // ->setMtoPrecioUnitario(118);
+             
                 }
 
                 $formatter  = new NumeroALetras();
@@ -598,10 +583,6 @@ class ComprobanteController extends Controller
                     .",DESCRIPCIÓN: ".$res->getError()->getMessage());
                 }
 
-                if($documento->tipo_venta == 127){
-                    $res    =    $this->sendFactura($documento,$util);
-                    return response()->json($res);
-                }
 
             }else{
                 throw new Exception("NO SE ENCUENTRA ACTIVA LA EMISIÓN DE FACTURAS EN LA EMPRSA");

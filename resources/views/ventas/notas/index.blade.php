@@ -175,6 +175,18 @@
 <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 
 <script>
+    @if(Session::has('nota_credito_error'))
+        toastr.error('{{ Session::get('nota_credito_error') }}','OCURRIÓ UN ERROR',{timeOut:0});
+    @endif
+    @if(Session::has('nota_credito_sunat_success'))
+        toastr.success('{{ Session::get('nota_credito_sunat_success') }}','NOTA DE CRÉDITO ENVIADA',{timeOut:0});
+    @endif
+    @if(Session::has('nota_credito_sunat_error'))
+        toastr.success('{{ Session::get('nota_credito_sunat_error') }}','OCURRIÓ UN ERROR EN EL ENVÍO A SUNAT',{timeOut:0});
+    @endif
+</script>
+
+<script>
     $(document).ready(function() {
 
         var url = '{{ route("ventas.getNotes", ":id")}}';

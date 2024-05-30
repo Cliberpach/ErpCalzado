@@ -24,6 +24,18 @@ use Yajra\DataTables\Facades\DataTables;
 use Barryvdh\DomPDF\Facade as PDF;
 use stdClass;
 
+use Greenter\Model\Response\BillResult;
+use Greenter\Model\Sale\Note;
+use Greenter\Model\Sale\SaleDetail;
+use Greenter\Model\Sale\Legend;
+use Greenter\Ws\Services\SunatEndpoints;
+
+use Greenter\Model\Client\Client;
+use Greenter\Model\Company\Company;
+use Greenter\Model\Company\Address;
+use App\Greenter\Utils\Util;
+use DateTime;
+
 class NotaController extends Controller
 {
     public function index($id)
@@ -74,6 +86,15 @@ class NotaController extends Controller
         //NOTAS
         //CREDITO -> 0
         //DEBITO -> 1
+
+        //======= VALIDANDO QUE LA EMPRESA TENGA ACTIVA EL TIPO DE NOTA DE CRÉDITO A EMITIR =======
+        $validacion =   $this->isActive($documento);
+
+        if(count($validacion->existe) === 0){
+            Session::flash('nota_credito_error', 'LA EMPRESA NO TIENE ACTIVA LA EMISIÓN DE '.$validacion->message.' ,Debe configurar en Mantenimiento\Empresas');
+            return back();
+        }
+
         
         if($request->nota == '0')
         {
@@ -99,6 +120,37 @@ class NotaController extends Controller
             }
 
         }
+
+    }
+
+    private function isActive($documento){
+        //====== VERIFICANDO SI NOTAS DE CRÉDITO DEL TIPO DE DOCUMENTO ESTÁ ACTIVO EN LA EMPRESA =========
+        $tipo_venta     =   $documento->tipo_venta;
+        $parametro      =   null; 
+        $message        =   "";
+
+        //===== 127:FACTURA | 128:BOLETA | 129:NOTA DE VENTA ======
+        if($tipo_venta == 127){
+            $parametro  =   "FF";   //====== NOTA CRÉDITO FACTURA =======
+            $message    =   "NOTAS DE CRÉDITO DE FACTURAS ELECTRÓNICAS";
+        }
+        if($tipo_venta == 128){
+            $parametro  =   "BB";   //======= NOTA CRÉDITO BOLETA =====
+            $message    =   "NOTAS DE CRÉDITO DE BOLETAS ELECTRÓNICAS";
+        }
+        if($tipo_venta == 129){
+            $parametro  =   "NN";   //===== NOTA DEVOLUCIÓN =======
+            $message    =   "NOTAS DE DEVOLUCIÓN DE NOTAS DE VENTA";
+
+        }
+
+        $existe     =       DB::select('select td.descripcion,td.parametro,enf.estado 
+                            from empresa_numeracion_facturaciones as enf
+                            inner join tabladetalles as td on td.id=enf.tipo_comprobante
+                            where td.tabla_id=21 and td.parametro=? and enf.estado="ACTIVO"',
+                            [$parametro]);
+
+        return (object)["existe"=>$existe,"message"=>$message];
     }
 
     public function getDetalles($id)
@@ -371,6 +423,7 @@ class NotaController extends Controller
             $gestion = "NOTA DE DEBITO";
             crearRegistro($nota , $descripcion , $gestion);
 
+          
             //======== OBTENER CORRELATIVO ======
             $envio_prev = self::sunat_prev($nota->id,$documento->tipo_venta);
             
@@ -787,215 +840,405 @@ class NotaController extends Controller
         }
     }
 
-
-    public function sunat($id,$modo="http")
-    {
-        try
-        {
-            $nota       = Nota::findOrFail($id);
+    public function sunat($id){
+     
+        try {
+            $util       = Util::getInstance();
+            $nota       = Nota::find($id);
             $documento  = Documento::find($nota->documento_id);
             $detalles   = NotaDetalle::where('nota_id',$id)->get();
-            //OBTENER CORRELATIVO DE LA NOTA CREDITO / DEBITO
-            $existe     = self::numeracion($nota,$documento->tipo_venta);
-            $nota       = Nota::findOrFail($id);
-
-            if($existe){
-                if ($existe->get('existe') == true) {
-                    if ($nota->sunat != '1') {
-                        //ARREGLO COMPROBANTE
-                        $arreglo_nota = array(
-                            "tipDocAfectado"    => $nota->tipDocAfectado,
-                            "numDocfectado"     => $nota->numDocfectado,
-                            "codMotivo"         => $nota->codMotivo,
-                            "desMotivo"         => $nota->desMotivo,
-                            "tipoDoc"           => $nota->tipoDoc,
-                            "fechaEmision"      => self::obtenerFecha($nota->fechaEmision),
-                            "tipoMoneda"        => $nota->tipoMoneda,
-                            "serie"             => $nota->serie,
-                            // "serie" => $nota->tipDocAfectado === '03' ? 'BB01' : 'FF01',//$existe->get('numeracion')->serie,
-                            "correlativo"       => $nota->correlativo,
-                            "company" => array(
-                                "ruc"           => $nota->ruc_empresa,
-                                "razonSocial"   => $nota->empresa,
-                                "address" => array(
-                                    "direccion" => $nota->direccion_fiscal_empresa,
-                                )),
-                            "client" => array(
-                                "tipoDoc" =>  $nota->cod_tipo_documento_cliente,
-                                "numDoc" => $nota->documento_cliente,
-                                "rznSocial" => $nota->cliente,
-                                "address" => array(
-                                    "direccion" => $nota->direccion_cliente,
-                                )
-                            ),
-
-                            "mtoOperGravadas"   =>  floatval($nota->mtoOperGravadas),
-                            "mtoIGV"            =>  floatval($nota->mtoIGV),
-                            "totalImpuestos"    =>  floatval($nota->totalImpuestos),
-                            "mtoImpVenta"       =>  floatval($nota->mtoImpVenta),
-                            "ublVersion"        =>  $nota->ublVersion,
-                            "details"           =>  self::obtenerProductos($detalles),
-                            "legends"           =>  self::obtenerLeyenda($nota),
-                        );
-
-                        // return $arreglo_nota;
-                        //OBTENER JSON DEL COMPROBANTE EL CUAL SE ENVIARA A SUNAT
-                        $data = enviarNotaapi(json_encode($arreglo_nota));
-
-                        //RESPUESTA DE LA SUNAT EN JSON
-                        $json_sunat = json_decode($data);
-
-                        if ($json_sunat->sunatResponse->success == true) {
-                            if($json_sunat->sunatResponse->cdrResponse->code == "0")
-                            {
-                                $nota->sunat = '1';
-                                $respuesta_cdr = json_encode($json_sunat->sunatResponse->cdrResponse, true);
-                                $respuesta_cdr = json_decode($respuesta_cdr, true);
-                                $nota->getCdrResponse = $respuesta_cdr;
-
-                                $data_comprobante = pdfNotaapi(json_encode($arreglo_nota));
-                                $name = $existe->get('numeracion')->serie . "-" . $nota->correlativo . '.pdf';
-
-                                if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat'))) {
-                                    mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat'));
-                                }
-
-                                if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'nota'))) {
-                                    mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'nota'));
-                                }
-
-                                $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'nota' . DIRECTORY_SEPARATOR . $name);
-
-                                /*************************************** */
-                                $arreglo_qr = array(
-                                    "ruc" => $nota->ruc_empresa,
-                                    "tipo" => $nota->tipoDoc,
-                                    "serie" => $nota->serie,
-                                    "numero" => $nota->correlativo,
-                                    "emision" => self::obtenerFecha($nota->fechaEmision),
-                                    "igv" => 18,
-                                    "total" => floatval($nota->mtoImpVenta),
-                                    "clienteTipo" => $nota->cod_tipo_documento_cliente,
-                                    "clienteNumero" => $nota->documento_cliente
-                                );
-
-                                $data_qr = generarQrApi(json_encode($arreglo_qr), $nota->empresa_id);
-
-                                $name_qr = $nota->serie . "-" . $nota->correlativo . '.svg';
-
-                                if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs_nota'))) {
-                                    mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs_nota'));
-                                }
-                                $pathToFile_qr = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs_nota' . DIRECTORY_SEPARATOR . $name_qr);
-
-                                file_put_contents($pathToFile_qr, $data_qr);
-                                /*************************************** */
-
-                                file_put_contents($pathToFile, $data_comprobante);
-                                $nota->hash = $json_sunat->hash;
-                                $nota->ruta_qr = 'public/qrs_nota/' . $name_qr;
-                                $nota->nombre_comprobante_archivo = $name;
-                                $nota->ruta_comprobante_archivo = 'public/sunat/nota/' . $name;
-                                $nota->update();
-
-
-                                //Registro de actividad
-                                $descripcion = "SE AGREGÓ LA NOTA ELECTRONICA: " . $existe->get('numeracion')->serie . "-" . $nota->correlativo;
-                                $gestion = "NOTAS ELECTRONICAS";
-                                crearRegistro($nota, $descripcion, $gestion);
-
-                                if($modo == "http"){
-                                    Session::flash('success', 'Nota enviada a Sunat con exito.');
-                                    Session::flash('sunat_exito', '1');
-                                    Session::flash('id_sunat', $json_sunat->sunatResponse->cdrResponse->id);
-                                    Session::flash('descripcion_sunat', $json_sunat->sunatResponse->cdrResponse->description);
     
-                                    return redirect()->route('ventas.notas', $documento->id)->with('sunat_exito', 'success');
-                                }
-                             
-                            }
-                            else {
-                                $nota->sunat = '0';
-                                $id_sunat = $json_sunat->sunatResponse->cdrResponse->code;
-                                $descripcion_sunat = $json_sunat->sunatResponse->cdrResponse->description;
-
-                                $respuesta_error = json_encode($json_sunat->sunatResponse->cdrResponse, true);
-                                $respuesta_error = json_decode($respuesta_error, true);
-                                $nota->getCdrResponse = $respuesta_error;
-
-                                $nota->update();
-                                
-                                if($modo == "http"){
-                                    Session::flash('error', 'Nota electronica sin exito en el envio a sunat.');
-                                    Session::flash('sunat_error', '1');
-                                    Session::flash('id_sunat', $id_sunat);
-                                    Session::flash('descripcion_sunat', $descripcion_sunat);
     
-                                    return redirect()->route('ventas.notas', $documento->id)->with('sunat_error', 'error');
-                                }
-                               
-                            }
-                        }else{
+            if(!$nota){
+                Session::flash('nota_credito_error', 'NO SE ENCONTRÓ LA NOTA DE CRÉDITO EN LA BASE DE DATOS');
+                return back();
+            }
+            if(!$documento){
+                Session::flash('nota_credito_error', 'NO SE ENCONTRÓ EL DOC AFECTADO EN LA BASE DE DATOS');
+                return back();
+            }
+            if(count($detalles) === 0){
+                Session::flash('nota_credito_error', 'LA NOTA DE CRÉDITO NO TIENE DETALLES');
+                return back();
+            }
+    
+            $des_motivo =   '-';
+            if($nota->codMotivo == '01'){
+                $des_motivo =   "ANULACION DE LA OPERACION";
+            }
+            if($nota->codMotivo == '07'){
+                $des_motivo =   "DEVOLUCION POR ITEM";
+            }
+    
+            //====== CONSTRUIR CLIENTE ======
+            $client = (new Client())
+            ->setTipoDoc($nota->cod_tipo_documento_cliente)
+            ->setNumDoc($nota->documento_cliente)
+            ->setRznSocial($nota->cliente)
+            ->setAddress((new Address())
+            ->setDireccion($nota->direccion_cliente));
+    
+            //======== CONSTRUYENDO CABEZERA =====
+            $note = new Note();
+            $note
+                ->setUblVersion('2.1')
+                ->setTipoDoc('07') // Tipo Doc: Nota de Credito
+                ->setSerie($nota->serie) // Serie NCR
+                ->setCorrelativo($nota->correlativo) // Correlativo NCR
+                ->setFechaEmision(new DateTime($nota->created_at))
+                ->setTipDocAfectado($nota->tipDocAfectado) // Tipo Doc: 03-BOLETA 01-FACTURA
+                ->setNumDocfectado($nota->numDocfectado) // Boleta: Serie-Correlativo
+                ->setCodMotivo($nota->codMotivo) // Catalogo. 09    01:ANULACION DE LA OPERACION    07:DEVOLUCION POR ITEM
+                ->setDesMotivo($des_motivo)
+                ->setTipoMoneda('PEN')
+                ->setCompany($util->shared->getCompany())
+                ->setClient($client)
+                ->setMtoOperGravadas($nota->mtoOperGravadas)
+                ->setMtoIGV($nota->mtoIGV)
+                ->setTotalImpuestos($nota->totalImpuestos)
+                ->setMtoImpVenta($nota->mtoImpVenta);
+          
+            
+            //====== CONSTRUYENDO DETALLE =====
+            $items  =   [];
+            foreach ($detalles as $detalle) {
+                $item1 = new SaleDetail();
+                $item1->setCodProducto($detalle->codProducto)
+                    ->setUnidad($detalle->unidad)
+                    ->setCantidad($detalle->cantidad)
+                    ->setDescripcion($detalle->descripcion)
+                    ->setMtoBaseIgv($detalle->mtoBaseIgv)
+                    ->setPorcentajeIgv($detalle->porcentajeIgv)
+                    ->setIgv($detalle->igv)
+                    ->setTipAfeIgv((int)$detalle->tipAfeIgv)
+                    ->setTotalImpuestos($detalle->totalImpuestos)
+                    ->setMtoValorVenta($detalle->mtoValorVenta)
+                    ->setMtoValorUnitario($detalle->mtoValorUnitario)
+                    ->setMtoPrecioUnitario($detalle->mtoPrecioUnitario);
+                
+                $items[]    =   $item1;
+            }
 
-                            //COMO SUNAT NO LO ADMITE VUELVE A SER 0
-                            $nota->sunat = '0';
-                            $nota->regularize = '1';
+            //======= CONSTRUYENDO LEGENDA ======
+            $legenda_nota    = 'SON'.' '. $nota->value;
+    
+            $legend = new Legend();
+            $legend->setCode('1000')
+                ->setValue($legenda_nota);
+    
+            $note->setDetails($items)
+                ->setLegends([$legend]);
+    
+            $see =   $this->controlConfiguracionGreenter($util);
+            $res =   $see->send($note);
 
-                            if ($json_sunat->sunatResponse->error) {
-                                $id_sunat = $json_sunat->sunatResponse->error->code;
-                                $descripcion_sunat = $json_sunat->sunatResponse->error->message;
-                                $obj_erro = new stdClass;
-                                $obj_erro->code = $json_sunat->sunatResponse->error->code;
-                                $obj_erro->description = $json_sunat->sunatResponse->error->message;
-                                $respuesta_error = json_encode($obj_erro, true);
-                                $respuesta_error = json_decode($respuesta_error, true);
-                                $nota->getRegularizeResponse = $respuesta_error;
-                            }else {
-                                $id_sunat = $json_sunat->sunatResponse->cdrResponse->id;
-                                $descripcion_sunat = $json_sunat->sunatResponse->cdrResponse->description;
-                                $respuesta_error = json_encode($json_sunat->sunatResponse->cdrResponse, true);
-                                $respuesta_error = json_decode($respuesta_error, true);
-                                $nota->getCdrResponse = $respuesta_error;
-                            };
 
-                            $nota->update();
-                            Session::flash('error', 'Nota electronica sin exito en el envio a sunat.');
-                            Session::flash('sunat_error', '1');
-                            Session::flash('id_sunat', $id_sunat);
-                            Session::flash('descripcion_sunat', $descripcion_sunat);
-
-                            return redirect()->route('ventas.notas', $documento->id)->with('sunat_error', 'error');
-                        }
-                    }else{
-                        $nota->sunat = '1';
-                        $nota->update();
-                        Session::flash('error','Nota fue enviado a Sunat.');
-                        return redirect()->route('ventas.notas',$documento->id)->with('sunat_existe', 'error');
-                    }
-                }else{
-                    Session::flash('error','Nota no registrado en la empresa.');
-                    return redirect()->route('ventas.notas',$documento->id)->with('sunat_existe', 'error');
+            $util->writeXml($note, $see->getFactory()->getLastXml(),$nota->tipoDoc.'-'.$nota->tipDocAfectado,null);
+            if($nota->tipDocAfectado == '03'){
+                $nota->ruta_xml      =   'storage/greenter/notas_credito_boletas/xml/'.$note->getName().'.xml';
+            }
+            if($nota->tipDocAfectado == '01'){
+                $nota->ruta_xml      =   'storage/greenter/notas_credito_facturas/xml/'.$note->getName().'.xml';
+            }
+            $nota->nota_name        =   $note->getName();
+          
+           //======== ENVÍO CORRECTO Y ACEPTADO ==========
+           if($res->isSuccess()){
+               
+                //====== GUARDANDO RESPONSE ======
+                $cdr                                     =   $res->getCdrResponse();
+                $nota->cdr_response_description          =   $cdr->getDescription();
+                $util->writeCdr($note, $res->getCdrZip(),$nota->tipoDoc.'-'.$nota->tipDocAfectado,null);
+                if($nota->tipDocAfectado == '03'){
+                    $nota->ruta_cdr      =   'storage/greenter/notas_credito_boletas/cdr/'.$note->getName().'.zip';
                 }
-            }else{
-                Session::flash('error','Empresa sin parametros para emitir comprobantes electronicos');
-                return redirect()->route('ventas.notas',$documento->id);
-            }
+                if($nota->tipDocAfectado == '01'){
+                    $nota->ruta_cdr      =   'storage/greenter/notas_credito_facturas/cdr/'.$note->getName().'.zip';
+                }
+                
+                $nota->sunat                        =   "1";
+                $nota->update(); 
 
-        }
-        catch(\Throwable  $e)
-        {   
-            
-            if($modo    ==  "http"){
-                Session::flash('error','Ocurrio un error, si el error persiste contactar al administrador del sistema.');
-                return redirect()->route('ventas.notas',$documento->id);
-            }
+                Session::flash('nota_credito_sunat_success',$cdr->getDescription());
+                return back();
+               //return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
+           }else{
+               $nota->response_error_message  =   $res->getError()->getMessage();
+               $nota->response_error_code     =   $res->getError()->getCode();
+               $nota->regularize              =   '1';
+               $documento->update(); 
 
-            if($modo    ==  "fetch"){
-                return ['success'=>false,'message'=>"ERROR EN EL ENVÍO A SUNAT",'exception'=>$e->getMessage()];
-            }
-            
+                //if($res->getError()->getCode() == 2223){
+                //  dd($res);
+                //  return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
+                //}
+
+               throw new Exception("ERROR AL ENVIAR FACTURA A SUNAT. "."CÓDIGO: ".$res->getError()->getCode()
+               .",DESCRIPCIÓN: ".$res->getError()->getMessage());
+           }
+           
+           
+        } catch (\Throwable $th) {
+            Session::flash('nota_credito_sunat_error',$th->getMessage());
+            return back();
         }
+       
+      
     }
+
+    public function controlConfiguracionGreenter($util){
+        //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
+        $greenter_config    =   DB::select('select gc.ruta_certificado,gc.id_api_guia_remision,gc.modo,
+          gc.clave_api_guia_remision,e.ruc,e.razon_social,e.direccion_fiscal,e.ubigeo,
+          e.direccion_llegada,gc.sol_user,gc.sol_pass
+          from greenter_config as gc
+          inner join empresas as e on e.id=gc.empresa_id
+          inner join configuracion as c on c.propiedad = gc.modo
+          where gc.empresa_id=1 and c.slug="AG"');
+
+
+        if(count($greenter_config) === 0){
+            throw new Exception('NO SE ENCONTRÓ NINGUNA CONFIGURACIÓN PARA GREENTER');
+        }
+
+        if(!$greenter_config[0]->sol_user){
+            throw new Exception('DEBE ESTABLECER LA CREDENCIAL SOL_USER');
+        }
+        if(!$greenter_config[0]->sol_pass){
+            throw new Exception('DEBE ESTABLECER LA CREDENCIAL SOL_PASS');
+        }
+        if ($greenter_config[0]->modo !== "BETA" && $greenter_config[0]->modo !== "PRODUCCION") {
+            throw new Exception('NO SE HA CONFIGURADO EL AMBIENTE BETA O PRODUCCIÓN PARA GREENTER');
+        }
+
+        $see    =   null;
+        if($greenter_config[0]->modo === "BETA"){
+            //===== MODO BETA ======
+            $see = $util->getSee(SunatEndpoints::FE_BETA,$greenter_config[0]);
+        }
+
+        if($greenter_config[0]->modo === "PRODUCCION"){
+            //===== MODO PRODUCCION ======
+            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION,$greenter_config[0]);
+        }
+
+        if(!$see){
+            throw new Exception('ERROR EN LA CONFIGURACIÓN DE GREENTER, SEE ES NULO');
+        }
+
+        return $see;
+    }
+
+
+
+    // // public function sunat($id,$modo="http")
+    // // {
+    // //     try
+    // //     {
+    // //         $nota       = Nota::findOrFail($id);
+    // //         $documento  = Documento::find($nota->documento_id);
+    // //         $detalles   = NotaDetalle::where('nota_id',$id)->get();
+    // //         //OBTENER CORRELATIVO DE LA NOTA CREDITO / DEBITO
+    // //         $existe     = self::numeracion($nota,$documento->tipo_venta);
+    // //         $nota       = Nota::findOrFail($id);
+
+    // //         if($existe){
+    // //             if ($existe->get('existe') == true) {
+    // //                 if ($nota->sunat != '1') {
+    // //                     //ARREGLO COMPROBANTE
+    // //                     $arreglo_nota = array(
+    // //                         "tipDocAfectado"    => $nota->tipDocAfectado,
+    // //                         "numDocfectado"     => $nota->numDocfectado,
+    // //                         "codMotivo"         => $nota->codMotivo,
+    // //                         "desMotivo"         => $nota->desMotivo,
+    // //                         "tipoDoc"           => $nota->tipoDoc,
+    // //                         "fechaEmision"      => self::obtenerFecha($nota->fechaEmision),
+    // //                         "tipoMoneda"        => $nota->tipoMoneda,
+    // //                         "serie"             => $nota->serie,
+    // //                         // "serie" => $nota->tipDocAfectado === '03' ? 'BB01' : 'FF01',//$existe->get('numeracion')->serie,
+    // //                         "correlativo"       => $nota->correlativo,
+    // //                         "company" => array(
+    // //                             "ruc"           => $nota->ruc_empresa,
+    // //                             "razonSocial"   => $nota->empresa,
+    // //                             "address" => array(
+    // //                                 "direccion" => $nota->direccion_fiscal_empresa,
+    // //                             )),
+    // //                         "client" => array(
+    // //                             "tipoDoc" =>  $nota->cod_tipo_documento_cliente,
+    // //                             "numDoc" => $nota->documento_cliente,
+    // //                             "rznSocial" => $nota->cliente,
+    // //                             "address" => array(
+    // //                                 "direccion" => $nota->direccion_cliente,
+    // //                             )
+    // //                         ),
+
+    // //                         "mtoOperGravadas"   =>  floatval($nota->mtoOperGravadas),
+    // //                         "mtoIGV"            =>  floatval($nota->mtoIGV),
+    // //                         "totalImpuestos"    =>  floatval($nota->totalImpuestos),
+    // //                         "mtoImpVenta"       =>  floatval($nota->mtoImpVenta),
+    // //                         "ublVersion"        =>  $nota->ublVersion,
+    // //                         "details"           =>  self::obtenerProductos($detalles),
+    // //                         "legends"           =>  self::obtenerLeyenda($nota),
+    // //                     );
+
+    // //                     // return $arreglo_nota;
+    // //                     //OBTENER JSON DEL COMPROBANTE EL CUAL SE ENVIARA A SUNAT
+    // //                     $data = enviarNotaapi(json_encode($arreglo_nota));
+
+    // //                     //RESPUESTA DE LA SUNAT EN JSON
+    // //                     $json_sunat = json_decode($data);
+
+    // //                     if ($json_sunat->sunatResponse->success == true) {
+    // //                         if($json_sunat->sunatResponse->cdrResponse->code == "0")
+    // //                         {
+    // //                             $nota->sunat = '1';
+    // //                             $respuesta_cdr = json_encode($json_sunat->sunatResponse->cdrResponse, true);
+    // //                             $respuesta_cdr = json_decode($respuesta_cdr, true);
+    // //                             $nota->getCdrResponse = $respuesta_cdr;
+
+    // //                             $data_comprobante = pdfNotaapi(json_encode($arreglo_nota));
+    // //                             $name = $existe->get('numeracion')->serie . "-" . $nota->correlativo . '.pdf';
+
+    // //                             if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat'))) {
+    // //                                 mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat'));
+    // //                             }
+
+    // //                             if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'nota'))) {
+    // //                                 mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'nota'));
+    // //                             }
+
+    // //                             $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'nota' . DIRECTORY_SEPARATOR . $name);
+
+    // //                             /*************************************** */
+    // //                             $arreglo_qr = array(
+    // //                                 "ruc" => $nota->ruc_empresa,
+    // //                                 "tipo" => $nota->tipoDoc,
+    // //                                 "serie" => $nota->serie,
+    // //                                 "numero" => $nota->correlativo,
+    // //                                 "emision" => self::obtenerFecha($nota->fechaEmision),
+    // //                                 "igv" => 18,
+    // //                                 "total" => floatval($nota->mtoImpVenta),
+    // //                                 "clienteTipo" => $nota->cod_tipo_documento_cliente,
+    // //                                 "clienteNumero" => $nota->documento_cliente
+    // //                             );
+
+    // //                             $data_qr = generarQrApi(json_encode($arreglo_qr), $nota->empresa_id);
+
+    // //                             $name_qr = $nota->serie . "-" . $nota->correlativo . '.svg';
+
+    // //                             if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs_nota'))) {
+    // //                                 mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs_nota'));
+    // //                             }
+    // //                             $pathToFile_qr = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs_nota' . DIRECTORY_SEPARATOR . $name_qr);
+
+    // //                             file_put_contents($pathToFile_qr, $data_qr);
+    // //                             /*************************************** */
+
+    // //                             file_put_contents($pathToFile, $data_comprobante);
+    // //                             $nota->hash = $json_sunat->hash;
+    // //                             $nota->ruta_qr = 'public/qrs_nota/' . $name_qr;
+    // //                             $nota->nombre_comprobante_archivo = $name;
+    // //                             $nota->ruta_comprobante_archivo = 'public/sunat/nota/' . $name;
+    // //                             $nota->update();
+
+
+    // //                             //Registro de actividad
+    // //                             $descripcion = "SE AGREGÓ LA NOTA ELECTRONICA: " . $existe->get('numeracion')->serie . "-" . $nota->correlativo;
+    // //                             $gestion = "NOTAS ELECTRONICAS";
+    // //                             crearRegistro($nota, $descripcion, $gestion);
+
+    // //                             if($modo == "http"){
+    // //                                 Session::flash('success', 'Nota enviada a Sunat con exito.');
+    // //                                 Session::flash('sunat_exito', '1');
+    // //                                 Session::flash('id_sunat', $json_sunat->sunatResponse->cdrResponse->id);
+    // //                                 Session::flash('descripcion_sunat', $json_sunat->sunatResponse->cdrResponse->description);
+    
+    // //                                 return redirect()->route('ventas.notas', $documento->id)->with('sunat_exito', 'success');
+    // //                             }
+                             
+    // //                         }
+    // //                         else {
+    // //                             $nota->sunat = '0';
+    // //                             $id_sunat = $json_sunat->sunatResponse->cdrResponse->code;
+    // //                             $descripcion_sunat = $json_sunat->sunatResponse->cdrResponse->description;
+
+    // //                             $respuesta_error = json_encode($json_sunat->sunatResponse->cdrResponse, true);
+    // //                             $respuesta_error = json_decode($respuesta_error, true);
+    // //                             $nota->getCdrResponse = $respuesta_error;
+
+    // //                             $nota->update();
+                                
+    // //                             if($modo == "http"){
+    // //                                 Session::flash('error', 'Nota electronica sin exito en el envio a sunat.');
+    // //                                 Session::flash('sunat_error', '1');
+    // //                                 Session::flash('id_sunat', $id_sunat);
+    // //                                 Session::flash('descripcion_sunat', $descripcion_sunat);
+    
+    // //                                 return redirect()->route('ventas.notas', $documento->id)->with('sunat_error', 'error');
+    // //                             }
+                               
+    // //                         }
+    // //                     }else{
+
+    // //                         //COMO SUNAT NO LO ADMITE VUELVE A SER 0
+    // //                         $nota->sunat = '0';
+    // //                         $nota->regularize = '1';
+
+    // //                         if ($json_sunat->sunatResponse->error) {
+    // //                             $id_sunat = $json_sunat->sunatResponse->error->code;
+    // //                             $descripcion_sunat = $json_sunat->sunatResponse->error->message;
+    // //                             $obj_erro = new stdClass;
+    // //                             $obj_erro->code = $json_sunat->sunatResponse->error->code;
+    // //                             $obj_erro->description = $json_sunat->sunatResponse->error->message;
+    // //                             $respuesta_error = json_encode($obj_erro, true);
+    // //                             $respuesta_error = json_decode($respuesta_error, true);
+    // //                             $nota->getRegularizeResponse = $respuesta_error;
+    // //                         }else {
+    // //                             $id_sunat = $json_sunat->sunatResponse->cdrResponse->id;
+    // //                             $descripcion_sunat = $json_sunat->sunatResponse->cdrResponse->description;
+    // //                             $respuesta_error = json_encode($json_sunat->sunatResponse->cdrResponse, true);
+    // //                             $respuesta_error = json_decode($respuesta_error, true);
+    // //                             $nota->getCdrResponse = $respuesta_error;
+    // //                         };
+
+    // //                         $nota->update();
+    // //                         Session::flash('error', 'Nota electronica sin exito en el envio a sunat.');
+    // //                         Session::flash('sunat_error', '1');
+    // //                         Session::flash('id_sunat', $id_sunat);
+    // //                         Session::flash('descripcion_sunat', $descripcion_sunat);
+
+    // //                         return redirect()->route('ventas.notas', $documento->id)->with('sunat_error', 'error');
+    // //                     }
+    // //                 }else{
+    // //                     $nota->sunat = '1';
+    // //                     $nota->update();
+    // //                     Session::flash('error','Nota fue enviado a Sunat.');
+    // //                     return redirect()->route('ventas.notas',$documento->id)->with('sunat_existe', 'error');
+    // //                 }
+    // //             }else{
+    // //                 Session::flash('error','Nota no registrado en la empresa.');
+    // //                 return redirect()->route('ventas.notas',$documento->id)->with('sunat_existe', 'error');
+    // //             }
+    // //         }else{
+    // //             Session::flash('error','Empresa sin parametros para emitir comprobantes electronicos');
+    // //             return redirect()->route('ventas.notas',$documento->id);
+    // //         }
+
+    // //     }
+    // //     catch(\Throwable  $e)
+    // //     {   
+            
+    // //         if($modo    ==  "http"){
+    // //             Session::flash('error','Ocurrio un error, si el error persiste contactar al administrador del sistema.');
+    // //             return redirect()->route('ventas.notas',$documento->id);
+    // //         }
+
+    // //         if($modo    ==  "fetch"){
+    // //             return ['success'=>false,'message'=>"ERROR EN EL ENVÍO A SUNAT",'exception'=>$e->getMessage()];
+    // //         }
+            
+    // //     }
+    // // }
 
     public function sunat_prev($nota_id,$tipo_venta)
     {

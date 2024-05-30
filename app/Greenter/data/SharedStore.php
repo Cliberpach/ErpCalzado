@@ -4,7 +4,7 @@ namespace App\Greenter\Data;
 
 use Illuminate\Http\Request;
 use Greenter\Model\Company\Company;
-//use Greenter\Model\Client\Client;
+use Greenter\Model\Client\Client;
 use Greenter\Model\Company\Address;
 use Illuminate\Support\Facades\DB;
 
