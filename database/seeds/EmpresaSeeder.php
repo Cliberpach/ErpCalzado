@@ -32,6 +32,14 @@ class EmpresaSeeder extends Seeder
         $empresa->num_partida = '11036086';
         $empresa->estado_ruc = 'ACTIVO';
         $empresa->estado_fe= '1';
+        $empresa->departamento  = 'LA LIBERTAD';
+        $empresa->provincia     = 'TRUJILLO';
+        $empresa->distrito      = 'TRUJILLO';
+        $empresa->departamento_id   =   '13';
+        $empresa->provincia_id      =   '1301';
+        $empresa->distrito_id       =   '130101';
+        $empresa->urbanizacion      =   '-';
+        $empresa->cod_local         =   '0000';
         $empresa->save();
 
         $facturacion = new Facturacion();

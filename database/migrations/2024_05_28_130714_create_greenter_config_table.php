@@ -21,7 +21,8 @@ class CreateGreenterConfigTable extends Migration
             $table->longText('id_api_guia_remision')->nullable();
             $table->longText('clave_api_guia_remision')->nullable();
             $table->enum('modo', ['BETA', 'PRODUCCION'])->default('BETA');
-
+            $table->string('sol_user',100);
+            $table->string('sol_pass',100);
             $table->foreign('empresa_id')
                   ->references('id')->on('empresas')
                   ->onDelete('cascade');

@@ -25,5 +25,12 @@ class ConfiguracionSeeder extends Seeder
             'nro_dias'      =>  null
         ]);
 
+        Configuracion::create([
+            'slug'          => 'AG',
+            'descripcion'   => 'AMBIENTE GREENTER',
+            'propiedad'     => 'BETA',
+            'nro_dias'      =>  null
+        ]);
+
     }
 }

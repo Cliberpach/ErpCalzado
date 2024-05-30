@@ -50,6 +50,15 @@ class CreateEmpresasTable extends Migration
             $table->enum('estado_fe',['0','1'])->default('0');
             $table->enum('condicion',['0','1'])->default('0');
 
+            $table->string('departamento',150);
+            $table->string('provincia',150);
+            $table->string('distrito',150);
+            $table->string('urbanizacion',150);
+            $table->string('cod_local',150);
+            $table->string('departamento_id',2);
+            $table->string('provincia_id',4);
+            $table->string('distrito_id',6);
+
             $table->timestamps();
         });
     }

@@ -95,6 +95,13 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->enum('sunat_contingencia', ['0', '1', '2'])->default('0');
             $table->json('getCdrResponse_contingencia')->nullable();
             $table->json('getRegularizeResponse_contingencia')->nullable();
+
+            $table->string('cdr_response_description')->nullable();
+            $table->string('cdr_response_code')->nullable();
+            $table->string('cdr_response_id')->nullable();
+            $table->string('response_error_message')->nullable();
+            $table->string('response_error_code')->nullable();
+
             $table->timestamps();
         });
     }
