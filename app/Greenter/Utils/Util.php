@@ -168,19 +168,33 @@ HTML;
 
         if($typeFile    ==  "zip"){
             if($tipo_comprobante == 'RESUMEN'){
-                $fileDir = __DIR__.'/../files/resumenes_cdr';
+                //$fileDir = __DIR__.'/../files/resumenes_cdr';
+                $fileDir    =   public_path('storage/greenter/resumenes/cdr');
             }
             if($tipo_comprobante == 'GUIA REMISION'){
                 $fileDir = __DIR__.'/../files/guias_remision_cdr';
+            }
+            if($tipo_comprobante == 127){  //======== FACTURA ====
+                $fileDir    =   public_path('storage/greenter/facturas/cdr');
+            }
+            if($tipo_comprobante == 128){  //======== FACTURA ====
+                $fileDir    =   public_path('storage/greenter/boletas/cdr');
             }
         }
         
         if($typeFile    ==  "xml"){
             if($tipo_comprobante == 'RESUMEN'){
-                $fileDir = __DIR__.'/../files/resumenes_xml';
+                //$fileDir = __DIR__.'/../files/resumenes_xml';
+                $fileDir    =   public_path('storage/greenter/resumenes/xml');
             }
             if($tipo_comprobante == 'GUIA REMISION'){
                 $fileDir = __DIR__.'/../files/guias_remision_xml';
+            }
+            if($tipo_comprobante == 127){   //======== FACTURA =====
+                $fileDir    =   public_path('storage/greenter/facturas/xml');
+            }
+            if($tipo_comprobante == 128){   //======== FACTURA =====
+                $fileDir    =   public_path('storage/greenter/boletas/xml');
             }
         }
 

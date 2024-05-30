@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class ConfiguracionController extends Controller
 {
@@ -110,5 +111,21 @@ class ConfiguracionController extends Controller
         
         Session::flash('success',$config->descripcion.' modificada.');
         return redirect()->route('configuracion.index');
+    }
+
+
+    public function setGreenterModo(Request $request){
+        DB::beginTransaction();
+        try {
+            $modo   =   $request->get('modo');
+            $config = Configuracion::where('slug', 'AG')->first();
+            $config->propiedad  =   $modo;
+            $config->update();
+
+            DB::commit();
+            return response()->json(['success'=>true,'message'=> 'SE HA CAMBIADO A MODO: '.$config->propiedad]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=> 'ERROR EN EL SERVIDOR','exception'=>$th->getMessage()]);
+        }
     }
 }

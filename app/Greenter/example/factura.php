@@ -77,8 +77,6 @@ $invoice->setDetails([$item])
         ->setLegends([$legend]);
 
 
-
-
 $result = $see->send($invoice);
 
 // Guardar XML firmado digitalmente.

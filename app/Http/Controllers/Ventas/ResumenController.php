@@ -163,16 +163,9 @@ class ResumenController extends Controller
         $respuesta  =   ['type'=>'','message'=>'','exception'=>''];
 
         try {
-            //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
-            $greenter_config    =   DB::select('select gc.ruta_certificado,gc.id_api_guia_remision,gc.modo,
-              gc.clave_api_guia_remision,e.ruc,e.razon_social,e.direccion_fiscal,e.ubigeo,
-              e.direccion_llegada,ef.sol_user,ef.sol_pass
-              from greenter_config as gc
-              inner join empresas as e on e.id=gc.empresa_id
-              inner join empresa_facturaciones as ef on ef.empresa_id=e.id
-              where gc.empresa_id=1');
-
-            $this->controlConfiguracionGreenter($greenter_config);
+          
+          
+            //$this->controlConfiguracionGreenter($greenter_config);
 
 
             $util = Util::getInstance();
@@ -214,23 +207,15 @@ class ResumenController extends Controller
             $resumen->update();
     
     
-            if($greenter_config[0]->modo === "BETA"){
-                //===== MODO BETA ======
-                $see = $util->getSee(SunatEndpoints::FE_BETA,$greenter_config[0]);
-            }
-
-            if($greenter_config[0]->modo === "PRODUCCION"){
-                //===== MODO PRODUCCION ======
-                $see = $util->getSee(SunatEndpoints::FE_PRODUCCION,$greenter_config[0]);
-            }
+            $see    =   $this->controlConfiguracionGreenter($util);
            
          
             $res = $see->send($sum);
     
             //==== GUARDANDO XML ====
             $util->writeXml($sum, $see->getFactory()->getLastXml(),"RESUMEN",null);
-            $resumen->ruta_xml  =    __DIR__.'/../../../Greenter/files/resumenes_xml/'.$sum->getName().'.xml';
-    
+            //$resumen->ruta_xml    =    __DIR__.'/../../../Greenter/files/resumenes_xml/'.$sum->getName().'.xml';
+            $resumen->ruta_xml      =   'storage/greenter/resumenes/xml/'.$sum->getName().'.xml';
     
             //==== VERIFICANDO SI SE ENVIÓ A SUNAT ====
             $envioSunat     =   $res->isSuccess();
@@ -294,7 +279,17 @@ class ResumenController extends Controller
     }
 
 
-    public function controlConfiguracionGreenter($greenter_config){
+    public function controlConfiguracionGreenter($util){
+        //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
+        $greenter_config    =   DB::select('select gc.ruta_certificado,gc.id_api_guia_remision,gc.modo,
+          gc.clave_api_guia_remision,e.ruc,e.razon_social,e.direccion_fiscal,e.ubigeo,
+          e.direccion_llegada,gc.sol_user,gc.sol_pass
+          from greenter_config as gc
+          inner join empresas as e on e.id=gc.empresa_id
+          inner join configuracion as c on c.propiedad = gc.modo
+          where gc.empresa_id=1 and c.slug="AG"');
+
+
         if(count($greenter_config) === 0){
             throw new Exception('NO SE ENCONTRÓ NINGUNA CONFIGURACIÓN PARA GREENTER');
         }
@@ -308,6 +303,23 @@ class ResumenController extends Controller
         if ($greenter_config[0]->modo !== "BETA" && $greenter_config[0]->modo !== "PRODUCCION") {
             throw new Exception('NO SE HA CONFIGURADO EL AMBIENTE BETA O PRODUCCIÓN PARA GREENTER');
         }
+
+        $see    =   null;
+        if($greenter_config[0]->modo === "BETA"){
+            //===== MODO BETA ======
+            $see = $util->getSee(SunatEndpoints::FE_BETA,$greenter_config[0]);
+        }
+
+        if($greenter_config[0]->modo === "PRODUCCION"){
+            //===== MODO PRODUCCION ======
+            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION,$greenter_config[0]);
+        }
+
+        if(!$see){
+            throw new Exception('ERROR EN LA CONFIGURACIÓN DE GREENTER, SEE ES NULO');
+        }
+
+        return $see;
     }
 
 
@@ -324,7 +336,9 @@ class ResumenController extends Controller
 
             //===== INICIAR ENDPOINTS SUNAT ====
             //$see = $util->getSee(SunatEndpoints::FE_BETA);
-            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
+            //$see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
+
+            $see    =   $this->controlConfiguracionGreenter($util);
 
             $res_ticket     =   $see->getStatus($ticket);
 
@@ -336,8 +350,9 @@ class ResumenController extends Controller
             if($code_estado == 0){
                 //===== GUARDANDO CDR ======
                 $util->writeCdr(null, $res_ticket->getCdrZip(), "RESUMEN",$summary_name);
-                $resumen->ruta_cdr  =   __DIR__.'/../../../Greenter/files/resumenes_cdr/'.$summary_name.'.zip';   
-    
+                //$resumen->ruta_cdr  =   __DIR__.'/../../../Greenter/files/resumenes_cdr/'.$summary_name.'.zip';   
+                $resumen->ruta_cdr      =   'storage/greenter/resumenes/cdr/'.$summary_name.'.zip';
+
                 //==== GUARDANDO DATOS DEL CDR ====
                 if($res_ticket->getCdrResponse()){
                     $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
@@ -354,7 +369,9 @@ class ResumenController extends Controller
             if($code_estado == 99 && $cdr){
                 //===== GUARDANDO CDR ======
                 $util->writeCdr(null, $res_ticket->getCdrZip(),"RESUMEN",$summary_name);
-                $resumen->ruta_cdr  =   __DIR__.'/../../../Greenter/files/resumenes_cdr/'.$summary_name.'.zip';   
+                //$resumen->ruta_cdr  =   __DIR__.'/../../../Greenter/files/resumenes_cdr/'.$summary_name.'.zip';  
+                $resumen->ruta_cdr      =   'storage/greenter/resumenes/cdr/'.$summary_name.'.zip';
+ 
     
                 //==== GUARDANDO DATOS DEL CDR ====
                 $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
@@ -423,8 +440,9 @@ class ResumenController extends Controller
     }
 
     public function getXml($resumen_id){
-        $resumen    =   Resumen::find($resumen_id);
-        $nombreArchivo = basename($resumen->ruta_xml);
+        $resumen        =   Resumen::find($resumen_id);
+        $nombreArchivo  = basename($resumen->ruta_xml);
+        
 
         $headers = [
             'Content-Type' => 'text/xml',

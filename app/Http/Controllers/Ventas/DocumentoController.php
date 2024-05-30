@@ -2368,14 +2368,14 @@ class DocumentoController extends Controller
     {
         try {
             $cadena = explode('-', $value);
-            $id = $cadena[0];
-            $size = (int) $cadena[1];
-            $qr = self::qr_code($id);
+            $id     = $cadena[0];
+            $size   = (int) $cadena[1];
+            $qr     = self::qr_code($id);
             $documento = Documento::findOrFail($id);
             $detalles = Detalle::where('documento_id', $id)->where('eliminado', '0')->get();
             if ((int) $documento->tipo_venta == 127 || (int) $documento->tipo_venta == 128) {
                 if ($documento->sunat == '0' || $documento->sunat == '2') {
-                    //dd('aaa');
+                   
                     //ARREGLO COMPROBANTE
                     $arreglo_comprobante = array(
                         "tipoOperacion" => $documento->tipoOperacion(),
@@ -2413,7 +2413,7 @@ class DocumentoController extends Controller
                     );
 
                     $comprobante = json_encode($arreglo_comprobante);
-
+                    
                     //$data = generarComprobanteapi($comprobante, $documento->empresa_id);
                     $name = $documento->id . '.pdf';
                     $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes' . DIRECTORY_SEPARATOR . $name);
@@ -2449,17 +2449,17 @@ class DocumentoController extends Controller
                         return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
                     }
                 } else {
-
+                    
                     //OBTENER CORRELATIVO DEL COMPROBANTE ELECTRONICO
-                    $comprobante = event(new ComprobanteRegistrado($documento, $documento->serie));
+                    //$comprobante = event(new ComprobanteRegistrado($documento, $documento->serie));
                     //ENVIAR COMPROBANTE PARA LUEGO GENERAR PDF
-                    $data = generarComprobanteapi($comprobante[0], $documento->empresa_id);
+                    //$data = generarComprobanteapi($comprobante[0], $documento->empresa_id);
                     $name = $documento->id . '.pdf';
                     $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes' . DIRECTORY_SEPARATOR . $name);
                     if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes'))) {
                         mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes'));
                     }
-                    file_put_contents($pathToFile, $data);
+                    //file_put_contents($pathToFile, $data);
 
                     $empresa = Empresa::first();
 

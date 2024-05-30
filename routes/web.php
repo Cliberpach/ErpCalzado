@@ -81,6 +81,7 @@ function(){
         Route::put('/empresa/update', 'Configuracion\ConfiguracionController@codigo')->name('configuracion.empresa.update');
         Route::post('/changePassword','Configuracion\ConfiguracionController@changePasswordMaster')->name('changePasswordMaster');
         Route::post('/resumenes/envio', 'Configuracion\ConfiguracionController@resumenesEnvio')->name('configuracion.resumenes.envio');
+        Route::post('/greenter/modo', 'Configuracion\ConfiguracionController@setGreenterModo')->name('configuracion.greenter.modo');
 
     });
 

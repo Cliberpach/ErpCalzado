@@ -442,6 +442,7 @@ export default {
     },
     async created() {
         await this.Lista();
+        
     },
     methods: {
         async updateDataEnvio(data_envio){
@@ -484,6 +485,7 @@ export default {
                 this.modopagos = modos_pago;
                 this.documentos = documentos;
                 this.pagination = pagination;
+                
             } catch (ex) { }
         },
         estadoPago(data) {
@@ -538,59 +540,61 @@ export default {
         },
         enviarSunat(id, contingencia) {
             const swalWithBootstrapButtons = Swal.mixin({
-                customClass: {
-                    confirmButton: 'btn btn-success',
-                    cancelButton: 'btn btn-danger',
-                },
-                buttonsStyling: false
-            })
+            customClass: {
+                confirmButton: "btn btn-success",
+                cancelButton: "btn btn-danger"
+            },
+            buttonsStyling: false
+            });
 
-        Swal.fire({
-            title: "Opción Enviar a Sunat",
-            text: "¿Seguro que desea enviar documento de venta a Sunat?",
-            showCancelButton: true,
-            icon: 'info',
-            confirmButtonColor: "#1ab394",
-            confirmButtonText: 'Si, Confirmar',
-            cancelButtonText: "No, Cancelar",
-            allowOutsideClick: false,
-            // showLoaderOnConfirm: true,
-        }).then(async(result) => {
-            if (result.value) {
+            Swal.fire({
+                title: "DESEA ENVIAR EL DOCUMENTO DE VENTA A SUNAT?",
+                text: "OPERACIÓN NO REVERSIBLE",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sí!",
+                showLoaderOnConfirm: true,
+                allowOutsideClick: false,
+                preConfirm: async () => {
+                    try {
+                        const res = await axios.get(route('ventas.documento.sunat', id));
+                        return res.data;
+                    } catch (error) {
+                        const data  =   {success:false,message:"ERROR EN LA SOLICITUD",exception:error};   
+                        return data;
+                    }
+                }
+            }).then((result) => {
+                
+                if (result.value && result.value.success) {
+                    //====== ACTUALIZAR DOCUMENTO EN FRONTEND ======
+                    const documento_index =   this.documentos.findIndex((d)=>{
+                        return  d.id == id;
+                    });
+                    if(documento_index !== -1){
+                        this.documentos[documento_index].sunat  =   '1';
+                    }
 
-                var url = '';
+                    toastr.success(result.value.message,'DOCUMENTO ENVIADO A SUNAT',{timeOut:5000});
+                } 
 
-                if (contingencia == '1') {
-                    url = route('ventas.documento.sunat.contingencia',{id});
-                } else {
-                    //===== ENVIAR CUANDO CONTINGENCIA = 0 ===========
-                    url = route('ventas.documento.sunat',{id});
+                if(result.value && !result.value.success){
+                    toastr.error(result.value.exception,result.value.message,{timeOut:0});
                 }
 
-                window.location.href = url
+                if(result.dismiss === Swal.DismissReason.cancel) {
+                    swalWithBootstrapButtons.fire({
+                    title: "Operación cancelada",
+                    text: "No se realizaron acciones",
+                    icon: "error"
+                    });
+                }
+
+            });
 
 
-                Swal.fire({
-                    title: '¡Cargando!',
-                    type: 'info',
-                    text: 'Enviando documento de venta a Sunat',
-                    showConfirmButton: false,
-                    onBeforeOpen: () => {
-                        Swal.showLoading()
-                    }
-                })
-
-            } else if (
-                /* Read more about handling dismissals below */
-                result.dismiss === Swal.DismissReason.cancel
-            ) {
-                swalWithBootstrapButtons.fire(
-                    'Cancelado',
-                    'La Solicitud se ha cancelado.',
-                    'error'
-                )
-            }
-        })
         },
         dias(data) {
             var dias = data.dias > 4 ? 0 : 4 - data.dias;

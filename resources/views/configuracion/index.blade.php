@@ -40,7 +40,6 @@
 
 .toggle-on .toggle-button{
     top: 3px;
-    width: 65px;
     bottom: 3px;
     right: 3px;
     border-radius: 23px;
@@ -55,12 +54,12 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 0;
-    right: 0;
+    left: 0px;
+    right: 50px;
     line-height: 36px;
     text-align: center;
     font-family: 'Quicksand', sans-serif;
-    font-size: 18px;
+    font-size: 11px;
     font-weight: normal;
     cursor: pointer;
     -webkit-user-select: none; /* Chrome/Safari */    
@@ -296,9 +295,15 @@
             </div>
         </div>
         @endif
-        @endforeach
 
+        @php
+            $greenter_mode  =   null;
+        @endphp
 
+        @if ($item->slug === "AG")
+        @php
+            $greenter_mode  =   $item->propiedad;
+        @endphp
         <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
             <div class="ibox ">
                 <div class="ibox-title">
@@ -326,6 +331,11 @@
                 </div>
             </div>
         </div>
+        @endif
+        @endforeach
+
+
+      
 
 
     </div>
@@ -367,8 +377,8 @@
     });
 
     document.addEventListener('DOMContentLoaded',()=>{
+        loadGreenterMode();
         events();
-
     })
 
     function events(){
@@ -402,9 +412,69 @@
         })
 
         $('.toggle').click(function(e){
-            e.preventDefault(); // The flicker is a codepen thing
-            $(this).toggleClass('toggle-on');
+            e.preventDefault(); 
+
+            const switchToggle  =       document.querySelector('#switch');
+            const modo_cambiar  =   switchToggle.classList.contains('toggle-on')? "BETA" : "PRODUCCIÓN" ;
+
+            const swalWithBootstrapButtons = Swal.mixin({
+            customClass: {
+                confirmButton: "btn btn-success",
+                cancelButton: "btn btn-danger"
+            },
+            buttonsStyling: false
+            });
+            swalWithBootstrapButtons.fire({
+            title: `Desea cambiar el ambiente de greenter a ${modo_cambiar}?`,
+            text: "Está acción afectará la facturación de la empresa!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí!",
+            cancelButtonText: "No, cancelar!",
+            reverseButtons: true
+            }).then((result) => {
+            if (result.isConfirmed) {
+
+                $(this).toggleClass('toggle-on');
+                const modo          =       switchToggle.classList.contains('toggle-on')? "PRODUCCION" : "BETA" ;
+                setGreenterModo(modo);
+
+            } else if (
+                /* Read more about handling dismissals below */
+                result.dismiss === Swal.DismissReason.cancel
+            ) {
+                swalWithBootstrapButtons.fire({
+                title: "Operación cancelada",
+                text: "No se aplicaron cambios",
+                icon: "error"
+                });
+            }
+            });
+
         });
+
+    }
+
+    function loadGreenterMode(){
+        const greenter_mode =   @json($greenter_mode);
+        
+        if(greenter_mode    === "PRODUCCION"){
+            $('.toggle').toggleClass('toggle-on');
+        }
+    }
+
+    async function setGreenterModo(modo) {
+        try {
+            const res   =   await axios.post(route('configuracion.greenter.modo'),{modo});
+            
+            if(res.data.success){
+                toastr.success(res.data.message,'CONFIGURACIÓN APLICADA');
+            }else{
+                toastr.error(res.data.exception,res.data.message);
+            }
+        } catch (error) {
+            toastr.error(error,'ERROR EN EL SERVIDOR');
+        }
     }
 </script>
 @endpush
