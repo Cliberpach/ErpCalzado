@@ -7,7 +7,6 @@
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only">Close</span>
                 </button>
-                {{-- <i class="fa fa-user-plus modal-icon"></i> --}}
                 <i class="fas fa-user-astronaut fa-pulse modal-icon"></i>
                 <h4 class="modal-title">NUEVO CLIENTE</h4>
                 <small class="font-bold">Registrar</small>

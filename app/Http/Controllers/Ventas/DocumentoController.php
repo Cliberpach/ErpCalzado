@@ -3823,4 +3823,48 @@ class DocumentoController extends Controller
             'exception'=>$th->getMessage()]);
         }
     }
+
+    public function cambiarTallasCreate($documento_id){
+        try {
+            $documento  =   Documento::find($documento_id);
+            $detalles   =   $documento->detalles;
+            
+            return view('ventas.documentos.cambios_tallas.index',compact('documento','detalles'));
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+    }
+
+
+    public function getTallas($producto_id,$color_id){
+        try {
+            $tallas     =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,
+                            t.descripcion as talla_nombre,p.nombre as producto_nombre,c.descripcion as color_nombre,
+                            pct.stock,pct.stock_logico
+                            from producto_color_tallas as pct 
+                            inner join productos as p on p.id=pct.producto_id
+                            inner join colores as c on c.id=pct.color_id
+                            inner join tallas as t on t.id=pct.talla_id
+                            where pct.producto_id=? and pct.color_id=? and pct.estado="ACTIVO"',[$producto_id,$color_id]);
+        
+            return response()->json(['success'=>true,'tallas'=>$tallas]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>"ERROR AL OBTENER LAS TALLAS",
+            'exception'=>$th->getMessage()]);
+        }
+    }
+
+    public function getStock($producto_id,$color_id,$talla_id){
+        try {
+            $stock     =   DB::select('select pct.stock
+                            from producto_color_tallas as pct 
+                            where pct.producto_id=? and pct.color_id=? and pct.talla_id=?
+                            and pct.estado="ACTIVO"',[$producto_id,$color_id,$talla_id]);
+        
+            return response()->json(['success'=>true,'stock'=>$stock]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>"ERROR AL OBTENER STOCK ACTUAL DE LA TALLA",
+            'exception'=>$th->getMessage()]);
+        }
+    }
 }

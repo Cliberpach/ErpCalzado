@@ -229,6 +229,13 @@
                                                                     </button>
                                                                 </template>
 
+                                                                <button type="button" class="btn btn-sm btn-success"
+                                                                        @click="cambiarTallas(item.id)"
+                                                                        title="Enviar Sunat">
+                                                                        <i class="fas fa-exchange-alt"></i>
+                                                                        Cambiar Tallas
+                                                                </button>
+
                                                                 <!-- <template v-if="
                                                                   dias(item) <= 0 &&
                                                                   item.contingencia == '0' &&
@@ -445,6 +452,11 @@ export default {
         
     },
     methods: {
+        cambiarTallas(documento_id){
+            const url = route('venta.cambiarTallas.create', documento_id);
+
+            window.location.href = url;
+        },
         async updateDataEnvio(data_envio){
             try {
                 const res   =   await axios.post(route('ventas.despachos.updateDespacho'),data_envio);
