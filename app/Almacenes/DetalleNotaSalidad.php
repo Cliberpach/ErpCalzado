@@ -16,7 +16,9 @@ class DetalleNotaSalidad extends Model
         'cantidad',
         'producto_id'
     ];
+
     public $timestamps = true;
+    public $decrementarStockLogico    =   true;
 
     public function nota_salidad(){
         return $this->belongsTo(NotaSalidad::class,'nota_salidad_id','id');
@@ -32,6 +34,23 @@ class DetalleNotaSalidad extends Model
         return $this->belongsTo('App\Almacenes\LoteProducto','lote_id');
     }
 
+     // Método para desactivar el decremento de stock lógico
+     public function disableDecrementarStockLogico()
+     {
+         $this->decrementarStockLogico = false;
+     }
+    
+     // Método para activar el decremento de stock lógico
+     public function enableDecrementarStockLogico()
+     {
+         $this->decrementarStockLogico = true;
+     }
+ 
+     public function getDecrementarStockLogico(){
+         return $this->decrementarStockLogico;
+     }
+
+    
     protected static function booted()
     {
        //=========== actualizando stock producto ===============
@@ -56,15 +75,27 @@ class DetalleNotaSalidad extends Model
                         'stock' => DB::raw("stock - $cantidadProductos"),
                         'estado'        =>  '1',  
                     ]);
-                }else{
-                    ProductoColorTalla::where('producto_id', $detalleNotaSalida->producto_id)
-                    ->where('color_id', $detalleNotaSalida->color_id)
-                    ->where('talla_id', $detalleNotaSalida->talla_id)
-                    ->update([
-                        'stock' => DB::raw("stock - $cantidadProductos"),
-                        'stock_logico'  =>  DB::raw("stock_logico - $cantidadProductos"),
-                        'estado'        =>  '1',  
-                    ]);
+                }
+                
+                if($detalleNotaSalida->nota_salidad->observacion !== '/guiasremision/create_new'){
+                    if($detalleNotaSalida->getDecrementarStockLogico()){
+                        ProductoColorTalla::where('producto_id', $detalleNotaSalida->producto_id)
+                        ->where('color_id', $detalleNotaSalida->color_id)
+                        ->where('talla_id', $detalleNotaSalida->talla_id)
+                        ->update([
+                            'stock' => DB::raw("stock - $cantidadProductos"),
+                            'stock_logico'  =>  DB::raw("stock_logico - $cantidadProductos"),
+                            'estado'        =>  '1',  
+                        ]);
+                    }else{
+                        ProductoColorTalla::where('producto_id', $detalleNotaSalida->producto_id)
+                        ->where('color_id', $detalleNotaSalida->color_id)
+                        ->where('talla_id', $detalleNotaSalida->talla_id)
+                        ->update([
+                            'stock' => DB::raw("stock - $cantidadProductos"),
+                            'estado'        =>  '1',  
+                        ]);
+                    } 
                 }
            } 
            

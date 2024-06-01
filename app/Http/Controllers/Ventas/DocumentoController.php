@@ -57,7 +57,11 @@ use App\Almacenes\Color;
 use Illuminate\Support\Facades\Cache;
 use App\Classes\ValidatedDetail;
 
+use App\Almacenes\DetalleNotaIngreso;
+use App\Almacenes\NotaIngreso;
 
+use App\Almacenes\DetalleNotaSalidad;
+use App\Almacenes\NotaSalidad;
 
 class DocumentoController extends Controller
 {
@@ -3845,8 +3849,9 @@ class DocumentoController extends Controller
                             inner join productos as p on p.id=pct.producto_id
                             inner join colores as c on c.id=pct.color_id
                             inner join tallas as t on t.id=pct.talla_id
-                            where pct.producto_id=? and pct.color_id=? and pct.estado="ACTIVO"',[$producto_id,$color_id]);
-        
+                            where pct.producto_id=? and pct.color_id=? and pct.estado="ACTIVO" and 
+                            pct.stock_logico>0 and pct.stock>0',[$producto_id,$color_id]);
+            
             return response()->json(['success'=>true,'tallas'=>$tallas]);
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>"ERROR AL OBTENER LAS TALLAS",
@@ -3864,6 +3869,190 @@ class DocumentoController extends Controller
             return response()->json(['success'=>true,'stock'=>$stock]);
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>"ERROR AL OBTENER STOCK ACTUAL DE LA TALLA",
+            'exception'=>$th->getMessage()]);
+        }
+    }
+
+    public function validarStock($nuevo_cambio){
+        try {
+            $nuevo_cambio       =   json_decode($nuevo_cambio);
+            //======= OBTENIENDO CONTENIDO =====
+            $producto_cambiado  =   $nuevo_cambio->producto_cambiado;
+            $producto_reemplazante  =   $nuevo_cambio->producto_reemplazante;
+            $documento_id           =   $nuevo_cambio->documento_id;
+
+            //======== BUSCANDO CANTIDAD DEL PRODUCTO_CAMBIADO =======
+            $cantidad_producto_cambiado     =   DB::select('select cdd.cantidad from cotizacion_documento_detalles as cdd
+                                                where cdd.producto_id=? and cdd.color_id=? and cdd.talla_id=?
+                                                and cdd.documento_id=?',[$producto_cambiado->producto_id,
+                                                $producto_cambiado->color_id,$producto_cambiado->talla_id,$documento_id]);
+                        
+            if(count($cantidad_producto_cambiado) === 0){
+                throw new Exception('EL PRODUCTO '.$producto_cambiado->producto_nombre.'-'.$producto_cambiado->color_nombre.'-'.
+                $producto_cambiado->talla_nombre.' A CAMBIAR  NO EXISTE EN EL DETALLE DEL DOCUMENTO');
+            }
+
+            $cantidad_producto_cambiado     =   (int)$cantidad_producto_cambiado[0]->cantidad;
+
+            //======= OBTENIENDO STOCKS DEL PRODUCTO REEMPLAZANTE ========
+            $stocks_producto_reemplazante    =   DB::select('select pct.stock,pct.stock_logico 
+                                                    from producto_color_tallas as pct
+                                                    inner join productos as p on p.id=pct.producto_id
+                                                    where p.estado="ACTIVO" and pct.estado="ACTIVO" and pct.producto_id=? 
+                                                    and pct.color_id=? and pct.talla_id=?',
+                                                    [$producto_reemplazante->producto_id,$producto_reemplazante->color_id,
+                                                    $producto_reemplazante->talla_id]);
+
+            if(count($stocks_producto_reemplazante) === 0){
+                throw new Exception('EL PRODUCTO '.$producto_reemplazante->producto_nombre.'-'.$producto_reemplazante->color_nombre.'-'.
+                $producto_reemplazante->talla_nombre.' REEMPLAZANTE  NO FUE ENCONTRADO EN LA BASE DE DATOS');
+            }   
+            
+            $stock_logico_producto_reemplazante =   $stocks_producto_reemplazante[0]->stock_logico;
+            if($stock_logico_producto_reemplazante >= $cantidad_producto_cambiado){
+
+                //========== SEPARAMOS STOCK LÓGICO DEL PRODUCTO REEMPLAZANTE ======
+                DB::update('UPDATE producto_color_tallas SET stock_logico = stock_logico - ? 
+                WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
+                [$cantidad_producto_cambiado, $producto_reemplazante->producto_id, $producto_reemplazante->color_id, 
+                $producto_reemplazante->talla_id]);
+
+                return response()->json(['success'=>true,'message'  =>  'STOCK LÓGICO SEPARADO PRODUCTO: '.$producto_reemplazante->producto_nombre.
+                '-'.$producto_reemplazante->color_nombre.'-'.$producto_reemplazante->talla_nombre]);
+            }else{
+                throw new Exception('STOCK LÓGICO INSUFICIENTE PRODUCTO: '.$producto_reemplazante->producto_nombre.
+                '-'.$producto_reemplazante->color_nombre.'-'.$producto_reemplazante->talla_nombre);
+
+            }
+            
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'  =>  'ERROR EN EL SERVIDOR AL VALIDAR STOCKS',
+            'exception'=>$th->getMessage()]);
+        }
+    }
+
+    public function devolverStockLogico(Request $request){
+        DB::beginTransaction();
+
+        try {
+            $cambios_devolver  =  json_decode($request->get('cambios_devolver'));
+        
+            $productos_message  =   '';
+    
+            foreach ($cambios_devolver as $cambio) {
+               
+                //======= OBTENIENDO PARAMETROS ========
+                $producto_reemplazante  =   $cambio->producto_reemplazante;
+                $cantidad               =   (int)$cambio->cantidad;
+    
+                DB::update('UPDATE producto_color_tallas SET stock_logico = stock_logico + ? 
+                WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
+                [$cantidad, $producto_reemplazante->producto_id, $producto_reemplazante->color_id, 
+                $producto_reemplazante->talla_id]);
+    
+                $productos_message .= ' '.$producto_reemplazante->producto_nombre.'-'.
+                                        $producto_reemplazante->color_nombre.'-'.$producto_reemplazante->talla_nombre;
+            }
+    
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>'CANTIDAD DEVUELTA PRODUCTOS: '.$productos_message]);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['success'=>false,
+            'message'=>'ERROR AL DEVOLVER STOCKS LÓGICOS',
+            'exception'=>$th->getMessage(),
+            'line'=>$th->getLine()],
+            );
+        }
+
+    }
+
+
+    public function cambiarTallasStore(Request $request){
+        DB::beginTransaction();
+        try {
+            $documento_id   =   $request->get('documento_id');
+            $documento      =   Documento::find($documento_id);
+
+            if(!$documento){
+                throw new Exception('NO SE ENCONTRÓ EL DOCUMENTO DE VENTA EN LA BASE DE DATOS');
+            }
+
+            $detalles   =   $documento->detalles;
+            
+            //======= GRABANDO CAMBIOS ======
+            $cambios    =   json_decode($request->get('cambios'));
+
+            //======= CREANDO NOTA DE INGRESO PARA PRODUCTOS CAMBIADOS =======
+            $notaingreso    = new NotaIngreso();
+            $fecha_hoy      = Carbon::now()->toDateString();
+            $fecha          = Carbon::createFromFormat('Y-m-d', $fecha_hoy);
+            
+            $fecha          = str_replace("-", "", $fecha);
+            $fecha          = str_replace(" ", "", $fecha);
+            $fecha          = str_replace(":", "", $fecha);
+            
+            $notaingreso->numero    =   $fecha . (DB::table('nota_ingreso')->count() + 1);
+            $notaingreso->fecha     =   $fecha_hoy;
+            $notaingreso->destino   =   'ALMACÉN';
+            $notaingreso->origen    =   'IMPORT EXCEL';
+            $notaingreso->usuario       = Auth()->user()->usuario;
+            $notaingreso->observacion   =   'CAMBIO DE TALLAS EN EL DOCUMENTO '.$documento->serie.'-'.$documento->correlativo;
+            $notaingreso->save();
+
+            //======== CREANDO NOTA DE SALIDA PARA PRODUCTOS REEMPLAZANTES =======
+            $notasalidad            =   new NotaSalidad();
+            $notasalidad->numero    =   $fecha.(DB::table('nota_salidad')->count()+1);
+            $notasalidad->fecha     =   $fecha_hoy;
+            $notasalidad->destino   =   "CENTRAL";
+            $notasalidad->origen    =   "CAMBIOS";
+            $notasalidad->observacion   =   "CAMBIO DE TALLAS EN EL DOCUMENTO " .$documento->serie.'-'.$documento->correlativo;
+            $notasalidad->usuario       =   Auth()->user()->usuario;
+            $notasalidad->save();
+
+            //======= DESACTIVAR RESTADO DE STOCK LÓGICO, YA QUE SE RESTARON EN LA VISTA ==========
+
+            //======= ACTUALIZAR DOCUMENTO DE VENTA ======
+            foreach ($cambios as $cambio) {
+                $producto_cambiado      =   $cambio->producto_cambiado;
+                $producto_reemplazante  =   $cambio->producto_reemplazante;
+                $cantidad               =   $cambio->cantidad;
+
+                //====== ACTUALIZAR STOCK =======
+                $update =  DB::update('UPDATE cotizacion_documento_detalles SET talla_id = ?,nombre_talla = ?,updated_at=?
+                WHERE documento_id=? AND producto_id = ? AND color_id = ? AND talla_id = ?', 
+                [  $producto_reemplazante->talla_id,$producto_reemplazante->talla_nombre,Carbon::now(),
+                $documento_id,$producto_cambiado->producto_id, $producto_cambiado->color_id, $producto_cambiado->talla_id]);
+
+                //======== GENERANDO DETALLE DE LA NOTA DE INGRESO ========
+                $detalleNotaIngreso                     =   new   DetalleNotaIngreso();
+                $detalleNotaIngreso->nota_ingreso_id    =   $notaingreso->id;
+                $detalleNotaIngreso->producto_id        =   $producto_cambiado->producto_id;
+                $detalleNotaIngreso->color_id           =   $producto_cambiado->color_id;
+                $detalleNotaIngreso->talla_id           =   $producto_cambiado->talla_id;
+                $detalleNotaIngreso->cantidad           =   $cantidad;
+                $detalleNotaIngreso->save();
+
+
+                //========= GENERANDO DETALLE DE LA NOTA DE SALIDA =======
+                $detalleNotaSalida                     =   new   DetalleNotaSalidad();
+                $detalleNotaSalida->nota_salidad_id    =   $notasalidad->id;
+                $detalleNotaSalida->producto_id        =   $producto_reemplazante->producto_id;
+                $detalleNotaSalida->color_id           =   $producto_reemplazante->color_id;
+                $detalleNotaSalida->talla_id           =   $producto_reemplazante->talla_id;
+                $detalleNotaSalida->cantidad           =   $cantidad;
+                $detalleNotaSalida->disableDecrementarStockLogico();
+                $detalleNotaSalida->save();
+ 
+            }
+
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>'ÉXITO DE CAMBIARON LAS TALLAS DEL DOC N° '.$documento->serie.'-'.$documento->correlativo]);
+
+          
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,
+            'message'=>'ERROR AL CAMBIAR TALLAS DEL DOC N° '.$documento->serie.'-'.$documento->correlativo,
             'exception'=>$th->getMessage()]);
         }
     }

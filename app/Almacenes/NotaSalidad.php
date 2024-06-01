@@ -16,10 +16,14 @@ class NotaSalidad extends Model
         'usuario',
         'estado'
     ];
+    
+
     public $timestamps = true;
 
     public function detalles()
     {
         return $this->hasMany('App\Almacenes\DetalleNotaSalidad','nota_salidad_id');
     }
+
+   
 }

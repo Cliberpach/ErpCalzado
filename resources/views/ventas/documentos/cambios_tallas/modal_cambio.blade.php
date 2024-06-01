@@ -39,7 +39,8 @@
     const cambios =   []; 
 
     function eventsModalCambios(){
-        document.querySelector('#btn-cambiar-talla').addEventListener('click',(e)=>{
+        document.querySelector('#btn-cambiar-talla').addEventListener('click',async (e)=>{
+            const   documento_id    =   @json($documento->id); 
 
             const producto_id   =   document.querySelector('#talla').getAttribute('data-producto-id');
             const color_id      =   document.querySelector('#talla').getAttribute('data-color-id');
@@ -48,11 +49,75 @@
             const color_nombre      =   document.querySelector('#talla').getAttribute('data-color-nombre');
             const talla_nombre      =   $('#talla option:selected').text();
 
-            const producto_remplazante  =   {producto_id,color_id,talla_id,producto_nombre,color_nombre,talla_nombre};
+            const producto_reemplazante  =   getProductoReemplazante();
 
-            const nuevo_cambio  =   {producto_remplazante,producto_cambiado};
-            cambios.push(nuevo_cambio);
+            //======= OBTENIENDO CANTIDAD A CAMBIAR =======
+            const detalles  =   @json($detalles);
+            const detalle   =   detalles.filter((d)=>{
+                return d.producto_id == producto_cambiado.producto_id 
+                && d.color_id == producto_cambiado.color_id && d.talla_id == producto_cambiado.talla_id;
+            });
+
+            if(detalle.length === 0){
+                toastr.error('NO SE ENCONTRÓ EL PRODUCTO A CAMBIAR EN EL DETALLE DEL DOCUMENTO DE VENTA','ERROR');
+                return;
+            }
+
+            const nuevo_cambio  =   {documento_id,producto_reemplazante,
+                                    producto_cambiado:{...producto_cambiado},
+                                    cantidad: parseInt(detalle[0].cantidad)};
+
+            await validarStock(nuevo_cambio);
+              
         })
+
+        document.addEventListener('click',async (e)=>{
+            if(e.target.classList.contains('btn-delete-cambio')){
+                const id_cambio =   e.target.getAttribute('data-cambio-id');   
+                const cambio    =   cambios[id_cambio];
+                
+                //======= DEVOLVIENDO STOCK LÓGICO DEL PRODUCTO REEMPLAZANTE =========
+                const res   =   await devolverStockLogico([cambio]);
+
+                if(res.success){
+                    const cambios_devolver  =   [cambio];
+                    cambios_devolver.forEach((cd)=>{
+                        const indice    =   cambios.findIndex((c)=>{
+                                return c == cd;
+                        })
+                        cambios.splice(indice,1);
+                    })
+
+                    pintarCambios();
+                    toastr.success(res.message,'STOCK LÓGICO DEVUELTO');
+                }
+
+            }
+        })
+    }
+
+    function removeCambio(producto_cambiado){
+        const indiceCambio  =   cambios.findIndex((c)=>{
+            return c.producto_cambiado.producto_id == producto_cambiado.producto_id 
+            && c.producto_cambiado.color_id == producto_cambiado.color_id 
+            && c.producto_cambiado.talla_id == producto_cambiado.talla_id;
+        });
+
+        if(indiceCambio !== -1){
+            cambios.splice(indiceCambio,1);
+        }
+    }
+
+    function getProductoReemplazante(){
+        const producto_id   =   document.querySelector('#talla').getAttribute('data-producto-id');
+        const color_id      =   document.querySelector('#talla').getAttribute('data-color-id');
+        const talla_id      =   document.querySelector('#talla').value;
+        const producto_nombre   =   document.querySelector('#talla').getAttribute('data-producto-nombre');
+        const color_nombre      =   document.querySelector('#talla').getAttribute('data-color-nombre');
+        const talla_nombre      =   $('#talla option:selected').text();
+
+        const producto_reemplazante  =   {producto_id,color_id,talla_id,producto_nombre,color_nombre,talla_nombre};
+        return producto_reemplazante;
     }
 
     async function getTallas(producto_id,color_id){
@@ -74,6 +139,30 @@
     function pintarTallas(tallas){
         $('#talla').empty();
 
+        //======= NO MOSTRAR SU MISMA TALLA ======
+        tallas  =   tallas.filter((t)=> {return !(t.producto_id == producto_cambiado.producto_id 
+                && t.color_id == producto_cambiado.color_id
+                && t.talla_id == producto_cambiado.talla_id) 
+        });
+
+        //======= REVIZANDO SI EL PRODUCTO YA TIENE UN CAMBIO =====
+        const id_cambio = cambios.findIndex((c)=>{
+            return c.producto_cambiado.producto_id == producto_cambiado.producto_id 
+                    && c.producto_cambiado.color_id == producto_cambiado.color_id 
+                    && c.producto_cambiado.talla_id == producto_cambiado.talla_id;
+        });
+      
+        if(id_cambio !== -1){
+            toastr.warning('ESTE PRODUCTO YA TIENE UN CAMBIO AGREGADO','ADVERTENCIA');
+            //====== NO MOSTRAR TALLA DEL CAMBIO QUE YA TIENE AGREGADO =======
+            const producto_reemplazante =   cambios[id_cambio].producto_reemplazante;
+            tallas  =   tallas.filter((t)=> {return !(t.producto_id == producto_reemplazante.producto_id 
+                && t.color_id == producto_reemplazante.color_id
+                && t.talla_id == producto_reemplazante.talla_id) 
+            });
+
+        }
+
         tallas.forEach(item => {
             const nuevaOpcion = new Option(item.talla_nombre, item.talla_id, false, false);
             $('#talla').append(nuevaOpcion);
@@ -87,9 +176,12 @@
         const color_id      =   selectTalla.getAttribute('data-color-id');
         const talla_id      =   selectTalla.value;
 
-        console.log(producto_id+'-'+color_id+'-'+talla_id);
+        if(!talla_id){
+            document.querySelector('#btn-cambiar-talla').disabled   =   true;
+            toastr.error('NO HAY TALLAS DISPONIBLES','ADVERTENCIA');
+            return;
+        }
         const stock =   await getStock(producto_id,color_id,talla_id)
-
     }
 
     async function getStock(producto_id,color_id,talla_id){
@@ -101,7 +193,82 @@
                 toastr.error(res.data.exception,res.data.message);
             }
         } catch (error) {
-            toastr.error(error,'ERROR AL OBTENER STOCK DE LA TALLA');
+            console.log(error);
+            toastr.error(error.data.message,'ERROR AL OBTENER STOCK DE LA TALLA');
+        }
+    }
+
+    async function validarStock(nuevo_cambio){
+        document.querySelector('#btn-cambiar-talla').disabled   =   true;
+        document.querySelector('#btn-cambiar-talla').innerHTML  =   `<i class="fas fa-spinner fa-spin"></i> Validando`;
+        try {
+            const res   =   await axios.get(route('venta.cambiarTallas.validarStock',JSON.stringify(nuevo_cambio)));
+            
+            if(res.data.success){
+                //========= REVIZAR SI EL PRODUCTO YA TIENE UN CAMBIO REGISTRADO PREVIAMENTE =========
+                //======= BUSCANDO SI EL PRODUCTO CAMBIADO YA TIENE UN REGISTRO EN ARRAY CAMBIOS =========
+                const indiceCambio  =   cambios.findIndex((c)=>{
+                    return c.producto_cambiado.producto_id == nuevo_cambio.producto_cambiado.producto_id 
+                    && c.producto_cambiado.color_id == nuevo_cambio.producto_cambiado.color_id 
+                    && c.producto_cambiado.talla_id == nuevo_cambio.producto_cambiado.talla_id;
+                })
+
+                //====== EN CASO TENGA UN CAMBIO YA REGISTRADO =======
+                if(indiceCambio !== -1){
+                    //===== DEVOLVER STOCK LÓGICO DEL CAMBIO QUE VAMOS A QUITAR =======
+                    const cambio_existente  =   cambios[indiceCambio];
+                    const res_dev           =   await devolverStockLogico([cambio_existente]);
+                    //====== ELIMINANDO CAMBIO DEL ARRAY CAMBIOS =======
+                    cambios.splice(indiceCambio,1);
+                }
+
+                //======== INGRESANDO NUEVO CAMBIO =======
+                cambios.push(nuevo_cambio);
+                //====== ACTUALIZAR TABLA CAMBIOS ======
+                pintarCambios();
+                //===== ALERTA ======
+                toastr.success(res.data.message,'STOCK LÓGICO VALIDADO',{timeOut:5000});
+                //======== CERRAR MODAL ======
+                $('#modal-cambio-talla').modal('hide');
+            }else{
+                toastr.error(res.data.exception,res.data.message);
+            }
+        } catch (error) {
+            
+        }finally{
+            document.querySelector('#btn-cambiar-talla').disabled  =   false;
+            document.querySelector('#btn-cambiar-talla').innerHTML  =   `<i class="fas fa-check"></i> Cambiar`;
+        }
+
+    }
+
+    function pintarCambios() {
+        const bodyTablaCambios  =   document.querySelector('#tabla-cambio-tallas tbody');
+        let filas             =   ``;
+
+        cambios.forEach((c,index)=>{
+            filas   +=  `<tr>
+                            <th><i class="fas fa-trash-alt btn btn-danger btn-delete-cambio" data-cambio-id=${index}></i></th>                                       
+                            <th>${c.producto_cambiado.producto_nombre}-${c.producto_cambiado.color_nombre}-${c.producto_cambiado.talla_nombre}</th>
+                            <th scope="row">${c.producto_reemplazante.producto_nombre}-${c.producto_reemplazante.color_nombre}-${c.producto_reemplazante.talla_nombre}</th>
+                        </tr>`;
+        })
+
+        bodyTablaCambios.innerHTML  =   filas;
+    }
+
+    async function devolverStockLogico(cambios_devolver){
+
+        try {
+            const listCambios =   JSON.stringify(cambios_devolver);
+            const res   =   await axios.post(route('venta.cambiarTallas.devolverStockLogico'),{
+                cambios_devolver:listCambios
+            });
+
+           return res.data;
+        } catch (error) {
+            const res  =    {success:false,message:'ERROR AL DEVOLVER STOCK LÓGICO',exception:error};
+            return res;
         }
     }
 

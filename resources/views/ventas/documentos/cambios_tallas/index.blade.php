@@ -113,7 +113,7 @@
                                         </div>
                                         <div class="panel-body">
                                             <div class="table-responsive">
-                                                <table class="table table-striped">
+                                                <table class="table table-striped" id="tabla-cambio-tallas">
                                                     <thead>
                                                       <tr>
                                                         <th></th>
@@ -125,11 +125,15 @@
                                                         
                                                       
                                                     </tbody>
-                                                  </table>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="row justify-content-end pr-3">
+                                <button class="btn btn-success mr-3" id="btn-grabar-doc">GRABAR</button>
+                                <button class="btn btn-danger" id="btn-regresar">REGRESAR</button>
                             </div>
                             
                         </div>
@@ -156,6 +160,7 @@
 <script>
 
     const producto_cambiado   =   {};
+    let   closeSegurity       =     1;  //==== 1: NO DEVOLVER STOCK LÓGICO | 2:DEVOLVER STOCK LÓGICO ====
 
     document.addEventListener('DOMContentLoaded',()=>{
         loadSelect2();
@@ -166,6 +171,8 @@
     function events(){
         document.addEventListener('click',async (e)=>{
             if(e.target.classList.contains('btn-obtener-tallas')){
+                e.target.classList.add('fa-spin');
+
                 const producto_id   =   e.target.getAttribute('data-producto-id');
                 const color_id      =   e.target.getAttribute('data-color-id');
                 const talla_id      =   e.target.getAttribute('data-talla-id');
@@ -181,8 +188,81 @@
                 document.querySelector('#talla').setAttribute('data-color-nombre', color_nombre);
 
                 await getTallas(producto_id,color_id);
+                e.target.classList.remove('fa-spin');
+                document.querySelector('#stock').value  =   '';
                 $("#modal-cambio-talla").modal('show');
             }
+        })
+
+        document.querySelector('#btn-grabar-doc').addEventListener('click',async (e)=>{
+            const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    confirmButton: "btn btn-success",
+                    cancelButton: "btn btn-danger"
+                },
+                buttonsStyling: false
+            });
+
+            swalWithBootstrapButtons.fire({
+                title: "Desea realizar cambio de tallas?",
+                text: "Se generará una nota de ingreso y salida!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sí!",
+                cancelButtonText: "No, cancelar!",
+                reverseButtons: true
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Procesando...',
+                        text: 'Por favor espera',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        willOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    try {
+
+                        const res = await axios.post(route('venta.cambiarTallas.cambiarTallasStore'), {
+                            cambios: JSON.stringify(cambios),
+                            documento_id: @json($documento->id)
+                        });
+
+                        if(res.data.success){
+                            Swal.fire({
+                                title: res.data.message,
+                                text: 'Se generó una nota de ingreso y salida',
+                                icon: 'success',
+                                confirmButtonText: 'Aceptar'
+                            });
+                        }else{
+                            Swal.fire({
+                                title: res.data.message,
+                                text: res.data.exception,
+                                icon: 'error',
+                                confirmButtonText: 'Aceptar'
+                            }); 
+                        }
+
+                    } catch (error) {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Hubo un problema con la solicitud',
+                            icon: 'error',
+                            confirmButtonText: 'Aceptar'
+                        });
+                    }
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    swalWithBootstrapButtons.fire({
+                        title: "Operación cancelada",
+                        text: "No se realizaron acciones",
+                        icon: "error"
+                    });
+                }
+            });          
         })
     }
 

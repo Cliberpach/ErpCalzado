@@ -461,6 +461,9 @@ function(){
         Route::get('cambiarTallas/create/{id}','Ventas\DocumentoController@cambiarTallasCreate')->name('venta.cambiarTallas.create');
         Route::get('getTallas/{producto_id}/{color_id}','Ventas\DocumentoController@getTallas')->name('venta.cambiarTallas.getTallas');
         Route::get('getStock/{producto_id}/{color_id}/{talla_id}','Ventas\DocumentoController@getStock')->name('venta.cambiarTallas.getStock');
+        Route::get('validarStock/{nuevo_cambio}','Ventas\DocumentoController@validarStock')->name('venta.cambiarTallas.validarStock');
+        Route::post('devolverStockLogico','Ventas\DocumentoController@devolverStockLogico')->name('venta.cambiarTallas.devolverStockLogico');
+        Route::post('cambiarTallas/store','Ventas\DocumentoController@cambiarTallasStore')->name('venta.cambiarTallas.cambiarTallasStore');
 
     });
 
