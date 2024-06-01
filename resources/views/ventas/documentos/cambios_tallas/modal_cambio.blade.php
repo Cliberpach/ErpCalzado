@@ -224,6 +224,8 @@
 
                 //======== INGRESANDO NUEVO CAMBIO =======
                 cambios.push(nuevo_cambio);
+                //======== ASEGURAR CIERRE  ESTABLECEMOS EN 2 PARA QUE DEVUELVA ======
+                closeSegurity   =   2;
                 //====== ACTUALIZAR TABLA CAMBIOS ======
                 pintarCambios();
                 //===== ALERTA ======
@@ -234,7 +236,7 @@
                 toastr.error(res.data.exception,res.data.message);
             }
         } catch (error) {
-            
+                toastr.error('ERROR AL VALIDAR STOCK LÓGICO DEL PRODUCTO','ERROR EN EL LA SOLICITUD');
         }finally{
             document.querySelector('#btn-cambiar-talla').disabled  =   false;
             document.querySelector('#btn-cambiar-talla').innerHTML  =   `<i class="fas fa-check"></i> Cambiar`;

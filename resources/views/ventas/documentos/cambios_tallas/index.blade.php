@@ -232,13 +232,19 @@
                         });
 
                         if(res.data.success){
+                            //======= NO DEVOLVER STOCKS PORQUE SE GRABÓ TODO CORRECTAMENTE =======
+                            closeSegurity   =   1;
                             Swal.fire({
                                 title: res.data.message,
                                 text: 'Se generó una nota de ingreso y salida',
                                 icon: 'success',
                                 confirmButtonText: 'Aceptar'
                             });
+                            const url = "{{ route('ventas.documento.index') }}";
+                            window.location.href = url;                        
                         }else{
+                            //====== DEVOLVER STOCKS PORQUE HUBO ERRORES EN EL GRABADO ======
+                            closeSegurity   =   2;
                             Swal.fire({
                                 title: res.data.message,
                                 text: res.data.exception,
@@ -248,6 +254,8 @@
                         }
 
                     } catch (error) {
+                        //====== DEVOLVER STOCKS PORQUE HUBO ERRORES EN EL GRABADO ======
+                        closeSegurity   =   2;
                         Swal.fire({
                             title: 'Error',
                             text: 'Hubo un problema con la solicitud',
@@ -256,6 +264,8 @@
                         });
                     }
                 } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    //====== DEVOLVER STOCKS PORQUE SE CANCELÓ LA OPERACIÓN ======
+                    closeSegurity   =   2;
                     swalWithBootstrapButtons.fire({
                         title: "Operación cancelada",
                         text: "No se realizaron acciones",
@@ -264,6 +274,15 @@
                 }
             });          
         })
+
+
+        window.addEventListener("beforeunload", function(event) {
+            if(closeSegurity === 2){
+                if(cambios.length > 0){
+                    devolverStockLogico(cambios);
+                }
+            }
+        });
     }
 
 

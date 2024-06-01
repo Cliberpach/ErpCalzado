@@ -4047,7 +4047,7 @@ class DocumentoController extends Controller
             }
 
             DB::commit();
-            return response()->json(['success'=>true,'message'=>'ÉXITO DE CAMBIARON LAS TALLAS DEL DOC N° '.$documento->serie.'-'.$documento->correlativo]);
+            return response()->json(['success'=>true,'message'=>'ÉXITO, SE CAMBIARON LAS TALLAS DEL DOC N° '.$documento->serie.'-'.$documento->correlativo]);
 
           
         } catch (\Throwable $th) {
