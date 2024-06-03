@@ -581,6 +581,7 @@ export default {
             }).then((result) => {
                 
                 if (result.value && result.value.success) {
+
                     //====== ACTUALIZAR DOCUMENTO EN FRONTEND ======
                     const documento_index =   this.documentos.findIndex((d)=>{
                         return  d.id == id;
@@ -593,6 +594,18 @@ export default {
                 } 
 
                 if(result.value && !result.value.success){
+
+                    //========== ERROR YA HA SIDO ENVIADO EL COMPROBANTE =======
+                    if(result.value.code == 1033){
+                        //====== ACTUALIZAR DOCUMENTO EN FRONTEND ======
+                        const documento_index =   this.documentos.findIndex((d)=>{
+                            return  d.id == id;
+                        });
+                        if(documento_index !== -1){
+                            this.documentos[documento_index]  =   result.value.doc_actualizado;
+                        }
+                    }
+
                     toastr.error(result.value.exception,result.value.message,{timeOut:0});
                 }
 

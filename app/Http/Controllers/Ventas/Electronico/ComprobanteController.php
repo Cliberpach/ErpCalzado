@@ -556,8 +556,8 @@ class ComprobanteController extends Controller
 
                 $res = $see->send($invoice);
                 $util->writeXml($invoice, $see->getFactory()->getLastXml(),$documento->tipo_venta,null);
-                dd($res);
-
+                
+                
                 //======== ENVÍO CORRECTO Y ACEPTADO ==========
                 if($res->isSuccess()){
                     //====== GUARDANDO RESPONSE ======
@@ -569,19 +569,42 @@ class ComprobanteController extends Controller
 
                     return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
                 }else{
+                    dd($res);
                     $documento->response_error_message  =   $res->getError()->getMessage();
                     $documento->response_error_code     =   $res->getError()->getCode();
                     $documento->regularize              =   '1';
                     $documento->update(); 
 
+                    /*
+                    ================================================================
+                        ERROR 1033 
+                        El comprobante fue registrado previamente con otros datos 
+                        - Detalle: xxx.xxx.xxx value='ticket: 202413738761966 
+                        error: El comprobante B001-1704 fue informado anteriormente'
+                    ================================================================
+                    */
 
-                    if($res->getError()->getCode() == 1033){
-                        dd($res);
-                         return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
+                    if($res->getError()->getCode() == 1033 || $res->getError()->getCode() == 2223){
+                        $documento->response_error_message  =   $res->getError()->getMessage();
+                        $documento->response_error_code     =   $res->getError()->getCode();
+                        $documento->regularize              =   '0';
+                        $documento->sunat                   =   '1';
+                        $documento->update(); 
+
+                        return response()->json(["success"   =>  false,
+                        "message"   =>  "SE ACTUALIZÓ EL ESTADO DE LA BOLETA A ENVIADA",
+                        "exception" =>  $res->getError()->getMessage(),
+                        "code"      =>  $res->getError()->getCode(),
+                        "doc_actualizado"   =>  $documento
+                        ]);
                     }
 
-                    throw new Exception("ERROR AL ENVIAR FACTURA A SUNAT. "."CÓDIGO: ".$res->getError()->getCode()
-                    .",DESCRIPCIÓN: ".$res->getError()->getMessage());
+                    return response()->json([
+                    "success"   =>  false,
+                    "message"   =>  "ERROR AL ENVIAR A SUNAT",
+                    "exception" =>  "CÓDIGO: ".$res->getError()->getCode()."DESCRIPCIÓN: ".$res->getError()->getMessage(),
+                    "code"      =>  $res->getError()->getCode() ]);
+
                 }
 
 
