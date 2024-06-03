@@ -569,7 +569,7 @@ class ComprobanteController extends Controller
 
                     return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
                 }else{
-                    dd($res);
+                    
                     $documento->response_error_message  =   $res->getError()->getMessage();
                     $documento->response_error_code     =   $res->getError()->getCode();
                     $documento->regularize              =   '1';
@@ -581,6 +581,9 @@ class ComprobanteController extends Controller
                         El comprobante fue registrado previamente con otros datos 
                         - Detalle: xxx.xxx.xxx value='ticket: 202413738761966 
                         error: El comprobante B001-1704 fue informado anteriormente'
+
+                        ERROR 2223
+                        El documento ya fue informado
                     ================================================================
                     */
 
