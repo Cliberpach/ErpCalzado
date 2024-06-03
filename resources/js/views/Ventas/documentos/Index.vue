@@ -229,12 +229,12 @@
                                                                     </button>
                                                                 </template>
 
-                                                                <button type="button" class="btn btn-sm btn-success"
+                                                                <!-- <button type="button" class="btn btn-sm btn-success"
                                                                         @click="cambiarTallas(item.id)"
                                                                         title="Enviar Sunat">
                                                                         <i class="fas fa-exchange-alt"></i>
                                                                         Cambiar Tallas
-                                                                </button>
+                                                                </button> -->
 
                                                                 <!-- <template v-if="
                                                                   dias(item) <= 0 &&

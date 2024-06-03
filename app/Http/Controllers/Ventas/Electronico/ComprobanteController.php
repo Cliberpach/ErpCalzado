@@ -556,7 +556,7 @@ class ComprobanteController extends Controller
 
                 $res = $see->send($invoice);
                 $util->writeXml($invoice, $see->getFactory()->getLastXml(),$documento->tipo_venta,null);
-
+                dd($res);
 
                 //======== ENVÍO CORRECTO Y ACEPTADO ==========
                 if($res->isSuccess()){
@@ -574,7 +574,8 @@ class ComprobanteController extends Controller
                     $documento->regularize              =   '1';
                     $documento->update(); 
 
-                    if($res->getError()->getCode() == 2223){
+
+                    if($res->getError()->getCode() == 1033){
                         dd($res);
                          return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
                     }
