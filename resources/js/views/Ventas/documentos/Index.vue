@@ -602,7 +602,9 @@ export default {
                             return  d.id == id;
                         });
                         if(documento_index !== -1){
-                            this.documentos[documento_index]  =   result.value.doc_actualizado;
+                            this.documentos[documento_index].sunat          =   '1';
+                            this.documentos[documento_index].regularize     =   '0';
+
                         }
                     }
 
