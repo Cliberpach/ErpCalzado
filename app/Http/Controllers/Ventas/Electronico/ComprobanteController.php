@@ -605,7 +605,7 @@ class ComprobanteController extends Controller
                     return response()->json([
                     "success"   =>  false,
                     "message"   =>  "ERROR AL ENVIAR A SUNAT",
-                    "exception" =>  "CÓDIGO: ".$res->getError()->getCode()."DESCRIPCIÓN: ".$res->getError()->getMessage(),
+                    "exception" =>  "CÓDIGO: ".$res->getError()->getCode()." | DESCRIPCIÓN: ".$res->getError()->getMessage(),
                     "code"      =>  $res->getError()->getCode() ]);
 
                 }
