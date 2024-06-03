@@ -3873,9 +3873,11 @@ class DocumentoController extends Controller
         }
     }
 
-    public function validarStock($nuevo_cambio){
+    public function validarStock(Request $request){
+        
         try {
-            $nuevo_cambio       =   json_decode($nuevo_cambio);
+            $nuevo_cambio       =   json_decode($request->get('nuevo_cambio'));
+            
             //======= OBTENIENDO CONTENIDO =====
             $producto_cambiado  =   $nuevo_cambio->producto_cambiado;
             $producto_reemplazante  =   $nuevo_cambio->producto_reemplazante;
@@ -3883,8 +3885,9 @@ class DocumentoController extends Controller
 
             //======== BUSCANDO CANTIDAD DEL PRODUCTO_CAMBIADO =======
             $cantidad_producto_cambiado     =   DB::select('select cdd.cantidad from cotizacion_documento_detalles as cdd
-                                                where cdd.producto_id=? and cdd.color_id=? and cdd.talla_id=?
-                                                and cdd.documento_id=?',[$producto_cambiado->producto_id,
+                                                where cdd.id=? and cdd.producto_id=? and cdd.color_id=? and cdd.talla_id=?
+                                                and cdd.documento_id=?',
+                                                [$producto_cambiado->detalle_id,$producto_cambiado->producto_id,
                                                 $producto_cambiado->color_id,$producto_cambiado->talla_id,$documento_id]);
                         
             if(count($cantidad_producto_cambiado) === 0){
@@ -4020,9 +4023,10 @@ class DocumentoController extends Controller
 
                 //====== ACTUALIZAR STOCK =======
                 $update =  DB::update('UPDATE cotizacion_documento_detalles SET talla_id = ?,nombre_talla = ?,updated_at=?
-                WHERE documento_id=? AND producto_id = ? AND color_id = ? AND talla_id = ?', 
+                WHERE id=? AND documento_id=? AND producto_id = ? AND color_id = ? AND talla_id = ?', 
                 [  $producto_reemplazante->talla_id,$producto_reemplazante->talla_nombre,Carbon::now(),
-                $documento_id,$producto_cambiado->producto_id, $producto_cambiado->color_id, $producto_cambiado->talla_id]);
+                $producto_cambiado->detalle_id,$documento_id,
+                $producto_cambiado->producto_id, $producto_cambiado->color_id, $producto_cambiado->talla_id]);
 
                 //======== GENERANDO DETALLE DE LA NOTA DE INGRESO ========
                 $detalleNotaIngreso                     =   new   DetalleNotaIngreso();

@@ -7,6 +7,45 @@
     .documento_titulo{
         font-weight: bold;
     }
+
+
+div.content-animacion {
+    position: relative;
+}
+
+div.content-animacion.sk__loading::after {
+    content: '';
+    background-color: rgba(255, 255, 255, 0.7);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3000;
+}
+
+.content-animacion.sk__loading>.sk-spinner.sk-spinner-wave {
+    margin: 0 auto;
+    width: 50px;
+    height: 30px;
+    text-align: center;
+    font-size: 10px;
+}
+
+.content-animacion.sk__loading>.sk-spinner {
+    display: block;
+    position: absolute;
+    top: 40%;
+    left: 0;
+    right: 0;
+    z-index: 3500;
+}
+
+.content-animacion .sk-spinner.sk-spinner-wave.hide-animacion {
+    display: none;
+}
+
+
 </style>
 
 <div class="row wrapper border-bottom white-bg page-heading">
@@ -24,7 +63,18 @@
 </div>
 
 <div class="wrapper wrapper-content animated fadeInRight">
-    <div class="row">
+    <div class="row content-animacion">
+
+        {{-- INICIO ANIMACION --}}
+        <div class="sk-spinner sk-spinner-wave hide-animacion">
+            <div class="sk-rect1"></div>
+            <div class="sk-rect2"></div>
+            <div class="sk-rect3"></div>
+            <div class="sk-rect4"></div>
+            <div class="sk-rect5"></div>
+        </div>
+        {{-- FIN ANIMACION --}}
+
         <div class="col-lg-12">
             <div class="ibox ">
                 <div class="ibox-content">
@@ -85,14 +135,14 @@
                                                     <tbody>
                                                         @foreach ($detalles as $detalle)
                                                             <tr>
-                                                                <th>{{$loop->index +1}}</th>
+                                                                <th>{{$detalle->id}}</th>
                                                                 <th scope="row">{{$detalle->nombre_producto}}</th>
                                                                 <td>{{$detalle->nombre_color}}</td>
                                                                 <td>{{$detalle->nombre_talla}}</td>
                                                                 <td>{{$detalle->cantidad}}</td>
                                                                 <td>{{$detalle->precio_unitario_nuevo}}</td>
                                                                 <td>
-                                                                    <i class="fas fa-exchange-alt btn btn-success btn-obtener-tallas" data-producto-id="{{$detalle->producto_id}}" data-color-id="{{$detalle->color_id}}"
+                                                                    <i class="fas fa-exchange-alt btn btn-success btn-obtener-tallas" data-id="{{$detalle->id}}" data-producto-id="{{$detalle->producto_id}}" data-color-id="{{$detalle->color_id}}"
                                                                         data-talla-id="{{$detalle->talla_id}}" data-producto-nombre="{{$detalle->nombre_producto}}"
                                                                         data-color-nombre="{{$detalle->nombre_color}}" data-talla-nombre="{{$detalle->nombre_talla}}"></i>
                                                                 </td>
@@ -117,8 +167,10 @@
                                                     <thead>
                                                       <tr>
                                                         <th></th>
+                                                        <th>#</th>
                                                         <th scope="col">PRODUCTO INICIAL</th>
                                                         <th scope="col">CAMBIO</th>
+                                                        <th>CANT</th>
                                                       </tr>
                                                     </thead>
                                                     <tbody>
@@ -132,8 +184,8 @@
                                 </div>
                             </div>
                             <div class="row justify-content-end pr-3">
-                                <button class="btn btn-success mr-3" id="btn-grabar-doc">GRABAR</button>
-                                <button class="btn btn-danger" id="btn-regresar">REGRESAR</button>
+                                <button class="btn btn-danger mr-3" id="btn-regresar">REGRESAR</button>
+                                <button class="btn btn-success" id="btn-grabar-doc">GRABAR</button>
                             </div>
                             
                         </div>
@@ -159,7 +211,7 @@
 <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
 <script>
 
-    const producto_cambiado   =   {};
+    const producto_cambiado   =     {};
     let   closeSegurity       =     1;  //==== 1: NO DEVOLVER STOCK LÓGICO | 2:DEVOLVER STOCK LÓGICO ====
 
     document.addEventListener('DOMContentLoaded',()=>{
@@ -173,6 +225,7 @@
             if(e.target.classList.contains('btn-obtener-tallas')){
                 e.target.classList.add('fa-spin');
 
+                const detalle_id    =   e.target.getAttribute('data-id');
                 const producto_id   =   e.target.getAttribute('data-producto-id');
                 const color_id      =   e.target.getAttribute('data-color-id');
                 const talla_id      =   e.target.getAttribute('data-talla-id');
@@ -180,7 +233,7 @@
                 const color_nombre          =   e.target.getAttribute('data-color-nombre');
                 const talla_nombre          =   e.target.getAttribute('data-talla-nombre');
 
-                setProductoCambiado({producto_id,color_id,talla_id,producto_nombre,color_nombre,talla_nombre});
+                setProductoCambiado({detalle_id,producto_id,color_id,talla_id,producto_nombre,color_nombre,talla_nombre});
 
                 document.querySelector('#talla').setAttribute('data-producto-id', producto_id);
                 document.querySelector('#talla').setAttribute('data-color-id', color_id);
@@ -195,6 +248,14 @@
         })
 
         document.querySelector('#btn-grabar-doc').addEventListener('click',async (e)=>{
+            e.target.disabled   =   true;
+
+            if(cambios.length   === 0){
+                e.target.disabled   =   false;
+                toastr.error('EL DETALLE DE CAMBIO DE TALLAS ESTÁ VACÍO!!','OPERACIÓN INCORRECTA');
+                return;
+            }
+
             const swalWithBootstrapButtons = Swal.mixin({
                 customClass: {
                     confirmButton: "btn btn-success",
@@ -234,17 +295,20 @@
                         if(res.data.success){
                             //======= NO DEVOLVER STOCKS PORQUE SE GRABÓ TODO CORRECTAMENTE =======
                             closeSegurity   =   1;
+                            //======= ALERTA DE CONFIRMACIÓN ======
                             Swal.fire({
                                 title: res.data.message,
                                 text: 'Se generó una nota de ingreso y salida',
                                 icon: 'success',
                                 confirmButtonText: 'Aceptar'
                             });
+                            //====== REDIRECCIONAR ======
                             const url = "{{ route('ventas.documento.index') }}";
                             window.location.href = url;                        
                         }else{
                             //====== DEVOLVER STOCKS PORQUE HUBO ERRORES EN EL GRABADO ======
                             closeSegurity   =   2;
+                            //======= ALERTA DE ERROR =====
                             Swal.fire({
                                 title: res.data.message,
                                 text: res.data.exception,
@@ -262,6 +326,8 @@
                             icon: 'error',
                             confirmButtonText: 'Aceptar'
                         });
+                    }finally{
+                        e.target.disabled   =   false;
                     }
                 } else if (result.dismiss === Swal.DismissReason.cancel) {
                     //====== DEVOLVER STOCKS PORQUE SE CANCELÓ LA OPERACIÓN ======
@@ -271,8 +337,15 @@
                         text: "No se realizaron acciones",
                         icon: "error"
                     });
+                    e.target.disabled   =   false;
                 }
             });          
+        })
+
+        document.querySelector('#btn-regresar').addEventListener('click',(e)=>{
+            e.target.disabled   =   true;
+            const url = "{{ route('ventas.documento.index') }}";
+            window.location.href = url;     
         })
 
 
@@ -285,8 +358,18 @@
         });
     }
 
+    //====== CONTROL DE ANIMACIÓN =======
+    function mostrarAnimacion(){
+        document.querySelector('.content-animacion').classList.add('sk__loading');
+        document.querySelector('.sk-spinner').classList.remove('hide-animacion');
+    }
+    function ocultarAnimacion(){
+        document.querySelector('.content-animacion').classList.remove('sk__loading');
+        document.querySelector('.sk-spinner').classList.add('hide-animacion');
+    }
 
     function setProductoCambiado(producto){
+        producto_cambiado.detalle_id    =   producto.detalle_id;  
         producto_cambiado.producto_id   =   producto.producto_id;
         producto_cambiado.color_id      =   producto.color_id
         producto_cambiado.talla_id      =   producto.talla_id;

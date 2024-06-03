@@ -37,6 +37,7 @@ div.content-envio.sk__loading::after {
 }
 
 </style>
+
 <div class="modal inmodal" id="modal_envio" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg" style="max-width: 94%;">
         <div class="modal-content animated bounceInRight">

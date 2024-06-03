@@ -53,10 +53,7 @@
 
             //======= OBTENIENDO CANTIDAD A CAMBIAR =======
             const detalles  =   @json($detalles);
-            const detalle   =   detalles.filter((d)=>{
-                return d.producto_id == producto_cambiado.producto_id 
-                && d.color_id == producto_cambiado.color_id && d.talla_id == producto_cambiado.talla_id;
-            });
+            const detalle   =   detalles.filter( d =>  d.id == producto_cambiado.detalle_id) ;
 
             if(detalle.length === 0){
                 toastr.error('NO SE ENCONTRÓ EL PRODUCTO A CAMBIAR EN EL DETALLE DEL DOCUMENTO DE VENTA','ERROR');
@@ -73,6 +70,8 @@
 
         document.addEventListener('click',async (e)=>{
             if(e.target.classList.contains('btn-delete-cambio')){
+                mostrarAnimacion();
+
                 const id_cambio =   e.target.getAttribute('data-cambio-id');   
                 const cambio    =   cambios[id_cambio];
                 
@@ -92,6 +91,7 @@
                     toastr.success(res.message,'STOCK LÓGICO DEVUELTO');
                 }
 
+                ocultarAnimacion();
             }
         })
     }
@@ -132,7 +132,7 @@
             }
 
         } catch (error) {
-            
+            toastr.error('NO SE OBTUVIERON LAS TALLAS','ERROR EN LA SOLICITUD');
         }
     }
 
@@ -147,7 +147,8 @@
 
         //======= REVIZANDO SI EL PRODUCTO YA TIENE UN CAMBIO =====
         const id_cambio = cambios.findIndex((c)=>{
-            return c.producto_cambiado.producto_id == producto_cambiado.producto_id 
+            return  c.producto_cambiado.detalle_id == producto_cambiado.detalle_id
+                    && c.producto_cambiado.producto_id == producto_cambiado.producto_id 
                     && c.producto_cambiado.color_id == producto_cambiado.color_id 
                     && c.producto_cambiado.talla_id == producto_cambiado.talla_id;
         });
@@ -202,13 +203,16 @@
         document.querySelector('#btn-cambiar-talla').disabled   =   true;
         document.querySelector('#btn-cambiar-talla').innerHTML  =   `<i class="fas fa-spinner fa-spin"></i> Validando`;
         try {
-            const res   =   await axios.get(route('venta.cambiarTallas.validarStock',JSON.stringify(nuevo_cambio)));
+            const res   =   await axios.post(route('venta.cambiarTallas.validarStock'),{
+                nuevo_cambio: JSON.stringify(nuevo_cambio)
+            });
             
             if(res.data.success){
                 //========= REVIZAR SI EL PRODUCTO YA TIENE UN CAMBIO REGISTRADO PREVIAMENTE =========
                 //======= BUSCANDO SI EL PRODUCTO CAMBIADO YA TIENE UN REGISTRO EN ARRAY CAMBIOS =========
                 const indiceCambio  =   cambios.findIndex((c)=>{
-                    return c.producto_cambiado.producto_id == nuevo_cambio.producto_cambiado.producto_id 
+                    return c.producto_cambiado.detalle_id == nuevo_cambio.producto_cambiado.detalle_id
+                    && c.producto_cambiado.producto_id == nuevo_cambio.producto_cambiado.producto_id 
                     && c.producto_cambiado.color_id == nuevo_cambio.producto_cambiado.color_id 
                     && c.producto_cambiado.talla_id == nuevo_cambio.producto_cambiado.talla_id;
                 })
@@ -238,10 +242,9 @@
         } catch (error) {
                 toastr.error('ERROR AL VALIDAR STOCK LÓGICO DEL PRODUCTO','ERROR EN EL LA SOLICITUD');
         }finally{
-            document.querySelector('#btn-cambiar-talla').disabled  =   false;
+            document.querySelector('#btn-cambiar-talla').disabled   =   false;
             document.querySelector('#btn-cambiar-talla').innerHTML  =   `<i class="fas fa-check"></i> Cambiar`;
         }
-
     }
 
     function pintarCambios() {
@@ -250,9 +253,11 @@
 
         cambios.forEach((c,index)=>{
             filas   +=  `<tr>
-                            <th><i class="fas fa-trash-alt btn btn-danger btn-delete-cambio" data-cambio-id=${index}></i></th>                                       
+                            <th><i class="fas fa-trash-alt btn btn-danger btn-delete-cambio" data-cambio-id=${index}></i></th>  
+                            <th>${c.producto_cambiado.detalle_id}</th>                                     
                             <th>${c.producto_cambiado.producto_nombre}-${c.producto_cambiado.color_nombre}-${c.producto_cambiado.talla_nombre}</th>
                             <th scope="row">${c.producto_reemplazante.producto_nombre}-${c.producto_reemplazante.color_nombre}-${c.producto_reemplazante.talla_nombre}</th>
+                            <th>${c.cantidad}</th>
                         </tr>`;
         })
 
