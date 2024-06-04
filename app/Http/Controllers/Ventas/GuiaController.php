@@ -1020,7 +1020,15 @@ class GuiaController extends Controller
                     $guia->response_code    =   $code_estado;
                     $guia->update();
                 }
-           
+
+                //======= ARCHIVO YA PRESENTADO ANTERIORMENTE ========
+                if($guia->cdr_response_code == 2223 ){
+                    //======== MARCAR COMO ENVIADO =======
+                    $guia->regularize       =   '0';
+                    $guia->sunat            =   '1';
+                    $resumen->update();
+                }
+            
 
                 $response = [   'code_estado'       =>  $code_estado,
                                 'cdr'               =>  $cdr_response?1:0,
