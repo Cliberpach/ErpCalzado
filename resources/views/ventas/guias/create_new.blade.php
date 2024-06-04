@@ -325,7 +325,7 @@
 
                                         <div class="form-group">
                                             <label class="required">Dirección de la Empresa (Partida): </label>
-                                            <textarea type="text" placeholder=""
+                                            <textarea maxlength="150" type="text" placeholder=""
                                                 class="form-control input-required {{ $errors->has('direccion_tienda') ? ' is-invalid' : '' }}"
                                                 name="direccion_empresa" id="direccion_empresa"
                                                 value="{{old('direccion_empresa',$empresa->direccion_fiscal)}}"
@@ -442,7 +442,7 @@
 
                                         <div class="form-group">
                                             <label class="required">Dirección de la tienda o destino (Llegada): </label>
-                                            <textarea type="text" placeholder=""
+                                            <textarea maxlength="150" type="text" placeholder=""
                                                 class="form-control input-required {{ $errors->has('direccion_tienda') ? ' is-invalid' : '' }}"
                                                 name="direccion_tienda" id="direccion_tienda"
                                                 value="{{old('direccion_tienda')}}"
@@ -672,10 +672,10 @@
 
                         <div class="col-md-6 text-right">
 
-                            <a href="{{route('ventas.guiasremision.index')}}" id="btn_cancelar"
+                            <button id="btn_regresar"
                                 class="btn btn-w-m btn-default">
                                 <i class="fa fa-arrow-left"></i> Regresar
-                            </a>
+                            </button>
 
                             <button type="submit" id="btn_grabar" form="enviar_documento"
                                 class="btn btn-w-m btn-primary">
@@ -1280,10 +1280,16 @@
     let asegurarCierre  = 5;
 
     document.addEventListener('DOMContentLoaded',()=>{
-        events();
+        alertas_guia_create();
+        events(); 
     })
 
     function events(){
+        document.querySelector('#btn_regresar').addEventListener('click',(e)=>{
+            e.target.disabled       =   true;
+            window.location.href    =   `{{route('ventas.guiasremision.index')}}`;
+        })
+
         formGuia.addEventListener('submit',(e)=>{
             e.preventDefault();
             const swalWithBootstrapButtons = Swal.mixin({
@@ -1756,6 +1762,14 @@
         await this.axios.post(route('ventas.documento.devolver.cantidades'), {
             carrito: JSON.stringify(carrito)
         });  
+    }
+
+
+    function alertas_guia_create(){
+        const flashMessage = @json(session('error_guia_remision'));
+        if(flashMessage){
+            toastr.error(flashMessage,'ERROR AL CREAR LA GUÍA DE REMISIÓN ELECTRÓNICA');
+        }
     }
 
 </script>

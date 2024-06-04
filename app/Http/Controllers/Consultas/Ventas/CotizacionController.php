@@ -37,7 +37,7 @@ class CotizacionController extends Controller
                 'empresa' => $cotizacion->empresa->razon_social,
                 'cliente' => $cotizacion->cliente->nombre,
                 'fecha_documento' => Carbon::parse($cotizacion->fecha_documento)->format( 'd/m/Y'),
-                'total' => $cotizacion->total,
+                'total' => $cotizacion->total_pagar,
                 'estado' => $cotizacion->estado
             ]);
         }

@@ -303,7 +303,8 @@
         </div>
         <div class="comprobante-aux">
             @if($guia->ruta_qr)
-                <img src="{{ base_path() . '/storage/app/'.$guia->ruta_qr }}">
+                <img src="{{ $guia->ruta_qr }}">
+                {{-- <img src="{{ base_path() . '/storage/app/'.$guia->ruta_qr }}"> --}}
             @endif        
         </div>
     </body>

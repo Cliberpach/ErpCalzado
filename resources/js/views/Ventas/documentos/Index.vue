@@ -5,10 +5,11 @@
                 <div class="col-12">
                     <div class="ibox">
                         <div class="ibox-title">
-                            <h5><a style="color: #FDEBD0;" href="#"><i class="fa fa-square fa-2x"></i></a> Documento con
-                                NOTAS DE CREDITO <a style="color: #EBDEF0;" href="#"><i
-                                        class="fa fa-square fa-2x"></i></a>
-                                Documento de CONTINGENCIA</h5>
+                            <h5>
+                                <a style="color: #FDEBD0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a> Documento con NOTAS DE CREDITO 
+                                <a style="color: #EBDEF0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>Documento de CONTINGENCIA
+                                <a style="color:#E3E9FE" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>Documento con cambio de Talla</h5>
+
                         </div>
                         <div class="ibox-content tables_wrapper">
                             <div class="row">
@@ -102,176 +103,146 @@
                                                             </div>
                                                         </td>
                                                         <td class="letrapequeña text-center">
-                                                            <div class="btn-group" role="group"
-                                                                aria-label="Second group">
-                                                                <template v-if="
-                                                                  item.sunat == '0' &&
-                                                                  item.tipo_venta_id != 129 &&
-                                                                  dias(item) > 0 &&
-                                                                  item.contingencia == '0'
-                                                                ">
-                                                                    <button type="button" class="btn btn-sm btn-success"
-                                                                        @click="enviarSunat(item.id, item.contingencia)"
-                                                                        title="Enviar Sunat">
-                                                                        <i class="fa fa-send"></i>
-                                                                        Sunat
-                                                                    </button>
-                                                                </template>
 
-                                                                <template v-if="
-                                                                  item.sunat_contingencia == '0' &&
-                                                                  item.tipo_venta_id != 129 &&
-                                                                  item.contingencia == '1'
-                                                                ">
-                                                                    <button type="button" class="btn btn-sm btn-success"
-                                                                        @click="enviarSunat(item.id, item.contingencia)"
-                                                                        title="Enviar Sunat">
-                                                                        <i class="fa fa-send"></i>
-                                                                        Sunat
-                                                                    </button>
-                                                                </template>
+                                                            <div >
+                                                                <b-dropdown text="Primary" variant="success" class="m-2">
+                                                                    <template #button-content>
+                                                                        <i class="fas fa-th"></i>
+                                                                    </template>
 
-                                                                <template v-if="
-                                                                  (item.sunat == '1' ||
-                                                                    item.notas > 0 ||
-                                                                    item.sunat_contingencia == '1') &&
-                                                                  item.tipo_venta_id != 129
-                                                                ">
-                                                                    <a class="btn btn-sm btn-warning"
-                                                                        :href="routes(item.id, 'NOTAS')" title="Notas">
-                                                                        <i class="fa fa-file-o"></i> Notas
-                                                                    </a>
-                                                                </template>
+                                                                    <template v-if="item.sunat == '0' &&
+                                                                        item.tipo_venta_id != 129 &&
+                                                                        dias(item) > 0 &&
+                                                                        item.contingencia == '0'">
 
-                                                                <template
-                                                                    v-if="item.sunat == '1' || item.sunat_contingencia == '1'">
-                                                                    <button type="button" class="btn btn-sm btn-info"
-                                                                        @click.prevent="guia(item.id)"
-                                                                        title="Guia Remisión">
-                                                                        <i class="fa fa-file"></i> Guia
-                                                                    </button>
-                                                                </template>
+                                                                        <b-dropdown-item @click="enviarSunat(item.id, item.contingencia)">
+                                                                            <i class="fa fa-send"  style="color: #0065b3;"></i> Sunat
+                                                                        </b-dropdown-item>
 
-                                                                <template v-if="
-                                                                  (item.tipo_venta_id == 129 &&
-                                                                    item.condicion == 'CONTADO' &&
-                                                                    item.estado_pago == 'PAGADA') ||
-                                                                  (item.tipo_venta_id == 129 &&
-                                                                    (item.condicion == 'CREDITO' ||
-                                                                      item.condicion == 'CRÉDITO'))
-                                                                ">
-                                                                    <a class="btn btn-sm btn-warning"
-                                                                        :href="routes(item.id, 'DEVO')"
-                                                                        title="Devoluciones"><i
-                                                                            class="fa fa-file-o"></i>
-                                                                        Devoluciones</a>
-                                                                </template>
+                                                                    </template>
 
-                                                                <template v-if="
-                                                                  item.tipo_venta_id == 129 &&
-                                                                  item.estado_pago == 'PENDIENTE'
-                                                                ">
-                                                                    <a class="btn btn-sm btn-warning"
-                                                                        :href="routes(item.id, 'EDITAR')"
-                                                                        title="Editar"><i class="fa fa-pencil"></i>
-                                                                        Editar</a>
-                                                                </template>
+                                                                    <template v-if="
+                                                                        item.sunat_contingencia == '0' &&
+                                                                        item.tipo_venta_id != 129 &&
+                                                                        item.contingencia == '1'">
 
-                                                                <template v-if="
-                                                                  (item.sunat == '2' && item.tipo_venta_id == 129) ||
-                                                                  (item.tipo_venta_id == 129 &&
-                                                                    item.estado_pago == 'PENDIENTE' &&
-                                                                    item.contingencia == '0')
-                                                                ">
-                                                                    <button type="button"
-                                                                        class="btn btn-sm btn-danger d-none"
-                                                                        @click.prevent="eliminar(data.id)"
-                                                                        title="Eliminar">
-                                                                        <i class="fa fa-trash"></i> Eliminar
-                                                                    </button>
-                                                                </template>
+                                                                        <b-dropdown-item @click="enviarSunat(item.id, item.contingencia)">
+                                                                            <i class="fa fa-send"  style="color: #0065b3;"></i> Sunat
+                                                                        </b-dropdown-item>
 
-                                                                <template v-if="
-                                                                  item.condicion == 'CONTADO' &&
-                                                                  item.estado_pago == 'PENDIENTE' &&
-                                                                  item.tipo_venta_id == '129'
-                                                                ">
-                                                                    <button type="button"
-                                                                        class="btn btn-sm btn-primary pagar"
-                                                                        @click="Pagar(item)" title="Pagar">
-                                                                        <i class="fa fa-money"></i> Pagar
-                                                                    </button>
-                                                                </template>
+                                                                    </template>
+                                                                    
+                                                                    <template v-if="(item.sunat == '1' ||
+                                                                        item.notas > 0 ||item.sunat_contingencia == '1') &&
+                                                                        item.tipo_venta_id != 129">
+                                                                        <b-dropdown-item :href="routes(item.id, 'NOTAS')">
+                                                                            <i class="fa fa-file-o" style="color: #77600e;"></i> Notas
+                                                                        </b-dropdown-item>
+                                                                       
+                                                                    </template>
 
-                                                                <template v-if="
-                                                                  item.condicion == 'CONTADO' &&
-                                                                  item.estado_pago == 'PENDIENTE' &&
-                                                                  item.tipo_venta_id != 129 &&
-                                                                  (item.convertir == '' || item.convertir == null)
-                                                                ">
-                                                                    <button type="button"
-                                                                        class="btn btn-sm btn-primary pagar"
-                                                                        @click="Pagar(item)" title="Pagar">
-                                                                        <i class="fa fa-money"></i> Pagar
-                                                                    </button>
-                                                                </template>
+                                                                    <template v-if="item.sunat == '1' || item.sunat_contingencia == '1'">
+                                                                        <b-dropdown-item title="Guía Remisión" @click.prevent="guia(item.id)">
+                                                                            <i class="fa fa-file"></i> Guía
+                                                                        </b-dropdown-item>
+                                                                    </template>
 
-                                                                <template v-if="
-                                                                  item.code == '1033' &&
-                                                                  item.regularize == '1' &&
-                                                                  item.sunat != '2' &&
-                                                                  item.contingencia == '0'
-                                                                ">
-                                                                    <button type="button"
-                                                                        class="btn btn-sm btn-primary-cdr"
-                                                                        @click.prevent="cdr(item.id)" title="CDR">
-                                                                        CDR
-                                                                    </button>
-                                                                </template>
 
-                                                                <!-- <button type="button" class="btn btn-sm btn-success"
-                                                                        @click="cambiarTallas(item.id)"
-                                                                        title="Enviar Sunat">
-                                                                        <i class="fas fa-exchange-alt"></i>
-                                                                        Cambiar Tallas
-                                                                </button> -->
+                                                                    <template v-if="(item.tipo_venta_id == 129 && item.condicion == 'CONTADO' 
+                                                                        && item.estado_pago == 'PAGADA') ||
+                                                                        (item.tipo_venta_id == 129 &&
+                                                                        (item.condicion == 'CREDITO' ||
+                                                                        item.condicion == 'CRÉDITO'))">
 
-                                                                <!-- <template v-if="
-                                                                  dias(item) <= 0 &&
-                                                                  item.contingencia == '0' &&
-                                                                  item.tipo_venta_id != '129' &&
-                                                                  item.sunat == '0'
-                                                                ">
-                                                                    <button type="button" class="btn btn-sm btn-warning"
-                                                                        @click.prevent="contingencia(item.id)"
-                                                                        title="Convertir a comprobante de contingencia">
-                                                                        <i class="fa fa-exchange"></i> {{item.estado}}
-                                                                    </button> 
+                                                                        <b-dropdown-item title="Guía Remisión" :href="routes(item.id, 'DEVO')">
+                                                                            <i class="fa fa-file-o"></i> Devoluciones
+                                                                        </b-dropdown-item>
+
+                                                                    </template>
+
+
+                                                                    <template v-if="item.tipo_venta_id == 129 &&
+                                                                        item.estado_pago == 'PENDIENTE'">
+                                                                        <b-dropdown-item title="Guía Remisión" :href="routes(item.id, 'EDITAR')">
+                                                                            <i class="fa fa-pencil"></i> Editar
+                                                                        </b-dropdown-item>
+                                                                    </template>
+
+
+                                                                    <b-dropdown-item title="Cambio de Talla" @click="cambiarTallas(item.id)">
+                                                                        <i class="fas fa-exchange-alt" style="color: #3307ab;"></i> Cambio de Talla
+                                                                    </b-dropdown-item>
+
+                                                                    <!-- <template v-if="(item.sunat == '2' && item.tipo_venta_id == 129) ||
+                                                                        (item.tipo_venta_id == 129 &&   item.estado_pago == 'PENDIENTE' &&
+                                                                        item.contingencia == '0')">
+                                                                        <b-dropdown-item title="Eliminar"  @click.prevent="eliminar(data.id)">
+                                                                            <i class="fa fa-trash"></i> Eliminar
+                                                                        </b-dropdown-item>
+                                                                    </template> -->
+
+                                                                    <template v-if="item.condicion == 'CONTADO' &&
+                                                                        item.estado_pago == 'PENDIENTE' &&
+                                                                        item.tipo_venta_id == '129'">
+                                                                        <b-dropdown-item title="Eliminar"  @click="Pagar(item)">
+                                                                            <i class="fa fa-money" style="color: #007502;"></i> Pagar
+                                                                        </b-dropdown-item>
+                                                                    </template>
+
+                                                                    <template v-if="item.condicion == 'CONTADO' &&
+                                                                        item.estado_pago == 'PENDIENTE' &&
+                                                                        item.tipo_venta_id != 129 &&
+                                                                        (item.convertir == '' || item.convertir == null)">
+                                                                        <b-dropdown-item title="Eliminar"  @click="Pagar(item)">
+                                                                            <i class="fa fa-money" style="color: #007502;"></i> Pagar
+                                                                        </b-dropdown-item>
+                                                                    </template>
+
+
+                                                                    <template v-if="item.code == '1033' && item.regularize == '1' &&
+                                                                        item.sunat != '2' && item.contingencia == '0'">
+
+                                                                        <b-dropdown-item title="Eliminar"  @click.prevent="cdr(item.id)">
+                                                                            <i class="fa fa-money"></i> CDR
+                                                                        </b-dropdown-item>
+                                                                    </template>
+
+                                                                    <!-- <template v-if="
+                                                                    dias(item) <= 0 &&
+                                                                    item.contingencia == '0' &&
+                                                                    item.tipo_venta_id != '129' &&
+                                                                    item.sunat == '0'
+                                                                    ">
+                                                                        <button type="button" class="btn btn-sm btn-warning"
+                                                                            @click.prevent="contingencia(item.id)"
+                                                                            title="Convertir a comprobante de contingencia">
+                                                                            <i class="fa fa-exchange"></i> {{item.estado}}
+                                                                        </button> 
+                                                                    
+                                                                    </template> -->
+
+                                                                    <template v-if="dias(item) <= 0 && item.estado == 'ACTIVO' &&
+                                                                        item.tipo_venta_id != '129' && item.sunat == '0'">
+                                                                        <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="regularizarVenta(item.id)">
+                                                                            <i class="fa fa-exchange"></i> ANULAR
+                                                                        </b-dropdown-item>
+                                                                    </template>
+
+
+                                                                    <template v-if="item.estado_despacho!=='DESPACHADO' && item.estado_despacho">
+                                                                        <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="setDataEnvio(item.id)">
+                                                                            <i class="fas fa-truck"></i> DESPACHO
+                                                                        </b-dropdown-item>
+                                                                    </template>
                                                                 
-                                                                </template> -->
 
-                                                                <template v-if="
-                                                                  dias(item) <= 0 &&
-                                                                  item.estado == 'ACTIVO' &&
-                                                                  item.tipo_venta_id != '129' &&
-                                                                  item.sunat == '0'
-                                                                ">
-                                                                    <button type="button" class="btn btn-sm btn-warning"
-                                                                        @click.prevent="regularizarVenta(item.id)"
-                                                                        title="Crear nuevo doc venta con el mismo detalle">
-                                                                        <i class="fa fa-exchange"></i> ANULAR
-                                                                    </button> 
-                                                                
-                                                                </template>
-
-                                                                <template v-if="item.estado_despacho!=='DESPACHADO' && item.estado_despacho">
-                                                                    <span class="input-group-text btn btn-light" id="basic-addon1" @click.prevent="setDataEnvio(item.id)">
-                                                                        <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>                                                    
-                                                                    </span>
-                                                                </template>
-                                                               
+                                                                </b-dropdown>
 
                                                             </div>
+                                                               
+                                                               
+
+                                                         
                                                         </td>
                                                     </tr>
                                                 </template>
@@ -357,6 +328,11 @@
     </div>
 </template>
 <script>
+
+import Vue from 'vue';
+import BootstrapVue from 'bootstrap-vue';
+Vue.use(BootstrapVue);
+
 import ModalPdfDownloadVue from '../../../components/ventas/ModalPdfDownload.vue';
 import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
 import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
@@ -779,6 +755,10 @@ export default {
 
             if (aData.contingencia == '1') {
                 return {'background-color':"#EBDEF0"}
+            }
+
+            if(aData.cambio_talla == '1'){
+                return {'background-color':"#E3E9FE"} 
             }
         },
         async regularizarVenta(documento_id){

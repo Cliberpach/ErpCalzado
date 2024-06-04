@@ -65,7 +65,7 @@ class DocumentoController extends Controller
                 'otros' => number_format($otros, 2, '.', ''),
                 'efectivo' => number_format($efectivo, 2, '.', ''),
                 'transferencia' => number_format($transferencia, 2, '.', ''),
-                'total' => number_format($documento->total, 2, '.', ''),
+                'total' => number_format($documento->total_pagar, 2, '.', ''),
             ]);
         }
 

@@ -225,6 +225,7 @@ div.content-animacion.sk__loading::after {
             if(e.target.classList.contains('btn-obtener-tallas')){
                 e.target.classList.add('fa-spin');
 
+                const detalles      =   @json($detalles);
                 const detalle_id    =   e.target.getAttribute('data-id');
                 const producto_id   =   e.target.getAttribute('data-producto-id');
                 const color_id      =   e.target.getAttribute('data-color-id');
@@ -232,6 +233,7 @@ div.content-animacion.sk__loading::after {
                 const producto_nombre       =   e.target.getAttribute('data-producto-nombre');
                 const color_nombre          =   e.target.getAttribute('data-color-nombre');
                 const talla_nombre          =   e.target.getAttribute('data-talla-nombre');
+                const inputCantidadCambiar  =   document.querySelector('#cantidad_cambio');
 
                 setProductoCambiado({detalle_id,producto_id,color_id,talla_id,producto_nombre,color_nombre,talla_nombre});
 
@@ -242,7 +244,14 @@ div.content-animacion.sk__loading::after {
 
                 await getTallas(producto_id,color_id);
                 e.target.classList.remove('fa-spin');
+                
+                //====== COLOCANDO DATOS EN EL MODAL CAMBIO TALLA =========
                 document.querySelector('#stock').value  =   '';
+
+                const indexDetalle =   detalles.findIndex((d)=> d.id == detalle_id );
+                
+                indexDetalle !== -1?inputCantidadCambiar.value = parseInt(detalles[indexDetalle].cantidad) :inputCantidadCambiar.value = '';  
+                //===== ABRIR MODAL CAMBIO TALLA =======
                 $("#modal-cambio-talla").modal('show');
             }
         })

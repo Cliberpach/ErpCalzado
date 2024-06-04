@@ -85,27 +85,60 @@ final class Util
         return $see;
     }
 
-    public function getSeeApi()
+    public function getSeeApi($greenter_config)
     {
-        $api = new \Greenter\Api([
-            'auth' => 'https://gre-test.nubefact.com/v1',
-            'cpe' => 'https://gre-test.nubefact.com/v1',
-        ]);
-        $certificate = file_get_contents(__DIR__ . '/../certificate/certificate_test.pem');
+        $ruc    =   $greenter_config->ruc;
+
+        if($greenter_config->modo === "BETA"){
+            $api = new \Greenter\Api([
+                'auth' => 'https://gre-test.nubefact.com/v1',
+                'cpe' => 'https://gre-test.nubefact.com/v1',
+            ]);
+
+            $ruc    =   "20161515648";   
+        }
+
+        if($greenter_config->modo === "PRODUCCION"){
+            $see = new \Greenter\Api([
+                'auth' => 'https://api-seguridad.sunat.gob.pe/v1',
+                'cpe' => 'https://api-cpe.sunat.gob.pe/v1',
+            ]);
+        }
+       
+        $certificadoPath    =   storage_path('app/public/' . $greenter_config->ruta_certificado);   
+
+        if(!file_exists($certificadoPath)){
+            throw new Exception('No existe el certificado,debe registrar uno en Mantenimiento/Empresas');
+        }
+
+        $certificate    =    file_get_contents($certificadoPath);
+
         if ($certificate === false) {
             throw new Exception('No se pudo cargar el certificado');
         }
+
+        //$certificate = file_get_contents(__DIR__ . '/../certificate/certificate_test.pem');
+
+        // if ($certificate === false) {
+        //     throw new Exception('No se pudo cargar el certificado');
+        // }
+        
+           
         return $api->setBuilderOptions([
                 'strict_variables' => true,
                 'optimizations' => 0,
                 'debug' => true,
                 'cache' => false,
             ])
-             ->setApiCredentials('test-85e5b0ae-255c-4891-a595-0b98c65c9854', 'test-Hty/M6QshYvPgItX2P0+Kw==')
-             ->setClaveSOL('20161515648', 'MODDATOS', 'MODDATOS')
+            ->setApiCredentials($greenter_config->id_api_guia_remision, $greenter_config->clave_api_guia_remision)
+            ->setClaveSOL($ruc, $greenter_config->sol_user, $greenter_config->sol_pass)
+            ->setCertificate($certificate);
+
+
+            //  ->setApiCredentials('test-85e5b0ae-255c-4891-a595-0b98c65c9854', 'test-Hty/M6QshYvPgItX2P0+Kw==')
+            //  ->setClaveSOL('20161515648', 'MODDATOS', 'MODDATOS')
             // ->setApiCredentials('9e8eaf55-cf1d-4bf0-9837-0c3d897c08d5', '3xSHGqcy5mglRIJzxx6eZw==')
             // ->setClaveSOL('20611904020', 'SISCOMFA', 'Merry321')
-            ->setCertificate($certificate);
     }
 
     public function getGRECompany(): \Greenter\Model\Company\Company
@@ -172,12 +205,12 @@ HTML;
                 $fileDir    =   public_path('storage/greenter/resumenes/cdr');
             }
             if($tipo_comprobante == 'GUIA REMISION'){
-                $fileDir = __DIR__.'/../files/guias_remision_cdr';
+                $fileDir    =   public_path('storage/greenter/guías_remisión/cdr');
             }
             if($tipo_comprobante == 127){  //======== FACTURA ====
                 $fileDir    =   public_path('storage/greenter/facturas/cdr');
             }
-            if($tipo_comprobante == 128){  //======== FACTURA ====
+            if($tipo_comprobante == 128){  //======== BOLETA ====
                 $fileDir    =   public_path('storage/greenter/boletas/cdr');
             }
             if($tipo_comprobante == '07-03'){
@@ -194,7 +227,7 @@ HTML;
                 $fileDir    =   public_path('storage/greenter/resumenes/xml');
             }
             if($tipo_comprobante == 'GUIA REMISION'){
-                $fileDir = __DIR__.'/../files/guias_remision_xml';
+                $fileDir    =   public_path('storage/greenter/guías_remisión/xml');
             }
             if($tipo_comprobante == 127){   //======== FACTURA =====
                 $fileDir    =   public_path('storage/greenter/facturas/xml');
@@ -215,7 +248,10 @@ HTML;
             mkdir($fileDir, 0777, true);
         }
 
-        file_put_contents($fileDir.DIRECTORY_SEPARATOR.$filename, $content);
+        
+        if(!file_exists($fileDir.DIRECTORY_SEPARATOR.$filename)){
+            file_put_contents($fileDir.DIRECTORY_SEPARATOR.$filename, $content);
+        }
     }
 
     public function getPdf(DocumentInterface $document): ?string

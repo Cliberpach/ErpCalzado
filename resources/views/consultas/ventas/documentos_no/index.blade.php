@@ -140,6 +140,12 @@
 <script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 
+@if(Session::has('doc_error_get_xml'))
+<script>
+    toastr.error("{{ Session::get('doc_error_get_xml') }}",'ERROR AL OBTENER XML');
+</script>
+@endif
+
 <script>
 $(document).ready(function() {
     var ventas = [];

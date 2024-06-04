@@ -107,6 +107,12 @@
 <script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 
+@if(Session::has('doc_error_get_xml'))
+<script>
+    toastr.error("{{ Session::get('doc_error_get_xml') }}",'ERROR AL OBTENER XML');
+</script>
+@endif
+
 <script>
 $(document).ready(function() {
     var ventas = [];
@@ -416,12 +422,12 @@ function anularVenta(id) {
 
 function enviarSunat(id , sunat) {
     const swalWithBootstrapButtons = Swal.mixin({
-        customClass: {
-            confirmButton: 'btn btn-success',
-            cancelButton: 'btn btn-danger',
-        },
-        buttonsStyling: false
-    })
+    customClass: {
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-danger',
+    },
+    buttonsStyling: false
+    });
 
     Swal.fire({
         title: "Opción Enviar a Sunat",
@@ -430,37 +436,48 @@ function enviarSunat(id , sunat) {
         icon: 'info',
         confirmButtonColor: "#1ab394",
         confirmButtonText: 'Si, Confirmar',
-        cancelButtonText: "No, Cancelar",
-        // showLoaderOnConfirm: true,
-    }).then((result) => {
+        cancelButtonText: "No, Cancelar"
+    }).then(async (result) => {
         if (result.value) {
-
-            var url = '{{ route("consultas.ventas.alerta.sunat", ":id")}}';
-            url = url.replace(':id',id);
-
-            window.location.href = url
-
             Swal.fire({
                 title: '¡Cargando!',
-                type: 'info',
                 text: 'Enviando documento de venta a Sunat',
                 showConfirmButton: false,
+                allowOutsideClick: false,
                 onBeforeOpen: () => {
-                    Swal.showLoading()
+                    Swal.showLoading();
                 }
-            })
+            });
 
-        } else if (
-            /* Read more about handling dismissals below */
-            result.dismiss === Swal.DismissReason.cancel
-        ) {
+            try {
+                const res = await axios.get(route('ventas.documento.sunat', id));
+                if (res.data.success) {
+                    // Actualizar DataTable
+                    $('.dataTables-envio').DataTable().ajax.reload();
+
+                
+                    toastr.success(res.data.message, 'OPERACIÓN COMPLETADA, SE TRASLADÓ EL REGISTRO A DOCUMENTOS ENVIADOS');
+                } else {
+                   toastr.error(res.data.exception,res.data.message,{timeOut:0});
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error en la solicitud',
+                    text: error.message,
+                    footer: `<pre>${error.stack}</pre>`
+                });
+            }finally{
+                Swal.close();
+            }
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
             swalWithBootstrapButtons.fire(
                 'Cancelado',
-                'La Solicitud se ha cancelado.',
+                'La solicitud se ha cancelado.',
                 'error'
-            )
+            );
         }
-    })
+    });
 
 }
 

@@ -560,7 +560,6 @@
         });
 
         $(document).ready(function() {
-
             $(".select2_form").select2({
                 placeholder: "SELECCIONAR",
                 allowClear: true,

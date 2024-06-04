@@ -63,6 +63,8 @@ use App\Almacenes\NotaIngreso;
 use App\Almacenes\DetalleNotaSalidad;
 use App\Almacenes\NotaSalidad;
 
+use Illuminate\Support\Facades\Response; 
+
 class DocumentoController extends Controller
 {
     public function index()
@@ -84,6 +86,7 @@ class DocumentoController extends Controller
     
     public function getDocument(Request $request)
     {
+       
         $colleccion = collect([]);
         $documentos = Documento::query()
             ->select([
@@ -111,6 +114,7 @@ class DocumentoController extends Controller
                 'cotizacion_documento.sunat_contingencia',
                 'cotizacion_documento.documento_cliente',
                 'cotizacion_documento.estado',
+                'cotizacion_documento.cambio_talla',
                 DB::raw('json_unquote(json_extract(cotizacion_documento.getRegularizeResponse, "$.code")) as code'),
                 'cotizacion_documento.total',
                 'cotizacion_documento.total_pagar',
@@ -195,7 +199,8 @@ class DocumentoController extends Controller
                 "correo"            =>  $value->clienteEntidad->correo_electronico,
                 "telefonoMovil"     =>  $value->clienteEntidad->telefono_movil,
                 "estado"            =>  $value->estado,
-                "estado_despacho"   =>  $value->estado_despacho
+                "estado_despacho"   =>  $value->estado_despacho,
+                "cambio_talla"      =>  $value->cambio_talla
             ]);
         }
 
@@ -2369,7 +2374,7 @@ class DocumentoController extends Controller
     }
 
     public function voucher($value)
-    {
+    {   
         try {
             $cadena = explode('-', $value);
             $id     = $cadena[0];
@@ -2381,42 +2386,42 @@ class DocumentoController extends Controller
                 if ($documento->sunat == '0' || $documento->sunat == '2') {
                    
                     //ARREGLO COMPROBANTE
-                    $arreglo_comprobante = array(
-                        "tipoOperacion" => $documento->tipoOperacion(),
-                        "tipoDoc" => $documento->tipoDocumento(),
-                        "serie" => '000',
-                        "correlativo" => '000',
-                        "fechaEmision" => self::obtenerFecha($documento),
-                        "observacion" => $documento->observacion,
-                        "tipoMoneda" => $documento->simboloMoneda(),
-                        "client" => array(
-                            "tipoDoc" => $documento->tipoDocumentoCliente(),
-                            "numDoc" => $documento->documento_cliente,
-                            "rznSocial" => $documento->cliente,
-                            "address" => array(
-                                "direccion" => $documento->direccion_cliente,
-                            ),
-                        ),
-                        "company" => array(
-                            "ruc" => $documento->ruc_empresa,
-                            "razonSocial" => $documento->empresa,
-                            "address" => array(
-                                "direccion" => $documento->direccion_fiscal_empresa,
-                            ),
-                        ),
-                        "mtoOperGravadas" => $documento->sub_total,
-                        "mtoOperExoneradas" => 0,
-                        "mtoIGV" => $documento->total_igv,
+                    // $arreglo_comprobante = array(
+                    //     "tipoOperacion" => $documento->tipoOperacion(),
+                    //     "tipoDoc" => $documento->tipoDocumento(),
+                    //     "serie" => '000',
+                    //     "correlativo" => '000',
+                    //     "fechaEmision" => self::obtenerFecha($documento),
+                    //     "observacion" => $documento->observacion,
+                    //     "tipoMoneda" => $documento->simboloMoneda(),
+                    //     "client" => array(
+                    //         "tipoDoc" => $documento->tipoDocumentoCliente(),
+                    //         "numDoc" => $documento->documento_cliente,
+                    //         "rznSocial" => $documento->cliente,
+                    //         "address" => array(
+                    //             "direccion" => $documento->direccion_cliente,
+                    //         ),
+                    //     ),
+                    //     "company" => array(
+                    //         "ruc" => $documento->ruc_empresa,
+                    //         "razonSocial" => $documento->empresa,
+                    //         "address" => array(
+                    //             "direccion" => $documento->direccion_fiscal_empresa,
+                    //         ),
+                    //     ),
+                    //     "mtoOperGravadas" => $documento->sub_total,
+                    //     "mtoOperExoneradas" => 0,
+                    //     "mtoIGV" => $documento->total_igv,
 
-                        "valorVenta" => $documento->sub_total,
-                        "totalImpuestos" => $documento->total_igv,
-                        "mtoImpVenta" => $documento->total,
-                        "ublVersion" => "2.1",
-                        "details" => self::obtenerProductos($documento->id),
-                        "legends" => self::obtenerLeyenda($documento),
-                    );
+                    //     "valorVenta" => $documento->sub_total,
+                    //     "totalImpuestos" => $documento->total_igv,
+                    //     "mtoImpVenta" => $documento->total,
+                    //     "ublVersion" => "2.1",
+                    //     "details" => self::obtenerProductos($documento->id),
+                    //     "legends" => self::obtenerLeyenda($documento),
+                    // );
 
-                    $comprobante = json_encode($arreglo_comprobante);
+                    // $comprobante = json_encode($arreglo_comprobante);
                     
                     //$data = generarComprobanteapi($comprobante, $documento->empresa_id);
                     $name = $documento->id . '.pdf';
@@ -2562,95 +2567,116 @@ class DocumentoController extends Controller
         }
     }
 
-    public function xml($id)
-    {
-
-        $documento = Documento::findOrFail($id);
-        if ((int) $documento->tipo_venta === 127 || (int) $documento->tipo_venta === 128) {
-            if ($documento->sunat == '0' || $documento->sunat == '2') {
-                //ARREGLO COMPROBANTE
-                $arreglo_comprobante = array(
-                    "tipoOperacion" => $documento->tipoOperacion(),
-                    "tipoDoc" => $documento->tipoDocumento(),
-                    "serie" => '000',
-                    "correlativo" => '000',
-                    "fechaEmision" => self::obtenerFecha($documento),
-                    "observacion" => $documento->observacion,
-                    "tipoMoneda" => $documento->simboloMoneda(),
-                    "client" => array(
-                        "tipoDoc" => $documento->tipoDocumentoCliente(),
-                        "numDoc" => $documento->documento_cliente,
-                        "rznSocial" => $documento->cliente,
-                        "address" => array(
-                            "direccion" => $documento->direccion_cliente,
-                        ),
-                    ),
-                    "company" => array(
-                        "ruc" =>  $documento->ruc_empresa,
-                        "razonSocial" => $documento->empresa,
-                        "address" => array(
-                            "direccion" => $documento->direccion_fiscal_empresa,
-                            "provincia" =>  "TRUJILLO",
-                            "departamento"=> "LA LIBERTAD",
-                            "distrito"=> "TRUJILLO",
-                            "ubigueo"=> "130101"
-                        )),
-                    //"mtoOperGravadas" => (float)$documento->sub_total,
-                    "mtoOperGravadas" => (float)$documento->total, //=== nuestro subtotal ===
-                    "mtoOperExoneradas" => 0,
-                    "mtoIGV" => (float)$documento->total_igv,
-                    // "valorVenta" => (float)$documento->sub_total,
-                    "valorVenta" => (float)$documento->total, //=== nuestro subtotal ===
-                    "totalImpuestos" => (float)$documento->total_igv,
-                    // "subTotal" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
-                    // "mtoImpVenta" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
-                    "subTotal" => (float)$documento->total_pagar + ($documento->retencion ? $documento->retencion->impRetenido : 0),
-                    "mtoImpVenta" => (float)$documento->total_pagar + ($documento->retencion ? $documento->retencion->impRetenido : 0),
-                    // "sumDsctoGlobal" => (float)$documento->monto_descuento,
-
-                    "ublVersion" => "2.1",
-                    "details" => self::obtenerProductos($documento->id),
-                    "legends" => self::obtenerLeyenda($documento),
-                );
-
-                $comprobante = json_encode($arreglo_comprobante);
-                $data = generarXmlapi($comprobante, $documento->empresa_id);
-                $name = $documento->serie . '-' . $documento->correlativo . '.xml';
-                $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml' . DIRECTORY_SEPARATOR . $name);
-                if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml'))) {
-                    mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml'));
-                }
-                file_put_contents($pathToFile, $data);
-
-                //$ruta = public_path() . '/storage/xml/' . $name;
-                $ruta   =   $pathToFile;
-                
-                return response()->download($ruta);
-                // return response()->file($pathToFile);
-
-            } else {
-
-                //OBTENER CORRELATIVO DEL COMPROBANTE ELECTRONICO
-                $comprobante = event(new ComprobanteRegistrado($documento, $documento->serie));
-                //ENVIAR COMPROBANTE PARA LUEGO GENERAR XML
-                $data = generarXmlapi($comprobante[0], $documento->empresa_id);
-                $name = $documento->serie . '-' . $documento->correlativo . '.xml';
-                $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml' . DIRECTORY_SEPARATOR . $name);
-                if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml'))) {
-                    mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml'));
-                }
-                file_put_contents($pathToFile, $data);
-                //$ruta = public_path() . '/storage/xml/' . $name;
-                $ruta   =   $pathToFile;
-
-                return response()->download($ruta);
-                //return response()->file($pathToFile);
+    public function xml($id){
+        try {
+            $documento      =   Documento::find($id);
+            $nombreArchivo  =   basename($documento->ruta_xml);
+            
+            if (!file_exists($documento->ruta_xml)) {
+                throw new \Exception("El archivo XML del DOCUMENTO: ".$documento->serie.'-'.$documento->correlativo. " ,no existe en la ruta especificada");
             }
-        } else {
-            Session::flash('error', 'Este documento no retorna este formato.');
+    
+            $headers = [
+                'Content-Type' => 'text/xml',
+            ];
+        
+            return Response::download($documento->ruta_xml, $nombreArchivo, $headers);
+        } catch (\Throwable $th) {
+            Session::flash('doc_error_get_xml',$th->getMessage());
             return back();
         }
+       
     }
+
+    // public function xml($id)
+    // {
+
+    //     $documento = Documento::findOrFail($id);
+    //     if ((int) $documento->tipo_venta === 127 || (int) $documento->tipo_venta === 128) {
+    //         if ($documento->sunat == '0' || $documento->sunat == '2') {
+    //             //ARREGLO COMPROBANTE
+    //             $arreglo_comprobante = array(
+    //                 "tipoOperacion" => $documento->tipoOperacion(),
+    //                 "tipoDoc" => $documento->tipoDocumento(),
+    //                 "serie" => '000',
+    //                 "correlativo" => '000',
+    //                 "fechaEmision" => self::obtenerFecha($documento),
+    //                 "observacion" => $documento->observacion,
+    //                 "tipoMoneda" => $documento->simboloMoneda(),
+    //                 "client" => array(
+    //                     "tipoDoc" => $documento->tipoDocumentoCliente(),
+    //                     "numDoc" => $documento->documento_cliente,
+    //                     "rznSocial" => $documento->cliente,
+    //                     "address" => array(
+    //                         "direccion" => $documento->direccion_cliente,
+    //                     ),
+    //                 ),
+    //                 "company" => array(
+    //                     "ruc" =>  $documento->ruc_empresa,
+    //                     "razonSocial" => $documento->empresa,
+    //                     "address" => array(
+    //                         "direccion" => $documento->direccion_fiscal_empresa,
+    //                         "provincia" =>  "TRUJILLO",
+    //                         "departamento"=> "LA LIBERTAD",
+    //                         "distrito"=> "TRUJILLO",
+    //                         "ubigueo"=> "130101"
+    //                     )),
+    //                 //"mtoOperGravadas" => (float)$documento->sub_total,
+    //                 "mtoOperGravadas" => (float)$documento->total, //=== nuestro subtotal ===
+    //                 "mtoOperExoneradas" => 0,
+    //                 "mtoIGV" => (float)$documento->total_igv,
+    //                 // "valorVenta" => (float)$documento->sub_total,
+    //                 "valorVenta" => (float)$documento->total, //=== nuestro subtotal ===
+    //                 "totalImpuestos" => (float)$documento->total_igv,
+    //                 // "subTotal" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+    //                 // "mtoImpVenta" => (float)$documento->total + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+    //                 "subTotal" => (float)$documento->total_pagar + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+    //                 "mtoImpVenta" => (float)$documento->total_pagar + ($documento->retencion ? $documento->retencion->impRetenido : 0),
+    //                 // "sumDsctoGlobal" => (float)$documento->monto_descuento,
+
+    //                 "ublVersion" => "2.1",
+    //                 "details" => self::obtenerProductos($documento->id),
+    //                 "legends" => self::obtenerLeyenda($documento),
+    //             );
+
+    //             $comprobante = json_encode($arreglo_comprobante);
+    //             $data = generarXmlapi($comprobante, $documento->empresa_id);
+    //             $name = $documento->serie . '-' . $documento->correlativo . '.xml';
+    //             $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml' . DIRECTORY_SEPARATOR . $name);
+    //             if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml'))) {
+    //                 mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml'));
+    //             }
+    //             file_put_contents($pathToFile, $data);
+
+    //             //$ruta = public_path() . '/storage/xml/' . $name;
+    //             $ruta   =   $pathToFile;
+                
+    //             return response()->download($ruta);
+    //             // return response()->file($pathToFile);
+
+    //         } else {
+
+    //             //OBTENER CORRELATIVO DEL COMPROBANTE ELECTRONICO
+    //             $comprobante = event(new ComprobanteRegistrado($documento, $documento->serie));
+    //             //ENVIAR COMPROBANTE PARA LUEGO GENERAR XML
+    //             $data = generarXmlapi($comprobante[0], $documento->empresa_id);
+    //             $name = $documento->serie . '-' . $documento->correlativo . '.xml';
+    //             $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml' . DIRECTORY_SEPARATOR . $name);
+    //             if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml'))) {
+    //                 mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'xml'));
+    //             }
+    //             file_put_contents($pathToFile, $data);
+    //             //$ruta = public_path() . '/storage/xml/' . $name;
+    //             $ruta   =   $pathToFile;
+
+    //             return response()->download($ruta);
+    //             //return response()->file($pathToFile);
+    //         }
+    //     } else {
+    //         Session::flash('error', 'Este documento no retorna este formato.');
+    //         return back();
+    //     }
+    // }
 
     public function qr_code($id)
     {
@@ -3873,6 +3899,34 @@ class DocumentoController extends Controller
         }
     }
 
+    public function validarCantCambiar($documento_id,$detalle_id,$cantidad){
+        try {
+            //====== OBTENER LA CANTIDAD DEL DETALLE ==========
+            $cantidad_item     =   DB::select('select cdd.cantidad from cotizacion_documento_detalles as cdd
+                                where cdd.documento_id=? and cdd.id=? and cdd.estado="ACTIVO"',
+                                [$documento_id,$detalle_id,$cantidad]);
+
+
+            if(count($cantidad_item) === 0){
+                throw new Exception('NO SE ENCONTRÓ EL DETALLE #'.$detalle_id.' EN LA BASE DE DATOS');
+            }
+
+
+            //====== SI LA CANTIDAD DEL ITEM ES MAYOR O IGUAL A LA CANTIDAD QUE SE QUIERE CAMBIAR ========
+            if($cantidad_item[0]->cantidad >= $cantidad){
+                return response()->json(["success"=>true,"message"=>"CANTIDAD A CAMBIAR VÁLIDA"]);
+            }else {
+                return response()->json(["success"=>false,
+                "message"=>"CANTIDAD A CAMBIAR DEBE SER MENOR O IGUAL A LA CANTIDAD DEL DETALLE"]);
+            }
+
+            
+        } catch (\Throwable $th) {
+            return response()->json(["success"=>false,"message"=>"ERROR EN EL SERVIDOR AL VALIDAR LA CANTIDAD A CAMBIAR",
+            "exception"=>$th->getMessage()]);
+        }
+    }
+
     public function validarStock(Request $request){
         
         try {
@@ -3882,20 +3936,13 @@ class DocumentoController extends Controller
             $producto_cambiado  =   $nuevo_cambio->producto_cambiado;
             $producto_reemplazante  =   $nuevo_cambio->producto_reemplazante;
             $documento_id           =   $nuevo_cambio->documento_id;
+            $cantidad_cambiar       =   $nuevo_cambio->cantidad;
 
-            //======== BUSCANDO CANTIDAD DEL PRODUCTO_CAMBIADO =======
-            $cantidad_producto_cambiado     =   DB::select('select cdd.cantidad from cotizacion_documento_detalles as cdd
-                                                where cdd.id=? and cdd.producto_id=? and cdd.color_id=? and cdd.talla_id=?
-                                                and cdd.documento_id=?',
-                                                [$producto_cambiado->detalle_id,$producto_cambiado->producto_id,
-                                                $producto_cambiado->color_id,$producto_cambiado->talla_id,$documento_id]);
-                        
-            if(count($cantidad_producto_cambiado) === 0){
+            if(!$cantidad_cambiar){
                 throw new Exception('EL PRODUCTO '.$producto_cambiado->producto_nombre.'-'.$producto_cambiado->color_nombre.'-'.
-                $producto_cambiado->talla_nombre.' A CAMBIAR  NO EXISTE EN EL DETALLE DEL DOCUMENTO');
+                $producto_cambiado->talla_nombre.' NO TIENE UNA CANTIDAD ASIGNADA PARA CAMBIO');
             }
 
-            $cantidad_producto_cambiado     =   (int)$cantidad_producto_cambiado[0]->cantidad;
 
             //======= OBTENIENDO STOCKS DEL PRODUCTO REEMPLAZANTE ========
             $stocks_producto_reemplazante    =   DB::select('select pct.stock,pct.stock_logico 
@@ -3912,12 +3959,12 @@ class DocumentoController extends Controller
             }   
             
             $stock_logico_producto_reemplazante =   $stocks_producto_reemplazante[0]->stock_logico;
-            if($stock_logico_producto_reemplazante >= $cantidad_producto_cambiado){
+            if($stock_logico_producto_reemplazante >= $cantidad_cambiar){
 
                 //========== SEPARAMOS STOCK LÓGICO DEL PRODUCTO REEMPLAZANTE ======
                 DB::update('UPDATE producto_color_tallas SET stock_logico = stock_logico - ? 
                 WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
-                [$cantidad_producto_cambiado, $producto_reemplazante->producto_id, $producto_reemplazante->color_id, 
+                [$cantidad_cambiar, $producto_reemplazante->producto_id, $producto_reemplazante->color_id, 
                 $producto_reemplazante->talla_id]);
 
                 return response()->json(['success'=>true,'message'  =>  'STOCK LÓGICO SEPARADO PRODUCTO: '.$producto_reemplazante->producto_nombre.
@@ -4013,20 +4060,11 @@ class DocumentoController extends Controller
             $notasalidad->usuario       =   Auth()->user()->usuario;
             $notasalidad->save();
 
-            //======= DESACTIVAR RESTADO DE STOCK LÓGICO, YA QUE SE RESTARON EN LA VISTA ==========
 
-            //======= ACTUALIZAR DOCUMENTO DE VENTA ======
             foreach ($cambios as $cambio) {
                 $producto_cambiado      =   $cambio->producto_cambiado;
                 $producto_reemplazante  =   $cambio->producto_reemplazante;
                 $cantidad               =   $cambio->cantidad;
-
-                //====== ACTUALIZAR STOCK =======
-                $update =  DB::update('UPDATE cotizacion_documento_detalles SET talla_id = ?,nombre_talla = ?,updated_at=?
-                WHERE id=? AND documento_id=? AND producto_id = ? AND color_id = ? AND talla_id = ?', 
-                [  $producto_reemplazante->talla_id,$producto_reemplazante->talla_nombre,Carbon::now(),
-                $producto_cambiado->detalle_id,$documento_id,
-                $producto_cambiado->producto_id, $producto_cambiado->color_id, $producto_cambiado->talla_id]);
 
                 //======== GENERANDO DETALLE DE LA NOTA DE INGRESO ========
                 $detalleNotaIngreso                     =   new   DetalleNotaIngreso();
@@ -4049,6 +4087,10 @@ class DocumentoController extends Controller
                 $detalleNotaSalida->save();
  
             }
+
+            //======== MARCANDO DOC VENTA CON CAMBIO DE TALLA ========
+            $documento->cambio_talla = '1';
+            $documento->update();
 
             DB::commit();
             return response()->json(['success'=>true,'message'=>'ÉXITO, SE CAMBIARON LAS TALLAS DEL DOC N° '.$documento->serie.'-'.$documento->correlativo]);

@@ -462,6 +462,8 @@ function(){
         Route::get('getTallas/{producto_id}/{color_id}','Ventas\DocumentoController@getTallas')->name('venta.cambiarTallas.getTallas');
         Route::get('getStock/{producto_id}/{color_id}/{talla_id}','Ventas\DocumentoController@getStock')->name('venta.cambiarTallas.getStock');
         Route::post('validarStock','Ventas\DocumentoController@validarStock')->name('venta.cambiarTallas.validarStock');
+        Route::get('validarCantCambiar/{documento_id}/{detalle_id}/{cantidad}','Ventas\DocumentoController@validarCantCambiar')->name('venta.cambiarTallas.validarCantCambiar');
+
         Route::post('devolverStockLogico','Ventas\DocumentoController@devolverStockLogico')->name('venta.cambiarTallas.devolverStockLogico');
         Route::post('cambiarTallas/store','Ventas\DocumentoController@cambiarTallasStore')->name('venta.cambiarTallas.cambiarTallasStore');
 
@@ -553,13 +555,14 @@ function(){
         Route::get('create_new', 'Ventas\GuiaController@create_new')->name('ventas.guiasremision.create_new');
         Route::post('store', 'Ventas\GuiaController@store')->name('ventas.guiasremision.store');
         Route::put('update/{id}', 'Ventas\GuiaController@update')->name('ventas.guiasremision.update');
-        Route::get('destroy/{id}', 'Ventas\GuiaController@destroy')->name('ventas.guiasremision.delete');
+        Route::post('destroy', 'Ventas\GuiaController@destroy')->name('ventas.guiasremision.delete');
         Route::get('show/{id}','Ventas\GuiaController@show')->name('ventas.guiasremision.show');
         Route::get('reporte/{id}','Ventas\GuiaController@report')->name('ventas.guiasremision.reporte');
         Route::get('tiendaDireccion/{id}', 'Ventas\GuiaController@tiendaDireccion')->name('ventas.guiasremision.tienda_direccion');
         Route::get('sunat/guia/{id}','Ventas\GuiaController@sunat')->name('ventas.guiasremision.sunat');
         Route::get('consulta_ticket/guia/{id}','Ventas\GuiaController@consulta_ticket')->name('ventas.guiasremision.consulta.ticket');
-
+        Route::get('getXml/{guia_id}','Ventas\GuiaController@getXml')->name('ventas.guiasremision.getXml');
+        Route::get('getCdr/{guia_id}','Ventas\GuiaController@getCdr')->name('ventas.guiasremision.getCdr');
 
         // Route::get('tipoPago/{id}','Ventas\GuiaController@TypePay')->name('ventas.documento.tipo_pago.existente');
         // Route::get('comprobante/{id}','Ventas\GuiaController@voucher')->name('ventas.documento.comprobante');

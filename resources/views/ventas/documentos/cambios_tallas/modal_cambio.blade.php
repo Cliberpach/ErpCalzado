@@ -22,6 +22,10 @@
                         <label for="stock" style="font-weight: bold;">STOCK DISPONIBLE</label>
                         <input readonly type="text" id="stock" class="form-control">
                     </div>
+                    <div class="col-12 mt-3">
+                        <label for="stock" style="font-weight: bold;">CANTIDAD A CAMBIAR</label>
+                        <input type="text" id="cantidad_cambio" class="form-control">
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -39,8 +43,20 @@
     const cambios =   []; 
 
     function eventsModalCambios(){
+        document.querySelector('#cantidad_cambio').addEventListener('input',(e)=>{
+            const regex = /\D/g;
+
+            e.target.value = e.target.value.replace(regex, '');
+        })
+
         document.querySelector('#btn-cambiar-talla').addEventListener('click',async (e)=>{
-            const   documento_id    =   @json($documento->id); 
+            const inputCantidadCambiar          =   document.querySelector('#cantidad_cambio');
+            if(inputCantidadCambiar.value.trim().length === 0){
+                inputCantidadCambiar.focus();
+                toastr.error('DEBE INGRESAR UNA CANTIDAD A CAMBIAR','OPERACIÓN INCORRECTA');
+                return;
+            }
+            const documento_id      =   @json($documento->id); 
 
             const producto_id   =   document.querySelector('#talla').getAttribute('data-producto-id');
             const color_id      =   document.querySelector('#talla').getAttribute('data-color-id');
@@ -62,9 +78,19 @@
 
             const nuevo_cambio  =   {documento_id,producto_reemplazante,
                                     producto_cambiado:{...producto_cambiado},
-                                    cantidad: parseInt(detalle[0].cantidad)};
+                                    cantidad:parseInt(inputCantidadCambiar.value)};
 
-            await validarStock(nuevo_cambio);
+            //====== VALIDAR CANTIDAD A CAMBIAR =======
+            const res_validarCantCambiar = await validarCantCambiar(documento_id,producto_cambiado.detalle_id,inputCantidadCambiar.value);
+            if(res_validarCantCambiar.success){
+                await validarStock(nuevo_cambio);
+            }else{
+                document.querySelector('#btn-cambiar-talla').disabled   =   false;
+                document.querySelector('#btn-cambiar-talla').innerHTML  =   `<i class="fas fa-check"></i> Cambiar`;
+                toastr.error(res_validarCantCambiar.exception,res_validarCantCambiar.message,{timeOut:0});
+                document.querySelector('#cantidad_cambio').focus();
+            }
+
               
         })
 
@@ -196,6 +222,18 @@
         } catch (error) {
             console.log(error);
             toastr.error(error.data.message,'ERROR AL OBTENER STOCK DE LA TALLA');
+        }
+    }
+
+    //=========== VALIDAR CANT A CAMBIAR =========
+    async function validarCantCambiar(documento_id,detalle_id,cantidad){
+        document.querySelector('#btn-cambiar-talla').disabled   =   true;
+        document.querySelector('#btn-cambiar-talla').innerHTML  =   `<i class="fas fa-spinner fa-spin"></i> Validando`;
+        try {
+            const res = await axios.get(route('venta.cambiarTallas.validarCantCambiar',{documento_id,detalle_id,cantidad}));
+            return res.data;
+        } catch (error) {
+            return {success:false,message:"ERROR EN LA SOLICITUD VALIDAR CANTIDAD A CAMBIAR",exception:error.message};
         }
     }
 

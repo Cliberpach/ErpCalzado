@@ -556,7 +556,14 @@ class ComprobanteController extends Controller
 
                 $res = $see->send($invoice);
                 $util->writeXml($invoice, $see->getFactory()->getLastXml(),$documento->tipo_venta,null);
-                
+
+                if($documento->tipo_venta   ==  127){
+                    $documento->ruta_xml      =   'storage/greenter/facturas/xml/'.$invoice->getName().'.xml';
+                }
+                if($documento->tipo_venta   ==  128){
+                    $documento->ruta_xml      =   'storage/greenter/boletas/xml/'.$invoice->getName().'.xml';
+                }
+
                 
                 //======== ENVÍO CORRECTO Y ACEPTADO ==========
                 if($res->isSuccess()){
@@ -564,6 +571,12 @@ class ComprobanteController extends Controller
                     $cdr                                    =   $res->getCdrResponse();
                     $documento->cdr_response_description    =   $cdr->getDescription();
                     $util->writeCdr($invoice, $res->getCdrZip(),$documento->tipo_venta,null);
+                    if($documento->tipo_venta   ==  127){
+                        $documento->ruta_cdr      =   'storage/greenter/facturas/cdr/'.$invoice->getName().'.zip';
+                    }
+                    if($documento->tipo_venta   ==  128){
+                        $documento->ruta_cdr      =   'storage/greenter/boletas/cdr/'.$invoice->getName().'.zip';
+                    }
                     $documento->sunat                        =   "1";
                     $documento->update(); 
 
@@ -612,7 +625,12 @@ class ComprobanteController extends Controller
 
 
             }else{
-                throw new Exception("NO SE ENCUENTRA ACTIVA LA EMISIÓN DE FACTURAS EN LA EMPRSA");
+                if ($documento->tipo_venta == 127) {
+                    throw new Exception("NO SE ENCUENTRA ACTIVA LA EMISIÓN DE FACTURAS EN LA EMPRESA");
+                }
+                if ($documento->tipo_venta == 128) {
+                    throw new Exception("NO SE ENCUENTRA ACTIVA LA EMISIÓN DE BOLETAS EN LA EMPRESA");
+                }
             }
 
 

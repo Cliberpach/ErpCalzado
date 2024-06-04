@@ -97,9 +97,6 @@ class DetalleNotaIngreso extends Model
 
             }  
 
-
-            
-            
             //=========== registrando movimiento ===============
                 MovimientoNota::create([
                  'cantidad' => $detalleNotaIngreso->cantidad,

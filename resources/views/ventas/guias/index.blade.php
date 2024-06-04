@@ -37,7 +37,7 @@
 
                                     <th colspan="4" class="text-center">DOCUMENTO DE VENTA</th>
 
-                                    <th colspan="6" class="text-center">GUIA DE REMISION</th>
+                                    <th colspan="7" class="text-center">GUIA DE REMISION</th>
 
                                 </tr>
                                 <tr>
@@ -49,8 +49,9 @@
                                     <th class="text-center">N°</th>
                                     <th class="text-center">CANTIDAD</th>
                                     <th class="text-center">PESO</th>
+                                    <th class="text-center">TICKET</th>
                                     <th class="text-center">ESTADO</th>
-                                    <th class="text-center">SUNAT</th>
+                                    <th class="text-center">DESCARGAS</th>
 
                                     <th class="text-center">ACCIONES</th>
                                 </tr>
@@ -80,8 +81,12 @@
 <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4"></script>
 
+
+
 <script>
 $(document).ready(function() {
+
+    showAlertas();
 
     // DataTables
     $('.dataTables-gui').DataTable({
@@ -143,25 +148,50 @@ $(document).ready(function() {
                 data: 'peso',
                 className: "text-center"
             },
-
+            {
+                data: 'ticket',
+                className: "text-center"
+            },
 
             {
                 data: null,
                 className: "text-center",
                 render: function(data) {
-                    switch (data.estado_sunat) {
-                        case "0":
-                            return "<span class='badge badge-warning' d-block>ACEPTADO</span>";
-                            break;
-                        case "98":
-                            return "<span class='badge badge-danger' d-block>EN PROCESO</span>";
-                            break;
-                        case "99":
-                            return "<span class='badge badge-danger' d-block>CON ERRORES</span>";
-                            break;
-                        default:
+                    //====== ENVIADA A SUNAT ======
+                    if(data.sunat == '1'){
+                        //====== SI TIENE CDR ====
+                        if(data.cdr_response_code){
+                            if(data.cdr_response_code == 0){
+                                return "<span class='badge badge-warning' d-block>ACEPTADO</span>";
+                            }
+                            if(data.cdr_response_code == 99){
+                                return "<span class='badge badge-warning' d-block>ACEPTADO CON ERRORES</span>";
+                            }
+                            if(data.cdr_response_code == 98){
+                                return "<span class='badge badge-warning' d-block>EN PROCESO</span>";
+                            }
+                        }else{
+                        //=====  NO TIENE CDR =======
+                            if(data.regularize == '1'){
+                                return "<span class='badge badge-warning' d-block>ERROR EN EL ENVÍO</span>";
+                            }
+                            if(data.regularize == '0'){
+                                return "<span class='badge badge-success' d-block>ENVIADO</span>";
+                            }
+                        }
+                        
+                    }
+
+                    //======= NO ENVIADO ======
+                    if(data.sunat == '0'){
+                        if(data.regularize == '1'){
+                            return "<span class='badge badge-danger' d-block>ERROR EN EL ENVÍO</span>"; 
+                        }
+                        if(data.regularize == '0'){
                             return "<span class='badge badge-success' d-block>REGISTRADO</span>";
+                        }
                     }
+
                 },
             },
 
@@ -169,16 +199,31 @@ $(document).ready(function() {
                 data: null,
                 className: "text-center",
                 render: function(data) {
+                    var html = `<td style="white-space: nowrap;"><div style="display: flex; justify-content: center;">`;
+                        
+                        if (data.ruta_xml) {
+                            let urlGetXml       =   "{{ route('ventas.guiasremision.getXml', ['guia_id' => ':guia_id']) }}";
+                            urlGetXml           =   urlGetXml.replace(':guia_id', data.id);
 
-                    if (data.sunat == '1') {
-                       //Ruta Detalle
-                        var url = '{{ Storage::url(":ruta") }}';
-                        url = url.replace(':ruta', data.ruta_comprobante_archivo);
-                        url = url.replace('public/', '');
-                        return "<a class='btn btn-danger btn-sm text-center' title='"+data.nombre_comprobante_archivo+"'download='"+data.nombre_comprobante_archivo+"' href="+url+"><i class='fa fa-file-pdf-o'></i></a>";
-                    }else{
-                        return "-";
-                    }
+                            html += `<form action="${urlGetXml}" method="get">`;
+                            html += `<button type="submit" class="btn btn-primary btn-xml">XML</button>`;
+                            html += `</form>`;
+                        }
+                                                
+                        if (data.ruta_cdr) {
+                            let urlGetCdr     = "{{ route('ventas.guiasremision.getCdr', ['guia_id' => ':guia_id']) }}";
+                            let url_getCdr    = urlGetCdr.replace(':guia_id', data.id);
+
+
+                            html += `<form style="margin-left:3px;" action="${url_getCdr}" method="get">`;
+                            html += `<button type="submit" class="btn btn-primary btn-xml">CDR</button>`;
+                            html += `</form>`;
+                        }
+                                                
+                        html += `</div></td>`;
+                        
+                        return html;
+
                 },
             },
 
@@ -186,19 +231,49 @@ $(document).ready(function() {
                 data: null,
                 className: "text-center",
                 render: function(data) {
-                    //Ruta Detalle
-                    var url_eliminar = '{{ route("ventas.guiasremision.delete", ":id")}}';
-                    url_eliminar = url_eliminar.replace(':id', data.id);
+                    
+                    const route_delete_guia =   `{{route('ventas.guiasremision.delete')}}`;
 
-                    return "<div class='btn-group' style='text-transform:capitalize;'><button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class='fa fa-bars'></i></button><ul class='dropdown-menu'>" +
+                    let acciones    =   `<div class='btn-group' style='text-transform:capitalize;'>
+                                            <button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'>
+                                                <i class='fa fa-bars'></i>
+                                            </button>
+                                            <ul class='dropdown-menu'>
+                                                <li>
+                                                    <a class='dropdown-item' onclick='detalle(${data.id})' title='PDF'>
+                                                        <b><i class='fa fa-eye'></i> PDF </b>
+                                                    </a>
+                                                </li>
+                                                <li class='dropdown-divider'></li>`;  
+                    
+                    if(data.sunat != '1'){
+                        acciones += `<li>
+                                        <a class='dropdown-item' onclick='enviarSunat(${data.id})'  title='Enviar Sunat'>
+                                            <b><i class='fa fa-file'></i> Enviar Sunat </b>
+                                        </a>
+                                    </li>`;
+                    }
 
-                        "<li><a class='dropdown-item' onclick='detalle(" +data.id+ ")' title='Detalle'><b><i class='fa fa-eye'></i> Detalle</a></b></li>" +
-                        "<li class='dropdown-divider'></li>" +
-                        "<li><a class='dropdown-item' onclick='enviarSunat(" +data.id+ ")'  title='Enviar Sunat'><b><i class='fa fa-file'></i> Enviar Sunat</a></b></li>" +
-                        "<li><a class='dropdown-item' onclick='consultarSunat(" +data.id+ ")'  title='Consultar Sunat'><b><i class='fa fa-file'></i> Consultar Sunat</a></b></li>" +
-                        "<li><a class='dropdown-item' href='" +url_eliminar+ "'  title='Eliminar'><b><i class='fa fa-trash'></i> Eliminar</a></b></li>"
+                    acciones += `<li>
+                                    <a class='dropdown-item' onclick='consultarSunat(${data.id})'  title='Consultar Sunat'>
+                                        <b><i class='fa fa-file'></i> Consultar Sunat </b>
+                                    </a>
+                                </li>`;
 
-                    "</ul></div>"
+                    if(data.sunat != '1' && data.regularize != '1'){
+                        acciones += `<li>
+                                <form hidden method="POST" id="frm-delete-guia" action="${route_delete_guia}">
+                                    @csrf
+                                    <input value="${data.id}" name="guia_id"></input>
+                                </form>
+                                <a class='dropdown-item' onclick='eliminarGuia(" +data.id+ ")' href='javascript:void(0);'  title='Eliminar'>
+                                    <b><i class='fa fa-trash'></i> Eliminar </b>
+                                </a>
+                            </li>`;
+                    }
+
+                    return acciones;
+                            
                 }
             }
 
@@ -225,10 +300,10 @@ const swalWithBootstrapButtons = Swal.mixin({
 })
 
 
-function eliminar(id) {
+function eliminarGuia(id) {
 
     Swal.fire({
-        title: 'Opción Eliminar',
+        title: 'Opción Eliminar Guía de Remisión',
         text: "¿Seguro que desea guardar cambios?",
         icon: 'question',
         showCancelButton: true,
@@ -237,11 +312,9 @@ function eliminar(id) {
         cancelButtonText: "No, Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
-            //Ruta Eliminar
-            var url_eliminar = '{{ route("ventas.documento.destroy", ":id")}}';
-            url_eliminar = url_eliminar.replace(':id', id);
-            $(location).attr('href', url_eliminar);
-
+            const formDeleteGuia    =   document.querySelector('#frm-delete-guia');
+            formDeleteGuia.submit();
+            
         } else if (
             /* Read more about handling dismissals below */
             result.dismiss === Swal.DismissReason.cancel
@@ -280,6 +353,20 @@ function consultarSunat(id , sunat) {
             const type      =   data.type;
             const message   =   data.message;
             if(type === 'success'){
+                const guia_actualizada = data.message.guia_actualizada;
+                //====== ACTUALIZAR DATATABLE =======
+                $('.dataTables-gui').DataTable().rows().every(function() {
+                    var item_datatable = this.data();
+                    if (item_datatable.id == guia_actualizada.id) {
+                        item_datatable.ruta_cdr   =   guia_actualizada.ruta_cdr;
+                        item_datatable.sunat      =   guia_actualizada.sunat;
+                        item_datatable.regularize =   guia_actualizada.regularize;
+                        item_datatable.cdr_response_code    =   guia_actualizada.cdr_response_code;
+                        this.data(item_datatable); 
+                        return false; 
+                    }
+                });
+
                 toastr.options.closeDuration = 400;
                 toastr.options.progressBar = true;
                 toastr.success(`GUIA: ${id} | ESTADO: ${message.descripcion}`, 'Consulta completa');
@@ -344,35 +431,18 @@ function enviarSunat(id , sunat) {
 
 }
 
-@if(Session::has('guia_exito'))
-    toastr.error("{{ Session::get('guia_exito') }}", "", { timeOut: 0 });
-@endif
+function showAlertas(){
+    const messageFlashError  = @json(session('error_guia_remision'));
+    if(messageFlashError){
+        toastr.error(messageFlashError,'OPERACIÓN INCORRECTA',{timeOut:5000});
+    }
 
-@if(Session::has('guia_error'))
-    toastr.error("{{ Session::get('guia_error') }}", "", { timeOut: 0 });
-@endif
-
-// @if(Session::has('sunat_exito'))
-//         Swal.fire({
-//             icon: 'success',        
-//             title: '{{ Session::get("id_sunat") }}',
-//             text: '{{ Session::get("descripcion_sunat") }}',
-//             showConfirmButton: false,
-//             timer: 2500
-//         })
-// @endif
-
-// @if(Session::has('error'))
-//         Swal.fire({
-//             icon: 'error',
-//             title: '{{ Session::get("id_sunat") }}',
-//             text: '{{ Session::get("descripcion_sunat") }}',
-//             showConfirmButton: false,
-//             timer: 5500
-//         })
-// @endif
-
-
+    const messageFlashSuccess   =   @json(session('guia_exito'));
+    console.log(messageFlashSuccess);
+    if(messageFlashSuccess){
+        toastr.success(messageFlashSuccess, "OPERACIÓN COMPLETADA", { timeOut: 0 });
+    }
+}
 
 
 </script>

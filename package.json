@@ -11,7 +11,7 @@
     },
     "devDependencies": {
         "axios": "^0.27.2",
-        "bootstrap": "^4.0.0",
+        "bootstrap": "^4.6.2",
         "cross-env": "^7.0",
         "jquery": "^3.2",
         "laravel-mix": "^5.0.1",
@@ -20,7 +20,7 @@
         "resolve-url-loader": "^5.0.0",
         "sass": "^1.20.1",
         "sass-loader": "^8.0.0",
-        "vue": "^2.5.17",
+        "vue": "^2.7.16",
         "vue-template-compiler": "^2.6.10"
     },
     "dependencies": {
@@ -29,6 +29,7 @@
         "@fortawesome/free-regular-svg-icons": "^6.5.1",
         "@fortawesome/free-solid-svg-icons": "^6.5.1",
         "@fortawesome/vue-fontawesome": "^2.0.10",
+        "bootstrap-vue": "^2.23.1",
         "commander": "^7.2.0",
         "datatables.net-bs4": "^1.11.3",
         "datatables.net-buttons-bs4": "^2.0.1",

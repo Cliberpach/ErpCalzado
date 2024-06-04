@@ -206,7 +206,6 @@ class ResumenController extends Controller
             $resumen->summary_name  =   $sum->getName();
             $resumen->update();
     
-    
             $see    =   $this->controlConfiguracionGreenter($util);
            
          
