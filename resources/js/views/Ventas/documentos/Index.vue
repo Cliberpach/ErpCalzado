@@ -104,8 +104,8 @@
                                                         </td>
                                                         <td class="letrapequeña text-center">
 
-                                                            <div >
-                                                                <b-dropdown text="Primary" variant="success" class="m-2">
+
+                                                                <b-dropdown  text="Primary" variant="success" class="m-2">
                                                                     <template #button-content>
                                                                         <i class="fas fa-th"></i>
                                                                     </template>
@@ -238,7 +238,7 @@
 
                                                                 </b-dropdown>
 
-                                                            </div>
+                                                            
                                                                
                                                                
 
@@ -849,4 +849,8 @@ export default {
     .tables_wrapper table.table-index tbody td{
         vertical-align:middle!important;
     }
+    .dropdown-menu {
+    max-height: 100px; /* Establece la altura máxima del dropdown */
+    overflow-y: auto; /* Hace que el contenido sea deslizable verticalmente */
+}
 </style>
