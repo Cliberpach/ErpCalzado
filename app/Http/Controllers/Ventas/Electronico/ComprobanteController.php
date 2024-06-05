@@ -570,6 +570,18 @@ class ComprobanteController extends Controller
                     //====== GUARDANDO RESPONSE ======
                     $cdr                                    =   $res->getCdrResponse();
                     $documento->cdr_response_description    =   $cdr->getDescription();
+                    $documento->cdr_response_id             =   $cdr->getId();
+                    $documento->cdr_response_code           =   $cdr->getCode();
+                    $documento->cdr_response_reference      =   $cdr->getReference();
+                    
+                    //========= GUARDANDO NOTES ======
+                    $response_notes =   '';
+                    foreach ($cdr->getNotes() as $note) {
+                         $response_notes.= '|'.$note.'|';
+                    }
+                    $documento->cdr_response_notes   =   $response_notes;
+
+                 
                     $util->writeCdr($invoice, $res->getCdrZip(),$documento->tipo_venta,null);
                     if($documento->tipo_venta   ==  127){
                         $documento->ruta_cdr      =   'storage/greenter/facturas/cdr/'.$invoice->getName().'.zip';
@@ -577,7 +589,8 @@ class ComprobanteController extends Controller
                     if($documento->tipo_venta   ==  128){
                         $documento->ruta_cdr      =   'storage/greenter/boletas/cdr/'.$invoice->getName().'.zip';
                     }
-                    $documento->sunat                        =   "1";
+
+                    $documento->sunat                       =   "1";
                     $documento->update(); 
 
                     return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
