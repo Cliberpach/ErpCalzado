@@ -17,7 +17,7 @@
                 
                 <div class="row mt-3">
                     <div class="col-12">
-                        <div class="tabla-responsive">
+                        <div class="table-responsive">
                             <table class="table table-hover" id="table-resumen-detalle" style="width:100%">
                                 <thead>
                                   <tr>

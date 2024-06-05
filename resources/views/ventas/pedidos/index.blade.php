@@ -235,9 +235,13 @@
                                 acciones+=`<li><a class='dropdown-item' onclick="modificarPedido(${row.id})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>`;
                             }
 
-                            acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='Eliminar'><b><i class='fa fa-trash'></i> Eliminar</a></b></li>
-                            <li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_pedido_detalles"  title='Detalles'><b><i class="fas fa-info-circle"></i> Detalles</a></b></li>
-                            <div class="dropdown-divider"></div>`;
+                            if(row.estado !== "FINALIZADO"){
+                                acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='Eliminar'><b><i class='fa fa-trash'></i> Finalizar</a></b></li>
+                                <li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_pedido_detalles"  title='Detalles'><b><i class="fas fa-info-circle"></i> Detalles</a></b></li>
+                                <div class="dropdown-divider"></div>`;
+                            }
+
+                           
 
                             if(row.estado === "ATENDIENDO" || row.estado === "PENDIENTE"){
                                 acciones+=` <li>
@@ -248,7 +252,8 @@
                                     </form>
                                 </li> `;
                             }
-                            acciones+=`<li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_historial_atenciones"  title='Eliminar'><b><i class="fas fa-history"></i> Historial Atenciones</a></b></li>
+
+                            acciones+=`<li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_historial_atenciones"  title='Historial'><b><i class="fas fa-history"></i> Historial Atenciones</a></b></li>
                             <li><a class='dropdown-item' href="javascript:void(0);" onclick="generarRecibo(${row.id})"  title='Recibo'><b><i class="fas fa-receipt"></i> Generar Recibo</a></b></li></ul></div>`;
 
                             return acciones;
@@ -587,12 +592,12 @@
             }
 
             if(estado === "FINALIZADO"){
-                toastr.error('EL PEDIDO NO PUEDE SER ELIMINADO','PEDIDO FINALIZADO');
+                toastr.error('EL PEDIDO NO PUEDE SER FINALIZADO','PEDIDO FINALIZADO');
                 return;
             }
 
             if(estado === "ANULADO"){
-                toastr.error('EL PEDIDO NO PUEDE SER ELIMINADO','PEDIDO ANULADO');
+                toastr.error('EL PEDIDO NO PUEDE SER FINALIZADO','PEDIDO ANULADO');
                 return;
             }
                
