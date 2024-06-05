@@ -50,7 +50,7 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->unsignedDecimal('importe', 15, 2)->nullable()->default(0.00);
 
             $table->foreignId('condicion_id')->nullable()->constrained()->onDelete('SET NULL');
-            $table->longText('xml')->nullable();
+            $table->longText('ruta_xml')->nullable();
             $table->longText('ruta_qr')->nullable();
             $table->longText('hash')->nullable();
 
@@ -101,7 +101,10 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->string('cdr_response_id')->nullable();
             $table->string('response_error_message')->nullable();
             $table->string('response_error_code')->nullable();
-
+            $table->string('cambio_talla',1)->nullable();
+            $table->longText('ruta_cdr')->nullable();
+            $table->longText('cdr_response_notes')->nullable();
+            $table->longText('cdr_response_reference')->nullable();
             $table->timestamps();
         });
     }

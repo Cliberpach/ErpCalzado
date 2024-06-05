@@ -17,8 +17,10 @@ class CreateGuiasRemisionTable extends Migration
             $table->Increments('id');
             $table->unsignedInteger('documento_id')->nullable();
             $table->foreign('documento_id')->references('id')->on('cotizacion_documento')->onDelete('cascade');
+            
             $table->unsignedInteger('nota_salida_id')->nullable();
             $table->foreign('nota_salida_id')->references('id')->on('nota_salidad')->onDelete('cascade');
+            
             $table->unsignedDecimal('cantidad_productos', 15, 2);
             $table->unsignedDecimal('peso_productos', 15, 3)->default(1);
             $table->text('tienda')->nullable();
@@ -62,15 +64,24 @@ class CreateGuiasRemisionTable extends Migration
 
             $table->unsignedInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-
-            $table->json('getCdrResponse')->nullable();
-            $table->json('getRegularizeResponse')->nullable();
             $table->enum('regularize', ['0', '1'])->default('0');
-            $table->enum('estado_sunat',['98','0','99'])->nullable();
+
+            $table->string('response_code',10)->nullable();
             $table->text('ticket')->nullable();
             $table->text('cdrzip_name')->nullable();
-            $table->text('ruta_cdrzip')->nullable();
+            $table->longText('ruta_cdr')->nullable();
             $table->string('despatch_name')->nullable();
+            $table->longText('ruta_xml')->nullable();
+
+            $table->string('cdr_response_id',10)->nullable();
+            $table->string('cdr_response_code',10)->nullable();
+            $table->longText('cdr_response_description')->nullable();
+            $table->longText('cdr_response_notes')->nullable();
+            $table->longText('cdr_response_reference')->nullable();
+            $table->string('response_success',10)->nullable();
+            $table->longText('response_error',10)->nullable();
+            $table->longText('ruta_qr',10)->nullable();
+
             $table->timestamps();
         });
     }
