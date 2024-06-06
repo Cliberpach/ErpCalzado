@@ -936,7 +936,7 @@ export default {
                 this.tipos_envios   = data;
                 //console.log(data);
             } catch (ex) {
-
+                toastr.error(ex.message,'ERROR EN LA SOLICITUD AL OBTENER TIPOS DE ENVÍO');
             }
         },
         async getEmpresasEnvio(envio) {
@@ -954,7 +954,7 @@ export default {
                     toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER EMPRESAS DE ENVÍO');
                 }
             } catch (error) {
-                toastr.error(error,'ERROR EN EL SERVIDOR');
+                toastr.error(error.message,'ERROR EN LA SOLICITUD OBTENER EMPRESAS ENVÍO');
             }finally{
                 this.loading        =   false;
             }
@@ -974,7 +974,7 @@ export default {
                     toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER SEDES DE ENVÍO');
                 }
             } catch (error) {
-                toastr.error(error,'ERROR EN EL SERVIDOR');
+                toastr.error(error.message,'ERROR EN LA SOLICITUD OBTENER SEDES ENVÍO');
             }finally{
                 this.loading        =   false;
             }
@@ -1009,7 +1009,7 @@ export default {
                     toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER ORÍGENES DE VENTA');
                 }
             } catch (error) {
-                toastr.error(error,'ERROR EN EL SERVIDOR');
+                toastr.error(error.message,'ERROR EN LA SOLICITUD OBTENER ORÍGENES DE VENTAS');
             }finally{
                 this.loading        =   false;
             }
@@ -1037,7 +1037,7 @@ export default {
                     toastr.error(`${data.message} - ${data.exception}`,'ERROR AL OBTENER TIPOS PAGO DE ENVÍO');
                 }
             } catch (error) {
-                toastr.error(error,'ERROR EN EL SERVIDOR');
+                toastr.error(error.message,'ERROR EN LA SOLICITUD OBTENER TIPO DE PAGOS ENVÍO');
             }finally{
                 this.loading        =   false;
             }
@@ -1064,7 +1064,7 @@ export default {
 
                 
             } catch (ex) {
-
+                toastr.error(ex.message,'ERROR EN LA SOLICITUD AL OBTENER TIPOS DE DOCUMENTO');
             }
         }
     }
