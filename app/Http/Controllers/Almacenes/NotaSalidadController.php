@@ -218,9 +218,8 @@ class NotaSalidadController extends Controller
                                 inner join productos as p on p.id=dns.producto_id
                                 inner join colores as c on c.id=dns.color_id
                                 inner join tallas as t on t.id=dns.talla_id
-                                where dns.id=?',[$id]);
-        
-        
+                                where dns.nota_salidad_id=?',[$id]);
+     
         $fullaccess = false;
 
         if(count(Auth::user()->roles)>0)

@@ -166,8 +166,8 @@
                             class="required"></label>) son obligatorios.</small>
                 </div>
                 <div class="col-md-6 text-right">
-                    <a href="#" class="btn btn-primary btn-sm" id="btnEnviarAperturaCaja" onclick="verificarUsuariosVentas(event)"><i
-                            class="fa fa-save" ></i> Guardar</a>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnEnviarAperturaCaja" onclick="openCaja(this)" ><i
+                            class="fa fa-save" ></i> Guardar</button>
                     <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i
                             class="fa fa-times"></i> Cancelar</button>
                 </div>
@@ -185,6 +185,12 @@
     <!-- Select2 -->
     <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
     <script>
+
+        function openCaja(btnOpenCaja){
+            btnOpenCaja.disabled = true;
+            document.querySelector('#crear_caja_movimiento').submit();
+            btnOpenCaja.innerHTML   =   `<i class="fa fa-save fa-spin" ></i> Guardando`;
+        }
 
         // function verificarSeleccion(id) {
         //     alert('estoy en el create');

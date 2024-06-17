@@ -1,7 +1,8 @@
 @extends('layout') @section('content')
-    @include('pos.MovimientoCaja.create')
+@include('pos.MovimientoCaja.create')
     @include('pos.MovimientoCaja.cerrar')
     @include('pos.MovimientoCaja.detallesMovimiento')
+
 @section('caja-movimiento-active', 'active')
 @section('caja-chica-active', 'active')
 <div class="row wrapper border-bottom white-bg page-heading">
@@ -151,18 +152,19 @@
     })
 
 
-    function verificarUsuariosVentas(event){
-        event.preventDefault();
-        let cant= document.querySelectorAll('input[name="usuarioVentas[]"]');
-        let form= document.getElementById('crear_caja_movimiento');
-        form.submit();
-        //if(cant.length>0){
-        //    form.submit();
-        //}else{
-        //    alert('Seleccione al menos un usuairo de ventas para la apertura de caja');
-        //}
+    // function verificarUsuariosVentas(event){
+    //     event.preventDefault();
+    //     let cant= document.querySelectorAll('input[name="usuarioVentas[]"]');
+    //     let form= document.getElementById('crear_caja_movimiento');
+    //     form.submit();
+    //     //if(cant.length>0){
+    //     //    form.submit();
+    //     //}else{
+    //     //    alert('Seleccione al menos un usuairo de ventas para la apertura de caja');
+    //     //}
 
-    }
+    // }
+
     function verificarSeleccion(id) {
         let verificar = document.getElementById(`checkBox${id}`);
 

@@ -165,6 +165,7 @@
 
 
 document.addEventListener('DOMContentLoaded',()=>{
+
     cargarSelect2();
     pintarDetalleNotaSalida();
 })
