@@ -62,6 +62,10 @@
         .talla_nombre{
             font-family: "Righteous", sans-serif;
         }
+        .descripcion_span{
+            font-weight: bold;
+            font-family: "Roboto Condensed", sans-serif;
+        }
     </style>
 </head>
 <body>
@@ -108,22 +112,22 @@
                             </tr>
                             <tr style="border-top:solid 1px black;">
                                 <td colspan="2" style="padding-left:5px;">
-                                    <p class="producto" style="font-size: 8px;text-align: left;">{{$producto->categoria_nombre}}</p>
-                                    <p class="producto" style="font-size: 8px;text-align: left;">{{$producto->modelo_nombre}}</p>
-                                    <p class="producto" style="font-size: 8px;text-align: left;">{{$producto->color_nombre}}</p>
+                                    <p class="producto" style="font-size: 8px;text-align: left;"><span class="descripcion_span">TIPO: </span>{{$producto->categoria_nombre}}</p>
+                                    <p class="producto" style="font-size: 8px;text-align: left;"><span class="descripcion_span">MODELO: </span>{{$producto->modelo_nombre}}</p>
+                                    <p class="producto" style="font-size: 8px;text-align: left;"><span class="descripcion_span">COLOR: </span>{{$producto->color_nombre}}</p>
                                 </td>
                             </tr>
                         </table>
                     </td>
                     <td width="55%" style="vertical-align: middle;text-align:center;border-left:solid 1px black;height:100%;" >
                         <div >
-                            <div style="border: .5px dashed black; border-radius: 5px; padding: 5px;width:90%;margin:0 auto;" >
+                            <div style="border: .5px dashed black; border-radius: 5px;padding:5px 0; width:90%;margin:0 auto;" >
                                     <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class=" img_cod_barras" style="height: 17px;object-fit:cover;">
                                     <p style="font-size: 10px;">{{'775'.$producto->modelo_id.$producto->producto_id.$producto->color_id.$producto->talla_id}}</p>    
                             </div>
                             
-                            <div style="text-align:right;padding-top:15px;">
-                                <p class="talla_nombre" style="font-size: 20px;padding-right:15px;">{{$producto->talla_nombre}}</p>
+                            <div style="text-align:right;">
+                                <p class="talla_nombre" style="font-size: 40px;padding-right:15px;">{{$producto->talla_nombre}}</p>
                             </div>
 
                         </div>
@@ -160,22 +164,22 @@
                             </tr>
                             <tr style="border-top:solid 1px black;">
                                 <td colspan="2" style="padding-left:5px;">
-                                    <p class="producto" style="font-size: 8px;text-align: left;">{{$producto->categoria_nombre}}</p>
-                                    <p class="producto" style="font-size: 8px;text-align: left;">{{$producto->modelo_nombre}}</p>
-                                    <p class="producto" style="font-size: 8px;text-align: left;">{{$producto->color_nombre}}</p>
+                                    <p class="producto" style="font-size: 8px;text-align: left;"><span class="descripcion_span">TIPO: </span>{{$producto->categoria_nombre}}</p>
+                                    <p class="producto" style="font-size: 8px;text-align: left;"><span class="descripcion_span">MODELO: </span>{{$producto->modelo_nombre}}</p>
+                                    <p class="producto" style="font-size: 8px;text-align: left;"><span class="descripcion_span">COLOR: </span>{{$producto->color_nombre}}</p>
                                 </td>
                             </tr>
                         </table>
                     </td>
                     <td width="55%" style="vertical-align: middle;text-align:center;border-left:solid 1px black;height:100%;" >
                         <div >
-                            <div style="border: .5px dashed black; border-radius: 5px; padding: 5px;width:90%;margin:0 auto;" >
+                            <div style="border: .5px dashed black; border-radius: 5px;padding:5px 0; width:90%;margin:0 auto;" >
                                     <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class=" img_cod_barras" style="height: 17px;object-fit:cover;">
                                     <p style="font-size: 10px;">{{'775'.$producto->modelo_id.$producto->producto_id.$producto->color_id.$producto->talla_id}}</p>    
                             </div>
                             
-                            <div style="text-align:right;padding-top:15px;">
-                                <p class="talla_nombre" style="font-size: 20px;padding-right:15px;">{{$producto->talla_nombre}}</p>
+                            <div style="text-align:right;">
+                                <p class="talla_nombre" style="font-size: 40px;padding-right:15px;">{{$producto->talla_nombre}}</p>
                             </div>
 
                         </div>
