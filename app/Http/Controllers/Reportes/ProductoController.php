@@ -387,12 +387,14 @@ class ProductoController extends Controller
         try {
             $producto           =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,m.id as modelo_id,
                                     p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre,
-                                    m.descripcion as modelo_nombre,pct.ruta_cod_barras,pct.codigo_barras,pct.stock as cantidad
+                                    m.descripcion as modelo_nombre,pct.ruta_cod_barras,pct.codigo_barras,pct.stock as cantidad,
+                                    ca.descripcion as categoria_nombre
                                     from producto_color_tallas as pct
                                     inner join productos as p on p.id=pct.producto_id
                                     inner join colores as c on c.id=pct.color_id
                                     inner join tallas as t on t.id=pct.talla_id
                                     inner join modelos as m on m.id=p.modelo_id
+                                    inner join categorias as ca on ca.id=p.categoria_id
                                     where pct.producto_id=? and pct.color_id=?  and pct.talla_id=?',
                                     [$producto_id,$color_id,$talla_id])[0];
 

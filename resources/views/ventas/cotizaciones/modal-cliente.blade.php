@@ -1,3 +1,46 @@
+<style>
+    .talla-no-creada{
+        color:rgb(201, 47, 9);
+        font-weight: bold;
+    }
+
+div.content-window {
+    position: relative;
+}
+
+div.content-window.sk__loading::after {
+    content: '';
+    background-color: rgba(255, 255, 255, 0.7);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3000;
+}
+
+.content-window.sk__loading>.sk-spinner.sk-spinner-wave {
+    margin: 0 auto;
+    width: 50px;
+    height: 30px;
+    text-align: center;
+    font-size: 10px;
+}
+
+.content-window.sk__loading>.sk-spinner {
+    display: block;
+    position: absolute;
+    top: 40%;
+    left: 0;
+    right: 0;
+    z-index: 3500;
+}
+
+.content-window .sk-spinner.sk-spinner-wave.hide-window {
+    display: none;
+}
+</style>
+
 <div class="modal inmodal" id="modal_cliente" role="dialog" aria-hidden="true">
 
     <div class="modal-dialog modal-lg" style="max-width: 94%;">
@@ -11,9 +54,21 @@
                 <h4 class="modal-title">NUEVO CLIENTE</h4>
                 <small class="font-bold">Registrar</small>
             </div>
-            <div class="modal-body content_cliente">
+            <div class="modal-body content_cliente content-window">
                 @include('components.overlay_search')
                 @include('components.overlay_save')
+
+             
+                <div class="sk-spinner sk-spinner-wave hide-window" >
+                    <div class="sk-rect1"></div>
+                    <div class="sk-rect2"></div>
+                    <div class="sk-rect3"></div>
+                    <div class="sk-rect4"></div>
+                    <div class="sk-rect5"></div>
+                </div>
+                  
+             
+
                 <form id="frmCliente" class="formulario">
                     <div class="row">
                         <div class="col-12 col-md-6">
@@ -33,7 +88,7 @@
                                         <label class="required" for="documento">Nro. Documento</label>
                                         <div class="input-group">
                                             <input type="text" id="documento" name="documento" class="form-control"
-                                                 required maxlength="8">
+                                                 required maxlength="8" oninput="validarDocumento(this)">
                                             <button id="btn_consultar_doc" onclick="consultarDocumento()" type="button" style="color:white" class="btn btn-primary">
                                                 <i class="fa fa-search" ></i>
                                                 <span id="entidad"> </span>
@@ -171,7 +226,7 @@
                         marcados con asterisco (*) son obligatorios.</small>
                 </div>
                 <div class="col-md-6 text-right">
-                    <button type="submit" class="btn btn-primary btn-sm" form="frmCliente" style="color:white;"><i
+                    <button disabled id="btnGuardarCliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente" style="color:white;"><i
                             class="fa fa-save"></i> Guardar</button>
                     <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" @click.prevent="Cerrar"><i
                             class="fa fa-times"></i> Cancelar</button>
@@ -197,9 +252,17 @@
 
     function controlNroDoc(e){
         const tipoDocSimbolo    =   e.value;
-
+       
         //======= LIMPIAR EL NRO DOC ======
         inputNroDoc.value   =   '';
+        document.querySelector('#btnGuardarCliente').disabled    =   true;
+
+        //======= SI NO SE ELIGE UN TIPO DE DOCUMENTO, SE DESHABILITA EL INPUT NRO Y EL BTN CONSULTAR =====
+        if(tipoDocSimbolo.length === 0){
+           inputNroDoc.disabled     =   true;
+           btnConsultarDoc.disabled =   true;
+           return;
+        }
 
         if(tipoDocSimbolo == 6 || tipoDocSimbolo == 8){
             inputNroDoc.disabled        =   false;
@@ -233,15 +296,18 @@
        
         setZona(getZona(departamento_id));
         
+       
         const provincias    =   await getProvincias(departamento_id,provincia_id);
         pintarProvincias(provincias,provincia_id);
+       
     }
 
     async function setUbicacionProvincia(prov_id,distrito_id){
         const provincia_id      =   prov_id;
+        
         const distritos         =   await getDistritos(provincia_id);
         pintarDistritos(distritos,distrito_id);
-
+        ocultarAnimacion();
     }
 
     function getZona(departamento_id){
@@ -256,16 +322,26 @@
         inputZona.value =   zona_nombre;
     }
 
+    function mostrarAnimacion(){
+        document.querySelector('.content-window').classList.add('sk__loading');
+        document.querySelector('.sk-spinner').classList.remove('hide-window');
+    }
+
+    function ocultarAnimacion(){
+        document.querySelector('.content-window').classList.remove('sk__loading');
+        document.querySelector('.sk-spinner').classList.add('hide-window');
+    }
+
 
     //======= GET PROVINCIAS ==========
     async function getProvincias(departamento_id) {
             try {
+                mostrarAnimacion();
                 const { data } = await this.axios.post(route('mantenimiento.ubigeo.provincias'), {
                     departamento_id
                 });
                 const { error, message, provincias } = data;
-                // this.Provincias = provincias;
-                // this.loadingProvincias = true;
+                
                 return provincias;
             } catch (ex) {
 
@@ -294,6 +370,7 @@
     //====== PINTAR DISTRITOS ========
     async function getDistritos(provincia_id,distrito_id) {
             try {
+                mostrarAnimacion();
                 const { data } = await this.axios.post(route('mantenimiento.ubigeo.distritos'), {
                     provincia_id
                 });
@@ -338,38 +415,60 @@
             console.log(numeroDocumento);
             console.log(numeroDocumento.trim().length)
 
-            const { data } = await this.axios.post(route('ventas.cliente.getDocumento'), {
-                tipo_documento: selectTipoDoc.value,
-                documento: inputNroDoc.value,
-                id: null
-            });
-            console.log(data);
+           
+            //========  VALIDACIÓN DEL NRO DOCUMENTO ==========
+            if(tipoDocumento === 'DNI'){
+                if(numeroDocumento.length !== 8){
+                    toastr.error('EL DNI DEBE CONTAR CON 8 DÍGITOS','NRO DE DNI INCORRECTO');
+                    return;
+                }
+            }
+            if(tipoDocumento === 'RUC'){
+                if(numeroDocumento.length !== 11){
+                    toastr.error('EL RUC DEBE CONTAR CON 11 DÍGITOS','NRO DE RUC INCORRECTO');
+                    return;
+                }
+            }
 
-            const { existe } = data;
-            if (existe) {
-                    this.loading = false;
-                    toastr.error('El ' + this.tipo_documento + ' ingresado ya se encuentra registrado para un cliente',
-                        'Registrado');
-            } else {
+            //========== CONSULTANDO SI EL CLIENTE YA EXISTE  EN LA BD =======
+            const url           = `/ventas/clientes/getCliente/${tipoDocumento}/${numeroDocumento}`;
+            const res           = await axios.get(url);
+            let existeCliente   =   false;
+
+            if(res.data.success){
+                if(res.data.cliente.length === 1){
+                    existeCliente   =   true;
+                    toastr.error(res.data.message,'CONSULTA COMPLETADA');
+                }
+                if(res.data.cliente.length === 0){
+                    existeCliente   =   false;
+                    toastr.info(res.data.message,'CONSULTA COMPLETADA');
+                }
+            }else{
+                toastr.error(res.data.message,'ERROR AL CONSULTAR CLIENTE EN LA BASE DE DATOS');
+            }
+            
+        
+            if(!existeCliente){
                 //======= DNI = "6" =========
                 if (tipoDocumento === "DNI") {
                     if (numeroDocumento.trim().length === 8) {
-                        await consultarAPI(tipoDocumento,numeroDocumento);
+                         await consultarAPI(tipoDocumento,numeroDocumento);
                     } else {
-                        console.log('el dni no tiene 8 digitos')
-                        toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
+                         console.log('el dni no tiene 8 digitos')
+                         toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
                     }
                 
                 //======= RUC = "8" =========
                 } else if (tipoDocumento === "RUC") {
-                    console.log('validando ruc')
-                    if (numeroDocumento.trim().length === 11) {
-                        await consultarAPI(tipoDocumento,numeroDocumento);
-                    } else {
-                        toastr.error('El RUC debe de contar con 11 dígitos', 'Error');   
-                    }
+                     if (numeroDocumento.trim().length === 11) {
+                         await consultarAPI(tipoDocumento,numeroDocumento);
+                     } else {
+                         toastr.error('El RUC debe de contar con 11 dígitos', 'Error');   
+                     }
                 }
-            } 
+            }
+            
         }catch (ex) {
                 alert("Error en consultarDocumento" + ex);
         }finally{
@@ -442,22 +541,28 @@
         document.querySelector('#direccion').value  =   data_ruc.direccion;
         document.querySelector('#activo').value     =   data_ruc.estado;
         
-        document.querySelector('#departamento').onchange    =   null;
-        document.querySelector('#provincia').onchange    =   null;
-        
-        $("#departamento").val(data_ruc.ubigeo[0]).trigger("change.select2");
-        setZona(getZona(data_ruc.ubigeo[0]));
-        const provincias = await getProvincias(data_ruc.ubigeo[0]);
-        pintarProvincias(provincias,data_ruc.ubigeo[1]);
-        const distritos  = await getDistritos(data_ruc.ubigeo[1]);
-        pintarDistritos(distritos,data_ruc.ubigeo[2]);
+        if(data_ruc.ubigeo[0] && data_ruc.ubigeo[1] && data_ruc.ubigeo[2]){
+            document.querySelector('#departamento').onchange    =   null;
+            document.querySelector('#provincia').onchange    =   null;
 
-        document.querySelector('#departamento').onchange = function() {
-            setUbicacionDepartamento(this.value, 'first');
-        };
-        document.querySelector('#provincia').onchange = function() {
-            setUbicacionProvincia(this.value, 'first');
-        };
+            $("#departamento").val(data_ruc.ubigeo[0]).trigger("change.select2");
+            setZona(getZona(data_ruc.ubigeo[0]));
+            const provincias = await getProvincias(data_ruc.ubigeo[0]);
+            pintarProvincias(provincias,data_ruc.ubigeo[1]);
+            const distritos  = await getDistritos(data_ruc.ubigeo[1]);
+            pintarDistritos(distritos,data_ruc.ubigeo[2]);
+
+            document.querySelector('#departamento').onchange = function() {
+                setUbicacionDepartamento(this.value, 'first');
+            };
+            document.querySelector('#provincia').onchange = function() {
+                setUbicacionProvincia(this.value, 'first');
+            };
+            ocultarAnimacion();
+            return;
+        }
+        
+        toastr.warning('NO SE ENCONTRÓ UBIGEO DEL DOCUMENTO','UBIGEO NO ENCONTRADO');
     }
 
     //====== CLEAR CAMPOS DNI =====
@@ -474,7 +579,8 @@
 
     function eventsCliente(){
         formCliente.addEventListener('submit',(e)=>{
-            e.preventDefault();            
+            e.preventDefault();     
+                 
             guardarCliente();
         })
     }
@@ -522,6 +628,32 @@
         var newOption = new Option(`${ultimoCliente.tipo_documento}: ${ultimoCliente.documento} - ${ultimoCliente.nombre}`, ultimoCliente.id, false, false);
         $('#cliente').append(newOption).trigger('change');
     };
+
+    //=========== CONTROLAR EL NRO DE DOCUMENTO ======
+    function validarDocumento(input){
+        const regex = /[^0-9]/g;
+        input.value = input.value.replace(regex, '');
+
+        const tipoDocumento     =   selectTipoDoc.options[selectTipoDoc.selectedIndex].textContent;
+        document.querySelector('#btnGuardarCliente').disabled   =   false;
+
+        if(tipoDocumento === 'DNI'){
+            if(input.value.trim().length !== 8){
+                document.querySelector('#btnGuardarCliente').disabled   =   true;
+            }else{
+                document.querySelector('#btnGuardarCliente').disabled   =   false;
+            }
+        }
+        if(tipoDocumento === 'RUC'){
+            if(input.value.trim().length !== 11){
+                document.querySelector('#btnGuardarCliente').disabled   =   true;
+            }else{
+                document.querySelector('#btnGuardarCliente').disabled   =   false;
+            }
+        }
+
+       
+    }
 
     
 

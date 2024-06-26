@@ -394,6 +394,9 @@ function(){
         Route::get('/destroy/{id}', 'Ventas\ClienteController@destroy')->name('ventas.cliente.destroy');
         Route::post('/getDocumento', 'Ventas\ClienteController@getDocumento')->name('ventas.cliente.getDocumento');
         Route::post('/getCustomer', 'Ventas\ClienteController@getCustomer')->name('ventas.cliente.getcustomer');
+        Route::get('/getCliente/{tipo_documento}/{nro_documento}', 'Ventas\ClienteController@getCliente')->name('ventas.cliente.getCliente');
+
+
         //Tiendas
         Route::get('tiendas/index/{id}', 'Ventas\TiendaController@index')->name('clientes.tienda.index');
         Route::get('tiendas/getShop/{id}','Ventas\TiendaController@getShop')->name('clientes.tienda.shop');

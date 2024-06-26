@@ -1548,15 +1548,24 @@ if (!function_exists('obtenerTotalIngresosPorTipoPago')) {
 if (!function_exists('cuadreMovimientoDevoluciones')) {
     function cuadreMovimientoDevoluciones(MovimientoCaja $movimiento)
     {
-        $cuenta = TablaDetalle::find(165);
-        $cuenta_id = $cuenta->descripcion == 'DEVOLUCION' ? $cuenta->id : (TablaDetalle::where('descripcion','DEVOLUCION')->where('tabla_id',32)->first() ? TablaDetalle::where('descripcion','DEVOLUCION')->where('tabla_id',32)->first()->id : null);
+        //$cuenta = TablaDetalle::find(165);
+        //$cuenta_id = $cuenta->descripcion == 'DEVOLUCION' ? $cuenta->id : (TablaDetalle::where('descripcion','DEVOLUCION')->where('tabla_id',32)->first() ? TablaDetalle::where('descripcion','DEVOLUCION')->where('tabla_id',32)->first()->id : null);
+        
+
+        
         $totalEgresos = 0;
+        // foreach ($movimiento->detalleMoviemientoEgresos as $key => $item) {
+        //     if ($item->egreso->estado == "ACTIVO" && $item->egreso->cuenta_id == $cuenta_id) {
+        //         $totalEgresos = $totalEgresos + ($item->egreso->efectivo + $item->egreso->importe);
+        //     }
+        // }
+
         foreach ($movimiento->detalleMoviemientoEgresos as $key => $item) {
-            if ($item->egreso->estado == "ACTIVO" && $item->egreso->cuenta_id == $cuenta_id) {
+            if ( $item->egreso->estado == "ACTIVO" ) {
                 $totalEgresos = $totalEgresos + ($item->egreso->efectivo + $item->egreso->importe);
             }
         }
-            return $totalEgresos;
+
         return $totalEgresos;
     }
 }

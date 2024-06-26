@@ -314,9 +314,9 @@ class ClienteController extends Controller
 
     public function getDocumento(Request $request)
     {
-        $data = $request->all();
-        $existe = false;
-        $igualPersona = false;
+        $data           = $request->all();
+        $existe         = false;
+        $igualPersona   = false;
         if (!is_null($data['tipo_documento']) && !is_null($data['documento'])) {
             if (!is_null($data['id'])) {
                 $cliente = Cliente::findOrFail($data['id']);
@@ -457,4 +457,34 @@ class ClienteController extends Controller
             ]);
         }
     }
+
+    public function getCliente($tipo_documento,$nro_documento){
+        try {
+            //========== OBTENIENDO CLIENTE ==========
+            $cliente    =   DB::select('select * from clientes as c 
+                            where c.tipo_documento = ? and c.documento = ? and c.estado = "ACTIVO"',
+                        [$tipo_documento,$nro_documento]);
+
+            $message    =   '';
+
+            if(count($cliente) === 1){
+                $message    =   'EL '.$cliente[0]->tipo_documento.': ' . $cliente[0]->documento
+                .' YA SE ENCUENTRA REGISTRADO COMO CLIENTE';
+            }
+
+            if(count($cliente) === 0){
+                $message    =   'EL '.$tipo_documento.': '.$nro_documento.' NO SE ENCUENTRA REGISTRADO';
+            }
+
+            if(count($cliente) > 1){
+                throw new Exception('ERROR AL CONSULTAR CLIENTE EN LA EMPRESA');
+            }
+
+            return response()->json(['success' => true , 'cliente' => $cliente , 'message' => $message]);
+
+        } catch (\Throwable $th) {
+            return response()->json(['success' => false , 'message' => $th->getMessage()]);
+        }
+    }
+
 }

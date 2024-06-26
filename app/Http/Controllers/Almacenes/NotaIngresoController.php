@@ -632,12 +632,14 @@ class NotaIngresoController extends Controller
         try {
             $nota_detalle   =   DB::select('select p.nombre as producto_nombre,c.descripcion as color_nombre,
                                 t.descripcion as talla_nombre,m.descripcion as modelo_nombre,pct.ruta_cod_barras,dni.cantidad,
-                                p.id as producto_id,c.id as color_id,t.id as talla_id,m.id as modelo_id
+                                p.id as producto_id,c.id as color_id,t.id as talla_id,m.id as modelo_id,
+                                ca.descripcion as categoria_nombre
                                 from detalle_nota_ingreso as dni
                                 inner join productos as p on p.id=dni.producto_id
                                 inner join colores as c on c.id=dni.color_id
                                 inner join tallas as t on t.id=dni.talla_id
                                 inner join modelos as m on m.id=p.modelo_id
+                                inner join categorias as ca on ca.id=p.categoria_id
                                 inner join producto_color_tallas as pct on (pct.producto_id=p.id and pct.color_id=c.id and pct.talla_id=t.id)
                                 where dni.nota_ingreso_id=?',[$nota_id]);
             
