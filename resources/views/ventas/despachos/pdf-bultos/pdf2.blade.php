@@ -94,7 +94,7 @@
         }
 
         .observaciones{
-            font-size: 26px;
+            font-size: 29;
         }
         
 
