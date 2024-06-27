@@ -40,7 +40,7 @@
             font-weight: 700;
             font-style: normal;
             color: rgb(186, 7, 7);
-            font-size: 24px;
+            font-size: 22px;
             padding:0;
             margin:0;
         }
@@ -83,7 +83,7 @@
         }
 
         .redes-text{
-            font-size: 27px;
+            font-size: 25px;
             font-family: "Cedarville Cursive", cursive;
             margin:0;
             padding:0;
@@ -94,7 +94,7 @@
         }
 
         .observaciones{
-            font-size: 22px;
+            font-size: 24px;
         }
         
 
