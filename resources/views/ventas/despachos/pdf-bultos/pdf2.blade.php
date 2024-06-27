@@ -141,8 +141,8 @@
       
         @if ($despacho->obs_rotulo)
             <div class="row" style="margin-bottom:0px;">
-                <p style="margin:0;padding:0;" class="observaciones">
-                    <span style="font-weight: bold;">OBSERVACIÓN: </span>
+                <p style="margin:0;padding:0;font-weight: bold;color:red;" class="observaciones">
+                    <span >OBSERVACIÓN: </span>
                     {{$despacho->obs_rotulo}}
                 </p>
             </div>
