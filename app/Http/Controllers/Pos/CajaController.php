@@ -274,6 +274,7 @@ class CajaController extends Controller
                 'totales' => $this->ObtenerTotales($movimiento->id),
             ]);
         }
+      
         return DataTables::of($datos)->toJson();
     }
 
@@ -546,6 +547,7 @@ class CajaController extends Controller
             (float) cuadreMovimientoCajaIngresosVenta($movimiento)+
             (float) cuadreMovimientoCajaIngresosRecibo($movimiento);
         
+      
         return [
             'TotalVentaDelDia' => $TotalVentaDelDia,
         ];

@@ -1644,19 +1644,27 @@ class DocumentoController extends Controller
 
             $documento->cotizacion_venta = $request->get('cotizacion_id'); //correcto
 
+            if($request->has('facturar') && $request->has('pedido_id')){
+                $documento->pedido_id   =   $request->get('pedido_id');
+            }
+
             $documento->save();
 
 
             //========== VERIFICANDO SI EL USUARIO ESTÁ PARTICIPANDO DE ALGUNA CAJA ACTUALMENTE ==========
             $caja_usuario           =   movimientoUser();
-            
+          
             if(count($caja_usuario) == 1){
                 $detalle                = new DetalleMovimientoVentaCaja();
                 $detalle->cdocumento_id = $documento->id;
                 $detalle->mcaja_id      = movimientoUser()[0]->movimiento_id;
+                if($request->has('facturado') && $request->get('facturado') === 'SI'){
+                    $detalle->cobrar            =   'NO';
+                    $documento->estado_pago     =   'PAGADA';
+                }
                 $detalle->save();
             }
-              
+            
             if(count($caja_usuario) == 0 ){
                 DB::rollBack();
                 return response()->json([
@@ -1685,9 +1693,7 @@ class DocumentoController extends Controller
            }
 
           
-           
             //=========== DETALLE DEL DOCUMENTO =======
-            //Llenado de los articulos
             $productosJSON = $request->get('productos_tabla');
             $productotabla = json_decode($productosJSON);
 
@@ -1702,6 +1708,23 @@ class DocumentoController extends Controller
             $producto_control    =   null;
            
             foreach ($productotabla as $producto) {
+                /*======== EN CASO SEA UNA FACTURACIÓN DE PEDIDO Y EL PRODUCTO NO EXISTA ========
+                 ========= CREAMOS EL PRODUCTO COLOR TALLA CON STOCKS EN CERO            ========*/
+                if($request->has('facturar')){
+                    $item   =   DB::select('select pct.producto_id from producto_color_tallas as pct
+                                where pct.producto_id = ?  and pct.color_id = ? and pct.talla_id = ?',
+                                [$producto->producto_id,$producto->color_id,$producto->talla_id]);
+                    
+                    if(count($item) === 0){
+                        $nuevo_producto =   new ProductoColorTalla();
+                        $nuevo_producto->producto_id    =   $producto->producto_id;
+                        $nuevo_producto->color_id       =   $producto->color_id;
+                        $nuevo_producto->talla_id       =   $producto->talla_id;
+                        $nuevo_producto->stock          =   0;
+                        $nuevo_producto->stock_logico   =   0;
+                        $nuevo_producto->save();
+                    }
+                }
 
                 $lote = ProductoColorTalla::where('producto_id', $producto->producto_id)
                         ->where('color_id', $producto->color_id)
@@ -1711,12 +1734,12 @@ class DocumentoController extends Controller
                         ->with('talla')
                         ->firstOrFail();
 
-                $producto_control   =   $lote;
+                $producto_control                       =   $lote;
                 $producto_control->cantidad_solicitada  =   $producto->cantidad;
 
-                    //==== CALCULANDO MONTOS PARA EL DETALLE ====
-                    $importe                =   floatval($producto->cantidad) * floatval($producto->precio_unitario);
-                    $precio_unitario        =   $producto->porcentaje_descuento==0?$producto->precio_unitario:$producto->precio_unitario_nuevo;
+                //==== CALCULANDO MONTOS PARA EL DETALLE ====
+                $importe                =   floatval($producto->cantidad) * floatval($producto->precio_unitario);
+                $precio_unitario        =   $producto->porcentaje_descuento==0?$producto->precio_unitario:$producto->precio_unitario_nuevo;
 
                     Detalle::create([
                         'documento_id'      =>  $documento->id,
@@ -1746,9 +1769,10 @@ class DocumentoController extends Controller
                         //  'valor_venta' => $producto->valor_venta,
                     ]);
                 
-
+                   
                     //====== RESTAR STOCK SI NO ES CONVERSIÓN NI REGULARIZACIÓN =======
-                    if(!$request->has('convertir') && !$request->has('regularizar')){
+                    if(!$request->has('convertir') && !$request->has('regularizar') && !$request->has('facturar')){
+                        
                         //===== ACTUALIZANDO STOCK ===========
                         DB::update('UPDATE producto_color_tallas 
                         SET stock = stock - ? 
@@ -1803,14 +1827,14 @@ class DocumentoController extends Controller
                          $kardex->stock          =   $nuevo_stock;
                          $kardex->save();
                     }
-
+                    
                     if($request->get('regularizar') == 'SI'){
                         $nuevo_stock = DB::table('producto_color_tallas')
                         ->where('producto_id', $producto->producto_id)
                         ->where('color_id', $producto->color_id)
                         ->where('talla_id', $producto->talla_id)
                         ->value('stock');
-
+                        
                         //======= KARDEX CON STOCK YA MODIFICADO =======
                         $kardex = new Kardex();
                         $kardex->origen         =   'VENTA';
@@ -1827,19 +1851,9 @@ class DocumentoController extends Controller
                         $kardex->importe        =   $producto->precio_unitario * $producto->cantidad;
                         $kardex->stock          =   $nuevo_stock;
                         $kardex->save();
-                    }
-                   
-       
-                // if ($lote->stock == 0) {
-                //     DB::update('UPDATE producto_color_tallas 
-                //     SET estado = ? 
-                //     WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
-                //     ['0', $producto->producto_id, $producto->color_id, $producto->talla_id]);        
-                //     //$lote->estado = '0';
-                // }
+                    }     
             }
-
-        
+           
             
             //======== GUARDANDO DATA DE ENVIO =========
             //======= CONTROL PARA EVITAR QUE SE GENERE DATA ENVIO AL EDITAR O CONVERTIR DOC VENTA ==========
@@ -2005,11 +2019,10 @@ class DocumentoController extends Controller
             
         } catch (Exception $e) {
 
+           
             //====== REVERTIR ACCIONES EN LA BD =========
             DB::rollBack();
-            Log::info($e);
-           
-
+         
             //========== DETALLAR ERROR DE STOCK NEGATIVO ========
             if($e->getCode() == "22003" && strpos($e->getMessage(), "UPDATE producto_color_tallas") !== false && strpos($e->getMessage(), "SET stock") !== false){
 

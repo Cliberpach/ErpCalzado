@@ -142,11 +142,19 @@
     let atenciones_data_table   =   null;
 
     document.addEventListener('DOMContentLoaded',()=>{
+        sessionMessages();
         loadSelect2();
         loadDataTable();
         
         eventsModalAtenciones();
     })
+
+    function sessionMessages(){
+        let existe  =   @json(Session::has('pedido_error'));
+        if(existe){
+            toastr.error(@json(Session::get('pedido_error')),'NO SE PUEDE MODIFICAR ESTE PEDIDO');
+        }
+    }
 
     
     function loadSelect2(){
@@ -202,7 +210,19 @@
             columns: [
                 { data: 'id' },
                 { data: 'cliente_nombre' },
-                { data: 'fecha_registro' },
+                {
+            data: 'created_at',
+            render: function (data, type, row) {
+                const date = new Date(data);
+                const formattedDate = date.getFullYear() + '-' +
+                                      ('0' + (date.getMonth() + 1)).slice(-2) + '-' +
+                                      ('0' + date.getDate()).slice(-2) + ' ' +
+                                      ('0' + date.getHours()).slice(-2) + ':' +
+                                      ('0' + date.getMinutes()).slice(-2) + ':' +
+                                      ('0' + date.getSeconds()).slice(-2);
+                return formattedDate;
+            }
+        },
                 { data: 'total_pagar' },
                 { data: 'user_nombre' },
                 {
@@ -226,16 +246,25 @@
 
                             const url_atender   =   '{{route("ventas.pedidos.atender")}}';
 
+                            let accion_facturar= '';
+
+                            if(!row.facturado && row.estado === 'PENDIENTE'){
+                                accion_facturar    +=  `<li><a class='dropdown-item'  onclick="facturar(${row.id})" title='Facturar'><b><i class="fas fa-file-invoice-dollar"></i> Facturar</a></b></li>
+                                    <div class="dropdown-divider"></div>`;
+                            }
+
                             let acciones        =   `<div class="btn-group" style="text-transform:capitalize;">
                                 <button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class="fas fa-bars"></i></button>
                                 <ul class='dropdown-menu dropdown-menu-up'>
-                                    <li><a class='dropdown-item'  target='_blank' href="${url_reporte}" title='Detalle'><b><i class='fa fa-file-pdf-o'></i> Pdf</a></b></li>`;
+                                    ${accion_facturar}
+                                    <li><a class='dropdown-item'  target='_blank' href="${url_reporte}" title='PDF'><b><i class='fa fa-file-pdf-o'></i> Pdf</a></b></li>`;
                                     
-                            if(row.estado === "PENDIENTE"){
-                                acciones+=`<li><a class='dropdown-item' onclick="modificarPedido(${row.id})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>`;
-                            }
+                                    
+                            
 
                             if(row.estado !== "FINALIZADO"){
+                                acciones+=`<li><a class='dropdown-item' onclick="modificarPedido(${row.id})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>`;
+
                                 acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='Eliminar'><b><i class='fa fa-trash'></i> Finalizar</a></b></li>
                                 <li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_pedido_detalles"  title='Detalles'><b><i class="fas fa-info-circle"></i> Detalles</a></b></li>
                                 <div class="dropdown-divider"></div>`;
@@ -253,8 +282,15 @@
                                 </li> `;
                             }
 
+                            let optionReciboCaja    =   ``;
+                            if(!row.facturado && row.estado === 'PENDIENTE'){
+                                optionReciboCaja    +=  `<li><a class='dropdown-item' href="javascript:void(0);" onclick="generarRecibo(${row.id})"  title='Recibo'><b><i class="fas fa-receipt"></i> Generar Recibo</a></b></li>`;
+                            }
+
                             acciones+=`<li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_historial_atenciones"  title='Historial'><b><i class="fas fa-history"></i> Historial Atenciones</a></b></li>
-                            <li><a class='dropdown-item' href="javascript:void(0);" onclick="generarRecibo(${row.id})"  title='Recibo'><b><i class="fas fa-receipt"></i> Generar Recibo</a></b></li></ul></div>`;
+                                        ${optionReciboCaja}</ul></div>`;
+
+                           
 
                             return acciones;
                         }
@@ -307,15 +343,6 @@
         if(pedido.length >0){
             const estado    =   pedido[0].estado;
                    
-            if(estado === "PENDIENTE"){
-                window.location = `{{ route('ventas.pedidos.edit', ['id' => ':id']) }}`.replace(':id', pedido_id);
-            }
-            
-            if(estado === "ATENDIENDO"){
-                toastr.error('EL PEDIDO NO PUEDE SER MODIFICADO','PEDIDO EN PROCESO');
-                return;
-            }
-
             if(estado === "FINALIZADO"){
                 toastr.error('EL PEDIDO NO PUEDE SER MODIFICADO','PEDIDO FINALIZADO');
                 return;
@@ -325,6 +352,8 @@
                 toastr.error('EL PEDIDO NO PUEDE SER MODIFICADO','PEDIDO ANULADO');
                 return;
             }
+
+            window.location = `{{ route('ventas.pedidos.edit', ['id' => ':id']) }}`.replace(':id', pedido_id);
                
         }else{
             toastr.error('ERROR EN EL ID DEL PEDIDO','PEDIDO NO ENCONTRADO');
@@ -743,6 +772,62 @@
 
         window.location.href = rutaExcelPedidos;
         
+    }
+
+    async function facturar(pedido_id){
+        try {
+            //====== VALIDANDO CLIENTE =====
+            const res_cliente   =   await axios.get(route('ventas.pedidos.getCliente',{pedido_id}));
+            
+            if(res_cliente.data.success){
+                const cliente_pedido    =   res_cliente.data.cliente;
+                const tipo_comprobante  =   cliente_pedido.tipo_documento === 'RUC'?'FACTURA':'BOLETA';
+
+                Swal.fire({
+                title: `DESEA GENERAR UNA ${tipo_comprobante} PARA EL CLIENTE: ${cliente_pedido.nombre} CON DOCUMENTO ${cliente_pedido.tipo_documento}: ${cliente_pedido.documento}`,
+                text: "NO SE PODRÁ REVERTIR ESTA ACCIÓN!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: `SÍ, GENERAR ${tipo_comprobante}`
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+
+                        Swal.fire({
+                            title: `Generando ${tipo_comprobante}`,
+                            text: 'Por favor, espere...',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        const res   =   await axios.post(route('ventas.pedidos.facturar'),{
+                            pedido_id
+                        });
+
+                        Swal.close(); 
+                        if(res.data.success){
+                            pedidos_data_table.ajax.reload();
+                            toastr.success(res.data.message, 'Exito');
+                            window.location.href = '{{ route('ventas.documento.index') }}';
+                            const url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id +"-80"});
+                            window.open(url_open_pdf, 'Comprobante MERRIS', 'location=1, status=1, scrollbars=1,width=900, height=600');
+                        }else{
+                            toastr.error(`ERROR AL GENERAR EL COMPROBANTE ${tipo_comprobante}`,'OPERACIÓN ERRÓNEA');
+                        }
+                    }
+                });
+
+            }else{
+                toastr.error('ERROR AL COMPROBAR EL DOCUMENTO DE IDENTIDAD DEL CLIENTE','OPERACIÓN ERRÓNEA');
+                return;
+            }
+           
+        } catch (error) {
+            console.log(error);
+        }
     }
 
 </script>

@@ -420,6 +420,9 @@ function(){
         Route::get('reporte/{id}','Ventas\CotizacionController@report')->name('ventas.cotizacion.reporte');
         Route::get('email/{id}','Ventas\CotizacionController@email')->name('ventas.cotizacion.email');
         Route::get('documento/{id}','Ventas\CotizacionController@document')->name('ventas.cotizacion.documento');
+
+        Route::post('pedido/','Ventas\CotizacionController@generarPedido')->name('ventas.cotizacion.pedido');
+
         Route::get('nuevodocumento/{id}','Ventas\CotizacionController@newdocument')->name('ventas.cotizacion.nuevodocumento');
     });
 
@@ -521,7 +524,8 @@ function(){
         Route::get('get-pedido-detalles/{pedido_id}','Ventas\PedidoController@getPedidoDetalles')->name('ventas.pedidos.getPedidoDetalles');
         Route::post('devolver-stock-logico', 'Ventas\PedidoController@devolverStockLogico')->name('ventas.pedidos.devolverStockLogico');
         Route::get('getExcel/{fecha_inicio?}/{fecha_fin?}/{estado?}', 'Ventas\PedidoController@getExcel')->name('ventas.pedidos.getExcel');
-
+        Route::post('facturar/', 'Ventas\PedidoController@facturar')->name('ventas.pedidos.facturar');
+        Route::get('getCliente/{pedido_id}','Ventas\PedidoController@getCliente')->name('ventas.pedidos.getCliente');
     });
 
      // Despachos

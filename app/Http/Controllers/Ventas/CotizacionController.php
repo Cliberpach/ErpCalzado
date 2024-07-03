@@ -24,6 +24,9 @@ use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 
+use App\Ventas\Pedido;
+use App\Ventas\PedidoDetalle;
+
 use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Distrito;
 use App\Mantenimiento\Ubigeo\Provincia;
@@ -40,13 +43,18 @@ class CotizacionController extends Controller
     {
         //$cotizaciones = Cotizacion::where('estado', '<>', 'ANULADO')->orderBy('id', 'desc')->get();
 
-        $cotizaciones   =   DB::select('select co.id,e.razon_social as empresa,cl.nombre as cliente,co.fecha_documento,
-                            co.total_pagar,co.estado,IF(cd.cotizacion_venta IS NULL, "0", "1") as documento
+        $cotizaciones   =   DB::select('select co.id,e.razon_social as empresa,cl.nombre as cliente,
+                            co.created_at,u.usuario,
+                            co.total_pagar,co.estado,
+                            IF(cd.cotizacion_venta IS NULL, "0", "1") as documento, 
+                            IF(p.id is null,"-",concat("PE-",p.id)) as pedido_id,
+                            IF(cd.cotizacion_venta IS NULL,"-",concat(cd.serie,"-",cd.correlativo)) as documento_cod
                             from cotizaciones  as co
                             left join cotizacion_documento as cd on cd.cotizacion_venta=co.id
+                            left join pedidos as p on p.cotizacion_id = co.id
                             inner join empresas as e on e.id=co.empresa_id
                             inner join clientes as cl on cl.id=co.cliente_id
-                            where co.user_id=?
+                            inner join users as u on u.id = co.user_id
                             order by co.id desc',[Auth::user()->id]);
         
         //$cotizaciones = collect($cotizaciones);
@@ -589,5 +597,125 @@ class CotizacionController extends Controller
         //REDIRECCIONAR AL DOCUMENTO DE VENTA
         return redirect()->route('ventas.documento.create',['cotizacion'=>$id]);
 
+    }
+
+
+    public function generarPedido(Request $request){
+        DB::beginTransaction();
+        
+        try {
+            $data   =   $request->get('body');
+            $data   =   json_decode($data);
+           
+            $cotizacion_id  =   $data->cotizacion_id;
+
+
+            //===== OBTENIENDO DETALLE DE LA COTIZACIÓN ===========
+            $cotizacion =   DB::select('select * from cotizaciones as c
+                            where c.id = ? and c.estado != "ANULADO" and c.estado != "VENCIDA"'
+                            ,[$cotizacion_id]);
+
+            $detalle_cotizacion =   DB::select('select * from cotizacion_detalles as cd 
+                                    where cd.cotizacion_id = ? and cd.estado = "ACTIVO"',
+                                    [$cotizacion_id]);
+
+            //======== CREAR PEDIDO =========
+            $pedido             =   new Pedido();
+            $pedido->cliente_id = $cotizacion[0]->cliente_id;
+
+            //======= OBTENIENDO NOMBRE DEL CLIENTE =======
+            $cliente = DB::select('select c.nombre from clientes as c 
+                        where c.estado="ACTIVO" and c.id=?',[$cotizacion[0]->cliente_id]);
+            
+            $pedido->cliente_nombre =   $cliente[0]->nombre;   
+            $pedido->empresa_id     =   $cotizacion[0]->empresa_id;
+            
+            //======== OBTENIENDO NOMBRE DE LA EMPRESA ========
+            $empresa    =   DB::select('select e.razon_social from empresas as e
+                            where e.estado="ACTIVO" and e.id = ?',[$cotizacion[0]->empresa_id]);
+            $pedido->empresa_nombre =   $empresa[0]->razon_social;
+            $pedido->user_id        =   $cotizacion[0]->user_id;
+
+            //====== OBTENIENDO NOMBRE DEL USUARIO =====
+            $usuario    =   DB::select('select u.usuario from users as u 
+                            where u.estado = "ACTIVO" and u.id=?',
+                            [$cotizacion[0]->user_id]);
+            $pedido->user_nombre    =   $usuario[0]->usuario;
+            $pedido->condicion_id   =   $cotizacion[0]->condicion_id;
+            $pedido->moneda         =   $cotizacion[0]->moneda;
+            //======= OBTENIENDO NRO DEL PEDIDO =======
+            $cantidad_pedidos   =   Pedido::count();
+            $pedido->pedido_nro =   $cantidad_pedidos+1;
+
+            $pedido->sub_total      =   $cotizacion[0]->sub_total;
+            $pedido->total          =   $cotizacion[0]->total;
+            $pedido->total_igv      =   $cotizacion[0]->total_igv;
+            $pedido->total_pagar    =   $cotizacion[0]->total_pagar;
+            $pedido->monto_embalaje =   $cotizacion[0]->monto_embalaje;
+            $pedido->monto_envio    =   $cotizacion[0]->monto_envio;
+            $pedido->porcentaje_descuento   =   $cotizacion[0]->porcentaje_descuento;
+            $pedido->monto_descuento        =   $cotizacion[0]->monto_descuento;
+            $pedido->fecha_registro         =   Carbon::now()->format('Y-m-d');
+            $pedido->cotizacion_id          =   $cotizacion[0]->id;
+            $pedido->save();
+
+            //=========== CREAR DETALLE DEL PEDIDO ========
+            foreach ($detalle_cotizacion as $item) {
+                $detalle_pedido =               new PedidoDetalle();
+                $detalle_pedido->pedido_id      =   $pedido->id;
+                $detalle_pedido->producto_id    =   $item->producto_id;
+                $detalle_pedido->color_id       =   $item->color_id;
+                $detalle_pedido->talla_id       =   $item->talla_id;
+
+                //====== OBTENIENDO DATOS DEL PRODUCTO ======
+                $producto   =   DB::select('select p.codigo,p.nombre,p.modelo_id 
+                                from productos as p
+                                where p.id = ?',[$item->producto_id]);
+                
+                $detalle_pedido->producto_codigo = $producto[0]->codigo;
+                $detalle_pedido->unidad          = 'NIU';
+                $detalle_pedido->producto_nombre = $producto[0]->nombre;
+
+                //====== OBTENIENDO DATOS DEL COLOR =========
+                $color      =   DB::select('select c.descripcion from colores as c
+                                where c.id = ?',[$item->color_id]);
+
+                $detalle_pedido->color_nombre   =  $color[0]->descripcion;
+
+                //======= OBTENIENDO DATOS DE LA TALLA =======
+                $talla      =   DB::select('select t.descripcion from tallas as t
+                                where t.id = ?',[$item->talla_id]);
+
+                $detalle_pedido->talla_nombre   =   $talla[0]->descripcion;
+
+                //===== OBTENIENDO DATOS DEL MODELO ======
+                $modelo     =   DB::select('select m.descripcion from modelos as m 
+                                where m.id = ?',[$producto[0]->modelo_id]);
+                $detalle_pedido->modelo_nombre = $modelo[0]->descripcion;
+                
+                $detalle_pedido->cantidad               =   $item->cantidad;
+                $detalle_pedido->precio_unitario        =   $item->precio_unitario;
+                $detalle_pedido->importe                =   $item->importe;
+                $detalle_pedido->porcentaje_descuento   =   $item->porcentaje_descuento;
+                $detalle_pedido->precio_unitario_nuevo  =   $item->precio_unitario_nuevo;
+                $detalle_pedido->importe_nuevo          =   $item->importe_nuevo;
+                $detalle_pedido->monto_descuento        =   $item->monto_descuento;
+                $detalle_pedido->cantidad_atendida      =   0;
+                $detalle_pedido->cantidad_pendiente     =   $item->cantidad;
+                $detalle_pedido->save();
+            }
+
+        
+            DB::commit();
+            
+            return response()->json(['success' => true ,
+            'message' => "SE HA GENERADO EL PEDIDO N° ". $pedido->pedido_nro ]);
+
+
+        } catch (\Throwable $th) {
+            dd($th->getMessage());
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    
     }
 }

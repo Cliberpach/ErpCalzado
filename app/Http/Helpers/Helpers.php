@@ -1387,9 +1387,10 @@ if (!function_exists('cuadreMovimientoCajaIngresosVenta')) {
     {
         $totalIngresos = 0;
 
+       
         //====== BUSCAR LOS DOCUMENTOS VENTA QUE NO SE ENCUENTREN PAGADOS CON RECIBOS =========
         foreach ($movimiento->detalleMovimientoVentas as $item) {
-            if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA' && $item->documento->tipo_pago_id!='4') { // && $item->documento->sunat != '2'
+            if ($item->cobrar === 'SI' && $item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA' && $item->documento->tipo_pago_id!='4') { // && $item->documento->sunat != '2'
                 $totalIngresos = $totalIngresos + ($item->documento->importe + $item->documento->efectivo);
             }
         }

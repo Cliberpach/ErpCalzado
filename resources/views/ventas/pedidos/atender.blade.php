@@ -21,6 +21,19 @@
 <div class="wrapper wrapper-content animated fadeInRight">
     
     <div class="row">
+        <div class="col-12">
+            @if(Session::has('pedido_facturado_atender'))
+                <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                    {{ Session::get('pedido_facturado_atender') }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-lg-12">
             @include('components.overlay_esfera_1')
             <div class="ibox">

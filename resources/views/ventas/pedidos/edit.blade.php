@@ -127,8 +127,8 @@
 
                                         </div>
                                        
-                                        <div class="row">
-                                            <div class="col-12 col-md-6 select-required">
+                                        <div class="row" style="align-items: flex-end;">
+                                            <div class="col-lg-5 col-md-6 col-sm-12 col-xs-12 select-required">
                                                 <div class="form-group">
                                                     <label class="required">Cliente:
                                                         <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
@@ -155,7 +155,7 @@
                                                     @endif
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-md-6 select-required">
+                                            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 select-required">
                                                 <div class="form-group">
                                                     <label class="required">Condición</label>
                                                     <select id="condicion_id" name="condicion_id"
@@ -175,6 +175,17 @@
                                                     @if ($errors->has('condicion_id'))
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $errors->first('condicion_id') }}</strong>
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-4 col-md-3 col-sm-12 col-xs-12">
+                                                <div class="form-group">
+                                                    <label class="required">Fecha Propuesta</label>
+                                                    <input type="date" class="form-control" id="fecha_propuesta" name="fecha_propuesta" value="{{$pedido->fecha_propuesta}}">
+                                                    @if ($errors->has('fecha_propuesta'))
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $errors->first('fecha_propuesta') }}</strong>
                                                         </span>
                                                     @endif
                                                 </div>
@@ -253,10 +264,29 @@
                         <div class="col-12">
                             <div class="panel panel-primary">
                                 <div class="panel-heading">
-                                    <h4><b>Detalle del Pedido</b></h4>
+                                    <h4>
+                                        <b>Detalle del Pedido (Editable)</b>
+                                    </h4>
+                                    <h5>
+                                        <span>Los montos están sumados al Detalle Atendiendo</span>
+                                    </h5>
                                 </div>
                                 <div class="panel-body">
                                     @include('ventas.pedidos.table-detalles',[
+                                        "carrito" => "carrito"
+                                    ])
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="panel panel-success">
+                                <div class="panel-heading">
+                                    <h4><b>Detalle Atendiendo</b></h4>
+                                </div>
+                                <div class="panel-body">
+                                    @include('ventas.pedidos.table-detalles-noeditable',[
                                         "carrito" => "carrito"
                                     ])
                                 </div>
@@ -340,12 +370,19 @@
     const tfootIgv              =   document.querySelector('.igv');
     const tfootTotalPagar       =   document.querySelector('.total-pagar');
     const tfootDescuento        =   document.querySelector('.descuento');
+    const tfootEmbalaje         =   document.querySelector('.embalaje');
+    const tfootEnvio            =   document.querySelector('.envio');
     
     const inputSubTotal         =   document.querySelector('#monto_sub_total');
     const inputTotal            =   document.querySelector('#monto_total');
     const inputIgv              =   document.querySelector('#monto_total_igv');
     const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
     const inputMontoDescuento   =   document.querySelector('#monto_descuento');
+    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
+    const inputEnvio            =   document.querySelector('#monto_envio');
+
+
+    let noEditTotal         =   0;
 
     let pedidos_data_table  = null;
     let carrito             =   [];
@@ -406,11 +443,6 @@
                 })
             }
 
-            // const formData = new FormData(formCotizacion);
-            // formData.append("carrito", JSON.stringify(carrito));
-            // formData.forEach((valor, clave) => {
-            //      console.log(`${clave}: ${valor}`);
-            // });
         })
 
 
@@ -453,6 +485,23 @@
 
                 //==== CALCULAR DESCUENTO ====
                 calcularDescuento(producto_id,color_id,porcentaje_desc)
+            }
+
+            //====== EMBALAJE Y ENVÍO =======
+            if (e.target.classList.contains('embalaje') || e.target.classList.contains('envio')) {
+                // Eliminar ceros a la izquierda, excepto si es el único carácter en el campo o si es seguido por un punto decimal y al menos un dígito
+                e.target.value = e.target.value.replace(/^0+(?=\d)|(?<=\D)0+(?=\d)|(?<=\d)0+(?=\.)|^0+(?=[1-9])/g, '');
+
+                // Evitar que el primer carácter sea un punto
+                e.target.value = e.target.value.replace(/^(\.)/, '');
+
+                // Reemplazar todo excepto los dígitos y el punto decimal
+                e.target.value = e.target.value.replace(/[^\d.]/g, '');
+
+                // Reemplazar múltiples puntos decimales con uno solo
+                e.target.value = e.target.value.replace(/(\..*)\./g, '$1');
+
+                calcularMontos();
             }
         })
 
@@ -530,7 +579,7 @@
             }
 
             reordenarCarrito();
-            calcularSubTotal();
+            calcularSubTotal(carrito);
             pintarDetallePedido(carrito);
             //===== RECALCULANDO DESCUENTOS Y MONTOS =====
             carrito.forEach((c)=>{
@@ -595,6 +644,8 @@
     //=========== CALCULAR MONTOS =======
     const calcularMontos = ()=>{
         let subtotal    =   0;
+        let embalaje    =   tfootEmbalaje.value?parseFloat(tfootEmbalaje.value):0;
+        let envio       =   tfootEnvio.value?parseFloat(tfootEnvio.value):0;
         let total       =   0;
         let igv         =   0;
         let total_pagar =   0;
@@ -610,7 +661,8 @@
             descuento += parseFloat(c.monto_descuento);
         })
 
-        total_pagar =   subtotal;
+        subtotal    +=  noEditTotal;
+        total_pagar =   subtotal + embalaje + envio;        
         total       =   total_pagar/1.18;
         igv         =   total_pagar - total;
        
@@ -622,6 +674,8 @@
         
         inputTotalPagar.value       =   total_pagar.toFixed(2);
         inputIgv.value              =   igv.toFixed(2);
+        inputEmbalaje.value         =   embalaje.toFixed(2);
+        inputEnvio.value            =   envio.toFixed(2);
         inputTotal.value            =   total.toFixed(2);
         inputSubTotal.value         =   subtotal.toFixed(2);
         inputMontoDescuento.value   =   descuento.toFixed(2);
@@ -703,10 +757,10 @@
 
 
     //======== CALCULAR SUBTOTAL POR PRODUCTO COLOR EN EL DETALLE ======
-    const calcularSubTotal=()=>{
+    const calcularSubTotal=(productos)=>{
         let subtotal = 0;
 
-        carrito.forEach((p)=>{
+        productos.forEach((p)=>{
             p.tallas.forEach((t)=>{
                     subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad);   
             })
@@ -857,11 +911,27 @@
 
     //=========== CARGAR PRODUCTOS PREVIOS =======
     const cargarProductosPrevios=()=>{
+        //====== CARGANDO EMBALAJE Y ENVÍO PREVIO =======
+        tfootEmbalaje.value     =   @json($pedido->monto_embalaje);
+        tfootEnvio.value        =   @json($pedido->monto_envio);
+        inputEmbalaje.value     =   @json($pedido->monto_embalaje);
+        inputEnvio.value        =   @json($pedido->monto_envio);
+
         const productosPrevios  =   @json($pedido_detalles);
+       
+        //======= SEPARAMOS LOS PRODUCTOS EDITABLES ======
+        const productosEditables    =   productosPrevios.filter((p)=>  p.editable == 1);
+        //====== SEPARAMOS LOS PRODUCTOS NO EDITABLES ======
+        const productosNoEditables    =   productosPrevios.filter((p)=>  p.editable == 0);
+        
+        //====== PINTAMOS LOS PRODUCTOS NO EDITABLES =======
+        pintarDetalleNoEditable(productosNoEditables);
+
+
         //====== CARGANDO CARRITO ======
         const producto_color_procesados = [];
 
-        productosPrevios.forEach((productoPrevio)=>{
+        productosEditables.forEach((productoPrevio)=>{
             const id    =   `${productoPrevio.producto_id}-${productoPrevio.color_id}`;
 
             if(!producto_color_procesados.includes(id)){
@@ -882,7 +952,7 @@
                 }
 
                 //==== BUSCANDO SUS TALLAS ====
-                const tallas = productosPrevios.filter((t)=>{
+                const tallas = productosEditables.filter((t)=>{
                     return t.producto_id==productoPrevio.producto_id && t.color_id==productoPrevio.color_id;
                 })
 
@@ -905,7 +975,7 @@
 
       
         //===== CALCULAR SUBTOTAL POR FILA DEL DETALLE ======
-        calcularSubTotal();
+        calcularSubTotal(carrito);
       
         //===== PINTANDO DETALLE ======
         pintarDetallePedido(carrito);
@@ -916,6 +986,34 @@
         
         //===== CALCULAR MONTOS Y PINTARLOS ======
         calcularMontos();
+
+    }
+
+    function pintarDetalleNoEditable(productosNoEditables){
+        const tbodyNoEditable   =   document.querySelector('#table-detalle-noeditable tbody');
+        let fila    =   ``;
+        let total   =   0;
+        productosNoEditables.forEach((p)=>{
+            fila    +=   `<tr>
+                                <th scope="row">${p.producto_nombre}</th>
+                                <td>${p.color_nombre}</td>
+                                <td>${p.talla_nombre}</td>
+                                <td>${p.cantidad}</td>
+                                <td>${p.cantidad_atendida}</td>
+                                <td>${p.cantidad_pendiente}</td>
+                                <td>${p.precio_unitario_nuevo}</td>
+                                <td>${p.importe_nuevo}</td>
+                            </tr>`;
+            total   +=  parseFloat(p.importe_nuevo);
+        })
+        tbodyNoEditable.innerHTML = fila;
+
+        noEditTotal =   parseFloat(total);
+        const formattedTotal = 'S/ ' + total.toLocaleString('es-PE', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.querySelector('.total-pagar-noedit').textContent   =   formattedTotal;
     }
 
     //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========

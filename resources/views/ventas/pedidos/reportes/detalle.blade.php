@@ -252,6 +252,11 @@
                         <td>{{ getFechaFormato( $pedido->fecha_registro ,'d/m/Y')}}</td>
                     </tr>
                     <tr>
+                        <td style="padding-left: 5px;">FECHA PROPUESTA</td>
+                        <td>:</td>
+                        <td>{{ getFechaFormato( $pedido->fecha_propuesta ,'d/m/Y')}}</td>
+                    </tr>
+                    <tr>
                         <td style="padding-left: 5px;">CLIENTE</td>
                         <td>:</td>
                         <td>{{ $pedido->cliente_nombre }}</td>
@@ -270,6 +275,11 @@
                         <td style="padding-left: 5px;">CORREO</td>
                         <td>:</td>
                         <td class="text-uppercase">{{ $pedido->cliente->correo_electronico }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding-left: 5px;">TELEFONO</td>
+                        <td>:</td>
+                        <td class="text-uppercase">{{ $pedido->cliente->telefono_movil }}</td>
                     </tr>
                     <tr>
                         <td style="padding-left: 5px;">ATENDIDO POR</td>

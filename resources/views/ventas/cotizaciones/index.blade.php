@@ -34,8 +34,10 @@
                             <thead>
                                 <tr>
                                     <th class="text-center">ID</th>
-                                    <th class="text-center">EMPRESA</th>
+                                    <th class="text-center">DOC</th>
+                                    <th class="text-center">PEDIDO</th>
                                     <th class="text-center">CLIENTE</th>
+                                    <th class="text-center">USUARIO</th>
                                     <th class="text-center">FECHA DOCUMENTO</th>
                                     <th class="text-center">TOTAL</th>
                                     <th class="text-center">ESTADO</th>
@@ -105,18 +107,26 @@
             "ajax": "{{ route('ventas.cotizacion.getTable') }}",
             "columns": [{
                     data: 'id',
+                    className: "text-left"
+                },
+                {
+                    data: 'documento_cod',
                     className: "text-center"
                 },
                 {
-                    data: 'empresa',
-                    className: "text-left"
+                    data: 'pedido_id',
+                    className: "text-center"
                 },
                 {
                     data: 'cliente',
                     className: "text-left"
                 },
                 {
-                    data: 'fecha_documento',
+                    data: 'usuario',
+                    className: "text-left"
+                },
+                {
+                    data: 'created_at',
                     className: "text-center"
                 },
                 {
@@ -166,6 +176,50 @@
                         var url_imprimir = '{{route("ventas.cotizacion.reporte", ":id")}}';
                         url_imprimir = url_imprimir.replace(':id', data.id);
 
+                        let options =   "";
+                        options +=`
+                            <div class='btn-group' style='text-transform:capitalize;'>
+                                <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
+                                <i class='fa fa-bars'></i>
+                                </button>
+                                <ul class='dropdown-menu'>
+                                <li>
+                                    <a class='dropdown-item' target='_blank' href='${url_imprimir}' title='Detalle'>
+                                    <b><i class='fa fa-file-pdf-o'></i> Pdf</b>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class='dropdown-item' onclick='documento(${data.id})' title='Documento'>
+                                    <b><i class='fa fa-file'></i> Documento</b>
+                                    </a>
+                                </li>`;
+
+                        if(data.pedido_id === '-'){
+                            options +=  `  <div class="dropdown-divider"></div>
+                                <li>
+                                    <a class='dropdown-item' onclick='pedido(${data.id})' title='Pedido'>
+                                    <b><i class="fas fa-concierge-bell"></i> Pedido</b>
+                                    </a>
+                                </li>
+                                <div class="dropdown-divider"></div>`;        
+                        }
+                         
+                        options += `<li>
+                                    <a class='dropdown-item' href='${url_editar}' title='Modificar'>
+                                    <b><i class='fa fa-edit'></i> Modificar</b>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class='dropdown-item' onclick='eliminar(${data.id})' title='Eliminar'>
+                                    <b><i class='fa fa-trash'></i> Eliminar</b>
+                                    </a>
+                                </li>
+                                </ul>
+                            </div>`;
+                                
+                        return options;
+
+                        /*
                         return "<div class='btn-group' style='text-transform:capitalize;'><button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class='fa fa-bars'></i></button><ul class='dropdown-menu'>" +
 
                             "<li><a class='dropdown-item' target='_blank' href='" + url_imprimir +
@@ -178,6 +232,7 @@
                             ")' title='Eliminar'><b><i class='fa fa-trash'></i> Eliminar</a></b></li>" +
 
                             "</ul></div>"
+                        */
 
 
                     }
@@ -255,6 +310,59 @@
                 var url_concretar = '{{ route('ventas.cotizacion.documento', ':id') }}';
                 url_concretar = url_concretar.replace(':id', id);
                 $(location).attr('href', url_concretar);
+
+            } else if (
+                /* Read more about handling dismissals below */
+                result.dismiss === Swal.DismissReason.cancel
+            ) {
+                swalWithBootstrapButtons.fire(
+                    'Cancelado',
+                    'La Solicitud se ha cancelado.',
+                    'error'
+                )
+            }
+        })
+    }
+
+
+    //======== CONVERTIR COTIZACIÓN A PEDIDO =======
+    function pedido(cotizacion_id){
+        Swal.fire({
+            title: `Convertir Cotización N° ${cotizacion_id} a Pedido`,
+            text: ``,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: "#1ab394",
+            confirmButtonText: 'Si, Confirmar',
+            cancelButtonText: "No, Cancelar",
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                
+                Swal.fire({
+                    title: 'Procesando...',
+                    text: 'Por favor, espere.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                const body  =   JSON.stringify({cotizacion_id});
+
+                try {
+                    const res   =  await axios.post(route('ventas.cotizacion.pedido'),
+                        {body}
+                    );
+                    
+
+                    if(res.data.success){
+                        $('.dataTables-cotizacion').DataTable().ajax.reload();
+                        toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                    }
+                } catch (error) {
+                    toastr.error(res.data.message,'ERROR AL GENERAR EL PEDIDO');
+                }finally{
+                    Swal.close();
+                }
 
             } else if (
                 /* Read more about handling dismissals below */

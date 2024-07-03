@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Ventas;
 
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\Request;
 use App\Ventas\Pedido;
 use App\Ventas\PedidoDetalle;
@@ -73,6 +74,7 @@ class PedidoController extends Controller
     }
 
     public function store(Request $request){
+      
         DB::beginTransaction();
         try {
             $productos  = json_decode($request->input('productos_tabla')[0]);
@@ -96,7 +98,9 @@ class PedidoController extends Controller
 
             Validator::make($data, $rules, $message)->validate();
 
-              //======= MANEJANDO MONTOS ========
+            //======= MANEJANDO MONTOS ========
+            $monto_embalaje     =   $request->has('monto_embalaje')?$request->get('monto_embalaje'):0;
+            $monto_envio        =   $request->has('monto_envio')?$request->get('monto_envio'):0;
             $monto_subtotal     =   0.0;
             $monto_total        =   0.0;
             $monto_igv          =   0.0;
@@ -116,7 +120,7 @@ class PedidoController extends Controller
                 }
             }
     
-            $monto_total_pagar      =   $monto_subtotal;
+            $monto_total_pagar      =   $monto_subtotal + $monto_embalaje + $monto_envio;
             $monto_total            =   $monto_total_pagar/1.18;
             $monto_igv              =   $monto_total_pagar-$monto_total;
             $porcentaje_descuento   =   ($monto_descuento*100)/($monto_total_pagar);
@@ -127,10 +131,11 @@ class PedidoController extends Controller
             $pedido->cliente_id         = $request->get('cliente');
 
             //======== BUSCANDO NOMBRE DEL CLIENTE =====//
-            $cliente    =   DB::select('select c.id,c.nombre from clientes as c
+            $cliente    =   DB::select('select c.id,c.nombre,c.telefono_movil from clientes as c
                             where c.id=?',[$request->get('cliente')]);
             
             $pedido->cliente_nombre     =   $cliente[0]->nombre;
+            $pedido->cliente_telefono   =   $cliente[0]->telefono_movil;
             //==========================================//
 
             $pedido->empresa_id         = $request->get('empresa');
@@ -154,15 +159,18 @@ class PedidoController extends Controller
                                             on p.id=up.persona_id
                                             where u.id=?',[Auth::user()->id])[0]->user_nombre;
             //=============================================================
-            $pedido->moneda             = 1;
-            $pedido->fecha_registro     = $request->get('fecha_documento');
+            $pedido->moneda                 = 1;
+            $pedido->fecha_registro         = $request->get('fecha_documento');
+            $pedido->fecha_propuesta        = $request->get('fecha_propuesta');
 
-            $pedido->sub_total              = $monto_subtotal;
-            $pedido->total_igv              = $monto_igv;
-            $pedido->total                  = $monto_total;
-            $pedido->total_pagar            = $monto_total_pagar;  
-            $pedido->monto_descuento        = $monto_descuento;
-            $pedido->porcentaje_descuento   = $porcentaje_descuento;
+            $pedido->monto_embalaje         =   $monto_embalaje;
+            $pedido->monto_envio            =   $monto_envio;
+            $pedido->sub_total              =   $monto_subtotal;
+            $pedido->total_igv              =   $monto_igv;
+            $pedido->total                  =   $monto_total;
+            $pedido->total_pagar            =   $monto_total_pagar;  
+            $pedido->monto_descuento        =   $monto_descuento;
+            $pedido->porcentaje_descuento   =   $porcentaje_descuento;
 
             //======= CONTANDO PEDIDOS ======
             $cantidad_pedidos   =   Pedido::count();
@@ -227,6 +235,31 @@ class PedidoController extends Controller
         $pedido             =   Pedido::find($id);
         $pedido_detalles    =   PedidoDetalle::where('pedido_id',$id)->get();
 
+        //======== COMPROBANDO QUE EXISTAN DETALLES SIN ATENDER ======
+        $cantidad_items         =   count($pedido_detalles);
+        $cantidad_items_atend   =   0;
+
+        foreach($pedido_detalles as $item) {
+            if($item->cantidad_atendida > 0){
+                //====== SELECCIONAR EL DETALLE QUE SE PUEDE MODIFICAR =========
+                $item->editable = 0;
+                //==== CONTABILIZAR LOS ITEMS CON ATENCIÓN ======
+                $cantidad_items_atend++;
+            }
+            if($item->cantidad_atendida == 0){
+                //====== SELECCIONAR EL DETALLE QUE SE PUEDE MODIFICAR =========
+                $item->editable = 1;
+            }
+        }
+        
+        //===== SI YA SE ESTÁ ATENDIENDO TODO ========
+        if($cantidad_items === $cantidad_items_atend){
+            Session::flash('pedido_error','Todos los items de este pedido están en proceso de atención');
+            return back();
+        }
+
+        
+        
         $vendedor_actual    =   DB::select('select c.id from user_persona as up
                                 inner join colaboradores  as c
                                 on c.persona_id=up.persona_id
@@ -271,12 +304,15 @@ class PedidoController extends Controller
             Validator::make($data, $rules, $message)->validate();
 
             //======= MANEJANDO MONTOS ========
+            $monto_embalaje     =   $request->has('monto_embalaje')?$request->get('monto_embalaje'):0;
+            $monto_envio        =   $request->has('monto_envio')?$request->get('monto_envio'):0;
             $monto_subtotal     =   0.0;
             $monto_total        =   0.0;
             $monto_igv          =   0.0;
             $monto_total_pagar  =   0.0;
             $monto_descuento    =   $request->get('monto_descuento')??0;
 
+            //====== OBTENIENDO SUBTOTAL DE LOS PRODUCTOS EDITABLES ======
             foreach ($productos as $producto) {
                 $precio = 0;
                 if( floatval($producto->porcentaje_descuento) == 0){
@@ -289,22 +325,38 @@ class PedidoController extends Controller
                     $monto_subtotal +=  $talla->cantidad * $precio;
                 }
             }
+
+            //======= OBTENIENDO PRODUCTOS NO EDITABLES  ========
+            $detalle_no_editable    =   DB::select('select * from pedidos_detalles as pd
+                                        where pd.pedido_id = ? 
+                                        and pd.cantidad_atendida > 0',[$id]);
+            
+            //====== CALULCAR SUBTOTAL DE LOS PRODUCTOS NO EDITABLES =====
+            $subtotal_no_editable   =   0;
+            foreach($detalle_no_editable as $item){
+                $subtotal_no_editable  += $item->importe_nuevo;
+            }
     
-            $monto_total_pagar      =   $monto_subtotal;
+            //======== AGREGANDO EL SUBTOTAL DE LOS NO EDITABLES AL MONTO SUBTOTAL =======
+            $monto_subtotal += $subtotal_no_editable;
+
+            //====== CALCULAMOS LOS MONTOS ======
+            $monto_total_pagar      =   $monto_subtotal + $monto_embalaje + $monto_envio;
             $monto_total            =   $monto_total_pagar/1.18;
             $monto_igv              =   $monto_total_pagar-$monto_total;
             $porcentaje_descuento   =   ($monto_descuento*100)/($monto_total_pagar);
-
-
+           
             //======== REGISTRANDO PEDIDO =========
             $pedido                 = Pedido::find($id);
             $pedido->cliente_id     = $request->get('cliente');
 
             //======== BUSCANDO NOMBRE DEL CLIENTE =====//
-            $cliente    =   DB::select('select c.id,c.nombre from clientes as c
+            $cliente    =   DB::select('select c.id,c.nombre,c.telefono_movil from clientes as c
                             where c.id=?',[$request->get('cliente')]);
             
             $pedido->cliente_nombre     =   $cliente[0]->nombre;
+            $pedido->cliente_telefono   =   $cliente[0]->telefono_movil;
+
             //==========================================//
 
             $pedido->empresa_id         = $request->get('empresa');
@@ -328,21 +380,26 @@ class PedidoController extends Controller
                                             on p.id=up.persona_id
                                             where u.id=?',[Auth::user()->id])[0]->user_nombre;
 
-            $pedido->moneda             = 1;
-            $pedido->fecha_registro     = $request->get('fecha_documento');
+            $pedido->moneda             =   1;
+            $pedido->fecha_registro     =   $request->get('fecha_documento');
+            $pedido->fecha_propuesta    =   $request->get('fecha_propuesta');
 
-            $pedido->sub_total              = $monto_subtotal;
-            $pedido->total_igv              = $monto_igv;
-            $pedido->total                  = $monto_total;
-            $pedido->total_pagar            = $monto_total_pagar;  
-            $pedido->monto_descuento        = $monto_descuento;
-            $pedido->porcentaje_descuento   = $porcentaje_descuento;
+            $pedido->sub_total              =   $monto_subtotal;
+            $pedido->total_igv              =   $monto_igv;
+            $pedido->total                  =   $monto_total;
+            $pedido->total_pagar            =   $monto_total_pagar;  
+            $pedido->monto_descuento        =   $monto_descuento;
+            $pedido->porcentaje_descuento   =   $porcentaje_descuento;
+            $pedido->monto_embalaje         =   $monto_embalaje;
+            $pedido->monto_envio            =   $monto_envio;
 
             $pedido->update();
            
-            //======= ELIMINANDO DETALLE ANTERIOR ========
+            //======= ELIMINANDO DETALLE ANTERIOR, SIEMPRE Y CUANDO NO SE HAYA ATENDIDO AÚN ========
             if(count($productos)>0){
-                PedidoDetalle::where('pedido_id', $id)->delete();
+                PedidoDetalle::where('pedido_id', $id)
+                ->where('cantidad_atendida',0)
+                ->delete();
             }
 
             //========== GRABAR DETALLE DEL PEDIDO ========
@@ -552,10 +609,31 @@ class PedidoController extends Controller
 
             //======= DE ACUERDO AL TIPO CLIENTE ; LIMITAR LOS TIPOS DE VENTAS =====
             $tipo_doc_cliente   =   $pedido->cliente->tipo_documento;
-            if($tipo_doc_cliente == 'DNI'){
+            if($tipo_doc_cliente !== 'RUC'){
                 $tipoVentas = $tipoVentas->reject(function ($tipoVenta){
                     return $tipoVenta['id'] == 127;
                 });
+            }
+
+            //======= SI EL PEDIDO YA FUE FACTURADO, PERMITIR SOLO ATENDER CON NOTAS DE VENTA ======
+            if($pedido->facturado === 'SI'){
+                $tipoVentas = $tipoVentas->reject(function ($tipoVenta){
+                    return $tipoVenta['id'] == 127;
+                });
+                $tipoVentas = $tipoVentas->reject(function ($tipoVenta){
+                    return $tipoVenta['id'] == 128;
+                });
+
+                $doc_venta  =   DB::select('select * from cotizacion_documento as cd
+                                where cd.pedido_id = ?',[$pedido->id]);
+
+                if(count($doc_venta) !== 1){
+                    throw new Exception('NO SE ENCUENTRA EL DOC DE VENTA CON EL QUE SE FACTURÓ EL PEDIDO');
+                }
+
+                Session::flash('pedido_facturado_atender',
+                'EL PEDIDO SOLO PODRÁ ATENDERSE CON NOTAS DE VENTA,PORQUE YA FUE FACTURADO CON EL DOC: '
+                .$doc_venta[0]->serie.'-'.$doc_venta[0]->correlativo);
             }
 
             $departamentos = departamentos();
@@ -785,6 +863,18 @@ class PedidoController extends Controller
 
     public function generarDocumentoVenta(Request $request){
         $pedido_id              =   $request->get('pedido_id');
+        
+        $pedido                 =   Pedido::find($pedido_id);
+
+        if($pedido->facturado === 'SI'){
+            //====== SI EL PEDIDO YA FUE FACTURADO, EVITAMOS QUE SE CONTABILIZE LA ATENCIÓN EN LA CAJA ========
+            $additionalData = [
+                'facturado'     =>  'SI',
+            ];
+
+            $request->merge($additionalData);
+        }
+       
         $documentoController    =   new DocumentoController();
         $res                    =   $documentoController->store($request);
         $jsonResponse           =   $res->getData(); 
@@ -850,9 +940,9 @@ class PedidoController extends Controller
 
                 DB::commit();
                 return response()->json([
-                    'success' => true,
-                    'documento_id' => $documento_id,
-                    'mensaje'      =>   'DOCUMENTO DE VENTA GENERADO - PEDIDO ACTUALIZADO'
+                    'success'       => true,
+                    'documento_id'  => $documento_id,
+                    'mensaje'       =>   'DOCUMENTO DE VENTA GENERADO - PEDIDO ACTUALIZADO'
                 ]);
             } catch (\Throwable $th) {
                 //======== REVERTIR ACCIONES REALIZADAS EN PEDIDO CONTROLLER ======
@@ -946,5 +1036,139 @@ class PedidoController extends Controller
         return  Excel::download(new PedidosExport($fecha_inicio,$fecha_fin,$estado), 'REPORTE-PEDIDOS'.'.xlsx');
     }
 
+    public function facturar(Request $request){
+        DB::beginTransaction();
+        try {
+            //====== RECIBIENDO PEDIDO ID =====
+            $pedido_id      =   $request->get('pedido_id');
+            $pedido         =   Pedido::find($pedido_id);
+            
+            if(!$pedido){
+                throw new \Exception('NO SE ENCONTRÓ EL PEDIDO EN LA BASE DE DATOS');
+            }
 
+            //===== OBTENIENDO EL TIPO DOC DEL CLIENTE =======
+            $cliente    =   DB::select('select c.tipo_documento from clientes as c
+                            where c.id = ?',[$pedido->cliente_id]);
+            
+            if(count($cliente) === 0 || count($cliente) > 1){
+                    throw new \Exception('NO SE ENCONTRÓ EL CLIENTE EN LA BASE DE DATOS');
+            }
+
+            $cliente_tipo_documento =   $cliente[0]->tipo_documento;
+            $tipo_venta             =   null;
+            if($cliente_tipo_documento === "RUC"){
+                $tipo_venta = 127;
+            }
+            if($cliente_tipo_documento === "DNI" || $cliente_tipo_documento !== "RUC"){
+                $tipo_venta = 128;
+            }
+            
+            //======= OBTENIENDO DETALLE DEL PEDIDO ===========
+            $detalle_pedido =   DB::select('select * from pedidos_detalles as pd
+                                where pd.pedido_id = ?',[$pedido_id]);
+
+            $productos  =   [];
+            foreach($detalle_pedido as $item){
+                $producto = (object)[
+                    'producto_id'           =>  $item->producto_id,
+                    'color_id'              =>  $item->color_id,
+                    'talla_id'              =>  $item->talla_id,
+                    'cantidad'              =>  $item->cantidad,
+                    'precio_unitario'       =>  $item->precio_unitario,
+                    'porcentaje_descuento'  =>  $item->porcentaje_descuento,
+                    'precio_unitario_nuevo' =>  $item->precio_unitario_nuevo
+                ];
+
+                $productos[]    =   $producto;
+            }
+
+            $productos = json_encode($productos);
+           
+            //======= AGREGANDO DATOS AL REQUEST =====
+            $additionalData = [
+                'fecha_documento_campo'     =>  $pedido->fecha_registro,
+                'empresa'                   =>  $pedido->empresa_id,
+                'fecha_atencion_campo'      =>  $pedido->fecha_registro,
+                'tipo_venta'                =>  $tipo_venta,
+                'condicion_id'              =>  $pedido->condicion_id,
+                'fecha_vencimiento_campo'   =>  $pedido->fecha_registro,
+                'cliente_id'                =>  $pedido->cliente_id,
+                'igv'                       =>  "18",
+                "igv_check"                 =>  "on",
+                "efectivo"                  =>  "0",
+                "importe"                   =>  "0",
+                "empresa_id"                =>  $pedido->empresa_id,
+                "monto_sub_total"           =>  $pedido->sub_total,
+                "monto_embalaje"            =>  $pedido->monto_embalaje,
+                "monto_envio"               =>  $pedido->monto_envio,
+                "monto_total_igv"           =>  $pedido->total_igv,
+                "monto_descuento"           =>  $pedido->monto_descuento,
+                "monto_total"               =>  $pedido->total,
+                "monto_total_pagar"         =>  $pedido->total_pagar,
+                "data_envio"                =>  null,
+                "facturar"                  =>  true,
+                "productos_tabla"           =>  $productos
+            ];
+
+            $request->merge($additionalData);
+            
+            //======== GENERANDO DOC VENTA ======
+            $documentoController    =   new DocumentoController();
+            $res                    =   $documentoController->store($request);
+            $jsonResponse           =   $res->getData(); 
+            
+
+            //====== MANEJO DE RESPUESTA =========
+            $success_store_doc                =   $jsonResponse->success; 
+            
+            if($success_store_doc){
+                
+                $doc_venta  =   DB::select('select cd.serie,cd.correlativo from cotizacion_documento as cd
+                                where cd.id = ?',[$jsonResponse->documento_id])[0];
+
+                $pedido->facturado = 'SI';
+                $pedido->save();
+
+                DB::commit();
+
+                return response()->json(
+                [   'success'=>true,
+                    'message'=>'SE HA GENERADO EL DOCUMENTO DE VENTA '.$doc_venta->serie.'-'.$doc_venta->correlativo,
+                    'documento_id'  => $jsonResponse->documento_id]);
+            }else{
+
+                DB::rollBack();
+                
+                // if(property_exists($jsonResponse, 'documento_id')){
+                //     DB::table('cotizacion_documento')
+                //     ->where('id', $jsonResponse->documento_id)
+                //     ->delete();
+                // }
+            }
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
+    public function getCliente($pedido_id){
+        
+        try {
+            $pedido     =   Pedido::find($pedido_id);
+
+            $cliente    =   DB::select('select c.* from clientes as c
+                            where c.id = ?',[$pedido->cliente_id]);
+            
+            
+            if(count($cliente) !== 1){
+                throw new \Exception('CLIENTE NO ENCONTRADO');
+            }
+            
+            return response()->json(['success' => true,'cliente'=>$cliente[0]]);
+        } catch (\Throwable $th) {
+            return response()->json(['success' => false,'message'=>$th->getMessage()]);
+        }
+    }
 }

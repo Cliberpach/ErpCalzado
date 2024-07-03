@@ -123,8 +123,8 @@
 
                                         </div>
                                        
-                                        <div class="row">
-                                            <div class="col-12 col-md-6 select-required">
+                                        <div class="row" style="align-items: flex-end;">
+                                            <div class="col-lg-5 col-md-6 col-sm-12 col-xs-12 select-required">
                                                 <div class="form-group">
                                                     <label class="required">Cliente:
                                                         <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
@@ -151,7 +151,7 @@
                                                     @endif
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-md-6 select-required">
+                                            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 select-required">
                                                 <div class="form-group">
                                                     <label class="required">Condición</label>
                                                     <select id="condicion_id" name="condicion_id"
@@ -160,7 +160,8 @@
                                                         <option></option>
                                                         @foreach ($condiciones as $condicion)
                                                             <option value="{{ $condicion->id }}"
-                                                                {{ old('condicion_id') == $condicion->id ? 'selected' : '' }}>
+                                                                {{ old('condicion_id') == $condicion->id ? 'selected' : '' }}
+                                                                {{ 1 == $condicion->id ? 'selected' : '' }}>
                                                                 {{ $condicion->descripcion }} {{ $condicion->dias > 0 ? $condicion->dias.' dias' : '' }}
                                                             </option>
                                                         @endforeach
@@ -168,6 +169,17 @@
                                                     @if ($errors->has('condicion_id'))
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $errors->first('condicion_id') }}</strong>
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-4 col-md-3 col-sm-12 col-xs-12">
+                                                <div class="form-group">
+                                                    <label class="required">Fecha Propuesta</label>
+                                                    <input type="date" class="form-control" id="fecha_propuesta" name="fecha_propuesta">
+                                                    @if ($errors->has('fecha_propuesta'))
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $errors->first('fecha_propuesta') }}</strong>
                                                         </span>
                                                     @endif
                                                 </div>
@@ -333,12 +345,16 @@
     const tfootIgv              =   document.querySelector('.igv');
     const tfootTotalPagar       =   document.querySelector('.total-pagar');
     const tfootDescuento        =   document.querySelector('.descuento');
+    const tfootEmbalaje         =   document.querySelector('.embalaje');
+    const tfootEnvio            =   document.querySelector('.envio');
     
     const inputSubTotal         =   document.querySelector('#monto_sub_total');
     const inputTotal            =   document.querySelector('#monto_total');
     const inputIgv              =   document.querySelector('#monto_total_igv');
     const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
     const inputMontoDescuento   =   document.querySelector('#monto_descuento');
+    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
+    const inputEnvio            =   document.querySelector('#monto_envio');
 
     let pedidos_data_table  = null;
     let carrito             =   [];
@@ -351,6 +367,8 @@
     })
 
     function events(){
+      
+
          //====== ELIMINAR ITEM =========
          document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('delete-product')){
@@ -397,12 +415,6 @@
                     }
                 })
             }
-
-            // const formData = new FormData(formCotizacion);
-            // formData.append("carrito", JSON.stringify(carrito));
-            // formData.forEach((valor, clave) => {
-            //      console.log(`${clave}: ${valor}`);
-            // });
         })
 
 
@@ -445,6 +457,23 @@
 
                 //==== CALCULAR DESCUENTO ====
                 calcularDescuento(producto_id,color_id,porcentaje_desc)
+            }
+
+            //====== EMBALAJE Y ENVÍO =======
+            if (e.target.classList.contains('embalaje') || e.target.classList.contains('envio')) {
+                // Eliminar ceros a la izquierda, excepto si es el único carácter en el campo o si es seguido por un punto decimal y al menos un dígito
+                e.target.value = e.target.value.replace(/^0+(?=\d)|(?<=\D)0+(?=\d)|(?<=\d)0+(?=\.)|^0+(?=[1-9])/g, '');
+
+                // Evitar que el primer carácter sea un punto
+                e.target.value = e.target.value.replace(/^(\.)/, '');
+
+                // Reemplazar todo excepto los dígitos y el punto decimal
+                e.target.value = e.target.value.replace(/[^\d.]/g, '');
+
+                // Reemplazar múltiples puntos decimales con uno solo
+                e.target.value = e.target.value.replace(/(\..*)\./g, '$1');
+
+                calcularMontos();
             }
         })
 
@@ -585,9 +614,10 @@
     }
 
     //======= CALCULAR MONTOS =======
-    //=========== CALCULAR MONTOS =======
     const calcularMontos = ()=>{
         let subtotal    =   0;
+        let embalaje    =   tfootEmbalaje.value?parseFloat(tfootEmbalaje.value):0;
+        let envio       =   tfootEnvio.value?parseFloat(tfootEnvio.value):0;
         let total       =   0;
         let igv         =   0;
         let total_pagar =   0;
@@ -603,7 +633,7 @@
             descuento += parseFloat(c.monto_descuento);
         })
 
-        total_pagar =   subtotal;
+        total_pagar =   subtotal + embalaje + envio;        
         total       =   total_pagar/1.18;
         igv         =   total_pagar - total;
        
@@ -615,6 +645,8 @@
         
         inputTotalPagar.value       =   total_pagar.toFixed(2);
         inputIgv.value              =   igv.toFixed(2);
+        inputEmbalaje.value         =   embalaje.toFixed(2);
+        inputEnvio.value            =   envio.toFixed(2);
         inputTotal.value            =   total.toFixed(2);
         inputSubTotal.value         =   subtotal.toFixed(2);
         inputMontoDescuento.value   =   descuento.toFixed(2);

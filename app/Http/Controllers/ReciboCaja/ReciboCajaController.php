@@ -83,8 +83,6 @@ class ReciboCajaController extends Controller
         DB::beginTransaction();
         try {
             //========= GUARDAR EL RECIBO DE CAJA EN EL MOVIMIENTO DEL USUARIO =========
-            
-
             $recibo_caja                =   new ReciboCaja();
             $recibo_caja->movimiento_id =   $request->get('movimiento_id');
             $recibo_caja->user_id       =   Auth::user()->id;
