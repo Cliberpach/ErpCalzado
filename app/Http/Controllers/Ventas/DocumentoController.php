@@ -1569,7 +1569,7 @@ class DocumentoController extends Controller
                 ]);
             }
 
-            dd('validacion correcta');
+           
       
             $documento = new Documento();
             $documento->fecha_documento = $request->get('fecha_documento_campo');
@@ -1582,6 +1582,8 @@ class DocumentoController extends Controller
             $documento->empresa = $empresa->razon_social;
             $documento->direccion_fiscal_empresa = $empresa->direccion_fiscal;
             $documento->empresa_id = $request->get('empresa_id'); //OBTENER NUMERACION DE LA EMPRESA
+
+            dd('empresa valida');
 
             //CLIENTE
             $cliente = Cliente::findOrFail($request->get('cliente_id'));
