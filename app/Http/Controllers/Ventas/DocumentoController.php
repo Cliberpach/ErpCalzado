@@ -1700,12 +1700,13 @@ class DocumentoController extends Controller
                 ]);
            }
 
+           dd('productos');
           
             //=========== DETALLE DEL DOCUMENTO =======
             $productosJSON = $request->get('productos_tabla');
             $productotabla = json_decode($productosJSON);
 
-            dd($productotabla);
+            
        
             $producto_control    =   null;
            
