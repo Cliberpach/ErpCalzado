@@ -53,15 +53,19 @@ class ConsultarTipoNumeracion
 
             if(count($serie_comprobantes) === 1){
                 //====== TENER EN CUENTA QUE EL ACTUAL DOC DE VENTA YA ESTÁ EN LA BD ========
-                //===== CONTABILIZANDO CUANTOS DOCS DE VENTA DE ESE TIPO EXISTEN ======
-                $cantidad_docs_venta    =   DB::select('select count(cd.id) as cant_docs 
-                                            from cotizacion_documento as cd
-                                            where cd.tipo_venta = ?',[$documento->tipo_venta])[0];
+                //===== TOMAMOS EL ÚLTIMO COMPROBANTE GENERADO DE ESE TIPO ======
+                // $cantidad_docs_venta    =   DB::select('select count(cd.id) as cant_docs 
+                //                             from cotizacion_documento as cd
+                //                             where cd.tipo_venta = ?',[$documento->tipo_venta])[0];
                     
-                
+                $penultimo_comprobante = DB::table('cotizacion_documento as cd')
+                                        ->where('cd.tipo_venta', $documento->tipo_venta)
+                                        ->orderBy('cd.id', 'DESC')
+                                        ->skip(1)
+                                        ->first();
                 
                 //====== SIGNIFICA QUE ES EL PRIMER DOCUMENTO DE VENTA DE SU TIPO =========
-                if($cantidad_docs_venta === 1){
+                if(!$penultimo_comprobante){
                     $documento->correlativo = $serie_comprobantes[0]->numero_iniciar;
                     $documento->serie       = $serie_comprobantes[0]->serie;
                     self::actualizarNumeracion($numeracion);
@@ -70,7 +74,7 @@ class ConsultarTipoNumeracion
         
                 }else{
                     //======= SI YA EXISTEN VARIOS DOCS DE VENTA DE SU TIPO =======
-                    $documento->correlativo =   $cantidad_docs_venta->cant_docs;
+                    $documento->correlativo =   $penultimo_comprobante->correlativo + 1;
                     $documento->serie       =   $serie_comprobantes[0]->serie;
                     $documento->update();
         
