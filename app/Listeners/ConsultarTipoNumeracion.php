@@ -14,10 +14,11 @@ class ConsultarTipoNumeracion
     {
         
         $numeracion = Numeracion::where('empresa_id',$event->documento->empresa_id)->where('estado','ACTIVO')->where('tipo_comprobante',$event->documento->tipo_venta)->first();
-        dd($numeracion);
+       
         if ($numeracion) {
 
-            $resultado = ($numeracion)->exists();
+            $resultado = $numeracion->exists();
+            dd($resultado);
             $enviar = [
                 'existe'                =>  ($resultado == true) ? true : false,
                 'numeracion'            =>  $numeracion,
