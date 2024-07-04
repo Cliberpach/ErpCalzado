@@ -1631,7 +1631,7 @@ class DocumentoController extends Controller
             $documento->importe         = $request->get('importe');
             $documento->efectivo        = $request->get('efectivo');
 
-            dd('cliente correcto');
+            
 
             //======= DESDE STORE -> CONVERTIR HAS FALSE ======
             if ($request->convertir) {
@@ -1655,6 +1655,8 @@ class DocumentoController extends Controller
             }
 
             $documento->save();
+
+            dd('doc guardado 1');
 
 
             //========== VERIFICANDO SI EL USUARIO ESTÁ PARTICIPANDO DE ALGUNA CAJA ACTUALMENTE ==========
