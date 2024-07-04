@@ -2930,7 +2930,7 @@ class DocumentoController extends Controller
     }
     public function sunat($id)
     {
-        
+        dd('validando sunat');
         try {
             $documento = Documento::findOrFail($id);
             //OBTENER CORRELATIVO DEL COMPROBANTE ELECTRONICO
@@ -2947,7 +2947,7 @@ class DocumentoController extends Controller
                 return array('success' => false, 'mensaje' => 'Empresa sin parametros para emitir comprobantes electronicos.');
             }
         } catch (Exception $e) {
-            dd($e->getMessage());
+            
             return array('success' => false, 'mensaje' => $e->getMessage());
         }
     }
