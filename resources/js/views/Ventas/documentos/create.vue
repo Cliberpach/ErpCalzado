@@ -450,33 +450,43 @@ export default {
                 this.loading = true;
 
                 //======== verificar si existen cajas abiertas ==========
-                const { data } = await this.axios.get(route('Caja.movimiento.verificarestado'));
+                //const { data } = await this.axios.get(route('Caja.movimiento.verificarestado'));
+                const res = await this.axios.get(route('Caja.movimiento.verificarestado'));
+                console.log('VERIFICAR CAJA ESTADO');
+                console.log(res);
                 //======= desestructuración de objeto ===========
-                const { success } = data;
+                const success  = res.data.success;
 
                 //======== si existen cajas abiertas ===========
                 if (success) {
 
-                     let envio_ok = true;
+                    let envio_ok = true;
 
-                     var tipo = this.validarTipo();
+                    var tipo = this.validarTipo();
+                    console.log('VALIDAR TIPO',tipo);
 
-                     if (!tipo) {
-                         envio_ok = false;
-                     }
+                    if (!tipo) {
+                        envio_ok = false;
+                    }
 
                      if (envio_ok) {
+                        console.log('FORM ENVIADO');
                         console.log(this.formCreate)
-                        const { data } = await this.axios.post(route("ventas.documento.store"), this.formCreate);
-                        const { success, documento_id } = data;
+
+                        //const { data } = await this.axios.post(route("ventas.documento.store"), this.formCreate);
+                        const res = await this.axios.post(route("ventas.documento.store"), this.formCreate);
+                        
+                        console.log('RES DOCUMENT STORE');
+                        console.log(res);
+                        //const { success, documento_id } = data;
 
 
-                        if (success) {
+                        if (res.data.success) {
                             
 
                             toastr.success('¡Documento de venta creado!', 'Exito');
 
-                            var url_open_pdf = route("ventas.documento.comprobante", { id: documento_id +"-80"});
+                            var url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id +"-80"});
 
                             window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
 
