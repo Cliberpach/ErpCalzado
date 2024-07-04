@@ -94,7 +94,7 @@ class ReciboCajaController extends Controller
             $recibo_caja->observacion   =   trim($request->get('recibo_observacion'));            
             $recibo_caja->save();
             
-
+            dd($recibo_caja);
 
             if ($request->hasFile('recibo_imagen_1')) {
                 $imagen1        = $request->file('recibo_imagen_1');
