@@ -27,7 +27,6 @@ class ReciboCajaRequest extends FormRequest
             'fecha_documento' => 'required|date',
             'empresa' => 'required|exists:empresas,id',
             'fecha_atencion' => 'required|date',
-            'vendedor' => 'required|exists:vendedores,id',
             'cliente' => 'required|exists:clientes,id',
             'monto' => 'required|numeric|min:0',
             'metodo_pago'   =>  'required'
@@ -44,7 +43,7 @@ class ReciboCajaRequest extends FormRequest
             'fecha_atencion.required' => 'El campo fecha de atención es obligatorio.',
             'fecha_atencion.date' => 'El campo fecha de atención debe ser una fecha válida.',
             'vendedor.required' => 'El campo vendedor es obligatorio.',
-            'vendedor.exists' => 'El vendedor seleccionado no es válido.',
+            'vendedor.exists' => 'El vendedor no existe en la tabla vendedores.',
             'cliente.required' => 'El campo cliente es obligatorio.',
             'cliente.exists' => 'El cliente seleccionado no es válido.',
             'monto.required' => 'El campo monto es obligatorio.',

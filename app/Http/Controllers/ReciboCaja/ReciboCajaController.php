@@ -120,7 +120,6 @@ class ReciboCajaController extends Controller
             return redirect()->route('recibos_caja.index');        
         } catch (\Throwable $th) {
             DB::rollback();
-            dd($th->getMessage());
             Session::flash('recibo_caja_error', $th->getMessage());
             return redirect()->back();        
         }
