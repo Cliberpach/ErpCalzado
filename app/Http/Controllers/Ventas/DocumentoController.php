@@ -1690,7 +1690,7 @@ class DocumentoController extends Controller
             
             //===== OBTENIENDO CORRELATIVO Y SERIE =====
             $envio_prev =   self::sunat($documento->id);
-            dd($envio_prev);
+          
             
             //====== VERIFICANDO SI EL TIPO DE DOCUMENTO ESTÁ ACTIVO EN LA EMPRESA =======
             if (!$envio_prev['success']) {
@@ -2930,6 +2930,7 @@ class DocumentoController extends Controller
     }
     public function sunat($id)
     {
+        
         try {
             $documento = Documento::findOrFail($id);
             //OBTENER CORRELATIVO DEL COMPROBANTE ELECTRONICO
@@ -2946,6 +2947,7 @@ class DocumentoController extends Controller
                 return array('success' => false, 'mensaje' => 'Empresa sin parametros para emitir comprobantes electronicos.');
             }
         } catch (Exception $e) {
+            dd($e->getMessage());
             return array('success' => false, 'mensaje' => $e->getMessage());
         }
     }
