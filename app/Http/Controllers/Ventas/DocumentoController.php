@@ -1687,7 +1687,7 @@ class DocumentoController extends Controller
             $documento->numero_doc = 'VENTA-' . $numero_doc;
             $documento->update();
 
-            
+            dd('envio prev');
             //===== OBTENIENDO CORRELATIVO Y SERIE =====
             $envio_prev =   self::sunat($documento->id);
             
@@ -1700,7 +1700,7 @@ class DocumentoController extends Controller
                 ]);
            }
 
-           dd('productos');
+          
           
             //=========== DETALLE DEL DOCUMENTO =======
             $productosJSON = $request->get('productos_tabla');
