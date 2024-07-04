@@ -12,7 +12,7 @@ class ConsultarTipoNumeracion
 {
     public function handle($event)
     {
-        dd('consultando numeracion');
+        dd($event);
         $numeracion = Numeracion::where('empresa_id',$event->documento->empresa_id)->where('estado','ACTIVO')->where('tipo_comprobante',$event->documento->tipo_venta)->first();
         if ($numeracion) {
 
