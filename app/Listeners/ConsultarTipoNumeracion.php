@@ -36,25 +36,20 @@ class ConsultarTipoNumeracion
        if(empty($documento->correlativo))
        {
 
-        try {
+      
            
             $serie_comprobantes = DB::table('empresa_numeracion_facturaciones')
             ->join('empresas','empresas.id','=','empresa_numeracion_facturaciones.empresa_id')
-            ->join('cotizacion_documento','cotizacion_documento.empresa_id','=','empresas.id')
+            //->join('cotizacion_documento','cotizacion_documento.empresa_id','=','empresas.id')
             ->where('empresa_numeracion_facturaciones.tipo_comprobante',$documento->tipo_venta)
             ->where('empresa_numeracion_facturaciones.empresa_id',$documento->empresa_id)
-            ->where('cotizacion_documento.tipo_venta',$documento->tipo_venta)
-            ->where('cotizacion_documento.estado','!=','ANULADO')
-            ->select('cotizacion_documento.*','empresa_numeracion_facturaciones.*')
-            ->orderBy('cotizacion_documento.correlativo','DESC')
+            //->where('cotizacion_documento.tipo_venta',$documento->tipo_venta)
+            //->where('cotizacion_documento.estado','!=','ANULADO')
+            //->select('cotizacion_documento.*','empresa_numeracion_facturaciones.*')
+            ->select('empresa_numeracion_facturaciones.*')
+            //->orderBy('cotizacion_documento.correlativo','DESC')
             ->get();
-            dd('aaa');
-        } catch (\Throwable $th) {
-            dd($th->getMessage());
-        }
-           
-
-           
+            dd($serie_comprobantes);
 
             if (count($serie_comprobantes) == 1) {
                 //OBTENER EL DOCUMENTO INICIADO
