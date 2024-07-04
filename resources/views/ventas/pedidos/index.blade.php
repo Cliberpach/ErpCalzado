@@ -64,6 +64,8 @@
                             <thead>
                                 <tr>
                                     <th class="text-center">ID</th>
+                                    <th class="text-center">FACTURADO</th>
+                                    <th class="text-center">COT</th>
                                     <th class="text-center">CLIENTE</th>
                                     <th class="text-center">FECHA</th>
                                     <th class="text-center">TOTAL</th>
@@ -209,6 +211,8 @@
             bProcessing: true,
             columns: [
                 { data: 'id' },
+                { data: 'documento_venta'},
+                { data: 'cotizacion_nro'},
                 { data: 'cliente_nombre' },
                 {
             data: 'created_at',
@@ -262,13 +266,14 @@
                                     
                             
 
-                            if(row.estado !== "FINALIZADO"){
+                            if(row.estado !== "FINALIZADO" && !row.facturado){
                                 acciones+=`<li><a class='dropdown-item' onclick="modificarPedido(${row.id})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>`;
 
-                                acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='Eliminar'><b><i class='fa fa-trash'></i> Finalizar</a></b></li>
-                                <li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_pedido_detalles"  title='Detalles'><b><i class="fas fa-info-circle"></i> Detalles</a></b></li>
-                                <div class="dropdown-divider"></div>`;
+                                acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='Eliminar'><b><i class='fa fa-trash'></i> Finalizar</a></b></li>`;
                             }
+
+                            acciones += `<li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_pedido_detalles"  title='Detalles'><b><i class="fas fa-info-circle"></i> Detalles</a></b></li>
+                                <div class="dropdown-divider"></div>`;
 
                            
 

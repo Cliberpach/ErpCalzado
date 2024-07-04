@@ -326,6 +326,7 @@
                     <th style="text-align: center;border-right: 2px solid #52BE80">NUMERO</th>
                     <th style="text-align: center; border-right: 2px solid #52BE80">CLIENTE</th>
                     <th style="text-align: center; border-right: 2px solid #52BE80">DEV</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">COBRAR</th>
                     <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
                     @php
                         $cont = 0;
@@ -371,6 +372,9 @@
                                     </div>
                                 @endif
                             </td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80;">
+                                {{$ventas->cobrar}}
+                            </td>
                             <td style="text-align: center; border-right: 2px solid #52BE80">
                                 {{ $ventas->documento->total_pagar }}
                             </td>
@@ -397,7 +401,7 @@
                     @endif
                 @endforeach
                 <tr>
-                    <td colspan="4"
+                    <td colspan="5"
                         style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
                     </td>
                     @foreach (tipos_pago() as $tipo_pago)

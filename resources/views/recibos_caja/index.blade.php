@@ -43,6 +43,7 @@
                                     <th class="text-center">SALDO</th>
                                     <th class="text-center">ESTADO</th>
                                     <th class="text-center">ESTADO SERV</th>
+                                    <th class="text-center">OBS</th>
                                     <th class="text-center">ACCIONES</th>
 
                                 </tr>
@@ -167,6 +168,10 @@
                 },
                 {
                     data: 'estado_servicio',
+                    className: "text-center"
+                },
+                {
+                    data: 'observacion',
                     className: "text-center"
                 },
                 {

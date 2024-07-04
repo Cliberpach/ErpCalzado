@@ -26,7 +26,7 @@ use App\Ventas\Documento\Detalle;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Pedido\PedidosExport;
-
+use App\Pos\ReciboCaja;
 
 class PedidoController extends Controller
 {
@@ -38,7 +38,11 @@ class PedidoController extends Controller
         $fecha_inicio   =   $request->get('fecha_inicio');
         $fecha_fin      =   $request->get('fecha_fin');
 
-        $pedidos = Pedido::all();
+        $pedidos = Pedido::leftJoin('cotizacion_documento', 'pedidos.id', '=', 'cotizacion_documento.pedido_id')
+                    ->select('pedidos.*', 
+                            \DB::raw('CONCAT(cotizacion_documento.serie, "-", cotizacion_documento.correlativo) as documento_venta'),
+                            \DB::raw('if(pedidos.cotizacion_id is null,"-",concat("CO-",pedidos.cotizacion_id)) as cotizacion_nro'))
+                    ->get();
 
         if($fecha_inicio){
             $pedidos    =   $pedidos->where('fecha_registro', '>=', $fecha_inicio);
@@ -392,7 +396,6 @@ class PedidoController extends Controller
             $pedido->porcentaje_descuento   =   $porcentaje_descuento;
             $pedido->monto_embalaje         =   $monto_embalaje;
             $pedido->monto_envio            =   $monto_envio;
-
             $pedido->update();
            
             //======= ELIMINANDO DETALLE ANTERIOR, SIEMPRE Y CUANDO NO SE HAYA ATENDIDO AÚN ========
@@ -492,7 +495,7 @@ class PedidoController extends Controller
 
     public function atender(Request $request){
         DB::beginTransaction();
-
+        
         try {
             //======== OBTENIENDO ID DEL PEDIDO =========
             $pedido_id      =   $request->get('pedido_id');
@@ -862,6 +865,7 @@ class PedidoController extends Controller
     }
 
     public function generarDocumentoVenta(Request $request){
+       
         $pedido_id              =   $request->get('pedido_id');
         
         $pedido                 =   Pedido::find($pedido_id);
@@ -933,6 +937,55 @@ class PedidoController extends Controller
 
                 if($cant_items_atendidos_pedido === 0){
                     $pedido_actualizar->estado      =   "PENDIENTE";
+                }
+
+                //======== VERIFICANDO SI EL PEDIDO ESTÁ FACTURADO ======
+                if($pedido_actualizar->facturado === "SI"){
+
+                    //===== SI EL SALDO FACTURADO ES MAYOR O IGUAL AL MONTO DE LA ATENCIÓN =====
+                    if($pedido_actualizar->saldo_facturado >= $request->get('monto_total_pagar')){
+                        //====== NO GENERAR RECIBOS DE CAJA =======
+                        //====== DISMINUIR SALDO FACTURADO ========
+                        $pedido_actualizar->saldo_facturado -=  $request->get('monto_total_pagar'); 
+                    }else{
+                        //===== SI EL SALDO FACTURADO ES MENOR AL MONTO DE LA ATENCIÓN ======
+                
+                        //====== OBTENER EXCEDENTE =======
+                        $excedente  =   $request->get('monto_total_pagar') -    $pedido_actualizar->saldo_facturado;
+
+                        //======= OBTENIENDO MOVIMIENTO ID DEL USUARIO ======
+                        $movimiento = DB::select("select dmc.movimiento_id from detalles_movimiento_caja as dmc
+                                        where dmc.usuario_id = ? and dmc.fecha_salida is null",
+                                        [$pedido_actualizar->user_id]);
+
+                        if(count($movimiento) !== 1){
+                            throw new Exception("ERROR AL OBTENER EL MOVIMIENTO DE CAJA DEL USUARIO DEL PEDIDO");
+                        }
+
+                        $documento_venta    = Documento::find($documento_id);
+
+                        if(!$documento_venta){
+                            throw new Exception("ERROR AL OBTENER EL DOCUMENTO DE VENTA DE LA ATENCIÓN PARA GENERAR EL RECIBO DE CAJA EXCEDENTE");
+                        }
+
+                        
+                        //====== GENERAR RECIBO DE CAJA DEL EXCEDENTE =====
+                        $recibo_caja                    =   new ReciboCaja();
+                        $recibo_caja->movimiento_id     =   $movimiento[0]->movimiento_id;
+                        $recibo_caja->user_id           =   $pedido_actualizar->user_id;
+                        $recibo_caja->cliente_id        =   $pedido_actualizar->cliente_id;
+                        $recibo_caja->monto             =   $excedente;
+                        $recibo_caja->saldo             =   0;
+                        $recibo_caja->metodo_pago       =   "EFECTIVO";
+                        $recibo_caja->estado_servicio   =   "CANJEADO";
+                        $recibo_caja->observacion   =   "CREADO A PARTIR DEL EXCEDENTE DE "."S/.".$excedente .
+                                                        " PRESENTE EN LA ATENCIÓN ".$documento_venta->serie.'-'.$documento_venta->correlativo.
+                                                        " DEL PEDIDO PE-".$pedido_actualizar->pedido_nro;            
+                        $recibo_caja->save();
+                        
+                        //====== DISMINUIR SALDO FACTURADO ========
+                        $pedido_actualizar->saldo_facturado =  0; 
+                    }
                 }
                 
                 $pedido_actualizar->save();
@@ -1124,10 +1177,13 @@ class PedidoController extends Controller
             
             if($success_store_doc){
                 
-                $doc_venta  =   DB::select('select cd.serie,cd.correlativo from cotizacion_documento as cd
+                $doc_venta  =   DB::select('select cd.serie,cd.correlativo,cd.total_pagar 
+                                from cotizacion_documento as cd
                                 where cd.id = ?',[$jsonResponse->documento_id])[0];
 
                 $pedido->facturado = 'SI';
+                $pedido->monto_facturado        =   $doc_venta->total_pagar;
+                $pedido->saldo_facturado        =   $doc_venta->total_pagar;
                 $pedido->save();
 
                 DB::commit();

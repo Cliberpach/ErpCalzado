@@ -383,6 +383,7 @@
     let secureClosure   =   1;  //======= 1:DEVUELVE STOCKS_LOGICOS  2: NO DEVUELVE STOCKS_LOGICOS =======
 
     document.addEventListener('DOMContentLoaded',async ()=>{
+        console.log(@json($pedido));
         loadSelect2();
         cargarProductosPrevios();
 
@@ -446,8 +447,10 @@
         document.querySelector('#form-pedido-doc-venta').addEventListener('submit',async (e)=>{
             e.preventDefault();
 
+            const message   =   comprobarFacturacion();
+
             Swal.fire({
-                title: "Está seguro de generar el documento?",
+                title: message,
                 text: "Operación no reversible!",
                 icon: "warning",
                 showCancelButton: true,
@@ -542,6 +545,30 @@
         });
     }
 
+    //======== VERIFICAR SI EL PEDIDO FUE FACTURADO Y MOSTRAR MENSAJE PERSONALIZADO =======
+    function comprobarFacturacion(){
+        const pedido        =   @json($pedido);
+        const montoTotal    =   parseFloat(inputTotalPagar.value);
+
+        let message =   "";
+        if(pedido.facturado === "SI"){
+            const saldo_facturado   =   parseFloat(pedido.saldo_facturado);
+            //======== EL SALDO CUBRE LA ATENCIÓN AÚN ========
+            if(saldo_facturado >= montoTotal){
+                message =   `El saldo del pedido facturado de S/.${saldo_facturado} cubre la atención de S/.${montoTotal}.
+                Se generará la nota de venta como pagada.¿DESEA CONTINUAR?`;
+            }else{
+                message =   `El saldo del pedido facturado de S/.${saldo_facturado} NO CUBRE la atención de S/.${montoTotal}.
+                Se generará la nota de venta como pagada y un recibo de caja con el excedente.¿DESEA CONTINUAR?`;
+            }
+        }
+
+        if(!pedido.facturado){
+            message =   "¿DESEA GENERAR EL DOCUMENTO DE VENTA?";
+        }
+
+        return message;
+    }
 
 
     function cargarData(){
