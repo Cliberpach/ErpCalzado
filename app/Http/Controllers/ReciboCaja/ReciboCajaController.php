@@ -81,6 +81,7 @@ class ReciboCajaController extends Controller
     }
 
     public function store(ReciboCajaRequest $request){
+        dd('store recibo');
         DB::beginTransaction();
         try {
             //========= GUARDAR EL RECIBO DE CAJA EN EL MOVIMIENTO DEL USUARIO =========
@@ -120,6 +121,7 @@ class ReciboCajaController extends Controller
             return redirect()->route('recibos_caja.index');        
         } catch (\Throwable $th) {
             DB::rollback();
+            dd($th->getMessage());
             Session::flash('recibo_caja_error', $th->getMessage());
             return redirect()->back();        
         }

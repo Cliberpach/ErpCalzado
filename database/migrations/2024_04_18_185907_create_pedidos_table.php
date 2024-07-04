@@ -37,6 +37,7 @@ class CreatePedidosTable extends Migration
             $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
 
             $table->date('fecha_registro');
+            
             $table->enum('estado', ['PENDIENTE', 'ATENDIENDO','FINALIZADO','ANULADO'])->default('PENDIENTE');
             $table->timestamps();
 
