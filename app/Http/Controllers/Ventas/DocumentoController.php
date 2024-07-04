@@ -2933,9 +2933,10 @@ class DocumentoController extends Controller
         
         try {
             $documento = Documento::findOrFail($id);
-            dd($documento);
+            
             //OBTENER CORRELATIVO DEL COMPROBANTE ELECTRONICO
             $existe = event(new DocumentoNumeracion($documento));
+            dd($existe);
            
             if ($existe[0]) {
                 if ($existe[0]->get('existe') == true) {
