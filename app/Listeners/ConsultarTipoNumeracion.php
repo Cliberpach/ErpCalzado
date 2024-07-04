@@ -37,7 +37,7 @@ class ConsultarTipoNumeracion
        {
 
       
-           
+            //==== REVIZANDO SI ESTÁ ACTIVO EL TIPO DE DOC VENTA =======
             $serie_comprobantes = DB::table('empresa_numeracion_facturaciones')
             ->join('empresas','empresas.id','=','empresa_numeracion_facturaciones.empresa_id')
             //->join('cotizacion_documento','cotizacion_documento.empresa_id','=','empresas.id')
@@ -51,7 +51,13 @@ class ConsultarTipoNumeracion
             //->orderBy('cotizacion_documento.correlativo','DESC')
             ->get();
 
-            dd($serie_comprobantes);
+           
+            if(count($serie_comprobantes) === 1){
+                //===== CONTABILIZANDO CUANTOS DOCS DE VENTA DE ESE TIPO EXISTEN ======
+                $cantidad_docs_venta    =   DB::select('select count(cd.id) from cotizacion_documento as cd
+                                            where cd.tipo_venta = ?',[$documento->tipo_venta]);
+                dd($cantidad_docs_venta);
+            }
 
             if (count($serie_comprobantes) == 1) {
                 //OBTENER EL DOCUMENTO INICIADO
