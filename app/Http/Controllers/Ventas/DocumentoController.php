@@ -2936,7 +2936,7 @@ class DocumentoController extends Controller
             
             //OBTENER CORRELATIVO DEL COMPROBANTE ELECTRONICO
             $existe = event(new DocumentoNumeracion($documento));
-            dd($existe);
+           
            
             if ($existe[0]) {
                 if ($existe[0]->get('existe') == true) {

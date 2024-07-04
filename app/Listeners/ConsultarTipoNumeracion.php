@@ -51,22 +51,35 @@ class ConsultarTipoNumeracion
             //->orderBy('cotizacion_documento.correlativo','DESC')
             ->get();
 
-           
-           
             if(count($serie_comprobantes) === 1){
                 //====== TENER EN CUENTA QUE EL ACTUAL DOC DE VENTA YA ESTÁ EN LA BD ========
-
                 //===== CONTABILIZANDO CUANTOS DOCS DE VENTA DE ESE TIPO EXISTEN ======
                 $cantidad_docs_venta    =   DB::select('select count(cd.id) as cant_docs 
                                             from cotizacion_documento as cd
                                             where cd.tipo_venta = ?',[$documento->tipo_venta])[0];
+                    
+                
                 
                 //====== SIGNIFICA QUE ES EL PRIMER DOCUMENTO DE VENTA DE SU TIPO =========
-                dd($serie_comprobantes[0]);
                 if($cantidad_docs_venta === 1){
-                    $documento->correlativo = $numeracion->numero_iniciar;
-                    $documento->serie = $numeracion->serie;
+                    $documento->correlativo = $serie_comprobantes[0]->numero_iniciar;
+                    $documento->serie       = $serie_comprobantes[0]->serie;
+                    self::actualizarNumeracion($numeracion);
+                    return ['correlativo' =>    $documento->correlativo,
+                            'serie'       =>    $documento->serie];
+        
+                }else{
+                    //======= SI YA EXISTEN VARIOS DOCS DE VENTA DE SU TIPO =======
+                    $documento->correlativo =   $cantidad_docs_venta->cant_docs;
+                    $documento->serie       =   $serie_comprobantes[0]->serie;
+                    $documento->update();
+        
+                    //ACTUALIZAR LA NUMERACION (SE REALIZO EL INICIO)
+                    self::actualizarNumeracion($numeracion);
+                    return ['correlativo' =>    $documento->correlativo,
+                            'serie'       =>    $documento->serie];
                 }
+
             }
 
             // if (count($serie_comprobantes) == 1) {
