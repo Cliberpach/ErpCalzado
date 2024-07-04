@@ -80,7 +80,7 @@ class ReciboCajaController extends Controller
         'clientes', 'fecha_hoy', 'condiciones','tipos_documento','departamentos','tipo_clientes','pedido_entidad'));
     }
 
-    public function store(ReciboCajaRequest $request){
+    public function store(Request $request){
         dd($request->all());
         DB::beginTransaction();
         try {
