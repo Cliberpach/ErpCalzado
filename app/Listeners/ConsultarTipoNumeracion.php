@@ -32,7 +32,7 @@ class ConsultarTipoNumeracion
 
     public function obtenerCorrelativo($documento, $numeracion)
     {
-        dd('obteniendo correlativo');
+        dd($documento->correlativo);
        if(empty($documento->correlativo))
        {
             $serie_comprobantes = DB::table('empresa_numeracion_facturaciones')
