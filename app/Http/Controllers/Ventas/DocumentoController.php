@@ -1687,9 +1687,10 @@ class DocumentoController extends Controller
             $documento->numero_doc = 'VENTA-' . $numero_doc;
             $documento->update();
 
-            dd('envio prev');
+            
             //===== OBTENIENDO CORRELATIVO Y SERIE =====
             $envio_prev =   self::sunat($documento->id);
+            dd($envio_prev);
             
             //====== VERIFICANDO SI EL TIPO DE DOCUMENTO ESTÁ ACTIVO EN LA EMPRESA =======
             if (!$envio_prev['success']) {
