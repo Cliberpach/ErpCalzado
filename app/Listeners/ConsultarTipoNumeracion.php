@@ -37,7 +37,7 @@ class ConsultarTipoNumeracion
        {
 
         try {
-            dd('serie ');
+           
             $serie_comprobantes = DB::table('empresa_numeracion_facturaciones')
             ->join('empresas','empresas.id','=','empresa_numeracion_facturaciones.empresa_id')
             ->join('cotizacion_documento','cotizacion_documento.empresa_id','=','empresas.id')
@@ -48,6 +48,7 @@ class ConsultarTipoNumeracion
             ->select('cotizacion_documento.*','empresa_numeracion_facturaciones.*')
             ->orderBy('cotizacion_documento.correlativo','DESC')
             ->get();
+            dd('aaa');
         } catch (\Throwable $th) {
             dd($th->getMessage());
         }
