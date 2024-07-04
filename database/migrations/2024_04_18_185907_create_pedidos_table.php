@@ -37,6 +37,15 @@ class CreatePedidosTable extends Migration
             $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
 
             $table->date('fecha_registro');
+
+            $table->unsignedInteger('cotizacion_id')->nullable();
+            $table->foreign('cotizacion_id')->references('id')->on('cotizaciones')->onDelete('cascade');
+            $table->date('fecha_propuesta')->nullable();
+            $table->string('cliente_telefono',20)->nullable();
+            $table->string('facturado',2)->nullable();
+            $table->unsignedDecimal('monto_facturado',15,2)->nullable();
+            $table->unsignedDecimal('saldo_facturado',15,2)->nullable();
+
             
             $table->enum('estado', ['PENDIENTE', 'ATENDIENDO','FINALIZADO','ANULADO'])->default('PENDIENTE');
             $table->timestamps();

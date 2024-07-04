@@ -17,7 +17,7 @@ class CreateAtencionesTable extends Migration
             $table->id();
 
             $table->unsignedBigInteger('pedido_id');
-            $table->foreign('pedido_id')->references('id')->on('pedidos');
+            $table->foreign('pedido_id')->references('id')->on('pedidos')->onDelete('cascade');
 
             $table->unsignedInteger('documento_id');
             $table->foreign('documento_id')->references('id')->on('cotizacion_documento');

@@ -27,6 +27,10 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->string('cliente');
             $table->unsignedInteger('cliente_id'); //OBTENER TIENDAS DEL CLIENTE
 
+            $table->unsignedBigInteger('pedido_id')->nullable();
+            $table->foreign('pedido_id')->references('id')->on('pedidos')->onDelete('cascade');
+
+
             $table->date('fecha_documento');
             $table->date('fecha_vencimiento');
             $table->date('fecha_atencion')->nullable();
