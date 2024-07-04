@@ -2930,9 +2930,10 @@ class DocumentoController extends Controller
     }
     public function sunat($id)
     {
-        dd('validando sunat');
+        
         try {
             $documento = Documento::findOrFail($id);
+            dd($documento);
             //OBTENER CORRELATIVO DEL COMPROBANTE ELECTRONICO
             $existe = event(new DocumentoNumeracion($documento));
            
