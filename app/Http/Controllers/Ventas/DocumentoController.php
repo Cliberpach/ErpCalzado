@@ -2022,6 +2022,7 @@ class DocumentoController extends Controller
            
             //====== REVERTIR ACCIONES EN LA BD =========
             DB::rollBack();
+            dd($e->getMessage());
          
             //========== DETALLAR ERROR DE STOCK NEGATIVO ========
             if($e->getCode() == "22003" && strpos($e->getMessage(), "UPDATE producto_color_tallas") !== false && strpos($e->getMessage(), "SET stock") !== false){
