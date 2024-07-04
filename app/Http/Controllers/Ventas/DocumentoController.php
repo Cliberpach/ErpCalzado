@@ -1671,7 +1671,6 @@ class DocumentoController extends Controller
                     $documento->estado_pago     =   'PAGADA';
                 }
                 $detalle->save();
-                dd('caja usuario');
             }
             
             if(count($caja_usuario) == 0 ){
@@ -1706,13 +1705,7 @@ class DocumentoController extends Controller
             $productosJSON = $request->get('productos_tabla');
             $productotabla = json_decode($productosJSON);
 
-            // if ($request->convertir) {
-            //      foreach ($productotabla as $producto) {
-            //          $lote = LoteProducto::findOrFail($producto->producto_id);
-            //          $lote->cantidad = $lote->cantidad + $producto->cantidad;
-            //          $lote->update();
-            //      }
-            // }
+            dd($productotabla);
        
             $producto_control    =   null;
            
