@@ -18,7 +18,7 @@ class ConsultarTipoNumeracion
         if ($numeracion) {
 
             $resultado = $numeracion->exists();
-            dd($resultado);
+            
             $enviar = [
                 'existe'                =>  ($resultado == true) ? true : false,
                 'numeracion'            =>  $numeracion,
@@ -32,7 +32,7 @@ class ConsultarTipoNumeracion
 
     public function obtenerCorrelativo($documento, $numeracion)
     {
-        
+        dd('obteniendo correlativo');
        if(empty($documento->correlativo))
        {
             $serie_comprobantes = DB::table('empresa_numeracion_facturaciones')
