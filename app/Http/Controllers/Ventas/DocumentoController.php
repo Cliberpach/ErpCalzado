@@ -1656,7 +1656,7 @@ class DocumentoController extends Controller
 
             $documento->save();
 
-            dd('doc guardado 1');
+            
 
 
             //========== VERIFICANDO SI EL USUARIO ESTÁ PARTICIPANDO DE ALGUNA CAJA ACTUALMENTE ==========
@@ -1671,6 +1671,7 @@ class DocumentoController extends Controller
                     $documento->estado_pago     =   'PAGADA';
                 }
                 $detalle->save();
+                dd('caja usuario');
             }
             
             if(count($caja_usuario) == 0 ){
