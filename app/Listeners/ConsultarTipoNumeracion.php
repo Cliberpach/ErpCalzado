@@ -53,10 +53,13 @@ class ConsultarTipoNumeracion
 
            
             if(count($serie_comprobantes) === 1){
+                //====== TENER EN CUENTA QUE EL ACTUAL DOC DE VENTA YA ESTÁ EN LA BD ========
+
                 //===== CONTABILIZANDO CUANTOS DOCS DE VENTA DE ESE TIPO EXISTEN ======
-                $cantidad_docs_venta    =   DB::select('select count(cd.id) from cotizacion_documento as cd
-                                            where cd.tipo_venta = ?',[$documento->tipo_venta]);
-                dd($documento);
+                $cantidad_docs_venta    =   DB::select('select count(cd.id) as cant_docs 
+                                            from cotizacion_documento as cd
+                                            where cd.tipo_venta = ?',[$documento->tipo_venta])[0];
+                dd($cantidad_docs_venta->cant_docs);
             }
 
             if (count($serie_comprobantes) == 1) {
