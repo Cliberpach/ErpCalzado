@@ -1521,6 +1521,8 @@ class DocumentoController extends Controller
 
     public function store(Request $request)
     {
+        dd($request->all());
+        
         $this->authorize('haveaccess', 'documento_venta.index');
         ini_set("max_execution_time", 60000);
         try {
