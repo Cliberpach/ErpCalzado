@@ -81,7 +81,6 @@ class ReciboCajaController extends Controller
     }
 
     public function store(ReciboCajaRequest $request){
-        dd('store recibo');
         DB::beginTransaction();
         try {
             //========= GUARDAR EL RECIBO DE CAJA EN EL MOVIMIENTO DEL USUARIO =========
