@@ -37,6 +37,7 @@ class ConsultarTipoNumeracion
        {
 
         try {
+            dd('serie ');
             $serie_comprobantes = DB::table('empresa_numeracion_facturaciones')
             ->join('empresas','empresas.id','=','empresa_numeracion_facturaciones.empresa_id')
             ->join('cotizacion_documento','cotizacion_documento.empresa_id','=','empresas.id')
