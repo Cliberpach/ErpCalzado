@@ -188,14 +188,15 @@
                                     <b><i class='fa fa-file-pdf-o'></i> Pdf</b>
                                     </a>
                                 </li>
-                                <li>
-                                    <a class='dropdown-item' onclick='documento(${data.id})' title='Documento'>
-                                    <b><i class='fa fa-file'></i> Documento</b>
-                                    </a>
-                                </li>`;
+                                `;
 
-                        if(data.pedido_id === '-'){
-                            options +=  `  <div class="dropdown-divider"></div>
+                        if(data.pedido_id === '-' && data.documento_cod === '-'){
+                            options +=  `<li>
+                                            <a class='dropdown-item' onclick='documento(${data.id})' title='Documento'>
+                                            <b><i class='fa fa-file'></i> Documento</b>
+                                            </a>
+                                        </li>
+                                <div class="dropdown-divider"></div>
                                 <li>
                                     <a class='dropdown-item' onclick='pedido(${data.id})' title='Pedido'>
                                     <b><i class="fas fa-concierge-bell"></i> Pedido</b>
@@ -203,6 +204,8 @@
                                 </li>
                                 <div class="dropdown-divider"></div>`;        
                         }
+
+                       
                          
                         options += `<li>
                                     <a class='dropdown-item' href='${url_editar}' title='Modificar'>

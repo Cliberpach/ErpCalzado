@@ -511,10 +511,10 @@ export default {
                     this.loading = false;
                 }
 
-            } catch (ex) {
+            } catch (e) {
                 document.querySelector('#btn_grabar').disabled=false;
                 this.loading = false;
-                alert("Error en EnviarVentas " + ex);
+                toastr.error(e.message + "\n" + e.stack, 'Error',{timeOut:0});
             }
         },
         validarTipo() {
