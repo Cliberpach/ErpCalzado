@@ -1583,7 +1583,7 @@ class DocumentoController extends Controller
             $documento->direccion_fiscal_empresa = $empresa->direccion_fiscal;
             $documento->empresa_id = $request->get('empresa_id'); //OBTENER NUMERACION DE LA EMPRESA
 
-            dd('empresa valida');
+           
 
             //CLIENTE
             $cliente = Cliente::findOrFail($request->get('cliente_id'));
@@ -1630,6 +1630,8 @@ class DocumentoController extends Controller
             $documento->tipo_pago_id    = $request->get('tipo_pago_id');
             $documento->importe         = $request->get('importe');
             $documento->efectivo        = $request->get('efectivo');
+
+            dd('cliente correcto');
 
             //======= DESDE STORE -> CONVERTIR HAS FALSE ======
             if ($request->convertir) {
