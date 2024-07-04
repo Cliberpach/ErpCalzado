@@ -52,6 +52,7 @@ class ConsultarTipoNumeracion
             ->get();
 
            
+           
             if(count($serie_comprobantes) === 1){
                 //====== TENER EN CUENTA QUE EL ACTUAL DOC DE VENTA YA ESTÁ EN LA BD ========
 
@@ -59,34 +60,40 @@ class ConsultarTipoNumeracion
                 $cantidad_docs_venta    =   DB::select('select count(cd.id) as cant_docs 
                                             from cotizacion_documento as cd
                                             where cd.tipo_venta = ?',[$documento->tipo_venta])[0];
-                dd($cantidad_docs_venta->cant_docs);
-            }
-
-            if (count($serie_comprobantes) == 1) {
-                //OBTENER EL DOCUMENTO INICIADO
-                $documento->correlativo = $numeracion->numero_iniciar;
-                $documento->serie = $numeracion->serie;
-                $documento->update();
-
-                //ACTUALIZAR LA NUMERACION (SE REALIZO EL INICIO)
-                self::actualizarNumeracion($numeracion);
-                return ['correlativo' =>    $documento->correlativo,
-                            'serie'       =>    $documento->serie];
-
-            }else{
-                //DOCUMENTO DE VENTA ES NUEVO EN SUNAT
-                if($documento->sunat != '1' || $documento->tipo_venta == 129){
-                    $ultimo_comprobante = $serie_comprobantes->first();
-                    $documento->correlativo = $ultimo_comprobante->correlativo + 1;
+                
+                //====== SIGNIFICA QUE ES EL PRIMER DOCUMENTO DE VENTA DE SU TIPO =========
+                dd($serie_comprobantes[0]);
+                if($cantidad_docs_venta === 1){
+                    $documento->correlativo = $numeracion->numero_iniciar;
                     $documento->serie = $numeracion->serie;
-                    $documento->update();
-
-                    //ACTUALIZAR LA NUMERACION (SE REALIZO EL INICIO)
-                    self::actualizarNumeracion($numeracion);
-                    return ['correlativo' =>    $documento->correlativo,
-                            'serie'       =>    $documento->serie];
                 }
             }
+
+            // if (count($serie_comprobantes) == 1) {
+            //     //OBTENER EL DOCUMENTO INICIADO
+            //     $documento->correlativo = $numeracion->numero_iniciar;
+            //     $documento->serie = $numeracion->serie;
+            //     $documento->update();
+
+            //     //ACTUALIZAR LA NUMERACION (SE REALIZO EL INICIO)
+            //     self::actualizarNumeracion($numeracion);
+            //     return ['correlativo' =>    $documento->correlativo,
+            //                 'serie'       =>    $documento->serie];
+
+            // }else{
+            //     //DOCUMENTO DE VENTA ES NUEVO EN SUNAT
+            //     if($documento->sunat != '1' || $documento->tipo_venta == 129){
+            //         $ultimo_comprobante = $serie_comprobantes->first();
+            //         $documento->correlativo = $ultimo_comprobante->correlativo + 1;
+            //         $documento->serie = $numeracion->serie;
+            //         $documento->update();
+
+            //         //ACTUALIZAR LA NUMERACION (SE REALIZO EL INICIO)
+            //         self::actualizarNumeracion($numeracion);
+            //         return ['correlativo' =>    $documento->correlativo,
+            //                 'serie'       =>    $documento->serie];
+            //     }
+            // }
        }
        else
        {
