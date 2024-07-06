@@ -112,7 +112,7 @@
 
                                                                     <template v-if="item.sunat == '0' &&
                                                                         item.tipo_venta_id != 129 &&
-                                                                        dias(item) > 0 &&
+                                                                        // dias(item) > 0 &&
                                                                         item.contingencia == '0'">
 
                                                                         <b-dropdown-item @click="enviarSunat(item.id, item.contingencia)">
