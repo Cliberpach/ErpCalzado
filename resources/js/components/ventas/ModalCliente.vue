@@ -411,7 +411,7 @@ export default {
                 console.log(res);
 
                 if(res.data.result == "error"){
-                    toastr.error(res.data.data.mensajes.documento[0],'ERROR AL CREAR EL CLIENTE');
+                    toastr.error(res.data.data.mensajes.documento[0],'ERROR AL CREAR EL CLIENTE 1');
                     return;
                 }
 
@@ -440,11 +440,11 @@ export default {
                 }
 
                 if(res.data.result != "success"){
-                    toastr.error(res.data.data['mensajes'],'ERROR AL CREAR EL CLIENTE');
+                    toastr.error(res.data.data['mensajes'],'ERROR AL CREAR EL CLIENTE 2');
                 }
                 
             } catch (ex) {
-                toastr.error(ex,'ERROR AL CREAR EL CLIENTE');
+                toastr.error(ex,'ERROR AL CREAR EL CLIENTE 3');
             }finally{
                 this.loading = false;
                 document.querySelector('#btn-guardar-cliente').disabled     =   false;

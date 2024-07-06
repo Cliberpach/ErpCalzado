@@ -17,6 +17,7 @@ class CreateDetalleMovimientoVentaTable extends Migration
             $table->id();
             $table->foreignId('mcaja_id')->references('id')->on('movimiento_caja')->onDelete('cascade');
             $table->unsignedInteger('cdocumento_id');
+            $table->string('cobrar',10)->default('SI');
             $table->foreign('cdocumento_id')->references('id')->on('cotizacion_documento')->onDelete('cascade');
             $table->timestamps();
         });

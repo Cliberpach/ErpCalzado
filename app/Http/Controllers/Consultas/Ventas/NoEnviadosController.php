@@ -421,8 +421,8 @@ class NoEnviadosController extends Controller
                 ]);
             }
 
-            $documento = Documento::find($id);
-            $monto = $documento->total;
+            $documento  = Documento::find($id);
+            $monto      = $documento->total;
             $documento->fecha_documento             = $request->get('fecha_documento_campo');
             $documento->fecha_atencion              =  $request->get('fecha_atencion_campo');
             $documento->fecha_vencimiento           =  $request->get('fecha_vencimiento_campo');
@@ -469,12 +469,12 @@ class NoEnviadosController extends Controller
             $documento->igv                 = $request->get('igv') ? $request->get('igv') : 18;
             $documento->moneda              = 1;
 
-            if ($monto != $request->get('monto_total')) {
-                 $documento->tipo_pago_id = $request->get('tipo_pago_id');
-                 $documento->importe = $request->get('importe');
-                 $documento->efectivo = $request->get('efectivo');
-                 $documento->estado_pago = 'PENDIENTE';
-            }
+            // if ($monto != $request->get('monto_total')) {
+            //      $documento->tipo_pago_id = $request->get('tipo_pago_id');
+            //      $documento->importe = $request->get('importe');
+            //      $documento->efectivo = $request->get('efectivo');
+            //      $documento->estado_pago = 'PENDIENTE';
+            // }
 
             if ($request->get('igv_check') == "on") {
                  $documento->igv_check = "1";
