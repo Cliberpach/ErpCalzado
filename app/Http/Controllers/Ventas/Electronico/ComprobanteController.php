@@ -539,10 +539,40 @@ class ComprobanteController extends Controller
                                 ->setTipAfeIgv('10') // Catalog: 07
                                 ->setTotalImpuestos((float)$detalle->cantidad * ( (float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18 ))
                                 ->setMtoPrecioUnitario($detalle->precio_unitario_nuevo);
-             
                 }
 
-                
+                //======= AGREGANDO EMBALAJE Y ENVÍO AL DETALLE =====
+                if($documento->monto_embalaje > 0){
+                    $items[] = (new SaleDetail())
+                    ->setCodProducto('EMBALAJE')
+                    ->setUnidad('NIU')
+                    ->setDescripcion('EMBALAJE')
+                    ->setCantidad(1)
+                    ->setMtoValorUnitario( (float)$documento->monto_embalaje / 1.18)
+                    ->setMtoValorVenta(((float)$documento->monto_embalaje / 1.18)*(float)1)
+                    ->setMtoBaseIgv(((float)$documento->monto_embalaje / 1.18)*(float)1)
+                    ->setPorcentajeIgv(18)
+                    ->setIgv( (float)1 * ( (float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18 ) )
+                    ->setTipAfeIgv('10') // Catalog: 07
+                    ->setTotalImpuestos((float)1 * ( (float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18 ))
+                    ->setMtoPrecioUnitario($documento->monto_embalaje);
+                }
+
+                if($documento->monto_envio > 0){
+                    $items[] = (new SaleDetail())
+                    ->setCodProducto('ENVIO')
+                    ->setUnidad('NIU')
+                    ->setDescripcion('ENVIO')
+                    ->setCantidad(1)
+                    ->setMtoValorUnitario( (float)$documento->monto_envio / 1.18)
+                    ->setMtoValorVenta(((float)$documento->monto_envio / 1.18)*(float)1)
+                    ->setMtoBaseIgv(((float)$documento->monto_envio / 1.18)*(float)1)
+                    ->setPorcentajeIgv(18)
+                    ->setIgv( (float)1 * ( (float)$documento->monto_envio - (float)$documento->monto_envio / 1.18 ) )
+                    ->setTipAfeIgv('10') // Catalog: 07
+                    ->setTotalImpuestos((float)1 * ( (float)$documento->monto_envio - (float)$documento->monto_envio / 1.18 ))
+                    ->setMtoPrecioUnitario($documento->monto_envio);
+                }
 
                 $formatter  = new NumeroALetras();
                 $legenda    = $formatter->toInvoice($documento->total_pagar, 2, 'SOLES');
@@ -554,7 +584,7 @@ class ComprobanteController extends Controller
                         ->setValue($legenda)
                 ]);
 
-                dd($invoice);
+             
 
                 $see = $this->controlConfiguracionGreenter($util);
 
