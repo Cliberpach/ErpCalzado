@@ -542,6 +542,8 @@ class ComprobanteController extends Controller
              
                 }
 
+                
+
                 $formatter  = new NumeroALetras();
                 $legenda    = $formatter->toInvoice($documento->total_pagar, 2, 'SOLES');
 
@@ -551,6 +553,8 @@ class ComprobanteController extends Controller
                         ->setCode('1000')
                         ->setValue($legenda)
                 ]);
+
+                dd($invoice);
 
                 $see = $this->controlConfiguracionGreenter($util);
 
