@@ -79,8 +79,8 @@ class CreateGuiasRemisionTable extends Migration
             $table->longText('cdr_response_notes')->nullable();
             $table->longText('cdr_response_reference')->nullable();
             $table->string('response_success',10)->nullable();
-            $table->longText('response_error',10)->nullable();
-            $table->longText('ruta_qr',10)->nullable();
+            $table->longText('response_error')->nullable();
+            $table->longText('ruta_qr')->nullable();
 
             $table->timestamps();
         });

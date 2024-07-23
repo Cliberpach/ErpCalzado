@@ -1026,7 +1026,7 @@ class GuiaController extends Controller
                     //======== MARCAR COMO ENVIADO =======
                     $guia->regularize       =   '0';
                     $guia->sunat            =   '1';
-                    $resumen->update();
+                    $guia->update();
                 }
             
 

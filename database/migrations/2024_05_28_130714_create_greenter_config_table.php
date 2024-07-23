@@ -26,9 +26,7 @@ class CreateGreenterConfigTable extends Migration
             $table->foreign('empresa_id')
                   ->references('id')->on('empresas')
                   ->onDelete('cascade');
-            
-
-
+        
             $table->timestamps();
         });
     }
