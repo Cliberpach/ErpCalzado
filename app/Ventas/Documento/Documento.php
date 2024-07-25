@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 class Documento extends Model
 {
     protected $table = 'cotizacion_documento';
-    protected $guarded = [];
+    protected $guarded = [''];
     // protected $fillable = [
     //     //DATOS DE LA EMPRESA
     //     'ruc_empresa',

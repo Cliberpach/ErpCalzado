@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 class Detalle extends Model
 {
     protected $table = 'cotizacion_documento_detalles';
-    protected $guarded = [];
+    protected $guarded = [''];
 
     // protected $fillable = [
     //     'documento_id',

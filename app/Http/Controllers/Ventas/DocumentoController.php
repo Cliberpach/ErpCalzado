@@ -1763,7 +1763,8 @@ class DocumentoController extends Controller
                         'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
                         'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
                         'importe_nuevo'             =>  floatval($precio_unitario) * floatval($producto->cantidad),  
-                        'cantidad_sin_cambio'       =>  $producto->cantidad 
+                        'cantidad_sin_cambio'       => (int) $producto->cantidad
+
                     ]);
                 
                    
