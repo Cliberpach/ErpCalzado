@@ -1748,17 +1748,14 @@ class DocumentoController extends Controller
 
                     Detalle::create([
                         'documento_id'      =>  $documento->id,
-                        // 'lote_id' => $producto->producto_id, //LOTE
                         'producto_id'       =>  $producto->producto_id,
                         'color_id'          =>  $producto->color_id,
                         'talla_id'          =>  $producto->talla_id,
                         'codigo_producto'   =>  $lote->producto->codigo,
-                        //'unidad' => $lote->producto->getMedida(),
                         'nombre_producto'   =>  $lote->producto->nombre,
                         'nombre_color'      =>  $lote->color->descripcion,
                         'nombre_talla'      =>  $lote->talla->descripcion,
                         'nombre_modelo'     =>  $lote->producto->modelo->descripcion,
-                        //'codigo_lote' => $lote->codigo_lote,
                         'cantidad'          =>  floatval($producto->cantidad),
                         'precio_unitario'   =>  floatval($producto->precio_unitario),
                         'importe'           =>  $importe,
@@ -1766,12 +1763,7 @@ class DocumentoController extends Controller
                         'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
                         'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
                         'importe_nuevo'             =>  floatval($precio_unitario) * floatval($producto->cantidad),  
-                        //  'precio_inicial' => $producto->precio_inicial,
-                        //  'precio_nuevo' => $producto->precio_nuevo,
-                        //  'dinero' => $producto->dinero,
-                        //  'descuento' => $producto->descuento,
-                        //  'valor_unitario' => $producto->valor_unitario,
-                        //  'valor_venta' => $producto->valor_venta,
+                        'cantidad_sin_cambio'       =>  $producto->cantidad 
                     ]);
                 
                    

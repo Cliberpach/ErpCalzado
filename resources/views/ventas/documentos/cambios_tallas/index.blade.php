@@ -166,7 +166,7 @@ div.content-animacion.sk__loading::after {
                                                                 <td>{{$detalle->cantidad_sin_cambio}}</td>
                                                                 <td>{{$detalle->precio_unitario_nuevo}}</td>
                                                                 <td>
-                                                                    @if (!$detalle->estado_cambio_talla)
+                                                                    @if ($detalle->estado_cambio_talla === NULL)
                                                                         <i class="fas fa-exchange-alt btn btn-success btn-obtener-tallas" data-id="{{$detalle->id}}" data-producto-id="{{$detalle->producto_id}}" data-color-id="{{$detalle->color_id}}"
                                                                             data-talla-id="{{$detalle->talla_id}}" data-producto-nombre="{{$detalle->nombre_producto}}"
                                                                             data-color-nombre="{{$detalle->nombre_color}}" data-talla-nombre="{{$detalle->nombre_talla}}"></i>
