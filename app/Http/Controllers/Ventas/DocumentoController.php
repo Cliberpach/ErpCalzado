@@ -64,6 +64,7 @@ use App\Almacenes\DetalleNotaSalidad;
 use App\Almacenes\NotaSalidad;
 
 use Illuminate\Support\Facades\Response; 
+use App\Ventas\CambioTalla;
 
 class DocumentoController extends Controller
 {
@@ -3876,14 +3877,17 @@ class DocumentoController extends Controller
         }
     }
 
+    //=============== CAMBIO DE TALLAS ==============
     public function cambiarTallasCreate($documento_id){
         try {
-            $documento  =   Documento::find($documento_id);
-            $detalles   =   $documento->detalles;
+            $documento      =   Documento::find($documento_id);
+            $cambios_tallas =   DB::select('select * from cambios_tallas as ct
+                                where ct.estado = "ACTIVO" and ct.documento_id = ?',[$documento_id]);
+            $detalles       =   $documento->detalles;
             
-            return view('ventas.documentos.cambios_tallas.index',compact('documento','detalles'));
+            return view('ventas.documentos.cambios_tallas.index',compact('documento','detalles','cambios_tallas'));
         } catch (\Throwable $th) {
-            //throw $th;
+            dd($th->getMessage());
         }
     }
 
@@ -4107,6 +4111,40 @@ class DocumentoController extends Controller
                 $detalleNotaSalida->cantidad           =   $cantidad;
                 $detalleNotaSalida->disableDecrementarStockLogico();
                 $detalleNotaSalida->save();
+
+                 //===== GRABANDO CAMBIO ======
+                 $cambio_talla                           =   new CambioTalla();
+                 $cambio_talla->documento_id             =   $documento_id;
+                 $cambio_talla->detalle_id               =   $producto_cambiado->detalle_id;
+                 $cambio_talla->producto_reemplazado_id  =   $producto_cambiado->producto_id;
+                 $cambio_talla->color_reemplazado_id     =   $producto_cambiado->color_id;
+                 $cambio_talla->talla_reemplazado_id     =   $producto_cambiado->talla_id;
+                 $cambio_talla->producto_reemplazado_nombre  =   $producto_cambiado->producto_nombre;
+                 $cambio_talla->color_reemplazado_nombre     =   $producto_cambiado->color_nombre;
+                 $cambio_talla->talla_reemplazado_nombre     =   $producto_cambiado->talla_nombre;
+                 $cambio_talla->cantidad_detalle         =   $producto_cambiado->cantidad_detalle;
+                 $cambio_talla->producto_reemplazante_id =   $producto_reemplazante->producto_id;
+                 $cambio_talla->color_reemplazante_id    =   $producto_reemplazante->color_id;
+                 $cambio_talla->talla_reemplazante_id    =   $producto_reemplazante->talla_id;
+                 $cambio_talla->producto_reemplazante_nombre     =   $producto_reemplazante->producto_nombre;
+                 $cambio_talla->color_reemplazante_nombre        =   $producto_reemplazante->color_nombre;
+                 $cambio_talla->talla_reemplazante_nombre        =   $producto_reemplazante->talla_nombre;
+                 $cambio_talla->cantidad_cambiada        =   $cantidad;
+                 $cambio_talla->cantidad_sin_cambio      =   $producto_cambiado->cantidad_detalle - $cantidad;
+                 $cambio_talla->user_id                  =   Auth::user()->id;
+                 $cambio_talla->user_nombre              =   Auth::user()->usuario;
+                 $cambio_talla->save();
+ 
+                 //====== ACTUALIZANDO ESTADO DEL DETALLE DEL DOCUMENTO =======
+                 DB::table('cotizacion_documento_detalles')
+                 ->where('documento_id', $documento->id)
+                 ->where('id', $producto_cambiado->detalle_id)
+                 ->where('producto_id', $producto_cambiado->producto_id)
+                 ->where('color_id', $producto_cambiado->color_id)
+                 ->where('talla_id', $producto_cambiado->talla_id)
+                 ->update(['estado_cambio_talla' => "CON CAMBIOS",
+                 'cantidad_cambiada'     => $cantidad,
+                 'cantidad_sin_cambio'   => $producto_cambiado->cantidad_detalle - $cantidad]);
  
             }
 

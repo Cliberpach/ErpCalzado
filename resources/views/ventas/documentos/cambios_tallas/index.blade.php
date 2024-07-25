@@ -3,6 +3,7 @@
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
 @include('ventas.documentos.cambios_tallas.modal_cambio')
+@include('ventas.documentos.cambios_tallas.modal_historial_cambio')
 <style>
     .documento_titulo{
         font-weight: bold;
@@ -48,8 +49,8 @@ div.content-animacion.sk__loading::after {
 
 </style>
 
-<div class="row wrapper border-bottom white-bg page-heading">
-    <div class="col-lg-10 col-md-10">
+<div class="row wrapper border-bottom white-bg page-heading align-items-center">
+    <div class="col-lg-6 col-md-6">
         <h2 style="text-transform:uppercase"><b>Cambio de Tallas</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
@@ -59,6 +60,14 @@ div.content-animacion.sk__loading::after {
                 <strong>Cambio de Tallas</strong>
             </li>
         </ol>
+    </div>
+    <div class="col-6">
+        <div class="alert alert-warning alert-dismissible fade show m-0" role="alert">
+            <strong>NOTA: </strong> Solo permitido 1 cambio de talla por item.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
     </div>
 </div>
 
@@ -89,6 +98,7 @@ div.content-animacion.sk__loading::after {
                                   </div>
                                  
                                 </a>
+                              
                                 <a href="javascript:void(0);" class="list-group-item list-group-item-action">
                                   <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1"><span style="font-weight: bold;">CLIENTE: </span>{{$documento->cliente}}</h5>
@@ -120,7 +130,7 @@ div.content-animacion.sk__loading::after {
                                         </div>
                                         <div class="panel-body">
                                             <div class="table-responsive">
-                                                <table class="table table-striped">
+                                                <table class="table table-striped table-bordered">
                                                     <thead>
                                                       <tr>
                                                         <th scope="col">#</th>
@@ -128,8 +138,11 @@ div.content-animacion.sk__loading::after {
                                                         <th scope="col">COLOR</th>
                                                         <th scope="col">TALLA</th>
                                                         <th scope="col">CANT</th>
+                                                        <th scope="col">CANT CAMBIADA</th>
+                                                        <th scope="col">CANT SIN CAMBIO</th>
                                                         <th scope="col">PRECIO</th>
                                                         <th scope="col">CAMBIO</th>
+                                                        <th scope="col">VER</th>
                                                       </tr>
                                                     </thead>
                                                     <tbody>
@@ -140,11 +153,20 @@ div.content-animacion.sk__loading::after {
                                                                 <td>{{$detalle->nombre_color}}</td>
                                                                 <td>{{$detalle->nombre_talla}}</td>
                                                                 <td>{{$detalle->cantidad}}</td>
+                                                                <td>{{$detalle->cantidad_cambiada}}</td>
+                                                                <td>{{$detalle->cantidad_sin_cambio}}</td>
                                                                 <td>{{$detalle->precio_unitario_nuevo}}</td>
                                                                 <td>
-                                                                    <i class="fas fa-exchange-alt btn btn-success btn-obtener-tallas" data-id="{{$detalle->id}}" data-producto-id="{{$detalle->producto_id}}" data-color-id="{{$detalle->color_id}}"
-                                                                        data-talla-id="{{$detalle->talla_id}}" data-producto-nombre="{{$detalle->nombre_producto}}"
-                                                                        data-color-nombre="{{$detalle->nombre_color}}" data-talla-nombre="{{$detalle->nombre_talla}}"></i>
+                                                                    @if (!$detalle->estado_cambio_talla)
+                                                                        <i class="fas fa-exchange-alt btn btn-success btn-obtener-tallas" data-id="{{$detalle->id}}" data-producto-id="{{$detalle->producto_id}}" data-color-id="{{$detalle->color_id}}"
+                                                                            data-talla-id="{{$detalle->talla_id}}" data-producto-nombre="{{$detalle->nombre_producto}}"
+                                                                            data-color-nombre="{{$detalle->nombre_color}}" data-talla-nombre="{{$detalle->nombre_talla}}"></i>
+                                                                    @endif
+                                                                </td>
+                                                                <td>
+                                                                    @if ($detalle->estado_cambio_talla === "CON CAMBIOS")
+                                                                        <i class="fas fa-eye btn btn-dark btn-historial-cambios" data-id="{{$detalle->id}}"></i>
+                                                                    @endif
                                                                 </td>
                                                             </tr>
                                                         @endforeach
@@ -218,12 +240,14 @@ div.content-animacion.sk__loading::after {
         loadSelect2();
         events();
         eventsModalCambios();
+        console.log(@json($documento));
     })
 
     function events(){
         document.addEventListener('click',async (e)=>{
             if(e.target.classList.contains('btn-obtener-tallas')){
                 e.target.classList.add('fa-spin');
+                document.querySelector('#btn-cambiar-talla').disabled   =   false;
 
                 const detalles      =   @json($detalles);
                 const detalle_id    =   e.target.getAttribute('data-id');
@@ -235,12 +259,23 @@ div.content-animacion.sk__loading::after {
                 const talla_nombre          =   e.target.getAttribute('data-talla-nombre');
                 const inputCantidadCambiar  =   document.querySelector('#cantidad_cambio');
 
-                setProductoCambiado({detalle_id,producto_id,color_id,talla_id,producto_nombre,color_nombre,talla_nombre});
+                let cantidad_detalle    =   null;
+                try {
+                    const item  =  @json($detalles).filter((d)=>{
+                        return d.id == detalle_id;
+                    })
+                    cantidad_detalle    =   item[0].cantidad;
+                } catch (error) {
+                    toastr.error('ITEM NO ENCONTRADO EN EL DETALLE DEL DOCUMENTO','RECARGAR LA VISTA E INTENTAR DE NUEVO');
+                }
+               
+                setProductoCambiado({detalle_id,producto_id,color_id,talla_id,producto_nombre,color_nombre,talla_nombre,cantidad_detalle});
 
                 document.querySelector('#talla').setAttribute('data-producto-id', producto_id);
                 document.querySelector('#talla').setAttribute('data-color-id', color_id);
                 document.querySelector('#talla').setAttribute('data-producto-nombre', producto_nombre);
                 document.querySelector('#talla').setAttribute('data-color-nombre', color_nombre);
+            
 
                 await getTallas(producto_id,color_id);
                 e.target.classList.remove('fa-spin');
@@ -250,9 +285,25 @@ div.content-animacion.sk__loading::after {
 
                 const indexDetalle =   detalles.findIndex((d)=> d.id == detalle_id );
                 
-                indexDetalle !== -1?inputCantidadCambiar.value = parseInt(detalles[indexDetalle].cantidad) :inputCantidadCambiar.value = '';  
+                indexDetalle !== -1?inputCantidadCambiar.value = parseInt(detalles[indexDetalle].cantidad_sin_cambio) :inputCantidadCambiar.value = '';  
                 //===== ABRIR MODAL CAMBIO TALLA =======
                 $("#modal-cambio-talla").modal('show');
+            }
+
+            //====== VER HISTORIAL CAMBIOS =====
+            if(e.target.classList.contains('btn-historial-cambios')){
+                //====== OBTENIENDO HISTORIAL DE CAMBIOS ======
+                const detalle_id    =   e.target.getAttribute('data-id');
+                e.target.classList.add('fa-spin');
+                const res_getHistorialCambios   =   await getHistorialCambiosTallas(detalle_id,@json($documento->id));
+                if(res_getHistorialCambios.success){
+                    pintarTableHistorialCambios(res_getHistorialCambios.cambios_tallas);
+                    
+                    $("#modal-historial-cambios").modal('show');
+                }else{
+                    toastr.error(res_getHistorialCambios.message,'ERROR AL OBTENER HISTORIAL DE CAMBIOS DE TALLAS');
+                }
+                e.target.classList.remove('fa-spin');
             }
         })
 
@@ -385,6 +436,7 @@ div.content-animacion.sk__loading::after {
         producto_cambiado.producto_nombre   =   producto.producto_nombre;
         producto_cambiado.color_nombre      =   producto.color_nombre;
         producto_cambiado.talla_nombre      =   producto.talla_nombre;
+        producto_cambiado.cantidad_detalle  =   producto.cantidad_detalle;
     }
 
     function loadSelect2(){
@@ -395,6 +447,8 @@ div.content-animacion.sk__loading::after {
             width: '100%',
         });
     }
+
+    
 
    
 </script>

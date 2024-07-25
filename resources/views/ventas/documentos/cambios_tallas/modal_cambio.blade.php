@@ -58,9 +58,9 @@
             }
             const documento_id      =   @json($documento->id); 
 
-            const producto_id   =   document.querySelector('#talla').getAttribute('data-producto-id');
-            const color_id      =   document.querySelector('#talla').getAttribute('data-color-id');
-            const talla_id      =   document.querySelector('#talla').value;
+            const producto_id       =   document.querySelector('#talla').getAttribute('data-producto-id');
+            const color_id          =   document.querySelector('#talla').getAttribute('data-color-id');
+            const talla_id          =   document.querySelector('#talla').value;
             const producto_nombre   =   document.querySelector('#talla').getAttribute('data-producto-nombre');
             const color_nombre      =   document.querySelector('#talla').getAttribute('data-color-nombre');
             const talla_nombre      =   $('#talla option:selected').text();
@@ -148,8 +148,8 @@
 
     async function getTallas(producto_id,color_id){
         try {
-            const res = await axios.get(route('venta.cambiarTallas.getTallas', { producto_id: producto_id, color_id: color_id }));
-         
+            const almacen_id    =   @json($documento->almacen_id);
+            const res           =   await axios.get(route('venta.cambiarTallas.getTallas', { almacen_id, producto_id, color_id }));
             if(res.data.success){
                 tallas  =   res.data.tallas;
                 pintarTallas(res.data.tallas);
@@ -205,7 +205,7 @@
 
         if(!talla_id){
             document.querySelector('#btn-cambiar-talla').disabled   =   true;
-            toastr.error('NO HAY TALLAS DISPONIBLES','ADVERTENCIA');
+            toastr.error('NO HAY TALLAS DISPONIBLES, NO SE MOSTRARÁ LA TALLA ELEGIDA','ADVERTENCIA');
             return;
         }
         const stock =   await getStock(producto_id,color_id,talla_id)
@@ -307,7 +307,8 @@
         try {
             const listCambios =   JSON.stringify(cambios_devolver);
             const res   =   await axios.post(route('venta.cambiarTallas.devolverStockLogico'),{
-                cambios_devolver:listCambios
+                cambios_devolver:   listCambios,
+                almacen_id      :   @json($documento->almacen_id)
             });
 
            return res.data;
