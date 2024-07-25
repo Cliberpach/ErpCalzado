@@ -472,7 +472,7 @@ function(){
 
         Route::post('devolverStockLogico','Ventas\DocumentoController@devolverStockLogico')->name('venta.cambiarTallas.devolverStockLogico');
         Route::post('cambiarTallas/store','Ventas\DocumentoController@cambiarTallasStore')->name('venta.cambiarTallas.cambiarTallasStore');
-
+        Route::get('getHistorialCambiosTallas/{detalle_id}/{documento_id}','Ventas\DocumentoController@getHistorialCambiosTallas')->name('venta.cambiarTallas.getHistorialCambiosTallas');
     });
 
     //VENTAS-CAJA

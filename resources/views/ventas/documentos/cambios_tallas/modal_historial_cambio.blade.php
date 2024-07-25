@@ -63,7 +63,7 @@
             filas += `<tr>
                         <th scope="row">${c.producto_reemplazado_nombre}-${c.color_reemplazado_nombre}-${c.talla_reemplazado_nombre}</th>
                         <td>${c.producto_reemplazante_nombre}-${c.color_reemplazante_nombre}-${c.talla_reemplazante_nombre}</td>
-                        <td>${c.cantidad_detalle}</td>
+                        <td>${c.cantidad_cambiada}</td>
                         <td>${c.user_nombre}</td>
                         <td>${c.created_at}</td>
                     </tr>`;

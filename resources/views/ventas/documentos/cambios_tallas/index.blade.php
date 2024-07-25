@@ -63,7 +63,16 @@ div.content-animacion.sk__loading::after {
     </div>
     <div class="col-6">
         <div class="alert alert-warning alert-dismissible fade show m-0" role="alert">
-            <strong>NOTA: </strong> Solo permitido 1 cambio de talla por item.
+            <strong>NOTA: </strong> 
+            <li >
+                 Solo permitido 1 cambio de talla por ítem.
+            </li>
+            <li>
+                Esta ventana maneja stock, usar el botón regresar para salir.
+           </li>
+           <li>
+            En caso de recarga de página,clickear solo una vez.
+            </li>
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>

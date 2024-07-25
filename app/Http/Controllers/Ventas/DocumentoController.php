@@ -4162,4 +4162,16 @@ class DocumentoController extends Controller
             'exception'=>$th->getMessage()]);
         }
     }
+
+    public function getHistorialCambiosTallas($detalle_id,$documento_id){
+        try {
+            $cambios_tallas =   DB::select('select * from cambios_tallas as ct
+                                where ct.documento_id = ? and ct.detalle_id = ?',
+                                [$documento_id,$detalle_id]);
+            
+            return response()->json(['success' => true,'cambios_tallas'=>$cambios_tallas]);
+        } catch (\Throwable $th) {
+           return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
 }
