@@ -611,12 +611,21 @@ class PedidoController extends Controller
             }
 
             //======= DE ACUERDO AL TIPO CLIENTE ; LIMITAR LOS TIPOS DE VENTAS =====
+            //===== SI ES CLIENTE CON DNI, QUITAMOS LA FACTURA ======
             $tipo_doc_cliente   =   $pedido->cliente->tipo_documento;
             if($tipo_doc_cliente !== 'RUC'){
                 $tipoVentas = $tipoVentas->reject(function ($tipoVenta){
                     return $tipoVenta['id'] == 127;
                 });
             }
+
+            //====== SI EL CLIENTE TIENE RUC, QUITAMOS LA BOLETA =======
+            if($tipo_doc_cliente === 'RUC'){
+                $tipoVentas = $tipoVentas->reject(function ($tipoVenta){
+                    return $tipoVenta['id'] == 128;
+                });
+            }
+
 
             //======= SI EL PEDIDO YA FUE FACTURADO, PERMITIR SOLO ATENDER CON NOTAS DE VENTA ======
             if($pedido->facturado === 'SI'){

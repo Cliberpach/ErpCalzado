@@ -837,9 +837,11 @@
                 const stock = p.tallas.filter(pt => pt.talla_id == t.id)[0]?.stock_logico || 0;
 
                 htmlTallas +=   `
-                                    <td style="background-color: rgb(210, 242, 242);">${stock}</td>
+                                    <td style="background-color: rgb(210, 242, 242);">
+                                        <p style="margin:0;width:20px;text-align:center;">${stock}</p>
+                                    </td>
                                     <td width="8%">
-                                        <input type="text" class="form-control inputCantidad"
+                                        <input type="text" style="width:50px;text-align:center;" class="form-control inputCantidad"
                                         id="inputCantidad_${p.producto_id}_${p.color_id}_${t.id}" 
                                         data-modelo-nombre="${p.modelo_nombre}"
                                         data-producto-id="${p.producto_id}"
@@ -856,7 +858,7 @@
             if(p.print_precios){
                 htmlTallas+=`
                     <td>
-                        <select class="select2_form form-control" id="precio-venta-${p.producto_id}">
+                        <select style="width:100px;" class="select2_form form-control" id="precio-venta-${p.producto_id}">
                             <option>${p.precio_venta_1}</option>    
                             <option>${p.precio_venta_2}</option>    
                             <option>${p.precio_venta_3}</option>    

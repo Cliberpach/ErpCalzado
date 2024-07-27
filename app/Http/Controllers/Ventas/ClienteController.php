@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Ventas;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Cliente\ClienteStoreFastRequest;
 use App\Ventas\Cliente;
 use App\Ventas\Tienda;
 use Carbon\Carbon;
@@ -359,101 +360,62 @@ class ClienteController extends Controller
         return $cliente;
     }
 
-    public function storeFast(Request $request)
+    public function storeFast(ClienteStoreFastRequest $request)
     {
         $data = $request->all();
        
         try{
             DB::beginTransaction();
-            $rules = [
-                'tipo_documento' => 'required',
-                'documento' => ['required','numeric', Rule::unique('clientes','documento')->where(function ($query) {
-                    $query->whereIn('estado',["ACTIVO"]);
-                })],
-                'nombre' => 'required',
-                'tipo_cliente_id' => 'required',
-                'departamento' => 'required',
-                'zona' => 'required',
-                'provincia' => 'required',
-                'distrito' => 'required',
-                'direccion' => 'required',
-                'telefono_movil' => 'required|numeric',
-                'activo' => 'required',
-            ];
-            
-            $message = [
-                'tipo_documento.required' => 'El campo Tipo de documento es obligatorio.',
-                'tipo_cliente_id.required' => 'El campo Tipo de cliente es obligatorio.',
-                'documento.required' => 'El campo Nro. Documento es obligatorio',
-                'documento.unique' => 'El campo Nro. Documento debe ser único',
-                'documento.numeric' => 'El campo Nro. Documento debe ser numérico',
-                'departamento.required' => 'El campo Departamento es obligatorio',
-                'zona.required' => 'El campo Zona es obligatorio',
-                'provincia.required' => 'El campo Provincia es obligatorio',
-                'distrito.required' => 'El campo Distrito es obligatorio',
-                'direccion.required' => 'El campo direccion es obligatorio',
-                'telefono_movil.required' => 'El campo telefono movil es obligatorio',
-                'activo.required' => 'El campo Estado es obligatorio',
-            ];
+        
+            $arrayDatos                     =   $request->all();
+            $cliente                        =   new Cliente();
+            $cliente->tipo_documento        =   $request->get('tipo_documento');
     
-            //Validator::make($data, $rules, $message)->validate();
-            $validator =  Validator::make($data, $rules, $message);
-
-            if ($validator->fails()) {
-
-                DB::rollBack();
-                return response()->json([
-                    'result' => 'error',
-                    'mensaje' => 'Error al crear el cliente.',
-                    'data' => array('mensajes' => $validator->getMessageBag()->toArray())
-                ]);
+            $cliente->documento             =   $request->get('documento');
+            $cliente->tabladetalles_id      =   $request->input('tipo_cliente_id');
+            $cliente->nombre                =   $request->get('nombre');
+            $cliente->codigo                =   $request->get('codigo');
+            $cliente->zona                  =   $request->get('zona');
     
-            }
-            $arrayDatos = $request->all();
-            $cliente = new Cliente($arrayDatos);
-            $cliente->tipo_documento = $request->get('tipo_documento');
-    
-            $cliente->documento = $request->get('documento');
-            $cliente->tabladetalles_id = $request->input('tipo_cliente_id');
-            $cliente->nombre = $request->get('nombre');
-            $cliente->codigo = $request->get('codigo');
-            $cliente->zona = $request->get('zona');
-    
-            $cliente->departamento_id = str_pad($request->get('departamento'), 2, "0", STR_PAD_LEFT);
-            $cliente->provincia_id = str_pad($request->get('provincia'), 4, "0", STR_PAD_LEFT);
-            $cliente->distrito_id = str_pad($request->get('distrito'), 6, "0", STR_PAD_LEFT);
-            $cliente->direccion = $request->get('direccion');
-            $cliente->correo_electronico = $request->get('correo_electronico');
-            $cliente->telefono_movil = $request->get('telefono_movil');
-            $cliente->telefono_fijo = $request->get('telefono_fijo');
-            $cliente->activo = $request->get('activo');
+            $cliente->departamento_id       =   str_pad($request->get('departamento'), 2, "0", STR_PAD_LEFT);
+            $cliente->provincia_id          =   str_pad($request->get('provincia'), 4, "0", STR_PAD_LEFT);
+            $cliente->distrito_id           =   str_pad($request->get('distrito'), 6, "0", STR_PAD_LEFT);
+            $cliente->direccion             =   $request->get('direccion');
+            $cliente->correo_electronico    =   $request->get('correo_electronico');
+            $cliente->telefono_movil        =   $request->get('telefono_movil');
+            $cliente->telefono_fijo         =   $request->get('telefono_fijo');
+            $cliente->activo                =   $request->get('activo');
     
             $cliente->save();
     
-            //Registro de actividad
+            //======= REGISTRO DE ACTIVIDAD ========
             $descripcion = "SE AGREGÓ EL CLIENTE CON EL NOMBRE: ". $cliente->nombre;
             $gestion = "CLIENTES";
             crearRegistro($cliente, $descripcion , $gestion);
 
             DB::commit();
-            $clientesArray = Cliente::where('estado', 'ACTIVO')->get([
-                "id","tabladetalles_id","tipo_documento","documento","nombre"
-            ]);
+
+            $cliente_return =   [
+                'id'                =>  $cliente->id,
+                'tabladetalles_id'  =>  $cliente->tabladetalles_id,
+                'tipo_documento'    =>  $cliente->tipo_documento,
+                'documento'         =>  $cliente->documento,
+                'nombre'            =>  $cliente->nombre
+            ];
+           
 
             return response()->json([
-                'result' => 'success',
-                'mensaje' => 'Cliente creado exitosamente.',
-                'cliente' => $cliente,
-                "dataCliente"=>$clientesArray,
-                'data' => array('mensajes' => array('mensaje' => ['Cliente creado exitosamente.']))
+                'success'           =>  true,
+                'message'           =>  'CLIENTE: '.$cliente->nombre.' ,REGISTRADO CON ÉXITO.',
+                'cliente'           =>  $cliente_return,
             ]);
         }
         catch(Exception $e)
         {
             DB::rollBack();
             return response()->json([
-                'result'    => 'error',
-                'data'      => array('mensajes' => $e->getMessage())
+                'success'   =>  false,
+                'message'   =>  $e->getMessage()
             ]);
         }
     }

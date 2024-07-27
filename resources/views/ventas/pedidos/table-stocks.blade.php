@@ -4,8 +4,8 @@
         <tr>
           <th scope="col">PRODUCTO</th>
           @foreach ($tallas as $talla)
-              <th style="background-color: rgb(210, 242, 242);" scope="col" data-talla={{$talla->id}}>{{$talla->descripcion}}</th>
-              <th>CANT</th>
+              <th style="background-color: rgb(210, 242, 242);text-align:center;" scope="col" data-talla={{$talla->id}}>{{$talla->descripcion}}</th>
+              <th style="text-align:center;">CANT</th>
           @endforeach
           <th style="text-align: right;">PRECIO VENTA</th>
         </tr>

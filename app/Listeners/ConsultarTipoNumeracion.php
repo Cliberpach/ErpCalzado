@@ -68,6 +68,7 @@ class ConsultarTipoNumeracion
                 if(!$penultimo_comprobante){
                     $documento->correlativo = $serie_comprobantes[0]->numero_iniciar;
                     $documento->serie       = $serie_comprobantes[0]->serie;
+                    $documento->update();
                     self::actualizarNumeracion($numeracion);
                     return ['correlativo' =>    $documento->correlativo,
                             'serie'       =>    $documento->serie];

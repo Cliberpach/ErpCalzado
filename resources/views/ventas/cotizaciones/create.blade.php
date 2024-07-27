@@ -186,6 +186,7 @@
                                                         <option></option>
                                                         @foreach ($condiciones as $condicion)
                                                             <option value="{{ $condicion->id }}"
+                                                                {{ $condicion->id == 1 ? 'selected' : '' }}
                                                                 {{ old('condicion_id') == $condicion->id ? 'selected' : '' }}>
                                                                 {{ $condicion->descripcion }} {{ $condicion->dias > 0 ? $condicion->dias.' dias' : '' }}
                                                             </option>
@@ -1526,9 +1527,11 @@
                 const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id)[0]?.stock || 0;
 
                 htmlTallas +=   `
-                                    <td style="background-color: rgb(210, 242, 242);">${stock}</td>
+                                    <td style="background-color: rgb(210, 242, 242);">
+                                        <p style="margin:0;width:20px;text-align:center;">${stock}</p>
+                                    </td>
                                     <td width="8%">
-                                        <input type="text" class="form-control inputCantidad"
+                                        <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
                                         id="inputCantidad_${pc.producto_id}_${pc.color_id}_${t.id}" 
                                         data-producto-id="${pc.producto_id}"
                                         data-producto-nombre="${pc.producto_nombre}"
@@ -1542,7 +1545,7 @@
             if(pc.printPreciosVenta){
                 htmlTallas+=`
                     <td>
-                        <select class="select2_form form-control" id="precio-venta-${pc.producto_id}">
+                        <select style="width:100px;" class="select2_form form-control" id="precio-venta-${pc.producto_id}">
                             <option>${pc.precio_venta_1}</option>    
                             <option>${pc.precio_venta_2}</option>    
                             <option>${pc.precio_venta_3}</option>    

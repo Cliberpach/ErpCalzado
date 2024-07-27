@@ -415,12 +415,10 @@ export default {
         NuevoCliente() {
             $("#modal_cliente").modal("show");
         },
-        formAddCliente(value) {
+        formAddCliente(clienteNuevo) {
             this.loadingClienteNew = true;
-            console.log(value);
-            const { cliente, dataCliente } = value;
-            this.initData.clientes = dataCliente;
-            this.cliente_id = cliente;
+            this.initData.clientes.push(clienteNuevo);
+            this.cliente_id = clienteNuevo;
         },
         //======= obteniendo carrito del componente hijo TablaProductos.vue ==========
         AddProductoDetalles(value) {

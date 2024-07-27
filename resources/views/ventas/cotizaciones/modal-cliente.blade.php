@@ -598,35 +598,31 @@ div.content-window.sk__loading::after {
 
                 const res = await axios.post(route('ventas.cliente.storeFast'), formData);
 
-                // const { cliente, dataCliente, mensaje, result } = data;
-                console.log(res);
-                console.log(res.data.dataCliente);
-
-                if(res.status == 200){
-                    if(res.data.result  ==   'success'){
-                        updateSelectClientes(res.data.dataCliente);
-                        toastr.success(res.data.mensaje,'OPERACION COMPLETADA');
-                        formCliente.reset();
-                        $("#modal_cliente").modal("hide");
-                    }
-                    if(res.data.result  ==   'error'){
-                        toastr.error(res.data.mensaje,'ERROR');
-                    }
+                
+                if(res.data.success){
+                   
+                    updateSelectClientes(res.data.cliente);
+                    toastr.success(res.data.message,'OPERACION COMPLETADA');
+                    formCliente.reset();
+                    $("#modal_cliente").modal("hide");
+                
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
 
             } catch (ex) {
-                alert("Ocurrio un error");
+                toastr.error(ex,'ERROR EN LA PETICIÓN REGISTRAR CLIENTE');
             }finally{
                 const overlay = document.getElementById('overlay_save');
                 overlay.style.display = 'none'; 
             }
     }
 
-    const updateSelectClientes = (clientes_actualizados) => {
-        const ultimoCliente = clientes_actualizados[clientes_actualizados.length - 1];
-
-        var newOption = new Option(`${ultimoCliente.tipo_documento}: ${ultimoCliente.documento} - ${ultimoCliente.nombre}`, ultimoCliente.id, false, false);
+    const updateSelectClientes = (clienteNuevo) => {
+        var newOption = new Option(`${clienteNuevo.tipo_documento}: ${clienteNuevo.documento} - ${clienteNuevo.nombre}`, clienteNuevo.id, false, false);
         $('#cliente').append(newOption).trigger('change');
+        $('#cliente').val(clienteNuevo.id).trigger('change');
+
     };
 
     //=========== CONTROLAR EL NRO DE DOCUMENTO ======

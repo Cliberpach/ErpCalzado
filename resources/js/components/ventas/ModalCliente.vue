@@ -1,5 +1,5 @@
 <template>
-    <div class="modal inmodal" id="modal_cliente" role="dialog" aria-hidden="true">
+    <div class="modal inmodal fade" tabindex="-1" id="modal_cliente" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg ">
             <div class="modal-content animated bounceInRight">
                 <div class="modal-header">
@@ -14,14 +14,15 @@
                 <div class="modal-body content_cliente" :class="{'sk__loading':loading}">
                     <form id="frmCliente" class="formulario" @submit.prevent="Guardar">
                         <div class="row">
-                            <div class="col-12 col-md-6">
+                            <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
                                     <div class="col-12 col-md-6">
-                                        <div class="form-group">
-                                            <label class="required" for="tipo_documento">Tipo de documento</label>
+                                        <div class="form-group mb-0">
+                                            <label class="required" style="font-weight: bold;" for="tipo_documento">Tipo de documento</label>
                                             <v-select v-model="tipo_documento" :options="tipoDocumentos"
                                                 :reduce="tp=>tp.simbolo" label="simbolo"></v-select>
                                         </div>
+                                        <span style="color:red;" class="error_mdl_client_tipo_documento"></span>
                                     </div>
                                     <div class="col-12 col-md-6">
                                         <div class="form-group">
@@ -29,7 +30,10 @@
 
                                             <div class="input-group">
                                                 <input type="text" id="documento" name="documento" class="form-control"
-                                                    :maxlength="maxlength" v-model="formCliente.documento" required>
+                                                    :maxlength="maxlength" v-model="formCliente.documento" required
+                                                    :disabled="(tipo_documento !== 'RUC' && tipo_documento !== 'DNI' &&
+                                                        tipo_documento !== 'CARNET EXT.' && tipo_documento !== 'PASAPORTE'
+                                                        && tipo_documento !== 'P. NAC.')? true: false">
                                                 <span class="input-group-append">
                                                     <button type="button" style="color:white" class="btn btn-primary"
                                                         @click.prevent="consultarDocumento"
@@ -38,19 +42,19 @@
                                                         <span id="entidad">{{ entidad }}</span>
                                                     </button>
                                                 </span>
-
-
                                             </div>
+                                            <span style="color:red;" class="error_mdl_client_documento"></span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-12 col-md-6">
-                                        <div class="form-group">
+                                        <div class="form-group mb-0">
                                             <label class="required" for="tipo_cliente">Tipo Cliente</label>
                                             <v-select v-model="tipo_cliente_id" :options="tipoClientes"
                                                 :reduce="tc=>tc.id" label="descripcion"></v-select>
                                         </div>
+                                        <span style="color:red;" class="error_mdl_client_tipo_cliente_id"></span>
                                     </div>
                                     <input type="hidden" id="codigo_verificacion" name="codigo_verificacion">
                                     <div class="col-12 col-md-6">
@@ -82,7 +86,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-12 col-md-6">
+                            <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
                                     <div class="col-12 col-md-6">
                                         <div class="form-group">
@@ -252,13 +256,13 @@ export default {
             },
             loadingProvincias: false,
             loadingDistritos: false,
-            newClienteSuccess: {
-                documento: "",
-                id: 0,
-                nombre: "",
-                tabladetalles_id: 0,
-                tipo_documento: ""
-            },
+            clienteNuevo: {
+                id:null,
+                tabladetalles_id:null,
+                tipo_documento:null,
+                documento:null,
+                nombre:null
+             },
             maxlength:8
         }
     },
@@ -305,20 +309,30 @@ export default {
             this.formCliente.distrito = value ? value.id : 0;
         },
         tipo_documento(value) {
+            //======= LIMPIAR EL NRO DE DOCUMENTO ======
             this.formCliente.documento  =   '';
-            if(value){
-                this.formCliente.tipo_documento = value;
-                this.formCliente.activo         = "SIN VERIFICAR";
-                this.entidad = value == "DNI" ? "Reniec" : (value == "RUC" ? "Sunat" : "Entidad");
+            this.formCliente.tipo_documento = value;
 
-                if(value=="DNI"){
-                    this.maxlength = 8;
-                }else if(value=="RUC"){
-                    this.maxlength = 11;
-                }else{
-                    this.maxlength = 20;
-                }
+            //====== EN CASO EL TIPO DOCUMENTO SEA VACÍO ===
+            if(!value){
+                this.entidad                    =   "Entidad";
+                return;
             }
+            
+            this.formCliente.activo         = "SIN VERIFICAR";
+            this.entidad = value == "DNI" ? "Reniec" : (value == "RUC" ? "Sunat" : "Entidad");
+
+            if(value    ==  "DNI"){
+                this.maxlength = 8;
+            }
+            if(value  ==  "RUC"){
+                this.maxlength = 11;
+            }else{
+                this.maxlength = 20; 
+            }
+            
+           
+            
         },
         tipo_cliente_id(value) {
             this.formCliente.tipo_cliente_id = value;
@@ -399,10 +413,12 @@ export default {
         this.getTipoDocumento();
         this.getTipoCliente();
         this.getDepartamentos();
+       
     },
     methods: {
         async Guardar() {
             try {
+                this.clearErrores();
                 document.querySelector('#btn-guardar-cliente').disabled     =   true;
                 document.querySelector('#btn-guardar-cliente').innerHTML    =   `<i class="fa fa-save fa-spin"></i> Guardando...`;
 
@@ -410,46 +426,47 @@ export default {
                 const res = await this.axios.post(route('ventas.cliente.storeFast'), this.formCliente);
                 console.log(res);
 
-                if(res.data.result == "error"){
-                    toastr.error(res.data.data.mensajes.documento[0],'ERROR AL CREAR EL CLIENTE 1');
-                    return;
-                }
+                if(res.data.success){
+                
+                    this.clienteNuevo    =   res.data.cliente;
 
-                if(res.data.result == "success"){
-                    const cliente       =   res.data.cliente;
-                    const dataCliente   =   res.data.dataCliente;
-                    const mensaje       =   res.data.mensaje;
-                 
-                    this.newClienteSuccess = {
-                        cliente:`${cliente.tipo_documento}:${cliente.documento}-${cliente.nombre}`,
-                        documento: cliente.documento,
-                        id: cliente.id,
-                        nombre: cliente.nombre,
-                        tabladetalles_id: cliente.tabladetalles_id,
-                        tipo_documento: cliente.tipo_documento
-                    }
+                    this.$emit("newCliente",this.clienteNuevo);
 
-                    this.$emit("newCliente", {
-                        cliente: this.newClienteSuccess,
-                        dataCliente
-                    });
-
-                    toastr.success(mensaje,'OPERACIÓN COMPLETADA');
+                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
                     $("#modal_cliente").modal("hide");
                     return;
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
 
-                if(res.data.result != "success"){
-                    toastr.error(res.data.data['mensajes'],'ERROR AL CREAR EL CLIENTE 2');
-                }
-                
             } catch (ex) {
-                toastr.error(ex,'ERROR AL CREAR EL CLIENTE 3');
+                if('errors' in ex.response.data){
+                    //======= PINTAR ERRORES DE VALIDACIÓN =======
+                    this.pintarErrores(ex.response.data.errors);
+                    return;
+                }
+
+                toastr.error(ex,'ERROR EN LA PETICIÓN CREAR CLIENTE');
             }finally{
                 this.loading = false;
                 document.querySelector('#btn-guardar-cliente').disabled     =   false;
                 document.querySelector('#btn-guardar-cliente').innerHTML    =   `<i class="fa fa-save"></i> Guardar`;
             }
+        },
+        pintarErrores(msgErrors){
+            for (let key in msgErrors) {
+                if (msgErrors.hasOwnProperty(key)) {
+                    const propiedad =   msgErrors[key];
+                    const message   =   propiedad[0];
+                    document.querySelector(`.error_mdl_client_${key}`).textContent    =   message;
+                }
+            }
+        },
+        clearErrores(){
+            const elements = document.querySelectorAll('[class^="error_mdl_client_"]');
+            elements.forEach((span)=>{
+                span.textContent   =   '';
+            })
         },
         async getTipoDocumento() {
             try {
@@ -581,15 +598,16 @@ export default {
         },
        
         Cerrar(){
-
+            
             this.departamento = {
                 id: 13,
                 nombre: "LA LIBERTAD",
                 zona: "NORTE"
             };
+
             this.formCliente={
-                tipo_documento: "",
-                tipo_cliente_id: "",
+                tipo_documento: "DNI",
+                tipo_cliente_id: 121,
                 departamento: 0,
                 provincia: 0,
                 distrito: 0,
@@ -603,8 +621,10 @@ export default {
                 codigo_verificacion: "",
                 activo: "SIN VERIFICAR"
             }
-            this.tipo_documento="DNI";
-            this.tipo_cliente_id=121;
+
+            this.tipo_documento     =   "DNI";
+            this.tipo_cliente_id    =   121;
+
         }
     }
 }
