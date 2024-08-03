@@ -32,7 +32,7 @@
         .producto{
             font-family: "Roboto Condensed", sans-serif;
             text-align: left;
-            font-size: 7px;
+            font-size: 12px;
             line-height: 12px;
         }
         p {
@@ -52,7 +52,7 @@
 
         }
         .img_cod_barras{
-            height: 15px;
+            height: 27px;
             object-fit: contain;
             padding:0;
             margin:0;
@@ -68,14 +68,14 @@
             font-family: "Righteous", sans-serif;
             margin:0;
             padding:0;
-            font-size: 31px;
+            font-size: 42px;
             padding-right:5px;
             text-align: right;
         }
         .descripcion_span{
             font-weight: bold;
             font-family: "Roboto Condensed", sans-serif;
-            font-size: 7px;
+            font-size: 12px;
         }
       
     </style>
@@ -95,8 +95,8 @@
             @for ($i = 0; $i < $cantidad; $i++)
                 <table>
                     <tr>
-                        <td width="55%" style="vertical-align: middle;text-align: center;">
-                            <div style="padding:5px;text-align:center;">
+                        <td width="55%" style="text-align: center;">
+                            <div style="padding:5px;text-align:center;vertical-align: middle;">
                                 <p class="producto" ><span class="descripcion_span">TIPO: </span>{{$producto->categoria_nombre}}</p>
                                 <p class="producto" ><span class="descripcion_span">MODELO: </span>{{$producto->modelo_nombre}}</p>
                                 <p class="producto" ><span class="descripcion_span">COLOR: </span>{{$producto->color_nombre}}</p>
@@ -129,13 +129,16 @@
                                 </tr>
                             </table> --}}
                         </td>
-                        <td width="45%" style="vertical-align: top;text-align:center;border-left:solid 1px black;height:100%;" >
+                        <td width="45%" style="border-left:solid 1px black;height:100%;" >
                            
-                            <div style="padding:5px;">
-                                <div style="border: .5px dashed black; border-radius: 4px; width:90%;margin:0 auto;padding:.5px;" >
+                            <div style="padding:5px;vertical-align: top;text-align:center;height:70px;">
+                                <div style="border: .5px dashed black; border-radius: 4px; width:90%;margin:0 auto;padding:1.7px;" >
                                     <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class="img_cod_barras">
                                     <p style="font-size: 10px;margin:0;padding:0;">{{'775'.$producto->modelo_id.$producto->producto_id.$producto->color_id.$producto->talla_id}}</p>    
                                 </div>
+                            </div>
+
+                            <div style="vertical-align: bottom;"> 
                                 <p class="talla_nombre" >{{$producto->talla_nombre}}</p>
                             </div>
                             
