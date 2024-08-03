@@ -74,6 +74,8 @@
                                                 <th class="text-center">DOC</th>
                                                 <th class="text-center">CLIENTE</th>
                                                 <th class="text-center">CLIENTE CELULAR</th>
+                                                <th class="text-center">VENDEDOR</th>
+                                                <th class="text-center">DESPACHADOR</th>
                                                 <th class="text-center">FEC PROPUESTA</th>
                                                 <th class="text-center">FEC ENVIO</th>
                                                 <th class="text-center">FEC REGISTRO</th>
@@ -228,6 +230,14 @@
                     },
                     {
                         data: 'cliente_celular',
+                        className: "text-left letrapequeña"
+                    },
+                    {
+                        data: 'user_vendedor_nombre',
+                        className: "text-left letrapequeña"
+                    },
+                    {
+                        data: 'user_despachador_nombre',
                         className: "text-left letrapequeña"
                     },
                     {
@@ -544,10 +554,12 @@
                 })
 
                 if(res.data.success){
+                    $('.dataTables-despacho').DataTable().ajax.reload(null, false);
                     //======= PINTANDO ESTADO EN DATATABLE ======
-                    const fila          =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id);
-                    const indiceFila    =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id).index();
-                    await fila.cell(indiceFila,0).data('DESPACHADO').draw();
+
+                    // const fila          =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id);
+                    // const indiceFila    =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id).index();
+                    // await fila.cell(indiceFila,0).data('DESPACHADO').draw();
                 }
 
                 return res.data;

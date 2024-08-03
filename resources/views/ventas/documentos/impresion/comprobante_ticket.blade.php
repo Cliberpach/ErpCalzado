@@ -144,7 +144,7 @@
                 <p class="m-0 p-0 text-uppercase direccion-empresa">{{ DB::table('empresas')->count() == 0 ? '- ' : DB::table('empresas')->first()->direccion_fiscal }}</p>
 
                 <p class="m-0 p-0 text-info-empresa">Central telefónica: {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->celular }}</p>
-                <p class="m-0 p-0 text-info-empresa">Email: {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->correo }}</p>
+                <p class="m-0 p-0 text-info-empresa">Teléfono: {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->telefono }}</p>
             </div><br>
             <div class="comprobante">
                 <div class="numero-documento">
@@ -181,9 +181,9 @@
                     <td>{{ $documento->clienteEntidad->direccion }}</td>
                 </tr>
                 <tr>
-                    <td>MODO DE PAGO</td>
+                    <td>TELÉFONO</td>
                     <td>:</td>
-                    <td class="text-uppercase">{{ $documento->formaPago() }}</td>
+                    <td class="text-uppercase">{{ $documento->clienteEntidad->telefono_movil}}</td>
                 </tr>
                 @if ($documento->observacion)
                 <tr>
@@ -195,7 +195,8 @@
                 <tr>
                     <td>ATENDIDO POR</td>
                     <td>:</td>
-                    <td class="text-uppercase">{{ $documento->user->user->persona ? $documento->user->user->persona->getApellidosYNombres() : $documento->user->usuario }}</td>
+                    <td class="text-uppercase">{{$documento->user->usuario }}</td>
+                    {{-- <td class="text-uppercase">{{ $documento->user->user->persona ? $documento->user->user->persona->getApellidosYNombres() : $documento->user->usuario }}</td> --}}
                 </tr>
             </table>
         </div><br>
@@ -304,15 +305,17 @@
             <br>
             <p class="p-0 m-0 text-uppercase text-cuerpo">SON: <b>{{ $legends[0]['value'] }}</b></p>
             <br>
-            <table class="tbl-qr">
-                <tr>
-                    <td>
-                        @foreach($empresa->bancos as $banco)
-                            <p class="m-0 p-0 text-cuerpo"><b class="text-uppercase">{{ $banco->descripcion}}</b> {{ $banco->tipo_moneda}} <b>N°: </b> {{ $banco->num_cuenta}} <b>CCI:</b> {{ $banco->cci}}</p>
-                        @endforeach
-                    </td>
-                </tr>
-            </table>
+            @if ($mostrar_cuentas === "SI")
+                <table class="tbl-qr">
+                    <tr>
+                        <td>
+                            @foreach($empresa->bancos as $banco)
+                                <p class="m-0 p-0 text-cuerpo"><b class="text-uppercase">{{ $banco->descripcion}}</b> {{ $banco->tipo_moneda}} <b>N°: </b> {{ $banco->num_cuenta}} <b>CCI:</b> {{ $banco->cci}}</p>
+                            @endforeach
+                        </td>
+                    </tr>
+                </table>
+            @endif
             @if (strtoupper($documento->condicion->descripcion) == 'CREDITO' || strtoupper($documento->condicion->descripcion) == 'CRÉDITO')
                 <br>
                 <div style="border: 1px solid black; padding: 2px">

@@ -489,6 +489,10 @@ class CotizacionController extends Controller
         $empresa = Empresa::first();
         $paper_size = array(0,0,360,360);
 
+        $mostrar_cuentas =   DB::select('select c.propiedad 
+                            from configuracion as c 
+                            where c.slug = "MCB"')[0]->propiedad;
+
         $detalles = $this->formatearArrayDetalle($detalles);
 
         $vendedor_nombre = DB::select('SELECT CONCAT(p.nombres, " ", p.apellido_paterno, " ", p.apellido_materno) AS nombre_completo
@@ -503,7 +507,8 @@ class CotizacionController extends Controller
             'detalles' => $detalles,
             'empresa' => $empresa,
             'tallas' => $tallas,
-            'vendedor_nombre' => $vendedor_nombre
+            'vendedor_nombre' => $vendedor_nombre,
+            'mostrar_cuentas'   =>  $mostrar_cuentas
             ])->setPaper('a4')->setWarnings(false);
         return $pdf->stream('CO-'.$cotizacion->id.'.pdf');
     }

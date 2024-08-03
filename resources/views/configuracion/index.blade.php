@@ -119,6 +119,75 @@
     -webkit-transition: opacity 1s;
     transition: opacity 1s;
 }
+
+
+/*========= TOGGLE MOSTRAR CUENTAS BANCARIAS =======*/
+/* From Uiverse.io by zanina-yassine */ 
+/* Remove this container when use*/
+.component-title {
+  width: 100%;
+  position: absolute;
+  z-index: 999;
+  top: 30px;
+  left: 0;
+  padding: 0;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #888;
+  text-align: center;
+}
+
+/* The switch - the box around the slider */
+.container {
+  width: 100px;
+  height: 31px;
+  position: relative;
+}
+
+/* Hide default HTML checkbox */
+.checkbox {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.switch {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background-color: #e9e9eb;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+}
+
+/* The slider */
+.slider {
+  width: 27px;
+  height: 27px;
+  position: absolute;
+  left: calc(40% - 27px/2 - 10px);
+  top: calc(50% - 27px/2);
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.15), 0px 3px 1px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease-out;
+  cursor: pointer;
+}
+
+.checkbox:checked + .switch {
+  background-color: #34C759;
+}
+
+.checkbox:checked + .switch .slider {
+  left: calc(60% - 27px/2 + 10px);
+  top: calc(50% - 27px/2);
+}
+
+
+
 </style>
 
 <div class="row wrapper border-bottom white-bg page-heading">
@@ -249,51 +318,51 @@
             </div>
         </div>
 
-        @foreach ($config as $item)
+    @foreach ($config as $item)
         @if ($item->slug == 'EARB')
-        <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-            <div class="ibox ">
-                <div class="ibox-title">
-                    <h5>ENVÍO AUTOMÁTICO RESÚMENES BOLETAS</h5>
-                    <div class="ibox-tools">
-                        <a class="collapse-link">
-                            <i class="fa fa-chevron-up"></i>
-                        </a>
+            <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5>ENVÍO AUTOMÁTICO RESÚMENES BOLETAS</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <form id="form_resumenes_envio" action="{{route('configuracion.resumenes.envio')}}" method="POST">
+                            @csrf
+                            @method('POST')
+                            <div class="row align-items-end">
+                                <div class="col-7">
+                                    <div class="form-group">
+                                        <input 
+                                            @if ($item->nro_dias)
+                                                value="{{$item->nro_dias}}"
+                                            @endif
+                                        type="text" class="form-control" name="nro_dias" id="nro_dias"  placeholder="NRO DÍAS">
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="form-group">
+                                        <label> <input 
+                                            @if ($item->propiedad == "SI")
+                                                checked
+                                            @endif
+                                            type="checkbox" class="i-checks" name="estado_resumenes_envio" id="estado_resumenes_envio" > Activo </label>
+                                    </div>
+                                </div>
+                                <div class="col-2">
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
-                <div class="ibox-content">
-                    <form id="form_resumenes_envio" action="{{route('configuracion.resumenes.envio')}}" method="POST">
-                        @csrf
-                        @method('POST')
-                        <div class="row align-items-end">
-                            <div class="col-7">
-                                <div class="form-group">
-                                    <input 
-                                        @if ($item->nro_dias)
-                                            value="{{$item->nro_dias}}"
-                                        @endif
-                                      type="text" class="form-control" name="nro_dias" id="nro_dias"  placeholder="NRO DÍAS">
-                                </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="form-group">
-                                    <label> <input 
-                                        @if ($item->propiedad == "SI")
-                                            checked
-                                        @endif
-                                        type="checkbox" class="i-checks" name="estado_resumenes_envio" id="estado_resumenes_envio" > Activo </label>
-                                </div>
-                            </div>
-                            <div class="col-2">
-                                <div class="form-group">
-                                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
             </div>
-        </div>
         @endif
 
         @php
@@ -301,13 +370,43 @@
         @endphp
 
         @if ($item->slug === "AG")
-        @php
-            $greenter_mode  =   $item->propiedad;
-        @endphp
+            @php
+                $greenter_mode  =   $item->propiedad;
+            @endphp
+            <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5>AMBIENTE GREENTER</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content" >
+                        <div class="row">
+                            <div class="col-12" style="height: 50px;">
+                                
+                                <div class='toggle' id='switch'>
+                                    <div class='toggle-text-off'>BETA</div>
+                                    <div class='glow-comp'></div>
+                                    <div class='toggle-button'></div>
+                                    <div class='toggle-text-on'>PRODUCCIÓN</div>
+                                </div>
+                                
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if ($item->slug === 'MCB')
         <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
             <div class="ibox ">
                 <div class="ibox-title">
-                    <h5>AMBIENTE GREENTER</h5>
+                    <h5>MOSTRAR CUENTAS BANCARIAS</h5>
                     <div class="ibox-tools">
                         <a class="collapse-link">
                             <i class="fa fa-chevron-up"></i>
@@ -317,26 +416,24 @@
                 <div class="ibox-content" >
                     <div class="row">
                         <div class="col-12" style="height: 50px;">
-                            
-                            <div class='toggle' id='switch'>
-                                <div class='toggle-text-off'>BETA</div>
-                                <div class='glow-comp'></div>
-                                <div class='toggle-button'></div>
-                                <div class='toggle-text-on'>PRODUCCIÓN</div>
+                            <div class="container">
+
+                                <input
+                                @if ($item->propiedad === "SI")
+                                    checked
+                                @endif
+                                 type="checkbox" class="checkbox" id="checkMostrarCuentasBancarias">
+                                <label class="switch" for="checkMostrarCuentasBancarias">
+                                  <span class="slider"></span>
+                                </label>
                             </div>
-                             
-                              
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         @endif
-        @endforeach
-
-
-      
-
+    @endforeach
 
     </div>
 </div>
@@ -364,6 +461,8 @@
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
 <script>
+    const lstConfig =   @json($config);
+
     $(".select2_form").select2({
         placeholder: "SELECCIONAR",
         allowClear: true,
@@ -411,11 +510,11 @@
             document.querySelector('#form_resumenes_envio').submit();
         })
 
-        $('.toggle').click(function(e){
+        $('#switch').click(function(e){
             e.preventDefault(); 
 
             const switchToggle  =       document.querySelector('#switch');
-            const modo_cambiar  =   switchToggle.classList.contains('toggle-on')? "BETA" : "PRODUCCIÓN" ;
+            const modo_cambiar  =       switchToggle.classList.contains('toggle-on')? "BETA" : "PRODUCCIÓN" ;
 
             const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
@@ -453,6 +552,81 @@
 
         });
 
+        //========= TOGGLE MOSTRAR CUENTAS BANCARIAS =======
+        document.querySelector('#checkMostrarCuentasBancarias').addEventListener('change',(e)=>{
+            //==== EVITAMOS QUE EL FRONTEND CAMBIE =====
+            e.preventDefault();
+            e.target.checked = !e.target.checked;
+            //======= PREGUNTAMOS POR LA CONFIGURACION ACTUAL =====
+            const configCuentasBancarias    =   lstConfig[3];
+            console.log(configCuentasBancarias) 
+
+            if(configCuentasBancarias.slug === "MCB"){
+                const propiedadActual   =   configCuentasBancarias.propiedad;
+
+                let propiedadNueva   =   '';
+                propiedadActual === 'NO' ? propiedadNueva = "MOSTRAR" : propiedadNueva = "OCULTAR";
+                let messageTitlte   =   `DESEA ${propiedadNueva} LAS CUENTAS BANCARIAS?`;   
+
+                const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    confirmButton: "btn btn-success",
+                    cancelButton: "btn btn-danger"
+                },
+                buttonsStyling: false
+                });
+                swalWithBootstrapButtons.fire({
+                title: `${messageTitlte}`,
+                text: "Esta acción afectará los pdf de cotización y doc venta!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sí!",
+                cancelButtonText: "No, cancelar!",
+                reverseButtons: true
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+
+                        try {
+                            const res   =   await axios.post(route('configuracion.cuentasBancarias.modo'),{
+                                propiedadNueva
+                            });
+                            
+                            if(res.data.success){
+                                if(propiedadNueva === "MOSTRAR"){
+                                    lstConfig[3].propiedad    =   "SI";
+                                    document.querySelector('#checkMostrarCuentasBancarias').checked =   true;
+                                }
+                                if(propiedadNueva === "OCULTAR"){
+                                    lstConfig[3].propiedad    =   "NO";
+                                    document.querySelector('#checkMostrarCuentasBancarias').checked =   false;
+                                }
+                                toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                                console.log(configCuentasBancarias);
+                            }else{
+                                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                            }
+                        } catch (error) {
+                            toastr.error(error,'ERROR EN LA PETICIÓN');
+                        }
+
+                    } else if (
+                        /* Read more about handling dismissals below */
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire({
+                        title: "Operación cancelada",
+                        text: "No se aplicaron cambios",
+                        icon: "error"
+                        });
+                    }
+                });
+
+            }
+
+
+           
+        })
+
     }
 
     function loadGreenterMode(){
@@ -473,7 +647,7 @@
                 toastr.error(res.data.exception,res.data.message);
             }
         } catch (error) {
-            toastr.error(error,'ERROR EN EL SERVIDOR');
+            toastr.error(error,'ERROR EN LA PETICIÓN CAMBIAR AMBIENTE GREENTER');
         }
     }
 </script>

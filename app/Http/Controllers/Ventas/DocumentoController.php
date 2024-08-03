@@ -1886,6 +1886,8 @@ class DocumentoController extends Controller
                     $envio_venta->obs_rotulo            =   $data_envio->obs_rotulo;
                     $envio_venta->obs_despacho          =   $data_envio->obs_despacho;
                     $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
+                    $envio_venta->user_vendedor_id      =   $documento->user_id;
+                    $envio_venta->user_vendedor_nombre  =   $documento->user->usuario;
                     $envio_venta->save();
                 }else{
                    
@@ -1924,6 +1926,10 @@ class DocumentoController extends Controller
                     $envio_venta->obs_rotulo            =   null;
                     $envio_venta->estado                =   'DESPACHADO';
                     $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
+                    $envio_venta->user_vendedor_id      =   $documento->user_id;
+                    $envio_venta->user_vendedor_nombre  =   $documento->user->usuario;
+                    $envio_venta->user_despachador_id   =   $documento->user_id;
+                    $envio_venta->user_despachador_nombre   =   $documento->user->usuario;
                     $envio_venta->save();
                 }
 
@@ -2392,6 +2398,9 @@ class DocumentoController extends Controller
             $id     = $cadena[0];
             $size   = (int) $cadena[1];
             $qr     = self::qr_code($id);
+            $mostrar_cuentas    =   DB::select('select c.propiedad 
+                                    from configuracion as c 
+                                    where c.slug = "MCB"')[0]->propiedad;
             $documento = Documento::findOrFail($id);
             $detalles = Detalle::where('documento_id', $id)->where('eliminado', '0')->get();
             if ((int) $documento->tipo_venta == 127 || (int) $documento->tipo_venta == 128) {
@@ -2443,28 +2452,31 @@ class DocumentoController extends Controller
                     }
                     //file_put_contents($pathToFile, $data);
                     //return response()->file($pathToFile);
-                    $empresa = Empresa::first();
+                    $empresa            =   Empresa::first();
+             
 
                     $legends = self::obtenerLeyenda($documento);
                     $legends = json_encode($legends, true);
                     $legends = json_decode($legends, true);
                     if ($size === 80) {
                         $pdf = PDF::loadview('ventas.documentos.impresion.comprobante_ticket', [
-                            'documento' => $documento,
-                            'detalles' => $detalles,
-                            'moneda' => $documento->simboloMoneda(),
-                            'empresa' => $empresa,
-                            "legends" => $legends,
+                            'documento'         =>  $documento,
+                            'detalles'          =>  $detalles,
+                            'moneda'            =>  $documento->simboloMoneda(),
+                            'empresa'           =>  $empresa,
+                            "legends"           =>  $legends,
+                            'mostrar_cuentas'   =>  $mostrar_cuentas
                         ])->setPaper([0, 0, 226.772, 651.95]);
                         return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
                     } else {
                         $pdf_condicion = $empresa->condicion == '1' ? 'comprobante_normal_nuevo' : 'comprobante_normal';
                         $pdf = PDF::loadview('ventas.documentos.impresion.' . $pdf_condicion, [
-                            'documento' => $documento,
-                            'detalles' => $detalles,
-                            'moneda' => $documento->simboloMoneda(),
-                            'empresa' => $empresa,
-                            "legends" => $legends,
+                            'documento'         =>  $documento,
+                            'detalles'          =>  $detalles,
+                            'moneda'            =>  $documento->simboloMoneda(),
+                            'empresa'           =>  $empresa,
+                            "legends"           =>  $legends,
+                            'mostrar_cuentas'   =>  $mostrar_cuentas
                         ])->setPaper('a4')->setWarnings(false);
 
                         return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
@@ -2495,6 +2507,7 @@ class DocumentoController extends Controller
                             'moneda' => $documento->simboloMoneda(),
                             'empresa' => $empresa,
                             "legends" => $legends,
+                            'mostrar_cuentas'   =>  $mostrar_cuentas
                         ])->setPaper([0, 0, 226.772, 651.95]);
                         return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
                     } else {
@@ -2505,6 +2518,7 @@ class DocumentoController extends Controller
                             'moneda' => $documento->simboloMoneda(),
                             'empresa' => $empresa,
                             "legends" => $legends,
+                            'mostrar_cuentas'   =>  $mostrar_cuentas
                         ])->setPaper('a4')->setWarnings(false);
 
                         return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
@@ -2528,6 +2542,7 @@ class DocumentoController extends Controller
                         'moneda' => $documento->simboloMoneda(),
                         'empresa' => $empresa,
                         "legends" => $legends,
+                        'mostrar_cuentas'   =>  $mostrar_cuentas
                     ])->setPaper([0, 0, 226.772, 651.95]);
                     return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
                 } else {
@@ -2538,6 +2553,7 @@ class DocumentoController extends Controller
                         'moneda' => $documento->simboloMoneda(),
                         'empresa' => $empresa,
                         "legends" => $legends,
+                        'mostrar_cuentas'   =>  $mostrar_cuentas
                     ])->setPaper('a4')->setWarnings(false);
 
                     return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
@@ -2562,6 +2578,8 @@ class DocumentoController extends Controller
                     'moneda' => $documento->simboloMoneda(),
                     'empresa' => $empresa,
                     "legends" => $legends,
+                    'mostrar_cuentas'   =>  $mostrar_cuentas
+
                 ])->setPaper([0, 0, 226.772, 651.95]);
                 return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
             } else {
@@ -2572,6 +2590,7 @@ class DocumentoController extends Controller
                     'moneda' => $documento->simboloMoneda(),
                     'empresa' => $empresa,
                     "legends" => $legends,
+                    'mostrar_cuentas'   =>  $mostrar_cuentas
                 ])->setPaper('a4')->setWarnings(false);
 
                 return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');

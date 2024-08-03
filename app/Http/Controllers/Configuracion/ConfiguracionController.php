@@ -118,12 +118,40 @@ class ConfiguracionController extends Controller
         DB::beginTransaction();
         try {
             $modo   =   $request->get('modo');
-            $config = Configuracion::where('slug', 'AG')->first();
+            $config =   Configuracion::where('slug', 'AG')->first();
             $config->propiedad  =   $modo;
             $config->update();
 
             DB::commit();
             return response()->json(['success'=>true,'message'=> 'SE HA CAMBIADO A MODO: '.$config->propiedad]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=> 'ERROR EN EL SERVIDOR','exception'=>$th->getMessage()]);
+        }
+    }
+
+    public function cuentasBancariasModo(Request $request){
+        DB::beginTransaction();
+        try {
+            $propiedadNueva     =   $request->get('propiedadNueva');
+            $config             =   Configuracion::where('slug', 'MCB')->first();
+            
+            $propiedad          =   "";
+            $message            =   '';
+            if($propiedadNueva === "MOSTRAR"){
+                $propiedad      =   "SI";
+                $message        =   "SE MOSTRARÁN LAS CUENTAS BANCARIAS EN LOS PDF";
+            }
+            if($propiedadNueva === "OCULTAR"){
+                $propiedad      =   "NO";
+                $message        =   "NO SE MOSTRARÁN LAS CUENTAS BANCARIAS EN LOS PDF";
+            }
+
+            $config->propiedad  =   $propiedad;
+            $config->update();
+
+            
+            DB::commit();
+            return response()->json(['success'=>true,'message'=> $message]);
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=> 'ERROR EN EL SERVIDOR','exception'=>$th->getMessage()]);
         }

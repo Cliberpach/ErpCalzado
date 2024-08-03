@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade as PDF;
 use App\Mantenimiento\Empresa\Empresa;
+use Illuminate\Support\Facades\Auth;
 
 class DespachoController extends Controller
 {
@@ -40,10 +41,12 @@ class DespachoController extends Controller
         $coleccion = collect([]);
         foreach($envios_ventas as $envio_venta) {
             $coleccion->push([
-                'id'                    =>  $envio_venta->id,
-                'documento_nro'         =>  $envio_venta->documento_nro,
-                'cliente_nombre'        =>  $envio_venta->cliente_nombre,
-                'cliente_celular'       =>  $envio_venta->cliente_celular,
+                'id'                        =>  $envio_venta->id,
+                'documento_nro'             =>  $envio_venta->documento_nro,
+                'cliente_nombre'            =>  $envio_venta->cliente_nombre,
+                'cliente_celular'           =>  $envio_venta->cliente_celular,
+                'user_vendedor_nombre'      =>  $envio_venta->user_vendedor_nombre,
+                'user_despachador_nombre'   =>  $envio_venta->user_despachador_nombre,
                 'fecha_envio_propuesta' =>  $envio_venta->fecha_envio_propuesta,
                 'fecha_envio'           =>  $envio_venta->fecha_envio?$envio_venta->fecha_envio:"-",
                 'fecha_registro'        =>  Carbon::parse($envio_venta->created_at)->format('Y-m-d H:i:s'),
@@ -135,7 +138,10 @@ class DespachoController extends Controller
             DB::table('envios_ventas')
             ->where('id', $request->get('despacho_id')) 
             ->where('documento_id', $request->get('documento_id')) 
-            ->update(['estado' => 'DESPACHADO','fecha_envio' => $fecha_actual]);
+            ->update(['estado'          => 'DESPACHADO',
+            'fecha_envio'               =>  $fecha_actual,
+            'user_despachador_id'       =>  Auth::user()->id,
+            'user_despachador_nombre'   =>  Auth::user()->usuario]);
 
             DB::commit();
 

@@ -370,38 +370,42 @@
                 </tfoot>
             </table>
         </div><br>
-        <div class="info-total-qr">
-            <table class="tbl-qr">
-                <tr>
-                    <td style="width: 60%">
-                        <table class="tbl-qr">
-                            <tr>
-                                <td>
-                                    @foreach($empresa->bancos as $banco)
-                                        <p class="m-0 p-0 text-cuerpo"><b class="text-uppercase">{{ $banco->descripcion}}</b> {{ $banco->tipo_moneda}} <b>N°: </b> {{ $banco->num_cuenta}} <b>CCI:</b> {{ $banco->cci}}</p>
-                                    @endforeach
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    {{-- <td style="width: 40%;">
-                        <table class="tbl-total text-uppercase">
-                            <tr>
-                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">SUBTOTAL: S/.</p></td>
-                                <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($cotizacion->sub_total, 2) }}</p></td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">IGV: S/.</p></td>
-                                <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($cotizacion->total_igv, 2) }}</p></td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">TOTAL: S/.</p></td>
-                                <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($cotizacion->total, 2) }}</p></td>
-                            </tr>
-                        </table>
-                    </td> --}}
-                </tr>
-            </table>
-        </div>
+
+        @if ($mostrar_cuentas === "SI")
+            <div class="info-total-qr">
+                <table class="tbl-qr">
+                    <tr>
+                        <td style="width: 60%">
+                            <table class="tbl-qr">
+                                <tr>
+                                    <td>
+                                        @foreach($empresa->bancos as $banco)
+                                            <p class="m-0 p-0 text-cuerpo"><b class="text-uppercase">{{ $banco->descripcion}}</b> {{ $banco->tipo_moneda}} <b>N°: </b> {{ $banco->num_cuenta}} <b>CCI:</b> {{ $banco->cci}}</p>
+                                        @endforeach
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        {{-- <td style="width: 40%;">
+                            <table class="tbl-total text-uppercase">
+                                <tr>
+                                    <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">SUBTOTAL: S/.</p></td>
+                                    <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($cotizacion->sub_total, 2) }}</p></td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">IGV: S/.</p></td>
+                                    <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($cotizacion->total_igv, 2) }}</p></td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">TOTAL: S/.</p></td>
+                                    <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($cotizacion->total, 2) }}</p></td>
+                                </tr>
+                            </table>
+                        </td> --}}
+                    </tr>
+                </table>
+            </div>
+        @endif
+        
     </body>
 </html>
