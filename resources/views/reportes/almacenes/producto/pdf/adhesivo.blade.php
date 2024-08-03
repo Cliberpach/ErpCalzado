@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Jersey+25&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
 
+<link href="https://fonts.googleapis.com/css2?family=Bevan:ital@0;1&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: inherit;
@@ -30,10 +31,10 @@
             margin: 0;
         }
         .producto{
-            font-family: "Roboto Condensed", sans-serif;
+            font-family: "Bevan", serif;
             text-align: left;
-            font-size: 12px;
-            line-height: 12px;
+            font-size: 20px;
+            line-height: 10px;
         }
         p {
             margin: 0;
@@ -68,7 +69,7 @@
             font-family: "Righteous", sans-serif;
             margin:0;
             padding:0;
-            font-size: 42px;
+            font-size: 70px;
             padding-right:5px;
             text-align: right;
         }
@@ -76,6 +77,7 @@
             font-weight: bold;
             font-family: "Roboto Condensed", sans-serif;
             font-size: 12px;
+            text-align: start;
         }
       
     </style>
@@ -95,11 +97,20 @@
             @for ($i = 0; $i < $cantidad; $i++)
                 <table>
                     <tr>
-                        <td width="55%" style="text-align: center;">
-                            <div style="padding:5px;text-align:center;vertical-align: middle;">
-                                <p class="producto" ><span class="descripcion_span">TIPO: </span>{{$producto->categoria_nombre}}</p>
-                                <p class="producto" ><span class="descripcion_span">MODELO: </span>{{$producto->modelo_nombre}}</p>
-                                <p class="producto" ><span class="descripcion_span">COLOR: </span>{{$producto->color_nombre}}</p>
+                        <td width="55%">
+                            <div style="padding:5px;vertical-align: middle;">
+                                <div>
+                                    <span class="descripcion_span">TIPO: </span>
+                                    <p class="producto" >{{$producto->categoria_nombre}}</p>
+                                </div>
+                                <div>
+                                    <span class="descripcion_span">MODELO: </span>
+                                    <p class="producto" >{{$producto->modelo_nombre}}</p>
+                                </div>
+                                <div>
+                                    <span class="descripcion_span">COLOR: </span>
+                                    <p class="producto" >{{$producto->color_nombre}}</p>
+                                </div>
                             </div>
                             
                             {{-- <table>
@@ -131,7 +142,7 @@
                         </td>
                         <td width="45%" style="border-left:solid 1px black;height:100%;" >
                            
-                            <div style="padding:5px;vertical-align: top;text-align:center;height:70px;">
+                            <div style="padding:5px;vertical-align: top;text-align:center;height:32px;">
                                 <div style="border: .5px dashed black; border-radius: 4px; width:90%;margin:0 auto;padding:1.7px;" >
                                     <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class="img_cod_barras">
                                     <p style="font-size: 10px;margin:0;padding:0;">{{'775'.$producto->modelo_id.$producto->producto_id.$producto->color_id.$producto->talla_id}}</p>    
