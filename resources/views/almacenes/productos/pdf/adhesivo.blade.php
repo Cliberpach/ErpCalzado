@@ -10,74 +10,77 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Jersey+25&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
-<style>
-    * {
-        box-sizing: inherit;
-        margin: 0;
-        padding: 0;
-    }
-    body, html {
-        width: 100%;
-        height: 100%; 
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    td {
-        padding: 0;
-        margin: 0;
-    }
-    .producto{
-        font-family: "Roboto Condensed", sans-serif;
-        text-align: left;
-        font-size: 7px;
-        line-height: 12px;
-    }
-    p {
-        margin: 0;
-        padding: 0;
-    }
-    .datos-empresa{
-        font-size: 5px;
-        margin-left: -15px;
-    }
-    .empresa_nombre{
-        font-family: "Jersey 25", sans-serif;
-        font-size: 7px;
-        font-weight: 400;
-        font-style: normal;
-        margin-left: -15px;
 
-    }
-    .img_cod_barras{
-        height: 15px;
-        object-fit: contain;
-        padding:0;
-        margin:0;
-        width:92%;
-    }
-    .div_img_barras{
-        margin:0;
-        padding:0;
-        border: solid 1px pink; 
-        border-radius: 5px; 
-    }
-    .talla_nombre{
-        font-family: "Righteous", sans-serif;
-        margin:0;
-        padding:0;
-        font-size: 31px;
-        padding-right:5px;
-        text-align: right;
-    }
-    .descripcion_span{
-        font-weight: bold;
-        font-family: "Roboto Condensed", sans-serif;
-        font-size: 7px;
-    }
-  
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Bevan:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: inherit;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%; 
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 0;
+            margin: 0;
+        }
+        .producto{
+            font-family: "Bevan", serif;
+            text-align: left;
+            font-size: 20px;
+            line-height: 10px;
+        }
+        p {
+            margin: 0;
+            padding: 0;
+        }
+        .datos-empresa{
+            font-size: 5px;
+            margin-left: -15px;
+        }
+        .empresa_nombre{
+            font-family: "Jersey 25", sans-serif;
+            font-size: 7px;
+            font-weight: 400;
+            font-style: normal;
+            margin-left: -15px;
+
+        }
+        .img_cod_barras{
+            height: 27px;
+            object-fit: contain;
+            padding:0;
+            margin:0;
+            width:92%;
+        }
+        .div_img_barras{
+            margin:0;
+            padding:0;
+            border: solid 1px pink; 
+            border-radius: 5px; 
+        }
+        .talla_nombre{
+            font-family: "Righteous", sans-serif;
+            margin:0;
+            padding:0;
+            font-size: 70px;
+            padding-right:5px;
+            text-align: right;
+        }
+        .descripcion_span{
+            font-weight: bold;
+            font-family: "Roboto Condensed", sans-serif;
+            font-size: 12px;
+            text-align: start;
+        }
+      
+    </style>
 </head>
 <body>
     @php
@@ -102,11 +105,20 @@
             @for ($i = 0; $i < $producto->cantidad; $i++)
             <table>
                 <tr>
-                    <td width="55%" style="vertical-align: middle;text-align: center;">
-                        <div style="padding:5px;text-align:center;">
-                            <p class="producto" ><span class="descripcion_span">TIPO: </span>{{$producto->categoria_nombre}}</p>
-                            <p class="producto" ><span class="descripcion_span">MODELO: </span>{{$producto->modelo_nombre}}</p>
-                            <p class="producto" ><span class="descripcion_span">COLOR: </span>{{$producto->color_nombre}}</p>
+                    <td width="55%">
+                        <div style="padding:5px;vertical-align: middle;">
+                            <div>
+                                <span class="descripcion_span">TIPO: </span>
+                                <p class="producto" >{{$producto->categoria_nombre}}</p>
+                            </div>
+                            <div>
+                                <span class="descripcion_span">MODELO: </span>
+                                <p class="producto" >{{$producto->modelo_nombre}}</p>
+                            </div>
+                            <div>
+                                <span class="descripcion_span">COLOR: </span>
+                                <p class="producto" >{{$producto->color_nombre}}</p>
+                            </div>
                         </div>
                         
                         {{-- <table>
@@ -136,13 +148,16 @@
                             </tr>
                         </table> --}}
                     </td>
-                    <td width="45%" style="vertical-align: top;text-align:center;border-left:solid 1px black;height:100%;" >
+                    <td width="45%" style="border-left:solid 1px black;height:100%;" >
                        
-                        <div style="padding:5px;">
-                            <div style="border: .5px dashed black; border-radius: 4px; width:90%;margin:0 auto;padding:.5px;" >
+                        <div style="padding:5px;vertical-align: top;text-align:center;height:32px;">
+                            <div style="border: .5px dashed black; border-radius: 4px; width:90%;margin:0 auto;padding:1.7px;" >
                                 <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class="img_cod_barras">
                                 <p style="font-size: 10px;margin:0;padding:0;">{{'775'.$producto->modelo_id.$producto->producto_id.$producto->color_id.$producto->talla_id}}</p>    
                             </div>
+                        </div>
+
+                        <div style="vertical-align: bottom;"> 
                             <p class="talla_nombre" >{{$producto->talla_nombre}}</p>
                         </div>
                         
@@ -158,11 +173,20 @@
             @for ($i = 0; $i < 1; $i++)
             <table>
                 <tr>
-                    <td width="55%" style="vertical-align: middle;text-align: center;">
-                        <div style="padding:5px;text-align:center;">
-                            <p class="producto" ><span class="descripcion_span">TIPO: </span>{{$producto->categoria_nombre}}</p>
-                            <p class="producto" ><span class="descripcion_span">MODELO: </span>{{$producto->modelo_nombre}}</p>
-                            <p class="producto" ><span class="descripcion_span">COLOR: </span>{{$producto->color_nombre}}</p>
+                    <td width="55%">
+                        <div style="padding:5px;vertical-align: middle;">
+                            <div>
+                                <span class="descripcion_span">TIPO: </span>
+                                <p class="producto" >{{$producto->categoria_nombre}}</p>
+                            </div>
+                            <div>
+                                <span class="descripcion_span">MODELO: </span>
+                                <p class="producto" >{{$producto->modelo_nombre}}</p>
+                            </div>
+                            <div>
+                                <span class="descripcion_span">COLOR: </span>
+                                <p class="producto" >{{$producto->color_nombre}}</p>
+                            </div>
                         </div>
                         
                         {{-- <table>
@@ -192,13 +216,16 @@
                             </tr>
                         </table> --}}
                     </td>
-                    <td width="45%" style="vertical-align: top;text-align:center;border-left:solid 1px black;height:100%;" >
+                    <td width="45%" style="border-left:solid 1px black;height:100%;" >
                        
-                        <div style="padding:5px;">
-                            <div style="border: .5px dashed black; border-radius: 4px; width:90%;margin:0 auto;padding:.5px;" >
+                        <div style="padding:5px;vertical-align: top;text-align:center;height:32px;">
+                            <div style="border: .5px dashed black; border-radius: 4px; width:90%;margin:0 auto;padding:1.7px;" >
                                 <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class="img_cod_barras">
                                 <p style="font-size: 10px;margin:0;padding:0;">{{'775'.$producto->modelo_id.$producto->producto_id.$producto->color_id.$producto->talla_id}}</p>    
                             </div>
+                        </div>
+
+                        <div style="vertical-align: bottom;"> 
                             <p class="talla_nombre" >{{$producto->talla_nombre}}</p>
                         </div>
                         
