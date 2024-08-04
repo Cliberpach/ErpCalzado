@@ -205,39 +205,25 @@
                                 <div class="dropdown-divider"></div>`;        
                         }
 
-                       
+                       if(data.pedido_id === '-' && data.documento_cod === '-'){
+                        options +=  `<li>
+                                        <a class='dropdown-item' href='${url_editar}' title='Modificar'>
+                                        <b><i class='fa fa-edit'></i> Modificar</b>
+                                        </a>
+                                    </li>`;
+                       }
                          
                         options += `<li>
-                                    <a class='dropdown-item' href='${url_editar}' title='Modificar'>
-                                    <b><i class='fa fa-edit'></i> Modificar</b>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class='dropdown-item' onclick='eliminar(${data.id})' title='Eliminar'>
-                                    <b><i class='fa fa-trash'></i> Eliminar</b>
-                                    </a>
-                                </li>
-                                </ul>
-                            </div>`;
+                                            <a class='dropdown-item' onclick='eliminar(${data.id})' title='Eliminar'>
+                                            <b><i class='fa fa-trash'></i> Eliminar</b>
+                                            </a>
+                                    </li>
+                                        </ul>
+                                    </div>`;
                                 
                         return options;
 
-                        /*
-                        return "<div class='btn-group' style='text-transform:capitalize;'><button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class='fa fa-bars'></i></button><ul class='dropdown-menu'>" +
-
-                            "<li><a class='dropdown-item' target='_blank' href='" + url_imprimir +
-                            "' title='Detalle'><b><i class='fa fa-file-pdf-o'></i> Pdf</a></b></li>" +
-                            "<li><a class='dropdown-item' onclick='documento(" + data.id +
-                            ")' title='Documento'><b><i class='fa fa-file'></i> Documento</a></b></li>" +
-                            "<li><a class='dropdown-item' href='" + url_editar +
-                            "' title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>" +
-                            "<li><a class='dropdown-item' onclick='eliminar(" + data.id +
-                            ")' title='Eliminar'><b><i class='fa fa-trash'></i> Eliminar</a></b></li>" +
-
-                            "</ul></div>"
-                        */
-
-
+                    
                     }
                 }
 

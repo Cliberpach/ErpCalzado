@@ -50,7 +50,7 @@ class CotizacionController extends Controller
                             IF(p.id is null,"-",concat("PE-",p.id)) as pedido_id,
                             IF(cd.cotizacion_venta IS NULL,"-",concat(cd.serie,"-",cd.correlativo)) as documento_cod
                             from cotizaciones  as co
-                            left join cotizacion_documento as cd on cd.cotizacion_venta=co.id
+                            left join cotizacion_documento as cd on cd.cotizacion_venta = co.id
                             left join pedidos as p on p.cotizacion_id = co.id
                             inner join empresas as e on e.id=co.empresa_id
                             inner join clientes as cl on cl.id=co.cliente_id
@@ -83,7 +83,7 @@ class CotizacionController extends Controller
         $clientes           = Cliente::where('estado', 'ACTIVO')->get();
         $fecha_hoy          = Carbon::now()->toDateString();
         $condiciones        = Condicion::where('estado','ACTIVO')->get();
-        $lotes              = Producto::where('estado','ACTIVO')->get();
+        //$lotes              = Producto::where('estado','ACTIVO')->get();
         $modelos            = Modelo::where('estado','ACTIVO')->get();
         $tallas             = Talla::where('estado','ACTIVO')->get();
         
@@ -91,11 +91,12 @@ class CotizacionController extends Controller
                                 inner join colaboradores  as c
                                 on c.persona_id=up.persona_id
                                 where up.user_id = ?',[Auth::id()]);
+
         $vendedor_actual    =   $vendedor_actual?$vendedor_actual[0]->id:null;
         
         
         return view('ventas.cotizaciones.create', compact('vendedor_actual','tallas','modelos','empresas',
-         'clientes', 'fecha_hoy', 'lotes', 'condiciones','tipos_documento','departamentos','tipo_clientes'));
+         'clientes', 'fecha_hoy', 'condiciones','tipos_documento','departamentos','tipo_clientes'));
     }
 
     public function store(Request $request)

@@ -1,90 +1,13 @@
 @extends('layout') @section('content')
 @include('ventas.cotizaciones.modal-cliente') 
+    
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
 
-<style>
-
-    .overlay_cotizacion_edit {
-      position: fixed; /* Fija el overlay para que cubra todo el viewport */
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
-      z-index: 9999; /* Asegura que el overlay esté sobre todo */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 24px;
-      visibility:hidden;
-    }
-    
-    /*========== LOADER SPINNER =======*/
-    .loader_cotizacion_edit {
-        position: relative;
-        width: 75px;
-        height: 100px;
-        background-repeat: no-repeat;
-        background-image: linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0);
-        background-size: 8px 100%;
-        background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px;
-        animation: pillerPushUp 4s linear infinite;
-      }
-    .loader_cotizacion_edit:after {
-        content: '';
-        position: absolute;
-        bottom: 10px;
-        left: 0;
-        width: 10px;
-        height: 10px;
-        background: #de3500;
-        border-radius: 50%;
-        animation: ballStepUp 4s linear infinite;
-      }
-    
-    @keyframes pillerPushUp {
-      0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
-      50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
-    }
-    
-    @keyframes ballStepUp {
-      0% {transform: translate(0, 0)}
-      5% {transform: translate(8px, -14px)}
-      10% {transform: translate(15px, -10px)}
-      17% {transform: translate(23px, -24px)}
-      20% {transform: translate(30px, -20px)}
-      27% {transform: translate(38px, -34px)}
-      30% {transform: translate(45px, -30px)}
-      37% {transform: translate(53px, -44px)}
-      40% {transform: translate(60px, -40px)}
-      50% {transform: translate(60px, 0)}
-      57% {transform: translate(53px, -14px)}
-      60% {transform: translate(45px, -10px)}
-      67% {transform: translate(37px, -24px)}
-      70% {transform: translate(30px, -20px)}
-      77% {transform: translate(22px, -34px)}
-      80% {transform: translate(15px, -30px)}
-      87% {transform: translate(7px, -44px)}
-      90% {transform: translate(0, -40px)}
-      100% {transform: translate(0, 0);}
-    }
-        
-        
-</style>
-
-<div class="overlay_cotizacion_edit">
-    <span class="loader_cotizacion_edit"></span>
-</div>
-
+@csrf
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
-        <h2 style="text-transform:uppercase"><b>MODIFICAR COTIZACIÓN # {{ $cotizacion->id }}</b></h2>
+        <h2 style="text-transform:uppercase"><b>REGISTRAR NUEVA COTIZACIÓN</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{ route('home') }}">Panel de Control</a>
@@ -93,9 +16,10 @@
                 <a href="{{ route('ventas.cotizacion.index') }}">Cotizaciones</a>
             </li>
             <li class="breadcrumb-item active">
-                <strong>Modificar</strong>
+                <strong>Registrar</strong>
             </li>
         </ol>
+
     </div>
 </div>
 
@@ -106,16 +30,16 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form action="{{ route('ventas.cotizacion.update', $cotizacion->id) }}" method="POST"
+                            <form action="{{ route('ventas.cotizacion.store') }}" method="POST"
                                 id="form-cotizacion">
-                                @csrf @method('PUT')
+                                @csrf
                                 <div class="row">
                                     <div class="col-12">
                                         <h4><b>Datos Generales</b></h4>
                                     </div>
                                     <div class="col-12 d-none">
                                         <div class="form-group row">
-                                            <div class="col-12">
+                                            <div class="col-lg-6 col-xs-12">
                                                 <label class="required">Fecha de Documento</label>
                                                 <div class="input-group date">
                                                     <span class="input-group-addon">
@@ -123,7 +47,7 @@
                                                     </span>
                                                     <input type="date" id="fecha_documento" name="fecha_documento"
                                                         class="form-control input-required {{ $errors->has('fecha_documento') ? ' is-invalid' : '' }}"
-                                                        value="{{ old('fecha_documento', $cotizacion->fecha_documento) }}"
+                                                        value="{{ old('fecha_documento', $fecha_hoy) }}"
                                                         autocomplete="off" required readonly>
                                                     @if ($errors->has('fecha_documento'))
                                                         <span class="invalid-feedback" role="alert">
@@ -135,21 +59,24 @@
                                         </div>
                                         <div class="form-group row">
                                             <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="required">Moneda</label>
-                                                <select id="moneda" name="moneda" disabled
-                                                    class="select2_form form-control {{ $errors->has('moneda') ? ' is-invalid' : '' }}">
+                                                <label class="___class_+?31___">Moneda</label>
+                                                <select id="moneda" name="moneda"
+                                                    class="select2_form form-control {{ $errors->has('moneda') ? ' is-invalid' : '' }}"
+                                                    disabled>
                                                     <option selected>SOLES</option>
                                                 </select>
                                             </div>
                                             <div class="col-lg-6 col-xs-12 select-required">
                                                 <label class="required">Empresa</label>
                                                 <select id="empresa" name="empresa"
-                                                    class="select2_form form-control {{ $errors->has('empresa') ? ' is-invalid' : '' }}">
+                                                    class="select2_form form-control {{ $errors->has('empresa') ? ' is-invalid' : '' }}"
+                                                    required>
                                                     <option></option>
                                                     @foreach ($empresas as $empresa)
                                                         <option value="{{ $empresa->id }}"
-                                                            {{ old('empresa', $cotizacion->empresa_id) == $empresa->id ? 'selected' : '' }}>
-                                                            {{ 'RUC: ' . $empresa->ruc . ' - ' . $empresa->razon_social }}</option>
+                                                            {{ old('empresa') == $empresa->id || $empresa->id === 1 ? 'selected' : '' }}>
+                                                            {{ $empresa->razon_social }}
+                                                        </option>
                                                     @endforeach
                                                 </select>
                                                 @if ($errors->has('empresa'))
@@ -162,7 +89,7 @@
                                     </div>
                                     <div class="col-12">
                                         <div class="row">
-                                            <div class="col-12 col-md-4">
+                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                                 <div class="form-group">
                                                     <label class="required">Fecha de Atención</label>
                                                     <div class="input-group date">
@@ -170,8 +97,8 @@
                                                             <i class="fa fa-calendar"></i>
                                                         </span>
                                                         <input type="date" id="fecha_atencion" name="fecha_atencion"
-                                                            class="form-control input-required {{ $errors->has('fecha_atencion') ? ' is-invalid' : '' }}"
-                                                            value="{{ old('fecha_atencion', $cotizacion->fecha_atencion) }}"
+                                                            class="form-control {{ $errors->has('fecha_atencion') ? ' is-invalid' : '' }}"
+                                                            value="{{ old('fecha_atencion', $fecha_hoy) }}"
                                                             autocomplete="off" required readonly>
                                                         @if ($errors->has('fecha_atencion'))
                                                             <span class="invalid-feedback" role="alert">
@@ -181,83 +108,76 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            {{-- <div class="col-12 col-md-4">
+                                           
+                                           
+                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                                 <div class="form-group">
-                                                    <label id="igv_requerido">IGV (%):</label>
-                                                    <div class="input-group">
-                                                        <div class="input-group-prepend">
-                                                            <span class="input-group-addon">
-                                                                <input type="checkbox" id="igv_check" name="igv_check">
-                                                            </span>
-                                                        </div>
-                                                        <input type="text" value="{{ old('igv', $cotizacion->igv) }}" maxlength="3"
-                                                            class="form-control input-required {{ $errors->has('igv') ? ' is-invalid' : '' }}"
-                                                            name="igv" id="igv" onkeyup="return mayus(this)" required>
-                                                        @if ($errors->has('igv'))
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $errors->first('igv') }}</strong>
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div> --}}
-                                            <div class="col-12 col-md-4">
-                                                <div class="form-group">
-                                                    <label class="___class_+?40___">Vendedor</label>
-                                                    <select disabled id="vendedor" name="vendedor" class="select2_form form-control">
-                                                        <option value=""></option>
+                                                    <label class="">Vendedor</label>
+                                                    <select id="vendedor" name="vendedor" class="select2_form form-control" disabled>
+                                                        <option></option>
                                                         @foreach (vendedores() as $vendedor)
-                                                            <option value="{{ $vendedor->id }}" {{$cotizacion->vendedor_id==null? '' :($cotizacion->vendedor_id==$vendedor->id ? 'selected' : '')}}>
+                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === $vendedor_actual ? 'selected' : '' }}>
                                                                 {{ $vendedor->persona->apellido_paterno . ' ' . $vendedor->persona->apellido_materno . ' ' . $vendedor->persona->nombres }}
                                                             </option>
                                                         @endforeach
                                                     </select>
                                                 </div>
                                             </div>
-                                            <input hidden type="text" name="vendedor" value="{{$cotizacion->vendedor_id}}">
+
+                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                                <div class="form-group">
+                                                    <label class="required">Condición</label>
+                                                    <select id="condicion_id" name="condicion_id"
+                                                        class="select2_form form-control {{ $errors->has('condicion_id') ? ' is-invalid' : '' }}"
+                                                        required>
+                                                        <option></option>
+                                                        @foreach ($condiciones as $condicion)
+                                                            <option value="{{ $condicion->id }}"
+                                                                {{ $condicion->id == 1 ? 'selected' : '' }}
+                                                                {{ old('condicion_id') == $condicion->id ? 'selected' : '' }}>
+                                                                {{ $condicion->descripcion }} {{ $condicion->dias > 0 ? $condicion->dias.' dias' : '' }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @if ($errors->has('condicion_id'))
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $errors->first('condicion_id') }}</strong>
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            <input hidden type="text" name="vendedor" value="{{$vendedor_actual}}">
 
                                         </div>
+                                       
                                         <div class="row">
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="required">Cliente:
-                                                    <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
-                                                        Registrar
-                                                    </button>
-                                                </label>                                                <select id="cliente" name="cliente"
-                                                    class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}"
-                                                    onchange="obtenerTipo(this)" required>
-                                                    <option></option>
-                                                    @foreach ($clientes as $cliente)
-                                                        <option value="{{ $cliente->id }}"
-                                                            {{ old('cliente', $cotizacion->cliente_id) == $cliente->id ? 'selected' : '' }}>
-                                                            {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @if ($errors->has('cliente'))
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $errors->first('cliente') }}</strong>
-                                                    </span>
-                                                @endif
-                                            </div>
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="required">Condición</label>
-                                                <select id="condicion_id" name="condicion_id"
-                                                    class="select2_form form-control {{ $errors->has('condicion_id') ? ' is-invalid' : '' }}"
-                                                    required>
-                                                    <option></option>
-                                                    @foreach ($condiciones as $condicion)
-                                                        <option value="{{ $condicion->id }}"
-                                                            {{ old('condicion_id') == $condicion->id || $cotizacion->condicion_id == $condicion->id ? 'selected' : '' }}>
-                                                            {{ $condicion->descripcion }} {{ $condicion->dias > 0 ? $condicion->dias.' dias' : '' }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @if ($errors->has('condicion_id'))
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $errors->first('condicion_id') }}</strong>
-                                                    </span>
-                                                @endif
+                                            <div class="col-12 col-md-6 select-required">
+                                                <div class="form-group">
+                                                    <label class="required">Cliente:
+                                                        <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
+                                                            Registrar
+                                                        </button>
+                                                    </label>
+                                                    <select id="cliente" name="cliente"
+                                                        class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}"
+                                                        onchange="obtenerTipo(this)" required>
+                                                        <option></option>
+                                                        @foreach ($clientes as $cliente)
+                                                            <option @if ($cliente->id == 1)
+                                                                selected
+                                                            @endif value="{{ $cliente->id }}"
+                                                                {{ old('cliente') == $cliente->id ? 'selected' : '' }}>
+                                                                {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @if ($errors->has('cliente'))
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $errors->first('cliente') }}</strong>
+                                                        </span>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
                                         <!-- OBTENER TIPO DE CLIENTE -->
@@ -267,16 +187,17 @@
                                         <input type="hidden" name="" id="codigo_nombre_producto">
                                         <!-- LLENAR DATOS EN UN ARRAY -->
                                         <input type="hidden" id="productos_tabla" name="productos_tabla[]">
+
                                     </div>
                                 </div>
 
-                                <input type="hidden" name="monto_sub_total" id="monto_sub_total"    value="{{$cotizacion->sub_total}}">
-                                <input type="hidden" name="monto_embalaje" id="monto_embalaje"      value="{{$cotizacion->monto_embalaje}}">
-                                <input type="hidden" name="monto_envio" id="monto_envio"            value="{{$cotizacion->monto_envio}}">
-                                <input type="hidden" name="monto_total_igv" id="monto_total_igv"                value="{{$cotizacion->total_igv}}">
-                                <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ $cotizacion->monto_descuento }}">
-                                <input type="hidden" name="monto_total" id="monto_total"            value="{{$cotizacion->total}}">
-                                <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{$cotizacion->total_pagar}}">
+                                <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
+                                <input type="hidden" name="monto_embalaje" id="monto_embalaje" value="{{ old('monto_embalaje') }}">
+                                <input type="hidden" name="monto_envio" id="monto_envio" value="{{ old('monto_envio') }}">
+                                <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
+                                <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ old('monto_descuento') }}">
+                                <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}">
+                                <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ old('monto_total_pagar') }}">
 
                             </form>
                         </div>
@@ -296,7 +217,7 @@
                                                     <label class="required">Modelo</label>
                                                     <select id="modelo"
                                                         class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
-                                                        onchange="getProductosByModelo(this)"  >
+                                                        onchange="getProductosByModelo(this)" >
                                                         <option></option>
                                                         @foreach ($modelos as $modelo)
                                                             <option value="{{ $modelo->id }}"
@@ -342,16 +263,16 @@
                                             </div>
                                             <div class="form-group row mt-1">
                                                 <div class="col-lg-2 col-xs-12">
-                                                    <button disabled type="button" id="btn_agregar"
+                                                    <button disabled type="button" id="btn_agregar_detalle"
                                                         class="btn btn-warning btn-block"><i
                                                           class="fa fa-plus"></i> AGREGAR</button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+
                                     <div class="row m-t-sm" style="text-transform:uppercase">
                                         <div class="col-lg-12">
-                                           
                                             {{-- <div class="table-responsive">
                                                 <table
                                                     class="table table-hover" id="table-detalle-cotizacion">
@@ -395,15 +316,12 @@
                                                 </table>
                                             </div> --}}
                                         </div>
-
-
                                     </div>
+
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="hr-line-dashed"></div>
 
                     <div class="row">
                         <div class="col-12">
@@ -412,23 +330,15 @@
                                     <h4><b>Detalle de la Cotización</b></h4>
                                 </div>
                                 <div class="panel-body">
-
                                     @include('ventas.cotizaciones.table-stocks',[
                                         "carrito" => "carrito"
                                     ])
-
-                                    <div class="col-12 d-flex justify-content-end">
-                                        <div class="table-responsive">
-                                           @include('ventas.cotizaciones.table_montos')     
-                                        </div>
-                                    </div>
-
                                 </div>
                             </div>
                         </div>
                     </div>
 
-
+                    <div class="hr-line-dashed"></div>
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="form-group row">
@@ -438,10 +348,13 @@
                                         (<label class="required"></label>) son obligatorios.</small>
                                 </div>
                                 <div class="col-md-6 text-right">
-                                    <a href="{{ route('ventas.cotizacion.index') }}" id="btn_cancelar"
+                                    <a href="{{ route('almacenes.producto.index') }}" id="btn_cancelar"
                                         class="btn btn-w-m btn-default">
                                         <i class="fa fa-arrow-left"></i> Regresar
                                     </a>
+                                    {{-- <button type="submit" id="btn_grabar" form="form_registrar_cotizacion" class="btn btn-w-m btn-primary">
+                                        <i class="fa fa-save"></i> Grabar
+                                    </button> --}}
                                     <button type="submit" id="btn_grabar" form="form-cotizacion" class="btn btn-w-m btn-primary">
                                         <i class="fa fa-save"></i> Grabar
                                     </button>
@@ -455,6 +368,10 @@
     </div>
 </div>
 
+<div id="reg_clientes">
+    <modal-cliente></modal-cliente>
+</div>
+
 @stop
 
 @push('styles')
@@ -463,24 +380,632 @@
 <link href="{{ asset('Inspinia/css/plugins/datapicker/datepicker3.css') }}" rel="stylesheet">
 <link href="{{ asset('Inspinia/css/plugins/daterangepicker/daterangepicker-bs3.css') }}" rel="stylesheet">
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
+<link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/dist/toastr.min.css">
 @endpush
 
 @push('scripts')
+
 <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
+<script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
+<script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/fullcalendar/moment.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/daterangepicker/daterangepicker.js') }}"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4"></script>
 
 <script>
-    const selectModelo          =   document.querySelector('#modelo');
+    const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-danger',
+        },
+        buttonsStyling: false
+    })
+
+    $(document).ready(function() {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green',
+        });
+
+        $(".select2_form").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            height: '200px',
+            width: '100%',
+        });
+
+
+
+        if ($("#igv_check").prop('checked')) {
+            $('#igv').attr('disabled', false)
+            $('#igv_requerido').addClass("required")
+        } else {
+            $('#igv').attr('disabled', true)
+            $('#igv_requerido').removeClass("required")
+        }
+
+        //DATATABLE - COTIZACION
+        table = $('.dataTables-detalle-cotizacion').DataTable({
+            "dom": 'lTfgitp',
+            "bPaginate": true,
+            "bLengthChange": true,
+            "responsive": true,
+            "bFilter": true,
+            "bInfo": false,
+            "columnDefs": [{
+                    "targets": 0,
+                    "visible": false,
+                    "searchable": false
+                },
+                {
+                    searchable: false,
+                    "targets": [1],
+                    data: null,
+                    defaultContent: "<div class='btn-group'>" +
+                        // "<a class='btn btn-sm btn-warning btn-edit' style='color:white'>" +
+                        // "<i class='fa fa-pencil'></i>" + "</a>" +
+                        "<a class='btn btn-sm btn-danger btn-delete' style='color:white'>" +
+                        "<i class='fa fa-trash'></i>" + "</a>" +
+                        "</div>"
+                },
+                {
+                    "targets": [2],
+                },
+                {
+                    "targets": [3],
+                },
+                {
+                    "targets": [4],
+                },
+                {
+                    "targets": [5],
+                },
+                {
+                    "targets": [6],
+                },
+                {
+                    "targets": [7],
+                },
+                {
+                    "targets": [8],
+                },
+                {
+                    "targets": [9],
+                    'visible': false,
+                }
+            ],
+            'bAutoWidth': false,
+            'aoColumns': [{
+                    sWidth: '0%'
+                },
+                {
+                    sWidth: '10%',
+                    sClass: 'text-center'
+                },
+                {
+                    sWidth: '10%',
+                    sClass: 'text-center'
+                },
+                {
+                    sWidth: '40%',
+                    sClass: 'text-center'
+                },
+                {
+                    sWidth: '15%',
+                    sClass: 'text-center'
+                },
+                {
+                    sWidth: '15%',
+                    sClass: 'text-center'
+                },
+                {
+                    sWidth: '15%',
+                    sClass: 'text-center'
+                },
+                {
+                    sWidth: '15%',
+                    sClass: 'text-center'
+                },
+                {
+                    sWidth: '15%',
+                    sClass: 'text-center'
+                },
+                {
+                    sWidth: '0%',
+                    sClass: 'text-center'
+                },
+                {
+                    sWidth: '0%',
+                    sClass: 'text-center'
+                }
+            ],
+            "language": {
+                url: "{{ asset('Spanish.json') }}"
+            },
+            "order": [
+                [0, "desc"]
+            ],
+        });
+
+        //Controlar Error
+        $.fn.DataTable.ext.errMode = 'throw';
+    });
+
+    //Editar Registro
+    $(document).on('click', '.btn-edit', function(event) {
+        var data = table.row($(this).parents('tr')).data();
+        $('#indice').val(table.row($(this).parents('tr')).index());
+        $('#producto_editar').val(data[0]).trigger('change');
+        $('#precio_editar').val(data[5]);
+        $('#presentacion_producto_editar').val(data[3]);
+        $('#codigo_nombre_producto_editar').val(data[4]);
+        $('#medida_editar').val(data[7]);
+        $('#cantidad_editar').val(data[2]);
+        // $('#modal_editar_detalle').modal('show');
+    })
+
+    //Borrar registro de Producto
+    $(document).on('click', '.btn-delete', function(event) {
+        Swal.fire({
+            title: 'Opción Eliminar',
+            text: "¿Seguro que desea eliminar Producto?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: "#1ab394",
+            confirmButtonText: 'Si, Confirmar',
+            cancelButtonText: "No, Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var table = $('.dataTables-detalle-cotizacion').DataTable();
+                table.row($(this).parents('tr')).remove().draw();
+                sumaTotal()
+
+            } else if (
+                /* Read more about handling dismissals below */
+                result.dismiss === Swal.DismissReason.cancel
+            ) {
+                swalWithBootstrapButtons.fire(
+                    'Cancelado',
+                    'La Solicitud se ha cancelado.',
+                    'error'
+                )
+            }
+        })
+    });
+
+    function obtenerTipo(tipo) {
+        if (tipo.value) {
+            //$('#producto').prop('disabled', false)
+            $('#modelo').prop('disabled', false)
+            $('#precio').prop('disabled', false)
+            $('#cantidad').prop('disabled', false)
+            //CONSULTA A CLIENTE PARA OBTENER EL MONTO
+            $.ajax({
+                dataType: 'json',
+                url: '{{ route('ventas.cliente.getcustomer') }}',
+                type: 'post',
+                data: {
+                    '_token': $('input[name=_token]').val(),
+                    'cliente_id': tipo.value
+                },
+                success: function(cliente) {
+                    $('#tipo_cliente').val(cliente.tabladetalles_id)
+                },
+            })
+        } else {
+            $('#producto').prop('disabled', true)
+            $('#precio').prop('disabled', true)
+            $('#cantidad').prop('disabled', true)
+        }
+    }
+
+    function obtenerMonto(producto) {
+        if (producto.value.length > 0) {
+            var tipo = $('#tipo_cliente').val()
+            $.get('/almacenes/productos/obtenerProducto/' + producto.value, function(data) {
+                for (var i = 0; i < data.cliente_producto.length; i++)
+                {
+                    //SOLO SOLES LOS MONTOS
+                    if (data.cliente_producto[i].cliente == tipo && data.cliente_producto[i].moneda == '1') {
+                        if (data.cliente_producto[i].igv == '0') {
+                            var monto = Number(data.cliente_producto[i].monto * 0.18) + Number(data
+                                .cliente_producto[i].monto)
+                            $('#precio').val(Number(monto).toFixed(2))
+
+                        } else {
+                            var monto = data.cliente_producto[i].monto
+                            $('#precio').val(Number(monto).toFixed(2))
+
+                        }
+                    }
+                }
+            });
+        }
+
+
+    }
+
+    function obtenerProducto(id) {
+        // Consultamos nuestra BBDD
+        var url = '{{ route('almacenes.producto.productoDescripcion', ':id') }}';
+        url = url.replace(':id', id);
+        $.ajax({
+            dataType: 'json',
+            type: 'get',
+            url: url,
+        }).done(function(result) {
+            $('#presentacion_producto').val(result.medida)
+            $('#codigo_nombre_producto').val(result.codigo + ' - ' + result.nombre)
+            llegarDatos()
+            sumaTotal()
+            limpiarDetalle()
+        });
+    }
+
+    $("#igv_check").click(function() {
+        if ($("#igv_check").is(':checked')) {
+            $('#igv').attr('disabled', false)
+            $('#igv_requerido').addClass("required")
+            $('#igv').prop('required', true)
+            $('#igv').val('18')
+            var igv = ($('#igv').val()) + ' %'
+            $('#igv_int').text(igv);
+            sumaTotal();
+
+        } else {
+            $('#igv').attr('disabled', true)
+            $('#igv_requerido').removeClass("required")
+            $('#igv').prop('required', false)
+            $('#igv').val('')
+            $('#igv_int').text('')
+            sumaTotal()
+        }
+    });
+
+    $("#igv").on("change", function() {
+
+        if ($("#igv_check").is(':checked')) {
+            $('#igv').attr('disabled', false)
+            $('#igv_requerido').addClass("required")
+            $('#igv').prop('required', true)
+            var igv = ($('#igv').val()) + ' %'
+            $('#igv_int').text(igv)
+            sumaTotal()
+
+        } else {
+            $('#igv').attr('disabled', true)
+            $('#igv_requerido').removeClass("required")
+            $('#igv').prop('required', false)
+            $('#igv').val('')
+            $('#igv_int').text('')
+            sumaTotal()
+        }
+    });
+
+    function limpiarErrores() {
+        $('#cantidad').removeClass("is-invalid")
+        $('#error-cantidad').text('')
+
+        $('#precio').removeClass("is-invalid")
+        $('#error-precio').text('')
+
+        $('#producto').removeClass("is-invalid")
+        $('#error-producto').text('')
+    }
+
+    function limpiarDetalle() {
+        $('#precio').val('')
+        $('#cantidad').val('')
+        $('#presentacion_producto').val('')
+        $('#codigo_nombre_producto').val('')
+        $('#producto').val($('#producto option:first-child').val()).trigger('change');
+        $('#pdescuento').val('')
+
+    }
+
+    //VALIDACION PARA EL INGRRESO A TABLA DETALLE
+    // $("#btn_agregar_detalle").click(function() {
+    //     limpiarErrores()
+    //     var enviar = false;
+    //     if ($('#producto').val() == '') {
+    //         toastr.error('Seleccione Producto.', 'Error');
+    //         enviar = true;
+    //         $('#producto').addClass("is-invalid")
+    //         $('#error-producto').text('El campo Producto es obligatorio.')
+    //     } else {
+    //         var existe = buscarProducto($('#producto').val())
+    //         if (existe == true) {
+    //             toastr.error('Producto ya se encuentra ingresado.', 'Error');
+    //             enviar = true;
+    //         }
+    //     }
+
+    //     if ($('#precio').val() == '') {
+    //         toastr.error('Ingrese el precio del producto.', 'Error');
+    //         enviar = true;
+    //         $("#precio").addClass("is-invalid");
+    //         $('#error-precio').text('El campo Precio es obligatorio.')
+    //     } else {
+    //         if ($('#precio').val() == 0) {
+    //             toastr.error('Ingrese el precio del producto superior a 0.0.', 'Error');
+    //             enviar = true;
+    //             $("#precio").addClass("is-invalid");
+    //             $('#error-precio').text('El campo precio debe ser mayor a 0.')
+    //         }
+    //     }
+
+    //     if ($('#cantidad').val() == '') {
+    //         toastr.error('Ingrese cantidad del producto.', 'Error');
+    //         enviar = true;
+    //         $("#cantidad").addClass("is-invalid");
+    //         $('#error-cantidad').text('El campo Cantidad es obligatorio.')
+    //     }
+
+    //     if ($('#cantidad').val() == 0) {
+    //         toastr.error('El stock del producto es 0.', 'Error');
+    //         enviar = true;
+    //         $("#cantidad").addClass("is-invalid");
+    //         $('#error-cantidad').text('El campo cantidad debe ser mayor a 0.')
+    //     }
+
+    //     if (enviar != true) {
+    //         Swal.fire({
+    //             title: 'Opción Agregar',
+    //             text: "¿Seguro que desea agregar Producto?",
+    //             icon: 'question',
+    //             showCancelButton: true,
+    //             confirmButtonColor: "#1ab394",
+    //             confirmButtonText: 'Si, Confirmar',
+    //             cancelButtonText: "No, Cancelar",
+    //         }).then((result) => {
+    //             if (result.isConfirmed) {
+    //                 obtenerProducto($('#producto').val())
+    //             } else if (
+    //                 /* Read more about handling dismissals below */
+    //                 result.dismiss === Swal.DismissReason.cancel
+    //             ) {
+    //                 swalWithBootstrapButtons.fire(
+    //                     'Cancelado',
+    //                     'La Solicitud se ha cancelado.',
+    //                     'error'
+    //                 )
+    //             }
+    //         })
+
+    //     }
+
+    // })
+
+    // function buscarProducto(id) {
+    //     var existe = false;
+    //     table.rows().data().each(function(el, index) {
+    //         if (el[0] == id) {
+    //             existe = true
+    //         }
+    //     });
+    //     return existe
+    // }
+
+    // function agregarTabla($detalle) {
+    //     table.row.add([
+    //         $detalle.producto_id,
+    //         '',
+    //         $detalle.cantidad.toFixed(2),
+    //         $detalle.producto,
+    //         $detalle.valor_unitario.toFixed(2),
+    //         $detalle.precio_unitario.toFixed(2),
+    //         $detalle.dinero.toFixed(2),
+    //         $detalle.precio_nuevo.toFixed(2),
+    //         $detalle.valor_venta.toFixed(2),
+    //         $detalle.precio_inicial.toFixed(2),
+    //         $detalle.descuento.toFixed(2),
+
+    //     ]).draw(false);
+    //     cargarProductos();
+    // }
+
+    // function obtenerMedida(id) {
+    //     var medida = ""
+    //     @foreach (unidad_medida() as $medida)
+    //         if ("{{ $medida->id }}" == id) {
+    //         medida = "{{ $medida->simbolo . ' - ' . $medida->descripcion }}"
+    //         }
+    //     @endforeach
+    //     return medida
+    // }
+
+    // function llegarDatos() {
+    //     let pdescuento = $("#pdescuento").val().length > 0 ? convertFloat($("#pdescuento").val()) : 0;
+    //     let precio_inicial = convertFloat($('#precio').val());
+    //     let igv = convertFloat($('#igv').val());
+    //     let igv_calculado = convertFloat(igv / 100);
+
+    //     let valor_unitario = 0.00;
+    //     let precio_unitario = 0.00;
+    //     let dinero = 0.00;
+    //     let precio_nuevo = 0.00;
+    //     let valor_venta = 0.00;
+    //     let cantidad = convertFloat($('#cantidad').val())
+    //     if ($("#igv_check").prop('checked')) {
+    //         precio_unitario = precio_inicial;
+    //         valor_unitario = precio_unitario / (1 + igv_calculado);
+    //         dinero = precio_unitario * (pdescuento / 100);
+    //         precio_nuevo = precio_unitario - dinero;
+    //         valor_venta = precio_nuevo * cantidad;
+    //     } else {
+    //         precio_unitario = precio_inicial / 1.18;
+    //         valor_unitario = precio_unitario / 1.18;
+    //         dinero = precio_unitario * (pdescuento / 100);
+    //         precio_nuevo = precio_unitario - dinero;
+    //         valor_venta = precio_nuevo * cantidad;
+    //     }
+
+    //     var detalle = {
+    //         producto_id: $('#producto').val(),
+    //         producto: $('#codigo_nombre_producto').val(),
+    //         precio_unitario: precio_unitario,
+    //         valor_unitario: valor_unitario,
+    //         valor_venta: valor_venta,
+    //         cantidad: cantidad,
+    //         dinero: dinero,
+    //         descuento: pdescuento,
+    //         precio_nuevo: precio_nuevo,
+    //         precio_inicial: precio_inicial
+    //     }
+
+    //     agregarTabla(detalle);
+    // }
+
+    // function cargarProductos() {
+    //     var productos = [];
+    //     var data = table.rows().data();
+    //     data.each(function(value, index) {
+    //         let fila = {
+    //             producto_id: value[0],
+    //             presentacion: value[3],
+    //             precio_unitario: value[5],
+    //             valor_unitario:value[4],
+    //             dinero:value[6],
+    //             precio_inicial:value[9],
+    //             precio_nuevo:value[7],
+    //             descuento:value[10],
+    //             cantidad: value[2],
+    //             valor_venta: value[8],
+    //         };
+
+    //         productos.push(fila);
+
+    //     });
+
+    //     $('#productos_tabla').val(JSON.stringify(productos));
+    // }
+
+    // function sumaTotal() {
+    //     let total = 0.00;
+    //     let igv = convertFloat($('#igv').val());
+    //     let igv_calculado = convertFloat(igv / 100);
+
+    //     let detalles = [];
+
+    //     table.rows().data().each(function(el, index) {
+    //         let pdescuento = convertFloat(el[10]);
+    //         let precio_inicial = convertFloat(el[9]);
+    //         let precio_unitario = 0.00;
+    //         let valor_unitario = 0.00;
+    //         let dinero = 0.00;
+    //         let precio_nuevo = 0.00;
+    //         let valor_venta = 0.00;
+
+    //         if ($("#igv_check").prop('checked')) {
+    //             precio_unitario = precio_inicial;
+    //             valor_unitario = precio_unitario / (1 + igv_calculado);
+    //             dinero = precio_unitario * (pdescuento / 100);
+    //             precio_nuevo = precio_unitario - dinero;
+    //             valor_venta = precio_nuevo * el[2];
+    //             let detalle = {
+    //                 producto_id: el[0],
+    //                 producto: el[3],
+    //                 precio_unitario: precio_unitario,
+    //                 valor_unitario: valor_unitario,
+    //                 valor_venta: valor_venta,
+    //                 cantidad: convertFloat(el[2]),
+    //                 descuento: pdescuento,
+    //                 precio_nuevo: precio_nuevo,
+    //                 dinero: dinero,
+    //                 precio_inicial: precio_inicial
+    //             }
+    //             detalles.push(detalle);
+    //         } else {
+    //             precio_unitario = precio_inicial / 1.18;
+    //             valor_unitario = precio_unitario / 1.18;
+    //             dinero = precio_unitario * (pdescuento / 100);
+    //             precio_nuevo = precio_unitario - dinero;
+    //             valor_venta = precio_nuevo * el[2];
+    //             let detalle = {
+    //                 producto_id: el[0],
+    //                 producto: el[3],
+    //                 precio_unitario: precio_unitario,
+    //                 valor_unitario: valor_unitario,
+    //                 valor_venta: valor_venta,
+    //                 cantidad: convertFloat(el[2]),
+    //                 descuento: pdescuento,
+    //                 dinero: dinero,
+    //                 precio_nuevo: precio_nuevo,
+    //                 precio_inicial: precio_inicial
+    //             }
+    //             detalles.push(detalle);
+    //         }
+    //     });
+
+    //     table.clear().draw();
+
+    //     if(detalles.length > 0)
+    //     {
+    //         for(let i = 0; i < detalles.length; i++)
+    //         {
+    //             agregarTabla(detalles[i]);
+    //         }
+    //     }
+
+    //     table.rows().data().each(function(el, index) {
+    //         total = Number(el[8]) + total
+    //     });
+
+    //     $('#total').text((Math.round(total * 10) / 10).toFixed(2))
+    //     //conIgv(total,igv)
+    // }
+
+    // function conIgv(subtotal, igv) {
+    //     let total = subtotal * (1 + (igv / 100));
+    //     let igv_calculado =  total - subtotal;
+    //     $('#igv_int').text(igv + '%')
+    //     $('#subtotal').text((Math.round(subtotal * 10) / 10).toFixed(2))
+    //     $('#igv_monto').text((Math.round(igv_calculado * 10) / 10).toFixed(2))
+    //     $('#total').text((Math.round(total * 10) / 10).toFixed(2))
+    //     //Math.round(fDescuento * 10) / 10
+    // }
+
+
+    // function registrosProductos() {
+    //     var registros = table.rows().data().length;
+    //     return registros
+    // }
+
+    // function validarFecha() {
+    //     var enviar = false
+    //     var productos = registrosProductos()
+    //     if ($('#fecha_documento').val() == '') {
+    //         toastr.error('Ingrese Fecha de Documento.', 'Error');
+    //         $("#fecha_documento").focus();
+    //         enviar = true;
+    //     }
+
+    //     if ($('#fecha_atencion').val() == '') {
+    //         toastr.error('Ingrese Fecha de Atención.', 'Error');
+    //         $("#fecha_atencion").focus();
+    //         enviar = true;
+    //     }
+
+    //     if (productos == 0) {
+    //         toastr.error('Ingrese al menos 1 Producto.', 'Error');
+    //         enviar = true;
+    //     }
+    //     return enviar
+    // }
+
+ 
+</script>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
+<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
+<script>
     const tableStocksBody       =   document.querySelector('#table-stocks tbody');
     const tableDetalleBody      =   document.querySelector('#table-detalle tbody');
     const tokenValue            =   document.querySelector('input[name="_token"]').value;
-    const btnAgregarDetalle     =   document.querySelector('#btn_agregar');
+    const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
     const formCotizacion        =   document.querySelector('#form-cotizacion');
 
     const tfootSubtotal         =   document.querySelector('.subtotal');
@@ -499,27 +1024,27 @@
     const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
     const inputMontoDescuento   =   document.querySelector('#monto_descuento');
 
+    const selectClientes    =   document.querySelector('#cliente');
 
     const inputProductos        =   document.querySelector('#productos_tabla');
     const tallas                =   @json($tallas);
-    const productosPrevios      =   @json($detalles);
 
-    let modelo_id   = null;
-    let carrito     = [];
+    let modelo_id           = null;
+    let carrito             =   [];
     let carritoFormateado   =   [];
-    let dataTableStocksCotizacion   =   null;
-    let dataTableDetallesCotizacion =   null;
    
     document.addEventListener('DOMContentLoaded',()=>{
-        loadSelect2();
-        cargarProductosPrevios();
+        setUbicacionDepartamento(13,'first');
         events();
         eventsCliente();
     })
 
     function events(){
         
+        //===== VALIDAR CONTENIDO DE INPUTS CANTIDAD ========
+        //===== VALIDAR TFOOTS EMBALAJE Y ENVIO ======
         document.addEventListener('input',(e)=>{
+
             if(e.target.classList.contains('inputCantidad')){
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
             }
@@ -548,10 +1073,7 @@
 
                 //==== SI EL INPUT ESTA VACÍO ====
                 if(valor.trim().length === 0){
-                    //===== CALCULAR DESCUENTO Y PINTARLO ======
                     calcularDescuento(producto_id,color_id,0);
-                    //===== CALCULAR Y PINTAR MONTOS =======
-                    calcularMontos();
                     return;
                 }
 
@@ -572,12 +1094,13 @@
                     porcentaje_desc = event.target.value;
                 }
 
-                //==== CALCULAR DESCUENTO Y PINTARLO ====
+                //==== CALCULAR DESCUENTO ====
                 calcularDescuento(producto_id,color_id,porcentaje_desc)
-                //===== CALCULAR Y PINTAR MONTOS =======
-                calcularMontos();
             }
+
         })
+
+
 
         document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('delete-product')){
@@ -591,9 +1114,10 @@
 
         formCotizacion.addEventListener('submit',(e)=>{
             e.preventDefault();
-
+            console.log('hola papu')
             //===== VALIDAR FECHA =====
-            const correcto =  validaciones();
+            const correcto =  validarFecha();
+
             if (correcto) {
                 Swal.fire({
                     title: 'Opción Guardar',
@@ -605,10 +1129,17 @@
                     cancelButtonText: "No, Cancelar",
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        document.querySelector('#btn_grabar').disabled = true;
-                        formatearDetalle();
-                        saveCarritoJSON()
-                        formCotizacion.submit();
+                        
+                        if(carrito.length>0){
+                            document.querySelector('#btn_grabar').disabled = true;
+                            formatearDetalle();
+                            inputProductos.value=JSON.stringify(carritoFormateado);
+                            console.log(carritoFormateado);
+                            formCotizacion.submit();
+                        }else{
+                            toastr.error('Debe tener almenos un producto en el detalle','ERROR');
+                        }
+
                     } else if (result.dismiss === Swal.DismissReason.cancel) {
                         swalWithBootstrapButtons.fire(
                         'Cancelado',
@@ -627,7 +1158,8 @@
             // });
         })
        
-        //===== AGREGAR DETALLE ======
+
+        //======= AGREGAR PRODUCTO AL DETALLE ======
         btnAgregarDetalle.addEventListener('click',()=>{
             
             const inputsCantidad = document.querySelectorAll('.inputCantidad');
@@ -699,41 +1231,25 @@
                 }
             }
 
-           
             reordenarCarrito();
             calcularSubTotal();
             pintarDetalleCotizacion(carrito);
-            //===== RECALCULANDO DESCUENTOS =====
+            //===== RECALCULANDO DESCUENTOS Y MONTOS =====
             carrito.forEach((c)=>{
                 calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
             })
-            //===== RECALCULANDO MONTOS =====
-            calcularMontos();
 
         })
     }
 
-    //============ LOAD SELECT2 ========
-    function loadSelect2(){
-    $(".select2_form").select2({
-            placeholder: "SELECCIONAR",
-            allowClear: true,
-            height: '200px',
-            width: '100%',
-        });
-    }
+    //====== VALIDAR FECHA ======
+    function validarFecha() {
+        var enviar = true;
 
-    //======= VALIDACIONES PARA EL FORMULARIO ============
-    const validaciones  =   ()=>{
-        
-        let enviar = true;
-        
-        //======= validar fechas =============
         if ($('#fecha_documento').val() == '') {
             toastr.error('Ingrese Fecha de Documento.', 'Error');
             $("#fecha_documento").focus();
             enviar = false;
-
         }
 
         if ($('#fecha_atencion').val() == '') {
@@ -742,11 +1258,6 @@
             enviar = false;
         }
 
-        //============= validar carrito =============
-        if (carrito.length == 0) {
-            toastr.error('Ingrese al menos 1 Producto.', 'Error');
-            enviar = false;
-        }
 
         return enviar
     }
@@ -754,7 +1265,9 @@
     //====== FORMATEAR EL CARRITO A FORMATO DE BD ======
     function formatearDetalle(){
         carrito.forEach((d)=>{
+            console.log('producto_color')
             d.tallas.forEach((t)=>{
+                 console.log('talla')
                 const producto ={};
                 producto.producto_id            =   d.producto_id;
                 producto.color_id               =   d.color_id;
@@ -768,72 +1281,7 @@
         })  
     }
 
-    //====== guardar el carrito en el form ===========
-    const saveCarritoJSON = ()=>{
-        inputProductos.value=JSON.stringify(carritoFormateado);
-    }
 
-    const cargarProductosPrevios=()=>{
-        //====== CARGANDO CARRITO ======
-        const producto_color_procesados = [];
-
-        productosPrevios.forEach((productoPrevio)=>{
-            const id    =   `${productoPrevio.producto_id}-${productoPrevio.color_id}`;
-
-            if(!producto_color_procesados.includes(id)){
-                const producto ={
-                    producto_id: productoPrevio.producto_id,
-                    producto_nombre:productoPrevio.producto.nombre,
-                    color_id:productoPrevio.color.id,
-                    color_nombre:productoPrevio.color.descripcion,
-                    precio_venta:productoPrevio.precio_unitario,
-                    subtotal:0,
-                    subtotal_nuevo:0,
-                    porcentaje_descuento: parseFloat(productoPrevio.porcentaje_descuento),
-                    monto_descuento:0,
-                    precio_venta_nuevo:0,
-                    tallas:[]
-                }
-
-                //==== BUSCANDO SUS TALLAS ====
-                const tallas = productosPrevios.filter((t)=>{
-                    return t.producto_id==productoPrevio.producto_id && t.color_id==productoPrevio.color_id;
-                })
-
-                if(tallas.length > 0){
-                    const producto_color_tallas = [];
-                    tallas.forEach((t)=>{
-                        const talla = {
-                            talla_id:t.talla_id,
-                            talla_nombre:t.talla.descripcion,
-                            cantidad: parseInt(t.cantidad),
-                        }
-                        producto_color_tallas.push(talla);
-                    })
-                    producto.tallas = producto_color_tallas;
-                }
-                producto_color_procesados.push(id);
-                carrito.push(producto);
-            }
-        })
-
-      
-        //===== CALCULAR SUBTOTAL POR FILA DEL DETALLE ======
-        calcularSubTotal();
-        //===== CARGANDO EMBALAJE Y ENVÍO PREVIO ========
-        cargarEmbalajeEnvioPrevios();
-        //===== PINTANDO DETALLE ======
-        pintarDetalleCotizacion(carrito);
-        //========= PINTAR DESCUENTOS Y CALCULARLOS ============
-        carrito.forEach((c)=>{
-            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
-        })
-        
-        //===== CALCULAR MONTOS Y PINTARLOS ======
-        calcularMontos();
-    }
-
-    //======= CALCULAR DESCUENTO ========
     const calcularDescuento = (producto_id,color_id,porcentaje_descuento)=>{
         const indiceExiste = carrito.findIndex((c)=>{
             return c.producto_id==producto_id && c.color_id==color_id;
@@ -850,6 +1298,8 @@
 
             carrito[indiceExiste] = producto_color_editar;
 
+            //==== RECALCULANDO MONTOS ====
+            calcularMontos();   
 
             //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
             const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`); 
@@ -866,22 +1316,9 @@
         }
     }
 
-    //======== CALCULAR SUBTOTAL POR PRODUCTO COLOR EN EL DETALLE ======
-    const calcularSubTotal=()=>{
-        let subtotal = 0;
 
-        carrito.forEach((p)=>{
-            p.tallas.forEach((t)=>{
-                    subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad);   
-            })
-               
-            p.subtotal=subtotal; 
-            subtotal=0; 
-        })  
-    }
-
-     //=========== CALCULAR MONTOS =======
-     const calcularMontos = ()=>{
+    //=========== CALCULAR MONTOS =======
+    const calcularMontos = ()=>{
         let subtotal    =   0;
         let embalaje    =   tfootEmbalaje.value?parseFloat(tfootEmbalaje.value):0;
         let envio       =   tfootEnvio.value?parseFloat(tfootEnvio.value):0;
@@ -919,6 +1356,7 @@
         inputMontoDescuento.value   =   descuento.toFixed(2);
     }
 
+    
 
     const eliminarProducto = (productoId,colorId)=>{
         carrito = carrito.filter((p)=>{
@@ -926,6 +1364,19 @@
         })
     }
 
+    //======== CALCULAR SUBTOTAL POR PRODUCTO COLOR EN EL DETALLE ======
+    const calcularSubTotal=()=>{
+        let subtotal = 0;
+
+        carrito.forEach((p)=>{
+            p.tallas.forEach((t)=>{
+                    subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad);   
+            })
+               
+            p.subtotal=subtotal; 
+            subtotal=0; 
+        })  
+    }
 
     const reordenarCarrito= ()=>{
         carrito.sort(function(a, b) {
@@ -965,34 +1416,28 @@
         }
     }
 
-    //====== PINTAR DETALLE COTIZACIÓN ======
     function pintarDetalleCotizacion(carrito){
-        let filas       =   ``;
-        let htmlTallas  =   ``;
+        let fila= ``;
+        let htmlTallas= ``;
         clearDetalleCotizacion();
-
-        if(dataTableDetallesCotizacion){
-            dataTableDetallesCotizacion.destroy();
-        }
 
         carrito.forEach((c)=>{
             htmlTallas=``;
-                filas += `<tr>   
+                fila+= `<tr>   
                             <td>
                                 <i class="fas fa-trash-alt btn btn-primary delete-product"
                                 data-producto="${c.producto_id}" data-color="${c.color_id}">
                                 </i>                            
                             </td>
-                            <th><div style="width:200px;">${c.producto_nombre}</div></th>
-                            <th>${c.color_nombre}</th>`;
+                            <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
 
                 //tallas
                 tallas.forEach((t)=>{
                     let cantidad = c.tallas.filter((ct)=>{
                         return t.id==ct.talla_id;
                     });
-                    cantidad.length!=0? cantidad = cantidad[0].cantidad : cantidad = '';
-                    htmlTallas += `<td><p style="margin:0;font-weight:bold;">${cantidad}</p></td>`; 
+                    cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
+                    htmlTallas += `<td>${cantidad}</td>`; 
                 })
 
 
@@ -1013,63 +1458,47 @@
                                 </td>
                             </tr>`;
 
-                filas += htmlTallas;
+                fila+=htmlTallas;
+                tableDetalleBody.innerHTML=fila;            
         })
-
-        tableDetalleBody.innerHTML  =   filas;
-        loadDataTableDetallesCotizacion();
     }
 
-    async function  getProductosByModelo(e){
-        mostrarAnimacionCotizacion();
-        limpiarTableStocks();
-        modelo_id                   =   e.value;
-        btnAgregarDetalle.disabled  =   true;
+    function getProductosByModelo(e){
+        modelo_id = e.value;
+        btnAgregarDetalle.disabled=true;
         
         if(modelo_id){
-
-            try {
-                const url   =   `/get-producto-by-modelo/${modelo_id}`;
-                const res   =   await fetch(url, {
-                                    method: 'GET',
-                                    headers: {
-                                        'X-CSRF-TOKEN': tokenValue,
-                                        'Content-Type': 'application/json',
-                                        'Accept': 'application/json',
-                                    },
-                                });
-
-                const data  =   await res.json();
-                
-                if(data.message){
+            const url = `/get-producto-by-modelo/${modelo_id}`;
+            fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': tokenValue,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.stocks);
+                    console.log(data.producto_colores);
                     pintarTableStocks(data.stocks,tallas,data.producto_colores);
-                    loadCantidadesPrevias();
-                    toastr.success('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
-                }
-            } catch (error) {
-                toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
-            }finally{
-                ocultarAnimacionCotizacion();
-            }
-               
+                    loadCarrito();
+                })
+                .catch(error => console.error('Error:', error));
+            
         }else{
-            ocultarAnimacionCotizacion();
+            tableStocksBody.innerHTML = ``;
         }
     }
 
     const pintarTableStocks = (stocks,tallas,producto_colores)=>{
         let options =``;
 
-        if(dataTableStocksCotizacion){
-            dataTableStocksCotizacion.destroy();
-        }
-
         producto_colores.forEach((pc)=>{
             options+=`  <tr>
                             <th scope="row" data-producto=${pc.producto_id} data-color=${pc.color_id} >
-                                <div style="width:200px;">${pc.producto_nombre}</div>
+                                ${pc.producto_nombre} - ${pc.color_nombre}
                             </th>
-                            <th scope="row">${pc.color_nombre}</th>
                         `;
 
             let htmlTallas = ``;
@@ -1079,7 +1508,7 @@
 
                 htmlTallas +=   `
                                     <td style="background-color: rgb(210, 242, 242);">
-                                        <p style="margin:0;width:20px;text-align:center;${stock != 0?'font-weight:bold':''};">${stock}</p>
+                                        <p style="margin:0;width:20px;text-align:center;">${stock}</p>
                                     </td>
                                     <td width="8%">
                                         <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
@@ -1111,92 +1540,24 @@
         })
 
         tableStocksBody.innerHTML = options;
-        loadDataTableStocksCotizacion();
         btnAgregarDetalle.disabled = false;
-
-    }
-
-
-    function loadDataTableStocksCotizacion(){
-        dataTableStocksCotizacion =   new DataTable('#table-stocks',{
-            language: {
-                "sEmptyTable": "No hay datos disponibles en la tabla",
-                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
-                "sInfoEmpty": "Mostrando 0 a 0 de 0 entradas",
-                "sInfoFiltered": "(filtrado de _MAX_ entradas totales)",
-                "sInfoPostFix": "",
-                "sInfoThousands": ",",
-                "sLengthMenu": "Mostrar _MENU_ entradas",
-                "sLoadingRecords": "Cargando...",
-                "sProcessing": "Procesando...",
-                "sSearch": "Buscar:",
-                "sZeroRecords": "No se encontraron resultados",
-                "oPaginate": {
-                        "sFirst": "Primero",
-                        "sLast": "Último",
-                        "sNext": "Siguiente",
-                        "sPrevious": "Anterior"
-                },
-                "oAria": {
-                        "sSortAscending": ": activar para ordenar la columna de manera ascendente",
-                        "sSortDescending": ": activar para ordenar la columna de manera descendente"
-                }
-            }
-        });
-    }
-
-    function loadDataTableDetallesCotizacion(){
-        dataTableDetallesCotizacion =   new DataTable('#table-detalle',{
-            language: {
-                "sEmptyTable": "No hay datos disponibles en la tabla",
-                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
-                "sInfoEmpty": "Mostrando 0 a 0 de 0 entradas",
-                "sInfoFiltered": "(filtrado de _MAX_ entradas totales)",
-                "sInfoPostFix": "",
-                "sInfoThousands": ",",
-                "sLengthMenu": "Mostrar _MENU_ entradas",
-                "sLoadingRecords": "Cargando...",
-                "sProcessing": "Procesando...",
-                "sSearch": "Buscar:",
-                "sZeroRecords": "No se encontraron resultados",
-                "oPaginate": {
-                        "sFirst": "Primero",
-                        "sLast": "Último",
-                        "sNext": "Siguiente",
-                        "sPrevious": "Anterior"
-                },
-                "oAria": {
-                        "sSortAscending": ": activar para ordenar la columna de manera ascendente",
-                        "sSortDescending": ": activar para ordenar la columna de manera descendente"
-                }
-            }
-        });
     }
 
 
     //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
-    function loadCantidadesPrevias(){
+    function loadCarrito(){
         carrito.forEach((c)=>{
-            c.tallas.forEach((t)=>{
-                const inputLoad = document.querySelector(`#inputCantidad_${c.producto_id}_${c.color_id}_${t.talla_id}`);
-                if(inputLoad){
-                    inputLoad.value = t.cantidad;
-                }
-            })
-            //==== UBICANDO PRECIOS DE VENTA SELECCIONADOS ======
+            const inputLoad = document.querySelector(`#inputCantidad_${c.producto_id}_${c.color_id}_${c.talla_id}`);
+            if(inputLoad){
+                inputLoad.value = c.cantidad;
+            }
+
+            //==== ubicando precios venta seleccionados ======
             const selectPrecioVenta =   document.querySelector(`#precio-venta-${c.producto_id}`);
             if(selectPrecioVenta){
-                selectPrecioVenta.value =   c.precio_venta;
+                selectPrecioVenta.value =   c.precio_venta.toString();
             }
         }) 
-    }
-
-    function cargarEmbalajeEnvioPrevios(){
-        const precioEmbalaje    =   inputEmbalaje.value;
-        const precioEnvio       =   inputEnvio.value;
-
-        tfootEmbalaje.value     =   precioEmbalaje;
-        tfootEnvio.value        =   precioEnvio;
     }
 
     //============= ABRIR MODAL CLIENTE =============
@@ -1204,19 +1565,43 @@
         $("#modal_cliente").modal("show");
     }
 
-    function mostrarAnimacionCotizacion(){
-        document.querySelector('.overlay_cotizacion_edit').style.visibility   =   'visible';
+    function cargarDataTables(){
+        table = new DataTable('#table-productos',
+        {
+            language: {
+                processing:     "Traitement en cours...",
+                search:         "BUSCAR: ",
+                lengthMenu:    "MOSTRAR _MENU_ PRODUCTOS",
+                info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ PRODUCTOS",
+                infoEmpty:      "MOSTRANDO 0 ELEMENTOS",
+                infoFiltered:   "(FILTRADO de _MAX_ PRODUCTOS)",
+                infoPostFix:    "",
+                loadingRecords: "CARGA EN CURSO",
+                zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+                emptyTable:     "NO HAY PRODUCTOS DISPONIBLES",
+                paginate: {
+                    first:      "PRIMERO",
+                    previous:   "ANTERIOR",
+                    next:       "SIGUIENTE",
+                    last:       "ÚLTIMO"
+                },
+                aria: {
+                    sortAscending:  ": activer pour trier la colonne par ordre croissant",
+                    sortDescending: ": activer pour trier la colonne par ordre décroissant"
+                }
+            }
+        });
+        
     }
 
-    function ocultarAnimacionCotizacion(){
-        document.querySelector('.overlay_cotizacion_edit').style.visibility   =   'hidden';
-    }
-
-    function limpiarTableStocks(){
-        while (tableStocksBody.firstChild) {
-            tableStocksBody.removeChild(tableStocksBody.firstChild);
-        }
-    }
 
 </script>
+
 @endpush
+
+
+
+
+
+
+
