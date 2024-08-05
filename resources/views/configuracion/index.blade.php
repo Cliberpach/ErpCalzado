@@ -630,9 +630,18 @@
     }
 
     function loadGreenterMode(){
-        const greenter_mode =   @json($greenter_mode);
-        
-        if(greenter_mode    === "PRODUCCION"){
+        const indexGreenterConfig   =   lstConfig.findIndex((lc)=>{
+            return lc.slug === "AG";
+        })
+
+        if(indexGreenterConfig.length === -1){
+            toastr.error('ERROR AL PINTAR EL ESTADO DEL AMBIENTE GREENTER','OPERACIÓN INCORRECTA');
+            return;
+        }
+
+        const greenter_config =   lstConfig[indexGreenterConfig];
+       
+        if(greenter_config.propiedad    === "PRODUCCION"){
             $('.toggle').toggleClass('toggle-on');
         }
     }

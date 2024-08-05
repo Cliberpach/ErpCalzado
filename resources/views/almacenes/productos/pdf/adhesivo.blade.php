@@ -12,75 +12,75 @@
 <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
 
 <link href="https://fonts.googleapis.com/css2?family=Bevan:ital@0;1&display=swap" rel="stylesheet">
-    <style>
-        * {
-            box-sizing: inherit;
-            margin: 0;
-            padding: 0;
-        }
-        body, html {
-            width: 100%;
-            height: 100%; 
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        td {
-            padding: 0;
-            margin: 0;
-        }
-        .producto{
-            font-family: "Bevan", serif;
-            text-align: left;
-            font-size: 20px;
-            line-height: 10px;
-        }
-        p {
-            margin: 0;
-            padding: 0;
-        }
-        .datos-empresa{
-            font-size: 5px;
-            margin-left: -15px;
-        }
-        .empresa_nombre{
-            font-family: "Jersey 25", sans-serif;
-            font-size: 7px;
-            font-weight: 400;
-            font-style: normal;
-            margin-left: -15px;
+<style>
+    * {
+        box-sizing: inherit;
+        margin: 0;
+        padding: 0;
+    }
+    body, html {
+        width: 100%;
+        height: 100%; 
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    td {
+        padding: 0;
+        margin: 0;
+    }
+    .producto{
+        font-family: "Bevan", serif;
+        text-align: left;
+        font-size: 26px;
+        line-height: 14px;
+    }
+    p {
+        margin: 0;
+        padding: 0;
+    }
+    .datos-empresa{
+        font-size: 5px;
+        margin-left: -15px;
+    }
+    .empresa_nombre{
+        font-family: "Jersey 25", sans-serif;
+        font-size: 7px;
+        font-weight: 400;
+        font-style: normal;
+        margin-left: -15px;
 
-        }
-        .img_cod_barras{
-            height: 27px;
-            object-fit: contain;
-            padding:0;
-            margin:0;
-            width:92%;
-        }
-        .div_img_barras{
-            margin:0;
-            padding:0;
-            border: solid 1px pink; 
-            border-radius: 5px; 
-        }
-        .talla_nombre{
-            font-family: "Righteous", sans-serif;
-            margin:0;
-            padding:0;
-            font-size: 70px;
-            padding-right:5px;
-            text-align: right;
-        }
-        .descripcion_span{
-            font-weight: bold;
-            font-family: "Roboto Condensed", sans-serif;
-            font-size: 12px;
-            text-align: start;
-        }
-      
-    </style>
+    }
+    .img_cod_barras{
+        height: 27px;
+        object-fit: contain;
+        padding:0;
+        margin:0;
+        width:92%;
+    }
+    .div_img_barras{
+        margin:0;
+        padding:0;
+        border: solid 1px pink; 
+        border-radius: 5px; 
+    }
+    .talla_nombre{
+        font-family: "Righteous", sans-serif;
+        margin:0;
+        padding:0;
+        font-size: 73px;
+        padding-right:5px;
+        text-align: right;
+    }
+    .descripcion_span{
+        font-weight: bold;
+        font-family: "Roboto Condensed", sans-serif;
+        font-size: 12px;
+        text-align: start;
+    }
+  
+</style>
 </head>
 <body>
     @php

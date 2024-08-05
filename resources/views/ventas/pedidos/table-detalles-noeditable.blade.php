@@ -16,9 +16,7 @@
         </tr>
       </thead>
       <tbody>
-        {{-- <tr>
-          <td colspan="{{count($tallas) + 4 }}" style="font-weight: bold;text-align:center;">NO HAY DETALLES</td>
-        </tr> --}}
+       
       </tbody>
      
         <tfoot>

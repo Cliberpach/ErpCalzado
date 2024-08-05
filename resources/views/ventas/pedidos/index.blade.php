@@ -790,7 +790,7 @@
 
                 Swal.fire({
                 title: `DESEA GENERAR UNA ${tipo_comprobante} PARA EL CLIENTE: ${cliente_pedido.nombre} CON DOCUMENTO ${cliente_pedido.tipo_documento}: ${cliente_pedido.documento}`,
-                text: "NO SE PODRÁ REVERTIR ESTA ACCIÓN!",
+                text: "Esta acción no genera despacho y es IRREVERSIBLE!",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",

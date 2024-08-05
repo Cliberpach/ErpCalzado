@@ -651,7 +651,7 @@ class PedidoController extends Controller
             $departamentos = departamentos();
         
             DB::commit();
-            return view('ventas.pedidos.atender',compact('atencion_detalle','empresas','clientes',
+            return view('ventas.pedidos.atender',compact('atencion_detalle','empresas','clientes','pedido_detalle',
                                                 'vendedor_actual','condiciones',
                                                 'modelos','tallas','pedido','tipoVentas','departamentos'));
         } catch (\Throwable $th) {
@@ -1099,6 +1099,7 @@ class PedidoController extends Controller
     }
 
     public function facturar(Request $request){
+
         DB::beginTransaction();
         try {
             //====== RECIBIENDO PEDIDO ID =====
@@ -1114,7 +1115,7 @@ class PedidoController extends Controller
                             where c.id = ?',[$pedido->cliente_id]);
             
             if(count($cliente) === 0 || count($cliente) > 1){
-                    throw new \Exception('NO SE ENCONTRÓ EL CLIENTE EN LA BASE DE DATOS');
+                throw new \Exception('NO SE ENCONTRÓ EL CLIENTE EN LA BASE DE DATOS');
             }
 
             $cliente_tipo_documento =   $cliente[0]->tipo_documento;
@@ -1182,7 +1183,7 @@ class PedidoController extends Controller
             
 
             //====== MANEJO DE RESPUESTA =========
-            $success_store_doc                =   $jsonResponse->success; 
+            $success_store_doc      =   $jsonResponse->success; 
             
             if($success_store_doc){
                 
@@ -1205,11 +1206,6 @@ class PedidoController extends Controller
 
                 DB::rollBack();
                 
-                // if(property_exists($jsonResponse, 'documento_id')){
-                //     DB::table('cotizacion_documento')
-                //     ->where('id', $jsonResponse->documento_id)
-                //     ->delete();
-                // }
             }
 
         } catch (\Throwable $th) {

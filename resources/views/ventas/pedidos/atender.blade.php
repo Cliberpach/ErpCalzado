@@ -4,6 +4,82 @@
 @section('pedidos-active', 'active')
 @include('ventas.documentos.modal-envio')
 
+
+<style>
+
+    .overlay_pedido {
+      position: fixed; /* Fija el overlay para que cubra todo el viewport */
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
+      z-index: 9999; /* Asegura que el overlay esté sobre todo */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 24px;
+      visibility:hidden;
+    }
+    
+    /*========== LOADER SPINNER =======*/
+    .loader_pedido {
+        position: relative;
+        width: 75px;
+        height: 100px;
+        background-repeat: no-repeat;
+        background-image: linear-gradient(#DDD 50px, transparent 0),
+                          linear-gradient(#DDD 50px, transparent 0),
+                          linear-gradient(#DDD 50px, transparent 0),
+                          linear-gradient(#DDD 50px, transparent 0),
+                          linear-gradient(#DDD 50px, transparent 0);
+        background-size: 8px 100%;
+        background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px;
+        animation: pillerPushUp 4s linear infinite;
+      }
+    .loader_pedido:after {
+        content: '';
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        width: 10px;
+        height: 10px;
+        background: #de3500;
+        border-radius: 50%;
+        animation: ballStepUp 4s linear infinite;
+      }
+    
+    @keyframes pillerPushUp {
+      0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
+      50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
+    }
+    
+    @keyframes ballStepUp {
+      0% {transform: translate(0, 0)}
+      5% {transform: translate(8px, -14px)}
+      10% {transform: translate(15px, -10px)}
+      17% {transform: translate(23px, -24px)}
+      20% {transform: translate(30px, -20px)}
+      27% {transform: translate(38px, -34px)}
+      30% {transform: translate(45px, -30px)}
+      37% {transform: translate(53px, -44px)}
+      40% {transform: translate(60px, -40px)}
+      50% {transform: translate(60px, 0)}
+      57% {transform: translate(53px, -14px)}
+      60% {transform: translate(45px, -10px)}
+      67% {transform: translate(37px, -24px)}
+      70% {transform: translate(30px, -20px)}
+      77% {transform: translate(22px, -34px)}
+      80% {transform: translate(15px, -30px)}
+      87% {transform: translate(7px, -44px)}
+      90% {transform: translate(0, -40px)}
+      100% {transform: translate(0, 0);}
+    }
+        
+        
+</style>
+
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
         <h2 style="text-transform:uppercase"><b>Atender Pedido</b></h2>
@@ -16,6 +92,10 @@
             </li>
         </ol>
     </div>
+</div>
+
+<div class="overlay_pedido">
+    <span class="loader_pedido"></span>
 </div>
 
 <div class="wrapper wrapper-content animated fadeInRight">
@@ -287,6 +367,30 @@
                                         "carrito" => "carrito"
                                     ])
                                 </div>
+                                <div class="panel-footer panel-primary">
+                                    <div class="table-responsive">
+                                        @include('ventas.pedidos.tables.table_montos_atender')
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="panel panel-success">
+                                <div class="panel-heading">
+                                    <div class="row justify-content-between">
+                                        <div class="col-lg-6 col-md-6">
+                                            <h4><b>Historial Atención</b></h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="table-responsive">
+                                        @include('ventas.pedidos.tables-historial.table-pedido-detalles')
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -382,8 +486,11 @@
     const data_send     =   [];
     let secureClosure   =   1;  //======= 1:DEVUELVE STOCKS_LOGICOS  2: NO DEVUELVE STOCKS_LOGICOS =======
 
+    let dataTableHistorialPedido    =   null;
+    let dataTableDetallePedido      =   null;
+
     document.addEventListener('DOMContentLoaded',async ()=>{
-        console.log(@json($pedido));
+        mostrarAnimacionPedido();
         loadSelect2();
         cargarProductosPrevios();
 
@@ -394,8 +501,10 @@
         await getTipoDocumento();
         const tipo_envio    =   $("#tipo_envio").select2('data')[0].text;
         await getEmpresasEnvio(tipo_envio);
+        pintarHistorialAtencionPedido();
         events();
         eventsModalEnvio();
+        ocultarAnimacionPedido();
     })
 
 
@@ -568,6 +677,42 @@
         }
 
         return message;
+    }
+
+    //======= LIMPIAR TABLA ======
+    function clearHistorialAtencionPedido(){
+        const tbody             =   document.querySelector('#table-pedido-detalles tbody');
+        while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
+        }
+    }
+
+    //======== MOSTRAR HISTORIAL ATENCIÓN PEDIDO =======
+    function pintarHistorialAtencionPedido(){
+        const pedido_detalles   =   @json($pedido_detalle);
+        const tbody             =   document.querySelector('#table-pedido-detalles tbody');
+
+        clearHistorialAtencionPedido();
+
+        if(dataTableHistorialPedido){
+            dataTableHistorialPedido.destroy();
+        }
+
+        let filas               =   ``;
+        pedido_detalles.forEach((pd)=>{
+            filas +=    `<tr>
+                            <th scope="row">${pd.producto_nombre}</th>
+                            <td>${pd.color_nombre}</td>
+                            <td>${pd.talla_nombre}</td>
+                            <td>${pd.cantidad}</td>
+                            <td>${pd.cantidad_atendida}</td>
+                            <td>${pd.cantidad_pendiente}</td>
+                        </tr>`;
+        })
+
+        tbody.innerHTML =   filas;
+
+        loadDataTableHistorialPedido();
     }
 
 
@@ -775,6 +920,10 @@
         const tallas            =   @json($tallas);
         clearTabla(bodyDetalleTable);
 
+        if(dataTableDetallePedido){
+            dataTableDetallePedido.destroy();
+        }
+
         carrito.forEach((c)=>{
             htmlTallas=``;
                 fila+= `<tr>   
@@ -824,11 +973,15 @@
                                 </td>
                             </tr>`;
 
-                fila+=htmlTallas;
-                bodyDetalleTable.innerHTML=fila;            
+                fila += htmlTallas;
         })
+
+        bodyDetalleTable.innerHTML=fila;            
+
+        loadDataTableDetallePedido();
     }
 
+  
     //=========== CARGAR PRODUCTOS PREVIOS =======
     const cargarProductosPrevios=()=>{
         const productosPrevios  =   @json($atencion_detalle);
@@ -1086,6 +1239,71 @@
                 })
             })
         }
+    }
+
+    function mostrarAnimacionPedido(){
+        document.querySelector('.overlay_pedido').style.visibility   =   'visible';
+    }
+
+    function ocultarAnimacionPedido(){
+        document.querySelector('.overlay_pedido').style.visibility   =   'hidden';
+    }
+
+    //======= INICIAR DATATABLE ======
+    function loadDataTableHistorialPedido(){
+        dataTableHistorialPedido =   new DataTable('#table-pedido-detalles',{
+            language: {
+                "sEmptyTable": "No hay datos disponibles en la tabla",
+                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                "sInfoEmpty": "Mostrando 0 a 0 de 0 entradas",
+                "sInfoFiltered": "(filtrado de _MAX_ entradas totales)",
+                "sInfoPostFix": "",
+                "sInfoThousands": ",",
+                "sLengthMenu": "Mostrar _MENU_ entradas",
+                "sLoadingRecords": "Cargando...",
+                "sProcessing": "Procesando...",
+                "sSearch": "Buscar:",
+                "sZeroRecords": "No se encontraron resultados",
+                "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast": "Último",
+                        "sNext": "Siguiente",
+                        "sPrevious": "Anterior"
+                },
+                "oAria": {
+                        "sSortAscending": ": activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": activar para ordenar la columna de manera descendente"
+                }
+            }
+        });
+    }
+
+    function loadDataTableDetallePedido(){
+        dataTableDetallePedido =   new DataTable('#table-detalle-atender',{
+            language: {
+                "sEmptyTable": "No hay datos disponibles en la tabla",
+                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                "sInfoEmpty": "Mostrando 0 a 0 de 0 entradas",
+                "sInfoFiltered": "(filtrado de _MAX_ entradas totales)",
+                "sInfoPostFix": "",
+                "sInfoThousands": ",",
+                "sLengthMenu": "Mostrar _MENU_ entradas",
+                "sLoadingRecords": "Cargando...",
+                "sProcessing": "Procesando...",
+                "sSearch": "Buscar:",
+                "sZeroRecords": "No se encontraron resultados",
+                "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast": "Último",
+                        "sNext": "Siguiente",
+                        "sPrevious": "Anterior"
+                },
+                "oAria": {
+                        "sSortAscending": ": activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": activar para ordenar la columna de manera descendente"
+                }
+            }
+        });
     }
 </script>
 @endpush

@@ -117,8 +117,8 @@ class ConfiguracionController extends Controller
     public function setGreenterModo(Request $request){
         DB::beginTransaction();
         try {
-            $modo   =   $request->get('modo');
-            $config =   Configuracion::where('slug', 'AG')->first();
+            $modo               =   $request->get('modo');
+            $config             =   Configuracion::where('slug', 'AG')->first();
             $config->propiedad  =   $modo;
             $config->update();
 

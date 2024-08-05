@@ -33,8 +33,8 @@
         .producto{
             font-family: "Bevan", serif;
             text-align: left;
-            font-size: 20px;
-            line-height: 10px;
+            font-size: 26px;
+            line-height: 14px;
         }
         p {
             margin: 0;
@@ -69,7 +69,7 @@
             font-family: "Righteous", sans-serif;
             margin:0;
             padding:0;
-            font-size: 70px;
+            font-size: 73px;
             padding-right:5px;
             text-align: right;
         }

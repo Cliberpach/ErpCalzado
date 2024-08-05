@@ -73,8 +73,8 @@ div.content-window.sk__loading::after {
                     <div class="row">
                         <div class="col-12 col-md-6">
                             <div class="row">
-                                <div class="col-12 col-md-6">
-                                    <div class="form-group">
+                                <div class="col-12 col-md-6 mb-2">
+                                    <div class="form-group m-0">
                                         <label class="required" for="tipo_documento">Tipo de documento</label>
                                         <select  required class="select2_form" name="tipo_documento" id="tipo_documento" onchange="controlNroDoc(this)">
                                             @foreach ($tipos_documento as $tipo_documento)
@@ -82,9 +82,10 @@ div.content-window.sk__loading::after {
                                             @endforeach
                                         </select>
                                     </div>
+                                    <span style="color:red;" class="error_mdl_client_tipo_documento"></span>
                                 </div>
-                                <div class="col-12 col-md-6">
-                                    <div class="form-group">
+                                <div class="col-12 col-md-6 mb-2">
+                                    <div class="form-group m-0">
                                         <label class="required" for="documento">Nro. Documento</label>
                                         <div class="input-group">
                                             <input type="text" id="documento" name="documento" class="form-control"
@@ -95,20 +96,20 @@ div.content-window.sk__loading::after {
                                             </button>
                                         </div>
                                     </div>
+                                    <span style="color:red;" class="error_mdl_client_documento"></span>
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-12 col-md-6">
-                                    <div class="form-group">
+                                <div class="col-12 col-md-6 mb-2">
+                                    <div class="form-group m-0">
                                         <label class="required" for="tipo_cliente">Tipo Cliente</label>
                                         <select class="select2_form" name="tipo_cliente_id" id="tipo_cliente_id" >
                                             @foreach ($tipo_clientes as $tipo_cliente)
                                                 <option value="{{$tipo_cliente->id}}">{{$tipo_cliente->simbolo}}</option>
                                             @endforeach
                                         </select>
-                                        {{-- <v-select v-model="tipo_cliente_id" :options="tipoClientes"
-                                            :reduce="tc=>tc.id" label="descripcion"></v-select> --}}
                                     </div>
+                                    <span style="color:red;" class="error_mdl_client_tipo_cliente_id"></span>
                                 </div>
                                 <input type="hidden" id="codigo_verificacion" name="codigo_verificacion">
                                 <div class="col-12 col-md-6">
@@ -116,7 +117,6 @@ div.content-window.sk__loading::after {
                                         <label class="" for="activo">Estado</label>
                                         <input type="text" id="activo" name="activo" value="SIN VERIFICAR"
                                             class="form-control text-center" readonly>
-
                                     </div>
                                 </div>
                             </div>
@@ -129,57 +129,56 @@ div.content-window.sk__loading::after {
 
                                     </div>
                                 </div>
-                                <div class="col-12">
-                                    <div class="form-group">
+                                <div class="col-12 mb-2">
+                                    <div class="form-group m-0">
                                         <label for="direccion" class="required">Dirección Fiscal</label>
                                         <input type="text" id="direccion" name="direccion" class="form-control"
-                                            maxlength="191" onkeyup="return mayus(this)" required
-                                            v-model="formCliente.direccion">
-
+                                            maxlength="191" onkeyup="return mayus(this)" required>
                                     </div>
+                                    <span style="color:red;" class="error_mdl_client_direccion"></span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-12 col-md-6">
                             <div class="row">
-                                <div class="col-12 col-md-6">
-                                    <div class="form-group">
+                                <div class="col-12 col-md-6 mb-2">
+                                    <div class="form-group m-0">
                                         <label class="required" for="departamento">Departamento</label>
                                         <select required class="select2_form" name="departamento" id="departamento" onchange="setUbicacionDepartamento(this.value,'first')">
                                             @foreach ($departamentos as $departamento)
                                                 <option @if ($departamento->id == 13) selected @endif value="{{$departamento->id}}">{{$departamento->nombre}}</option>
                                             @endforeach
                                         </select>
-                                        {{-- <v-select v-model="departamento" :options="Departamentos" :reduce="d=>d"
-                                            label="nombre"></v-select> --}}
                                     </div>
+                                    <span style="color:red;" class="error_mdl_client_departamento"></span>
                                 </div>
-                                <div class="col-12 col-md-6">
-                                    <div class="form-group">
+                                <div class="col-12 col-md-6 mb-2">
+                                    <div class="form-group m-0">
                                         <label class="required" for="provincia">Provincia</label>
                                         <select required class="select2_form" name="provincia" id="provincia" onchange="setUbicacionProvincia(this.value,'first')" >
                                            
                                         </select>
-                                        {{-- <v-select v-model="provincia" :options="Provincias" :reduce="p=>p"
-                                            label="text"></v-select> --}}
                                     </div>
+                                    <span style="color:red;" class="error_mdl_client_provincia"></span>
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-12 col-md-6">
-                                    <div class="form-group">
+                                <div class="col-12 col-md-6 mb-2">
+                                    <div class="form-group m-0">
                                         <label class="required" for="distrito">Distrito</label>
                                         <select required class="select2_form" name="distrito" id="distrito">
                                            
                                         </select>
                                     </div>
+                                    <span style="color:red;" class="error_mdl_client_distrito"></span>
                                 </div>
-                                <div class="col-12 col-md-6">
-                                    <div class="form-group">
+                                <div class="col-12 col-md-6 mb-2">
+                                    <div class="form-group m-0">
                                         <label class="required" for="zona">Zona</label>
                                         <input type="text" id="zona" name="zona" 
                                             class=" text-center form-control" readonly>
                                     </div>
+                                    <span style="color:red;" class="error_mdl_client_zona"></span>
                                 </div>
                             </div>
                             <div class="row">
@@ -192,13 +191,13 @@ div.content-window.sk__loading::after {
 
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-6">
-                                    <div class="form-group">
+                                <div class="col-12 col-md-6 mb-2">
+                                    <div class="form-group m-0">
                                         <label for="telefono_fijo">Teléfono fijo</label>
                                         <input type="text" id="telefono_fijo" name="telefono_fijo"
-                                            class="form-control" onkeypress="return isNroPhone(event)" maxlength="9"
-                                            v-model="formCliente.telefono_fijo">
+                                            class="form-control" onkeypress="return isNroPhone(event)" maxlength="9">
                                     </div>
+                                    <span style="color:red;" class="error_mdl_client_telefono_movil"></span>
                                 </div>
                                 <div class="col-12">
                                     <div class="form-group">
@@ -607,15 +606,32 @@ div.content-window.sk__loading::after {
                     $("#modal_cliente").modal("hide");
                 
                 }else{
+                  
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
 
             } catch (ex) {
+                if('errors' in ex.response.data){
+                    //======= PINTAR ERRORES DE VALIDACIÓN =======
+                    pintarErrores(ex.response.data.errors);
+                     return;
+                }
                 toastr.error(ex,'ERROR EN LA PETICIÓN REGISTRAR CLIENTE');
             }finally{
                 const overlay = document.getElementById('overlay_save');
                 overlay.style.display = 'none'; 
             }
+    }
+
+    //======== PINTAR ERRORES DE VALIDACIÓN ======
+    function pintarErrores(msgErrors){
+        for (let key in msgErrors) {
+            if (msgErrors.hasOwnProperty(key)) {
+                const propiedad =   msgErrors[key];
+                const message   =   propiedad[0];
+                document.querySelector(`.error_mdl_client_${key}`).textContent    =   message;
+            }
+        }
     }
 
     const updateSelectClientes = (clienteNuevo) => {

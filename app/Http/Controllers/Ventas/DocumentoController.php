@@ -1854,9 +1854,8 @@ class DocumentoController extends Controller
            
             
             //======== GUARDANDO DATA DE ENVIO =========
-            //======= CONTROL PARA EVITAR QUE SE GENERE DATA ENVIO AL EDITAR O CONVERTIR DOC VENTA ==========
-            if($request->has('data_envio')){
-
+            //======= CONTROL PARA EVITAR QUE SE GENERE DATA ENVIO AL EDITAR O CONVERTIR DOC VENTA O FACTURAR PEDIDO ==========
+            if($request->has('data_envio') && !$request->has('facturar')){
 
                 $data_envio     =   json_decode($request->get('data_envio'));
            
