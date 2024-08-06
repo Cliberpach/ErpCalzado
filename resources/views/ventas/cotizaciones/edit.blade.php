@@ -1088,14 +1088,20 @@
         //====== LLENAR =======
 
         if(producto_color_tallas){
-            const option_1 = new Option(producto_color_tallas.precio_venta_1, 'precio_venta_1', false, false);
-            $('#precio_venta').append(option_1);
+            if(producto_color_tallas.precio_venta_1 != null){
+                const option_1 = new Option(producto_color_tallas.precio_venta_1, 'precio_venta_1', false, false);
+                $('#precio_venta').append(option_1);
+            }
 
-            const option_2 = new Option(producto_color_tallas.precio_venta_2, 'precio_venta_2', false, false);
-            $('#precio_venta').append(option_2);
-
-            const option_3 = new Option(producto_color_tallas.precio_venta_3, 'precio_venta_3', false, false);
-            $('#precio_venta').append(option_3);
+            if(producto_color_tallas.precio_venta_2 != null){
+                const option_2 = new Option(producto_color_tallas.precio_venta_2, 'precio_venta_2', false, false);
+                $('#precio_venta').append(option_2);
+            }
+           
+            if(producto_color_tallas.precio_venta_3 != null){
+                const option_3 = new Option(producto_color_tallas.precio_venta_3, 'precio_venta_3', false, false);
+                $('#precio_venta').append(option_3);
+            }
         }
        
         // Refrescar Select2
