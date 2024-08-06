@@ -79,14 +79,13 @@ class CotizacionController extends Controller
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();
 
-        $empresas           = Empresa::where('estado', 'ACTIVO')->get();
-        $clientes           = Cliente::where('estado', 'ACTIVO')->get();
-        $fecha_hoy          = Carbon::now()->toDateString();
-        $condiciones        = Condicion::where('estado','ACTIVO')->get();
-        //$lotes              = Producto::where('estado','ACTIVO')->get();
-        $modelos            = Modelo::where('estado','ACTIVO')->get();
-        $tallas             = Talla::where('estado','ACTIVO')->get();
-        
+        $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
+        $clientes           =   Cliente::where('estado', 'ACTIVO')->get();
+        $fecha_hoy          =   Carbon::now()->toDateString();
+        $condiciones        =   Condicion::where('estado','ACTIVO')->get();
+        $modelos            =   Modelo::where('estado','ACTIVO')->get();
+        $tallas             =   Talla::where('estado','ACTIVO')->get();
+       
         $vendedor_actual    =   DB::select('select c.id from user_persona as up
                                 inner join colaboradores  as c
                                 on c.persona_id=up.persona_id
@@ -724,4 +723,141 @@ class CotizacionController extends Controller
         }
     
     }
+
+    public function getProductosByModelo($modelo_id){
+        try {
+            $productos  =   DB::select('select p.id,p.nombre 
+                            from productos as p
+                            where p.modelo_id = ? and p.estado = "ACTIVO"',[$modelo_id]);
+
+            return response()->json(['success' => true,'productos'=>$productos]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
+    public function getColoresTallas($producto_id){
+       
+        try {
+            $precios_venta  =   DB::select('SELECT 
+                                p.id AS producto_id,
+                                p.nombre AS producto_nombre,
+                                p.precio_venta_1,
+                                p.precio_venta_2,
+                                p.precio_venta_3
+                                FROM 
+                                    productos AS p 
+                                WHERE 
+                                    p.id = ? AND p.estado = "ACTIVO" ',[$producto_id]);  
+
+           
+            $colores =  DB::select('SELECT 
+                                    p.id AS producto_id,
+                                    p.nombre AS producto_nombre,
+                                    c.id AS color_id,
+                                    c.descripcion AS color_nombre
+                                FROM 
+                                    producto_colores AS pc 
+                                    inner join productos as p on p.id = pc.producto_id
+                                    inner join colores as c on c.id = pc.color_id
+                                WHERE 
+                                    pc.producto_id = ? 
+                                    AND p.estado = "ACTIVO" and c.estado = "ACTIVO" ',[$producto_id]);
+
+            $stocks =   DB::select('select  pct.producto_id,pct.color_id,pct.talla_id,
+                        pct.stock,pct.stock_logico, t.descripcion as talla_nombre
+                        from producto_color_tallas as pct
+                        inner join productos as p on p.id = pct.producto_id
+                        inner join colores as c on c.id = pct.color_id 
+                        inner join tallas as t on t.id = pct.talla_id
+                        where p.estado = "ACTIVO" and c.estado = "ACTIVO" and t.estado = "ACTIVO"
+                        and p.id = ?',[$producto_id]);
+
+            $tallas =   Talla::where('estado','ACTIVO')->orderBy('id')->get();   
+
+            $producto_color_tallas  =   null;
+            if(count($colores) > 0){
+                $producto_color_tallas  =   $this->formatearColoresTallas($colores,$stocks,$precios_venta,$tallas);
+            }
+
+          
+            
+            return response()->json(['success' => true,'producto_color_tallas'=>$producto_color_tallas]);
+        } catch (\Throwable $th) {
+    
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
+    public function formatearColoresTallas($colores, $stocks, $precios_venta, $tallas)
+    {
+        $producto = [];
+
+        // Verifica si $colores no está vacío
+        if (count($colores) > 0) {
+            $producto['id'] = $colores[0]->producto_id;
+            $producto['nombre'] = $colores[0]->producto_nombre;
+        } else {
+            // Maneja el caso cuando $colores está vacío
+            $producto['id'] = null;
+            $producto['nombre'] = null;
+        }
+
+        // Verifica si $precios_venta no está vacío
+        if (count($precios_venta) > 0) {
+            $producto['precio_venta_1'] = $precios_venta[0]->precio_venta_1;
+            $producto['precio_venta_2'] = $precios_venta[0]->precio_venta_2;
+            $producto['precio_venta_3'] = $precios_venta[0]->precio_venta_3;
+        } else {
+            // Maneja el caso cuando $precios_venta está vacío
+            $producto['precio_venta_1'] = null;
+            $producto['precio_venta_2'] = null;
+            $producto['precio_venta_3'] = null;
+        }
+
+        $lstColores = [];
+
+        //======== RECORRIENDO COLORES =======
+        foreach ($colores as $color) {
+            $item_color = [];
+            $item_color['id'] = $color->color_id;
+            $item_color['nombre'] = $color->color_nombre;
+
+            //======== OBTENIENDO TALLAS DEL COLOR =======
+            $lstTallas = [];
+
+            foreach ($tallas as $talla) {
+                $item_talla = [];
+                $item_talla['id'] = $talla->id;
+                $item_talla['nombre'] = $talla->descripcion;
+
+                // Filtrar stocks para color y talla actuales
+                $stock_filtrado = array_filter($stocks, function ($stock) use ($producto, $color, $talla) {
+                    return $stock->producto_id == $producto['id'] &&
+                        $stock->color_id == $color->color_id &&
+                        $stock->talla_id == $talla->id;
+                });
+
+                // Asignar stock y stock lógico si existe, o establecer en 0
+                if (!empty($stock_filtrado)) {
+                    $first_stock = reset($stock_filtrado); // Obtiene el primer elemento del array filtrado
+                    $item_talla['stock'] = $first_stock->stock;
+                    $item_talla['stock_logico'] = $first_stock->stock_logico;
+                } else {
+                    $item_talla['stock'] = 0;
+                    $item_talla['stock_logico'] = 0;
+                }
+
+                $lstTallas[] = $item_talla;
+            }
+
+            $item_color['tallas'] = $lstTallas;
+            $lstColores[] = $item_color;
+        }
+
+        $producto['colores'] = $lstColores;
+
+        return $producto;
+    }
+
 }

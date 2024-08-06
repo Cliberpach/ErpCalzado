@@ -423,6 +423,8 @@ function(){
         Route::get('documento/{id}','Ventas\CotizacionController@document')->name('ventas.cotizacion.documento');
 
         Route::post('pedido/','Ventas\CotizacionController@generarPedido')->name('ventas.cotizacion.pedido');
+        Route::get('/getProductosByModelo/{modelo_id}', 'Ventas\CotizacionController@getProductosByModelo')->name('ventas.cotizacion.getProductosByModelo');
+        Route::get('/getColoresTallas/{producto_id}', 'Ventas\CotizacionController@getColoresTallas')->name('ventas.cotizacion.getColoresTallas');
 
         Route::get('nuevodocumento/{id}','Ventas\CotizacionController@newdocument')->name('ventas.cotizacion.nuevodocumento');
     });

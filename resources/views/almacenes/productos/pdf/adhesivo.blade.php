@@ -33,8 +33,8 @@
     .producto{
         font-family: "Bevan", serif;
         text-align: left;
-        font-size: 26px;
-        line-height: 14px;
+        font-size: 32px;
+        line-height: 20px;
     }
     p {
         margin: 0;
@@ -69,7 +69,7 @@
         font-family: "Righteous", sans-serif;
         margin:0;
         padding:0;
-        font-size: 73px;
+        font-size: 80px;
         padding-right:5px;
         text-align: right;
     }
@@ -106,12 +106,12 @@
             <table>
                 <tr>
                     <td width="55%">
-                        <div style="padding:5px;vertical-align: middle;">
+                        
                             <div>
                                 <span class="descripcion_span">TIPO: </span>
                                 <p class="producto" >{{$producto->categoria_nombre}}</p>
                             </div>
-                            <div>
+                            <div style="margin:26px 0;">
                                 <span class="descripcion_span">MODELO: </span>
                                 <p class="producto" >{{$producto->modelo_nombre}}</p>
                             </div>
@@ -119,7 +119,7 @@
                                 <span class="descripcion_span">COLOR: </span>
                                 <p class="producto" >{{$producto->color_nombre}}</p>
                             </div>
-                        </div>
+                       
                         
                         {{-- <table>
                             <tr>
@@ -174,12 +174,12 @@
             <table>
                 <tr>
                     <td width="55%">
-                        <div style="padding:5px;vertical-align: middle;">
+                        
                             <div>
                                 <span class="descripcion_span">TIPO: </span>
                                 <p class="producto" >{{$producto->categoria_nombre}}</p>
                             </div>
-                            <div>
+                            <div style="margin:26px 0;">
                                 <span class="descripcion_span">MODELO: </span>
                                 <p class="producto" >{{$producto->modelo_nombre}}</p>
                             </div>
@@ -187,7 +187,7 @@
                                 <span class="descripcion_span">COLOR: </span>
                                 <p class="producto" >{{$producto->color_nombre}}</p>
                             </div>
-                        </div>
+                       
                         
                         {{-- <table>
                             <tr>

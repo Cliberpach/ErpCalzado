@@ -293,8 +293,8 @@
                                     <div class="row">
                                         <div class="col-lg-12">
                                             <div class="form-group row">
-                                                <div class="col-lg-3 col-xs-12">
-                                                    <label class="required">Modelo</label>
+                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                                                    <label class="required" style="font-weight: bold;">MODELO</label>
                                                     <select id="modelo"
                                                         class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
                                                         onchange="getProductosByModelo(this)" >
@@ -305,8 +305,19 @@
                                                                 {{ $modelo->descripcion }}</option>
                                                         @endforeach
                                                     </select>
-                                                    <div class="invalid-feedback"><b><span
-                                                                id="error-producto"></span></b></div>
+                                                </div>
+                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                                                    <label class="required" style="font-weight: bold;">PRODUCTO</label>
+                                                    <select id="producto"
+                                                        class="select2_form form-control {{ $errors->has('producto') ? ' is-invalid' : '' }}"
+                                                        onchange="getColoresTallas()" >
+                                                        <option value=""></option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                                                    <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
+                                                    <select id="precio_venta" class="select2_form form-control">
+                                                    </select>
                                                 </div>
                                             </div>
 
@@ -562,7 +573,20 @@
 
         //======= AGREGAR PRODUCTO AL DETALLE ======
         btnAgregarDetalle.addEventListener('click',()=>{
-            
+
+            if(!$('#modelo').val()){
+                toastr.error('DEBE SELECCIONAR UN MODELO','OPERACIÓN INCORRECTA');
+                return;
+            }
+            if(!$('#producto').val()){
+                toastr.error('DEBE SELECCIONAR UN PRODUCTO','OPERACIÓN INCORRECTA');
+                return;
+            }
+            if(!$('#precio_venta').val()){
+                toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA','OPERACIÓN INCORRECTA');
+                return;
+            }
+          
             const inputsCantidad = document.querySelectorAll('.inputCantidad');
             
             for (const ic of inputsCantidad) {
@@ -863,7 +887,7 @@
         const color_nombre          = ic.getAttribute('data-color-nombre');
         const talla_id              = ic.getAttribute('data-talla-id');
         const talla_nombre          = ic.getAttribute('data-talla-nombre');
-        const precio_venta          = document.querySelector(`#precio-venta-${producto_id}`).value;
+        const precio_venta          = $('#precio_venta').find('option:selected').text();
         const cantidad              = ic.value?ic.value:0;
         const subtotal              = 0;
         const subtotal_nuevo        = 0;
@@ -939,13 +963,16 @@
     }
 
     function mostrarAnimacionCotizacion(){
+      
         document.querySelector('.overlay_cotizacion_create').style.visibility   =   'visible';
     }
 
     function ocultarAnimacionCotizacion(){
+       
         document.querySelector('.overlay_cotizacion_create').style.visibility   =   'hidden';
     }
 
+    //======== OBTENER PRODUCTOS POR MODELO ========
     async function  getProductosByModelo(e){
         mostrarAnimacionCotizacion();
         limpiarTableStocks();
@@ -953,24 +980,13 @@
         btnAgregarDetalle.disabled  =   true;
         
         if(modelo_id){
-
             try {
-                const url   =   `/get-producto-by-modelo/${modelo_id}`;
-                const res   =   await fetch(url, {
-                                    method: 'GET',
-                                    headers: {
-                                        'X-CSRF-TOKEN': tokenValue,
-                                        'Content-Type': 'application/json',
-                                        'Accept': 'application/json',
-                                    },
-                                });
-
-                const data  =   await res.json();
-                
-                if(data.message){
-                    pintarTableStocks(data.stocks,tallas,data.producto_colores);
-                    loadCarrito();
-                    toastr.success('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
+                const res   =   await axios.get(route('ventas.cotizacion.getProductosByModelo',{modelo_id}));
+                if(res.data.success){
+                    pintarSelectProductos(res.data.productos);
+                    toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
                 toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
@@ -983,66 +999,117 @@
         }
     }
 
+    //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
+    async function getColoresTallas(){
+        mostrarAnimacionCotizacion();
+        const producto_id   =   $('#producto').val();
+        if(producto_id){
+            try {
+                const res   =   await   axios.get(route('ventas.cotizacion.getColoresTallas',{producto_id}));
+                if(res.data.success){
+                    pintarTableStocks(res.data.producto_color_tallas);
+                    pintarPreciosVenta(res.data.producto_color_tallas);
+                    loadCarrito();
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
+            }finally{
+                ocultarAnimacionCotizacion();
+            }
+        }else{
+            limpiarTableStocks();
+            limpiarSelectPreciosVenta();
+            ocultarAnimacionCotizacion();
+        }
+    }
+
+    function limpiarSelectPreciosVenta(){
+        $('#precio_venta').empty();
+        $('#precio_venta').trigger('change');
+
+    }
+
+    //======= PINTAR PRECIOS VENTA =======
+    function pintarPreciosVenta(producto_color_tallas){
+        //======= LIMPIAR SELECT2 DE PRODUCTOS ======
+        $('#precio_venta').empty();
+
+        //====== LLENAR =======
+
+        if(producto_color_tallas){
+            const option_1 = new Option(producto_color_tallas.precio_venta_1, 'precio_venta_1', false, false);
+            $('#precio_venta').append(option_1);
+
+            const option_2 = new Option(producto_color_tallas.precio_venta_2, 'precio_venta_2', false, false);
+            $('#precio_venta').append(option_2);
+
+            const option_3 = new Option(producto_color_tallas.precio_venta_3, 'precio_venta_3', false, false);
+            $('#precio_venta').append(option_3);
+        }
+       
+        // Refrescar Select2
+        $('#precio_venta').trigger('change');
+    }
+
+    //======== PINTAR SELECT PRODUCTOS =======
+    function pintarSelectProductos(productos){
+        //======= LIMPIAR SELECT2 DE PRODUCTOS ======
+        $('#producto').empty();
+
+        //====== LLENAR =======
+        productos.forEach((producto) => {
+            const option = new Option(producto.nombre, producto.id, false, false);
+            $('#producto').append(option);
+        });
+
+        // Refrescar Select2
+        $('#producto').val(null);
+        $('#producto').trigger('change');
+    }
+
     function limpiarTableStocks(){
         while (tableStocksBody.firstChild) {
             tableStocksBody.removeChild(tableStocksBody.firstChild);
         }
     }
 
-    const pintarTableStocks = (stocks,tallas,producto_colores)=>{
-        let options =``;
+    const pintarTableStocks = (producto)=>{
+        let filas = ``;
 
         if(dataTableStocksCotizacion){
             dataTableStocksCotizacion.destroy();
         }
 
-        producto_colores.forEach((pc)=>{
-            options+=`  <tr>
-                            <th scope="row" data-producto=${pc.producto_id} data-color=${pc.color_id} >
-                                <div style="width:200px;">${pc.producto_nombre}</div>
+        producto.colores.forEach((color)=>{
+            filas   +=  `  <tr>
+                            <th scope="row" data-producto=${producto.id} data-color=${color.id} >
+                                <div style="width:200px;">${producto.nombre}</div>
                             </th>
-                            <th scope="row">${pc.color_nombre}</th>
+                            <th scope="row">${color.nombre}</th>
                         `;
 
-            let htmlTallas = ``;
-
-            tallas.forEach((t)=>{
-                const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id)[0]?.stock || 0;
-
-                htmlTallas +=   `
-                                    <td style="background-color: rgb(210, 242, 242);">
-                                        <p style="margin:0;width:20px;text-align:center;${stock != 0?'font-weight:bold':''};">${stock}</p>
-                                    </td>
-                                    <td width="8%">
-                                        <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
-                                        id="inputCantidad_${pc.producto_id}_${pc.color_id}_${t.id}" 
-                                        data-producto-id="${pc.producto_id}"
-                                        data-producto-nombre="${pc.producto_nombre}"
-                                        data-color-nombre="${pc.color_nombre}"
-                                        data-talla-nombre="${t.descripcion}"
-                                        data-color-id="${pc.color_id}" data-talla-id="${t.id}"></input>    
-                                    </td>
-                                `;   
+            color.tallas.forEach((talla)=>{
+                filas   +=  `<td style="background-color: rgb(210, 242, 242);">
+                                        <p style="margin:0;width:20px;text-align:center;${talla.stock != 0?'font-weight:bold':''};">${talla.stock}</p>
+                            </td>
+                            <td width="8%">
+                                <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
+                                id="inputCantidad_${producto.id}_${color.id}_${talla.id}" 
+                                data-producto-id="${producto.id}"
+                                data-producto-nombre="${producto.nombre}"
+                                data-color-nombre="${color.nombre}"
+                                data-talla-nombre="${talla.nombre}"
+                                data-color-id="${color.id}" data-talla-id="${talla.id}"></input>    
+                            </td>`;
             })
 
-            if(pc.printPreciosVenta){
-                htmlTallas+=`
-                    <td>
-                        <select style="width:100px;" class="select2_form form-control" id="precio-venta-${pc.producto_id}">
-                            <option>${pc.precio_venta_1}</option>    
-                            <option>${pc.precio_venta_2}</option>    
-                            <option>${pc.precio_venta_3}</option>    
-                        </select>
-                    </td>`;
-            }else{
-                htmlTallas+=`<td></td>`;
-            }
-
-            htmlTallas += `</tr>`;
-            options += htmlTallas;
+            filas   +=  `</tr>`;
+           
         })
 
-        tableStocksBody.innerHTML = options;
+        tableStocksBody.innerHTML = filas;
         loadDataTableStocksCotizacion();
         btnAgregarDetalle.disabled = false;
 
@@ -1051,17 +1118,32 @@
 
     //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
     function loadCarrito(){
-        carrito.forEach((c)=>{
-            const inputLoad = document.querySelector(`#inputCantidad_${c.producto_id}_${c.color_id}_${c.talla_id}`);
-            if(inputLoad){
-                inputLoad.value = c.cantidad;
-            }
 
-            //==== ubicando precios venta seleccionados ======
-            const selectPrecioVenta =   document.querySelector(`#precio-venta-${c.producto_id}`);
-            if(selectPrecioVenta){
-                selectPrecioVenta.value =   c.precio_venta.toString();
-            }
+        carrito.forEach((c)=>{
+
+            c.tallas.forEach((talla)=>{
+                let llave   =   `#inputCantidad_${c.producto_id}_${c.color_id}_${talla.talla_id}`;   
+                const inputLoad = document.querySelector(llave);
+            
+                if(inputLoad){
+                    inputLoad.value = talla.cantidad;
+                }
+            })
+        
+
+            let targetValue;
+            //==== UBICANDO PRECIO VENTA SELECCIONADO ======
+            $('#precio_venta option').each(function() {
+                if ($(this).text() == c.precio_venta.toString()) {
+                targetValue = $(this).val(); 
+                return false;
+                }
+            });
+            
+            if (targetValue) {
+                $('#precio_venta').val(targetValue).trigger('change'); 
+            } 
+
         }) 
     }
 
