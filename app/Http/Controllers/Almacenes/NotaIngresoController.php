@@ -647,7 +647,7 @@ class NotaIngresoController extends Controller
           
             
             $width_in_points    = 300 * 72 / 25.4;  // Ancho en puntos 5cm = 50 mm
-            $height_in_points   = 150 * 72 / 25.4; // Alto en puntos
+            $height_in_points   = 170 * 72 / 25.4; // Alto en puntos
                                 
             // Establecer el tamaño del papel
             $custom_paper = array(0, 0, $width_in_points, $height_in_points);

@@ -53,7 +53,7 @@
 
     }
     .img_cod_barras{
-        height: 60px;
+        height: 100px;
         object-fit: contain;
         padding:0;
         margin:0;
@@ -69,7 +69,7 @@
         font-family: "Righteous", sans-serif;
         margin:0;
         padding:0;
-        font-size: 140px;
+        font-size: 240px;
         padding-right:5px;
         text-align: right;
     }
