@@ -1035,12 +1035,12 @@
                     pintarSelectProductos(res.data.productos);
                     toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
                 }else{
+                    ocultarAnimacionCotizacion();
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
-                toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
-            }finally{
                 ocultarAnimacionCotizacion();
+                toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
             }
                 
         }else{
@@ -1112,7 +1112,11 @@
     function pintarSelectProductos(productos){
         //======= LIMPIAR SELECT2 DE PRODUCTOS ======
         $('#producto').empty();
-
+    
+        if(productos.length === 0){
+            ocultarAnimacionCotizacion();
+        }
+        
         //====== LLENAR =======
         productos.forEach((producto) => {
             const option = new Option(producto.nombre, producto.id, false, false);
@@ -1274,6 +1278,10 @@
     }
 
     function limpiarTableStocks(){
+        if(dataTableStocksCotizacion){
+            dataTableStocksCotizacion.destroy();
+            dataTableStocksCotizacion   =   null;
+        }
         while (tableStocksBody.firstChild) {
             tableStocksBody.removeChild(tableStocksBody.firstChild);
         }

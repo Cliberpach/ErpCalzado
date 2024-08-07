@@ -986,6 +986,7 @@
                     pintarSelectProductos(res.data.productos);
                     toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
                 }else{
+                    ocultarAnimacionCotizacion();
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
@@ -1081,7 +1082,10 @@
     }
 
     function limpiarTableStocks(){
-      
+        if(dataTableStocksCotizacion){
+            dataTableStocksCotizacion.destroy();
+            dataTableStocksCotizacion   =   null;
+        }
         while (tableStocksBody.firstChild) {
             tableStocksBody.removeChild(tableStocksBody.firstChild);
         }
