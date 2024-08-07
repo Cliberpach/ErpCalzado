@@ -33,8 +33,8 @@
         .producto{
             font-family: "Bevan", serif;
             text-align: left;
-            font-size: 45px;
-            line-height: 24px;
+            font-size: 65px;
+            line-height: 35px;
         }
         p {
             margin: 0;
@@ -69,14 +69,14 @@
             font-family: "Righteous", sans-serif;
             margin:0;
             padding:0;
-            font-size: 95px;
+            font-size: 105px;
             padding-right:5px;
             text-align: right;
         }
         .descripcion_span{
             font-weight: bold;
             font-family: "Roboto Condensed", sans-serif;
-            font-size: 12px;
+            font-size: 17px;
             text-align: start;
         }
       
@@ -103,7 +103,7 @@
                                     <span class="descripcion_span">TIPO: </span>
                                     <p class="producto" >{{$producto->categoria_nombre}}</p>
                                 </div>
-                                <div style="margin:15px 0;">
+                                <div style="margin:10px 0;">
                                     <span class="descripcion_span">MODELO: </span>
                                     <p class="producto" >{{$producto->modelo_nombre}}</p>
                                 </div>
