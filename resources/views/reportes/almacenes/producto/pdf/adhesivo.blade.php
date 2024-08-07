@@ -103,7 +103,7 @@
                                     <span class="descripcion_span">TIPO: </span>
                                     <p class="producto" >{{$producto->categoria_nombre}}</p>
                                 </div>
-                                <div style="margin:26px 0;">
+                                <div style="margin:15px 0;">
                                     <span class="descripcion_span">MODELO: </span>
                                     <p class="producto" >{{$producto->modelo_nombre}}</p>
                                 </div>

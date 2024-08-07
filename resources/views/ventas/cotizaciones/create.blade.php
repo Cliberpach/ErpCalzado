@@ -989,9 +989,8 @@
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
-                toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
-            }finally{
                 ocultarAnimacionCotizacion();
+                toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
             }
                
         }else{
@@ -1066,6 +1065,10 @@
         //======= LIMPIAR SELECT2 DE PRODUCTOS ======
         $('#producto').empty();
 
+        if(productos.length === 0){
+            ocultarAnimacionCotizacion();
+        }
+
         //====== LLENAR =======
         productos.forEach((producto) => {
             const option = new Option(producto.nombre, producto.id, false, false);
@@ -1073,14 +1076,16 @@
         });
 
         // Refrescar Select2
-        $('#producto').val(null);
+        //$('#producto').val(null);
         $('#producto').trigger('change');
     }
 
     function limpiarTableStocks(){
+      
         while (tableStocksBody.firstChild) {
             tableStocksBody.removeChild(tableStocksBody.firstChild);
         }
+       
     }
 
     const pintarTableStocks = (producto)=>{
