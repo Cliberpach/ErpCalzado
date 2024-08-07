@@ -400,7 +400,7 @@ class ProductoController extends Controller
 
             $empresa        =   Empresa::first();
           
-            $width_in_points    = 200 * 72 / 25.4;  // 5 cm = 50 mm
+            $width_in_points    = 300 * 72 / 25.4;  // 5 cm = 50 mm
             $height_in_points   = 120 * 72 / 25.4; 
                                 
             // Establecer el tamaño del papel

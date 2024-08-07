@@ -646,7 +646,7 @@ class NotaIngresoController extends Controller
             $empresa        =   Empresa::first();
           
             
-            $width_in_points    = 200 * 72 / 25.4;  // Ancho en puntos 5cm = 50 mm
+            $width_in_points    = 300 * 72 / 25.4;  // Ancho en puntos 5cm = 50 mm
             $height_in_points   = 120 * 72 / 25.4; // Alto en puntos
                                 
             // Establecer el tamaño del papel
