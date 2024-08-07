@@ -33,8 +33,8 @@
     .producto{
         font-family: "Bevan", serif;
         text-align: left;
-        font-size: 32px;
-        line-height: 20px;
+        font-size: 45px;
+        line-height: 24px;
     }
     p {
         margin: 0;
@@ -57,7 +57,7 @@
         object-fit: contain;
         padding:0;
         margin:0;
-        width:92%;
+        width:95%;
     }
     .div_img_barras{
         margin:0;
@@ -69,7 +69,7 @@
         font-family: "Righteous", sans-serif;
         margin:0;
         padding:0;
-        font-size: 80px;
+        font-size: 95px;
         padding-right:5px;
         text-align: right;
     }
