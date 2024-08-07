@@ -16,6 +16,8 @@ use App\Almacenes\TipoCliente;
 use App\Exports\Producto\CodigoBarra;
 use App\Exports\Producto\ProductosExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Almacen\Producto\ProductoStoreRequest;
+use App\Http\Requests\Almacen\Producto\ProductoUpdateRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
@@ -84,67 +86,15 @@ class ProductoController extends Controller
         return view('almacenes.productos.create', compact('marcas', 'categorias','almacenes','modelos','colores','tallas'));
     }
 
-    public function store(Request $request)
+    public function store(ProductoStoreRequest $request)
     {
      
         $this->authorize('haveaccess','producto.index');
         $data = $request->all();
-        $rules = [
-            // 'codigo' => ['string', 'max:50', Rule::unique('productos','codigo')->where(function ($query) {
-            //     $query->whereIn('estado',["ACTIVO"]);
-            // })],
-            'codigo_barra' => ['nullable',Rule::unique('productos','codigo_barra')->where(function ($query) {
-                $query->whereIn('estado',["ACTIVO"]);
-            }),'min:4','max:20'],
-            'nombre'    => 'required',
-            'marca'     => 'required',
-            'categoria' => 'required',
-            'almacen'   => 'required',
-            'modelo'    => 'required',
-            'medida'    => 'required',
-            'precio1'   => 'required',
-            'precio2'   => 'required',
-            'precio3'   => 'required',
-            //'costo'=>['required','numeric'
-            //,'min:0'],
-            // 'stock_minimo' => 'required|numeric',
-            // 'precio_venta_minimo' => 'numeric|nullable',
-            // 'precio_venta_maximo' => 'numeric|nullable',
-            // 'igv' => 'required|boolean',
-        ];
+      
+        DB::beginTransaction();
 
-        $message = [
-            'codigo_barra.unique' => 'El campo Código de Barra debe de ser único.',
-            'codigo_barra.min' => 'El campo Código de Barra debe de tener almenos 8 caracteres.',
-            'codigo_barra.max' => 'El campo Código de Barra debe de tener solo 8 caracteres.',
-            'linea_comercial.required' => 'El campo Linea Comercial es obligatorio',
-            // 'codigo.unique' => 'El campo Código debe ser único',
-            // 'codigo.max:50' => 'El campo Código debe tener como máximo 50 caracteres',
-            'nombre.required' => 'El campo Descripción del Producto es obligatorio',
-            'marca.required' => 'El campo Marca es obligatorio',
-            'categoria.required' => 'El campo Categoria es obligatorio',
-            'almacen.required' => 'El campo Almacen es obligatorio',
-            'medida.required' => 'El campo Unidad de medida es obligatorio',
-            'modelo.required' => 'El campo Modelo es obligatorio',
-            //'costo.required'=>'Ingresar un valor al campo costo',
-            //'costo.min'=>'Ingresar un costo mayor o igual que 0',
-            //'costo.numeric'=>'Ingresar un numero en el campo costo',
-            'precio1.required'=>'El campo precio 1 es obligatorio',
-            'precio2.required'=>'El campo precio 2 es obligatorio',
-            'precio3.required'=>'El campo precio 3 es obligatorio',
-            // 'stock_minimo.required' => 'El campo Stock mínimo es obligatorio',
-            // 'stock_minimo.numeric' => 'El campo Stock mínimo debe ser numérico',
-            // 'igv.required' => 'El campo IGV es obligatorio',
-            // 'igv.boolean' => 'El campo IGV debe ser SI o NO',
-            // 'detalles.required' => 'Debe exitir al menos un detalle del producto',
-            // 'detalles.string' => 'El formato de texto de los detalles es incorrecto',
-        ];
-
-        Validator::make($data, $rules, $message)->validate();
-        
-        
-        DB::transaction(function () use ($request) {
-
+        try {
             //guardando producto
             $producto = new Producto();
             $producto->codigo           =   $request->get('codigo');
@@ -160,14 +110,7 @@ class ProductoController extends Controller
             $producto->precio_venta_3   =   $request->get('precio3');
             $producto->costo            =   $request->get('costo')?$request->get('costo'):0;  
             $producto->save();
-            // $producto->peso_producto = $request->get('peso_producto') ? $request->get('peso_producto') : 0;
-            // $producto->stock_minimo = $request->get('stock_minimo');
-            // $producto->precio_venta_minimo = $request->get('precio_venta_minimo');
-            // $producto->precio_venta_maximo = $request->get('precio_venta_maximo');
-            // $producto->peso_producto = $request->get('peso_producto');
-            // $producto->igv = $request->get('igv');
-            // $producto->facturacion = $request->get('facturacion_producto');
-            
+           
 
 
             //======= guardamos los colores asignados al producto ========
@@ -184,48 +127,37 @@ class ProductoController extends Controller
             $producto->codigo = 1000 + $producto->id;
             $producto->update();
 
-            if($request->get('codigo_barra'))
-            {
-                $generatorPNG   =   new \Picqer\Barcode\BarcodeGeneratorPNG();
-                $code           =   base64_encode($generatorPNG->getBarcode($request->get('codigo_barra'), $generatorPNG::TYPE_CODE_128));
-                $data_code      =   base64_decode($code);
-                $name           =   $producto->codigo_barra.'.png';
+            // if($request->get('codigo_barra'))
+            // {
+            //     $generatorPNG   =   new \Picqer\Barcode\BarcodeGeneratorPNG();
+            //     $code           =   base64_encode($generatorPNG->getBarcode($request->get('codigo_barra'), $generatorPNG::TYPE_CODE_128));
+            //     $data_code      =   base64_decode($code);
+            //     $name           =   $producto->codigo_barra.'.png';
 
-                if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
-                    mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
-                }
+            //     if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
+            //         mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
+            //     }
 
-                $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'.DIRECTORY_SEPARATOR.$name);
+            //     $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'.DIRECTORY_SEPARATOR.$name);
 
-                file_put_contents($pathToFile, $data_code);
-            }
-
-            // //Llenado de los Clientes
-            // $clientesJSON = $request->get('clientes_tabla');
-            // $clientetabla = json_decode($clientesJSON[0]);
-
-            // foreach ($clientetabla as $cliente) {
-            //     TipoCliente::create([
-            //         'producto_id' => $producto->id,
-            //         'cliente' => $cliente->cliente,
-            //         'porcentaje' => $cliente->monto_igv,
-            //         'monto' => $cliente->monto_igv,
-            //         'moneda' => $cliente->id_moneda,
-            //     ]);
+            //     file_put_contents($pathToFile, $data_code);
             // }
+
+        
 
             //Registro de actividad
             $descripcion = "SE AGREGÓ EL PRODUCTO CON LA DESCRIPCION: ". $producto->nombre;
             $gestion = "PRODUCTO";
             crearRegistro($producto, $descripcion , $gestion);
 
-
-        });
-
-
-
-        Session::flash('success','Producto creado.');
-        return redirect()->route('almacenes.producto.index')->with('guardar', 'success');
+            DB::commit();
+            Session::flash('success','Producto creado.');
+            return redirect()->route('almacenes.producto.index')->with('guardar', 'success');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            dd($th->getMessage());
+        }
+             
     }
 
     public function edit($id)
@@ -258,170 +190,110 @@ class ProductoController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(ProductoUpdateRequest $request, $id)
     {
 
         $this->authorize('haveaccess','producto.index');
 
-           //===== obteniendo todos los colores asociados al producto
-           
-      
-        $data = $request->all();
-        $rules = [
-            // 'codigo' => ['required','string', 'max:50', Rule::unique('productos','codigo')->where(function ($query) {
-            //     $query->whereIn('estado',["ACTIVO"]);
-            // })->ignore($id)],
-            'codigo_barra' => ['nullable',Rule::unique('productos','codigo_barra')->where(function ($query) {
-                $query->whereIn('estado',["ACTIVO"]);
-            })->ignore($id),'min:4','max:20'],
-            'nombre' => 'required',
-            'almacen' => 'required',
-            'marca' => 'required',
-            'categoria' => 'required',
-            'modelo' => 'required',
-            // 'medida' => 'required',
-            // 'igv' => 'required|boolean',
-        ];
+        DB::beginTransaction();
+        
+        try {
+            $producto                   =   Producto::findOrFail($id);
+            $producto->codigo           =   $request->get('codigo');
+            $producto->nombre           =   $request->get('nombre');
+            $producto->marca_id         =   $request->get('marca');
+            $producto->almacen_id       =   $request->get('almacen');
+            $producto->categoria_id     =   $request->get('categoria');
+            $producto->modelo_id        =   $request->get('modelo');
+            $producto->precio_venta_1   =   $request->get('precio1');
+            $producto->precio_venta_2   =   $request->get('precio2');
+            $producto->precio_venta_3   =   $request->get('precio3');
+            $producto->medida           =   $request->get('medida');
+            $producto->codigo_barra     =   $request->get('codigo_barra');
+            $producto->costo            =   $request->get('costo')?$request->get('costo'):0;  
+            // $producto->peso_producto = $request->get('peso_producto') ? $request->get('peso_producto') : 0;
+            // $producto->stock_minimo = $request->get('stock_minimo');
+            // $producto->precio_venta_minimo = $request->get('precio_venta_minimo');
+            // $producto->precio_venta_maximo = $request->get('precio_venta_maximo');
+            // $producto->igv = $request->get('igv');
+            // $producto->peso_producto = $request->get('peso_producto');
+            // $producto->facturacion = $request->get("facturacion_producto");
+            $producto->update();
 
-        $message = [
-            'codigo_barra.unique' => 'El campo Código de barra debe ser único',
-            'codigo_barra.min' => 'El campo Código de Barra debe de tener almenos 8 caracteres.',
-            'codigo_barra.max' => 'El campo Código de Barra debe de tener solo 8 caracteres.',
-            'nombre.required' => 'El campo Descripción del Producto es obligatorio',
-            'almacen.required' => 'El campo Almacén es obligatorio',
-            'marca.required' => 'El campo Marca es obligatorio',
-            'categoria.required' => 'El campo Categoria es obligatorio',
-            // 'medida.required' => 'El campo Unidad de Medida es obligatorio',
-            // 'stock_minimo.required' => 'El campo Stock mínimo es obligatorio',
-            // 'stock_minimo.numeric' => 'El campo Stock mínimo debe ser numérico',
-            // 'igv.required' => 'El campo IGV es obligatorio',
-            // 'igv.boolean' => 'El campo IGV debe ser SI o NO',
-            'codigo_barra.unique' => 'El campo Código de Barra debe de ser único.',
-        ];
+            // if($request->get('codigo_barra'))
+            // {
+            //     $generatorPNG = new \Picqer\Barcode\BarcodeGeneratorPNG();
+            //     $code = base64_encode($generatorPNG->getBarcode($request->get('codigo_barra'), $generatorPNG::TYPE_CODE_128));
+            //     $data_code = base64_decode($code);
+            //     $name =  $producto->codigo_barra.'.png';
 
-        Validator::make($data, $rules, $message)->validate();
+            //     if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
+            //         mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
+            //     }
 
-        $producto                   =   Producto::findOrFail($id);
-        $producto->codigo           =   $request->get('codigo');
-        $producto->nombre           =   $request->get('nombre');
-        $producto->marca_id         =   $request->get('marca');
-        $producto->almacen_id       =   $request->get('almacen');
-        $producto->categoria_id     =   $request->get('categoria');
-        $producto->modelo_id        =   $request->get('modelo');
-        $producto->precio_venta_1   =   $request->get('precio1');
-        $producto->precio_venta_2   =   $request->get('precio2');
-        $producto->precio_venta_3   =   $request->get('precio3');
-        $producto->medida           =   $request->get('medida');
-        $producto->codigo_barra     =   $request->get('codigo_barra');
-        $producto->costo            =   $request->get('costo')?$request->get('costo'):0;  
-        // $producto->peso_producto = $request->get('peso_producto') ? $request->get('peso_producto') : 0;
-        // $producto->stock_minimo = $request->get('stock_minimo');
-        // $producto->precio_venta_minimo = $request->get('precio_venta_minimo');
-        // $producto->precio_venta_maximo = $request->get('precio_venta_maximo');
-        // $producto->igv = $request->get('igv');
-        // $producto->peso_producto = $request->get('peso_producto');
-        // $producto->facturacion = $request->get("facturacion_producto");
-        $producto->update();
+            //     $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'.DIRECTORY_SEPARATOR.$name);
 
-        if($request->get('codigo_barra'))
-        {
-            $generatorPNG = new \Picqer\Barcode\BarcodeGeneratorPNG();
-            $code = base64_encode($generatorPNG->getBarcode($request->get('codigo_barra'), $generatorPNG::TYPE_CODE_128));
-            $data_code = base64_decode($code);
-            $name =  $producto->codigo_barra.'.png';
+            //     file_put_contents($pathToFile, $data_code);
+            // }
 
-            if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
-                mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
+            //=========== EDITAMOS LOS COLORES DEL PRODUCTO ==========
+            $coloresNuevos = json_decode($request->get('coloresJSON'));//['A','C']     ['A','R','C']  ['A','B']      
+            
+
+            //===== OBTENIENDO COLORES ANTERIORES DEL PRODUCTO ===== //['A','R','C']     ['A','C']   ['A','B']
+            $colores_anteriores =   DB::select('select pc.producto_id as producto_id, 
+                                    pc.color_id as color_id
+                                    from producto_colores as pc
+                                    where pc.producto_id=?',[$id]);
+
+            $collection_colores_anteriores  =   collect($colores_anteriores);   
+            $collection_colores_nuevos      =   collect($coloresNuevos);   
+
+            $ids_colores_anteriores = $collection_colores_anteriores->pluck('color_id')->toArray();
+            $ids_colores_nuevos = $collection_colores_nuevos->toArray();
+
+            //===== CASO I: COLORES DE LA LISTA ANTERIOR NO ESTÁN EN LA LISTA NUEVA =====
+            //===== DEBEN DE ELIMINARSE =====
+            $colores_diferentes_1 = array_diff($ids_colores_anteriores, $ids_colores_nuevos);
+            foreach ($colores_diferentes_1 as $key => $value) {
+                //==== ELIMINANDO COLORES ======
+                DB::table('producto_colores')
+                ->where('producto_id', $id)
+                ->where('color_id', $value)
+                ->delete();
+                //===== ELIMINANDO TALLAS DEL COLOR =====
+                DB::table('producto_color_tallas')
+                ->where('producto_id', $id)
+                ->where('color_id', $value)
+                ->delete();
             }
 
-            $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'.DIRECTORY_SEPARATOR.$name);
-
-            file_put_contents($pathToFile, $data_code);
-        }
-
-        //=========== EDITAMOS LOS COLORES DEL PRODUCTO ==========
-        $coloresNuevos = json_decode($request->get('coloresJSON'));//['A','C']     ['A','R','C']  ['A','B']      
-        
-
-        //===== OBTENIENDO COLORES ANTERIORES DEL PRODUCTO ===== //['A','R','C']     ['A','C']   ['A','B']
-        $colores_anteriores =   DB::select('select pc.producto_id as producto_id, 
-                                pc.color_id as color_id
-                                from producto_colores as pc
-                                where pc.producto_id=?',[$id]);
-
-        $collection_colores_anteriores  =   collect($colores_anteriores);   
-        $collection_colores_nuevos      =   collect($coloresNuevos);   
-
-        $ids_colores_anteriores = $collection_colores_anteriores->pluck('color_id')->toArray();
-        $ids_colores_nuevos = $collection_colores_nuevos->toArray();
-
-        //===== CASO I: COLORES DE LA LISTA ANTERIOR NO ESTÁN EN LA LISTA NUEVA =====
-        //===== DEBEN DE ELIMINARSE =====
-        $colores_diferentes_1 = array_diff($ids_colores_anteriores, $ids_colores_nuevos);
-        foreach ($colores_diferentes_1 as $key => $value) {
-            //==== ELIMINANDO COLORES ======
-            DB::table('producto_colores')
-            ->where('producto_id', $id)
-            ->where('color_id', $value)
-            ->delete();
-            //===== ELIMINANDO TALLAS DEL COLOR =====
-            DB::table('producto_color_tallas')
-            ->where('producto_id', $id)
-            ->where('color_id', $value)
-            ->delete();
-        }
-
-        //======== CASO II: COLORES DE LA LISTA NUEVA NO ESTÁN EN LA LISTA ANTERIOR ======
-        //===== DEBEN REGISTRARSE =====
-        $colores_diferentes_2 = array_diff($ids_colores_nuevos, $ids_colores_anteriores);
-        foreach ($colores_diferentes_2 as $key => $value) {
-            //==== REGISTRANDO COLORES ======
-            $producto_color                 =  new ProductoColor();
-            $producto_color->producto_id    =   $id;
-            $producto_color->color_id       =   $value;
-            $producto_color->save(); 
-        }
+            //======== CASO II: COLORES DE LA LISTA NUEVA NO ESTÁN EN LA LISTA ANTERIOR ======
+            //===== DEBEN REGISTRARSE =====
+            $colores_diferentes_2 = array_diff($ids_colores_nuevos, $ids_colores_anteriores);
+            foreach ($colores_diferentes_2 as $key => $value) {
+                //==== REGISTRANDO COLORES ======
+                $producto_color                 =  new ProductoColor();
+                $producto_color->producto_id    =   $id;
+                $producto_color->color_id       =   $value;
+                $producto_color->save(); 
+            }
                      
-        // $clientesJSON = $request->get('clientes_tabla');
-        // $clientetabla = json_decode($clientesJSON[0]);
+      
 
+            //Registro de actividad
+            $descripcion = "SE MODIFICÓ EL PRODUCTO CON LA DESCRIPCION: ". $producto->nombre;
+            $gestion = "PRODUCTO";
+            modificarRegistro($producto, $descripcion , $gestion);
 
-        // if ($clientetabla) {
-        //     $clientes = TipoCliente::where('producto_id', $id)->get();
-        //     foreach ($clientes as $cliente) {
-        //         $cliente->estado= "ANULADO";
-        //         $cliente->update();
-        //     }
-        //     foreach ($clientetabla as $cliente) {
-        //         foreach (tipo_clientes() as $tipo) {
-        //             if ($tipo->descripcion == $cliente->cliente) {
-        //                 $clientetipo = $tipo->id;
-        //             }
-        //         }
-
-        //         TipoCliente::create([
-        //             'producto_id' => $producto->id,
-        //             'cliente' => $clientetipo,
-        //             'porcentaje' => $cliente->monto_igv,
-        //             'monto' => $cliente->monto_igv,
-        //             'moneda' => $cliente->id_moneda,
-        //         ]);
-        //     }
-        // }else{
-        //     $clientes = TipoCliente::where('producto_id', $id)->get();
-        //     foreach ($clientes as $cliente) {
-        //         $cliente->estado= "ANULADO";
-        //         $cliente->update();
-        //     }
-        // }
-
-        //Registro de actividad
-        $descripcion = "SE MODIFICÓ EL PRODUCTO CON LA DESCRIPCION: ". $producto->nombre;
-        $gestion = "PRODUCTO";
-        modificarRegistro($producto, $descripcion , $gestion);
-
-        Session::flash('success','Producto modificado.');
-        return redirect()->route('almacenes.producto.index')->with('guardar', 'success');
+            Session::flash('success','Producto modificado.');
+            DB::commit();
+            return redirect()->route('almacenes.producto.index')->with('guardar', 'success');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            dd($th->getMessage());
+        }
+   
     }
 
     public function show($id)
