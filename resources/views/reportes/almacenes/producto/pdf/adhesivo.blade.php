@@ -33,8 +33,8 @@
         .producto{
             font-family: "Bevan", serif;
             text-align: left;
-            font-size: 65px;
-            line-height: 35px;
+            font-size: 80px;
+            line-height: 45px;
         }
         p {
             margin: 0;
@@ -53,7 +53,7 @@
 
         }
         .img_cod_barras{
-            height: 27px;
+            height: 60px;
             object-fit: contain;
             padding:0;
             margin:0;
@@ -69,14 +69,14 @@
             font-family: "Righteous", sans-serif;
             margin:0;
             padding:0;
-            font-size: 105px;
+            font-size: 140px;
             padding-right:5px;
             text-align: right;
         }
         .descripcion_span{
             font-weight: bold;
             font-family: "Roboto Condensed", sans-serif;
-            font-size: 17px;
+            font-size: 22px;
             text-align: start;
         }
       
