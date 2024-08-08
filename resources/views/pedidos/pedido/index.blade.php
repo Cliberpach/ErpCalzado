@@ -1,9 +1,9 @@
 @extends('layout') @section('content')
 
-@section('ventas-active', 'active')
 @section('pedidos-active', 'active')
-@include('ventas.pedidos.modal-historial-atenciones') 
-@include('ventas.pedidos.modal-pedido-detalles') 
+@section('pedido-active', 'active')
+@include('pedidos.pedido.modal-historial-atenciones') 
+@include('pedidos.pedido.modal-pedido-detalles') 
 
 
 <div class="row wrapper border-bottom white-bg page-heading">
@@ -170,7 +170,7 @@
     }
 
     function loadDataTable(){
-        const getPedidosUrl = "{{ route('ventas.pedidos.getTable') }}";
+        const getPedidosUrl = "{{ route('pedidos.pedido.getTable') }}";
         
         pedidos_data_table = new DataTable('#pedidos_table',{
             serverSide: true,
@@ -245,10 +245,10 @@
                 { data: null,
                         className: "text-center",
                         render: function(data, type, row) {
-                            let url_reporte = '{{route("ventas.pedidos.reporte", ":id")}}';
+                            let url_reporte = '{{route("pedidos.pedido.reporte", ":id")}}';
                             url_reporte = url_reporte.replace(':id', row.id);
 
-                            const url_atender   =   '{{route("ventas.pedidos.atender")}}';
+                            const url_atender   =   '{{route("pedidos.pedido.atender")}}';
 
                             let accion_facturar= '';
 
@@ -269,7 +269,7 @@
                             if(row.estado !== "FINALIZADO" && !row.facturado){
                                 acciones+=`<li><a class='dropdown-item' onclick="modificarPedido(${row.id})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>`;
 
-                                acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='Eliminar'><b><i class='fa fa-trash'></i> Finalizar</a></b></li>`;
+                                acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='Anular'><b><i class='fa fa-trash'></i> Anular</a></b></li>`;
                             }
 
                             acciones += `<li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_pedido_detalles"  title='Detalles'><b><i class="fas fa-info-circle"></i> Detalles</a></b></li>
@@ -335,7 +335,7 @@
     }
 
     function añadirPedido() {
-        window.location = "{{ route('ventas.pedidos.create') }}";
+        window.location = "{{ route('pedidos.pedido.create') }}";
     }
 
     async function modificarPedido(pedido_id) {
@@ -358,7 +358,7 @@
                 return;
             }
 
-            window.location = `{{ route('ventas.pedidos.edit', ['id' => ':id']) }}`.replace(':id', pedido_id);
+            window.location = `{{ route('pedidos.pedido.edit', ['id' => ':id']) }}`.replace(':id', pedido_id);
                
         }else{
             toastr.error('ERROR EN EL ID DEL PEDIDO','PEDIDO NO ENCONTRADO');
@@ -367,7 +367,7 @@
     }
 
     function reportePedido(pedido_id){
-        window.location = `{{ route('ventas.pedidos.reporte', ['id' => ':id']) }}`.replace(':id', pedido_id);
+        window.location = `{{ route('pedidos.pedido.reporte', ['id' => ':id']) }}`.replace(':id', pedido_id);
     }
 
     function atenderPedido(pedido_id){
@@ -425,7 +425,7 @@
 
         //===== OBTENIENDO ATENCIONES DEL PEDIDO =======
         try {
-            const res   =   await axios.get(route('ventas.pedidos.getAtenciones',{pedido_id}));
+            const res   =   await axios.get(route('pedidos.pedido.getAtenciones',{pedido_id}));
             console.log(res);
             const type  =   res.data.type;
             if(type == 'success'){
@@ -448,7 +448,7 @@
 
         //===== OBTENIENDO DETALLES DEL PEDIDO =======
         try {
-            const res   =   await axios.get(route('ventas.pedidos.getPedidoDetalles',{pedido_id}));
+            const res   =   await axios.get(route('pedidos.pedido.getPedidoDetalles',{pedido_id}));
             console.log(res);
             const type  =   res.data.type;
 
@@ -631,7 +631,7 @@
             }
 
             if(estado === "ANULADO"){
-                toastr.error('EL PEDIDO NO PUEDE SER FINALIZADO','PEDIDO ANULADO');
+                toastr.error('EL PEDIDO NO PUEDE SER ANULADO','PEDIDO ANULADO');
                 return;
             }
                
@@ -650,7 +650,7 @@
             confirmButtonText: "SÍ, ELIMINAR EL PEDIDO!"
             }).then(async (result) => {
             if (result.isConfirmed) {
-                const res = await axios.delete(`{{ route('ventas.pedidos.destroy', ['id' => ':id']) }}`.replace(':id', pedido_id));
+                const res = await axios.delete(`{{ route('pedidos.pedido.destroy', ['id' => ':id']) }}`.replace(':id', pedido_id));
                 if(res.data.type == 'success'){
                     //====== ELIMINAR PEDIDO DEL DATATABLE ======
                     pedidos_data_table.rows((idx, data) => data.id == res.data.pedido_id).remove().draw()
@@ -773,7 +773,7 @@
         const fecha_fin     =   $('#filtroFechaFin').val()?$('#filtroFechaFin').val():null;      
         const estado        =   document.querySelector('#pedido_estado').value?document.querySelector('#pedido_estado').value:null;
 
-        const rutaExcelPedidos  =   @json(route('ventas.pedidos.getExcel'))+`/${fecha_inicio}/${fecha_fin}/${estado}`;
+        const rutaExcelPedidos  =   @json(route('pedidos.pedido.getExcel'))+`/${fecha_inicio}/${fecha_fin}/${estado}`;
 
         window.location.href = rutaExcelPedidos;
         
@@ -782,7 +782,7 @@
     async function facturar(pedido_id){
         try {
             //====== VALIDANDO CLIENTE =====
-            const res_cliente   =   await axios.get(route('ventas.pedidos.getCliente',{pedido_id}));
+            const res_cliente   =   await axios.get(route('pedidos.pedido.getCliente',{pedido_id}));
             
             if(res_cliente.data.success){
                 const cliente_pedido    =   res_cliente.data.cliente;
@@ -808,7 +808,7 @@
                             }
                         });
 
-                        const res   =   await axios.post(route('ventas.pedidos.facturar'),{
+                        const res   =   await axios.post(route('pedidos.pedido.facturar'),{
                             pedido_id
                         });
 

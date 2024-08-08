@@ -96,8 +96,26 @@
         @can('haveaccess', 'resumenes.index')
         <li class="@yield('resumenes-active')"><a href="{{ route('ventas.resumenes.index') }}">Resúmenes</a></li>
         @endcan
-        @can('haveaccess', 'pedidos.index')
+        {{-- @can('haveaccess', 'pedidos.index')
         <li class="@yield('pedidos-active')"><a href="{{ route('ventas.pedidos.index') }}">Pedidos</a></li>
+        @endcan
+        @can('haveaccess', 'pedidos_detalles.index')
+        <li class="@yield('pedidos-active')"><a href="{{ route('ventas.pedidos_detalles.index') }}">Pedidos Detalles</a></li>
+        @endcan --}}
+    </ul>
+</li>
+@endcan
+
+@can('restore', [Auth::user(),['pedidos.index','pedidos_detalles.index']])
+<li class="@yield('pedidos-active')">
+    <a href="#"><i class="fa fa-shopping-cart"></i> <span class="nav-label">Pedidos</span><span
+            class="fa arrow"></span></a>
+    <ul class="nav nav-second-level collapse">
+        @can('haveaccess', 'pedido.index')
+        <li class="@yield('pedido-active')"><a href="{{ route('pedidos.pedido.index') }}">Pedidos</a></li>
+        @endcan
+        @can('haveaccess', 'pedidos_detalles.index')
+        <li class="@yield('pedidos-detalles-active')"><a href="{{route('pedidos.pedidos_detalles.index')}}">Detalles</a></li>
         @endcan
     </ul>
 </li>

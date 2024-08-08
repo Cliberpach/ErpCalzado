@@ -1,8 +1,8 @@
 @extends('layout') @section('content')
 @include('ventas.cotizaciones.modal-cliente') 
 
-@section('ventas-active', 'active')
 @section('pedidos-active', 'active')
+@section('pedido-active', 'active')
 
 
 <div class="row wrapper border-bottom white-bg page-heading">
@@ -27,7 +27,7 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form  method="POST" action="{{route('ventas.pedidos.store')}}"
+                            <form  method="POST" action="{{route('pedidos.pedido.store')}}"
                                 id="form-pedido">
                                 @csrf
                                 <div class="row">
@@ -237,7 +237,7 @@
 
                                             <div class="form-group row mt-3">
                                                 <div class="col-lg-12">
-                                                    @include('ventas.pedidos.table-stocks')
+                                                    @include('pedidos.pedido.table-stocks')
                                                 </div>
                                             </div>
                                             <div class="form-group row mt-1">
@@ -261,7 +261,7 @@
                                     <h4><b>Detalle del Pedido</b></h4>
                                 </div>
                                 <div class="panel-body">
-                                    @include('ventas.pedidos.table-detalles',[
+                                    @include('pedidos.pedido.table-detalles',[
                                         "carrito" => "carrito"
                                     ])
                                 </div>
@@ -279,7 +279,7 @@
                                         (<label class="required"></label>) son obligatorios.</small>
                                 </div>
                                 <div class="col-md-6 text-right">
-                                    <a href="{{ route('ventas.pedidos.index') }}" id="btn_cancelar"
+                                    <a href="{{ route('pedidos.pedido.index') }}" id="btn_cancelar"
                                         class="btn btn-w-m btn-default">
                                         <i class="fa fa-arrow-left"></i> Regresar
                                     </a>
@@ -802,7 +802,7 @@
 
         if(modelo_id){
             try {
-                const res       =   await axios.get(route('ventas.pedidos.getProductosByModelo', modelo_id));
+                const res       =   await axios.get(route('pedidos.pedido.getProductosByModelo', modelo_id));
                 const productos =   res.data.message;
                 console.log(productos);
                 pintarTableProductos(productos);

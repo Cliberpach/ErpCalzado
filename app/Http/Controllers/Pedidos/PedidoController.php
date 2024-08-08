@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Ventas;
+namespace App\Http\Controllers\Pedidos;
 
 use App\Http\Controllers\Controller;
 use Exception;
@@ -31,7 +31,7 @@ use App\Pos\ReciboCaja;
 class PedidoController extends Controller
 {
     public function index(){
-        return view('ventas.pedidos.index');
+        return view('pedidos.pedido.index');
     }
 
     public function getTable(Request $request){
@@ -42,6 +42,7 @@ class PedidoController extends Controller
                     ->select('pedidos.*', 
                             \DB::raw('CONCAT(cotizacion_documento.serie, "-", cotizacion_documento.correlativo) as documento_venta'),
                             \DB::raw('if(pedidos.cotizacion_id is null,"-",concat("CO-",pedidos.cotizacion_id)) as cotizacion_nro'))
+                    ->where('pedidos.estado','!=','ANULADO')                   
                     ->get();
 
         if($fecha_inicio){
@@ -73,7 +74,7 @@ class PedidoController extends Controller
         $tipo_clientes      =   tipo_clientes();
 
         
-        return view('ventas.pedidos.create',compact('empresas','clientes','vendedor_actual','condiciones',
+        return view('pedidos.pedido.create',compact('empresas','clientes','vendedor_actual','condiciones',
                                             'modelos','tallas','tipos_documento','departamentos','tipo_clientes'));
     }
 
@@ -220,7 +221,7 @@ class PedidoController extends Controller
 
             DB::commit();
             Session::flash('success','Pedido creado.');
-            return redirect()->route('ventas.pedidos.index')->with('guardar', 'success');
+            return redirect()->route('pedidos.pedido.index')->with('guardar', 'success');
 
         } catch (\Throwable  $e) {
             DB::rollback();
@@ -278,7 +279,7 @@ class PedidoController extends Controller
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();
         
-        return view('ventas.pedidos.edit',compact('empresas','clientes','vendedor_actual_id','condiciones',
+        return view('pedidos.pedido.edit',compact('empresas','clientes','vendedor_actual_id','condiciones',
                                             'modelos','tallas','pedido','pedido_detalles',
                                         'tipos_documento','departamentos','tipo_clientes'));
     }
@@ -442,7 +443,7 @@ class PedidoController extends Controller
 
             DB::commit();
             Session::flash('success','PEDIDO MODIFICADO.');
-            return redirect()->route('ventas.pedidos.index')->with('guardar', 'success');
+            return redirect()->route('pedidos.pedido.index')->with('guardar', 'success');
 
         } catch (\Throwable  $e) {
             DB::rollback();
@@ -457,7 +458,7 @@ class PedidoController extends Controller
         try {
             //==== ANULANDO PEDIDO ======
             $pedido         =   Pedido::find($id);
-            $pedido->estado =   'FINALIZADO';
+            $pedido->estado =   'ANULADO';
             $pedido->update();
 
             return response()->json(['type'=>'success','pedido_id'=>$id]);
@@ -482,7 +483,7 @@ class PedidoController extends Controller
         $vendedor_nombre    = $pedido->user_nombre;
 
 
-        $pdf = PDF::loadview('ventas.pedidos.reportes.detalle',[
+        $pdf = PDF::loadview('pedidos.pedido.reportes.detalle',[
             'pedido'            => $pedido,
             'detalles'          => $detalles,
             'empresa'           => $empresa,
@@ -651,7 +652,7 @@ class PedidoController extends Controller
             $departamentos = departamentos();
         
             DB::commit();
-            return view('ventas.pedidos.atender',compact('atencion_detalle','empresas','clientes','pedido_detalle',
+            return view('pedidos.pedido.atender',compact('atencion_detalle','empresas','clientes','pedido_detalle',
                                                 'vendedor_actual','condiciones',
                                                 'modelos','tallas','pedido','tipoVentas','departamentos'));
         } catch (\Throwable $th) {

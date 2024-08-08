@@ -1,7 +1,7 @@
 @extends('layout') @section('content')
 
-@section('ventas-active', 'active')
 @section('pedidos-active', 'active')
+@section('pedido-active', 'active')
 @include('ventas.documentos.modal-envio')
 
 
@@ -120,7 +120,7 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form  method="POST" action="{{route('ventas.pedidos.generarDocumentoVenta')}}"
+                            <form  method="POST" action="{{route('pedidos.pedido.generarDocumentoVenta')}}"
                                 id="form-pedido-doc-venta">
                                 @csrf
                                 <div class="row">
@@ -363,13 +363,13 @@
                                     </div>
                                 </div>
                                 <div class="panel-body">
-                                    @include('ventas.pedidos.table-detalles-atender',[
+                                    @include('pedidos.pedido.table-detalles-atender',[
                                         "carrito" => "carrito"
                                     ])
                                 </div>
                                 <div class="panel-footer panel-primary">
                                     <div class="table-responsive">
-                                        @include('ventas.pedidos.tables.table_montos_atender')
+                                        @include('pedidos.pedido.tables.table_montos_atender')
                                     </div>
                                 </div>
                             </div>
@@ -388,7 +388,7 @@
                                 </div>
                                 <div class="panel-body">
                                     <div class="table-responsive">
-                                        @include('ventas.pedidos.tables-historial.table-pedido-detalles')
+                                        @include('pedidos.pedido.tables-historial.table-pedido-detalles')
                                     </div>
                                 </div>
                             </div>
@@ -515,7 +515,7 @@
     
             event.target.innerHTML = '<i class="fa fa-arrow-left"></i> Regresando...';
 
-            window.location.href = "{{ route('ventas.pedidos.index') }}";
+            window.location.href = "{{ route('pedidos.pedido.index') }}";
         })
 
         //======== EDITAR INPUT CANTIDAD ATENDIDA =======
@@ -595,7 +595,7 @@
                 // event.returnValue = mensaje;
 
                 try {
-                    const response = await axios.post(route('ventas.pedidos.devolverStockLogico'), {
+                    const response = await axios.post(route('pedidos.pedido.devolverStockLogico'), {
                         carrito: JSON.stringify(carrito)
                     });
                     console.log('Stock devuelto correctamente:', response.data);
@@ -748,7 +748,7 @@
                 // for (const pair of formData.entries()) {
                 //     console.log(pair[0] + ', ' + pair[1]);
                 // }
-                const res       =   await axios.post(route('ventas.pedidos.generarDocumentoVenta'),formData)
+                const res       =   await axios.post(route('pedidos.pedido.generarDocumentoVenta'),formData)
                 const success   =   res.data.success;
                 
                 if(success){
@@ -875,7 +875,7 @@
             try {
                 const overlay = document.getElementById('overlay_esfera_1');
                 overlay.style.display = 'flex'; 
-                const res   =   await axios.post(route('ventas.pedidos.validarCantidadAtender'),{
+                const res   =   await axios.post(route('pedidos.pedido.validarCantidadAtender'),{
                     cantidad_atender_anterior,
                     cantidad_atender_nueva,
                     producto_id,
@@ -1187,7 +1187,7 @@
         if(comprobante_id != ''){
              //===== VALIDAR TIPO VENTA ACTIVO ======
             try {
-                const url = route('ventas.pedidos.validarTipoVenta', { 'comprobante_id': comprobante_id });
+                const url = route('pedidos.pedido.validarTipoVenta', { 'comprobante_id': comprobante_id });
                 const res = await axios.get(url);
                 console.log(res);
                 const type      =   res.data.type;

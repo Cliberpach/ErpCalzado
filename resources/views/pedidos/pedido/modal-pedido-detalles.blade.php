@@ -15,7 +15,7 @@
                     <div class="col-12">
                         <div class="row">
                             <div class="col-12">
-                                @include('ventas.pedidos.tables-historial.table-pedido-detalles')
+                                @include('pedidos.pedido.tables-historial.table-pedido-detalles')
                             </div>
                         </div>
                     </div>   

@@ -506,30 +506,35 @@ function(){
 
     });
 
-    //VENTAS-PEDIDOS
-    Route::prefix('ventas/pedidos')->group(function(){
-
-        Route::get('index', 'Ventas\PedidoController@index')->name('ventas.pedidos.index');
-        Route::get('getTable', 'Ventas\PedidoController@getTable')->name('ventas.pedidos.getTable');
-        Route::get('create', 'Ventas\PedidoController@create')->name('ventas.pedidos.create');
-        Route::post('atender', 'Ventas\PedidoController@atender')->name('ventas.pedidos.atender');
-        Route::post('validar-cantidad-atender', 'Ventas\PedidoController@validarCantidadAtender')->name('ventas.pedidos.validarCantidadAtender');
-        Route::post('store', 'Ventas\PedidoController@store')->name('ventas.pedidos.store');
-        Route::post('generar-doc-venta', 'Ventas\PedidoController@generarDocumentoVenta')->name('ventas.pedidos.generarDocumentoVenta');
-        Route::put('update/{id}', 'Ventas\PedidoController@update')->name('ventas.pedidos.update');
-        Route::get('edit/{id}','Ventas\PedidoController@edit')->name('ventas.pedidos.edit');
-        Route::delete('pedidos/{id}', 'Ventas\PedidoController@destroy')->name('ventas.pedidos.destroy');
-        Route::get('getProductosByModelo/{modelo_id}','Ventas\PedidoController@getProductosByModelo')->name('ventas.pedidos.getProductosByModelo');
-        Route::get('reporte/{id}','Ventas\PedidoController@report')->name('ventas.pedidos.reporte');
-        Route::get('validar-tipo-venta/{comprobante_id}','Ventas\PedidoController@validarTipoVenta')->name('ventas.pedidos.validarTipoVenta');
-        Route::get('get-atencion-detalles/{pedido_id}/{atencion_id}','Ventas\PedidoController@getAtencionDetalles')->name('ventas.pedidos.getAtencionDetalles');
-        Route::get('get-atenciones-pedido/{pedido_id}','Ventas\PedidoController@getAtenciones')->name('ventas.pedidos.getAtenciones');
-        Route::get('get-pedido-detalles/{pedido_id}','Ventas\PedidoController@getPedidoDetalles')->name('ventas.pedidos.getPedidoDetalles');
-        Route::post('devolver-stock-logico', 'Ventas\PedidoController@devolverStockLogico')->name('ventas.pedidos.devolverStockLogico');
-        Route::get('getExcel/{fecha_inicio?}/{fecha_fin?}/{estado?}', 'Ventas\PedidoController@getExcel')->name('ventas.pedidos.getExcel');
-        Route::post('facturar/', 'Ventas\PedidoController@facturar')->name('ventas.pedidos.facturar');
-        Route::get('getCliente/{pedido_id}','Ventas\PedidoController@getCliente')->name('ventas.pedidos.getCliente');
+    //PEDIDOS-PEDIDOS
+    Route::prefix('pedidos/pedidos')->group(function(){
+        Route::get('index', 'Pedidos\PedidoController@index')->name('pedidos.pedido.index');
+        Route::get('getTable', 'Pedidos\PedidoController@getTable')->name('pedidos.pedido.getTable');
+        Route::get('create', 'Pedidos\PedidoController@create')->name('pedidos.pedido.create');
+        Route::post('atender', 'Pedidos\PedidoController@atender')->name('pedidos.pedido.atender');
+        Route::post('validar-cantidad-atender', 'Pedidos\PedidoController@validarCantidadAtender')->name('pedidos.pedido.validarCantidadAtender');
+        Route::post('store', 'Pedidos\PedidoController@store')->name('pedidos.pedido.store');
+        Route::post('generar-doc-venta', 'Pedidos\PedidoController@generarDocumentoVenta')->name('pedidos.pedido.generarDocumentoVenta');
+        Route::put('update/{id}', 'Pedidos\PedidoController@update')->name('pedidos.pedido.update');
+        Route::get('edit/{id}','Pedidos\PedidoController@edit')->name('pedidos.pedido.edit');
+        Route::delete('pedidos/{id}', 'Pedidos\PedidoController@destroy')->name('pedidos.pedido.destroy');
+        Route::get('getProductosByModelo/{modelo_id}','Pedidos\PedidoController@getProductosByModelo')->name('pedidos.pedido.getProductosByModelo');
+        Route::get('reporte/{id}','Pedidos\PedidoController@report')->name('pedidos.pedido.reporte');
+        Route::get('validar-tipo-venta/{comprobante_id}','Pedidos\PedidoController@validarTipoVenta')->name('pedidos.pedido.validarTipoVenta');
+        Route::get('get-atencion-detalles/{pedido_id}/{atencion_id}','Pedidos\PedidoController@getAtencionDetalles')->name('pedidos.pedido.getAtencionDetalles');
+        Route::get('get-atenciones-pedido/{pedido_id}','Pedidos\PedidoController@getAtenciones')->name('pedidos.pedido.getAtenciones');
+        Route::get('get-pedido-detalles/{pedido_id}','Pedidos\PedidoController@getPedidoDetalles')->name('pedidos.pedido.getPedidoDetalles');
+        Route::post('devolver-stock-logico', 'Pedidos\PedidoController@devolverStockLogico')->name('pedidos.pedido.devolverStockLogico');
+        Route::get('getExcel/{fecha_inicio?}/{fecha_fin?}/{estado?}', 'Pedidos\PedidoController@getExcel')->name('pedidos.pedido.getExcel');
+        Route::post('facturar/', 'Pedidos\PedidoController@facturar')->name('pedidos.pedido.facturar');
+        Route::get('getCliente/{pedido_id}','Pedidos\PedidoController@getCliente')->name('pedidos.pedido.getCliente');
     });
+
+    //======= PEDIDOS - DETALLES =======
+    Route::prefix('pedidos/detalles')->group(function(){
+        Route::get('index', 'Pedidos\DetalleController@index')->name('pedidos.pedidos_detalles.index');
+
+    });   
 
      // Despachos
      Route::prefix('ventas/despachos')->group(function() {

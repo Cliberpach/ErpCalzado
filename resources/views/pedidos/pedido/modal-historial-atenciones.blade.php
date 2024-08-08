@@ -16,14 +16,14 @@
                         <div class="row mb-3">
                             <div class="col-12">
                                 <h5>ATENCIONES</h5>
-                                @include('ventas.pedidos.tables-historial.table-atenciones')
+                                @include('pedidos.pedido.tables-historial.table-atenciones')
 
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-12">
                                 <h5>DETALLES DEL DOCUMENTO</h5>
-                                @include('ventas.pedidos.tables-historial.table-atenciones-detalles')
+                                @include('pedidos.pedido.tables-historial.table-atenciones-detalles')
                             </div>
                         </div>
                     </div>   
@@ -62,7 +62,7 @@
     async function getAtencionDetalles(pedido_id,atencion_id){
          //===== OBTENIENDO DETALLES DEL PEDIDO =======
          try {
-            const res   =   await axios.get(route('ventas.pedidos.getAtencionDetalles',{pedido_id,atencion_id}));
+            const res   =   await axios.get(route('pedidos.pedido.getAtencionDetalles',{pedido_id,atencion_id}));
             console.log(res);
             const type  =   res.data.type;
             if(type == 'success'){
