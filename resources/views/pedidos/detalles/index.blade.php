@@ -307,7 +307,7 @@
                         let etiqueta    =   ``;   
 
                         if(data > 0){
-                            etiqueta    =   `<p style="cursor:pointer;font-weight:bold;margin:0;" onclick="openMdlAtenciones(${row.pedido_id}, ${row.producto_id}, ${row.color_id}, ${row.talla_id})" style="font-weight:bold;">${data}</p>`;   
+                            etiqueta    =   `<p style="cursor:pointer;font-weight:bold;margin:0;color:blue;" onclick="openMdlAtenciones(${row.pedido_id}, ${row.producto_id}, ${row.color_id}, ${row.talla_id})" style="font-weight:bold;">${data}</p>`;   
                         }
 
                         if(data == 0){
@@ -491,6 +491,7 @@
     }
 
     async function  getProductosByModelo(e){
+        filtrarModelo();
         mostrarAnimacionCotizacion();
         modelo_id                   =   e.value;
         
