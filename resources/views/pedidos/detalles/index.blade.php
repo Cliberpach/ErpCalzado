@@ -208,9 +208,13 @@
             "processing": true,
             "serverSide":true,
             "ajax": "{{ route('pedidos.pedidos_detalles.getTable') }}",
-            "columns": [{
-                    data: 'pedido_id',
-                    className: "text-left"
+            "columns": [
+                {
+                    data: 'pedido_name_id',
+                    className: "text-left",
+                    render: function (data, type, row) {
+                        return `<p style="font-weight:bold;">${data}</p>`;
+                    }
                 },
                 {
                     data: 'producto_nombre',

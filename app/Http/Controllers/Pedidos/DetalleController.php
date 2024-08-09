@@ -15,14 +15,15 @@ class DetalleController extends Controller
     }
 
     public function getTable(Request $request){
-        $fecha_inicio   =   $request->get('fecha_inicio');
-        $fecha_fin      =   $request->get('fecha_fin');
+        // $fecha_inicio   =   $request->get('fecha_inicio');
+        // $fecha_fin      =   $request->get('fecha_fin');
 
         $pedidos_detalles   =   PedidoDetalle::from('pedidos_detalles as pd')
                                 ->select(
                                     'p.id as pedido_id','pd.producto_id','pd.color_id','pd.talla_id',
                                     'pd.producto_nombre','pd.color_nombre','pd.talla_nombre','pd.cantidad','pd.precio_unitario_nuevo',
-                                    'pd.importe_nuevo','pd.cantidad_atendida','pd.cantidad_enviada'
+                                    'pd.importe_nuevo','pd.cantidad_atendida','pd.cantidad_enviada',
+                                    \DB::raw('concat("PE-", p.id) as pedido_name_id')
                                 )
                                 ->join('pedidos as p', 'pd.pedido_id', '=', 'p.id')
                                 ->orderBy('p.id','desc')
