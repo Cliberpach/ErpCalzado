@@ -270,7 +270,7 @@
                             if(row.estado !== "FINALIZADO" && !row.facturado){
                                 acciones+=`<li><a class='dropdown-item' onclick="modificarPedido(${row.id})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>`;
 
-                                acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='Anular'><b><i class='fa fa-trash'></i> Anular</a></b></li>`;
+                                acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='FINALIZAR'><b><i class='fa fa-trash'></i> Finalizar</a></b></li>`;
                             }
 
                             acciones += `<li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_pedido_detalles"  title='Detalles'><b><i class="fas fa-info-circle"></i> Detalles</a></b></li>
@@ -621,10 +621,10 @@
         if(pedido.length >0){
             const estado    =   pedido[0].estado;
                    
-            if(estado === "ATENDIENDO"){
-                toastr.error('EL PEDIDO NO PUEDE SER ELIMINADO','PEDIDO EN PROCESO');
-                return;
-            }
+            // if(estado === "ATENDIENDO"){
+            //     toastr.error('EL PEDIDO NO PUEDE SER ELIMINADO','PEDIDO EN PROCESO');
+            //     return;
+            // }
 
             if(estado === "FINALIZADO"){
                 toastr.error('EL PEDIDO NO PUEDE SER FINALIZADO','PEDIDO FINALIZADO');
@@ -642,13 +642,13 @@
         } 
 
         Swal.fire({
-            title: "ESTÁS SEGURO DE ELIMINARLO?",
+            title: "ESTÁS SEGURO DE FINALIZAR EL PEDIDO?",
             text: "NO SE PODRÁ REVERTIR ESTA ACCIÓN!",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#3085d6",
             cancelButtonColor: "#d33",
-            confirmButtonText: "SÍ, ELIMINAR EL PEDIDO!"
+            confirmButtonText: "SÍ, FINALIZAR EL PEDIDO!"
             }).then(async (result) => {
             if (result.isConfirmed) {
                 const res = await axios.delete(`{{ route('pedidos.pedido.destroy', ['id' => ':id']) }}`.replace(':id', pedido_id));
@@ -656,15 +656,15 @@
                     //====== ELIMINAR PEDIDO DEL DATATABLE ======
                     pedidos_data_table.rows((idx, data) => data.id == res.data.pedido_id).remove().draw()
                     //===== ALERTA ======
-                    toastr.success(`PEDIDO NRO° ${res.data.pedido_id}`,'ELIMINADO');
+                    toastr.success(`PEDIDO NRO° ${res.data.pedido_id}`,'FINALIZADO');
                 }
                 if(res.data.type == 'error'){
                     toastr.error(res.data.message,'ERROR');
                 }
                 console.log(res);
                 Swal.fire({
-                title: "ELIMINADO!",
-                text: "EL PEDIDO HA SIDO ELIMINADO.",
+                title: "FINALIZADO!",
+                text: "EL PEDIDO HA SIDO FINALIZADO.",
                 icon: "success"
                 });
             }

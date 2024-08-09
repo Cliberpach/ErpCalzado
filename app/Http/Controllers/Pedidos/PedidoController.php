@@ -463,7 +463,7 @@ class PedidoController extends Controller
         try {
             //==== ANULANDO PEDIDO ======
             $pedido         =   Pedido::find($id);
-            $pedido->estado =   'ANULADO';
+            $pedido->estado =   'FINALIZADO';
             $pedido->update();
 
             return response()->json(['type'=>'success','pedido_id'=>$id]);
