@@ -91,7 +91,10 @@
             </li>
         </ol>
     </div>
-   
+</div>
+
+<div class="overlay_pedidos_detalles">
+    <span class="loader_pedidos_detalles"></span>
 </div>
 
 <div class="wrapper wrapper-content animated fadeInRight">
