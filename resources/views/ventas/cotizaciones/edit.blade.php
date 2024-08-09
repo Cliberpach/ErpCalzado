@@ -1124,7 +1124,7 @@
         });
 
         // Refrescar Select2
-        $('#producto').val(null);
+        //$('#producto').val(null);
         $('#producto').trigger('change');
     }
  

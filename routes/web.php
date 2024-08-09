@@ -533,7 +533,10 @@ function(){
     //======= PEDIDOS - DETALLES =======
     Route::prefix('pedidos/detalles')->group(function(){
         Route::get('index', 'Pedidos\DetalleController@index')->name('pedidos.pedidos_detalles.index');
-
+        Route::get('getTable', 'Pedidos\DetalleController@getTable')->name('pedidos.pedidos_detalles.getTable');
+        Route::get('getDetallesAtenciones/{pedido_id}/{producto_id}/{color_id}/{talla_id}', 'Pedidos\DetalleController@getDetallesAtenciones')->name('pedidos.pedidos_detalles.getDetallesAtenciones');
+        Route::get('getDetallesDespachos/{pedido_id}/{producto_id}/{color_id}/{talla_id}', 'Pedidos\DetalleController@getDetallesDespachos')->name('pedidos.pedidos_detalles.getDetallesDespachos');
+        Route::post('llenarCantEnviada/', 'Pedidos\DetalleController@llenarCantEnviada')->name('pedidos.pedido.llenarCantEnviada');
     });   
 
      // Despachos

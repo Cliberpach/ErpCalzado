@@ -143,6 +143,33 @@ class DespachoController extends Controller
             'user_despachador_id'       =>  Auth::user()->id,
             'user_despachador_nombre'   =>  Auth::user()->usuario]);
 
+            //======= REVIZAR SI EL DOCUMENTO ESTÁ LIGADO A UN PEDIDO ATENCIÓN =======
+            $pedido_atencion    =   DB::select('select pa.pedido_id 
+                                    from pedidos_atenciones as pa 
+                                    where pa.documento_id = ?',[$request->get('documento_id')]);
+
+            //========== EN CASO EL DOCUMENTO SEA PRODUCTO DE UNA ATENCIÓN DE PEDIDO ========
+            if(count($pedido_atencion) === 1){
+
+                //======= OBTENER DETALLE DEL DOCUMENTO ======
+                $doc_detalles   =   DB::select('select * from cotizacion_documento_detalles as cdd
+                                    where cdd.documento_id = ?',[$request->get('documento_id')]);
+
+                //===== RECORRER EL DETALLE DEL DOCUMENTO DE VENTA =====
+                foreach($doc_detalles as $item){
+
+                    //===== ACTUALIZAR CANTIDADES ENVIADAS DEL PEDIDO ASOCIADO AL DOC VENTA ======
+                    DB::update('UPDATE pedidos_detalles 
+                    SET cantidad_enviada = cantidad_enviada + ? 
+                    WHERE pedido_id = ? and producto_id = ? and color_id = ? and talla_id = ?',
+                    [$item->cantidad, 
+                    $pedido_atencion[0]->pedido_id,
+                    $item->producto_id,
+                    $item->color_id,
+                    $item->talla_id]);
+                }
+            }
+
             DB::commit();
 
             return response()->json(['success'=>true,'message'=>"ENVÍO DESPACHADO"]);

@@ -33,7 +33,7 @@
 
 @can('restore', [Auth::user(),['caja.index','movimiento_caja.index','egreso.index','recibos_caja.index']])
 <li class="@yield('caja-chica-active')">
-    <a href="#"><i class="fa fa-archive"></i> <span class="nav-label">Caja Chica</span><span
+    <a href="#"><i class="fas fa-cash-register"></i> <span class="nav-label">Caja Chica</span><span
             class="fa arrow"></span></a>
     <ul class="nav nav-second-level collapse">
         @can('haveaccess', 'caja.index')
@@ -108,7 +108,7 @@
 
 @can('restore', [Auth::user(),['pedidos.index','pedidos_detalles.index']])
 <li class="@yield('pedidos-active')">
-    <a href="#"><i class="fa fa-shopping-cart"></i> <span class="nav-label">Pedidos</span><span
+    <a href="#"><i class="fas fa-file-invoice-dollar"></i> <span class="nav-label">Pedidos</span><span
             class="fa arrow"></span></a>
     <ul class="nav nav-second-level collapse">
         @can('haveaccess', 'pedido.index')
