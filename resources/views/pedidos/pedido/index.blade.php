@@ -178,8 +178,9 @@
                 url: getPedidosUrl,
                 type: 'GET',
                 "data": function(d) {
-                    d.fecha_inicio  = $('#filtroFechaInicio').val();
-                    d.fecha_fin     = $('#filtroFechaFin').val();
+                    d.fecha_inicio  =   $('#filtroFechaInicio').val();
+                    d.fecha_fin     =   $('#filtroFechaFin').val();
+                    d.pedido_estado =   $('#pedido_estado').val();
                 }
             },
             "order": [
@@ -763,7 +764,7 @@
     }
 
     function filtrarDespachosEstado(pedido_estado){
-        pedidos_data_table.column(5).search(pedido_estado).draw();
+        $('#pedidos_table').DataTable().draw();
     }
 
 

@@ -52,7 +52,8 @@ class DetalleController extends Controller
                                 \DB::raw('concat("PE-", p.id) as pedido_name_id')
                             )
                             ->join('pedidos as p', 'pd.pedido_id', '=', 'p.id')
-                            ->join('productos as prod', 'prod.id', '=', 'pd.producto_id');
+                            ->join('productos as prod', 'prod.id', '=', 'pd.producto_id')
+                            ->where('p.estado','!=','FINALIZADO');
                             
 
         // Aplicar el filtro de estado si se proporciona

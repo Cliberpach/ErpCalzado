@@ -37,13 +37,14 @@ class PedidoController extends Controller
     public function getTable(Request $request){
         $fecha_inicio   =   $request->get('fecha_inicio');
         $fecha_fin      =   $request->get('fecha_fin');
+        $pedido_estado  =   $request->get('pedido_estado');
 
         $pedidos = Pedido::leftJoin('cotizacion_documento', 'pedidos.id', '=', 'cotizacion_documento.pedido_id')
                     ->select('pedidos.*', 
                             \DB::raw('CONCAT(cotizacion_documento.serie, "-", cotizacion_documento.correlativo) as documento_venta'),
                             \DB::raw('if(pedidos.cotizacion_id is null,"-",concat("CO-",pedidos.cotizacion_id)) as cotizacion_nro'))
-                    ->where('pedidos.estado','!=','ANULADO')                   
-                    ->get();
+                    ->where('pedidos.estado','!=','ANULADO');            
+                    
 
         if($fecha_inicio){
             $pedidos    =   $pedidos->where('fecha_registro', '>=', $fecha_inicio);
@@ -52,8 +53,12 @@ class PedidoController extends Controller
         if($fecha_fin){
             $pedidos    =   $pedidos->where('fecha_registro', '<=', $fecha_fin);
         }
+
+        if($pedido_estado){
+            $pedidos    =   $pedidos->where('pedidos.estado', '=', $pedido_estado);
+        }
         
-        return DataTables::of($pedidos)->toJson();
+        return DataTables::of($pedidos->get())->toJson();
     }
 
 
