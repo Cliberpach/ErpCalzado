@@ -106,7 +106,7 @@
 </li>
 @endcan
 
-@can('restore', [Auth::user(),['pedidos.index','pedidos_detalles.index']])
+@can('restore', [Auth::user(),['pedido.index','pedidos_detalles.index']])
 <li class="@yield('pedidos-active')">
     <a href="#"><i class="fas fa-file-invoice-dollar"></i> <span class="nav-label">Pedidos</span><span
             class="fa arrow"></span></a>

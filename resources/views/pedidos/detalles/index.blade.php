@@ -109,15 +109,43 @@
                     <label for="fecha_fin" style="font-weight: bold;">Fecha hasta:</label>
                     <input type="date" class="form-control" id="filtroFechaFin" value="{{ now()->format('Y-m-d') }}" onchange="filtrarDespachoFechaFin(this.value)">
                 </div> --}}
-                {{-- <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                    <label for="pedido_estado" style="font-weight: bold;">Estado</label>
-                    <select  id="pedido_estado" class="form-control select2_form" onchange="filtrarDespachosEstado(this.value)">
-                        <option value=""></option>
+                <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12 mb-3">
+                    <label for="pedido_estado" style="font-weight: bold;">ESTADO</label>
+                    <select  id="pedido_detalle_estado" class="form-control select2_form" onchange="filtrarEstadoDetalle()" >
                         <option value="PENDIENTE">PENDIENTE</option>
-                        <option value="ATENDIENDO">ATENDIENDO</option>
-                        <option value="FINALIZADO">FINALIZADO</option>
+                        <option value="ATENDIDO">ATENDIDO</option>
                     </select>
-                </div> --}}
+                </div> 
+
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3">
+                    <label for="cliente_id" style="font-weight: bold;">CLIENTE</label>
+                    <select  id="cliente_id" class="form-control select2_form" onchange="filtrarCliente()" >
+                        <option value=""></option>
+                        @foreach ($clientes as $cliente)
+                            <option value="{{$cliente->id}}">{{$cliente->tipo_documento.':'.$cliente->documento.'-'.$cliente->nombre}}</option>
+                        @endforeach
+                    </select>
+                </div> 
+
+                <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12 mb-3">
+                    <label for="modelo_id" style="font-weight: bold;">MODELO</label>
+                    <select  id="modelo_id" class="form-control select2_form" onchange="getProductosByModelo(this)" >
+                        <option value=""></option>
+                        @foreach ($modelos as $modelo)
+                            <option value="{{$modelo->id}}">{{$modelo->descripcion}}</option>
+                        @endforeach
+                    </select>
+                </div> 
+
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3">
+                    <label for="producto_id" style="font-weight: bold;">PRODUCTO</label>
+                    <select  id="producto_id" class="form-control select2_form" onchange="filtrarProducto()" >
+                        <option value=""></option>
+                        {{-- @foreach ($productos as $producto)
+                            <option value="{{$producto->id}}">{{$producto->nombre}}</option>
+                        @endforeach --}}
+                    </select>
+                </div> 
 
             </div>
         </div>
@@ -136,6 +164,8 @@
                             <thead>
                                 <tr>
                                     <th class="text-center">PED</th>
+                                    <th class="text-center">CLIENTE</th>
+                                    <th class="text-center">VENDEDOR</th>
                                     <th class="text-center">PRODUCTO</th>
                                     <th class="text-center">COLOR</th>
                                     <th class="text-center">TALLA</th>
@@ -143,6 +173,7 @@
                                     <th class="text-center">PRECIO</th>
                                     <th class="text-center">TOTAL</th>
                                     <th class="text-center">CANT ATENDIDA</th>
+                                    <th class="text-center">CANT PENDIENTE</th>
                                     <th class="text-center">CANT ENVIADA</th>
                                     <th class="text-center">CANT FABRICACION</th>
                                     <th class="text-center">CANT CAMBIO</th>
@@ -166,17 +197,29 @@
 @push('styles')
 <!-- DataTable -->
 <link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 @endpush
 
 @push('scripts')
 <!-- DataTable -->
 <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded',()=>{
+        loadSelect2();
         loadDataTablePedidoDetalles();
     })
+
+    function loadSelect2(){
+        $(".select2_form").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            height: '200px',
+            width: '100%',
+        });
+    }
 
     function loadDataTablePedidoDetalles(){
         $('#pedidos_detalles').DataTable({
@@ -207,7 +250,16 @@
             "bAutoWidth": false,
             "processing": true,
             "serverSide":true,
-            "ajax": "{{ route('pedidos.pedidos_detalles.getTable') }}",
+            "ajax": {
+                "url": "{{ route('pedidos.pedidos_detalles.getTable') }}",
+                "type": "GET",
+                "data": function(d) {
+                        d.pedido_detalle_estado = $('#pedido_detalle_estado').val();
+                        d.cliente_id            = $('#cliente_id').val();
+                        d.modelo_id             = $('#modelo_id').val();
+                        d.producto_id           = $('#producto_id').val();
+                    }
+            },
             "columns": [
                 {
                     data: 'pedido_name_id',
@@ -215,6 +267,14 @@
                     render: function (data, type, row) {
                         return `<p style="font-weight:bold;">${data}</p>`;
                     }
+                },
+                {
+                    data: 'cliente_nombre',
+                    className: "text-center"
+                },
+                {
+                    data: 'vendedor_nombre',
+                    className: "text-center"
                 },
                 {
                     data: 'producto_nombre',
@@ -256,6 +316,10 @@
 
                         return etiqueta;
                     }
+                },
+                {
+                    data: 'cantidad_pendiente',
+                    className: "text-left"
                 },
                 {
                     data: 'cantidad_enviada',
@@ -416,6 +480,62 @@
     function ocultarAnimacionCotizacion(){
         
         document.querySelector('.overlay_pedidos_detalles').style.visibility   =   'hidden';
+    }
+
+    function filtrarEstadoDetalle(){
+        $('#pedidos_detalles').DataTable().draw();
+    }
+    
+    function filtrarCliente(){
+        $('#pedidos_detalles').DataTable().draw();
+    }
+
+    async function  getProductosByModelo(e){
+        mostrarAnimacionCotizacion();
+        modelo_id                   =   e.value;
+        
+        if(modelo_id){
+            try {
+                const res   =   await axios.get(route('ventas.cotizacion.getProductosByModelo',{modelo_id}));
+                if(res.data.success){
+                    pintarSelectProductos(res.data.productos);
+                    toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
+                }else{
+                    ocultarAnimacionCotizacion();
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                ocultarAnimacionCotizacion();
+                toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
+            }finally{
+                ocultarAnimacionCotizacion();
+            }
+               
+        }else{
+            ocultarAnimacionCotizacion();
+        }
+    }
+
+    function pintarSelectProductos(productos){
+        //======= LIMPIAR SELECT2 DE PRODUCTOS ======
+        $('#producto_id').empty();
+
+        //====== LLENAR =======
+        productos.forEach((producto) => {
+            const option = new Option(producto.nombre, producto.id, false, false);
+            $('#producto_id').append(option);
+        });
+
+        // Refrescar Select2
+        $('#producto_id').trigger('change');
+    }
+
+    function filtrarModelo(){
+        $('#pedidos_detalles').DataTable().draw();
+    }
+
+    function filtrarProducto(){
+        $('#pedidos_detalles').DataTable().draw();
     }
 </script>
 

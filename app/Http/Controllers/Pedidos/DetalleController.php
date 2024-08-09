@@ -11,24 +11,75 @@ use Illuminate\Support\Facades\DB;
 class DetalleController extends Controller
 {
     public function index(){
-        return view('pedidos.detalles.index');
+        $clientes   =   DB::select('select c.id,c.tipo_documento,c.documento,c.nombre 
+                        from clientes as c where c.estado = "ACTIVO"');
+
+        $modelos    =   DB::select('select m.id,m.descripcion from modelos as m where m.estado = "ACTIVO"');
+
+        $productos  =   DB::select('select p.id,p.nombre from productos as p where p.estado = "ACTIVO"');
+
+
+        return view('pedidos.detalles.index',compact('clientes','modelos','productos'));
     }
 
     public function getTable(Request $request){
-        // $fecha_inicio   =   $request->get('fecha_inicio');
-        // $fecha_fin      =   $request->get('fecha_fin');
+        $pedido_detalle_estado  = $request->input('pedido_detalle_estado');
+        $cliente_id             = $request->input('cliente_id');
+        $modelo_id              = $request->input('modelo_id');
+        $producto_id            = $request->input('producto_id');
 
-        $pedidos_detalles   =   PedidoDetalle::from('pedidos_detalles as pd')
-                                ->select(
-                                    'p.id as pedido_id','pd.producto_id','pd.color_id','pd.talla_id',
-                                    'pd.producto_nombre','pd.color_nombre','pd.talla_nombre','pd.cantidad','pd.precio_unitario_nuevo',
-                                    'pd.importe_nuevo','pd.cantidad_atendida','pd.cantidad_enviada',
-                                    \DB::raw('concat("PE-", p.id) as pedido_name_id')
-                                )
-                                ->join('pedidos as p', 'pd.pedido_id', '=', 'p.id')
-                                ->orderBy('p.id','desc')
-                                ->get();
 
+        $pedidos_detalles = PedidoDetalle::from('pedidos_detalles as pd')
+                            ->select(
+                                'p.id as pedido_id',
+                                'p.cliente_id',
+                                'p.cliente_nombre',
+                                'p.user_nombre as vendedor_nombre',
+                                'prod.modelo_id',
+                                'pd.producto_id',
+                                'pd.color_id',
+                                'pd.talla_id',
+                                'pd.producto_nombre',
+                                'pd.color_nombre',
+                                'pd.talla_nombre',
+                                'pd.cantidad',
+                                'pd.precio_unitario_nuevo',
+                                'pd.importe_nuevo',
+                                'pd.cantidad_atendida',
+                                'pd.cantidad_pendiente',
+                                'pd.cantidad_enviada',
+                                \DB::raw('concat("PE-", p.id) as pedido_name_id')
+                            )
+                            ->join('pedidos as p', 'pd.pedido_id', '=', 'p.id')
+                            ->join('productos as prod', 'prod.id', '=', 'pd.producto_id');
+                            
+
+        // Aplicar el filtro de estado si se proporciona
+        if (!empty($pedido_detalle_estado)) {
+            if($pedido_detalle_estado === "PENDIENTE"){
+                $pedidos_detalles->where('pd.cantidad_pendiente', '>', 0);
+            }
+            if($pedido_detalle_estado === "ATENDIDO"){
+                $pedidos_detalles->where('pd.cantidad_pendiente', '=', 0);
+            }
+        }
+
+        if (!empty($cliente_id)) {
+            $pedidos_detalles->where('p.cliente_id', $cliente_id);
+        }
+
+        if (!empty($modelo_id)) {
+            $pedidos_detalles->where('prod.modelo_id', $modelo_id);
+        }
+
+        if (!empty($producto_id)) {
+            $pedidos_detalles->where('pd.producto_id', $producto_id);
+        }
+
+        // Ordenar y obtener los resultados
+        $pedidos_detalles = $pedidos_detalles->orderBy('p.id', 'desc')->get();
+
+        // Retornar los resultados como JSON para DataTable
         return DataTables::of($pedidos_detalles)->toJson();
     }
 
