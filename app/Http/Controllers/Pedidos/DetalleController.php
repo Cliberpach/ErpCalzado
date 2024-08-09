@@ -110,6 +110,7 @@ class DetalleController extends Controller
                      
                 }
             }else{
+                dd($despacho_doc);
                 dd('error al buscar despachos');
             }
         }
