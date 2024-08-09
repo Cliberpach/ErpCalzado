@@ -109,9 +109,10 @@ class DetalleController extends Controller
                     }
                      
                 }
-            }else{
+            }
+
+            if(count($despacho_doc) > 1){
                 dd($despacho_doc);
-                dd('error al buscar despachos');
             }
         }
         dd('CANTIDADES ENVIADAS LLENAS');
