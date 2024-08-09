@@ -32,6 +32,7 @@ class DetalleController extends Controller
         $pedidos_detalles = PedidoDetalle::from('pedidos_detalles as pd')
                             ->select(
                                 'p.id as pedido_id',
+                                'p.created_at as pedido_fecha',
                                 'p.cliente_id',
                                 'p.cliente_nombre',
                                 'p.user_nombre as vendedor_nombre',

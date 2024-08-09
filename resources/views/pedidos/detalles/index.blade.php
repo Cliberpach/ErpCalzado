@@ -164,6 +164,7 @@
                             <thead>
                                 <tr>
                                     <th class="text-center">PED</th>
+                                    <th class="text-center">FECHA</th>
                                     <th class="text-center">CLIENTE</th>
                                     <th class="text-center">VENDEDOR</th>
                                     <th class="text-center">PRODUCTO</th>
@@ -267,6 +268,10 @@
                     render: function (data, type, row) {
                         return `<p style="font-weight:bold;">${data}</p>`;
                     }
+                },
+                {
+                    data: 'pedido_fecha',
+                    className: "text-center"
                 },
                 {
                     data: 'cliente_nombre',
