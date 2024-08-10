@@ -13,7 +13,7 @@
       width: 100%;
       height: 100%;
       background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
-      z-index: 9999; /* Asegura que el overlay esté sobre todo */
+      z-index: 99999999; /* Asegura que el overlay esté sobre todo */
       display: flex;
       justify-content: center;
       align-items: center;
@@ -163,6 +163,7 @@
                             style="text-transform:uppercase" width="100%">
                             <thead>
                                 <tr>
+                                    <th><i class="fas fa-vote-yea"></i></th>
                                     <th class="text-center">PED</th>
                                     <th class="text-center">FECHA</th>
                                     <th class="text-center">CLIENTE</th>
@@ -192,6 +193,19 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-12">
+            <div class="panel panel-success">
+                <div class="panel-heading">PROGRAMACIÓN DE PRODUCCIÓN</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        @include('pedidos.detalles.tables.table_programacion_produccion')
+                    </div>
+                </div>
+              </div>
+        </div>
+    </div>
+
 </div>
 @stop
 
@@ -208,10 +222,49 @@
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
 <script>
+    const lstProgramaProduccion         =   [];
+    const lstChecksProductosMarcados    =   [];
+    let dataTablePedidoDetalles         =   null;
+
     document.addEventListener('DOMContentLoaded',()=>{
         loadSelect2();
         loadDataTablePedidoDetalles();
+        events();
     })
+
+    function events(){
+        document.addEventListener('change',(e)=>{
+            if (e.target.classList.contains('checkProducto')) {
+
+                const producto          =   getProducto(e.target);
+                const checkProductoId   =   e.target.getAttribute('id');
+                if(e.target.checked){
+                    agregarProductoToProduccion(producto);
+                    lstChecksProductosMarcados.push(checkProductoId);
+                }
+                if(!e.target.checked){
+                    quitarProductoToProduccion(producto,checkProductoId);
+                }
+                pintarTableProgramacionProduccion();
+                
+            }
+        })
+
+        //======= EVENTO DE DATATABLE - PETICIÓN DE TRAER DATOS SERVER SIDE =====
+        dataTablePedidoDetalles.on('preXhr.dt', function(e, settings, data) {
+            mostrarAnimacionCotizacion();
+        });
+
+        //===== EVENTO DATATABLE - DATOS LLEGARON DEL SERVER SIDE ======
+        dataTablePedidoDetalles.on('xhr.dt', function(e, settings, json, xhr) {
+        });
+
+        //===== EVENTO DATATABLE - LA TABLA HA TERMINADO DE DIBUJARSE ========
+        dataTablePedidoDetalles.on('draw.dt', function() {
+            remarcarCheckboxProductos();
+            ocultarAnimacionCotizacion();
+        });
+    }
 
     function loadSelect2(){
         $(".select2_form").select2({
@@ -223,7 +276,7 @@
     }
 
     function loadDataTablePedidoDetalles(){
-        $('#pedidos_detalles').DataTable({
+        dataTablePedidoDetalles   =   $('#pedidos_detalles').DataTable({
             "dom": '<"html5buttons"B>lTfgitp',
             "buttons": [{
                     extend: 'excelHtml5',
@@ -262,6 +315,16 @@
                     }
             },
             "columns": [
+                {
+                    data: null,
+                    className: "text-center",
+                    render: function (data, type, row) {
+                        let etiqueta    =   `  <input class="form-control checkProducto" id="checkProducto_${row.pedido_id}_${row.producto_id}_${row.color_id}_${row.talla_id}" type="checkbox" data-modelo-id="${row.modelo_id}" data-producto-id="${row.producto_id}" data-color-id="${row.color_id}" data-talla-id="${row.talla_id}" 
+                        data-modelo-nombre="${row.modelo_nombre}" data-producto-nombre="${row.producto_nombre}" data-color-nombre="${row.color_nombre}" data-talla-nombre="${row.talla_nombre}"  data-cant-pend="${row.cantidad_pendiente}">`;   
+
+                        return etiqueta;
+                    }
+                },
                 {
                     data: 'pedido_name_id',
                     className: "text-left",
@@ -373,6 +436,228 @@
             },
             "order": [],
         });
+    }
+
+    function getProducto(checkProducto){
+        const modelo_id             =   checkProducto.getAttribute('data-modelo-id');
+        const producto_id           =   checkProducto.getAttribute('data-producto-id');
+        const color_id              =   checkProducto.getAttribute('data-color-id');
+        const talla_id              =   checkProducto.getAttribute('data-talla-id');
+        const modelo_nombre         =   checkProducto.getAttribute('data-modelo-nombre');  
+        const producto_nombre       =   checkProducto.getAttribute('data-producto-nombre');  
+        const color_nombre          =   checkProducto.getAttribute('data-color-nombre');    
+        const talla_nombre          =   checkProducto.getAttribute('data-talla-nombre');    
+        const cantidad_pendiente    =   checkProducto.getAttribute('data-cant-pend');    
+
+        
+        return {modelo_id,producto_id,color_id,talla_id,
+            modelo_nombre,producto_nombre,color_nombre,talla_nombre,cantidad_pendiente};
+
+    }
+
+
+    //========= AGREGAR PRODUCTO AL LISTADO DE PRODUCCIÓN =======
+    function agregarProductoToProduccion(producto_nuevo){
+        //========= REVIZAR SI EL PRODUCTO YA EXISTE EN EL LISTADO ========
+        const indiceProducto    =   lstProgramaProduccion.findIndex((item)=>{
+            return  item.id == producto_nuevo.producto_id;
+        })
+
+        //====== EL PRODUCTO  ES NUEVO ======
+        if(indiceProducto === -1){
+            //======== INSTANCIAR PRODUCTO ======
+            const instancia_producto    =   {id:producto_nuevo.producto_id,nombre:producto_nuevo.producto_nombre}
+
+            //======== INSTANCIANDO MODELO ======
+            const instancia_modelo      =   {id:producto_nuevo.modelo_id,nombre:producto_nuevo.modelo_nombre};
+
+            //====== INSTANCIANDO COLOR =======
+            const instancia_color       =   {id:producto_nuevo.color_id,nombre:producto_nuevo.color_nombre};
+
+            //====== INSTANCIANDO TALLA ======
+            const instancia_talla       =   {id:producto_nuevo.talla_id,nombre:producto_nuevo.talla_nombre,cantidad_pendiente:parseInt(producto_nuevo.cantidad_pendiente)};
+
+            //====== FORMANDO =======
+            instancia_producto.modelo               =   instancia_modelo;
+            instancia_producto.colores              =   [instancia_color];
+            instancia_producto.colores[0].tallas    =   [instancia_talla];
+
+            lstProgramaProduccion.push(instancia_producto);
+        }
+
+        //===== EL PRODUCTO YA EXISTE =======
+        if(indiceProducto !== -1){
+            //===== VERIFICAR SI EXISTE EL COLOR =======
+            const producto_existe   =   lstProgramaProduccion[indiceProducto];
+
+            const indiceColor       =   producto_existe.colores.findIndex((item)=>{
+                return  item.id ==  producto_nuevo.color_id;
+            })
+
+            //====== EL COLOR NO EXISTE ======
+            if(indiceColor === -1){
+                //====== INSTANCIAR COLOR =====
+                const instancia_color   =   {id:producto_nuevo.color_id,nombre:producto_nuevo.color_nombre};
+
+                //===== INSTANCIAR TALLA =======
+                const instancia_talla       =   {id:producto_nuevo.talla_id,nombre:producto_nuevo.talla_nombre,cantidad_pendiente:parseInt(producto_nuevo.cantidad_pendiente)};
+                
+                //======= FORMANDO =======
+                instancia_color.tallas      =   [instancia_talla];
+
+                producto_existe.colores.push(instancia_color)
+            }
+
+            //======== EL COLOR YA EXISTE ======
+            if(indiceColor !== -1){
+                //==== VERIFICAR SI LA TALLA EXISTE =====
+                const color_existe  =   producto_existe.colores[indiceColor];
+
+                const indiceTalla   =   color_existe.tallas.findIndex((item)=>{
+                    return  item.id == producto_nuevo.talla_id;
+                })
+
+                //==== SI LA TALLA ES NUEVA ======
+                if(indiceTalla === -1){
+                    //===== INSTANCIAR TALLA =======
+                    const instancia_talla       =   {id:producto_nuevo.talla_id,nombre:producto_nuevo.talla_nombre,cantidad_pendiente:parseInt(producto_nuevo.cantidad_pendiente)};
+                    
+                    //======= FORMANDO =======
+                    color_existe.tallas.push(instancia_talla);
+                }
+
+                //===== SI LA TALLA YA EXISTE =====
+                if(indiceTalla !== -1){
+                    color_existe.tallas[indiceTalla].cantidad_pendiente +=  parseInt(producto_nuevo.cantidad_pendiente);
+                }
+            }
+        }
+    }
+
+    //========= QUITAR PRODUCTO DEL LISTADO DE PROGRAMACIÓN DE PRODUCCIÓN ======
+    function quitarProductoToProduccion(producto_desmarcado,checkProductoId){
+        //===== VERIFICAR SI EXISTE EL PRODUCTO ======
+        const indiceProducto    =   lstProgramaProduccion.findIndex((producto)=>{
+            return producto.id  == producto_desmarcado.producto_id;
+        })
+
+        //====== EN CASO EXISTA =======
+        if(indiceProducto !== -1){
+            //======= VERIFICAR SI EXISTE EL COLOR ========
+            const producto_existe   =   lstProgramaProduccion[indiceProducto];
+            const indiceColor       =   producto_existe.colores.findIndex((color)=>{
+                return  color.id    ==  producto_desmarcado.color_id;
+            })
+
+            //====== EN CASO EL COLOR EXISTA =====
+            if(indiceColor !== -1){
+                const   color_existe    =   producto_existe.colores[indiceColor];
+
+                //======== VERIFICAR QUE LA TALLA EXISTA ======
+                const indiceTalla   =   color_existe.tallas.findIndex((talla)=>{
+                    return talla.id == producto_desmarcado.talla_id;
+                })
+
+                //====== EN CASO EXISTA LA TALLA ======
+                if(indiceTalla !== -1){
+                    const talla_existe      =   color_existe.tallas[indiceTalla];
+
+                    //====== CONTROLAR LA CANTIDAD AL RESTAR =======
+                    let aux_cant_resultante =   talla_existe.cantidad_pendiente - parseInt(producto_desmarcado.cantidad_pendiente);
+                    
+                    //======== LA RESTA FUE CORRECTA =====
+                    if(aux_cant_resultante >= 0){
+                        //==== RESTAMOS =======
+                        talla_existe.cantidad_pendiente -=  parseInt(producto_desmarcado.cantidad_pendiente);
+
+                        //======= QUITAMOS EL CHECKBOX DEL LISTADO DE CHECKBOX MARCADOS ======
+                        const indiceCheckMarcado    =   lstChecksProductosMarcados.findIndex((chkId)=>{
+                            return chkId    === checkProductoId;
+                        })
+                        if(indiceCheckMarcado !== -1){
+                            lstChecksProductosMarcados.splice(indiceCheckMarcado,1);
+                        }
+
+                        //======= ELIMINAR LA TALLA EN CASO SU CANTIDAD LLEGUE A SER 0 ========
+                        if(talla_existe.cantidad_pendiente == 0){
+                            color_existe.tallas.splice(indiceTalla,1);
+
+                            //====== EN CASO EL COLOR SE QUEDE SIN TALLAS, ELIMINAR EL COLOR =========
+                            if(color_existe.tallas.length === 0){
+                                producto_existe.colores.splice(indiceColor,1);
+
+                                //===== EN CASO EL PRODUCTO SE QUEDE SIN COLORES, ELIMINAR EL PRODUCTO =====
+                                if(producto_existe.colores.length === 0){
+                                    lstProgramaProduccion.splice(indiceProducto,1);
+                                }
+                            }
+                        }
+
+
+                    }
+
+                    //====== RESTA INCORRECTA =======
+                    if(aux_cant_resultante < 0){
+                        toastr.error('ERROR AL RESTAR LA CANTIDAD DEL PRODUCTO DEL LISTADO DE PROGRAMACIÓN DE PRODUCCIÓN');
+                    }
+                }
+
+                //==== EN CASO LA TALLA NO EXISTA ======
+                if(indiceTalla === -1){
+                    toastr.error('ERROR AL QUITAR EL PRODUCTO DEL LISTADO PROGRAMACIÓN DE PRODUCCIÓN','TALLA NO ENCONTRADA');
+                }
+            }
+
+            //======== EN CASO EL COLOR NO EXISTA =====
+            if(indiceColor === -1){
+                toastr.error('ERROR AL QUITAR EL PRODUCTO DEL LISTADO PROGRAMACIÓN DE PRODUCCIÓN','COLOR NO ENCONTRADO');
+            }
+        }
+
+        //====== EN CASO EL PRODUCTO NO EXISTA =====
+        if(indiceProducto === -1){
+            toastr.error('ERROR AL QUITAR EL PRODUCTO DEL LISTADO PROGRAMACIÓN DE PRODUCCIÓN','PRODUCTO NO ENCONTRADO');
+        }
+    }
+
+    function pintarTableProgramacionProduccion(){
+        let     filas       =   ``;
+        const   tallasBD    =   @json($tallas);
+        const   tbody       =   document.querySelector('#table_programacion_produccion tbody');
+
+        lstProgramaProduccion.forEach((producto)=>{
+            
+            //===== COLORES =======
+            producto.colores.forEach((color)=>{
+                filas   +=  `<tr>
+                                <th><div style="width:120px;">${producto.modelo.nombre}</div></th>
+                                <td><div style="width:120px;">${producto.nombre}</div></td>
+                                <td><div style="width:120px;">${color.nombre}</div></td>`;
+
+                //====== RECORRIENDO EN BASE A LAS TALLAS DE LA BD =======
+                tallasBD.forEach((tallaBD)=>{
+
+                    //======== REVIZANDO EL COLOR TIENE ESTA TALLA =====
+                    const indiceTalla   =   color.tallas.findIndex((t)=>{
+                        return  t.id == tallaBD.id;
+                    })
+
+                    let elementCantPendiente    =   ``;
+                    //===== SI TIENE LA TALLA =====
+                    if(indiceTalla !== -1){
+                        elementCantPendiente    =   `<p style="margin:0;font-weight:bold;">${color.tallas[indiceTalla].cantidad_pendiente}</p>`;
+                    }
+
+                    //========= AÑADIENDO A LA FILA =======
+                    filas   +=  `<td>${elementCantPendiente}</td>`;
+
+                })
+
+            })
+
+        })
+
+        tbody.innerHTML =   filas;
     }
 
     async function openMdlAtenciones(pedido_id,producto_id,color_id,talla_id){
@@ -542,6 +827,16 @@
 
     function filtrarProducto(){
         $('#pedidos_detalles').DataTable().draw();
+    }
+
+    //======= MANTENER LOS CHECKBOX PINTADOS =====
+    function remarcarCheckboxProductos(){
+        lstChecksProductosMarcados.forEach((checkProductoId)=>{
+            const checkProducto =   document.querySelector(`#${checkProductoId}`);
+            if(checkProducto){
+                checkProducto.checked   =   true;
+            }
+        })
     }
 </script>
 

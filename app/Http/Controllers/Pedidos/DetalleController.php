@@ -16,10 +16,10 @@ class DetalleController extends Controller
 
         $modelos    =   DB::select('select m.id,m.descripcion from modelos as m where m.estado = "ACTIVO"');
 
-        $productos  =   DB::select('select p.id,p.nombre from productos as p where p.estado = "ACTIVO"');
 
+        $tallas     =   DB::select('select t.id,t.descripcion from tallas as t where t.estado = "ACTIVO"');
 
-        return view('pedidos.detalles.index',compact('clientes','modelos','productos'));
+        return view('pedidos.detalles.index',compact('clientes','modelos','tallas'));
     }
 
     public function getTable(Request $request){
@@ -40,6 +40,7 @@ class DetalleController extends Controller
                                 'pd.producto_id',
                                 'pd.color_id',
                                 'pd.talla_id',
+                                'm.descripcion as modelo_nombre',
                                 'pd.producto_nombre',
                                 'pd.color_nombre',
                                 'pd.talla_nombre',
@@ -53,6 +54,7 @@ class DetalleController extends Controller
                             )
                             ->join('pedidos as p', 'pd.pedido_id', '=', 'p.id')
                             ->join('productos as prod', 'prod.id', '=', 'pd.producto_id')
+                            ->join('modelos as m', 'm.id', '=', 'prod.modelo_id')
                             ->where('p.estado','!=','FINALIZADO');
                             
 

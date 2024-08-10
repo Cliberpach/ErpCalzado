@@ -8,7 +8,9 @@
           </button>
         </div>
         <div class="modal-body">
-          @include('pedidos.detalles.tables.table_detalles_despachos')
+          <div class="table-responsive">
+            @include('pedidos.detalles.tables.table_detalles_despachos')
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
