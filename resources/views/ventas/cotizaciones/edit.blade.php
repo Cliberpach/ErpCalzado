@@ -1256,7 +1256,7 @@
             
             if (targetValue) {
                 $('#precio_venta').val(targetValue).trigger('change');
-                console.lñog('precio venta fijado'); 
+                console.log('precio venta fijado'); 
             } 
 
         }) 
