@@ -860,7 +860,7 @@
     }
 
     //======= DESCARGAR PDF PROGRAMACIÓN PRODUCCIÓN =========
-    function descargarPdfProgramacionProduccion(){
+    /*function descargarPdfProgramacionProduccion(){
         if(lstProgramaProduccion.length === 0){
             toastr.error('LA PROGRAMACIÓN DE PRODUCCIÓN ESTÁ VACÍA','ERROR AL GENERAR PDF');
             return;
@@ -878,7 +878,7 @@
         } catch (error) {
             
         }
-    }
+    }*/
 
     //======= GENERAR ORDEN DE PEDIDO =====
     async function generarOrdenPedido(){

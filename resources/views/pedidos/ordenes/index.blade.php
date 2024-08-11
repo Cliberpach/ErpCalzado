@@ -3,7 +3,7 @@
 
 @section('pedidos-active', 'active')
 @section('ordenes-pedido-active', 'active')
-
+@include('pedidos.ordenes.modals.modal_ver_detalle')
 <style>
 
     .overlay_pedidos_detalles {
@@ -258,8 +258,37 @@
                     className: "text-center"
                 },
                 {
-                    data: 'observacion',
-                    className: "text-center"
+                    data: null,
+                    className: "text-center",
+                    render: function(data) {
+                        //Ruta Detalle
+                        var url_pdf = '{{ route('pedidos.ordenes_pedido.pdf', ':id') }}';
+                        url_pdf     = url_pdf.replace(':id', data.id);
+
+                        let options =   "";
+                        options +=`
+                            <div class='btn-group' style='text-transform:capitalize;'>
+                                <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
+                                <i class='fa fa-bars'></i>
+                                </button>
+                                <ul class='dropdown-menu'>
+                                     <li>
+                                        <a target='_blank' class='dropdown-item' href='${url_pdf}' title='PDF'>
+                                            <b><i class="fas fa-file-pdf"></i> PDF</b>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class='dropdown-item' href='javascript:void(0);'onclick="verDetalleOrdenPedido(${data.id})" title='Detalle'>
+                                            <b><i class="fas fa-eye"></i> Detalle</b>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                                `;    
+                        return options;
+
+                    
+                    }
                 }
             ],
             "language": {
@@ -275,6 +304,25 @@
 
     function ocultarAnimacion(){
         document.querySelector('.overlay_pedidos_detalles').style.visibility   =   'hidden';
+    }
+
+    //======= VER DETALLE DE LA ORDEN DE PEDIDO =======
+    async function verDetalleOrdenPedido(orden_pedido_id){
+        try {
+            mostrarAnimacion();
+            const res   =   await axios.get(route('pedidos.ordenes_pedido.getDetalle',{orden_pedido_id}));
+            if(res.data.success){
+                pintarDetalleOrden(res.data.orden_pedido_detalle);
+                $('#modal_detalle_orden').modal('show');
+                toastr.info('VISUALIZANDO DETALLE DE LA ORDEN');
+            }else{
+                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+            }
+        } catch (error) {
+            toastr.error(error,'ERROR EN LA PETICIÓN VISUALIZAR DETALLE DE LA ORDEN');
+        }finally{
+            ocultarAnimacion();
+        }
     }
 
    
