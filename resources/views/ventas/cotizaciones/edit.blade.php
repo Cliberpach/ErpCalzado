@@ -1062,7 +1062,7 @@
                 const res   =   await   axios.get(route('ventas.cotizacion.getColoresTallas',{producto_id}));
                 if(res.data.success){
                     pintarTableStocks(res.data.producto_color_tallas);
-                    pintarPreciosVenta(res.data.producto_color_tallas);
+                    await pintarPreciosVenta(res.data.producto_color_tallas);
                     loadCarrito();
                 }else{
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
@@ -1249,8 +1249,8 @@
             //==== UBICANDO PRECIO VENTA SELECCIONADO ======
             $('#precio_venta option').each(function() {
                 if ($(this).text() == c.precio_venta.toString()) {
-                targetValue = $(this).val(); 
-                return false;
+                    targetValue = $(this).val(); 
+                    return false;
                 }
             });
             
