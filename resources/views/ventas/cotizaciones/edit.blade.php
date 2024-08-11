@@ -1064,6 +1064,7 @@
                     pintarTableStocks(res.data.producto_color_tallas);
                     pintarPreciosVenta(res.data.producto_color_tallas);
                     loadCarrito();
+                    loadPrecioVentaProductoCarrito(producto_id);
                 }else{
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
@@ -1244,11 +1245,24 @@
                     inputLoad.value = talla.cantidad;
                 }
             })
+           
+        }) 
+    }
 
+    //====== CARGAR EL PRECIO DE VENTA ELEGIDO PARA EL PRODUCTO EN EL CARRITO ======
+    function loadPrecioVentaProductoCarrito(producto_id){
+        const producto_elegido_id   =   producto_id;
+        //===== LO BUSCAMOS EN EL CARRITO ======
+        const indiceProducto    =   carrito.findIndex((p)=>{
+            return p.producto_id    == producto_elegido_id;
+        })
+
+        if(indiceProducto !== -1){
+            const itemProducto  =   carrito[indiceProducto];
             let targetValue;
             //==== UBICANDO PRECIO VENTA SELECCIONADO ======
             $('#precio_venta option').each(function() {
-                if ($(this).text() == c.precio_venta) {
+                if ($(this).text() == itemProducto.precio_venta) {
                     targetValue = $(this).val(); 
                     return false;
                 }
@@ -1258,8 +1272,10 @@
                 $('#precio_venta').val(targetValue).trigger('change');
                 console.log('precio venta fijado'); 
             } 
+        }else{
+            toastr.info('NO SE PUEDO FIJAR EL PRECIO DE VENTA PREVIO PARA EL PRODUCTO');
+        }
 
-        }) 
     }
 
     function cargarEmbalajeEnvioPrevios(){
