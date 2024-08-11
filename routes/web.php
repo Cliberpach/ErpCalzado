@@ -537,6 +537,14 @@ function(){
         Route::get('getDetallesAtenciones/{pedido_id}/{producto_id}/{color_id}/{talla_id}', 'Pedidos\DetalleController@getDetallesAtenciones')->name('pedidos.pedidos_detalles.getDetallesAtenciones');
         Route::get('getDetallesDespachos/{pedido_id}/{producto_id}/{color_id}/{talla_id}', 'Pedidos\DetalleController@getDetallesDespachos')->name('pedidos.pedidos_detalles.getDetallesDespachos');
         Route::post('llenarCantEnviada/', 'Pedidos\DetalleController@llenarCantEnviada')->name('pedidos.pedido.llenarCantEnviada');
+        Route::get('pdfProgramacionProduccion', 'Pedidos\DetalleController@pdfProgramacionProduccion')->name('pedidos.pedidos_detalles.pdfProgramacionProduccion');
+        Route::post('generarOrdenPedido/', 'Pedidos\DetalleController@generarOrdenPedido')->name('pedidos.pedido.generarOrdenPedido');
+    });  
+    
+    //======= ÓRDENES - PEDIDO =======
+    Route::prefix('pedidos/ordenes')->group(function(){
+        Route::get('index', 'Pedidos\OrdenPedidoController@index')->name('pedidos.ordenes_pedido.index');
+        Route::get('getTable', 'Pedidos\OrdenPedidoController@getTable')->name('pedidos.ordenes_pedido.getTable');
     });   
 
      // Despachos

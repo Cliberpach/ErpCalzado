@@ -3,10 +3,16 @@
 namespace App\Http\Controllers\Pedidos;
 
 use App\Http\Controllers\Controller;
+use App\Pedidos\OrdenPedido;
+use App\Pedidos\OrdenPedidoDetalle;
 use Illuminate\Http\Request;
 use App\Ventas\PedidoDetalle;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade as PDF;
+use App\Mantenimiento\Empresa\Empresa;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class DetalleController extends Controller
 {
@@ -172,5 +178,76 @@ class DetalleController extends Controller
             }
         }
         dd('CANTIDADES ENVIADAS LLENAS');
+    }
+
+    //======== PDF PROGRAMACIÓN PRODUCCIÓN =======
+    public function pdfProgramacionProduccion(Request $request){
+        try {
+            $lstProgramacionProduccion  =   json_decode($request->get('lstProgramaProduccion'));
+            $tallasBD                   =   DB::select('select t.id,t.descripcion from tallas as t
+                                            where t.estado ="ACTIVO"');
+
+            $empresa                    =   Empresa::first();
+
+            $usuario_impresion_nombre   =   Auth::user()->usuario;
+            $fecha_actual               =   Carbon::now();
+
+            
+            $pdf = PDF::loadview('pedidos.detalles.pdf.prog_produccion', [
+                'lstProgramacionProduccion'     =>  $lstProgramacionProduccion,
+                'tallasBD'                      =>  $tallasBD,
+                'empresa'                       =>  $empresa,
+                'usuario_impresion_nombre'      =>  $usuario_impresion_nombre,
+                'fecha_actual'                =>  $fecha_actual
+            ])->setPaper('a4', 'landscape')->setWarnings(false);
+            
+            return $pdf->stream('PROGRAMACIÓN_PRODUCCIÓN.pdf');
+
+        } catch (\Throwable $th) {
+            dd($th->getMessage());
+        }
+
+    }
+
+    public function generarOrdenPedido(Request $request){
+        DB::beginTransaction();
+ 
+        try {
+            $lstProgramacionProduccion  =   json_decode($request->get('lstProgramacionProduccion'));
+            
+            //===== CREAMOS LA ORDEN DE PEDIDO CABEZERA ========
+            $orden_pedido                           =   new OrdenPedido();
+            $orden_pedido->user_id                  =   Auth::user()->id;
+            $orden_pedido->user_nombre              =   Auth::user()->usuario;
+            $orden_pedido->fecha_propuesta_atencion =   $request->get('fecha_propuesta_atencion');
+            $orden_pedido->observacion              =   $request->get('observacion');
+            $orden_pedido->save();
+
+            //======= GUARDANDO DETALLES DE LA ORDEN DE PEDIDO =====
+            foreach ($lstProgramacionProduccion as $producto) {
+                foreach ($producto->colores as $color ) {
+                    foreach ($color->tallas as $talla) {
+                        $orden_pedido_detalle               =   new OrdenPedidoDetalle();
+                        $orden_pedido_detalle->orden_pedido_id  =   $orden_pedido->id;
+                        $orden_pedido_detalle->modelo_id        =   $producto->modelo->id;
+                        $orden_pedido_detalle->producto_id      =   $producto->id;
+                        $orden_pedido_detalle->color_id         =   $color->id;
+                        $orden_pedido_detalle->talla_id         =   $talla->id;
+                        $orden_pedido_detalle->modelo_nombre    =   $producto->modelo->nombre;
+                        $orden_pedido_detalle->producto_nombre  =   $producto->nombre;
+                        $orden_pedido_detalle->color_nombre     =   $color->nombre;
+                        $orden_pedido_detalle->talla_nombre     =   $talla->nombre;
+                        $orden_pedido_detalle->cantidad         =   $talla->cantidad_pendiente;
+                        $orden_pedido_detalle->save();                    
+                    }  
+                } 
+            }
+
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>'ORDEN DE PEDIDO N° '.$orden_pedido->id.' GENERADA CON ÉXITO']);
+
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
     }
 }

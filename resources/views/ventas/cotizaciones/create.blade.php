@@ -663,6 +663,8 @@
             carrito.forEach((c)=>{
                 calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
             })
+            //====== APLICAMOS DATATABLE AL DETALLES COTIZACIÓN =======
+            loadDataTableDetallesCotizacion();
 
         })
     }
@@ -959,7 +961,6 @@
         })
 
         tableDetalleBody.innerHTML  =   filas;
-        loadDataTableDetallesCotizacion();
     }
 
     function mostrarAnimacionCotizacion(){

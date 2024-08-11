@@ -6,8 +6,8 @@
 @include('pedidos.pedido.modal-pedido-detalles') 
 
 
-<div class="row wrapper border-bottom white-bg page-heading">
-    <div class="col-lg-10 col-md-10">
+<div class="row wrapper border-bottom white-bg page-heading align-items-center" style="padding:10px 5px;">
+    <div class="col-lg-5 col-md-5 col-sm-12 col-xs-12">
         <h2 style="text-transform:uppercase"><b>Listado de Pedidos</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
@@ -18,8 +18,16 @@
             </li>
         </ol>
     </div>
-    <div class="col-lg-2 col-md-2">
-        <button id="btn_añadir_cotizacion" class="btn btn-block btn-w-m btn-primary m-t-md" onclick="añadirPedido()">
+    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 mb-3 mt-3 d-flex align-items-center justify-content-center">
+        <div class="alert alert-warning alert-dismissible fade show m-0" role="alert">
+            <strong>Holy {{Auth::user()->usuario}}!</strong> Los pedidos facturados no podrán modificarse.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 d-flex justify-content-end">
+        <button id="btn_añadir_cotizacion" class="btn btn-primary" onclick="añadirPedido()">
             <i class="fa fa-plus-square"></i> Añadir nuevo
         </button>
     </div>
@@ -312,15 +320,15 @@
    
     function getLanguajeDataTable(){
         return {
-            processing:     "Traitement en cours...",
+            processing:     "Procesando...",
             search:         "BUSCAR: ",
             lengthMenu:    "MOSTRAR _MENU_ PEDIDOS",
             info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ PEDIDOS",
             infoEmpty:      "MOSTRANDO 0 PEDIDOS",
             infoFiltered:   "(FILTRADO de _MAX_ PEDIDOS)",
             infoPostFix:    "",
-            loadingRecords: "CARGA EN CURSO",
-            zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+            loadingRecords: "CARGANDO...",
+            zeroRecords:    "No se encontraron elementos",
             emptyTable:     "NO HAY PEDIDOS DISPONIBLES",
             paginate: {
                 first:      "PRIMERO",
@@ -329,8 +337,8 @@
                 last:       "ÚLTIMO"
             },
             aria: {
-                sortAscending:  ": activer pour trier la colonne par ordre croissant",
-                sortDescending: ": activer pour trier la colonne par ordre décroissant"
+                sortAscending:  ": activar para ordenar la columna de forma ascendente",
+                sortDescending: ": activar para ordenar la columna de forma descendente"
             }
         }
     }
@@ -821,7 +829,7 @@
                             const url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id +"-80"});
                             window.open(url_open_pdf, 'Comprobante MERRIS', 'location=1, status=1, scrollbars=1,width=900, height=600');
                         }else{
-                            toastr.error(`ERROR AL GENERAR EL COMPROBANTE ${tipo_comprobante}`,'OPERACIÓN ERRÓNEA');
+                            toastr.error(res.data.message,`ERROR AL GENERAR EL COMPROBANTE ${tipo_comprobante}`);
                         }
                     }
                 });

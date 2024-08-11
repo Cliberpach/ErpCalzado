@@ -117,6 +117,9 @@
         @can('haveaccess', 'pedidos_detalles.index')
         <li class="@yield('pedidos-detalles-active')"><a href="{{route('pedidos.pedidos_detalles.index')}}">Detalles</a></li>
         @endcan
+        @can('haveaccess', 'ordenes_pedido.index')
+        <li class="@yield('ordenes-pedido-active')"><a href="{{route('pedidos.ordenes_pedido.index')}}">Órdenes</a></li>
+        @endcan
     </ul>
 </li>
 @endcan

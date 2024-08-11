@@ -198,6 +198,26 @@
             <div class="panel panel-success">
                 <div class="panel-heading">PROGRAMACIÓN DE PRODUCCIÓN</div>
                 <div class="panel-body">
+                    <div class="row mb-3">
+                        {{-- <div class="col-12 d-flex justify-content-end">
+                            <a class="btn btn-success" href="javascript:void(0);" onclick="descargarPdfProgramacionProduccion()">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>                        
+                        </div> --}}
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                            <label style="font-weight: bold;" for="fecha_propuesta_atencion">FECHA PROPUESTA ATENCIÓN</label>
+                            <input id="fecha_propuesta_atencion" type="date" class="form-control">                       
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                            <label style="font-weight: bold;" for="observacion" class="form-label">OBSERVACIÓN</label>
+                            <textarea maxlength="260" id="observacion" class="form-control" rows="4" placeholder="Ingrese su texto aquí..."></textarea>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 d-flex justify-content-end">
+                            <a class="btn btn-success" style="height: 32px;" href="javascript:void(0);" onclick="generarOrdenPedido()">
+                                <i class="fas fa-save"></i> GENERAR ORDEN DE PEDIDO
+                            </a>                        
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         @include('pedidos.detalles.tables.table_programacion_produccion')
                     </div>
@@ -837,6 +857,92 @@
                 checkProducto.checked   =   true;
             }
         })
+    }
+
+    //======= DESCARGAR PDF PROGRAMACIÓN PRODUCCIÓN =========
+    function descargarPdfProgramacionProduccion(){
+        if(lstProgramaProduccion.length === 0){
+            toastr.error('LA PROGRAMACIÓN DE PRODUCCIÓN ESTÁ VACÍA','ERROR AL GENERAR PDF');
+            return;
+        }
+
+        try {
+            let jsonData = JSON.stringify(lstProgramaProduccion);
+
+            let url = route('pedidos.pedidos_detalles.pdfProgramacionProduccion', {
+                lstProgramaProduccion: jsonData
+            });
+
+
+            window.open(url, '_blank');
+        } catch (error) {
+            
+        }
+    }
+
+    //======= GENERAR ORDEN DE PEDIDO =====
+    async function generarOrdenPedido(){
+        if(lstProgramaProduccion.length === 0){
+            toastr.error('LA PROGRAMACIÓN DE PRODUCCIÓN ESTÁ VACÍA','OPERACIÓN INCORRECTA');
+            return;  
+        }
+
+       
+            const swalWithBootstrapButtons = Swal.mixin({
+            customClass: {
+                confirmButton: "btn btn-success",
+                cancelButton: "btn btn-danger"
+            },
+            buttonsStyling: false
+            });
+            swalWithBootstrapButtons.fire({
+            title: "Desea generar una orden de pedido?",
+            text: "Acción no reversible!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, genérala!",
+            cancelButtonText: "No, cancelar!",
+            reverseButtons: true
+            }).then( async (result) => {
+            if (result.isConfirmed) {
+               
+                try {
+                    mostrarAnimacionCotizacion();
+                    const fecha_propuesta_atencion  =   document.querySelector('#fecha_propuesta_atencion').value;
+                    const observacion               =   document.querySelector('#observacion').value;
+
+                    const res   =   await axios.post(route('pedidos.pedido.generarOrdenPedido'),
+                        {lstProgramacionProduccion:JSON.stringify(lstProgramaProduccion),
+                            fecha_propuesta_atencion,observacion
+                        }
+                    );
+
+                    if(res.data.success){
+                        toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                    }else{
+                        toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    }    
+                    
+                } catch (error) {
+                    toastr.error(error,'ERROR EN LA PETICIÓN GENERAR ORDEN DE PEDIDO');
+                }finally{
+                    ocultarAnimacionCotizacion();
+                }
+               
+
+            } else if (
+                /* Read more about handling dismissals below */
+                result.dismiss === Swal.DismissReason.cancel
+            ) {
+                swalWithBootstrapButtons.fire({
+                title: "Operación Cancelada",
+                text: "No se realizaron cambios",
+                icon: "error"
+                });
+            }
+            });
+           
+       
     }
 </script>
 

@@ -710,7 +710,8 @@
             })
             //===== RECALCULANDO MONTOS =====
             calcularMontos();
-
+            //====== APLICAMOS DATATABLE A LA TABLA DETALLES COTIZACIÓN =======
+            loadDataTableDetallesCotizacion();
         })
     }
 
@@ -832,6 +833,9 @@
         
         //===== CALCULAR MONTOS Y PINTARLOS ======
         calcularMontos();
+
+        //====== APLICAMOS DATATABLE A LA TABLA DETALLES COTIZACIÓN =======
+        loadDataTableDetallesCotizacion();
     }
 
     //======= CALCULAR DESCUENTO ========
@@ -855,6 +859,7 @@
             //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
             const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`); 
             const detailSubtotal    =   document.querySelector(`.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);    
+            
 
             if(porcentaje_descuento !== 0){
                 detailPrecioVenta.textContent = producto_color_editar.precio_venta_nuevo;
@@ -1018,7 +1023,7 @@
         })
 
         tableDetalleBody.innerHTML  =   filas;
-        loadDataTableDetallesCotizacion();
+        
     }
 
     //======== OBTENER PRODUCTOS POR MODELO ========
