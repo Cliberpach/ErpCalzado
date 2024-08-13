@@ -193,7 +193,7 @@
                 <div class="numero-cotizacion">
                     <p class="m-0 p-0 text-uppercase ruc-empresa">RUC {{ DB::table('empresas')->count() == 0 ? '- ' : DB::table('empresas')->first()->ruc }}</p>
                     <div class="nombre-cotizacion">
-                        <p class="m-0 p-0 text-uppercase">PEDIDOS DETALLES</p>
+                        <p class="m-0 p-0 text-uppercase">PROGRAMACIÓN DE PRODUCCIÓN</p>
                     </div>
                     {{-- <p class="m-0 p-0 text-uppercase">{{ 'PROGRAMACIÓN'}}</p> --}}
                 </div>
@@ -204,44 +204,37 @@
     <table style="margin-top:60px;">
         <thead>
             <tr>
-                <th>N°</th>
-                <th>FECHA</th>
-                <th>CLIENTE</th>
-                <th>VENDEDOR</th>
+                <th>MODELO</th>
                 <th>PRODUCTO</th>
                 <th>COLOR</th>
-                <th>TALLA</th>
-                <th>CANT SOLICITADA</th>
-                <th>PRECIO</th>
-                <th>TOTAL</th>
-                <th>CANT ATEND</th>
-                <th>CANT PEND</th>
-                <th>CANT ENVIADA</th>
-                <th>CANT FABRICACIÓN</th>
-                <th>CANT CAMBIO</th>
-                <th>CANT DEV</th>
+                @foreach ($tallasBD as $tallaBD)
+                    <th>{{$tallaBD->descripcion}}</th>
+                @endforeach
+
             </tr>
         </thead>
         <tbody>
-            @foreach($pedidos_detalles as $detalle)
-            <tr>
-                <td>{{ $detalle->pedido_id }}</td>
-                <td>{{ $detalle->pedido_fecha }}</td>
-                <td>{{ $detalle->cliente_nombre }}</td>
-                <td>{{ $detalle->vendedor_nombre }}</td>
-                <td>{{ $detalle->producto_nombre }}</td>
-                <td>{{ $detalle->color_nombre }}</td>
-                <td>{{ $detalle->talla_nombre }}</td>
-                <td>{{ $detalle->cantidad }}</td>
-                <td>{{ $detalle->precio_unitario_nuevo }}</td>
-                <td>{{ $detalle->importe_nuevo }}</td>
-                <td>{{ $detalle->cantidad_atendida }}</td>
-                <td>{{ $detalle->cantidad_pendiente }}</td>
-                <td>{{ $detalle->cantidad_enviada }}</td>
-                <td>{{ $detalle->cantidad_fabricacion }}</td>
-                <td>{{ $detalle->cantidad_cambio }}</td>
-                <td>{{ $detalle->cantidad_devolucion }}</td>
-            </tr>
+            @foreach ($lstProgramacionProduccion as $producto)
+                @foreach ($producto->colores as $color)
+                <tr>
+                    <td>{{$producto->modelo->nombre}}</td>
+                    <td>{{$producto->nombre}}</td>
+                    <td>{{$color->nombre}}</td>
+
+                    @foreach ($tallasBD as $tallaBD)
+                        @php
+                            $tallas =   $color->tallas;
+
+                            $tallasFiltradas = array_filter($tallas, function($talla) use ($tallaBD) {
+                                return $talla->id == $tallaBD->id;
+                            });
+                            
+                            $cantidad_pendiente = !empty($tallasFiltradas) ? reset($tallasFiltradas)->cantidad_pendiente : '-';
+                        @endphp
+                        <td>{{$cantidad_pendiente}}</td>
+                    @endforeach
+                </tr>
+                @endforeach
             @endforeach
         </tbody>
     </table>

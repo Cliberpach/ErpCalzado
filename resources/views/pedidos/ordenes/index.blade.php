@@ -81,15 +81,18 @@
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
-        <h2 style="text-transform:uppercase"><b>Listado de Órdenes de Pedido</b></h2>
+        <h2 style="text-transform:uppercase"><b>Listado de Órdenes de Producción</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{ route('home') }}">Panel de Control</a>
             </li>
             <li class="breadcrumb-item active">
-                <strong>Órdenes de Pedido</strong>
+                <strong>Órdenes de Producción</strong>
             </li>
         </ol>
+    </div>
+    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12" style="margin:auto 0;text-align:end;">
+        <a href="{{route('pedidos.ordenes_produccion.create')}}" class="btn btn-success"><i class="fas fa-plus"></i> NUEVO</a>
     </div>
 </div>
 
@@ -116,7 +119,7 @@
             <div class="ibox ">
                 <div class="ibox-content">
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered table-hover" id="table_ordenes_pedido"
+                        <table class="table table-striped table-bordered table-hover" id="table_ordenes_produccion"
                             style="text-transform:uppercase" width="100%">
                             <thead>
                                 <tr>
@@ -124,6 +127,7 @@
                                     <th class="text-center">USUARIO</th>
                                     <th class="text-center">FECHA PROPUESTA</th>
                                     <th class="text-center">OBSERVACIÓN</th>
+                                    <th class="text-center">TIPO</th>
                                     <th class="text-center">ACCIONES</th>
                                 </tr>
                             </thead>
@@ -154,7 +158,8 @@
 <script>
     const lstProgramaProduccion         =   [];
     const lstChecksProductosMarcados    =   [];
-    let dataTablePedidoDetalles         =   null;
+    let  dataTablePedidoDetalles         =   null;
+    let  dataTableVerDetalleOrden       =   null;
 
     document.addEventListener('DOMContentLoaded',()=>{
         loadSelect2();
@@ -205,9 +210,10 @@
     }
 
     function loadDataTablePedidoDetalles(){
-        dataTablePedidoDetalles   =   $('#table_ordenes_pedido').DataTable({
+        dataTablePedidoDetalles   =   $('#table_ordenes_produccion').DataTable({
             "dom": '<"html5buttons"B>lTfgitp',
-            "buttons": [{
+            "buttons": [
+                {
                     extend: 'excelHtml5',
                     text: '<i class="fa fa-file-excel-o"></i> Excel',
                     titleAttr: 'Excel',
@@ -234,7 +240,7 @@
             "processing": true,
             "serverSide":true,
             "ajax": {
-                "url": "{{ route('pedidos.ordenes_pedido.getTable') }}",
+                "url": "{{ route('pedidos.ordenes_produccion.getTable') }}",
                 "type": "GET"
             },
             "columns": [
@@ -258,11 +264,15 @@
                     className: "text-center"
                 },
                 {
+                    data: 'tipo',
+                    className: "text-center"
+                },
+                {
                     data: null,
                     className: "text-center",
                     render: function(data) {
                         //Ruta Detalle
-                        var url_pdf = '{{ route('pedidos.ordenes_pedido.pdf', ':id') }}';
+                        var url_pdf = '{{ route('pedidos.ordenes_produccion.pdf', ':id') }}';
                         url_pdf     = url_pdf.replace(':id', data.id);
 
                         let options =   "";
@@ -307,12 +317,14 @@
     }
 
     //======= VER DETALLE DE LA ORDEN DE PEDIDO =======
-    async function verDetalleOrdenPedido(orden_pedido_id){
+    async function verDetalleOrdenPedido(orden_produccion_id){
         try {
             mostrarAnimacion();
-            const res   =   await axios.get(route('pedidos.ordenes_pedido.getDetalle',{orden_pedido_id}));
+            const res   =   await axios.get(route('pedidos.ordenes_produccion.getDetalle',{orden_produccion_id}));
             if(res.data.success){
-                pintarDetalleOrden(res.data.orden_pedido_detalle);
+                pintarTableVerDetalleOrden(res.data.orden_produccion_detalle);
+                loadDataTableVerDetalleOrden();
+                document.querySelector('#span_nro_orden').textContent   =   orden_produccion_id;
                 $('#modal_detalle_orden').modal('show');
                 toastr.info('VISUALIZANDO DETALLE DE LA ORDEN');
             }else{
@@ -325,6 +337,7 @@
         }
     }
 
+   
    
 </script>
 

@@ -13,7 +13,7 @@ class CreateOrdenesPedidoTable extends Migration
      */
     public function up()
     {
-        Schema::create('ordenes_pedido', function (Blueprint $table) {
+        Schema::create('ordenes_produccion', function (Blueprint $table) {
             $table->id(); 
             $table->unsignedInteger('user_id'); 
             $table->string('user_nombre'); 

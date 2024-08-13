@@ -13,10 +13,10 @@ class CreateOrdenesPedidoDetallesTable extends Migration
      */
     public function up()
     {
-        Schema::create('ordenes_pedido_detalles', function (Blueprint $table) {
+        Schema::create('ordenes_produccion_detalles', function (Blueprint $table) {
 
-            $table->unsignedBigInteger('orden_pedido_id');
-            $table->foreign('orden_pedido_id')->references('id')->on('ordenes_pedido')->onDelete('cascade');
+            $table->unsignedBigInteger('orden_produccion_id');
+            $table->foreign('orden_produccion_id')->references('id')->on('ordenes_produccion')->onDelete('cascade');
 
 
             $table->unsignedInteger('modelo_id');
@@ -38,7 +38,7 @@ class CreateOrdenesPedidoDetallesTable extends Migration
 
             $table->unsignedInteger('cantidad');
 
-            $table->primary(['orden_pedido_id', 'modelo_id', 'producto_id', 'color_id', 'talla_id']);
+            $table->primary(['orden_produccion_id', 'modelo_id', 'producto_id', 'color_id', 'talla_id']);
 
             $table->timestamps();
         });
@@ -51,6 +51,6 @@ class CreateOrdenesPedidoDetallesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('ordenes_pedido_detalles');
+        Schema::dropIfExists('ordenes_produccion_detalles');
     }
 }

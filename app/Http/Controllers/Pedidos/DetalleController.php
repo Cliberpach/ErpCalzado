@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Pedidos;
 
 use App\Http\Controllers\Controller;
-use App\Pedidos\OrdenPedido;
+use App\Pedidos\OrdenProduccion;
 use App\Pedidos\OrdenPedidoDetalle;
+use App\Pedidos\OrdenProduccionDetalle;
 use Illuminate\Http\Request;
 use App\Ventas\PedidoDetalle;
 use Yajra\DataTables\Facades\DataTables;
@@ -13,6 +14,8 @@ use Barryvdh\DomPDF\Facade as PDF;
 use App\Mantenimiento\Empresa\Empresa;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\Pedido\Detalles\PedidoDetalleExport;
 
 class DetalleController extends Controller
 {
@@ -216,7 +219,7 @@ class DetalleController extends Controller
             $lstProgramacionProduccion  =   json_decode($request->get('lstProgramacionProduccion'));
             
             //===== CREAMOS LA ORDEN DE PEDIDO CABEZERA ========
-            $orden_pedido                           =   new OrdenPedido();
+            $orden_pedido                           =   new OrdenProduccion();
             $orden_pedido->user_id                  =   Auth::user()->id;
             $orden_pedido->user_nombre              =   Auth::user()->usuario;
             $orden_pedido->fecha_propuesta_atencion =   $request->get('fecha_propuesta_atencion');
@@ -227,7 +230,7 @@ class DetalleController extends Controller
             foreach ($lstProgramacionProduccion as $producto) {
                 foreach ($producto->colores as $color ) {
                     foreach ($color->tallas as $talla) {
-                        $orden_pedido_detalle               =   new OrdenPedidoDetalle();
+                        $orden_pedido_detalle                   =   new OrdenProduccionDetalle();
                         $orden_pedido_detalle->orden_pedido_id  =   $orden_pedido->id;
                         $orden_pedido_detalle->modelo_id        =   $producto->modelo->id;
                         $orden_pedido_detalle->producto_id      =   $producto->id;
@@ -249,5 +252,74 @@ class DetalleController extends Controller
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
+    }
+
+    public function getExcel($pedido_detalle_estado = null, $cliente_id = null, $modelo_id = null, $producto_id = null)
+    {
+        return Excel::download(new PedidoDetalleExport($pedido_detalle_estado, $cliente_id, $modelo_id, $producto_id), 'pedido_detalles.xlsx');
+    }
+
+    public function getPdf($pedido_detalle_estado = null, $cliente_id = null, $modelo_id = null, $producto_id = null)
+    {
+        $empresa                    =   Empresa::first();
+        $usuario_impresion_nombre   =   Auth::user()->usuario;
+        $fecha_actual               =   Carbon::now();
+
+        // Obtener los detalles de los pedidos según los filtros proporcionados
+        $pedidos_detalles = PedidoDetalle::from('pedidos_detalles as pd')
+                            ->select(
+                                \DB::raw('concat("PE-", p.id) as pedido_id'),
+                                'p.created_at as pedido_fecha',
+                                'p.cliente_nombre',
+                                'p.user_nombre as vendedor_nombre',
+                                'pd.producto_nombre',
+                                'pd.color_nombre',
+                                'pd.talla_nombre',
+                                'pd.cantidad',
+                                'pd.precio_unitario_nuevo',
+                                'pd.importe_nuevo',
+                                'pd.cantidad_atendida',
+                                'pd.cantidad_pendiente',
+                                'pd.cantidad_enviada',
+                                \DB::raw('"-" as cantidad_fabricacion'),
+                                \DB::raw('"-" as cantidad_cambio'),
+                                \DB::raw('"-" as cantidad_devolucion')
+                            )
+                            ->join('pedidos as p', 'pd.pedido_id', '=', 'p.id')
+                            ->join('productos as prod', 'prod.id', '=', 'pd.producto_id')
+                            ->join('modelos as m', 'm.id', '=', 'prod.modelo_id')
+                            ->where('p.estado','!=','FINALIZADO');
+
+        // Aplicar los filtros si se proporcionan
+        if ($pedido_detalle_estado !== '-') {
+            if($pedido_detalle_estado === "PENDIENTE"){
+                $pedidos_detalles->where('pd.cantidad_pendiente', '>', 0);
+            }
+            if($pedido_detalle_estado === "ATENDIDO"){
+                $pedidos_detalles->where('pd.cantidad_pendiente', '=', 0);
+            }
+        }
+
+        if ($cliente_id !== '-') {
+            $pedidos_detalles->where('p.cliente_id', $cliente_id);
+        }
+
+        if ($modelo_id !== '-') {
+            $pedidos_detalles->where('prod.modelo_id', $modelo_id);
+        }
+
+        if ($producto_id !== '-') {
+            $pedidos_detalles->where('pd.producto_id', $producto_id);
+        }
+
+        // Obtener los resultados
+        $pedidos_detalles = $pedidos_detalles->orderBy('p.id', 'desc')->get();
+
+        // Generar el PDF
+        $pdf = Pdf::loadView('pedidos.detalles.pdf.prog_produccion', compact('pedidos_detalles', 'empresa', 'usuario_impresion_nombre', 'fecha_actual'))
+              ->setPaper('a4', 'landscape'); 
+
+        // Descargar el PDF
+        return $pdf->download('pedidos_detalles.pdf');
     }
 }

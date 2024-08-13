@@ -4,9 +4,9 @@ namespace App\Pedidos;
 
 use Illuminate\Database\Eloquent\Model;
 
-class OrdenPedido extends Model
+class OrdenProduccion extends Model
 {
-    protected $table = 'ordenes_pedido';
+    protected $table = 'ordenes_produccion';
     public $timestamps = true;
     protected $guarded = [''];
 

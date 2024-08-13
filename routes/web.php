@@ -536,16 +536,23 @@ function(){
         Route::get('getTable', 'Pedidos\DetalleController@getTable')->name('pedidos.pedidos_detalles.getTable');
         Route::get('getDetallesAtenciones/{pedido_id}/{producto_id}/{color_id}/{talla_id}', 'Pedidos\DetalleController@getDetallesAtenciones')->name('pedidos.pedidos_detalles.getDetallesAtenciones');
         Route::get('getDetallesDespachos/{pedido_id}/{producto_id}/{color_id}/{talla_id}', 'Pedidos\DetalleController@getDetallesDespachos')->name('pedidos.pedidos_detalles.getDetallesDespachos');
-        Route::post('llenarCantEnviada/', 'Pedidos\DetalleController@llenarCantEnviada')->name('pedidos.pedido.llenarCantEnviada');
-        Route::post('generarOrdenPedido/', 'Pedidos\DetalleController@generarOrdenPedido')->name('pedidos.pedido.generarOrdenPedido');
+        Route::post('llenarCantEnviada/', 'Pedidos\DetalleController@llenarCantEnviada')->name('pedidos.pedidos_detalles.llenarCantEnviada');
+        Route::post('generarOrdenPedido/', 'Pedidos\DetalleController@generarOrdenPedido')->name('pedidos.pedidos_detalles.generarOrdenPedido');
+        Route::get('getExcel/{pedido_detalle_estado?}/{cliente_id?}/{modelo_id?}/{producto_id?}', 'Pedidos\DetalleController@getExcel')->name('pedidos.pedidos_detalles.getExcel');
+        Route::get('getPdf/{pedido_detalle_estado?}/{cliente_id?}/{modelo_id?}/{producto_id?}', 'Pedidos\DetalleController@getPdf')->name('pedidos.pedidos_detalles.getPdf');
     });  
     
     //======= ÓRDENES - PEDIDO =======
     Route::prefix('pedidos/ordenes')->group(function(){
-        Route::get('index', 'Pedidos\OrdenPedidoController@index')->name('pedidos.ordenes_pedido.index');
-        Route::get('getTable', 'Pedidos\OrdenPedidoController@getTable')->name('pedidos.ordenes_pedido.getTable');
-        Route::get('getDetalle/{orden_pedido_id}', 'Pedidos\OrdenPedidoController@getDetalle')->name('pedidos.ordenes_pedido.getDetalle');
-        Route::get('pdf/{orden_pedido_id}', 'Pedidos\OrdenPedidoController@pdf')->name('pedidos.ordenes_pedido.pdf');
+        Route::get('index', 'Pedidos\OrdenProduccionController@index')->name('pedidos.ordenes_produccion.index');
+        Route::get('getTable', 'Pedidos\OrdenProduccionController@getTable')->name('pedidos.ordenes_produccion.getTable');
+        Route::get('getDetalle/{orden_produccion_id}', 'Pedidos\OrdenProduccionController@getDetalle')->name('pedidos.ordenes_produccion.getDetalle');
+        Route::get('pdf/{orden_produccion_id}', 'Pedidos\OrdenProduccionController@pdf')->name('pedidos.ordenes_produccion.pdf');
+        Route::get('create', 'Pedidos\OrdenProduccionController@create')->name('pedidos.ordenes_produccion.create');
+        Route::get('/getProductosByModelo/{modelo_id}', 'Pedidos\OrdenProduccionController@getProductosByModelo')->name('pedidos.ordenes_produccion.getProductosByModelo');
+        Route::get('/getColoresTallas/{producto_id}', 'Pedidos\OrdenProduccionController@getColoresTallas')->name('pedidos.ordenes_produccion.getColoresTallas');
+        Route::post('store', 'Pedidos\OrdenProduccionController@store')->name('pedidos.ordenes_produccion.store');
+
     });   
 
      // Despachos

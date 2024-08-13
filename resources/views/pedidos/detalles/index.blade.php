@@ -298,22 +298,45 @@
     function loadDataTablePedidoDetalles(){
         dataTablePedidoDetalles   =   $('#pedidos_detalles').DataTable({
             "dom": '<"html5buttons"B>lTfgitp',
-            "buttons": [{
-                    extend: 'excelHtml5',
+            "buttons": [
+                {
                     text: '<i class="fa fa-file-excel-o"></i> Excel',
-                    titleAttr: 'Excel',
-                    title: 'Tablas Generales'
+                    title: 'pedidos_detalles',
+                    action: function (e, dt, button, config) {
+                        const pedido_detalle_estado = $('#pedido_detalle_estado').val();
+                        const cliente_id            = $('#cliente_id').val();
+                        const modelo_id             = $('#modelo_id').val();
+                        const producto_id           = $('#producto_id').val();
+
+                        let url = route('pedidos.pedidos_detalles.getExcel', {
+                            pedido_detalle_estado: pedido_detalle_estado || '-',
+                            cliente_id: cliente_id || '-',
+                            modelo_id: modelo_id || '-',
+                            producto_id: producto_id || '-'
+                        });
+                        
+                        window.location.href = url;
+                    }
                 },
                 {
-                    titleAttr: 'Imprimir',
-                    extend: 'print',
-                    text: '<i class="fa fa-print"></i> Imprimir',
-                    customize: function(win) {
-                        $(win.document.body).addClass('white-bg');
-                        $(win.document.body).css('font-size', '10px');
-                        $(win.document.body).find('table')
-                            .addClass('compact')
-                            .css('font-size', 'inherit');
+                    title: 'pedidos_detalles',
+                    text: '<i class="fa fa-print"></i> PDF',
+                    action: function (e, dt, button, config) {
+                        const pedido_detalle_estado = $('#pedido_detalle_estado').val();
+                        const cliente_id            = $('#cliente_id').val();
+                        const modelo_id             = $('#modelo_id').val();
+                        const producto_id           = $('#producto_id').val();
+
+                        let url = route('pedidos.pedidos_detalles.getPdf', {
+                            pedido_detalle_estado: pedido_detalle_estado || '-',
+                            cliente_id: cliente_id || '-',
+                            modelo_id: modelo_id || '-',
+                            producto_id: producto_id || '-'
+                        });
+
+
+                        // Redirigir a la URL
+                        window.location.href = url;
                     }
                 }
             ],
@@ -911,7 +934,7 @@
                     const fecha_propuesta_atencion  =   document.querySelector('#fecha_propuesta_atencion').value;
                     const observacion               =   document.querySelector('#observacion').value;
 
-                    const res   =   await axios.post(route('pedidos.pedido.generarOrdenPedido'),
+                    const res   =   await axios.post(route('pedidos.pedidos_detalles.generarOrdenPedido'),
                         {lstProgramacionProduccion:JSON.stringify(lstProgramaProduccion),
                             fecha_propuesta_atencion,observacion
                         }

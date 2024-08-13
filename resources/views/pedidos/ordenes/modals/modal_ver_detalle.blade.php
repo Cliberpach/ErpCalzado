@@ -13,7 +13,7 @@
                     <i class="fas fa-info-circle" style="color: #e3e9f2;font-size:100px;"></i>                
                 </div>
                 <div class="col-12 d-flex justify-content-center">
-                    <h5 class="modal-title" id="exampleModalLabel">Detalle - <span style="font-weight: bold;" id="span_nro_orden">Orden</span></h5>
+                    <h5 class="modal-title" id="exampleModalLabel">DETALLE - <span  style="font-weight: bold;">ORDEN N°</span><span style="font-weight: bold;" id="span_nro_orden"></span></h5>
                 </div>
                 
             </div>
@@ -34,9 +34,13 @@
   </div>
 
   <script>
-    function pintarDetalleOrden(lstDetalleOrden){
+
+    function pintarTableVerDetalleOrden(lstDetalleOrden){
         let filas   =   ``;
         const tbody =   document.querySelector('#table_detalle_orden tbody');
+
+        destruirDataTableVerDetalleOrden();
+        clearTableVerDetalleOrden();
 
         lstDetalleOrden.forEach((producto)=>{
             filas   += `<tr>
@@ -50,4 +54,47 @@
 
         tbody.innerHTML =   filas;
     }
+
+    function destruirDataTableVerDetalleOrden(){
+      if(dataTableVerDetalleOrden){
+        dataTableVerDetalleOrden.destroy();
+      }
+    }
+
+    function clearTableVerDetalleOrden(){
+        const tbody =   document.querySelector('#table_detalle_orden tbody');
+        while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
+        }
+    }
+
+    function loadDataTableVerDetalleOrden(){
+        dataTableVerDetalleOrden =   $('#table_detalle_orden').DataTable({
+            language: {
+                "sEmptyTable": "No hay datos disponibles en la tabla",
+                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                "sInfoEmpty": "Mostrando 0 a 0 de 0 entradas",
+                "sInfoFiltered": "(filtrado de _MAX_ entradas totales)",
+                "sInfoPostFix": "",
+                "sInfoThousands": ",",
+                "sLengthMenu": "Mostrar _MENU_ entradas",
+                "sLoadingRecords": "Cargando...",
+                "sProcessing": "Procesando...",
+                "sSearch": "Buscar:",
+                "sZeroRecords": "No se encontraron resultados",
+                "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast": "Último",
+                        "sNext": "Siguiente",
+                        "sPrevious": "Anterior"
+                },
+                "oAria": {
+                        "sSortAscending": ": activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": activar para ordenar la columna de manera descendente"
+                }
+            }
+        });
+    }
+
+
   </script>
