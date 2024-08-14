@@ -179,7 +179,7 @@
                                     <th class="text-center">CANT ENVIADA</th>
                                     <th class="text-center">CANT FABRICACION</th>
                                     <th class="text-center">CANT CAMBIO</th>
-                                    <th class="text-center">CANT DEVOLUCION</th>
+                                    <th class="text-center">CANT DEVUELTA</th>
 
                                 </tr>
                             </thead>
@@ -466,11 +466,11 @@
                     }
                 },
                 {
-                    data: 'detalle_id',
+                    data: 'cantidad_devuelta',
                     className: "text-center",
                     render: function (data, type, row) {
                         
-                        return 'CANT DEVOLUCION';
+                        return `<p style="margin:0;">${data}</p>`;
                     }
                 },
             ],

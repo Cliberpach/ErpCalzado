@@ -46,6 +46,7 @@ class CreatePedidosDetallesTable extends Migration
             $table->unsignedDecimal('cantidad_atendida', 15, 2);
             $table->unsignedDecimal('cantidad_pendiente', 15, 2);
             $table->unsignedDecimal('cantidad_enviada', 15, 2)->default(0);
+            $table->unsignedDecimal('cantidad_devuelta', 15, 2)->default(0);
 
 
             $table->timestamps();

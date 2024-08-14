@@ -253,6 +253,278 @@ class NotaController extends Controller
             }
 
             
+            $documento = Documento::find($request->get('documento_id'));
+
+            $igv = $documento->igv ? $documento->igv : 18;
+
+            $nota                       =   new Nota();
+            $nota->documento_id         =   $documento->id;
+            $nota->tipDocAfectado       =   $documento->tipoDocumento();
+            $nota->numDocfectado        =   $documento->serie.'-'.$documento->correlativo;
+            $nota->codMotivo            =   $request->get('cod_motivo');
+            $nota->desMotivo            =   $request->get('des_motivo');
+
+            $nota->tipoDoc              =   $request->get('tipo_nota') === '0' ? '07' : '08';
+            $nota->fechaEmision         =   $request->get('fecha_emision');
+
+            //EMPRESA
+            $nota->ruc_empresa              =  $documento->ruc_empresa;
+            $nota->empresa                  =  $documento->empresa;
+            $nota->direccion_fiscal_empresa =  $documento->direccion_fiscal_empresa;
+            $nota->empresa_id               =  $documento->empresa_id; //OBTENER NUMERACION DE LA EMPRESA
+
+            //CLIENTE
+            $nota->cod_tipo_documento_cliente   =   $documento->tipoDocumentoCliente();
+            $nota->tipo_documento_cliente       =   $documento->tipo_documento_cliente;
+            $nota->documento_cliente            =   $documento->documento_cliente;
+            $nota->direccion_cliente            =   $documento->direccion_cliente;
+            $nota->cliente                      =   $documento->cliente;
+
+            $nota->sunat                        =   '0';
+            $nota->tipo_nota                    =   $request->get('tipo_nota'); //0 -> CREDITO
+
+            $nota->mtoOperGravadas              =   $request->get('sub_total_nuevo');
+            $nota->mtoIGV                       =   $request->get('total_igv_nuevo');
+            $nota->totalImpuestos               =   $request->get('total_igv_nuevo');
+            $nota->mtoImpVenta                  =   $request->get('total_nuevo');
+
+            $nota->value        =   self::convertirTotal($request->get('total_nuevo'));
+            $nota->code         =   '1000';
+            $nota->user_id      =   auth()->user()->id;
+            $nota->save();
+
+     
+            //Llenado de los articulos
+            $productosJSON = $request->get('productos_tabla');
+            $productotabla = json_decode($productosJSON);
+
+       
+
+            //========== PRODUCTOS PRESENTES EN LA NOTA DE CRÉDITO O DEVOLUCIÓN ===========
+            foreach ($productotabla as $producto) {
+                
+
+                $detalle =  DB::select('select cdd.id 
+                            from cotizacion_documento_detalles as cdd
+                            where cdd.documento_id=? and cdd.producto_id=?  and cdd.color_id=?
+                            and cdd.talla_id=?',[
+                                    $request->get('documento_id'),
+                                    $producto->producto_id,
+                                    $producto->color_id,
+                                    $producto->talla_id
+                            ]);
+
+                NotaDetalle::create([
+                    'nota_id' => $nota->id,
+                    'detalle_id' => $detalle[0]->id,
+                    'codProducto' => $producto->codigo_producto,
+                    'unidad' => 'NIU',
+                    'descripcion' => $producto->modelo_nombre.'-'.$producto->producto_nombre.'-'.$producto->color_nombre.'-'.$producto->talla_nombre,
+                    'cantidad' => $producto->cantidad_devolver,
+                    'mtoBaseIgv' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver,
+                    'porcentajeIgv' => 18,
+                    'igv' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad_devolver,
+                    'tipAfeIgv' => 10,
+                    'totalImpuestos' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad_devolver,
+                    'mtoValorVenta' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver,
+                    'mtoValorUnitario'=>  $producto->precio_unitario / (1 + ($documento->igv/100)),
+                    'mtoPrecioUnitario' => $producto->precio_unitario,
+                    'producto_id'   =>  $producto->producto_id,
+                    'color_id'      =>  $producto->color_id,
+                    'talla_id'      =>  $producto->talla_id
+                ]);
+
+
+                //========= 01:FACTURA 03:BOLETA =======
+                //======= PREGUNTAR SI EL DOC DE VENTA ESTÁ ASOCIADO A UN PEDIDO =====
+                
+                if( $documento->pedido_id ){
+                    
+
+                    //======== OBTENER EL PRODUCTO DE LA NOTA ELECTRÓNICA EN EL DETALLE DEL PEDIDO ======
+                    $producto_en_pedido =   DB::select('select pd.producto_id,pd.color_id,pd.talla_id,
+                                            pd.cantidad_atendida
+                                            from pedidos_detalles as pd
+                                            where pd.pedido_id = ? and
+                                            pd.producto_id = ? and pd.color_id = ? and pd.talla_id = ?',
+                                            [$documento->pedido_id,
+                                            $producto->producto_id,$producto->color_id,$producto->talla_id]);
+
+ 
+                    //====== COMPROBAR SI EL PRODUCTO ESTÁ PRESENTE EN EL DETALLE DEL PEDIDO =======
+                    if(count($producto_en_pedido) === 1){
+
+                        $cantidad_reponer   =   0;   
+
+                        //======= CASO I:  CANT ATENDIDA <= CANTIDAD DEVOLUCIÓN ======
+                        //======= REPONER STOCK SEGÚN LA CANTIDAD ATENDIDA ======
+                        if($producto_en_pedido[0]->cantidad_atendida <=  $producto->cantidad_devolver){
+
+                            $cantidad_reponer   =   $producto_en_pedido[0]->cantidad_atendida;
+                          
+
+                            DB::table('producto_color_tallas')
+                            ->where('producto_id', $producto_en_pedido[0]->producto_id)
+                            ->where('color_id', $producto_en_pedido[0]->color_id)
+                            ->where('talla_id', $producto_en_pedido[0]->talla_id)
+                            ->update([
+                                'stock_logico' => DB::raw('stock_logico + ' . $cantidad_reponer),
+                                'stock' => DB::raw('stock + ' . $cantidad_reponer)
+                            ]);
+
+                        }
+
+                        //======= CASO II: CANT ATENDIDA > CANTIDAD DEVOLUCIÓN ========
+                        //===== REPONER STOCK SEGÚN LA CANTIDAD DEVOLVER ======
+                        if($producto_en_pedido[0]->cantidad_atendida >  $producto->cantidad_devolver){
+
+                            $cantidad_reponer   =   $producto->cantidad_devolver;
+
+                            DB::table('producto_color_tallas')
+                            ->where('producto_id', $producto_en_pedido[0]->producto_id)
+                            ->where('color_id', $producto_en_pedido[0]->color_id)
+                            ->where('talla_id', $producto_en_pedido[0]->talla_id)
+                            ->update([
+                                'stock_logico' => DB::raw('stock_logico + ' . $cantidad_reponer),
+                                'stock' => DB::raw('stock + ' . $cantidad_reponer)
+                            ]);
+
+                        }
+
+
+                        //======= GRABAMOS LA CANTIDAD DEVUELTA PARA EL DETALLE DEL PEDIDO ======
+                        DB::table('pedidos_detalles')
+                        ->where('pedido_id', $documento->pedido_id)
+                        ->where('producto_id', $producto_en_pedido[0]->producto_id)
+                        ->where('color_id', $producto_en_pedido[0]->color_id)
+                        ->where('talla_id', $producto_en_pedido[0]->talla_id)
+                        ->update([
+                            'cantidad_devuelta' => DB::raw('cantidad_devuelta + ' . $cantidad_reponer),
+                            'updated_at'        => Carbon::now()
+                        ]);
+
+                    }                        
+                   
+                }
+
+                //======== SI EL DOC DE VENTA NO ESTÁ ASOCIADO A UN PEDIDO ========
+                if(!$documento->pedido_id){
+                    //===== AUMENTAR EL STOCK LOGICO Y FISICO ====
+                    DB::table('producto_color_tallas')
+                      ->where('producto_id', $producto->producto_id)
+                      ->where('color_id', $producto->color_id)
+                      ->where('talla_id', $producto->talla_id)
+                      ->update([
+                              'stock_logico' => DB::raw('stock_logico + ' . $producto->cantidad_devolver),
+                              'stock' => DB::raw('stock + ' . $producto->cantidad_devolver)
+                      ]);
+                }
+
+                if($request->cod_motivo == '01'){   //==== EN CASO DEVOLUCIÓN TOTAL ====
+                    $documento->sunat = '2';
+                    $documento->update();    
+                }
+          
+            }
+          
+            //==== REGISTRO DE ACTIVIDAD ====
+            $descripcion = "SE AGREGÓ UNA NOTA DE DEBITO CON LA FECHA: ". Carbon::parse($nota->fechaEmision)->format('d/m/y');
+            $gestion = "NOTA DE DEBITO";
+            crearRegistro($nota , $descripcion , $gestion);
+
+          
+            //======== OBTENER CORRELATIVO ======
+            $envio_prev = self::sunat_prev($nota->id,$documento->tipo_venta);
+            
+           
+            if(!$envio_prev['success']){
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'mensaje'=> $envio_prev['mensaje']
+                ]);
+            }else{
+                $nota->serie        =   $envio_prev['serie'];
+                $nota->correlativo  =   $envio_prev['correlativo'];
+                $nota->update();
+
+                //======= SI LA EMISIÓN NO HA INICIADO, ACTUALIZAR =======
+                if($envio_prev['model_numeracion']->emision_iniciada == 0){
+                    DB::table('empresa_numeracion_facturaciones')
+                    ->where('id', $envio_prev['model_numeracion']->id)
+                    ->update(['emision_iniciada' => '1']);
+                }
+            }
+            
+            DB::commit();
+            if(!isset($request->nota_venta))
+            {
+                // $envio_post = self::sunat_post($nota->id);
+            }
+
+            $text = 'Nota de crédito creada, se creo un egreso con el monto de la nota de credito.';
+
+            if(isset($request->nota_venta))
+            {
+                 $text = 'Nota de devolución creada, se creo un egreso con el monto de la nota de devolución.';
+            }
+
+            Session::flash('success', $text);
+            return response()->json([
+                'success' => true,
+                'nota_id'=> $nota->id
+            ]);
+
+        }
+        catch(\Throwable $e)
+        {
+            DB::rollBack();
+           
+            return response()->json([
+                'success' => false,
+                'mensaje'=> $e->getMessage(),
+                'excepcion' => $e->getMessage()
+            ]);
+        }
+
+
+    }
+
+
+    /*public function store_old(Request $request)
+    {
+        try
+        {
+            DB::beginTransaction();
+            $data = $request->all();
+            $rules = [
+                'documento_id' => 'required',
+                'fecha_emision'=> 'required',
+                'tipo_nota'=> 'required',
+                'cliente'=> 'required',
+                'des_motivo' => 'required',
+                'cod_motivo' => 'required',
+
+            ];
+            $message = [
+                'fecha_emision.required' => 'El campo Fecha de Emisión es obligatorio.',
+                'tipo_nota.required' => 'El campo Tipo es obligatorio.',
+                'cod_motivo.required' => 'El campo Tipo Nota de Crédito es obligatorio.',
+                'cliente.required' => 'El campo Cliente es obligatorio.',
+                'des_motivo.required' => 'El campo Motivo es obligatorio.',
+            ];
+
+            $validator =  Validator::make($data, $rules, $message);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'errors' => true,
+                    'data' => array('mensajes' => $validator->getMessageBag()->toArray())
+                ]);
+
+            }
+
+            
 
             $documento = Documento::find($request->get('documento_id'));
             
@@ -467,7 +739,7 @@ class NotaController extends Controller
             ]);
 
         }
-        catch(Throwable $e)
+        catch(\Throwable $e)
         {
             DB::rollBack();
            
@@ -486,7 +758,7 @@ class NotaController extends Controller
         //     //dd($res_send_sunat);
         // }
 
-    }
+    }*/
 
 
     public function obtenerLeyenda($nota)

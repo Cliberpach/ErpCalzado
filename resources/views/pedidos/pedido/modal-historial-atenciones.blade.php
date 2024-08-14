@@ -50,19 +50,19 @@
         document.addEventListener('click',(e)=>{
             const filaCercana   =   e.target.closest('tr');
             if(filaCercana && filaCercana.classList.contains('rowAtencion')){
-                const pedido_id     =   filaCercana.getAttribute('data-pedido-id');
-                const atencion_id   =   filaCercana.getAttribute('data-atencion-id');
+                const pedido_id         =   filaCercana.getAttribute('data-pedido-id');
+                const documento_id      =   filaCercana.getAttribute('data-documento-id');
 
-                getAtencionDetalles(pedido_id,atencion_id);
+                getAtencionDetalles(pedido_id,documento_id);
             }
         })
     }
 
 
-    async function getAtencionDetalles(pedido_id,atencion_id){
+    async function getAtencionDetalles(pedido_id,documento_id){
          //===== OBTENIENDO DETALLES DEL PEDIDO =======
          try {
-            const res   =   await axios.get(route('pedidos.pedido.getAtencionDetalles',{pedido_id,atencion_id}));
+            const res   =   await axios.get(route('pedidos.pedido.getAtencionDetalles',{pedido_id,documento_id}));
             console.log(res);
             const type  =   res.data.type;
             if(type == 'success'){
@@ -70,7 +70,7 @@
                 pintarTableAtencionesDetalles(atencion_detalles);
             }
         } catch (error) {
-        
+            toastr.error(error,'ERROR EN LA PETICIÓN MOSTRAR DETALLES DE LA ATENCIÓN');
         }
     }
 

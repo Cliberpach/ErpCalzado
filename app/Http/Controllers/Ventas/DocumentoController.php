@@ -2025,26 +2025,26 @@ class DocumentoController extends Controller
            
             //====== REVERTIR ACCIONES EN LA BD =========
             DB::rollBack();
-            dd($e->getMessage());
+            
          
             //========== DETALLAR ERROR DE STOCK NEGATIVO ========
             if($e->getCode() == "22003" && strpos($e->getMessage(), "UPDATE producto_color_tallas") !== false && strpos($e->getMessage(), "SET stock") !== false){
 
                 return response()->json([
-                    'success' => false,
-                    'mensaje' => "ERROR EN EL SERVIDOR", 
-                    'excepcion' => $e->getMessage(),
-                    'codigo' => $e->getCode(),
-                    'producto'  =>  $producto_control
+                    'success'       =>  false,
+                    'mensaje'       =>  "ERROR EN EL SERVIDOR", 
+                    'excepcion'     =>  $e->getMessage(),
+                    'codigo'        =>  $e->getCode(),
+                    'producto'      =>  $producto_control
                 ]);
 
             }
 
             return response()->json([
-                'success' => false,
-                'mensaje' => "ERROR EN EL SERVIDOR", 
+                'success'   => false,
+                'mensaje'   => "ERROR EN EL SERVIDOR", 
                 'excepcion' => $e->getMessage(),
-                'codigo' => $e->getCode()
+                'codigo'    => $e->getCode()
             ]);
         }
     }
@@ -2392,14 +2392,17 @@ class DocumentoController extends Controller
 
     public function voucher($value)
     {   
+
         try {
             $cadena = explode('-', $value);
             $id     = $cadena[0];
             $size   = (int) $cadena[1];
             $qr     = self::qr_code($id);
+
             $mostrar_cuentas    =   DB::select('select c.propiedad 
                                     from configuracion as c 
                                     where c.slug = "MCB"')[0]->propiedad;
+            
             $documento = Documento::findOrFail($id);
             $detalles = Detalle::where('documento_id', $id)->where('eliminado', '0')->get();
             if ((int) $documento->tipo_venta == 127 || (int) $documento->tipo_venta == 128) {
@@ -2572,11 +2575,11 @@ class DocumentoController extends Controller
 
             if ($size === 80) {
                 $pdf = PDF::loadview('ventas.documentos.impresion.comprobante_ticket', [
-                    'documento' => $documento,
-                    'detalles' => $detalles,
-                    'moneda' => $documento->simboloMoneda(),
-                    'empresa' => $empresa,
-                    "legends" => $legends,
+                    'documento'         => $documento,
+                    'detalles'          => $detalles,
+                    'moneda'            => $documento->simboloMoneda(),
+                    'empresa'           => $empresa,
+                    "legends"           => $legends,
                     'mostrar_cuentas'   =>  $mostrar_cuentas
 
                 ])->setPaper([0, 0, 226.772, 651.95]);

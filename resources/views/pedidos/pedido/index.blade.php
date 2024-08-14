@@ -426,8 +426,8 @@
     $('#modal_historial_atenciones').on('show.bs.modal', async function (event) {
        
 
-       var button = $(event.relatedTarget) 
-       const pedido_id   = button.data('pedido-id');
+       var button           =   $(event.relatedTarget) 
+       const pedido_id      =   button.data('pedido-id');
 
 
         document.querySelector('.pedido_id_span').textContent    =   pedido_id;
@@ -561,7 +561,7 @@
         let body    =   ``;
 
         pedido_atenciones.forEach((pa)=>{
-            body    +=  `<tr class="rowAtencion" data-pedido-id="${pa.pedido_id}" data-atencion-id=${pa.atencion_id}>
+            body    +=  `<tr class="rowAtencion" data-pedido-id="${pa.pedido_id}" data-documento-id=${pa.documento_id}>
                 <th scope="row">${pa.documento_serie}-${pa.documento_correlativo}</th>  
                 <td scope="row">${pa.fecha_atencion}</td> 
                 <td scope="row">${pa.documento_usuario}</td>

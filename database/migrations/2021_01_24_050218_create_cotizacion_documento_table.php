@@ -30,6 +30,8 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->unsignedBigInteger('pedido_id')->nullable();
             $table->foreign('pedido_id')->references('id')->on('pedidos')->onDelete('cascade');
 
+            $table->enum('tipo_doc_venta_pedido', ['ATENCION', 'FACTURACION'])->nullable();
+
 
             $table->date('fecha_documento');
             $table->date('fecha_vencimiento');

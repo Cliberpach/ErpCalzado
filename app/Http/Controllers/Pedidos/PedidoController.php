@@ -43,7 +43,11 @@ class PedidoController extends Controller
                     ->select('pedidos.*', 
                             \DB::raw('CONCAT(cotizacion_documento.serie, "-", cotizacion_documento.correlativo) as documento_venta'),
                             \DB::raw('if(pedidos.cotizacion_id is null,"-",concat("CO-",pedidos.cotizacion_id)) as cotizacion_nro'))
-                    ->where('pedidos.estado','!=','ANULADO');            
+                    ->where('pedidos.estado','!=','ANULADO')
+                    ->where(function($query) {
+                        $query->where('cotizacion_documento.tipo_doc_venta_pedido', 'FACTURACION')
+                              ->orWhereNull('cotizacion_documento.tipo_doc_venta_pedido');
+                    }) ;            
                     
 
         if($fecha_inicio){
@@ -670,27 +674,26 @@ class PedidoController extends Controller
 
     public function getAtenciones($pedido_id){
         $pedido_atenciones    =   DB::select('select cd.serie as documento_serie,cd.correlativo as documento_correlativo, 
-                                pa.fecha_atencion,CONCAT(p.nombres, " ", p.apellido_paterno, " ", p.apellido_materno) AS documento_usuario,
+                                cd.created_at as fecha_atencion ,CONCAT(p.nombres, " ", p.apellido_paterno, " ", p.apellido_materno) AS documento_usuario,
                                 cd.monto_envio as documento_monto_envio, cd.monto_embalaje as documento_monto_embalaje,
-                                cd.total_pagar as documento_total_pagar,pa.pedido_id,pa.id as atencion_id
-                                from pedidos_atenciones as pa 
-                                inner join cotizacion_documento as cd on pa.documento_id = cd.id  
+                                cd.total_pagar as documento_total_pagar,cd.pedido_id,cd.id as documento_id
+                                from  cotizacion_documento as cd  
                                 inner join user_persona as up on cd.user_id = up.user_id
                                 inner join personas as p  on p.id = up.persona_id
-                                where pa.pedido_id=? and pa.documento_id=cd.id',[$pedido_id]);
+                                where cd.pedido_id=?',[$pedido_id]);
 
         
         return  response()->json(['type'=>'success','pedido_atenciones'=>$pedido_atenciones]);
     }
 
-    public function getAtencionDetalles($pedido_id,$atencion_id){
+    public function getAtencionDetalles($pedido_id,$documento_id){
+
         $atencion_detalles    =   DB::select('select cdd.nombre_producto as producto_nombre,
                                 cdd.nombre_color as color_nombre, cdd.nombre_talla as talla_nombre,
                                 cdd.cantidad
-                                from pedidos_atenciones as pa
-                                inner join cotizacion_documento as cd on cd.id=pa.documento_id
+                                from cotizacion_documento as cd
                                 inner join cotizacion_documento_detalles  as cdd on cdd.documento_id = cd.id   
-                                where pa.pedido_id=? and pa.id=?',[$pedido_id,$atencion_id]);
+                                where cd.pedido_id=? and cd.id = ?',[$pedido_id,$documento_id]);
 
         
         return  response()->json(['type'=>'success','atencion_detalles'=>$atencion_detalles]);
@@ -879,8 +882,12 @@ class PedidoController extends Controller
         }
     }
 
-    public function generarDocumentoVenta(Request $request){
+public function generarDocumentoVenta(Request $request){
        
+    DB::beginTransaction();
+
+    try {
+
         $pedido_id              =   $request->get('pedido_id');
         
         $pedido                 =   Pedido::find($pedido_id);
@@ -905,14 +912,13 @@ class PedidoController extends Controller
         if($success_store_doc){
             $documento_id       =   $jsonResponse->documento_id;
             
-            DB::beginTransaction();
-            try {
-                //======= ACTUALIZANDO CANTIDAD ATENDIDA EN PEDIDO DETALLES ======
-                $productosJSON  = $request->get('productos_tabla');
-                $productos      = json_decode($productosJSON);
+            
+            //======= ACTUALIZANDO CANTIDAD ATENDIDA EN PEDIDO DETALLES ======
+            $productosJSON  = $request->get('productos_tabla');
+            $productos      = json_decode($productosJSON);
 
-                foreach ($productos as $producto) {
-                    DB::table('pedidos_detalles')
+            foreach ($productos as $producto) {
+                DB::table('pedidos_detalles')
                     ->where('pedido_id', $pedido_id)
                     ->where('producto_id', $producto->producto_id)
                     ->where('color_id', $producto->color_id)
@@ -921,129 +927,145 @@ class PedidoController extends Controller
                         'cantidad_pendiente'    => DB::raw('cantidad_pendiente  - ' . $producto->cantidad),
                         'cantidad_atendida'     => DB::raw('cantidad_atendida   + ' . $producto->cantidad)
                     ]);
-                }
+            }
 
-                //======= GRABANDO ATENCIÓN =====
-                $pedido_atencion                    =   new PedidoAtencion();
-                $pedido_atencion->pedido_id         =   $pedido_id;
-                $pedido_atencion->documento_id      =   $documento_id;
-                $pedido_atencion->fecha_atencion    =   Carbon::now()->format('Y-m-d');
-                $pedido_atencion->save();
+            //======= GRABANDO ATENCIÓN =====
+            DB::table('cotizacion_documento')
+            ->where('id', $documento_id)
+            ->update([
+                'pedido_id'             =>  $pedido_id,
+                'tipo_doc_venta_pedido' =>  "ATENCION",
+                'updated_at' => Carbon::now()
+            ]);
 
-                //======= CAMBIANDO ESTADO DEL PEDIDO =====
-                //===== CANTIDAD DE ITEMS QUE TIENE EL PEDIDO ======
-                $cant_items_pedido                  =   PedidoDetalle::where('pedido_id',$pedido_id)->count('*');
-                $cant_items_pendientes_pedido       =   PedidoDetalle::where('pedido_id',$pedido_id)
+            /*$pedido_atencion                    =   new PedidoAtencion();
+            $pedido_atencion->pedido_id         =   $pedido_id;
+            $pedido_atencion->documento_id      =   $documento_id;
+            $pedido_atencion->fecha_atencion    =   Carbon::now()->format('Y-m-d');
+            $pedido_atencion->save();*/
+
+
+
+            //======= CAMBIANDO ESTADO DEL PEDIDO =====
+            //===== CANTIDAD DE ITEMS QUE TIENE EL PEDIDO ======
+            $cant_items_pedido                  =   PedidoDetalle::where('pedido_id',$pedido_id)->count('*');
+            $cant_items_pendientes_pedido       =   PedidoDetalle::where('pedido_id',$pedido_id)
                                                         ->where('cantidad_pendiente','>',0)
                                                         ->count('*');
-                $cant_items_atendidos_pedido        =   PedidoDetalle::where('pedido_id',$pedido_id)
+            $cant_items_atendidos_pedido        =   PedidoDetalle::where('pedido_id',$pedido_id)
                                                         ->where('cantidad_atendida','>',0)
                                                         ->count('*');
 
-                $pedido_actualizar                  =   Pedido::find($pedido_id);
+            $pedido_actualizar                  =   Pedido::find($pedido_id);
 
-                if($cant_items_pendientes_pedido === 0){
-                    $pedido_actualizar->estado      =   "FINALIZADO";
-                }
+            if($cant_items_pendientes_pedido === 0){
+                $pedido_actualizar->estado      =   "FINALIZADO";
+            }
                 
-                if($cant_items_pendientes_pedido > 0 && $cant_items_atendidos_pedido > 0){
-                    $pedido_actualizar->estado      =   "ATENDIENDO";
-                }
+            if($cant_items_pendientes_pedido > 0 && $cant_items_atendidos_pedido > 0){
+                $pedido_actualizar->estado      =   "ATENDIENDO";
+            }
 
-                if($cant_items_atendidos_pedido === 0){
-                    $pedido_actualizar->estado      =   "PENDIENTE";
-                }
+            if($cant_items_atendidos_pedido === 0){
+                $pedido_actualizar->estado      =   "PENDIENTE";
+            }
 
-                //======== VERIFICANDO SI EL PEDIDO ESTÁ FACTURADO ======
-                if($pedido_actualizar->facturado === "SI"){
+            //======== VERIFICANDO SI EL PEDIDO ESTÁ FACTURADO ======
+            if($pedido_actualizar->facturado === "SI"){
 
-                    //===== SI EL SALDO FACTURADO ES MAYOR O IGUAL AL MONTO DE LA ATENCIÓN =====
-                    if($pedido_actualizar->saldo_facturado >= $request->get('monto_total_pagar')){
-                        //====== NO GENERAR RECIBOS DE CAJA =======
-                        //====== DISMINUIR SALDO FACTURADO ========
-                        $pedido_actualizar->saldo_facturado -=  $request->get('monto_total_pagar'); 
-                    }else{
-                        //===== SI EL SALDO FACTURADO ES MENOR AL MONTO DE LA ATENCIÓN ======
+                //===== SI EL SALDO FACTURADO ES MAYOR O IGUAL AL MONTO DE LA ATENCIÓN =====
+                if($pedido_actualizar->saldo_facturado >= $request->get('monto_total_pagar')){
+                    //====== NO GENERAR RECIBOS DE CAJA =======
+                    //====== DISMINUIR SALDO FACTURADO ========
+                    $pedido_actualizar->saldo_facturado -=  $request->get('monto_total_pagar'); 
+                }else{
+                    //===== SI EL SALDO FACTURADO ES MENOR AL MONTO DE LA ATENCIÓN ======
                 
-                        //====== OBTENER EXCEDENTE =======
-                        $excedente  =   $request->get('monto_total_pagar') -    $pedido_actualizar->saldo_facturado;
+                    //====== OBTENER EXCEDENTE =======
+                       $excedente  =   $request->get('monto_total_pagar') -    $pedido_actualizar->saldo_facturado;
 
-                        //======= OBTENIENDO MOVIMIENTO ID DEL USUARIO ======
-                        $movimiento = DB::select("select dmc.movimiento_id from detalles_movimiento_caja as dmc
+                    //======= OBTENIENDO MOVIMIENTO ID DEL USUARIO ======
+                    $movimiento = DB::select("select dmc.movimiento_id from detalles_movimiento_caja as dmc
                                         where dmc.usuario_id = ? and dmc.fecha_salida is null",
                                         [$pedido_actualizar->user_id]);
 
-                        if(count($movimiento) !== 1){
-                            throw new Exception("ERROR AL OBTENER EL MOVIMIENTO DE CAJA DEL USUARIO DEL PEDIDO");
-                        }
+                    if(count($movimiento) !== 1){
+                        throw new Exception("ERROR AL OBTENER EL MOVIMIENTO DE CAJA DEL USUARIO DEL PEDIDO");
+                    }
 
-                        $documento_venta    = Documento::find($documento_id);
+                    $documento_venta    = Documento::find($documento_id);
 
-                        if(!$documento_venta){
-                            throw new Exception("ERROR AL OBTENER EL DOCUMENTO DE VENTA DE LA ATENCIÓN PARA GENERAR EL RECIBO DE CAJA EXCEDENTE");
-                        }
+                    if(!$documento_venta){
+                        throw new Exception("ERROR AL OBTENER EL DOCUMENTO DE VENTA DE LA ATENCIÓN PARA GENERAR EL RECIBO DE CAJA EXCEDENTE");
+                    }
 
                         
-                        //====== GENERAR RECIBO DE CAJA DEL EXCEDENTE =====
-                        $recibo_caja                    =   new ReciboCaja();
-                        $recibo_caja->movimiento_id     =   $movimiento[0]->movimiento_id;
-                        $recibo_caja->user_id           =   $pedido_actualizar->user_id;
-                        $recibo_caja->cliente_id        =   $pedido_actualizar->cliente_id;
-                        $recibo_caja->monto             =   $excedente;
-                        $recibo_caja->saldo             =   0;
-                        $recibo_caja->metodo_pago       =   "EFECTIVO";
-                        $recibo_caja->estado_servicio   =   "CANJEADO";
-                        $recibo_caja->observacion   =   "CREADO A PARTIR DEL EXCEDENTE DE "."S/.".$excedente .
+                    //====== GENERAR RECIBO DE CAJA DEL EXCEDENTE =====
+                    $recibo_caja                    =   new ReciboCaja();
+                    $recibo_caja->movimiento_id     =   $movimiento[0]->movimiento_id;
+                    $recibo_caja->user_id           =   $pedido_actualizar->user_id;
+                    $recibo_caja->cliente_id        =   $pedido_actualizar->cliente_id;
+                    $recibo_caja->monto             =   $excedente;
+                    $recibo_caja->saldo             =   0;
+                    $recibo_caja->metodo_pago       =   "EFECTIVO";
+                    $recibo_caja->estado_servicio   =   "CANJEADO";
+                     $recibo_caja->observacion   =   "CREADO A PARTIR DEL EXCEDENTE DE "."S/.".$excedente .
                                                         " PRESENTE EN LA ATENCIÓN ".$documento_venta->serie.'-'.$documento_venta->correlativo.
                                                         " DEL PEDIDO PE-".$pedido_actualizar->pedido_nro;            
-                        $recibo_caja->save();
+                    $recibo_caja->save();
                         
-                        //====== DISMINUIR SALDO FACTURADO ========
-                        $pedido_actualizar->saldo_facturado =  0; 
-                    }
+                    //====== DISMINUIR SALDO FACTURADO ========
+                    $pedido_actualizar->saldo_facturado =  0; 
                 }
-                
-                $pedido_actualizar->save();
-               
-
-                DB::commit();
-                return response()->json([
-                    'success'       => true,
-                    'documento_id'  => $documento_id,
-                    'mensaje'       =>   'DOCUMENTO DE VENTA GENERADO - PEDIDO ACTUALIZADO'
-                ]);
-            } catch (\Throwable $th) {
-                //======== REVERTIR ACCIONES REALIZADAS EN PEDIDO CONTROLLER ======
-                DB::rollBack();
-
-                //===== DEVOLVER STOCKS =======
-                $detalles_documento_venta    =   Detalle::where('documento_id',$documento_id)->get();
-
-                foreach ($detalles_documento_venta as $item) {
-                    DB::table('producto_color_tallas')
-                    ->where('producto_id', $item->producto_id)
-                    ->where('color_id', $item->color_id)
-                    ->where('talla_id', $item->talla_id)
-                    ->update([
-                        'stock'    => DB::raw('stock  + ' . $item->cantidad),
-                    ]);
-                }
-               
-                //====== ELIMINAR DOC DE VENTA ====
-                DB::table('cotizacion_documento')
-                ->where('id', $documento_id)
-                ->delete();
-
-                return response()->json([
-                    'success'   => false,
-                    'mensaje'   => 'ERROR EN EL SERVIDOR, SI EL ERROR PERSISTE COMUNICARSE CON EL ADMINISTRADOR DEL SISTEMA', 
-                    'excepcion' => $th->getMessage(),
-                ]);
             }
+                
+            $pedido_actualizar->save();
+               
+
+            DB::commit();
+            return response()->json([
+                'success'       => true,
+                'documento_id'  => $documento_id,
+                'mensaje'       =>   'DOCUMENTO DE VENTA GENERADO - PEDIDO ACTUALIZADO'
+            ]);
+           
         }else{
-            return $res;
+            DB::rollBack();
+            return response()->json([
+                'success'       =>      false,
+                'mensaje'       =>      $jsonResponse->mensaje,
+                'excepcion'     =>      $jsonResponse->excepcion
+            ]);            
         }  
+    } catch (\Throwable $th) {
+        //======== REVERTIR ACCIONES REALIZADAS EN PEDIDO CONTROLLER ======
+        DB::rollBack();
+
+        //===== DEVOLVER STOCKS =======
+        $detalles_documento_venta    =   Detalle::where('documento_id',$documento_id)->get();
+
+        foreach ($detalles_documento_venta as $item) {
+            DB::table('producto_color_tallas')
+                ->where('producto_id', $item->producto_id)
+                ->where('color_id', $item->color_id)
+                ->where('talla_id', $item->talla_id)
+                ->update([
+                    'stock'    => DB::raw('stock  + ' . $item->cantidad),
+                ]);
+        }
+       
+        //====== ELIMINAR DOC DE VENTA ====
+        DB::table('cotizacion_documento')
+            ->where('id', $documento_id)
+            ->delete();
+
+            return response()->json([
+                'success'   => false,
+                'mensaje'   => 'ERROR EN EL SERVIDOR, SI EL ERROR PERSISTE COMUNICARSE CON EL ADMINISTRADOR DEL SISTEMA', 
+                'excepcion' => $th->getMessage(),
+            ]);
     }
+ }
 
     public function validarTipoVenta($comprobante_id){
         try {
@@ -1190,17 +1212,27 @@ class PedidoController extends Controller
 
             //====== MANEJO DE RESPUESTA =========
             $success_store_doc      =   $jsonResponse->success; 
-            
+        
             if($success_store_doc){
                 
                 $doc_venta  =   DB::select('select cd.serie,cd.correlativo,cd.total_pagar 
                                 from cotizacion_documento as cd
                                 where cd.id = ?',[$jsonResponse->documento_id])[0];
 
+                //======== ACTUALIZANDO PEDIDO =======
                 $pedido->facturado = 'SI';
                 $pedido->monto_facturado        =   $doc_venta->total_pagar;
                 $pedido->saldo_facturado        =   $doc_venta->total_pagar;
                 $pedido->save();
+
+                //====== ACTUALIZANDO DOC VENTA ======
+                DB::table('cotizacion_documento')
+                ->where('id', $jsonResponse->documento_id)
+                ->update([
+                    'pedido_id'                 =>  $pedido_id,
+                    'tipo_doc_venta_pedido'     => "FACTURACION",
+                    'updated_at' => Carbon::now() 
+                ]);
 
                 DB::commit();
 
@@ -1211,7 +1243,8 @@ class PedidoController extends Controller
             }else{
 
                 DB::rollBack();
-                
+                return response()->json(['success'=>false,'message'=>$jsonResponse->mensaje]);
+
             }
 
         } catch (\Throwable $th) {

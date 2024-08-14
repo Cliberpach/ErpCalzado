@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateOrdenesPedidoDetallesTable extends Migration
+class CreateOrdenesProduccionDetallesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -38,7 +38,7 @@ class CreateOrdenesPedidoDetallesTable extends Migration
 
             $table->unsignedInteger('cantidad');
 
-            $table->primary(['orden_produccion_id', 'modelo_id', 'producto_id', 'color_id', 'talla_id']);
+            $table->primary(['orden_produccion_id', 'modelo_id', 'producto_id', 'color_id', 'talla_id'], 'pk_orden_modelo_prod_color_talla');
 
             $table->timestamps();
         });

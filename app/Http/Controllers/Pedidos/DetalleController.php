@@ -59,6 +59,7 @@ class DetalleController extends Controller
                                 'pd.cantidad_atendida',
                                 'pd.cantidad_pendiente',
                                 'pd.cantidad_enviada',
+                                'pd.cantidad_devuelta',
                                 \DB::raw('concat("PE-", p.id) as pedido_name_id')
                             )
                             ->join('pedidos as p', 'pd.pedido_id', '=', 'p.id')
