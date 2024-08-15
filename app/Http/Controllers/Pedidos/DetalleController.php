@@ -146,22 +146,17 @@ class DetalleController extends Controller
     public function getDetallesDevoluciones($pedido_id,$producto_id,$color_id,$talla_id){
         try {
             $notas_devoluciones  =   DB::select('select ne.numDocfectado as documento_afectado,ne.serie,ne.correlativo,
-                                        cdd.producto_id,cdd.color_id,cdd.talla_id,
+                                        ned.producto_id,ned.color_id,ned.talla_id,
                                         u.usuario,ne.created_at as fecha, ned.cantidad as cantidad_devuelta,
-                                        cd.pedido_id
-                                        from  cotizacion_documento as cd 
-                                        inner join cotizacion_documento_detalles as cdd on cdd.documento_id = cd.id 
-                                        inner join nota_electronica as ne on ne.documento_id = cdd.documento_id
+                                        ne.pedido_id
+                                        from  nota_electronica as ne 
                                         inner join nota_electronica_detalle as ned on ned.nota_id = ne.id
                                         inner join users as u on u.id = ne.user_id
-                                        where cd.pedido_id = ? and 
-                                        cdd.producto_id = ? and
-                                        cdd.color_id = ?  and
-                                        cdd.talla_id = ? and
+                                        where 
+                                        ne.pedido_id = ? and 
                                         ned.producto_id = ? and 
                                         ned.color_id = ? and 
-                                        ned.talla_id = ?',[$pedido_id,$producto_id,$color_id,$talla_id,
-                                        $producto_id,$color_id,$talla_id]);
+                                        ned.talla_id = ?',[$pedido_id,$producto_id,$color_id,$talla_id,]);
 
         
             return response()->json(['success'=>true,'devoluciones'=>$notas_devoluciones]);
