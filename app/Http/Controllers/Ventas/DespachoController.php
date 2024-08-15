@@ -144,9 +144,9 @@ class DespachoController extends Controller
             'user_despachador_nombre'   =>  Auth::user()->usuario]);
 
             //======= REVIZAR SI EL DOCUMENTO ESTÁ LIGADO A UN PEDIDO ATENCIÓN =======
-            $pedido_atencion    =   DB::select('select pa.pedido_id 
-                                    from pedidos_atenciones as pa 
-                                    where pa.documento_id = ?',[$request->get('documento_id')]);
+            $pedido_atencion    =   DB::select('select cd.pedido_id 
+                                    from cotizacion_documento as cd 
+                                    where cd.id = ?',[$request->get('documento_id')]);
 
             //========== EN CASO EL DOCUMENTO SEA PRODUCTO DE UNA ATENCIÓN DE PEDIDO ========
             if(count($pedido_atencion) === 1){

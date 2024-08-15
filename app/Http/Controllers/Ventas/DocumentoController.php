@@ -96,6 +96,8 @@ class DocumentoController extends Controller
                 DB::raw('(CONCAT(cotizacion_documento.serie, "-" ,cotizacion_documento.correlativo)) as numero_doc'),
                 'cotizacion_documento.serie',
                 'cotizacion_documento.correlativo',
+                'cotizacion_documento.pedido_id',
+                'cotizacion_documento.tipo_doc_venta_pedido',
                 'cotizacion_documento.cliente',
                 'cotizacion_documento.empresa',
                 'cotizacion_documento.importe',
@@ -166,9 +168,11 @@ class DocumentoController extends Controller
         
         foreach ($documentos as $key => $value) {
             $colleccion->push([
-                'id'                =>  $value->id,
-                "tipo_venta"        =>  $value->tablaDetalles->nombre,
-                'numero_doc'        =>  $value->numero_doc,
+                'id'                    =>  $value->id,
+                "tipo_venta"            =>  $value->tablaDetalles->nombre,
+                'numero_doc'            =>  $value->numero_doc,
+                'pedido_id'             =>  $value->pedido_id,
+                'tipo_doc_venta_pedido' =>  $value->tipo_doc_venta_pedido,
                 'serie'             =>  $value->serie,
                 'correlativo'       =>  $value->correlativo,
                 'cliente'           =>  $value->cliente,

@@ -42,7 +42,8 @@
                                                 <tr>
                                                     <th class="text-center letrapequeña bg-white">COT</th>
                                                     <th class="text-center letrapequeña bg-white">CV</th>
-                                                    <th class="text-center letrapequeña bg-white"># DOC</th>
+                                                    <th class="text-center letrapequeña bg-white">PE</th>
+                                                    <th class="text-center letrapequeña bg-white">DOC</th>
                                                     <th class="text-center letrapequeña bg-white">FECHA DOC.</th>
                                                     <th class="text-center letrapequeña bg-white">CLIENTE</th>
                                                     <th class="text-center letrapequeña bg-white">MONTO</th>
@@ -64,6 +65,13 @@
                                                         </td>
                                                         <td class="letrapequeña text-center">
                                                             {{ item.doc_convertido }}
+                                                        </td>
+                                                        <td class="letrapequeña text-center">
+
+                                                            <p v-if="item.pedido_id" style="margin:0;padding:0;">{{ `PE-${item.pedido_id}` }}</p>
+                                                            <p v-if="item.pedido_id" style="margin:0;padding:0;">{{ item.tipo_doc_venta_pedido }}</p>
+                                                            <p v-if="!item.pedido_id" style="margin:0;padding:0;">{{ '-' }}</p>
+
                                                         </td>
                                                         <td class="letrapequeña text-center">
                                                             {{ item.numero_doc }}
@@ -154,7 +162,7 @@
                                                                         (item.condicion == 'CREDITO' ||
                                                                         item.condicion == 'CRÉDITO'))">
 
-                                                                        <b-dropdown-item title="Guía Remisión" :href="routes(item.id, 'DEVO')">
+                                                                        <b-dropdown-item title="Nota de devolución" :href="routes(item.id, 'DEVO')">
                                                                             <i class="fa fa-file-o"></i> Devoluciones
                                                                         </b-dropdown-item>
 

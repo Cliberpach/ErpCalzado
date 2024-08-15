@@ -4,6 +4,8 @@
 @section('pedidos-detalles-active', 'active')
 @include('pedidos.detalles.modals.modal_detalles_anteciones')
 @include('pedidos.detalles.modals.modal_detalles_despachos')
+@include('pedidos.detalles.modals.modal_detalles_devoluciones')
+
 <style>
 
     .overlay_pedidos_detalles {
@@ -213,8 +215,8 @@
                             <textarea maxlength="260" id="observacion" class="form-control" rows="4" placeholder="Ingrese su texto aquí..."></textarea>
                         </div>
                         <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 d-flex justify-content-end">
-                            <a class="btn btn-success" style="height: 32px;" href="javascript:void(0);" onclick="generarOrdenPedido()">
-                                <i class="fas fa-save"></i> GENERAR ORDEN DE PEDIDO
+                            <a class="btn btn-success" style="height: 32px;" href="javascript:void(0);" onclick="generarOrdenProduccion()">
+                                <i class="fas fa-save"></i> GENERAR ORDEN DE PRODUCCIÓN
                             </a>                        
                         </div>
                     </div>
@@ -470,7 +472,7 @@
                     className: "text-center",
                     render: function (data, type, row) {
                         
-                        return `<p style="margin:0;">${data}</p>`;
+                        return `<p style="cursor:pointer;font-weight:bold;margin:0;" onclick="openMdlDevoluciones(${row.pedido_id}, ${row.producto_id}, ${row.color_id}, ${row.talla_id})" >${data}</p>`;
                     }
                 },
             ],
@@ -703,43 +705,7 @@
         tbody.innerHTML =   filas;
     }
 
-    async function openMdlAtenciones(pedido_id,producto_id,color_id,talla_id){
-        //alert(`${pedido_id}-${producto_id}-${color_id}-${talla_id}`);
-        try {
-            mostrarAnimacionCotizacion();
-            const res   =  await axios.get(route('pedidos.pedidos_detalles.getDetallesAtenciones',{pedido_id,producto_id,color_id,talla_id}));
-            console.log(res);
-            if(res.data.success){
-                pintarMdlDetallesAtenciones(res.data.documentos_atenciones);
-                $('#modal_detalles_atenciones').modal('show');
-                toastr.info('VISUALIZANDO ATENCIONES');
-            }else{
-                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
-            }
-        } catch (error) {
-            toastr.error(error,'ERROR EN LA PETICIÓN VER ATENCIONES DEL DETALLE');
-        }finally{
-            ocultarAnimacionCotizacion();
-        }
-
-    }
-
-    function pintarMdlDetallesAtenciones(lstAtenciones){
-        const tbody =   document.querySelector('#table_detalles_atenciones tbody');
-        let filas   =   ``;
-
-        lstAtenciones.forEach((atencion)=>{
-            filas   +=  `<tr>
-                            <th>${atencion.serie}-${atencion.correlativo}</th>
-                            <td>${atencion.cliente}</td>
-                            <td>${atencion.usuario}</td>
-                            <td>${atencion.created_at}</td>
-                            <td>${atencion.cantidad}</td>
-                        </tr>`;
-        })
-
-        tbody.innerHTML =   filas;
-    }
+    
 
     async function llenarCantEnviada(){
         try {
@@ -750,60 +716,8 @@
         }
     }
 
-    async function openMdlDespachos(pedido_id,producto_id,color_id,talla_id){
-        //alert(`${pedido_id}-${producto_id}-${color_id}-${talla_id}`);
-
-        try {
-            mostrarAnimacionCotizacion();
-            const res   =  await axios.get(route('pedidos.pedidos_detalles.getDetallesDespachos',{pedido_id,producto_id,color_id,talla_id}));
-            console.log(res);
-            if(res.data.success){
-                pintarMdlDetallesDespachos(res.data.despachos);
-                $('#modal_detalles_despachos').modal('show');
-                toastr.info('VISUALIZANDO DESPACHOS');
-            }else{
-                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
-            }
-        } catch (error) {
-            toastr.error(error,'ERROR EN LA PETICIÓN VER DESPACHOS DEL DETALLE');
-        }finally{
-            ocultarAnimacionCotizacion();
-        }
-    }
-
-    function pintarMdlDetallesDespachos(lstDespachos){
-        const tbody =   document.querySelector('#table_detalles_despachos tbody');
-        let filas   =   ``;
-        console.log(lstDespachos);
-        lstDespachos.forEach((despacho)=>{
-            let badge_estado_despacho   =   ``;
-
-            if(despacho.estado_despacho === "DESPACHADO"){
-                badge_estado_despacho   =   `<span class="badge badge-success">${despacho.estado_despacho}</span>`;
-            }
-
-            if(despacho.estado_despacho === "PENDIENTE"){
-                badge_estado_despacho   =   `<span class="badge badge-danger">${despacho.estado_despacho}</span>`;
-            }
-
-            if(despacho.estado_despacho === "EMBALADO"){
-                badge_estado_despacho   =   `<span class="badge badge-warning">${despacho.estado_despacho}</span>`;
-            }
-
-            filas   +=  `<tr>
-                            <th>${despacho.serie}-${despacho.correlativo}</th>
-                            <td>${despacho.cliente}</td>
-                            <td>${despacho.usuario}</td>
-                            <td>${despacho.user_despachador_nombre}</td>
-                            <td>${despacho.fecha_venta}</td>
-                            <td>${badge_estado_despacho}</td>
-                            <td>${despacho.fecha_despacho}</td>
-                            <td>${despacho.cantidad}</td>
-                        </tr>`;
-        })
-
-        tbody.innerHTML =   filas;
-    }
+    
+    
 
     function mostrarAnimacionCotizacion(){
       
@@ -904,7 +818,7 @@
     }*/
 
     //======= GENERAR ORDEN DE PEDIDO =====
-    async function generarOrdenPedido(){
+    async function generarOrdenProduccion(){
         if(lstProgramaProduccion.length === 0){
             toastr.error('LA PROGRAMACIÓN DE PRODUCCIÓN ESTÁ VACÍA','OPERACIÓN INCORRECTA');
             return;  
@@ -919,7 +833,7 @@
             buttonsStyling: false
             });
             swalWithBootstrapButtons.fire({
-            title: "Desea generar una orden de pedido?",
+            title: "Desea generar una orden de producción?",
             text: "Acción no reversible!",
             icon: "warning",
             showCancelButton: true,
@@ -934,7 +848,7 @@
                     const fecha_propuesta_atencion  =   document.querySelector('#fecha_propuesta_atencion').value;
                     const observacion               =   document.querySelector('#observacion').value;
 
-                    const res   =   await axios.post(route('pedidos.pedidos_detalles.generarOrdenPedido'),
+                    const res   =   await axios.post(route('pedidos.pedidos_detalles.generarOrdenProduccion'),
                         {lstProgramacionProduccion:JSON.stringify(lstProgramaProduccion),
                             fecha_propuesta_atencion,observacion
                         }

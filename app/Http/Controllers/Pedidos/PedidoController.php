@@ -39,15 +39,10 @@ class PedidoController extends Controller
         $fecha_fin      =   $request->get('fecha_fin');
         $pedido_estado  =   $request->get('pedido_estado');
 
-        $pedidos = Pedido::leftJoin('cotizacion_documento', 'pedidos.id', '=', 'cotizacion_documento.pedido_id')
-                    ->select('pedidos.*', 
-                            \DB::raw('CONCAT(cotizacion_documento.serie, "-", cotizacion_documento.correlativo) as documento_venta'),
+        $pedidos = Pedido::select('pedidos.*', 
+                            \DB::raw('CONCAT(pedidos.documento_venta_facturacion_serie, "-", pedidos.documento_venta_facturacion_correlativo) as documento_venta'),
                             \DB::raw('if(pedidos.cotizacion_id is null,"-",concat("CO-",pedidos.cotizacion_id)) as cotizacion_nro'))
-                    ->where('pedidos.estado','!=','ANULADO')
-                    ->where(function($query) {
-                        $query->where('cotizacion_documento.tipo_doc_venta_pedido', 'FACTURACION')
-                              ->orWhereNull('cotizacion_documento.tipo_doc_venta_pedido');
-                    }) ;            
+                    ->where('pedidos.estado','!=','ANULADO');            
                     
 
         if($fecha_inicio){
@@ -646,8 +641,10 @@ class PedidoController extends Controller
                     return $tipoVenta['id'] == 128;
                 });
 
+
                 $doc_venta  =   DB::select('select * from cotizacion_documento as cd
-                                where cd.pedido_id = ?',[$pedido->id]);
+                                where cd.pedido_id = ? and cd.tipo_doc_venta_pedido = "FACTURACION"',
+                                [$pedido->id]);
 
                 if(count($doc_venta) !== 1){
                     throw new Exception('NO SE ENCUENTRA EL DOC DE VENTA CON EL QUE SE FACTURÓ EL PEDIDO');
@@ -680,7 +677,7 @@ class PedidoController extends Controller
                                 from  cotizacion_documento as cd  
                                 inner join user_persona as up on cd.user_id = up.user_id
                                 inner join personas as p  on p.id = up.persona_id
-                                where cd.pedido_id=?',[$pedido_id]);
+                                where cd.pedido_id=? and cd.tipo_doc_venta_pedido = "ATENCION" ',[$pedido_id]);
 
         
         return  response()->json(['type'=>'success','pedido_atenciones'=>$pedido_atenciones]);
@@ -938,6 +935,7 @@ public function generarDocumentoVenta(Request $request){
                 'updated_at' => Carbon::now()
             ]);
 
+    
             /*$pedido_atencion                    =   new PedidoAtencion();
             $pedido_atencion->pedido_id         =   $pedido_id;
             $pedido_atencion->documento_id      =   $documento_id;
@@ -1221,8 +1219,11 @@ public function generarDocumentoVenta(Request $request){
 
                 //======== ACTUALIZANDO PEDIDO =======
                 $pedido->facturado = 'SI';
-                $pedido->monto_facturado        =   $doc_venta->total_pagar;
-                $pedido->saldo_facturado        =   $doc_venta->total_pagar;
+                $pedido->documento_venta_facturacion_id             =   $jsonResponse->documento_id;
+                $pedido->documento_venta_facturacion_serie          =   $doc_venta->serie;
+                $pedido->documento_venta_facturacion_correlativo    =   $doc_venta->correlativo;
+                $pedido->monto_facturado                =   $doc_venta->total_pagar;
+                $pedido->saldo_facturado                =   $doc_venta->total_pagar;
                 $pedido->save();
 
                 //====== ACTUALIZANDO DOC VENTA ======

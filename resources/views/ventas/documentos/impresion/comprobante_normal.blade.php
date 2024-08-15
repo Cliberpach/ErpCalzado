@@ -299,28 +299,34 @@
                 </tbody>
                 <tfoot>
                     @if($documento->tipo_venta != 129)
-                    <tr>
-                        <th colspan="4" style="text-align:right">Sub Total: S/.</th>
-                        <th style="text-align:right">{{ number_format($documento->total, 2) }}</th>
-                    </tr>
-                    <tr>
-                        <th colspan="4" style="text-align:right">IGV {{ $documento->igv }}: S/.</th>
-                        <th style="text-align:right">{{ number_format($documento->total_igv, 2) }}</th>
-                    </tr>
-                        @if (!empty($documento->retencion))
+                        @if ($documento->monto_descuento!=0)
+                            <tr>
+                                <th colspan="4" style="text-align:right">Descuento: S/.</th>
+                                <th style="text-align:right">{{ number_format($documento->monto_descuento, 2) }}</th>
+                            </tr>
+                        @endif
                         <tr>
-                            <th colspan="4" style="text-align:right">Total: S/.</th>
-                            <th style="text-align:right">{{ number_format($documento->total + $documento->retencion->impRetenido, 2) }}</th>
+                            <th colspan="4" style="text-align:right">Sub Total: S/.</th>
+                            <th style="text-align:right">{{ number_format($documento->total, 2) }}</th>
                         </tr>
                         <tr>
-                            <th colspan="4" style="text-align:right">Imp. Retenido: S/.</th>
-                            <th style="text-align:right">{{ number_format($documento->retencion->impRetenido, 2) }}</th>
-                        </tr>  
+                            <th colspan="4" style="text-align:right">IGV {{ $documento->igv }}: S/.</th>
+                            <th style="text-align:right">{{ number_format($documento->total_igv, 2) }}</th>
+                        </tr>
+                        @if (!empty($documento->retencion))
+                            <tr>
+                                <th colspan="4" style="text-align:right">Total: S/.</th>
+                                <th style="text-align:right">{{ number_format($documento->total + $documento->retencion->impRetenido, 2) }}</th>
+                            </tr>
+                            <tr>
+                                <th colspan="4" style="text-align:right">Imp. Retenido: S/.</th>
+                                <th style="text-align:right">{{ number_format($documento->retencion->impRetenido, 2) }}</th>
+                            </tr>  
                         @endif
-                    <tr>
-                        <th colspan="4" style="text-align:right">Total a pagar: S/.</th>
-                        <th style="text-align:right">{{ number_format($documento->total_pagar - $documento->notas->sum('mtoImpVenta'), 2) }}</th>
-                    </tr>
+                        <tr>
+                            <th colspan="4" style="text-align:right">Total a pagar: S/.</th>
+                            <th style="text-align:right">{{ number_format($documento->total_pagar - $documento->notas->sum('mtoImpVenta'), 2) }}</th>
+                        </tr>
                     @else
                         <tr>
                             <th colspan="4" style="text-align:right">Total a pagar: S/.</th>

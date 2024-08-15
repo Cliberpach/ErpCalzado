@@ -15,23 +15,56 @@
         </ol>
     </div>
 
-    <div class="col-12 col-md-2">
+    {{-- <div class="col-12 col-md-2">
         <a href="{{ route('ventas.notas.create', array('documento_id' => $documento->id, 'nota' => '1')) }}" class="btn btn-block btn-w-m btn-info m-t-md d-none">
             <i class="fa fa-plus-square"></i> Nota de débito
         </a>
-    </div>
-    <div class="col-12 col-md-2">
-       @if($documento->sunat == '1' && docValido($documento->id))
-        <a href="{{ route('ventas.notas.create', array('documento_id' => $documento->id, 'nota' => '0')) }}" class="btn btn-block btn-w-m btn-primary m-t-md">
-            <i class="fa fa-plus-square"></i> Nota de crédito
-        </a>
-       @endif
-       @if($documento->tipo_venta == '129' && docValido($documento->id))
-        <a href="{{ route('ventas.notas.create', array('documento_id' => $documento->id, 'nota' => '0','nota_venta' => 1)) }}" class="btn btn-block btn-w-m btn-primary m-t-md">
-            <i class="fa fa-plus-square"></i> Nota
-        </a>
-       @endif
-    </div>
+    </div> --}}
+
+    
+    @if (!$pedido_facturado)
+        <div class="col-12 col-md-2">
+            @if($documento->sunat == '1' && docValido($documento->id))
+            <a href="{{ route('ventas.notas.create', array('documento_id' => $documento->id, 'nota' => '0')) }}" class="btn btn-block btn-w-m btn-primary m-t-md">
+                <i class="fa fa-plus-square"></i> Nota de crédito
+            </a>
+            @endif
+            @if($documento->tipo_venta == '129' && docValido($documento->id))
+            <a href="{{ route('ventas.notas.create', array('documento_id' => $documento->id, 'nota' => '0','nota_venta' => 1)) }}" class="btn btn-block btn-w-m btn-primary m-t-md">
+                <i class="fa fa-plus-square"></i> Nota
+            </a>
+            @endif
+        </div>
+    @else
+        @if ($documento->tipo_doc_venta_pedido === "FACTURACION")
+            <div class="col-12 col-md-2">
+                @if($documento->sunat == '1' && docValido($documento->id))
+                <a href="{{ route('ventas.notas.create', array('documento_id' => $documento->id, 'nota' => '0')) }}" class="btn btn-block btn-w-m btn-primary m-t-md">
+                    <i class="fa fa-plus-square"></i> Nota de crédito
+                </a>
+                @endif
+                @if($documento->tipo_venta == '129' && docValido($documento->id))
+                <a href="{{ route('ventas.notas.create', array('documento_id' => $documento->id, 'nota' => '0','nota_venta' => 1)) }}" class="btn btn-block btn-w-m btn-primary m-t-md">
+                    <i class="fa fa-plus-square"></i> Nota
+                </a>
+                @endif
+            </div>
+        @else
+            <div class="col-12">
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    ESTE DOC DE VENTA <strong>{{$documento->serie.'-'.$documento->correlativo}}</strong>
+                    FORMA PARTE DE LA ATENCIÓN DEL PEDIDO <strong>{{"PE-".$documento->pedido_id}}</strong> <br>
+                    <strong>SOLO PODRÁN REALIZARSE DEVOLUCIONES CON NOTAS DE CRÉDITO DESDE SU DOCUMENTO DE FACTURACIÓN!</strong> 
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+        @endif
+    @endif
+    
+
+
 </div>
 
 <form action="{{ route('ventas.notas.create') }}" class="d-none" method="POST" id="frm-credito">
@@ -60,6 +93,12 @@
                                 <label><strong>Código: </strong></label>
                                 <p class="">{{ $documento->serie.'-'.$documento->correlativo }}</p>
                             </div>
+                            @if ($documento->pedido_id)
+                                <div class="col-md-6">
+                                    <label><strong>PEDIDO: </strong></label>
+                                    <p class="">{{'PE-'.$documento->pedido_id.' ('.$documento->tipo_doc_venta_pedido.')' }}</p>
+                                </div>
+                            @endif
                         </div>
 
                         <div class="form-group">
@@ -84,16 +123,6 @@
                     </div>
 
                     <div class="col-md-6">
-                        {{-- <div class="row">
-                            <div class="col-md-6">
-                                <label><strong>Sub Total: </strong></label>
-                                <p>{{ number_format($documento->sub_total, 2) }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <label><strong>Igv {{$documento->igv}}% </strong></label>
-                                <p>{{ number_format($documento->total_igv, 2) }}</p>
-                            </div>
-                        </div> --}}
                         <div class="row">
                             <div class="col-md-6">
                                 <label><strong>Sub Total: </strong></label>
@@ -106,10 +135,7 @@
                         </div>
 
 
-                        {{-- <div class="form-group">
-                            <label><strong>Total: </strong></label>
-                            <p>{{ number_format($documento->total, 2) }}</p>
-                        </div> --}}
+                     
                         <div class="form-group">
                             <label><strong>Total: </strong></label>
                             <p>{{ number_format($documento->total_pagar, 2) }}</p>

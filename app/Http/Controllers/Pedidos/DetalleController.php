@@ -64,14 +64,14 @@ class DetalleController extends Controller
                             )
                             ->join('pedidos as p', 'pd.pedido_id', '=', 'p.id')
                             ->join('productos as prod', 'prod.id', '=', 'pd.producto_id')
-                            ->join('modelos as m', 'm.id', '=', 'prod.modelo_id')
-                            ->where('p.estado','!=','FINALIZADO');
+                            ->join('modelos as m', 'm.id', '=', 'prod.modelo_id');
                             
 
         // Aplicar el filtro de estado si se proporciona
         if (!empty($pedido_detalle_estado)) {
             if($pedido_detalle_estado === "PENDIENTE"){
-                $pedidos_detalles->where('pd.cantidad_pendiente', '>', 0);
+                $pedidos_detalles->where('pd.cantidad_pendiente', '>', 0)
+                ->where('p.estado','!=','FINALIZADO');
             }
             if($pedido_detalle_estado === "ATENDIDO"){
                 $pedidos_detalles->where('pd.cantidad_pendiente', '=', 0);
@@ -99,17 +99,17 @@ class DetalleController extends Controller
 
     public function getDetallesAtenciones($pedido_id,$producto_id,$color_id,$talla_id){
         try {
-            $documentos_antenciones =   DB::select('select pa.documento_id,cd.serie,cd.correlativo,cd.cliente,
+            $documentos_antenciones =   DB::select('select cd.id as documento_id,cd.serie,cd.correlativo,cd.cliente,
                                         cd.created_at,cdd.producto_id,cdd.color_id,cdd.talla_id,cdd.cantidad,
                                         u.usuario 
-                                        from pedidos_atenciones as pa 
-                                        inner join cotizacion_documento as cd on cd.id = pa.documento_id
+                                        from  cotizacion_documento as cd 
                                         inner join cotizacion_documento_detalles as cdd on cdd.documento_id = cd.id
                                         inner join users as u on u.id = cd.user_id
-                                        where pa.pedido_id = ? and 
+                                        where cd.pedido_id = ? and 
                                         cdd.producto_id = ? and
                                         cdd.color_id = ?  and
-                                        cdd.talla_id = ?',[$pedido_id,$producto_id,$color_id,$talla_id]);
+                                        cdd.talla_id = ? and 
+                                        cd.tipo_doc_venta_pedido = "ATENCION"',[$pedido_id,$producto_id,$color_id,$talla_id]);
             
             //dd($documentos_antenciones);
 
@@ -122,22 +122,49 @@ class DetalleController extends Controller
 
     public function getDetallesDespachos($pedido_id,$producto_id,$color_id,$talla_id){
         try {
-            $despachos  =   DB::select('select pa.documento_id,cd.serie,cd.correlativo,cd.cliente,
+            $despachos  =   DB::select('select cd.id as documento_id,cd.serie,cd.correlativo,cd.cliente,
                                         cd.created_at as fecha_venta,cdd.producto_id,cdd.color_id,
                                         cdd.talla_id,cdd.cantidad,u.usuario,ev.user_despachador_nombre,
                                         ev.fecha_envio as fecha_despacho,ev.estado as estado_despacho
-                                        from pedidos_atenciones as pa 
-                                        inner join cotizacion_documento as cd on cd.id = pa.documento_id
+                                        from  cotizacion_documento as cd 
                                         inner join cotizacion_documento_detalles as cdd on cdd.documento_id = cd.id
                                         inner join users as u on u.id = cd.user_id
                                         inner join envios_ventas as ev on ev.documento_id = cd.id
-                                        where pa.pedido_id = ? and 
+                                        where cd.pedido_id = ? and 
                                         cdd.producto_id = ? and
                                         cdd.color_id = ?  and
                                         cdd.talla_id = ? ',[$pedido_id,$producto_id,$color_id,$talla_id]);
             
 
             return response()->json(['success'=>true,'despachos'=>$despachos]);
+            
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
+    public function getDetallesDevoluciones($pedido_id,$producto_id,$color_id,$talla_id){
+        try {
+            $notas_devoluciones  =   DB::select('select ne.numDocfectado as documento_afectado,ne.serie,ne.correlativo,
+                                        cdd.producto_id,cdd.color_id,cdd.talla_id,
+                                        u.usuario,ne.created_at as fecha, ned.cantidad as cantidad_devuelta,
+                                        cd.pedido_id
+                                        from  cotizacion_documento as cd 
+                                        inner join cotizacion_documento_detalles as cdd on cdd.documento_id = cd.id 
+                                        inner join nota_electronica as ne on ne.documento_id = cdd.documento_id
+                                        inner join nota_electronica_detalle as ned on ned.nota_id = ne.id
+                                        inner join users as u on u.id = ne.user_id
+                                        where cd.pedido_id = ? and 
+                                        cdd.producto_id = ? and
+                                        cdd.color_id = ?  and
+                                        cdd.talla_id = ? and
+                                        ned.producto_id = ? and 
+                                        ned.color_id = ? and 
+                                        ned.talla_id = ?',[$pedido_id,$producto_id,$color_id,$talla_id,
+                                        $producto_id,$color_id,$talla_id]);
+
+        
+            return response()->json(['success'=>true,'devoluciones'=>$notas_devoluciones]);
             
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
@@ -213,42 +240,43 @@ class DetalleController extends Controller
 
     }
 
-    public function generarOrdenPedido(Request $request){
+    public function generarOrdenProduccion(Request $request){
         DB::beginTransaction();
  
         try {
             $lstProgramacionProduccion  =   json_decode($request->get('lstProgramacionProduccion'));
             
             //===== CREAMOS LA ORDEN DE PEDIDO CABEZERA ========
-            $orden_pedido                           =   new OrdenProduccion();
-            $orden_pedido->user_id                  =   Auth::user()->id;
-            $orden_pedido->user_nombre              =   Auth::user()->usuario;
-            $orden_pedido->fecha_propuesta_atencion =   $request->get('fecha_propuesta_atencion');
-            $orden_pedido->observacion              =   $request->get('observacion');
-            $orden_pedido->save();
+            $orden_produccion                           =   new OrdenProduccion();
+            $orden_produccion->user_id                  =   Auth::user()->id;
+            $orden_produccion->user_nombre              =   Auth::user()->usuario;
+            $orden_produccion->fecha_propuesta_atencion =   $request->get('fecha_propuesta_atencion');
+            $orden_produccion->observacion              =   $request->get('observacion');
+            $orden_produccion->tipo                     =   "PEDIDO";
+            $orden_produccion->save();
 
             //======= GUARDANDO DETALLES DE LA ORDEN DE PEDIDO =====
             foreach ($lstProgramacionProduccion as $producto) {
                 foreach ($producto->colores as $color ) {
                     foreach ($color->tallas as $talla) {
-                        $orden_pedido_detalle                   =   new OrdenProduccionDetalle();
-                        $orden_pedido_detalle->orden_pedido_id  =   $orden_pedido->id;
-                        $orden_pedido_detalle->modelo_id        =   $producto->modelo->id;
-                        $orden_pedido_detalle->producto_id      =   $producto->id;
-                        $orden_pedido_detalle->color_id         =   $color->id;
-                        $orden_pedido_detalle->talla_id         =   $talla->id;
-                        $orden_pedido_detalle->modelo_nombre    =   $producto->modelo->nombre;
-                        $orden_pedido_detalle->producto_nombre  =   $producto->nombre;
-                        $orden_pedido_detalle->color_nombre     =   $color->nombre;
-                        $orden_pedido_detalle->talla_nombre     =   $talla->nombre;
-                        $orden_pedido_detalle->cantidad         =   $talla->cantidad_pendiente;
-                        $orden_pedido_detalle->save();                    
+                        $orden_produccion_detalle                       =   new OrdenProduccionDetalle();
+                        $orden_produccion_detalle->orden_produccion_id  =   $orden_produccion->id;
+                        $orden_produccion_detalle->modelo_id            =   $producto->modelo->id;
+                        $orden_produccion_detalle->producto_id          =   $producto->id;
+                        $orden_produccion_detalle->color_id             =   $color->id;
+                        $orden_produccion_detalle->talla_id             =   $talla->id;
+                        $orden_produccion_detalle->modelo_nombre        =   $producto->modelo->nombre;
+                        $orden_produccion_detalle->producto_nombre      =   $producto->nombre;
+                        $orden_produccion_detalle->color_nombre         =   $color->nombre;
+                        $orden_produccion_detalle->talla_nombre         =   $talla->nombre;
+                        $orden_produccion_detalle->cantidad             =   $talla->cantidad_pendiente;
+                        $orden_produccion_detalle->save();                    
                     }  
                 } 
             }
 
             DB::commit();
-            return response()->json(['success'=>true,'message'=>'ORDEN DE PEDIDO N° '.$orden_pedido->id.' GENERADA CON ÉXITO']);
+            return response()->json(['success'=>true,'message'=>'ORDEN DE PRODUCCIÓN N° '.$orden_produccion->id.' GENERADA CON ÉXITO']);
 
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);

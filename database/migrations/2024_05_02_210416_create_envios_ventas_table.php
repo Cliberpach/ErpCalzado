@@ -45,6 +45,16 @@ class CreateEnviosVentasTable extends Migration
             $table->text('obs_rotulo')->nullable();
             $table->text('obs_despacho')->nullable();
             $table->string('usuario_nombre',70)->nullable();
+
+            $table->unsignedInteger('user_vendedor_id'); 
+            $table->foreign('user_vendedor_id')->references('id')->on('users'); 
+            $table->string('user_vendedor_nombre',260); 
+
+            $table->unsignedInteger('user_despachador_id')->nullable(); 
+            $table->foreign('user_despachador_id')->references('id')->on('users'); 
+            $table->string('user_despachador_nombre',260); 
+
+
             $table->enum('estado', ['PENDIENTE', 'EMBALADO','DESPACHADO'])->default('PENDIENTE');
             $table->timestamps();
         });

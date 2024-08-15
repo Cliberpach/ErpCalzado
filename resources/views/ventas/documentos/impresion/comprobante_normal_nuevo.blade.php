@@ -340,33 +340,39 @@
                     <td style="width: 40%;">
                         <table class="tbl-total text-uppercase">
                             @if($documento->tipo_venta != 129)
-                            <tr>
-                                <td style="text-align:left; padding: 5px;"><p class="m-0 p-0">Sub Total: S/.</p></td>
-                                <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($documento->sub_total, 2) }}</p></td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">IGV {{$documento->igv}}%: S/.</p></td>
-                                <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($documento->total_igv, 2) }}</p></td>
-                            </tr>
-                            @if (!empty($documento->retencion))
-                            <tr>
-                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">Total S/.</p></td>
-                                <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($documento->total + $documento->retencion->impRetenido, 2) }}</p></td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">Imp. Retenido S/.</p></td>
-                                <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($documento->retencion->impRetenido, 2) }}</p></td>
-                            </tr>  
-                            @endif
-                            <tr>
-                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">Total a pagar: S/.</p></td>
-                                <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($documento->total, 2) }}</p></td>
-                            </tr>
+                                @if ($documento->monto_descuento!=0)
+                                    <tr>
+                                        <th colspan="4" style="text-align:right">Descuento: S/.</th>
+                                        <th style="text-align:right">{{ number_format($documento->monto_descuento, 2) }}</th>
+                                    </tr>
+                                @endif
+                                <tr>
+                                    <td style="text-align:left; padding: 5px;"><p class="m-0 p-0">Sub Total: S/.</p></td>
+                                    <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($documento->sub_total, 2) }}</p></td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">IGV {{$documento->igv}}%: S/.</p></td>
+                                    <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($documento->total_igv, 2) }}</p></td>
+                                </tr>
+                                @if (!empty($documento->retencion))
+                                <tr>
+                                    <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">Total S/.</p></td>
+                                    <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($documento->total + $documento->retencion->impRetenido, 2) }}</p></td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">Imp. Retenido S/.</p></td>
+                                    <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($documento->retencion->impRetenido, 2) }}</p></td>
+                                </tr>  
+                                @endif
+                                <tr>
+                                    <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">Total a pagar: S/.</p></td>
+                                    <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($documento->total, 2) }}</p></td>
+                                </tr>
                             @else
-                            <tr>
-                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">Total a pagar: S/.</p></td>
-                                <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($documento->total - $documento->notas->sum('mtoImpVenta'), 2) }}</p></td>
-                            </tr>
+                                <tr>
+                                    <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">Total a pagar: S/.</p></td>
+                                    <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($documento->total - $documento->notas->sum('mtoImpVenta'), 2) }}</p></td>
+                                </tr>
                             @endif
                         </table>
                     </td>

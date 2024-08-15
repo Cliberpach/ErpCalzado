@@ -42,15 +42,37 @@ class NotaController extends Controller
     {
         $dato = "Message";
         broadcast(new NotifySunatEvent($dato));
-        $documento = Documento::find($id);
-        return view('ventas.notas.index',compact('documento'));
+        $documento          =    Documento::find($id);
+
+        $pedido_facturado   =   DB::select('select p.facturado 
+                                from pedidos as p 
+                                where p.id = ? and p.facturado = "SI"',[$documento->pedido_id]);
+
+        if(count($pedido_facturado) === 0){
+            $pedido_facturado = false;
+        }else{
+            $pedido_facturado = true;
+        }
+
+
+        return view('ventas.notas.index',compact('documento','pedido_facturado'));
     }
 
     public function index_dev($id)
     {
-        $documento = Documento::find($id);
-        $nota_venta = true;
-        return view('ventas.notas.index',compact('documento','nota_venta'));
+        $documento          =   Documento::find($id);
+        $nota_venta         =   true;
+        $pedido_facturado   =   DB::select('select p.facturado 
+                                from pedidos as p 
+                                where p.id = ? and p.facturado = "SI"',[$documento->pedido_id]);
+
+        if(count($pedido_facturado) === 0){
+            $pedido_facturado = false;
+        }else{
+            $pedido_facturado = true;
+        }
+
+        return view('ventas.notas.index',compact('documento','nota_venta','pedido_facturado'));
 
     }
 
@@ -101,6 +123,17 @@ class NotaController extends Controller
             if( $request->nota_venta)
             {
                 $nota_venta = true;
+
+                if($documento->pedido_id){
+                    return view('ventas.notas.credito.pedidos.create',[
+                        'documento' => $documento,
+                        'fecha_hoy' => $fecha_hoy,
+                        'productos' => $productos,
+                        'nota_venta' => $nota_venta,
+                        'tipo_nota' => '0'
+                    ]);
+                }
+
                 return view('ventas.notas.credito.create',[
                     'documento' => $documento,
                     'fecha_hoy' => $fecha_hoy,
@@ -111,6 +144,16 @@ class NotaController extends Controller
             }
             else
             {
+
+                if($documento->pedido_id){
+                    return view('ventas.notas.credito.pedidos.create',[
+                        'documento' => $documento,
+                        'fecha_hoy' => $fecha_hoy,
+                        'productos' => $productos,
+                        'tipo_nota' => '0'
+                    ]);
+                }
+
                 return view('ventas.notas.credito.create',[
                     'documento' => $documento,
                     'fecha_hoy' => $fecha_hoy,
@@ -337,74 +380,141 @@ class NotaController extends Controller
 
                 //========= 01:FACTURA 03:BOLETA =======
                 //======= PREGUNTAR SI EL DOC DE VENTA ESTÁ ASOCIADO A UN PEDIDO =====
-                
                 if( $documento->pedido_id ){
-                    
 
-                    //======== OBTENER EL PRODUCTO DE LA NOTA ELECTRÓNICA EN EL DETALLE DEL PEDIDO ======
-                    $producto_en_pedido =   DB::select('select pd.producto_id,pd.color_id,pd.talla_id,
-                                            pd.cantidad_atendida
-                                            from pedidos_detalles as pd
-                                            where pd.pedido_id = ? and
-                                            pd.producto_id = ? and pd.color_id = ? and pd.talla_id = ?',
-                                            [$documento->pedido_id,
-                                            $producto->producto_id,$producto->color_id,$producto->talla_id]);
+                    //======== EN CASO SEA EL DOC VENTA DE LA FACTURACIÓN DE UN PEDIDO ========
+                    if($documento->tipo_doc_venta_pedido === "FACTURACION"){
 
- 
-                    //====== COMPROBAR SI EL PRODUCTO ESTÁ PRESENTE EN EL DETALLE DEL PEDIDO =======
-                    if(count($producto_en_pedido) === 1){
+                        //======== OBTENER EL PRODUCTO DE LA NOTA ELECTRÓNICA EN EL DETALLE DEL PEDIDO ======
+                        $producto_en_pedido =   DB::select('select pd.producto_id,pd.color_id,pd.talla_id,
+                                                pd.cantidad_atendida,
+                                                pd.cantidad_pendiente
+                                                from pedidos_detalles as pd
+                                                where pd.pedido_id = ? and
+                                                pd.producto_id = ? and pd.color_id = ? and pd.talla_id = ?',
+                                                [$documento->pedido_id,
+                                                $producto->producto_id,$producto->color_id,$producto->talla_id]);
 
-                        $cantidad_reponer   =   0;   
+    
+                        //====== COMPROBAR SI EL PRODUCTO ESTÁ PRESENTE EN EL DETALLE DEL PEDIDO =======
+                        if(count($producto_en_pedido) === 1){
+                            
+                            $cantidad_reponer   =   0;   
 
-                        //======= CASO I:  CANT ATENDIDA <= CANTIDAD DEVOLUCIÓN ======
-                        //======= REPONER STOCK SEGÚN LA CANTIDAD ATENDIDA ======
-                        if($producto_en_pedido[0]->cantidad_atendida <=  $producto->cantidad_devolver){
+                            //======= CASO I:  CANT DEVOLVER <= CANTIDAD PENDIENTE ======
+                            if($producto->cantidad_devolver <= $producto_en_pedido[0]->cantidad_pendiente   ){
 
-                            $cantidad_reponer   =   $producto_en_pedido[0]->cantidad_atendida;
-                          
+                                //======== NO SE VA REPONER STOCK =======
+                                $cantidad_reponer   =   0;
 
-                            DB::table('producto_color_tallas')
-                            ->where('producto_id', $producto_en_pedido[0]->producto_id)
-                            ->where('color_id', $producto_en_pedido[0]->color_id)
-                            ->where('talla_id', $producto_en_pedido[0]->talla_id)
-                            ->update([
-                                'stock_logico' => DB::raw('stock_logico + ' . $cantidad_reponer),
-                                'stock' => DB::raw('stock + ' . $cantidad_reponer)
-                            ]);
+                                //======= LE BAJAMOS A LA CANTIDAD PENDIENTE =====
+                                //====== INCREMENTAR LA CANTIDAD DEVUELTA Y LA CANTIDAD PENDIENTE DEVUELTA =======
+                                DB::table('pedidos_detalles')
+                                ->where('pedido_id', $documento->pedido_id)
+                                ->where('producto_id', $producto_en_pedido[0]->producto_id)
+                                ->where('color_id', $producto_en_pedido[0]->color_id)
+                                ->where('talla_id', $producto_en_pedido[0]->talla_id)
+                                ->update([
+                                    'cantidad_pendiente'                => DB::raw('cantidad_pendiente - ' . $producto->cantidad_devolver),
+                                    'cantidad_devuelta'                 => DB::raw('cantidad_devuelta + ' . $producto->cantidad_devolver),
+                                    'cantidad_pendiente_devuelta'       => DB::raw('cantidad_pendiente_devuelta + ' . $producto->cantidad_devolver),
+                                    'updated_at'                        => Carbon::now()
+                                ]);
 
-                        }
+                            }
 
-                        //======= CASO II: CANT ATENDIDA > CANTIDAD DEVOLUCIÓN ========
-                        //===== REPONER STOCK SEGÚN LA CANTIDAD DEVOLVER ======
-                        if($producto_en_pedido[0]->cantidad_atendida >  $producto->cantidad_devolver){
+                            //======= CASO II: CANT DEVOLVER > CANTIDAD PENDIENTE ========
+                            if($producto->cantidad_devolver >  $producto_en_pedido[0]->cantidad_pendiente ){
 
-                            $cantidad_reponer   =   $producto->cantidad_devolver;
+                                //====== BAJAMOS LA CANTIDAD PENDIENTE A 0 =====
+                                $nueva_cantidad_pendiente   =   0;
 
-                            DB::table('producto_color_tallas')
-                            ->where('producto_id', $producto_en_pedido[0]->producto_id)
-                            ->where('color_id', $producto_en_pedido[0]->color_id)
-                            ->where('talla_id', $producto_en_pedido[0]->talla_id)
-                            ->update([
-                                'stock_logico' => DB::raw('stock_logico + ' . $cantidad_reponer),
-                                'stock' => DB::raw('stock + ' . $cantidad_reponer)
-                            ]);
-
-                        }
+                                //====== OBTENEMOS LO QUE FALTÓ BAJARLE A LA CANTIDAD PENDIENTE =====
+                                $cantidad_falta_disminuir   =   $producto->cantidad_devolver - $producto_en_pedido[0]->cantidad_pendiente;
+                                
+                                //======= FIJAMOS LA CANTIDAD A REPONER DE STOCK ======
+                                $cantidad_reponer           =   $cantidad_falta_disminuir;
 
 
-                        //======= GRABAMOS LA CANTIDAD DEVUELTA PARA EL DETALLE DEL PEDIDO ======
-                        DB::table('pedidos_detalles')
-                        ->where('pedido_id', $documento->pedido_id)
-                        ->where('producto_id', $producto_en_pedido[0]->producto_id)
-                        ->where('color_id', $producto_en_pedido[0]->color_id)
-                        ->where('talla_id', $producto_en_pedido[0]->talla_id)
-                        ->update([
-                            'cantidad_devuelta' => DB::raw('cantidad_devuelta + ' . $cantidad_reponer),
-                            'updated_at'        => Carbon::now()
-                        ]);
+                                //======= REPONEMOS STOCK ======
+                                DB::table('producto_color_tallas')
+                                ->where('producto_id', $producto_en_pedido[0]->producto_id)
+                                ->where('color_id', $producto_en_pedido[0]->color_id)
+                                ->where('talla_id', $producto_en_pedido[0]->talla_id)
+                                ->update([
+                                    'stock_logico' => DB::raw('stock_logico + ' . $cantidad_reponer),
+                                    'stock' => DB::raw('stock + ' . $cantidad_reponer)
+                                ]);
 
-                    }                        
+                                //======== ACTUALIZAMOS DETALLE DEL PEDIDO ======
+                                DB::table('pedidos_detalles')
+                                ->where('pedido_id', $documento->pedido_id)
+                                ->where('producto_id', $producto_en_pedido[0]->producto_id)
+                                ->where('color_id', $producto_en_pedido[0]->color_id)
+                                ->where('talla_id', $producto_en_pedido[0]->talla_id)
+                                ->update([
+                                    'cantidad_repuesta'                 =>  DB::raw('cantidad_repuesta + ' . $cantidad_falta_disminuir),
+                                    'cantidad_atendida_devuelta'        =>  DB::raw('cantidad_atendida_devuelta + ' . $cantidad_falta_disminuir),
+                                    'cantidad_devuelta'                 =>  DB::raw('cantidad_devuelta + ' . $producto->cantidad_devolver),
+                                    'cantidad_pendiente_devuelta'       =>  DB::raw('cantidad_pendiente_devuelta + ' . $producto_en_pedido[0]->cantidad_pendiente),  
+                                    'cantidad_pendiente'                =>  $nueva_cantidad_pendiente,
+                                    'updated_at'                        =>  Carbon::now()
+                                ]);
+
+                            }
+
+                        }                        
                    
+                    }
+
+
+                    //======== EN CASO SEA EL DOC VENTA DE LA ATENCIÓN DE UN PEDIDO =======
+                    if($documento->tipo_doc_venta_pedido === "ATENCION"){
+
+                        //========== TRABAJAR CON PURA CANTIDAD ATENDIDA ======
+                        //======= DEBIDO A QUE EL PEDIDO PUEDE MODIFICARSE EN CASO SE REQUIERA BAJAR LAS CANTIDADES PENDIENTES ======
+                        
+                        //======== OBTENER EL PRODUCTO DE LA NOTA ELECTRÓNICA EN EL DETALLE DEL PEDIDO ======
+                        $producto_en_pedido =   DB::select('select pd.producto_id,pd.color_id,pd.talla_id,
+                                                pd.cantidad_atendida,
+                                                pd.cantidad_pendiente
+                                                from pedidos_detalles as pd
+                                                where pd.pedido_id = ? and
+                                                pd.producto_id = ? and pd.color_id = ? and pd.talla_id = ?',
+                                                [$documento->pedido_id,
+                                                $producto->producto_id,$producto->color_id,$producto->talla_id]);
+
+
+                        //====== COMPROBAR SI EL PRODUCTO ESTÁ PRESENTE EN EL DETALLE DEL PEDIDO =======
+                        if(count($producto_en_pedido) === 1){
+
+                            //======= REPONEMOS STOCK ======
+                            DB::table('producto_color_tallas')
+                             ->where('producto_id', $producto_en_pedido[0]->producto_id)
+                             ->where('color_id', $producto_en_pedido[0]->color_id)
+                             ->where('talla_id', $producto_en_pedido[0]->talla_id)
+                             ->update([
+                                 'stock_logico' => DB::raw('stock_logico + ' . $producto->cantidad_devolver),
+                                 'stock' => DB::raw('stock + ' . $producto->cantidad_devolver)
+                             ]);
+
+                            //========== ACTUALIZANDO DETALLE DEL PEDIDO =======
+                            DB::table('pedidos_detalles')
+                            ->where('pedido_id', $documento->pedido_id)
+                            ->where('producto_id', $producto_en_pedido[0]->producto_id)
+                            ->where('color_id', $producto_en_pedido[0]->color_id)
+                            ->where('talla_id', $producto_en_pedido[0]->talla_id)
+                            ->update([
+                                'cantidad_repuesta'                 =>  DB::raw('cantidad_repuesta + ' . $producto->cantidad_devolver),
+                                'cantidad_atendida_devuelta'        =>  DB::raw('cantidad_atendida_devuelta + ' . $producto->cantidad_devolver),
+                                'cantidad_devuelta'                 =>  DB::raw('cantidad_devuelta + ' . $producto->cantidad_devolver),
+                                'updated_at'                        =>  Carbon::now()
+                            ]);
+                        
+                        }
+
+                    }
+                    
                 }
 
                 //======== SI EL DOC DE VENTA NO ESTÁ ASOCIADO A UN PEDIDO ========

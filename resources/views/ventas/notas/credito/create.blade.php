@@ -11,7 +11,7 @@
 
 @section('documento-active', 'active')
 <div class="row wrapper border-bottom white-bg page-heading">
-    <div class="col-lg-10 col-md-10">
+    <div class="col-lg-10 col-md-12 col-sm-12 col-xs-12">
        <h2  style="text-transform:uppercase"><b>REGISTRAR NUEVA NOTA DE @if(isset($nota_venta)) DEVOLUCIÓN @else CRÉDITO @endif</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
@@ -25,6 +25,9 @@
             </li>
         </ol>
     </div>
+    <div class="col-lg-2 col-md-12 col-sm-12 col-xs-12">
+        
+     </div>
 </div>
 
 <div class="wrapper wrapper-content animated fadeInRight">
