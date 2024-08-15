@@ -514,6 +514,10 @@ class NotaController extends Controller
                         }
 
                     }
+
+                    //=========== GUARDAR EL PEDIDO ID EN LA NOTA ELECTRÓNICA PARA FÁCIL ACCESO ======
+                    $nota->pedido_id    =   $documento->pedido_id;
+                    $nota->update();
                     
                 }
 
