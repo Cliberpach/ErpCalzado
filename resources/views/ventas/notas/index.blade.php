@@ -336,7 +336,7 @@
                             "<li><a class='dropdown-item' target='_blank' onclick='detalle_dev(" +data.id+ ")' title='Detalle'><b><i class='fa fa-eye'></i> Detalle</a></b></li>";
                         }
 
-                        if(data.tipo_venta != 129)
+                        if(data.tipo_venta != 129 && data.cdr_response_code != "0")
                         {
                             cadena = cadena + "<li class='d-none'><a class='dropdown-item' onclick='eliminar(" + data.id + ")' title='Eliminar'><b><i class='fa fa-trash'></i> Eliminar</a></b></li>" +
                             "<li class='dropdown-divider'></li>" +

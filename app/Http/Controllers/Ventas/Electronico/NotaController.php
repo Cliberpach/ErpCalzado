@@ -84,17 +84,18 @@ class NotaController extends Controller
         foreach($notas as $nota){
 
             $coleccion->push([
-                'id' => $nota->id,
-                'tipo_venta' => $nota->documento->tipo_venta,
-                'documento_afectado' => $nota->numDocfectado,
-                'fecha_emision' =>  $nota->fechaEmision,
-                'numero-sunat' =>  $nota->serie.'-'.$nota->correlativo,
-                'cliente' => $nota->tipo_documento_cliente.': '.$nota->documento_cliente.' - '.$nota->cliente,
-                'empresa' => $nota->empresa,
-                'monto' => 'S/. '.number_format($nota->mtoImpVenta, 2, '.', ''),
-                'sunat' => $nota->sunat,
-                'tipo_nota' => $nota->tipo_nota,
-                'estado' => $nota->estado,
+                'id'                => $nota->id,
+                'tipo_venta'        => $nota->documento->tipo_venta,
+                'documento_afectado'=> $nota->numDocfectado,
+                'fecha_emision'     =>  $nota->fechaEmision,
+                'numero-sunat'      =>  $nota->serie.'-'.$nota->correlativo,
+                'cliente'           => $nota->tipo_documento_cliente.': '.$nota->documento_cliente.' - '.$nota->cliente,
+                'empresa'           => $nota->empresa,
+                'monto'             => 'S/. '.number_format($nota->mtoImpVenta, 2, '.', ''),
+                'sunat'             => $nota->sunat,
+                'tipo_nota'         => $nota->tipo_nota,
+                'estado'            => $nota->estado,
+                'cdr_response_code' =>  $nota->cdr_response_code
             ]);
         }
         return DataTables::of($coleccion)->toJson();
@@ -1332,9 +1333,15 @@ class NotaController extends Controller
            if($res->isSuccess()){
                
                 //====== GUARDANDO RESPONSE ======
-                $cdr                                     =   $res->getCdrResponse();
-                $nota->cdr_response_description          =   $cdr->getDescription();
+                $cdr                                    =   $res->getCdrResponse();
+                $nota->cdr_response_id                  =   $cdr->getId();
+                $nota->cdr_response_code                =   $cdr->getCode();
+                $nota->cdr_response_description         =   $cdr->getDescription();
+                $nota->cdr_response_notes               =   implode(" | ", $cdr->getNotes());
+                $nota->cdr_response_reference           =   $cdr->getReference();
+
                 $util->writeCdr($note, $res->getCdrZip(),$nota->tipoDoc.'-'.$nota->tipDocAfectado,null);
+
                 if($nota->tipDocAfectado == '03'){
                     $nota->ruta_cdr      =   'storage/greenter/notas_credito_boletas/cdr/'.$note->getName().'.zip';
                 }
@@ -1352,7 +1359,7 @@ class NotaController extends Controller
                $nota->response_error_message  =   $res->getError()->getMessage();
                $nota->response_error_code     =   $res->getError()->getCode();
                $nota->regularize              =   '1';
-               $documento->update(); 
+               $nota->update(); 
 
                 //if($res->getError()->getCode() == 2223){
                 //  dd($res);

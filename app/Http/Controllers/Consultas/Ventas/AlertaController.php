@@ -27,6 +27,16 @@ use App\Mantenimiento\Empresa\Empresa;
 use Illuminate\Support\Facades\Session;
 use Luecano\NumeroALetras\NumeroALetras;
 
+use Greenter\Model\Response\BillResult;
+use Greenter\Model\Sale\Note;
+use Greenter\Model\Sale\SaleDetail;
+use Greenter\Model\Sale\Legend;
+use Greenter\Ws\Services\SunatEndpoints;
+use Greenter\Model\Client\Client;
+use Greenter\Model\Company\Company;
+use Greenter\Model\Company\Address;
+use App\Greenter\Utils\Util;
+use DateTime;
 class AlertaController extends Controller
 {
     public function envio()
@@ -670,7 +680,200 @@ class AlertaController extends Controller
         )->toJson();
     }
 
-    public function sunat_notas($id)
+    public function controlConfiguracionGreenter($util){
+        //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
+        $greenter_config    =   DB::select('select gc.ruta_certificado,gc.id_api_guia_remision,gc.modo,
+          gc.clave_api_guia_remision,e.ruc,e.razon_social,e.direccion_fiscal,e.ubigeo,
+          e.direccion_llegada,gc.sol_user,gc.sol_pass
+          from greenter_config as gc
+          inner join empresas as e on e.id=gc.empresa_id
+          inner join configuracion as c on c.propiedad = gc.modo
+          where gc.empresa_id=1 and c.slug="AG"');
+
+
+        if(count($greenter_config) === 0){
+            throw new Exception('NO SE ENCONTRÓ NINGUNA CONFIGURACIÓN PARA GREENTER');
+        }
+
+        if(!$greenter_config[0]->sol_user){
+            throw new Exception('DEBE ESTABLECER LA CREDENCIAL SOL_USER');
+        }
+        if(!$greenter_config[0]->sol_pass){
+            throw new Exception('DEBE ESTABLECER LA CREDENCIAL SOL_PASS');
+        }
+        if ($greenter_config[0]->modo !== "BETA" && $greenter_config[0]->modo !== "PRODUCCION") {
+            throw new Exception('NO SE HA CONFIGURADO EL AMBIENTE BETA O PRODUCCIÓN PARA GREENTER');
+        }
+
+        $see    =   null;
+        if($greenter_config[0]->modo === "BETA"){
+            //===== MODO BETA ======
+            $see = $util->getSee(SunatEndpoints::FE_BETA,$greenter_config[0]);
+        }
+
+        if($greenter_config[0]->modo === "PRODUCCION"){
+            //===== MODO PRODUCCION ======
+            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION,$greenter_config[0]);
+        }
+
+        if(!$see){
+            throw new Exception('ERROR EN LA CONFIGURACIÓN DE GREENTER, SEE ES NULO');
+        }
+
+        return $see;
+    }
+
+    public function sunat_notas(Request $request){
+        DB::beginTransaction();
+        try {
+            $id         =   $request->get('id');
+            $util       =   Util::getInstance();
+            $nota       =   Nota::find($id);
+            $documento  =   Documento::find($nota->documento_id);
+            $detalles   =   NotaDetalle::where('nota_id',$id)->get();
+    
+    
+            if(!$nota){
+                Session::flash('nota_credito_error', 'NO SE ENCONTRÓ LA NOTA DE CRÉDITO EN LA BASE DE DATOS');
+                return back();
+            }
+            if(!$documento){
+                Session::flash('nota_credito_error', 'NO SE ENCONTRÓ EL DOC AFECTADO EN LA BASE DE DATOS');
+                return back();
+            }
+            if(count($detalles) === 0){
+                Session::flash('nota_credito_error', 'LA NOTA DE CRÉDITO NO TIENE DETALLES');
+                return back();
+            }
+    
+            $des_motivo =   '-';
+            if($nota->codMotivo == '01'){
+                $des_motivo =   "ANULACION DE LA OPERACION";
+            }
+            if($nota->codMotivo == '07'){
+                $des_motivo =   "DEVOLUCION POR ITEM";
+            }
+    
+            //====== CONSTRUIR CLIENTE ======
+            $client = (new Client())
+            ->setTipoDoc($nota->cod_tipo_documento_cliente)
+            ->setNumDoc($nota->documento_cliente)
+            ->setRznSocial($nota->cliente)
+            ->setAddress((new Address())
+            ->setDireccion($nota->direccion_cliente));
+    
+            //======== CONSTRUYENDO CABEZERA =====
+            $note = new Note();
+            $note
+                ->setUblVersion('2.1')
+                ->setTipoDoc('07') // Tipo Doc: Nota de Credito
+                ->setSerie($nota->serie) // Serie NCR
+                ->setCorrelativo($nota->correlativo) // Correlativo NCR
+                ->setFechaEmision(new DateTime($nota->created_at))
+                ->setTipDocAfectado($nota->tipDocAfectado) // Tipo Doc: 03-BOLETA 01-FACTURA
+                ->setNumDocfectado($nota->numDocfectado) // Boleta: Serie-Correlativo
+                ->setCodMotivo($nota->codMotivo) // Catalogo. 09    01:ANULACION DE LA OPERACION    07:DEVOLUCION POR ITEM
+                ->setDesMotivo($des_motivo)
+                ->setTipoMoneda('PEN')
+                ->setCompany($util->shared->getCompany())
+                ->setClient($client)
+                ->setMtoOperGravadas($nota->mtoOperGravadas)
+                ->setMtoIGV($nota->mtoIGV)
+                ->setTotalImpuestos($nota->totalImpuestos)
+                ->setMtoImpVenta($nota->mtoImpVenta);
+          
+            
+            //====== CONSTRUYENDO DETALLE =====
+            $items  =   [];
+            foreach ($detalles as $detalle) {
+                $item1 = new SaleDetail();
+                $item1->setCodProducto($detalle->codProducto)
+                    ->setUnidad($detalle->unidad)
+                    ->setCantidad($detalle->cantidad)
+                    ->setDescripcion($detalle->descripcion)
+                    ->setMtoBaseIgv($detalle->mtoBaseIgv)
+                    ->setPorcentajeIgv($detalle->porcentajeIgv)
+                    ->setIgv($detalle->igv)
+                    ->setTipAfeIgv((int)$detalle->tipAfeIgv)
+                    ->setTotalImpuestos($detalle->totalImpuestos)
+                    ->setMtoValorVenta($detalle->mtoValorVenta)
+                    ->setMtoValorUnitario($detalle->mtoValorUnitario)
+                    ->setMtoPrecioUnitario($detalle->mtoPrecioUnitario);
+                
+                $items[]    =   $item1;
+            }
+
+            //======= CONSTRUYENDO LEGENDA ======
+            $legenda_nota    = 'SON'.' '. $nota->value;
+    
+            $legend = new Legend();
+            $legend->setCode('1000')
+                ->setValue($legenda_nota);
+    
+            $note->setDetails($items)
+                ->setLegends([$legend]);
+    
+            $see =   $this->controlConfiguracionGreenter($util);
+            $res =   $see->send($note);
+
+
+            $util->writeXml($note, $see->getFactory()->getLastXml(),$nota->tipoDoc.'-'.$nota->tipDocAfectado,null);
+            if($nota->tipDocAfectado == '03'){
+                $nota->ruta_xml      =   'storage/greenter/notas_credito_boletas/xml/'.$note->getName().'.xml';
+            }
+            if($nota->tipDocAfectado == '01'){
+                $nota->ruta_xml      =   'storage/greenter/notas_credito_facturas/xml/'.$note->getName().'.xml';
+            }
+            $nota->nota_name        =   $note->getName();
+          
+            
+           //======== ENVÍO CORRECTO Y ACEPTADO ==========
+           if($res->isSuccess()){
+               
+                //====== GUARDANDO RESPONSE ======
+                $cdr                                    =   $res->getCdrResponse();
+                $nota->cdr_response_id                  =   $cdr->getId();
+                $nota->cdr_response_code                =   $cdr->getCode();
+                $nota->cdr_response_description         =   $cdr->getDescription();
+                $nota->cdr_response_notes               =   implode(" | ", $cdr->getNotes());
+                $nota->cdr_response_reference           =   $cdr->getReference();
+                
+
+                $util->writeCdr($note, $res->getCdrZip(),$nota->tipoDoc.'-'.$nota->tipDocAfectado,null);
+                if($nota->tipDocAfectado == '03'){
+                    $nota->ruta_cdr      =   'storage/greenter/notas_credito_boletas/cdr/'.$note->getName().'.zip';
+                }
+                if($nota->tipDocAfectado == '01'){
+                    $nota->ruta_cdr      =   'storage/greenter/notas_credito_facturas/cdr/'.$note->getName().'.zip';
+                }
+                
+                $nota->sunat                        =   "1";
+                $nota->update(); 
+
+                DB::commit();
+                return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
+           }else{
+               $nota->response_error_message  =   $res->getError()->getMessage();
+               $nota->response_error_code     =   $res->getError()->getCode();
+               $nota->regularize              =   '1';
+               $nota->sunat                   =   "0";
+               $nota->update(); 
+
+                //if($res->getError()->getCode() == 2223){
+                //  dd($res);
+                //  return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
+                //}
+
+               throw new Exception("ERROR AL ENVIAR LA NOTA ELECTRÓNICA A SUNAT. "."CÓDIGO: ".$res->getError()->getCode()
+               .",DESCRIPCIÓN: ".$res->getError()->getMessage());
+           }
+           
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,"message"=>$th->getMessage()]);
+        }
+    }
+
+    public function sunat_notas_old($id)
     {
         try {
             $nota = Nota::findOrFail($id);

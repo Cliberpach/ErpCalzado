@@ -227,24 +227,38 @@ function enviarSunat(id , sunat) {
         confirmButtonText: 'Si, Confirmar',
         cancelButtonText: "No, Cancelar",
         // showLoaderOnConfirm: true,
-    }).then((result) => {
+    }).then(async (result) => {
         if (result.value) {
 
-            var url = '{{ route("consultas.ventas.alerta.sunat_notas", ":id")}}';
-            url = url.replace(':id',id);
-
-            window.location.href = url
-
+            
             Swal.fire({
                 title: '¡Cargando!',
                 type: 'info',
                 text: 'Enviando documento de venta a Sunat',
                 showConfirmButton: false,
+                allowOutside:false,
                 onBeforeOpen: () => {
                     Swal.showLoading()
                 }
             })
 
+            try {
+                const res   =   await axios.post(route('consultas.ventas.alerta.sunat_notas'),{
+                    id
+                })
+
+                if(res.data.success){
+                    $('.dataTables-notas').DataTable().ajax.reload();
+                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                }else{
+                    toastr.error(res.data.message,'ERROR EN LA OPERACIÓN EN EL SERVIDOR');
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR EN LA PETICIÓN ENVIAR NOTA ELECTRÓNICA');
+            }finally{
+                Swal.close();
+            }
+           
         } else if (
             /* Read more about handling dismissals below */
             result.dismiss === Swal.DismissReason.cancel
