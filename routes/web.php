@@ -519,7 +519,7 @@ function(){
 
         Route::get('edit/{id}','Pedidos\PedidoController@edit')->name('pedidos.pedido.edit');
         //===== PARÁMETROS PARA VALIDAR CANTIDAD ATENDIDA: PEDIDOID,LISTADO DE PRODUCTOS(PRODUCTOID,COLORID,TALLAID,CANTIDAD) =======
-        Route::get('validarCantidadAtendida','Pedidos\PedidoController@validarCantidadAtendida')->name('pedidos.pedido.validarCantidadAtendida');
+        Route::post('validarCantidadAtendida','Pedidos\PedidoController@validarCantidadAtendida')->name('pedidos.pedido.validarCantidadAtendida');
 
         Route::delete('pedidos/{id}', 'Pedidos\PedidoController@destroy')->name('pedidos.pedido.destroy');
         Route::get('getProductosByModelo/{modelo_id}','Pedidos\PedidoController@getProductosByModelo')->name('pedidos.pedido.getProductosByModelo');

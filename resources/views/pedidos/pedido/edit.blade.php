@@ -859,10 +859,11 @@
         try {
             mostrarAnimacionPedido();
             toastr.clear();
-            const res   =   await axios.get(route('pedidos.pedido.validarCantidadAtendida',{
+            const res   =   await axios.post(route('pedidos.pedido.validarCantidadAtendida'),
+            {
                 pedido_id   :   @json($pedido->id),
                 lstProductos: JSON.stringify(lstProductos)
-            }))
+            })
 
             if(res.data.success){
                 pintarErroresValidacion(res.data.lstErroresValidacion);
