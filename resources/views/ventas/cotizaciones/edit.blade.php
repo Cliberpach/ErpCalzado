@@ -618,6 +618,7 @@
         //===== AGREGAR DETALLE ======
         btnAgregarDetalle.addEventListener('click',()=>{
 
+            mostrarAnimacionCotizacion();
             if(!$('#modelo').val()){
                 toastr.error('DEBE SELECCIONAR UN MODELO','OPERACIÓN INCORRECTA');
                 return;
@@ -631,7 +632,35 @@
                 return;
             }
             
-            const inputsCantidad = document.querySelectorAll('.inputCantidad');
+            agregarProductoCotizacion();
+            reordenarCarrito();
+            calcularSubTotal();
+            clearDetalleCotizacion();
+            destruirDataTableDetalleCotizacion();
+            pintarDetalleCotizacion(carrito);
+            //===== RECALCULANDO DESCUENTOS Y MONTOS =====
+            carrito.forEach((c)=>{
+                 calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+            })
+            calcularMontos();
+            loadDataTableDetallesCotizacion();
+            ocultarAnimacionCotizacion();
+          
+        })
+    }
+
+    //============ LOAD SELECT2 ========
+    function loadSelect2(){
+    $(".select2_form").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            height: '200px',
+            width: '100%',
+        });
+    }
+
+    function agregarProductoCotizacion(){
+        const inputsCantidad = document.querySelectorAll('.inputCantidad');
             
             for (const ic of inputsCantidad) {
 
@@ -699,30 +728,6 @@
                     }
                 }
             }
-
-           
-            reordenarCarrito();
-            calcularSubTotal();
-            pintarDetalleCotizacion(carrito);
-            //===== RECALCULANDO DESCUENTOS =====
-            carrito.forEach((c)=>{
-                calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
-            })
-            //===== RECALCULANDO MONTOS =====
-            calcularMontos();
-            //====== APLICAMOS DATATABLE A LA TABLA DETALLES COTIZACIÓN =======
-            loadDataTableDetallesCotizacion();
-        })
-    }
-
-    //============ LOAD SELECT2 ========
-    function loadSelect2(){
-    $(".select2_form").select2({
-            placeholder: "SELECCIONAR",
-            allowClear: true,
-            height: '200px',
-            width: '100%',
-        });
     }
 
     //======= VALIDACIONES PARA EL FORMULARIO ============
@@ -975,11 +980,7 @@
     function pintarDetalleCotizacion(carrito){
         let filas       =   ``;
         let htmlTallas  =   ``;
-        clearDetalleCotizacion();
 
-        if(dataTableDetallesCotizacion){
-            dataTableDetallesCotizacion.destroy();
-        }
 
         carrito.forEach((c)=>{
             htmlTallas=``;
@@ -1024,6 +1025,14 @@
 
         tableDetalleBody.innerHTML  =   filas;
         
+    }
+
+   
+
+    function destruirDataTableDetalleCotizacion(){
+        if(dataTableDetallesCotizacion){
+            dataTableDetallesCotizacion.destroy();
+        }
     }
 
     //======== OBTENER PRODUCTOS POR MODELO ========

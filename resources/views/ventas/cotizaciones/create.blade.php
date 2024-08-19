@@ -450,10 +450,13 @@
     let dataTableDetallesCotizacion =   null;
    
     document.addEventListener('DOMContentLoaded',()=>{
+        mostrarAnimacionCotizacion();
         loadSelect2();
+        loadDataTableDetallesCotizacion();
         setUbicacionDepartamento(13,'first');
         events();
         eventsCliente();
+        ocultarAnimacionCotizacion();
     })
 
     function events(){
@@ -521,11 +524,18 @@
 
         document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('delete-product')){
-                const productoId = e.target.getAttribute('data-producto');
-                const colorId = e.target.getAttribute('data-color');
+                mostrarAnimacionCotizacion();
+                const productoId    =   e.target.getAttribute('data-producto');
+                const colorId       =   e.target.getAttribute('data-color');
                 eliminarProducto(productoId,colorId);
+                clearDetalleCotizacion();
+                destruirDataTableDetalleCotizacion();
                 pintarDetalleCotizacion(carrito);
                 calcularMontos();
+                loadDataTableDetallesCotizacion();
+                clearInputsCantidad();
+                loadCarrito();
+                ocultarAnimacionCotizacion();
             }
         })
 
@@ -574,6 +584,7 @@
         //======= AGREGAR PRODUCTO AL DETALLE ======
         btnAgregarDetalle.addEventListener('click',()=>{
 
+            mostrarAnimacionCotizacion();
             if(!$('#modelo').val()){
                 toastr.error('DEBE SELECCIONAR UN MODELO','OPERACIÓN INCORRECTA');
                 return;
@@ -587,7 +598,33 @@
                 return;
             }
           
-            const inputsCantidad = document.querySelectorAll('.inputCantidad');
+            
+            agregarProductoCotizacion();
+            reordenarCarrito();
+            calcularSubTotal();
+            clearDetalleCotizacion();
+            destruirDataTableDetalleCotizacion();
+            pintarDetalleCotizacion(carrito);
+            //===== RECALCULANDO DESCUENTOS Y MONTOS =====
+            carrito.forEach((c)=>{
+                 calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+            })
+            calcularMontos();
+            loadDataTableDetallesCotizacion();
+            ocultarAnimacionCotizacion();
+
+        })
+    }
+
+    function clearInputsCantidad(){
+        const inputsCantidad    =   document.querySelectorAll('.inputCantidad');
+        inputsCantidad.forEach((inputCantidad)=>{
+            inputCantidad.value =   '';
+        })  
+    }
+
+    function agregarProductoCotizacion(){
+        const inputsCantidad = document.querySelectorAll('.inputCantidad');
             
             for (const ic of inputsCantidad) {
 
@@ -655,18 +692,6 @@
                     }
                 }
             }
-
-            reordenarCarrito();
-            calcularSubTotal();
-            pintarDetalleCotizacion(carrito);
-            //===== RECALCULANDO DESCUENTOS Y MONTOS =====
-            carrito.forEach((c)=>{
-                calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
-            })
-            //====== APLICAMOS DATATABLE AL DETALLES COTIZACIÓN =======
-            loadDataTableDetallesCotizacion();
-
-        })
     }
 
     function loadDataTableStocksCotizacion(){
@@ -910,15 +935,17 @@
         }
     }
 
-    function pintarDetalleCotizacion(carrito){
-        let filas       =   ``;
-        let htmlTallas  =   ``;
-        clearDetalleCotizacion();
-
+    function destruirDataTableDetalleCotizacion(){
         if(dataTableDetallesCotizacion){
             dataTableDetallesCotizacion.destroy();
         }
+    }
 
+    function pintarDetalleCotizacion(carrito){
+        let filas       =   ``;
+        let htmlTallas  =   ``;
+
+        
         carrito.forEach((c)=>{
             htmlTallas=``;
                 filas += `<tr>   
@@ -975,6 +1002,7 @@
 
     //======== OBTENER PRODUCTOS POR MODELO ========
     async function  getProductosByModelo(e){
+        toastr.clear();
         mostrarAnimacionCotizacion();
         limpiarTableStocks();
         modelo_id                   =   e.value;
