@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pedidos;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Pedido\PedidoUpdateRequest;
 use Exception;
 use Illuminate\Http\Request;
 use App\Ventas\Pedido;
@@ -244,31 +245,25 @@ class PedidoController extends Controller
         $pedido             =   Pedido::find($id);
         $pedido_detalles    =   PedidoDetalle::where('pedido_id',$id)->get();
 
-        //======== COMPROBANDO QUE EXISTAN DETALLES SIN ATENDER ======
-        $cantidad_items         =   count($pedido_detalles);
-        $cantidad_items_atend   =   0;
-
-        foreach($pedido_detalles as $item) {
-            if($item->cantidad_atendida > 0){
-                //====== SELECCIONAR EL DETALLE QUE SE PUEDE MODIFICAR =========
-                $item->editable = 0;
-                //==== CONTABILIZAR LOS ITEMS CON ATENCIÓN ======
-                $cantidad_items_atend++;
-            }
-            if($item->cantidad_atendida == 0){
-                //====== SELECCIONAR EL DETALLE QUE SE PUEDE MODIFICAR =========
-                $item->editable = 1;
-            }
-        }
-        
-        //===== SI YA SE ESTÁ ATENDIENDO TODO ========
-        if($cantidad_items === $cantidad_items_atend){
-            Session::flash('pedido_error','Todos los items de este pedido están en proceso de atención');
+        //========= VALIDAR QUE EL PEDIDO NO ESTÉ FACTURADO =======
+        if($pedido->facturado === 'SI'){
+            Session::flash('pedido_error','NO SE PUEDEN EDITAR LOS PEDIDOS FACTURADOS');
             return back();
         }
 
+        //======= VALIDAR QUE EL PEDIDO NO ESTÉ ANULADO NI FINALIZADO ======
+        if($pedido->estado === 'ANULADO' || $pedido->estado === "FINALIZADO"){
+            Session::flash('pedido_error','NO SE PUEDEN EDITAR LOS PEDIDOS ANULADOS O FINALIZADOS');
+            return back();
+        }
+
+        //========= LOS PEDIDOS NO FACTURADOS PUEDEN EDITARSE ========
+        //========= PUEDEN AGREGARSE NUEVOS PRODUCTOS AL PEDIDO =========
+        //========= DE LOS PRODUCTOS YA EXISTENTES, PUEDEN EDITARSE LAS CANTIDADES PENDIENTE =======
+        //========= DE LOS PRODUCTOS YA EXISTENTES, NO SE PUEDEN TOCAR LAS CANTIDADES ATENDIDAS =====
+        //========= LAS CANTIDADES ATENDIDAS PUEDEN MODIFICARSE MEDIANTE NOTAS DE DEVOLUCIÓN/CRÉDITO O CAMBIOS DE TALLA SOBRE EL DOCUMENTO VENTA DE ATENCIÓN =======
         
-        
+
         $vendedor_actual    =   DB::select('select c.id from user_persona as up
                                 inner join colaboradores  as c
                                 on c.persona_id=up.persona_id
@@ -282,35 +277,60 @@ class PedidoController extends Controller
         $tipos_documento    =   tipos_documento();
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();
+
+        
         
         return view('pedidos.pedido.edit',compact('empresas','clientes','vendedor_actual_id','condiciones',
                                             'modelos','tallas','pedido','pedido_detalles',
                                         'tipos_documento','departamentos','tipo_clientes'));
     }
 
-    public function update(Request $request,$id){
+    public function update(PedidoUpdateRequest $request,$id){
+        
         DB::beginTransaction();
         try {
-            $productos  =   json_decode($request->input('productos_tabla')[0]);
+            
+            $productos  =   json_decode($request->get('lstProductos'));
             $data       =   $request->all();
+            $lstProductos   =   [];
 
-            $rules = [
-                'empresa' => 'required',
-                'cliente' => 'required',
-                'condicion_id' => 'required',
-                'fecha_documento' => 'required',
-                'fecha_atencion' => 'required',
-            ];
-    
-            $message = [
-                'empresa.required' => 'El campo Empresa es obligatorio',
-                'cliente.required' => 'El campo Cliente es obligatorio',
-                'condicion_id.required' => 'El campo condicion es obligatorio',
-                'moneda' => 'El campo Moneda es obligatorio',
-                'fecha_documento.required' => 'El campo Fecha de Documento es obligatorio',
-            ];
+            //======== REFORMATEANDO LST PRODUCTOS =======
+            foreach ($productos as $producto) {
+                foreach ($producto->tallas as $talla){
+                    $producto   =   (object)['producto_id'=>$producto->producto_id,
+                                            'color_id'=>$producto->color_id,
+                                            'talla_id'=>$talla->talla_id,
+                                            'producto_nombre'=>$producto->producto_nombre,
+                                            'color_nombre'=>$producto->color_nombre,
+                                            'talla_nombre'=>$talla->talla_nombre,
+                                            'cantidad'=>$talla->cantidad];
+                    $lstProductos[] =   $producto;
+                }
+            }
 
-            Validator::make($data, $rules, $message)->validate();
+
+            //======== VALIDAR LISTADO DE PRODUCTOS ========
+            $requestValidarCantidadAtendida = Request::create('/dummy-url', 'GET', [
+                'lstProductos' => json_encode($lstProductos)
+            ]);
+
+            $resValidarCantidadAtendida =   $this->validarCantidadAtendida($requestValidarCantidadAtendida);
+            $data                       =   $resValidarCantidadAtendida->getContent();
+            $data                       =   json_decode($data, true); 
+
+            //======= EN CASO DE VALIDACIÓN COMPLETADA ======
+            if($data['success']){
+                $lstErroresValidacion   =   $data['lstErroresValidacion'];
+                //========== EN CASO HAYAN ERRORES DE VALIDACIÓN, RETORNAR SUCCESS FALSE =======
+                if(count($lstErroresValidacion) > 0){
+                    return response()->json($data);
+                }
+            }
+
+            //========== EN CASO DE ERROR AL VALIDAR =======
+            if(!$data['success']){
+                return response()->json($data);
+            }
 
             //======= MANEJANDO MONTOS ========
             $monto_embalaje     =   $request->has('monto_embalaje')?$request->get('monto_embalaje'):0;
@@ -321,7 +341,7 @@ class PedidoController extends Controller
             $monto_total_pagar  =   0.0;
             $monto_descuento    =   $request->get('monto_descuento')??0;
 
-            //====== OBTENIENDO SUBTOTAL DE LOS PRODUCTOS EDITABLES ======
+            //====== OBTENIENDO SUBTOTAL DE LOS PRODUCTOS ======
             foreach ($productos as $producto) {
                 $precio = 0;
                 if( floatval($producto->porcentaje_descuento) == 0){
@@ -334,20 +354,6 @@ class PedidoController extends Controller
                     $monto_subtotal +=  $talla->cantidad * $precio;
                 }
             }
-
-            //======= OBTENIENDO PRODUCTOS NO EDITABLES  ========
-            $detalle_no_editable    =   DB::select('select * from pedidos_detalles as pd
-                                        where pd.pedido_id = ? 
-                                        and pd.cantidad_atendida > 0',[$id]);
-            
-            //====== CALULCAR SUBTOTAL DE LOS PRODUCTOS NO EDITABLES =====
-            $subtotal_no_editable   =   0;
-            foreach($detalle_no_editable as $item){
-                $subtotal_no_editable  += $item->importe_nuevo;
-            }
-    
-            //======== AGREGANDO EL SUBTOTAL DE LOS NO EDITABLES AL MONTO SUBTOTAL =======
-            $monto_subtotal += $subtotal_no_editable;
 
             //====== CALCULAMOS LOS MONTOS ======
             $monto_total_pagar      =   $monto_subtotal + $monto_embalaje + $monto_envio;
@@ -377,22 +383,22 @@ class PedidoController extends Controller
             //==========================================//
 
 
-            $pedido->condicion_id       = $request->get('condicion_id');
-            $pedido->user_id            = Auth::user()->id;
+            $pedido->condicion_id       =   $request->get('condicion_id');
+            //$pedido->user_id            =   Auth::user()->id;
 
             //======== OBTENIENDO EL NOMBRE COMPLETO DEL USUARIO ===========
-            $pedido->user_nombre        = DB::select('select CONCAT(p.nombres, " ", p.apellido_paterno, " ", p.apellido_materno) AS user_nombre 
-                                            from users as u
-                                            inner join user_persona as up 
-                                            on u.id=up.user_id
-                                            inner join personas as p
-                                            on p.id=up.persona_id
-                                            where u.id=?',[Auth::user()->id])[0]->user_nombre;
+            // $pedido->user_nombre        = DB::select('select CONCAT(p.nombres, " ", p.apellido_paterno, " ", p.apellido_materno) AS user_nombre 
+            //                                 from users as u
+            //                                 inner join user_persona as up 
+            //                                 on u.id=up.user_id
+            //                                 inner join personas as p
+            //                                 on p.id=up.persona_id
+            //                                 where u.id=?',[Auth::user()->id])[0]->user_nombre;
 
-            $pedido->moneda             =   1;
-            $pedido->fecha_registro     =   $request->get('fecha_documento');
-            $pedido->fecha_propuesta    =   $request->get('fecha_propuesta');
+            $pedido->moneda                 =   1;
+            //$pedido->fecha_registro       =   $request->get('fecha_documento');
 
+            $pedido->fecha_propuesta        =   $request->get('fecha_propuesta');
             $pedido->sub_total              =   $monto_subtotal;
             $pedido->total_igv              =   $monto_igv;
             $pedido->total                  =   $monto_total;
@@ -402,6 +408,7 @@ class PedidoController extends Controller
             $pedido->monto_embalaje         =   $monto_embalaje;
             $pedido->monto_envio            =   $monto_envio;
             $pedido->update();
+
            
             //======= ELIMINANDO DETALLE ANTERIOR, SIEMPRE Y CUANDO NO SE HAYA ATENDIDO AÚN ========
             if(count($productos)>0){
@@ -413,30 +420,77 @@ class PedidoController extends Controller
             //========== GRABAR DETALLE DEL PEDIDO ========
             foreach ($productos as $producto) {
                 foreach ($producto->tallas as  $talla) {
-                     //===== CALCULANDO MONTOS PARA EL DETALLE =====
+
+                    //===== CALCULANDO MONTOS PARA EL DETALLE =====
                     $importe        =   floatval($talla->cantidad) * floatval($producto->precio_venta);
                     $precio_venta   =   $producto->porcentaje_descuento == 0?$producto->precio_venta:$producto->precio_venta_nuevo;
-        
-                    PedidoDetalle::create([
-                        'pedido_id'                 => $pedido->id,
-                        'producto_id'               => $producto->producto_id,
-                        'color_id'                  => $producto->color_id,
-                        'talla_id'                  => $talla->talla_id,
-                        'producto_codigo'           => $producto->producto_codigo,
-                        'producto_nombre'           => $producto->producto_nombre,
-                        'color_nombre'              => $producto->color_nombre,
-                        'talla_nombre'              => $talla->talla_nombre,
-                        'modelo_nombre'             => $producto->modelo_nombre,
-                        'cantidad'                  => $talla->cantidad,
-                        'cantidad_atendida'         => 0,
-                        'cantidad_pendiente'        => $talla->cantidad,
-                        'precio_unitario'           => $producto->precio_venta,
-                        'importe'                   => $importe,
-                        'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
-                        'precio_unitario_nuevo'     =>  floatval($precio_venta),
-                        'importe_nuevo'             =>  floatval($precio_venta) * floatval($talla->cantidad),  
-                        'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
-                    ]);
+                    
+                    //======= BUSCANDO SI EXISTE EL PRODUCTO EN EL DETALLE DEL PEDIDO =====
+                    $producto_existe                        =   DB::select('select pd.producto_id,pd.color_id,pd.talla_id,pd.cantidad_atendida
+                                                                from pedidos_detalles as pd
+                                                                where pd.pedido_id = ? and
+                                                                pd.producto_id = ? and 
+                                                                pd.color_id = ? and 
+                                                                pd.talla_id = ?',
+                                                                [$id,
+                                                                $producto->producto_id,$producto->color_id,$talla->talla_id]);
+
+                                                                                 
+                    //========== EN CASO EL PRODUCTO YA EXISTA EN EL DETALLE =======
+                    if(count($producto_existe) === 1){
+                        
+                        //====== PREGUNTANDO SI TIENE CANTIDAD ATENDIDA ======
+                        if($producto_existe[0]->cantidad_atendida > 0){
+
+                            //======= LA NUEVA CANTIDAD DEBE SER MAYOR O IGUAL A LA CANTIDAD ATENDIDA =======
+                            if( $talla->cantidad >= $producto_existe[0]->cantidad_atendida ){
+                                
+                                //============ ACTUALIZAR PRODUCTO EN LA BD ========
+                                DB::table('pedidos_detalles')
+                                ->where('pedido_id', $id)  
+                                ->where('producto_id', $producto->producto_id)  
+                                ->where('color_id', $producto->color_id)  
+                                ->where('talla_id', $talla->talla_id)  
+                                ->update([
+                                    'cantidad'                  => $talla->cantidad,
+                                    'cantidad_pendiente'        => $talla->cantidad - $producto_existe[0]->cantidad_atendida,
+                                    'precio_unitario'           => $producto->precio_venta,
+                                    'importe'                   => $importe,
+                                    'porcentaje_descuento'      => floatval($producto->porcentaje_descuento),
+                                    'precio_unitario_nuevo'     => floatval($precio_venta),
+                                    'importe_nuevo'             => floatval($precio_venta) * floatval($talla->cantidad),
+                                    'monto_descuento'           => floatval($importe) * floatval($producto->porcentaje_descuento) / 100,
+                                ]);
+                            }else{
+                                throw new Exception($producto->producto_nombre.'-'.$producto->color_nombre.'-'.$talla->talla_nombre.
+                                ', LA CANTIDAD NUEVA ('.$talla->cantidad.') DEBE SER MAYOR O IGUAL A LA CANTIDAD ATENDIDA'.'('.$producto_existe[0]->cantidad_atendida.')');
+                            }
+                        }
+                    }
+
+                    //========== EN CASO EL PRODUCTO SEA NUEVO EN EL DETALLE ========
+                    if(count($producto_existe) === 0){
+                        $pedido_detalle                         =   new PedidoDetalle();
+                        $pedido_detalle->pedido_id              =   $pedido->id;
+                        $pedido_detalle->producto_id            =   $producto->producto_id;
+                        $pedido_detalle->color_id               =   $producto->color_id;
+                        $pedido_detalle->talla_id               =   $talla->talla_id;
+                        $pedido_detalle->producto_codigo        =   $producto->producto_codigo;
+                        $pedido_detalle->producto_nombre        =   $producto->producto_nombre;
+                        $pedido_detalle->color_nombre           =   $producto->color_nombre;
+                        $pedido_detalle->talla_nombre           =   $talla->talla_nombre;
+                        $pedido_detalle->modelo_nombre          =   $producto->modelo_nombre;
+                        $pedido_detalle->cantidad               =   $talla->cantidad;
+                        $pedido_detalle->cantidad_atendida      =   0;
+                        $pedido_detalle->cantidad_pendiente     =   $talla->cantidad;
+                        $pedido_detalle->precio_unitario        =   $producto->precio_venta;
+                        $pedido_detalle->importe                =   $importe;
+                        $pedido_detalle->porcentaje_descuento   =   floatval($producto->porcentaje_descuento);
+                        $pedido_detalle->precio_unitario_nuevo  =   floatval($precio_venta);
+                        $pedido_detalle->importe_nuevo          =   floatval($precio_venta) * floatval($talla->cantidad);
+                        $pedido_detalle->monto_descuento        =   floatval($importe) * floatval($producto->porcentaje_descuento) / 100;
+                        $pedido_detalle->save();
+                    }
                 }
             }
 
@@ -446,13 +500,13 @@ class PedidoController extends Controller
             crearRegistro($pedido, $descripcion , $gestion);
 
             DB::commit();
-            Session::flash('success','PEDIDO MODIFICADO.');
-            return redirect()->route('pedidos.pedido.index')->with('guardar', 'success');
+            Session::flash('success','PEDIDO N°'.$id.'MODIFICADO CON ÉXITO');
 
-        } catch (\Throwable  $e) {
+            return response()->json(['success'=>true,'message'=>'PEDIDO N°'.$id.'MODIFICADO CON ÉXITO']);
+        } catch (\Throwable  $th) {
             DB::rollback();
 
-            dd($e->getMessage());
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
     }
 
@@ -747,29 +801,94 @@ class PedidoController extends Controller
         return $detalleFormateado;
     }
 
-    public function getProductosByModelo($modelo_id){
+    public function getColoresTallas($producto_id){
+       
         try {
-            $productos  =   DB::select('select distinct p.id as producto_id,c.id as color_id, t.id as talla_id,
-            m.id as modelo_id, p.nombre as producto_nombre,c.descripcion as color_nombre, 
-            t.descripcion as talla_nombre,pct.stock_logico,m.descripcion as modelo_nombre,p.codigo as producto_codigo,
-            p.precio_venta_1,p.precio_venta_2,p.precio_venta_3 
-            from producto_colores as pc 
-            left join producto_color_tallas as pct on (pc.producto_id=pct.producto_id and pc.color_id=pct.color_id) 
-            inner join productos as p on p.id=pc.producto_id 
-            inner join colores as c on c.id=pc.color_id 
-            inner join modelos as m on m.id=p.modelo_id
-            left join tallas as t on t.id=pct.talla_id 
-            where m.id=?
-            order by p.nombre,c.descripcion',[$modelo_id]);    
+            $precios_venta  =   DB::select('SELECT 
+                                p.id AS producto_id,
+                                p.nombre AS producto_nombre,
+                                p.precio_venta_1,
+                                p.precio_venta_2,
+                                p.precio_venta_3
+                                FROM 
+                                    productos AS p 
+                                WHERE 
+                                    p.id = ? AND p.estado = "ACTIVO" ',[$producto_id]);  
 
-           $productos_formateado    =   $this->formatearListado($productos);
+           
+            $colores =  DB::select('SELECT 
+                                    p.id AS producto_id,
+                                    p.nombre AS producto_nombre,
+                                    c.id AS color_id,
+                                    c.descripcion AS color_nombre
+                                FROM 
+                                    producto_colores AS pc 
+                                    inner join productos as p on p.id = pc.producto_id
+                                    inner join colores as c on c.id = pc.color_id
+                                WHERE 
+                                    pc.producto_id = ? 
+                                    AND p.estado = "ACTIVO" and c.estado = "ACTIVO" ',[$producto_id]);
+
+            $stocks =   DB::select('select  pct.producto_id,pct.color_id,pct.talla_id,
+                        pct.stock,pct.stock_logico, t.descripcion as talla_nombre
+                        from producto_color_tallas as pct
+                        inner join productos as p on p.id = pct.producto_id
+                        inner join colores as c on c.id = pct.color_id 
+                        inner join tallas as t on t.id = pct.talla_id
+                        where p.estado = "ACTIVO" and c.estado = "ACTIVO" and t.estado = "ACTIVO"
+                        and p.id = ?',[$producto_id]);
+
+            $tallas =   Talla::where('estado','ACTIVO')->orderBy('id')->get();   
+
+            $producto_color_tallas  =   null;
+            if(count($colores) > 0){
+                $producto_color_tallas  =   $this->formatearColoresTallas($colores,$stocks,$precios_venta,$tallas);
+            }
+
+          
             
-            return response()->json(['type'=>'success','message'=>$productos_formateado]);
-
-        } catch (\Throwable $e) {
-            return response()->json(['type'=>'error','message'=>$e->getMessage()]);
+            return response()->json(['success' => true,'producto_color_tallas'=>$producto_color_tallas]);
+        } catch (\Throwable $th) {
+    
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
     }
+
+    public function getProductosByModelo($modelo_id){
+        try {
+            $productos  =   DB::select('select p.id,p.nombre 
+                            from productos as p
+                            where p.modelo_id = ? and p.estado = "ACTIVO"',[$modelo_id]);
+
+            return response()->json(['success' => true,'productos'=>$productos]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
+    // public function getProductosByModelo($modelo_id){
+    //     try {
+    //         $productos  =   DB::select('select distinct p.id as producto_id,c.id as color_id, t.id as talla_id,
+    //         m.id as modelo_id, p.nombre as producto_nombre,c.descripcion as color_nombre, 
+    //         t.descripcion as talla_nombre,pct.stock_logico,m.descripcion as modelo_nombre,p.codigo as producto_codigo,
+    //         p.precio_venta_1,p.precio_venta_2,p.precio_venta_3 
+    //         from producto_colores as pc 
+    //         left join producto_color_tallas as pct on (pc.producto_id=pct.producto_id and pc.color_id=pct.color_id) 
+    //         inner join productos as p on p.id=pc.producto_id 
+    //         inner join colores as c on c.id=pc.color_id 
+    //         inner join modelos as m on m.id=p.modelo_id
+    //         left join tallas as t on t.id=pct.talla_id 
+    //         where m.id=?
+    //         order by p.nombre,c.descripcion',[$modelo_id]);    
+
+    //        $productos_formateado    =   $this->formatearListado($productos);
+            
+    //         return response()->json(['type'=>'success','message'=>$productos_formateado]);
+
+    //     } catch (\Throwable $e) {
+    //         return response()->json(['type'=>'error','message'=>$e->getMessage()]);
+    //     }
+    // }
 
     public function formatearListado($productos){
         $productos_formateado       =   [];
@@ -1270,6 +1389,75 @@ public function generarDocumentoVenta(Request $request){
             return response()->json(['success' => true,'cliente'=>$cliente[0]]);
         } catch (\Throwable $th) {
             return response()->json(['success' => false,'message'=>$th->getMessage()]);
+        }
+    }
+
+    public function validarCantidadAtendida(Request $request){
+        try {
+            
+            $lstProductos           =   json_decode($request->get('lstProductos'));
+            $lstProductosValidados  =   [];
+            $lstErroresValidacion   =   [];
+
+            foreach ($lstProductos as $producto) {
+
+                //========= OBTENIENDO CANTIDAD NUEVA ======
+                $cantidad_nueva =   $producto->cantidad;
+                //======== OBTENIENDO LA CANTIDAD ATENDIDA DEL PRODUCTO EN TIEMPO REAL =========
+                $producto_en_detalle    =   DB::select('select pd.cantidad_atendida,pd.cantidad_pendiente,
+                                            pd.producto_id,pd.color_id,pd.talla_id
+                                            from pedidos_detalles as pd
+                                            where pd.pedido_id = ? and 
+                                            pd.producto_id = ? and
+                                            pd.color_id = ? and
+                                            pd.talla_id = ?',
+                                            [$request->get('pedido_id'),
+                                            $producto->producto_id,$producto->color_id,$producto->talla_id]);
+                
+                //======== EN CASO EL PRODUCTO EXISTA EN EL DETALLE PREVIAMENTE ======
+                if(count($producto_en_detalle) === 1){
+
+                    //======= VALIDAR CANTIDAD NUEVA CON LA CANTIDAD ATENDIDA =======
+                    //======= LA CANTIDAD NUEVA DEBE SER MAYOR O IGUAL A LA CANTIDAD ATENDIDA ======
+                    if($cantidad_nueva < $producto_en_detalle[0]->cantidad_atendida){
+
+                        $mensaje    =   $producto->producto_nombre."-".$producto->color_nombre."-".$producto->talla_nombre.
+                                        ", CANT NUEVA(".$cantidad_nueva.") DEBE SER MAYOR O IGUAL A CANT ATEND(".$producto_en_detalle[0]->cantidad_atendida.").";
+                        $producto->validacion           =   false;
+                        //$producto->mensaje_validacion   =   $mensaje;  
+                        $lstErroresValidacion[]         =   (object)['producto_id'=>$producto->producto_id,
+                                                                    'color_id'=>$producto->color_id,
+                                                                    'talla_id'=>$producto->talla_id,
+                                                                    'mensaje'=>$mensaje];
+
+                    }else{
+
+                        $producto->validacion           =   true;
+                        $producto->mensaje_validacion   =   '';
+
+                    }
+
+                    $lstProductosValidados[]    =   $producto;
+                }
+
+                //========= EN CASO EL PRODUCTO SEA NUEVO =======
+                if(count($producto_en_detalle) === 0){
+
+                    if($producto->cantidad > 0){
+                        $producto->validacion           =   true;
+                        $lstProductosValidados[]    =   $producto;
+                    }
+                    
+                }
+                
+            }
+
+            return response()->json(['success'=>true,
+            'lstProductosValidados'=>$lstProductosValidados,
+            'lstErroresValidacion'=>$lstErroresValidacion]);
+
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
     }
 }

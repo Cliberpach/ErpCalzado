@@ -237,7 +237,9 @@
 
                                             <div class="form-group row mt-3">
                                                 <div class="col-lg-12">
-                                                    @include('pedidos.pedido.table-stocks')
+                                                    <div class="table-responsive">
+                                                        @include('pedidos.pedido.tables.table_pedido_stocks')
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="form-group row mt-1">

@@ -1083,7 +1083,6 @@
     function limpiarSelectPreciosVenta(){
         $('#precio_venta').empty();
         $('#precio_venta').trigger('change');
-
     }
 
     //======= PINTAR PRECIOS VENTA =======

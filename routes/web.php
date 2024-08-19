@@ -516,9 +516,14 @@ function(){
         Route::post('store', 'Pedidos\PedidoController@store')->name('pedidos.pedido.store');
         Route::post('generar-doc-venta', 'Pedidos\PedidoController@generarDocumentoVenta')->name('pedidos.pedido.generarDocumentoVenta');
         Route::put('update/{id}', 'Pedidos\PedidoController@update')->name('pedidos.pedido.update');
+
         Route::get('edit/{id}','Pedidos\PedidoController@edit')->name('pedidos.pedido.edit');
+        //===== PARÁMETROS PARA VALIDAR CANTIDAD ATENDIDA: PEDIDOID,LISTADO DE PRODUCTOS(PRODUCTOID,COLORID,TALLAID,CANTIDAD) =======
+        Route::get('validarCantidadAtendida','Pedidos\PedidoController@validarCantidadAtendida')->name('pedidos.pedido.validarCantidadAtendida');
+
         Route::delete('pedidos/{id}', 'Pedidos\PedidoController@destroy')->name('pedidos.pedido.destroy');
         Route::get('getProductosByModelo/{modelo_id}','Pedidos\PedidoController@getProductosByModelo')->name('pedidos.pedido.getProductosByModelo');
+        Route::get('/getColoresTallas/{producto_id}', 'Ventas\PedidoController@getColoresTallas')->name('pedidos.pedido.getColoresTallas');
         Route::get('reporte/{id}','Pedidos\PedidoController@report')->name('pedidos.pedido.reporte');
         Route::get('validar-tipo-venta/{comprobante_id}','Pedidos\PedidoController@validarTipoVenta')->name('pedidos.pedido.validarTipoVenta');
         Route::get('get-atencion-detalles/{pedido_id}/{documento_id}','Pedidos\PedidoController@getAtencionDetalles')->name('pedidos.pedido.getAtencionDetalles');
@@ -528,6 +533,7 @@ function(){
         Route::get('getExcel/{fecha_inicio?}/{fecha_fin?}/{estado?}', 'Pedidos\PedidoController@getExcel')->name('pedidos.pedido.getExcel');
         Route::post('facturar/', 'Pedidos\PedidoController@facturar')->name('pedidos.pedido.facturar');
         Route::get('getCliente/{pedido_id}','Pedidos\PedidoController@getCliente')->name('pedidos.pedido.getCliente');
+
     });
 
     //======= PEDIDOS - DETALLES =======
