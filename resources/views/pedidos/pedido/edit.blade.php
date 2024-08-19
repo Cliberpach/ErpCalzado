@@ -314,8 +314,7 @@
                                                         <option></option>
                                                         @foreach ($modelos as $modelo)
                                                             <option value="{{ $modelo->id }}"
-                                                                {{ old('modelo') == $modelo->id ? 'selected' : '' }}>
-                                                                {{ $modelo->descripcion }}</option>
+                                                            {{ old('modelo') == $modelo->id ? 'selected' : '' }}>{{$modelo->descripcion}}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
@@ -503,13 +502,53 @@
 
     function events(){
         //====== ELIMINAR ITEM =========
-        document.addEventListener('click',(e)=>{
+        document.addEventListener('click',async (e)=>{
             if(e.target.classList.contains('delete-product')){
-                const productoId = e.target.getAttribute('data-producto');
-                const colorId = e.target.getAttribute('data-color');
-                eliminarProducto(productoId,colorId);
-                pintarDetallePedido(carrito);
-                calcularMontos();
+
+                const productoId    =   e.target.getAttribute('data-producto');
+                const colorId       =   e.target.getAttribute('data-color');
+
+                //======== OBTENIENDO TODOS LOS PRODUCTOS DE ESE PRODUCTOID Y COLORID =======
+                const lstProductos  =   [];
+                carrito.forEach((producto)=>{
+                    producto.tallas.forEach((talla)=>{
+
+                        if(producto.producto_id == productoId && producto.color_id == colorId){
+                            const item  =   {   
+                                                producto_id:producto.producto_id,
+                                                color_id:producto.color_id,
+                                                talla_id:talla.talla_id,
+                                                producto_nombre:producto.producto_nombre,
+                                                color_nombre:producto.color_nombre,
+                                                talla_nombre:talla.talla_nombre,
+                                                cantidad:0
+                                            }
+                            lstProductos.push(item);
+                        }
+                       
+                    })
+                })
+
+
+                //======== VALIDAR CANTIDAD CON CANTIDAD ATENDIDA ======
+                const  lstProductosValidados   =  await validarProductos(lstProductos);
+                mostrarAnimacionPedido();
+                const cantProductosEliminados   =   eliminarProducto(lstProductosValidados);
+
+                if(cantProductosEliminados > 0){
+                    calcularSubTotal(carrito);
+                    calcularMontos();
+                    pintarDetallePedido(carrito);
+                    clearInputsCantidad();
+                    loadCarrito();
+                    
+                    toastr.info('SE ELIMINARON SOLO LOS PRODUCTOS CUYA CANTIDAD ATENDIDA NO SEA AFECTADA');
+                }else{
+                    toastr.error('NO SE PUDO ELIMINAR NINGÚN PRODUCTO DE LA FILA');
+                }
+
+                ocultarAnimacionPedido();
+
             }
         })
 
@@ -863,7 +902,10 @@
                 tapToDismiss: false     
             });
 
-            document.querySelector(`#inputCantidad_${producto.producto_id}_${producto.color_id}_${producto.talla_id}`).style.border = '1.6px solid #FF9999';
+            const inputCantidad =   document.querySelector(`#inputCantidad_${producto.producto_id}_${producto.color_id}_${producto.talla_id}`);
+            if(inputCantidad){
+                inputCantidad.style.border = '1.6px solid #FF9999';
+            }   
         })
     }
 
@@ -877,10 +919,44 @@
     }
 
     //======== ELIMINAR ITEM ========
-    const eliminarProducto = (productoId,colorId)=>{
-        carrito = carrito.filter((p)=>{
-            return !(p.producto_id == productoId && p.color_id == colorId);
+    const eliminarProducto = (lstProductosValidados)=>{
+        let productosEliminados =   0;
+
+        //========= RECORRER LOS PRODUCTOS VALIDADOS ===========
+        lstProductosValidados.forEach((producto_validado)=>{
+
+            //======= SI EL PRODUCTO ES VÁLIDO =======
+            if(producto_validado.validacion){
+
+                //========== ELIMINAR =========
+                const indiceProducto    =   carrito.findIndex((producto)=>{
+                    return producto.producto_id == producto_validado.producto_id && producto.color_id == producto_validado.color_id;
+                })
+
+                if(indiceProducto !== -1){
+                    //========= OBTENIENDO TALLA ======
+                    const indiceTalla   =   carrito[indiceProducto].tallas.findIndex((talla)=>{
+                        return talla.talla_id == producto_validado.talla_id;
+                    })
+
+                    if(indiceTalla !== -1){
+                        //======= ELIMINAR TALLA ========
+                        carrito[indiceProducto].tallas.splice(indiceTalla,1);
+
+                        productosEliminados ++;
+
+                        //======= EN CASO EL PRODUCTO SE QUEDE SIN TALLAS, ELIMINAR PRODUCTO =======
+                        if(carrito[indiceProducto].tallas.length === 0){
+                            carrito.splice(indiceProducto,1);
+                        }
+
+                    }
+                }
+            }
+
         })
+      
+        return productosEliminados;
     }
 
     //========= VALIDAR FECHAS =========
@@ -1046,7 +1122,7 @@
     //=========== FORMAR PRODUCTO =========
     const formarProducto = (ic)=>{
         const producto_id           = ic.getAttribute('data-producto-id');
-        const modelo_nombre         = ic.getAttribute('data-modelo-nombre');
+        const modelo_nombre         = $('#modelo').find('option:selected').text().trim();
         const producto_nombre       = ic.getAttribute('data-producto-nombre');
         const producto_codigo       = ic.getAttribute('data-producto-codigo');
         const color_id              = ic.getAttribute('data-color-id');
@@ -1169,20 +1245,28 @@
         $('#precio_venta').trigger('change');
     }
 
+    //===== LIMPIAR INPUTS DEL TABLERO PRODUCTOS ======
+    function clearInputsCantidad(){
+        const inputsCantidad    =   document.querySelectorAll('.inputCantidad');
+        inputsCantidad.forEach((inputCantidad)=>{
+            inputCantidad.value =   '';
+        })  
+    }
+
     //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
     function loadCarrito(){
+        
         carrito.forEach((c)=>{
-
             c.tallas.forEach((talla)=>{
                 let llave   =   `#inputCantidad_${c.producto_id}_${c.color_id}_${talla.talla_id}`;   
                 const inputLoad = document.querySelector(llave);
-            
+                console.log(inputLoad)
                 if(inputLoad){
                     inputLoad.value = talla.cantidad;
                 }
             })
-        
         }) 
+
     }
 
     //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
@@ -1191,7 +1275,7 @@
         const producto_id   =   $('#producto').val();
         if(producto_id){
             try {
-                const res   =   await   axios.get(route('ventas.cotizacion.getColoresTallas',{producto_id}));
+                const res   =   await   axios.get(route('pedidos.pedido.getColoresTallas',{producto_id}));
                 if(res.data.success){
                     destruirDataTableStocks();
                     pintarTableStocks(res.data.producto_color_tallas);
@@ -1237,6 +1321,7 @@
     }
 
     async function  getProductosByModelo(e){
+        toastr.clear();
         mostrarAnimacionPedido();
         const bodyTableStocks   =   document.querySelector('#table-stocks-pedidos tbody');
         const btnAgregarDetalle =   document.querySelector('#btn_agregar_detalle');

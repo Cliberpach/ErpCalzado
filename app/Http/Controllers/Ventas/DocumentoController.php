@@ -2394,7 +2394,176 @@ class DocumentoController extends Controller
         return $fecha;
     }
 
-    public function voucher($value)
+    public function voucher($value){
+        try {
+            $cadena = explode('-', $value);
+            $id     = $cadena[0];
+            $size   = (int) $cadena[1];
+            $qr     = self::qr_code($id);
+
+            $mostrar_cuentas    =   DB::select('select c.propiedad 
+                                    from configuracion as c 
+                                    where c.slug = "MCB"')[0]->propiedad;
+            
+            $documento = Documento::findOrFail($id);
+            $detalles = Detalle::where('documento_id', $id)->where('eliminado', '0')->get();
+            if ((int) $documento->tipo_venta == 127 || (int) $documento->tipo_venta == 128) {
+                if ($documento->sunat == '0' || $documento->sunat == '2') {
+                   
+                   
+                    $name = $documento->id . '.pdf';
+                    $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes' . DIRECTORY_SEPARATOR . $name);
+                    if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes'))) {
+                        mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes'));
+                    }
+                   
+                    $empresa            =   Empresa::first();
+             
+
+                    $legends = self::obtenerLeyenda($documento);
+                    $legends = json_encode($legends, true);
+                    $legends = json_decode($legends, true);
+                    if ($size === 80) {
+                        $pdf = PDF::loadview('ventas.documentos.impresion.comprobante_ticket', [
+                            'documento'         =>  $documento,
+                            'detalles'          =>  $detalles,
+                            'moneda'            =>  $documento->simboloMoneda(),
+                            'empresa'           =>  $empresa,
+                            "legends"           =>  $legends,
+                            'mostrar_cuentas'   =>  $mostrar_cuentas
+                        ])->setPaper([0, 0, 226.772, 651.95]);
+                        return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
+                    } else {
+                        $pdf_condicion = $empresa->condicion == '1' ? 'comprobante_normal_nuevo' : 'comprobante_normal';
+                        $pdf = PDF::loadview('ventas.documentos.impresion.' . $pdf_condicion, [
+                            'documento'         =>  $documento,
+                            'detalles'          =>  $detalles,
+                            'moneda'            =>  $documento->simboloMoneda(),
+                            'empresa'           =>  $empresa,
+                            "legends"           =>  $legends,
+                            'mostrar_cuentas'   =>  $mostrar_cuentas
+                        ])->setPaper('a4')->setWarnings(false);
+
+                        return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
+                    }
+                } else {
+                    
+                    //OBTENER CORRELATIVO DEL COMPROBANTE ELECTRONICO
+                    //$comprobante = event(new ComprobanteRegistrado($documento, $documento->serie));
+                    //ENVIAR COMPROBANTE PARA LUEGO GENERAR PDF
+                    //$data = generarComprobanteapi($comprobante[0], $documento->empresa_id);
+                    $name = $documento->id . '.pdf';
+                    $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes' . DIRECTORY_SEPARATOR . $name);
+                    if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes'))) {
+                        mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'comprobantes'));
+                    }
+                    //file_put_contents($pathToFile, $data);
+
+                    $empresa = Empresa::first();
+
+                    $legends = self::obtenerLeyenda($documento);
+                    $legends = json_encode($legends, true);
+                    $legends = json_decode($legends, true);
+
+                    if ($size === 80) {
+                        $pdf = PDF::loadview('ventas.documentos.impresion.comprobante_ticket', [
+                            'documento' => $documento,
+                            'detalles' => $detalles,
+                            'moneda' => $documento->simboloMoneda(),
+                            'empresa' => $empresa,
+                            "legends" => $legends,
+                            'mostrar_cuentas'   =>  $mostrar_cuentas
+                        ])->setPaper([0, 0, 226.772, 651.95]);
+                        return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
+                    } else {
+                        $pdf_condicion = $empresa->condicion === '1' ? 'comprobante_normal_nuevo' : 'comprobante_normal';
+                        $pdf = PDF::loadview('ventas.documentos.impresion.' . $pdf_condicion, [
+                            'documento' => $documento,
+                            'detalles' => $detalles,
+                            'moneda' => $documento->simboloMoneda(),
+                            'empresa' => $empresa,
+                            "legends" => $legends,
+                            'mostrar_cuentas'   =>  $mostrar_cuentas
+                        ])->setPaper('a4')->setWarnings(false);
+
+                        return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
+                    }
+                }
+            } else {
+
+                if (empty($documento->correlativo)) {
+                    event(new DocumentoNumeracion($documento));
+                }
+                $empresa = Empresa::first();
+
+                $legends = self::obtenerLeyenda($documento);
+                $legends = json_encode($legends, true);
+                $legends = json_decode($legends, true);
+
+                if ($size === 80) {
+                    $pdf = PDF::loadview('ventas.documentos.impresion.comprobante_ticket', [
+                        'documento' => $documento,
+                        'detalles' => $detalles,
+                        'moneda' => $documento->simboloMoneda(),
+                        'empresa' => $empresa,
+                        "legends" => $legends,
+                        'mostrar_cuentas'   =>  $mostrar_cuentas
+                    ])->setPaper([0, 0, 226.772, 651.95]);
+                    return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
+                } else {
+                    $pdf_condicion = $empresa->condicion === '1' ? 'comprobante_normal_nuevo' : 'comprobante_normal';
+                    $pdf = PDF::loadview('ventas.documentos.impresion.' . $pdf_condicion, [
+                        'documento' => $documento,
+                        'detalles' => $detalles,
+                        'moneda' => $documento->simboloMoneda(),
+                        'empresa' => $empresa,
+                        "legends" => $legends,
+                        'mostrar_cuentas'   =>  $mostrar_cuentas
+                    ])->setPaper('a4')->setWarnings(false);
+
+                    return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
+                }
+            }
+        } catch (Exception $e) {
+            $cadena = explode('-', $value);
+            $id = $cadena[0];
+            $size = (int) $cadena[1];
+            $documento = Documento::findOrFail($id);
+            $detalles = Detalle::where('documento_id', $id)->where('estado', 'ACTIVO')->get();
+            $empresa = Empresa::first();
+
+            $legends = self::obtenerLeyenda($documento);
+            $legends = json_encode($legends, true);
+            $legends = json_decode($legends, true);
+
+            if ($size === 80) {
+                $pdf = PDF::loadview('ventas.documentos.impresion.comprobante_ticket', [
+                    'documento'         => $documento,
+                    'detalles'          => $detalles,
+                    'moneda'            => $documento->simboloMoneda(),
+                    'empresa'           => $empresa,
+                    "legends"           => $legends,
+                    'mostrar_cuentas'   =>  $mostrar_cuentas
+
+                ])->setPaper([0, 0, 226.772, 651.95]);
+                return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
+            } else {
+                $pdf_condicion = $empresa->condicion === '1' ? 'comprobante_normal_nuevo' : 'comprobante_normal';
+                $pdf = PDF::loadview('ventas.documentos.impresion.' . $pdf_condicion, [
+                    'documento' => $documento,
+                    'detalles' => $detalles,
+                    'moneda' => $documento->simboloMoneda(),
+                    'empresa' => $empresa,
+                    "legends" => $legends,
+                    'mostrar_cuentas'   =>  $mostrar_cuentas
+                ])->setPaper('a4')->setWarnings(false);
+
+                return $pdf->stream($documento->serie . '-' . $documento->correlativo . '.pdf');
+            }
+        }
+    }
+
+    public function voucher_old($value)
     {   
 
         try {
@@ -2716,6 +2885,70 @@ class DocumentoController extends Controller
     // }
 
     public function qr_code($id)
+    {
+        try {
+            $documento = Documento::findOrFail($id);
+            $name_qr = '';
+
+            if ($documento->contingencia == '0') {
+                $name_qr = $documento->serie . "-" . $documento->correlativo . '.svg';
+            } else {
+                $name_qr = $documento->serie_contingencia . "-" . $documento->correlativo . '.svg';
+            }
+
+            //======= NOTA DE VENTA =====
+            if($documento->tipo_venta == 129){
+                $data_qr = $documento->ruc_empresa . '|' .        // RUC
+                '04' . '|' .                           // Tipo de Documento (04 para Nota de Venta)
+                ($documento->contingencia == '0' ? $documento->serie : $documento->serie_contingencia) . '|' . // SERIE
+                $documento->correlativo . '|' .        // NUMERO
+                (float) $documento->total_pagar . '|' .      // MTO TOTAL DEL COMPROBANTE
+                $documento->created_at; // FECHA DE EMISION
+            }else{
+
+                //========= BOLETA O FACTURA =======
+                $data_qr =  $documento->ruc_empresa . '|' .                // RUC
+                        $documento->tipoDocumento() . '|' .            // TIPO DE DOCUMENTO
+                        ($documento->contingencia == '0' ? $documento->serie : $documento->serie_contingencia) . '|' . // SERIE
+                        $documento->correlativo . '|' .                // NUMERO
+                        (float) $documento->total_igv . '|' .                                     // MTO TOTAL IGV
+                        (float) $documento->total_pagar . '|' .              // MTO TOTAL DEL COMPROBANTE
+                        $documento->created_at . '|' .  // FECHA DE EMISION
+                        $documento->tipoDocumentoCliente() . '|' .     // TIPO DE DOCUMENTO ADQUIRENTE
+                        $documento->documento_cliente;                 // NUMERO DE DOCUMENTO ADQUIRENTE
+
+            }
+            
+            
+            $miQr = QrCode::format('svg')
+                ->size(130) 
+                ->backgroundColor(0, 0, 0) 
+                ->color(255, 255, 255) 
+                ->margin(1)
+                ->generate($data_qr); 
+            
+            $pathToFile_qr = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs' . DIRECTORY_SEPARATOR . $name_qr);
+            
+            // Crea el directorio si no existe
+            if (!file_exists(dirname($pathToFile_qr))) {
+                mkdir(dirname($pathToFile_qr), 0755, true);
+            }
+            
+            // Guarda el QR en el archivo
+            file_put_contents($pathToFile_qr, $miQr);
+            
+            // Actualiza la ruta del QR en la base de datos
+            $documento->ruta_qr = 'public/qrs/' . $name_qr;
+            $documento->update();
+            
+            return array('success' => true, 'mensaje' => 'QR creado exitosamente');
+            
+        } catch (Exception $e) {
+            return array('success' => false, 'mensaje' => $e->getMessage());
+        }
+    }
+
+    public function qr_code_old($id)
     {
         try {
             $documento = Documento::findOrFail($id);

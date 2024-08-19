@@ -496,6 +496,7 @@
                 <td scope="row">${pd.cantidad}</td>
                 <td scope="row">${pd.cantidad_atendida}</td>
                 <td scope="row">${pd.cantidad_pendiente}</td>
+                <td scope="row">${pd.cantidad_devuelta}</td>
             </tr>`;
         })
 

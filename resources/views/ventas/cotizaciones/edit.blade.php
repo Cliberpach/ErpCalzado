@@ -1272,7 +1272,7 @@
                 console.log('precio venta fijado'); 
             } 
         }else{
-            toastr.info('NO SE PUEDO FIJAR EL PRECIO DE VENTA PREVIO PARA EL PRODUCTO');
+            toastr.info('NO SE PUDO FIJAR EL PRECIO DE VENTA PREVIO PARA EL PRODUCTO','ESTO NO AFECTA A LA COTIZACIÓN');
         }
 
     }

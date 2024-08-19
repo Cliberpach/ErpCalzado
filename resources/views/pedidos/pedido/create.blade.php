@@ -3,7 +3,84 @@
 
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
+<style>
 
+    .overlay_pedido_create {
+      position: fixed; /* Fija el overlay para que cubra todo el viewport */
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
+      z-index: 999999999; /* Asegura que el overlay esté sobre todo */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 24px;
+      visibility:hidden;
+    }
+    
+    /*========== LOADER SPINNER =======*/
+    .loader_pedido_create{
+        position: relative;
+        width: 75px;
+        height: 100px;
+        background-repeat: no-repeat;
+        background-image: linear-gradient(#DDD 50px, transparent 0),
+                          linear-gradient(#DDD 50px, transparent 0),
+                          linear-gradient(#DDD 50px, transparent 0),
+                          linear-gradient(#DDD 50px, transparent 0),
+                          linear-gradient(#DDD 50px, transparent 0);
+        background-size: 8px 100%;
+        background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px;
+        animation: pillerPushUp 4s linear infinite;
+      }
+    .loader_pedido_create:after {
+        content: '';
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        width: 10px;
+        height: 10px;
+        background: #de3500;
+        border-radius: 50%;
+        animation: ballStepUp 4s linear infinite;
+      }
+    
+    @keyframes pillerPushUp {
+      0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
+      50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
+    }
+    
+    @keyframes ballStepUp {
+      0% {transform: translate(0, 0)}
+      5% {transform: translate(8px, -14px)}
+      10% {transform: translate(15px, -10px)}
+      17% {transform: translate(23px, -24px)}
+      20% {transform: translate(30px, -20px)}
+      27% {transform: translate(38px, -34px)}
+      30% {transform: translate(45px, -30px)}
+      37% {transform: translate(53px, -44px)}
+      40% {transform: translate(60px, -40px)}
+      50% {transform: translate(60px, 0)}
+      57% {transform: translate(53px, -14px)}
+      60% {transform: translate(45px, -10px)}
+      67% {transform: translate(37px, -24px)}
+      70% {transform: translate(30px, -20px)}
+      77% {transform: translate(22px, -34px)}
+      80% {transform: translate(15px, -30px)}
+      87% {transform: translate(7px, -44px)}
+      90% {transform: translate(0, -40px)}
+      100% {transform: translate(0, 0);}
+    }
+        
+        
+</style>
+
+<div class="overlay_pedido_create">
+    <span class="loader_pedido_create"></span>
+</div>
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
@@ -218,20 +295,30 @@
                                     <div class="row">
                                         <div class="col-lg-12">
                                             <div class="form-group row">
-                                                <div class="col-lg-3 col-xs-12">
-                                                    <label class="required">Modelo</label>
+                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                                                    <label class="required" style="font-weight: bold;">MODELO</label>
                                                     <select id="modelo"
                                                         class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
                                                         onchange="getProductosByModelo(this)" >
                                                         <option></option>
                                                         @foreach ($modelos as $modelo)
                                                             <option value="{{ $modelo->id }}"
-                                                                {{ old('modelo') == $modelo->id ? 'selected' : '' }}>
-                                                                {{ $modelo->descripcion }}</option>
+                                                                {{ old('modelo') == $modelo->id ? 'selected' : '' }}>{{$modelo->descripcion}}</option>
                                                         @endforeach
                                                     </select>
-                                                    <div class="invalid-feedback"><b><span
-                                                                id="error-producto"></span></b></div>
+                                                </div>
+                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                                                    <label class="required" style="font-weight: bold;">PRODUCTO</label>
+                                                    <select id="producto"
+                                                        class="select2_form form-control {{ $errors->has('producto') ? ' is-invalid' : '' }}"
+                                                        onchange="getColoresTallas()" >
+                                                        <option value=""></option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                                                    <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
+                                                    <select id="precio_venta" class="select2_form form-control">
+                                                    </select>
                                                 </div>
                                             </div>
 
@@ -263,9 +350,14 @@
                                     <h4><b>Detalle del Pedido</b></h4>
                                 </div>
                                 <div class="panel-body">
-                                    @include('pedidos.pedido.table-detalles',[
-                                        "carrito" => "carrito"
-                                    ])
+                                    <div class="table-responsive">
+                                        @include('pedidos.pedido.tables.table_pedido_detalle')
+                                    </div>
+                                </div>
+                                <div class="panel-footer panel-primary">
+                                    <div class="table-responsive">
+                                        @include('pedidos.pedido.tables.table_montos_atender')
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -360,6 +452,8 @@
 
     let pedidos_data_table  = null;
     let carrito             =   [];
+    let dataTableStocksPedido   =   null;
+
 
     document.addEventListener('DOMContentLoaded',()=>{
         loadSelect2();
@@ -374,11 +468,15 @@
          //====== ELIMINAR ITEM =========
          document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('delete-product')){
+                mostrarAnimacionPedido();
                 const productoId = e.target.getAttribute('data-producto');
                 const colorId = e.target.getAttribute('data-color');
                 eliminarProducto(productoId,colorId);
                 pintarDetallePedido(carrito);
+                clearInputsCantidad();
+                loadCarrito();
                 calcularMontos();
+                ocultarAnimacionPedido();
             }
         })
 
@@ -481,77 +579,8 @@
 
        //======== AGREGAR PRODUCTO AL DETALLE =====
        document.querySelector('#btn_agregar_detalle').addEventListener('click',()=>{
-            const inputsCantidad = document.querySelectorAll('.inputCantidad');
             
-            for (const ic of inputsCantidad) {
-
-                const cantidad = ic.value ? ic.value : null;
-                if (cantidad) {
-                            const producto      = formarProducto(ic);
-                            const indiceExiste  = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
-
-                            //===== PRODUCTO NUEVO =====
-                            if (indiceExiste == -1) {
-                                const objProduct = {
-                                    producto_id:            producto.producto_id,
-                                    color_id:               producto.color_id,
-                                    modelo_nombre:          producto.modelo_nombre,
-                                    producto_nombre:        producto.producto_nombre,
-                                    producto_codigo:        producto.producto_codigo,
-                                    color_nombre:           producto.color_nombre,
-                                    precio_venta:           producto.precio_venta,
-                                    monto_descuento:        0,
-                                    porcentaje_descuento:   0,
-                                    precio_venta_nuevo:     0,
-                                    subtotal_nuevo:         0,
-                                    tallas: [{
-                                        talla_id:           producto.talla_id,
-                                        talla_nombre:       producto.talla_nombre,
-                                        cantidad:           producto.cantidad
-                                    }]
-                                };
-
-                                carrito.push(objProduct);
-                            } else {
-                                const productoModificar = carrito[indiceExiste];
-                                productoModificar.precio_venta = producto.precio_venta;
-
-                                const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
-
-                                if (indexTalla !== -1) {
-                                    const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
-                                    productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
-                                    carrito[indiceExiste] = productoModificar;
-                                } else {
-                                    const objTallaProduct = {
-                                        talla_id: producto.talla_id,
-                                        talla_nombre: producto.talla_nombre,
-                                        cantidad: producto.cantidad
-                                    };
-                                    carrito[indiceExiste].tallas.push(objTallaProduct);
-                                }
-                            }
-                } else {
-                    const producto = formarProducto(ic);
-                    const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
-
-                    if (indiceProductoColor !== -1) {
-                        const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
-
-                        if (indiceTalla !== -1) {
-                            const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
-                            carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
-                            
-                            const cantidadTallas = carrito[indiceProductoColor].tallas.length;
-
-                            if (cantidadTallas == 0) {
-                                carrito.splice(indiceProductoColor, 1);
-                            }
-                        }
-                    }
-                }
-            }
-
+            agregarProducto();
             reordenarCarrito();
             calcularSubTotal();
             pintarDetallePedido(carrito);
@@ -608,6 +637,88 @@
         }
 
         return enviar
+    }
+
+    //===== LIMPIAR INPUTS DEL TABLERO PRODUCTOS ======
+    function clearInputsCantidad(){
+        const inputsCantidad    =   document.querySelectorAll('.inputCantidad');
+        inputsCantidad.forEach((inputCantidad)=>{
+            inputCantidad.value =   '';
+        })  
+    }
+
+    function agregarProducto(){
+        const inputsCantidad = document.querySelectorAll('.inputCantidad');
+            
+        for (const ic of inputsCantidad) {
+
+            const cantidad = ic.value ? ic.value : null;
+            if (cantidad) {
+
+                const producto      = formarProducto(ic);
+                const indiceExiste  = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+                //===== PRODUCTO NUEVO =====
+                if (indiceExiste == -1) {
+                                const objProduct = {
+                                    producto_id:            producto.producto_id,
+                                    color_id:               producto.color_id,
+                                    modelo_nombre:          producto.modelo_nombre,
+                                    producto_nombre:        producto.producto_nombre,
+                                    producto_codigo:        producto.producto_codigo,
+                                    color_nombre:           producto.color_nombre,
+                                    precio_venta:           producto.precio_venta,
+                                    monto_descuento:        0,
+                                    porcentaje_descuento:   0,
+                                    precio_venta_nuevo:     0,
+                                    subtotal_nuevo:         0,
+                                    tallas: [{
+                                        talla_id:           producto.talla_id,
+                                        talla_nombre:       producto.talla_nombre,
+                                        cantidad:           producto.cantidad
+                                    }]
+                                };
+
+                                carrito.push(objProduct);
+                } else {
+                    const productoModificar = carrito[indiceExiste];
+                    productoModificar.precio_venta = producto.precio_venta;
+
+                    const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                    if (indexTalla !== -1) {
+                        const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
+                        productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
+                        carrito[indiceExiste] = productoModificar;
+                    } else {
+                        const objTallaProduct = {
+                            talla_id: producto.talla_id,
+                            talla_nombre: producto.talla_nombre,
+                            cantidad: producto.cantidad
+                        };
+                        carrito[indiceExiste].tallas.push(objTallaProduct);
+                    }
+                }
+            } else {
+                const producto = formarProducto(ic);
+                const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+                if (indiceProductoColor !== -1) {
+                    const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                    if (indiceTalla !== -1) {
+                        const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
+                        carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
+                            
+                        const cantidadTallas = carrito[indiceProductoColor].tallas.length;
+
+                        if (cantidadTallas == 0) {
+                            carrito.splice(indiceProductoColor, 1);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     //======= CARGAR PRODUCTOS ========
@@ -706,14 +817,14 @@
     //=========== FORMAR PRODUCTO =========
     const formarProducto = (ic)=>{
         const producto_id           = ic.getAttribute('data-producto-id');
-        const modelo_nombre         = ic.getAttribute('data-modelo-nombre');
+        const modelo_nombre         = $('#modelo').find('option:selected').text();
         const producto_nombre       = ic.getAttribute('data-producto-nombre');
         const producto_codigo       = ic.getAttribute('data-producto-codigo');
         const color_id              = ic.getAttribute('data-color-id');
         const color_nombre          = ic.getAttribute('data-color-nombre');
         const talla_id              = ic.getAttribute('data-talla-id');
         const talla_nombre          = ic.getAttribute('data-talla-nombre');
-        const precio_venta          = document.querySelector(`#precio-venta-${producto_id}`).value;
+        const precio_venta          = $('#precio_venta').find('option:selected').text();
         const cantidad              = ic.value?ic.value:0;
         const subtotal              = 0;
         const subtotal_nuevo        = 0;
@@ -757,26 +868,32 @@
             htmlTallas=``;
                 fila+= `<tr>   
                             <td>
-                                <i class="fas fa-trash-alt btn btn-primary delete-product"
+                                <i class="fas fa-trash-alt btn btn-danger delete-product"
                                 data-producto="${c.producto_id}" data-color="${c.color_id}">
                                 </i>                            
                             </td>
-                            <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
+                            <th>
+                                <div style="width:120px;">${c.producto_nombre}</div>    
+                            </th>
+                            <th>${c.color_nombre}</th>`;
+
 
                 //tallas
                 tallas.forEach((t)=>{
-                    let item_talla = c.tallas.filter((ct)=>{
+                    let cantidad = c.tallas.filter((ct)=>{
                         return t.id==ct.talla_id;
                     });
-                    let cantidad    =   item_talla.length!=0?item_talla[0].cantidad:0;
+                    cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad='';
                     htmlTallas += `<td>${cantidad}</td>`; 
                 })
 
 
                 htmlTallas+=`   <td style="text-align: right;">
-                                    <span class="precio_venta_${c.producto_id}_${c.color_id}">
-                                        ${c.porcentaje_descuento === 0? c.precio_venta:c.precio_venta_nuevo}
-                                    </span>
+                                    <div style="width:100px;">
+                                        <span class="precio_venta_${c.producto_id}_${c.color_id}">
+                                            ${c.porcentaje_descuento === 0? c.precio_venta:c.precio_venta_nuevo}
+                                        </span>       
+                                    </div>
                                 </td>
                                 <td class="td-subtotal" style="text-align: right;">
                                     <span class="subtotal_${c.producto_id}_${c.color_id}">
@@ -795,87 +912,238 @@
         })
     }
 
+
     
     //========== OBTENER PRODUCTOS POR MODELO =========
-    async function getProductosByModelo(target){
-        const   btnAgregarDetalle   =   document.querySelector('#btn_agregar_detalle')
-        const modelo_id =   target.value;
-        btnAgregarDetalle.disabled = true;
+    async function  getProductosByModelo(e){
+        toastr.clear();
+        mostrarAnimacionPedido();
+        const bodyTableStocks   =   document.querySelector('#table-stocks-pedidos tbody');
+        const btnAgregarDetalle =   document.querySelector('#btn_agregar_detalle');
+        clearTabla(bodyTableStocks);
 
+        const modelo_id                   =   e.value;
+        btnAgregarDetalle.disabled  =   true;
+        
         if(modelo_id){
             try {
                 const res       =   await axios.get(route('pedidos.pedido.getProductosByModelo', modelo_id));
-                const productos =   res.data.message;
-                console.log(productos);
-                pintarTableProductos(productos);
-                setCantidadesTablero();
+                if(res.data.success){
+                    pintarSelectProductos(res.data.productos);
+                    toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
+                }else{
+                    ocultarAnimacionPedido();
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
             } catch (error) {
-                    
+                ocultarAnimacionPedido();
+                toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
             }
+               
         }else{
-            const bodyTablaProductos    =   document.querySelector('#table-stocks-pedidos tbody');
-            clearTabla(bodyTablaProductos);
-        }  
+            ocultarAnimacionPedido();
+        }
     }
 
+    function destruirDataTableStocks(){
+        if(dataTableStocksPedido){
+            dataTableStocksPedido.destroy();
+            dataTableStocksPedido   =   null;
+        }
+    }
 
-    //======== PINTAR TABLA PRODUCTOS =========
-    function pintarTableProductos(productos){
-        let     options             =   ``;
-        const   tallas              =   @json($tallas);
+    //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
+    async function getColoresTallas(){
+        mostrarAnimacionPedido();
+        const producto_id   =   $('#producto').val();
+        if(producto_id){
+            try {
+                const res   =   await   axios.get(route('pedidos.pedido.getColoresTallas',{producto_id}));
+                if(res.data.success){
+                    destruirDataTableStocks();
+                    pintarTableStocks(res.data.producto_color_tallas);
+                    loadDataTableStocksPedido();
+                    pintarPreciosVenta(res.data.producto_color_tallas);
+                    loadCarrito();
+                    loadPrecioVentaProductoCarrito(producto_id);
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
+            }finally{
+                ocultarAnimacionPedido();
+            }
+        }else{
+            destruirDataTableStocks();
+            limpiarTableStocks();
+            loadDataTableStocksPedido();
+            limpiarSelectPreciosVenta();
+            ocultarAnimacionPedido();
+        }
+    }
+
+    function loadDataTableStocksPedido(){
+        dataTableStocksPedido =   new DataTable('#table-stocks-pedidos',{
+            language: {
+                "sEmptyTable": "No hay datos disponibles en la tabla",
+                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                "sInfoEmpty": "Mostrando 0 a 0 de 0 entradas",
+                "sInfoFiltered": "(filtrado de _MAX_ entradas totales)",
+                "sInfoPostFix": "",
+                "sInfoThousands": ",",
+                "sLengthMenu": "Mostrar _MENU_ entradas",
+                "sLoadingRecords": "Cargando...",
+                "sProcessing": "Procesando...",
+                "sSearch": "Buscar:",
+                "sZeroRecords": "No se encontraron resultados",
+                "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast": "Último",
+                        "sNext": "Siguiente",
+                        "sPrevious": "Anterior"
+                },
+                "oAria": {
+                        "sSortAscending": ": activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": activar para ordenar la columna de manera descendente"
+                }
+            }
+        });
+    }
+
+    const pintarTableStocks = (producto)=>{
+        let filas = ``;
         const   tableStocksBody     =   document.querySelector('#table-stocks-pedidos tbody');
         const   btnAgregarDetalle   =   document.querySelector('#btn_agregar_detalle')
 
-        productos.forEach((p)=>{
-            options+=`  <tr>
-                            <th scope="row" data-producto=${p.producto_id} data-color=${p.color_id} >
-                                ${p.producto_nombre} - ${p.color_nombre}
+
+        producto.colores.forEach((color)=>{
+            filas   +=  `  <tr>
+                            <th scope="row" data-producto=${producto.id} data-color=${color.id} >
+                                <div style="width:200px;">${producto.nombre}</div>
                             </th>
+                            <th scope="row">${color.nombre}</th>
                         `;
 
-            let htmlTallas = ``;
-
-            tallas.forEach((t)=>{
-                const stock = p.tallas.filter(pt => pt.talla_id == t.id)[0]?.stock_logico || 0;
-
-                htmlTallas +=   `
-                                    <td style="background-color: rgb(210, 242, 242);">
-                                        <p style="margin:0;width:20px;text-align:center;">${stock}</p>
-                                    </td>
-                                    <td width="8%">
-                                        <input type="text" style="width:50px;text-align:center;" class="form-control inputCantidad"
-                                        id="inputCantidad_${p.producto_id}_${p.color_id}_${t.id}" 
-                                        data-modelo-nombre="${p.modelo_nombre}"
-                                        data-producto-id="${p.producto_id}"
-                                        data-producto-nombre="${p.producto_nombre}"
-                                        data-producto-codigo="${p.producto_codigo}"
-                                        data-color-id="${p.color_id}"
-                                        data-color-nombre="${p.color_nombre}"
-                                        data-talla-id="${t.id}"
-                                        data-talla-nombre="${t.descripcion}"></input>    
-                                    </td>
-                                `;   
+            color.tallas.forEach((talla)=>{
+                filas   +=  `<td style="background-color: rgb(210, 242, 242);">
+                                        <p style="margin:0;width:20px;text-align:center;${talla.stock != 0?'font-weight:bold':''};">${talla.stock}</p>
+                            </td>
+                            <td width="8%">
+                                <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
+                                id="inputCantidad_${producto.id}_${color.id}_${talla.id}" 
+                                data-producto-id="${producto.id}"
+                                data-producto-nombre="${producto.nombre}"
+                                data-color-nombre="${color.nombre}"
+                                data-talla-nombre="${talla.nombre}"
+                                data-color-id="${color.id}" data-talla-id="${talla.id}" 
+                                data-producto-codigo="${producto.codigo}"></input>    
+                            </td>`;
             })
 
-            if(p.print_precios){
-                htmlTallas+=`
-                    <td>
-                        <select style="width:100px;" class="select2_form form-control" id="precio-venta-${p.producto_id}">
-                            <option>${p.precio_venta_1}</option>    
-                            <option>${p.precio_venta_2}</option>    
-                            <option>${p.precio_venta_3}</option>    
-                        </select>
-                    </td>`;
-            }else{
-                htmlTallas+=`<td></td>`;
-            }
-
-            htmlTallas += `</tr>`;
-            options += htmlTallas;
+            filas   +=  `</tr>`;
+           
         })
 
-        tableStocksBody.innerHTML = options;
+        tableStocksBody.innerHTML = filas;
         btnAgregarDetalle.disabled = false;
+
+    }
+
+
+    function limpiarTableStocks(){
+        const   tableStocksBody     =   document.querySelector('#table-stocks-pedidos tbody');
+
+        while (tableStocksBody.firstChild) {
+            tableStocksBody.removeChild(tableStocksBody.firstChild);
+        }
+    }
+
+    //======= PINTAR PRECIOS VENTA =======
+    function pintarPreciosVenta(producto_color_tallas){
+        //======= LIMPIAR SELECT2 DE PRODUCTOS ======
+        $('#precio_venta').empty();
+
+        //====== LLENAR =======
+
+        if(producto_color_tallas){
+            if(producto_color_tallas.precio_venta_1 != null){
+                const option_1 = new Option(producto_color_tallas.precio_venta_1, 'precio_venta_1', false, false);
+                $('#precio_venta').append(option_1);
+            }
+
+            if(producto_color_tallas.precio_venta_2 != null){
+                const option_2 = new Option(producto_color_tallas.precio_venta_2, 'precio_venta_2', false, false);
+                $('#precio_venta').append(option_2);
+            }
+           
+            if(producto_color_tallas.precio_venta_3 != null){
+                const option_3 = new Option(producto_color_tallas.precio_venta_3, 'precio_venta_3', false, false);
+                $('#precio_venta').append(option_3);
+            }
+        }
+       
+        // Refrescar Select2
+        $('#precio_venta').trigger('change');
+    }
+
+
+
+    //======== PINTAR SELECT PRODUCTOS =======
+    function pintarSelectProductos(productos){
+        //======= LIMPIAR SELECT2 DE PRODUCTOS ======
+        $('#producto').empty();
+    
+        if(productos.length === 0){
+            ocultarAnimacionPedido();
+        }
+        
+        //====== LLENAR =======
+        productos.forEach((producto) => {
+            const option = new Option(producto.nombre, producto.id, false, false);
+            $('#producto').append(option);
+        });
+
+        // Refrescar Select2
+        //$('#producto').val(null);
+        $('#producto').trigger('change');
+    }
+
+    function mostrarAnimacionPedido(){
+        document.querySelector('.overlay_pedido_create').style.visibility   =   'visible';
+    }
+
+    function ocultarAnimacionPedido(){
+        document.querySelector('.overlay_pedido_create').style.visibility   =   'hidden';
+    }
+
+    //====== CARGAR EL PRECIO DE VENTA ELEGIDO PARA EL PRODUCTO EN EL CARRITO ======
+    function loadPrecioVentaProductoCarrito(producto_id){
+        const producto_elegido_id   =   producto_id;
+        //===== LO BUSCAMOS EN EL CARRITO ======
+        const indiceProducto    =   carrito.findIndex((p)=>{
+            return p.producto_id    == producto_elegido_id;
+        })
+
+        if(indiceProducto !== -1){
+            const itemProducto  =   carrito[indiceProducto];
+            let targetValue;
+            //==== UBICANDO PRECIO VENTA SELECCIONADO ======
+            $('#precio_venta option').each(function() {
+                if ($(this).text() == itemProducto.precio_venta) {
+                    targetValue = $(this).val(); 
+                    return false;
+                }
+            });
+            
+            if (targetValue) {
+                $('#precio_venta').val(targetValue).trigger('change');
+                console.log('precio venta fijado'); 
+            } 
+        }else{
+            toastr.info('NO SE ENCONTRÓ PRECIO DE VENTA PREVIO PARA EL PRODUCTO');
+        }
+
     }
 
     //======== LIMPIAR TABLA PRODUCTOS ========
@@ -905,6 +1173,22 @@
     //============= ABRIR MODAL CLIENTE =============
     function openModalCliente(){
         $("#modal_cliente").modal("show");
+    }
+
+    //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
+    function loadCarrito(){
+        
+        carrito.forEach((c)=>{
+            c.tallas.forEach((talla)=>{
+                let llave   =   `#inputCantidad_${c.producto_id}_${c.color_id}_${talla.talla_id}`;   
+                const inputLoad = document.querySelector(llave);
+                console.log(inputLoad)
+                if(inputLoad){
+                    inputLoad.value = talla.cantidad;
+                }
+            })
+        }) 
+
     }
   
 </script>

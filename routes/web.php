@@ -523,7 +523,7 @@ function(){
 
         Route::delete('pedidos/{id}', 'Pedidos\PedidoController@destroy')->name('pedidos.pedido.destroy');
         Route::get('getProductosByModelo/{modelo_id}','Pedidos\PedidoController@getProductosByModelo')->name('pedidos.pedido.getProductosByModelo');
-        Route::get('/getColoresTallas/{producto_id}', 'Ventas\PedidoController@getColoresTallas')->name('pedidos.pedido.getColoresTallas');
+        Route::get('/getColoresTallas/{producto_id}', 'Pedidos\PedidoController@getColoresTallas')->name('pedidos.pedido.getColoresTallas');
         Route::get('reporte/{id}','Pedidos\PedidoController@report')->name('pedidos.pedido.reporte');
         Route::get('validar-tipo-venta/{comprobante_id}','Pedidos\PedidoController@validarTipoVenta')->name('pedidos.pedido.validarTipoVenta');
         Route::get('get-atencion-detalles/{pedido_id}/{documento_id}','Pedidos\PedidoController@getAtencionDetalles')->name('pedidos.pedido.getAtencionDetalles');
