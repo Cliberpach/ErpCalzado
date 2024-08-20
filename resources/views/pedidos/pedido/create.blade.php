@@ -602,6 +602,12 @@
             height: '200px',
             width: '100%',
         });
+
+        $(".select2_modal_cliente").select2({
+            placeholder: "SELECCIONAR", 
+            allowClear: true,          
+            width: '100%'        
+        });
     }
 
     //========= SWAL ======

@@ -223,9 +223,9 @@
                                                     <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
                                                         Registrar
                                                     </button>
-                                                </label>                                                <select id="cliente" name="cliente"
-                                                    class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}"
-                                                    onchange="obtenerTipo(this)" required>
+                                                </label>                                                
+                                                    <select id="cliente" name="cliente"
+                                                    class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}" required>
                                                     <option></option>
                                                     @foreach ($clientes as $cliente)
                                                         <option value="{{ $cliente->id }}"
@@ -651,11 +651,17 @@
 
     //============ LOAD SELECT2 ========
     function loadSelect2(){
-    $(".select2_form").select2({
+        $(".select2_form").select2({
             placeholder: "SELECCIONAR",
             allowClear: true,
             height: '200px',
             width: '100%',
+        });
+
+        $(".select2_modal_cliente").select2({
+            placeholder: "SELECCIONAR", 
+            allowClear: true,          
+            width: '100%'        
         });
     }
 

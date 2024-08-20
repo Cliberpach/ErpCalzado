@@ -438,7 +438,7 @@
     const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
     const inputMontoDescuento   =   document.querySelector('#monto_descuento');
 
-    const selectClientes    =   document.querySelector('#cliente');
+    const selectClientes        =   document.querySelector('#cliente');
 
     const inputProductos        =   document.querySelector('#productos_tabla');
     const tallas                =   @json($tallas);
@@ -772,11 +772,17 @@
 
     //============ LOAD SELECT2 ========
     function loadSelect2(){
+
         $(".select2_form").select2({
-            placeholder: "SELECCIONAR",
-            allowClear: true,
-            height: '200px',
-            width: '100%',
+            placeholder: "SELECCIONAR", 
+            allowClear: true,          
+            width: '100%',            
+        });
+
+        $(".select2_modal_cliente").select2({
+            placeholder: "SELECCIONAR", 
+            allowClear: true,          
+            width: '100%'        
         });
     }
 

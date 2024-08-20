@@ -1,240 +1,279 @@
 <style>
-    .talla-no-creada{
-        color:rgb(201, 47, 9);
-        font-weight: bold;
-    }
+    /* CSS */
 
-div.content-window {
+
+/*======== MODAL BODY ======*/
+.modal-header,
+.modal-body,
+.modal-footer {
+    background: rgba(255, 255, 255, 0); /* Fondo blanco con 20% de opacidad */
+    backdrop-filter: blur(10px); /* Desenfoque de fondo */
+    border-radius: 0px; /* Bordes redondeados, puedes ajustar si es necesario */
+    padding: 20px; /* Espaciado interno */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Borde opcional */
+    color: #fff; /* Color del texto blanco para buen contraste */
+}
+
+/* Opcional: Estilo del fondo del modal */
+.modal-content {
+    background: rgba(0, 0, 0, 0); /* Fondo semitransparente */
+}
+.modal-body{
+    color: #000000;
+}
+
+.lbl_mdl_cliente{
+    color: #fff;
+}
+
+/*============= OVERLAY CLIENTE ==========*/
+.overlay_modal_cliente {
+  position: fixed; /* Fija el overlay para que cubra todo el viewport */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
+  z-index: 9999; /* Asegura que el overlay esté sobre todo */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 24px;
+  visibility:hidden;
+}
+
+/*========== LOADER SPINNER =======*/
+.loader_modal_cliente {
     position: relative;
-}
-
-div.content-window.sk__loading::after {
+    width: 75px;
+    height: 100px;
+    background-repeat: no-repeat;
+    background-image: linear-gradient(#DDD 50px, transparent 0),
+                      linear-gradient(#DDD 50px, transparent 0),
+                      linear-gradient(#DDD 50px, transparent 0),
+                      linear-gradient(#DDD 50px, transparent 0),
+                      linear-gradient(#DDD 50px, transparent 0);
+    background-size: 8px 100%;
+    background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px;
+    animation: pillerPushUp 4s linear infinite;
+  }
+.loader_modal_cliente:after {
     content: '';
-    background-color: rgba(255, 255, 255, 0.7);
     position: absolute;
-    top: 0;
+    bottom: 10px;
     left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 3000;
+    width: 10px;
+    height: 10px;
+    background: #de3500;
+    border-radius: 50%;
+    animation: ballStepUp 4s linear infinite;
+  }
+
+@keyframes pillerPushUp {
+  0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
+  50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
 }
 
-.content-window.sk__loading>.sk-spinner.sk-spinner-wave {
-    margin: 0 auto;
-    width: 50px;
-    height: 30px;
-    text-align: center;
-    font-size: 10px;
+@keyframes ballStepUp {
+  0% {transform: translate(0, 0)}
+  5% {transform: translate(8px, -14px)}
+  10% {transform: translate(15px, -10px)}
+  17% {transform: translate(23px, -24px)}
+  20% {transform: translate(30px, -20px)}
+  27% {transform: translate(38px, -34px)}
+  30% {transform: translate(45px, -30px)}
+  37% {transform: translate(53px, -44px)}
+  40% {transform: translate(60px, -40px)}
+  50% {transform: translate(60px, 0)}
+  57% {transform: translate(53px, -14px)}
+  60% {transform: translate(45px, -10px)}
+  67% {transform: translate(37px, -24px)}
+  70% {transform: translate(30px, -20px)}
+  77% {transform: translate(22px, -34px)}
+  80% {transform: translate(15px, -30px)}
+  87% {transform: translate(7px, -44px)}
+  90% {transform: translate(0, -40px)}
+  100% {transform: translate(0, 0);}
 }
 
-.content-window.sk__loading>.sk-spinner {
-    display: block;
-    position: absolute;
-    top: 40%;
-    left: 0;
-    right: 0;
-    z-index: 3500;
-}
-
-.content-window .sk-spinner.sk-spinner-wave.hide-window {
-    display: none;
-}
 </style>
 
-<div class="modal inmodal" id="modal_cliente" role="dialog" aria-hidden="true">
+<div class="overlay_modal_cliente">
+    <span class="loader_modal_cliente"></span>
+</div>
 
-    <div class="modal-dialog modal-lg" style="max-width: 94%;">
-        <div class="modal-content animated bounceInRight">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" @click.prevent="Cerrar">
-                    <span aria-hidden="true">&times;</span>
-                    <span class="sr-only">Close</span>
-                </button>
-                <i class="fas fa-user-astronaut fa-pulse modal-icon"></i>
-                <h4 class="modal-title">NUEVO CLIENTE</h4>
-                <small class="font-bold">Registrar</small>
-            </div>
-            <div class="modal-body content_cliente content-window">
-                @include('components.overlay_search')
-                @include('components.overlay_save')
-
-             
-                <div class="sk-spinner sk-spinner-wave hide-window" >
-                    <div class="sk-rect1"></div>
-                    <div class="sk-rect2"></div>
-                    <div class="sk-rect3"></div>
-                    <div class="sk-rect4"></div>
-                    <div class="sk-rect5"></div>
-                </div>
-                  
-             
-
-                <form id="frmCliente" class="formulario">
-                    <div class="row">
-                        <div class="col-12 col-md-6">
-                            <div class="row">
-                                <div class="col-12 col-md-6 mb-2">
-                                    <div class="form-group m-0">
-                                        <label class="required" for="tipo_documento">Tipo de documento</label>
-                                        <select  required class="select2_form" name="tipo_documento" id="tipo_documento" onchange="controlNroDoc(this)">
-                                            @foreach ($tipos_documento as $tipo_documento)
-                                                <option value="{{$tipo_documento->id}}">{{$tipo_documento->simbolo}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <span style="color:red;" class="error_mdl_client_tipo_documento"></span>
+  <!-- Modal -->
+  <div class="modal fade" id="modal_cliente"  aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header d-flex flex-column align-items-center justify-content-center position-relative">
+            <i class="fas fa-user-tag mb-2" style="font-size: 40px;"></i>
+            <h5 class="modal-title" id="exampleModalLabel">REGISTRAR CLIENTE</h5>
+            <button type="button" class="close position-absolute" style="right: 15px; top: 15px; font-size: 35px;" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <form id="frmCliente" class="formulario">
+                <div class="row">
+                    <div class="col-12 col-md-6">
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-2">
+                                <div class="form-group m-0">
+                                    <label class="required lbl_mdl_cliente" for="tipo_documento">TIPO DE DOCUMENTO</label>
+                                    <select  required class="select2_modal_cliente" name="tipo_documento" id="tipo_documento" onchange="controlNroDoc(this)">
+                                        @foreach ($tipos_documento as $tipo_documento)
+                                            <option value="{{$tipo_documento->id}}">{{$tipo_documento->simbolo}}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                                <div class="col-12 col-md-6 mb-2">
-                                    <div class="form-group m-0">
-                                        <label class="required" for="documento">Nro. Documento</label>
-                                        <div class="input-group">
-                                            <input type="text" id="documento" name="documento" class="form-control"
-                                                 required maxlength="8" oninput="validarDocumento(this)">
-                                            <button id="btn_consultar_doc" onclick="consultarDocumento()" type="button" style="color:white" class="btn btn-primary">
-                                                <i class="fa fa-search" ></i>
-                                                <span id="entidad"> </span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <span style="color:red;" class="error_mdl_client_documento"></span>
-                                </div>
+                                <span style="color:rgb(251, 135, 135);" class="error_mdl_client_tipo_documento"></span>
                             </div>
-                            <div class="row">
-                                <div class="col-12 col-md-6 mb-2">
-                                    <div class="form-group m-0">
-                                        <label class="required" for="tipo_cliente">Tipo Cliente</label>
-                                        <select class="select2_form" name="tipo_cliente_id" id="tipo_cliente_id" >
-                                            @foreach ($tipo_clientes as $tipo_cliente)
-                                                <option value="{{$tipo_cliente->id}}">{{$tipo_cliente->simbolo}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <span style="color:red;" class="error_mdl_client_tipo_cliente_id"></span>
-                                </div>
-                                <input type="hidden" id="codigo_verificacion" name="codigo_verificacion">
-                                <div class="col-12 col-md-6">
-                                    <div class="form-group">
-                                        <label class="" for="activo">Estado</label>
-                                        <input type="text" id="activo" name="activo" value="SIN VERIFICAR"
-                                            class="form-control text-center" readonly>
+                            <div class="col-12 col-md-6 mb-2">
+                                <div class="form-group m-0">
+                                    <label class="required lbl_mdl_cliente" for="documento">NRO. DOCUMENTO</label>
+                                    <div class="input-group">
+                                        <input type="text" id="documento" name="documento" class="form-control"
+                                             required maxlength="8" oninput="validarDocumento(this)">
+                                        <button id="btn_consultar_doc" onclick="consultarDocumento()" type="button" style="color:white" class="btn btn-primary">
+                                            <i class="fa fa-search" ></i>
+                                            <span id="entidad"> </span>
+                                        </button>
                                     </div>
                                 </div>
+                                <span style="color:rgb(251, 135, 135);" class="error_mdl_client_documento"></span>
                             </div>
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="form-group">
-                                        <label class="required" id="lblNombre" for="nombre">Nombre</label>
-                                        <input type="text" id="nombre" name="nombre" class="form-control"
-                                            maxlength="191" v-model="formCliente.nombre" required>
-
-                                    </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-2">
+                                <div class="form-group m-0">
+                                    <label class="required lbl_mdl_cliente"  for="tipo_cliente">TIPO CLIENTE</label>
+                                    <select class="select2_modal_cliente" name="tipo_cliente_id" id="tipo_cliente_id" >
+                                        @foreach ($tipo_clientes as $tipo_cliente)
+                                            <option value="{{$tipo_cliente->id}}">{{$tipo_cliente->simbolo}}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                                <div class="col-12 mb-2">
-                                    <div class="form-group m-0">
-                                        <label for="direccion" class="required">Dirección Fiscal</label>
-                                        <input type="text" id="direccion" name="direccion" class="form-control"
-                                            maxlength="191" onkeyup="return mayus(this)" required>
-                                    </div>
-                                    <span style="color:red;" class="error_mdl_client_direccion"></span>
+                                <span style="color:rgb(251, 135, 135);" class="error_mdl_client_tipo_cliente_id"></span>
+                            </div>
+                            <input type="hidden" id="codigo_verificacion" name="codigo_verificacion">
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label class="lbl_mdl_cliente" for="activo">Estado</label>
+                                    <input type="text" id="activo" name="activo" value="SIN VERIFICAR"
+                                        class="form-control text-center" readonly>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-6">
-                            <div class="row">
-                                <div class="col-12 col-md-6 mb-2">
-                                    <div class="form-group m-0">
-                                        <label class="required" for="departamento">Departamento</label>
-                                        <select required class="select2_form" name="departamento" id="departamento" onchange="setUbicacionDepartamento(this.value,'first')">
-                                            @foreach ($departamentos as $departamento)
-                                                <option @if ($departamento->id == 13) selected @endif value="{{$departamento->id}}">{{$departamento->nombre}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <span style="color:red;" class="error_mdl_client_departamento"></span>
-                                </div>
-                                <div class="col-12 col-md-6 mb-2">
-                                    <div class="form-group m-0">
-                                        <label class="required" for="provincia">Provincia</label>
-                                        <select required class="select2_form" name="provincia" id="provincia" onchange="setUbicacionProvincia(this.value,'first')" >
-                                           
-                                        </select>
-                                    </div>
-                                    <span style="color:red;" class="error_mdl_client_provincia"></span>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12 col-md-6 mb-2">
-                                    <div class="form-group m-0">
-                                        <label class="required" for="distrito">Distrito</label>
-                                        <select required class="select2_form" name="distrito" id="distrito">
-                                           
-                                        </select>
-                                    </div>
-                                    <span style="color:red;" class="error_mdl_client_distrito"></span>
-                                </div>
-                                <div class="col-12 col-md-6 mb-2">
-                                    <div class="form-group m-0">
-                                        <label class="required" for="zona">Zona</label>
-                                        <input type="text" id="zona" name="zona" 
-                                            class=" text-center form-control" readonly>
-                                    </div>
-                                    <span style="color:red;" class="error_mdl_client_zona"></span>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12 col-md-6">
-                                    <div class="form-group">
-                                        <label for="telefono_movil" class="required">Teléfono móvil</label>
-                                        <input type="text" id="telefono_movil" name="telefono_movil"
-                                            class="form-control" onkeypress="return isNroPhone(event)" maxlength="9"
-                                            required v-model="formCliente.telefono_movil">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="required lbl_mdl_cliente" id="lblNombre" for="nombre">NOMBRE</label>
+                                    <input type="text" id="nombre" name="nombre" class="form-control"
+                                        maxlength="191" v-model="formCliente.nombre" required>
 
-                                    </div>
                                 </div>
-                                <div class="col-12 col-md-6 mb-2">
-                                    <div class="form-group m-0">
-                                        <label for="telefono_fijo">Teléfono fijo</label>
-                                        <input type="text" id="telefono_fijo" name="telefono_fijo"
-                                            class="form-control" onkeypress="return isNroPhone(event)" maxlength="9">
-                                    </div>
-                                    <span style="color:red;" class="error_mdl_client_telefono_movil"></span>
+                            </div>
+                            <div class="col-12 mb-2">
+                                <div class="form-group m-0">
+                                    <label for="direccion" class="required lbl_mdl_cliente">DIRECCIÓN</label>
+                                    <input type="text" id="direccion" name="direccion" class="form-control"
+                                        maxlength="191" onkeyup="return mayus(this)" required>
                                 </div>
-                                <div class="col-12">
-                                    <div class="form-group">
-                                        <label for="correo_electronico">Correo electr&oacute;nico</label>
-                                        <input type="text" id="correo_electronico" name="correo_electronico"
-                                            class="form-control" v-model="formCliente.correo_electronico">
-                                    </div>
+                                <span style="color:rgb(251, 135, 135);" class="error_mdl_client_direccion"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-2">
+                                <div class="form-group m-0">
+                                    <label class="required lbl_mdl_cliente" for="departamento">DEPARTAMENTO</label>
+                                    <select required class="select2_modal_cliente" name="departamento" id="departamento" onchange="setUbicacionDepartamento(this.value,'first')">
+                                        @foreach ($departamentos as $departamento)
+                                            <option @if ($departamento->id == 13) selected @endif value="{{$departamento->id}}">{{$departamento->nombre}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <span style="color:rgb(251, 135, 135);" class="error_mdl_client_departamento"></span>
+                            </div>
+                            <div class="col-12 col-md-6 mb-2">
+                                <div class="form-group m-0">
+                                    <label class="required lbl_mdl_cliente" for="provincia">PROVINCIA</label>
+                                    <select required class="select2_modal_cliente" name="provincia" id="provincia" onchange="setUbicacionProvincia(this.value,'first')" >
+                                       
+                                    </select>
+                                </div>
+                                <span style="color:rgb(251, 135, 135);" class="error_mdl_client_provincia"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-2">
+                                <div class="form-group m-0">
+                                    <label class="required lbl_mdl_cliente" for="distrito">DISTRITO</label>
+                                    <select required class="select2_modal_cliente" name="distrito" id="distrito">
+                                       
+                                    </select>
+                                </div>
+                                <span style="color:rgb(251, 135, 135);" class="error_mdl_client_distrito"></span>
+                            </div>
+                            <div class="col-12 col-md-6 mb-2">
+                                <div class="form-group m-0">
+                                    <label class="required lbl_mdl_cliente" for="zona">Zona</label>
+                                    <input type="text" id="zona" name="zona" 
+                                        class=" text-center form-control" readonly>
+                                </div>
+                                <span style="color:rgb(251, 135, 135);" class="error_mdl_client_zona"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label for="telefono_movil" class="required lbl_mdl_cliente">TELÉFONO MÓVIL</label>
+                                    <input type="text" id="telefono_movil" name="telefono_movil"
+                                        class="form-control" onkeypress="return isNroPhone(event)" maxlength="9"
+                                        required v-model="formCliente.telefono_movil">
+
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6 mb-2">
+                                <div class="form-group m-0">
+                                    <label for="telefono_fijo" class="lbl_mdl_cliente">TELÉFONO FIJO</label>
+                                    <input type="text" id="telefono_fijo" name="telefono_fijo"
+                                        class="form-control" onkeypress="return isNroPhone(event)" maxlength="9">
+                                </div>
+                                <span style="color:rgb(251, 135, 135);" class="error_mdl_client_telefono_movil"></span>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="correo_electronico" class="lbl_mdl_cliente">CORREO</label>
+                                    <input type="text" id="correo_electronico" name="correo_electronico"
+                                        class="form-control" v-model="formCliente.correo_electronico">
                                 </div>
                             </div>
                         </div>
                     </div>
-                </form>
-                <div class="sk-spinner sk-spinner-wave d-none">
-                    <div class="sk-rect1"></div>
-                    <div class="sk-rect2"></div>
-                    <div class="sk-rect3"></div>
-                    <div class="sk-rect4"></div>
-                    <div class="sk-rect5"></div>
                 </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <div class="col-md-6 text-left">
+                <i class="fa fa-exclamation-circle leyenda-required"></i> <small class="leyenda-required">Los
+                    campos
+                    marcados con asterisco (*) son obligatorios.</small>
             </div>
-            <div class="modal-footer">
-                <div class="col-md-6 text-left">
-                    <i class="fa fa-exclamation-circle leyenda-required"></i> <small class="leyenda-required">Los
-                        campos
-                        marcados con asterisco (*) son obligatorios.</small>
-                </div>
-                <div class="col-md-6 text-right">
-                    <button disabled id="btnGuardarCliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente" style="color:white;"><i
-                            class="fa fa-save"></i> Guardar</button>
-                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" @click.prevent="Cerrar"><i
-                            class="fa fa-times"></i> Cancelar</button>
-                </div>
+            <div class="col-md-6 text-right">
+                <button disabled id="btnGuardarCliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente" style="color:white;"><i
+                        class="fa fa-save"></i> Guardar</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" @click.prevent="Cerrar"><i
+                        class="fa fa-times"></i> Cancelar</button>
             </div>
         </div>
-
+      </div>
     </div>
-</div>
+  </div>
 
 
 <script>
@@ -295,9 +334,10 @@ div.content-window.sk__loading::after {
        
         setZona(getZona(departamento_id));
         
-       
+        mostrarAnimacionModalCliente();
         const provincias    =   await getProvincias(departamento_id,provincia_id);
         pintarProvincias(provincias,provincia_id);
+        
        
     }
 
@@ -306,7 +346,7 @@ div.content-window.sk__loading::after {
         
         const distritos         =   await getDistritos(provincia_id);
         pintarDistritos(distritos,distrito_id);
-        ocultarAnimacion();
+        ocultarAnimacionModalCliente();
     }
 
     function getZona(departamento_id){
@@ -321,26 +361,18 @@ div.content-window.sk__loading::after {
         inputZona.value =   zona_nombre;
     }
 
-    function mostrarAnimacion(){
-        document.querySelector('.content-window').classList.add('sk__loading');
-        document.querySelector('.sk-spinner').classList.remove('hide-window');
-    }
-
-    function ocultarAnimacion(){
-        document.querySelector('.content-window').classList.remove('sk__loading');
-        document.querySelector('.sk-spinner').classList.add('hide-window');
-    }
+  
 
 
     //======= GET PROVINCIAS ==========
     async function getProvincias(departamento_id) {
             try {
-                mostrarAnimacion();
+                
                 const { data } = await this.axios.post(route('mantenimiento.ubigeo.provincias'), {
                     departamento_id
                 });
+                console.log(data);
                 const { error, message, provincias } = data;
-                
                 return provincias;
             } catch (ex) {
 
@@ -369,7 +401,7 @@ div.content-window.sk__loading::after {
     //====== PINTAR DISTRITOS ========
     async function getDistritos(provincia_id,distrito_id) {
             try {
-                mostrarAnimacion();
+                mostrarAnimacionModalCliente();
                 const { data } = await this.axios.post(route('mantenimiento.ubigeo.distritos'), {
                     provincia_id
                 });
@@ -405,8 +437,7 @@ div.content-window.sk__loading::after {
     async function consultarDocumento() {
         try {
             //======= MOSTRAR OVERLAY =======
-            const overlay = document.getElementById('overlay');
-            overlay.style.display = 'flex'; 
+            mostrarAnimacionModalCliente();
 
             const tipoDocumento     =   selectTipoDoc.options[selectTipoDoc.selectedIndex].textContent;
             const numeroDocumento   =   inputNroDoc.value;
@@ -471,14 +502,14 @@ div.content-window.sk__loading::after {
         }catch (ex) {
                 alert("Error en consultarDocumento" + ex);
         }finally{
-            const overlay = document.getElementById('overlay');
-            overlay.style.display = 'none'; 
+            ocultarAnimacionModalCliente();
         }
     }
 
     //======= CONSULTAR API =======
     async function consultarAPI(tipo_documento,nro_documento) {
             try {
+                mostrarAnimacionModalCliente();
                 let tipoDoc     =   tipo_documento;
                 let documento   =   nro_documento;
                 let url         =   null;
@@ -523,6 +554,8 @@ div.content-window.sk__loading::after {
             } catch (ex) {
                 this.loading = false;
                 alert("Error en consultarAPI" + ex);
+            }finally{
+                ocultarAnimacionModalCliente();
             }
     }
 
@@ -557,7 +590,9 @@ div.content-window.sk__loading::after {
             document.querySelector('#provincia').onchange = function() {
                 setUbicacionProvincia(this.value, 'first');
             };
-            ocultarAnimacion();
+            
+
+            ocultarAnimacionModalCliente();
             return;
         }
         
@@ -588,8 +623,7 @@ div.content-window.sk__loading::after {
     async function guardarCliente() {
             try {
                 //======= MOSTRAR OVERLAY =======
-                const overlay = document.getElementById('overlay_save');
-                overlay.style.display = 'flex'; 
+                mostrarAnimacionModalCliente();
 
                 //======== OBTENEMOS EL SIMBOLO DEL TIPO DOCUMENTO =======
                 const formData  =   new FormData(formCliente);
@@ -611,6 +645,7 @@ div.content-window.sk__loading::after {
                 }
 
             } catch (ex) {
+                console.log(ex);
                 if('errors' in ex.response.data){
                     //======= PINTAR ERRORES DE VALIDACIÓN =======
                     pintarErrores(ex.response.data.errors);
@@ -618,8 +653,7 @@ div.content-window.sk__loading::after {
                 }
                 toastr.error(ex,'ERROR EN LA PETICIÓN REGISTRAR CLIENTE');
             }finally{
-                const overlay = document.getElementById('overlay_save');
-                overlay.style.display = 'none'; 
+                ocultarAnimacionModalCliente();
             }
     }
 
@@ -665,6 +699,16 @@ div.content-window.sk__loading::after {
         }
 
        
+    }
+
+    function mostrarAnimacionModalCliente(){
+      
+        document.querySelector('.overlay_modal_cliente').style.visibility   =   'visible';
+    }
+
+    function ocultarAnimacionModalCliente(){
+        
+        document.querySelector('.overlay_modal_cliente').style.visibility   =   'hidden';
     }
 
     
