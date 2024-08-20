@@ -110,7 +110,7 @@
                                     </div>
                                     <div class="col-3">
                                         <label for="obs_rotulo" style="font-weight: bold;">OBS RÓTULO</label>
-                                        <textarea maxlength="20"  id="obs_rotulo" v-model="obs_rotulo" class="form-control"></textarea>
+                                        <textarea maxlength="35"  id="obs_rotulo" v-model="obs_rotulo" class="form-control"></textarea>
                                     </div>
                                     <div class="col-3">
                                         <label for="obs_despacho" style="font-weight: bold;">OBS DESPACHO</label>
