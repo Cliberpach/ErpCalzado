@@ -105,7 +105,7 @@
 
   <!-- Modal -->
   <div class="modal fade" id="modal_cliente"  aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg" style="max-width: 60%;">
       <div class="modal-content">
         <div class="modal-header d-flex flex-column align-items-center justify-content-center position-relative">
             <i class="fas fa-user-tag mb-2" style="font-size: 40px;"></i>
@@ -118,7 +118,7 @@
         <div class="modal-body">
             <form id="frmCliente" class="formulario">
                 <div class="row">
-                    <div class="col-12 col-md-6">
+                    <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
                         <div class="row">
                             <div class="col-12 col-md-6 mb-2">
                                 <div class="form-group m-0">
@@ -186,7 +186,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-6">
+                    <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
                         <div class="row">
                             <div class="col-12 col-md-6 mb-2">
                                 <div class="form-group m-0">
