@@ -233,7 +233,7 @@
                             <label class="required">Zona</label>
                             <input type="text" id="zona" name="zona"
                                 class=" text-center form-control {{ $errors->has('zona') ? ' is-invalid' : '' }}"
-                                value="{{ old('zona') ? old('zona') : $cliente->zona }}" readonly>
+                                value="{{ old('zona') ? old('zona') : ($cliente->zona ? $cliente->zona : "NORTE") }}" readonly>
                             @if ($errors->has('zona'))
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $errors->first('zona') }}</strong>
@@ -639,846 +639,849 @@
     </style>
 @endpush
 
+@push('scripts')
+<script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+<script src="{{ asset('Inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
+<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
+<script src="{{ asset('Inspinia/js/plugins/steps/jquery.steps.min.js') }}"></script>
+<script type="text/javascript"
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAS6qv64RYCHFJOygheJS7DvBDYB0iV2wI&libraries=geometry">
+</script>
 
-    <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
-    <script src="{{ asset('Inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
-    <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-    <script src="{{ asset('Inspinia/js/plugins/steps/jquery.steps.min.js') }}"></script>
-    <script type="text/javascript"
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAS6qv64RYCHFJOygheJS7DvBDYB0iV2wI&libraries=geometry">
-    </script>
-    
-    <script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
-    <script>
-        var departamento_api = '';
-        var provincia_api = '';
-        var distrito_api = '';
-        var map;
-        var onemarker = 0;
+<script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+<script>
+    var departamento_api = '';
+    var provincia_api = '';
+    var distrito_api = '';
+    var map;
+    var onemarker = 0;
 
-        $(document).ready(function() {
-            if ($("#activo").val() == '') {
-                $("#activo").val("SIN VERIFICAR");
+    $(document).ready(function() {
+        
+        if ($("#activo").val() == '') {
+            $("#activo").val("SIN VERIFICAR");
+        }
+
+        $(".select2_form").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            height: '200px',
+            width: '100%',
+        });
+        
+        cambiarTipoDocumento();
+
+        @if ($cliente->agente_retencion == '1')
+            $('#check_retencion').attr('checked', true);
+            $('#retencion').val('1');
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                activeClass: 'active'
+            });
+
+            $('#tasa_retencion').val('{{$cliente->tasa_retencion}}');
+            $('#monto_mayor').val('{{$cliente->monto_mayor}}');
+            $('#tasa_retencion').attr('readonly', false);
+            $('#monto_mayor').attr('readonly', false);
+        @else
+            $('#check_retencion').removeAttr('checked');
+            $('#retencion').val('0');
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+            });
+
+            $('#tasa_retencion').attr('readonly', true);
+            $('#monto_mayor').attr('readonly', true);
+        @endif  
+
+        $("#tipo_documento").on("change", cambiarTipoDocumento);
+
+        $("#departamento").on("change", cargarProvincias);
+
+        $('#provincia').on("change", cargarDistritos);
+
+        $("input[type='email']").on('change', function() {
+            if (!emailIsValid($(this).val())) {
+                toastr.error('El formato del email es incorrecto', 'Error');
+                $(this).focus();
+            }
+        });
+
+        $('#fecha_aniversario .input-group.date').datepicker({
+            todayBtn: "linked",
+            keyboardNavigation: false,
+            forceParse: false,
+            autoclose: true,
+            language: 'es',
+            format: "dd/mm/yyyy",
+
+        });
+
+        $('#fecha_nacimiento_propietario .input-group.date').datepicker({
+            todayBtn: "linked",
+            keyboardNavigation: false,
+            forceParse: false,
+            autoclose: true,
+            language: 'es',
+            format: "dd/mm/yyyy",
+
+        });
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 12,
+            center: {
+                lat: -8.1092027,
+                lng: -79.0244529
+            },
+            gestureHandling: "greedy",
+            zoomControl: false,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+        });
+        google.maps.event.addListener(map, "click", function(event) {
+            if (onemarker == 0) {
+                var marker = new google.maps.Marker({
+                    position: event.latLng,
+                    map: map,
+                    draggable: true
+                });
+                $("#lat").val(marker.getPosition().lat());
+                $("#lng").val(marker.getPosition().lng());
+                google.maps.event.addListener(marker, "dragend", function(event) {
+                    $("#lat").val(this.getPosition().lat());
+                    $("#lng").val(this.getPosition().lng());
+                });
+                onemarker = 1;
+            }
+        });
+        if ($("#onPosition").val() != undefined) {
+            var lat = $("#onPosition").data("lat");
+            var lng = $("#onPosition").data("lng");
+            if (lat != "") {
+
+                editmarker(lat, lng);
             }
 
+        }
+    
+    });
+    function limpiar() {
+        $('.logo').attr("src", "{{asset('storage/Clientes/img/default.png')}}")
+        var fileName = "Seleccionar"
+        $('.custom-file-label').addClass("selected").html(fileName);
+        $('#logo').val('')
+    }
+    function seleccionarimagen() {
+        var fileInput = document.getElementById('logo');
+        var filePath = fileInput.value;
+        var allowedExtensions = /(.jpg|.jpeg|.png)$/i;
+        $imagenPrevisualizacion = document.querySelector(".logo");
+        if (allowedExtensions.exec(filePath)) {
+            var userFile = document.getElementById('logo');
+            userFile.src = URL.createObjectURL(event.target.files[0]);
+            var data = userFile.src;
+            $imagenPrevisualizacion.src = data
+            let fileName = $('#logo').val().split('\\').pop();
+            $('#logo').next('.custom-file-label').addClass("selected").html(fileName);
+        } else {
+            toastr.error('Extensión inválida, formatos admitidos (.jpg . jpeg . png)', 'Error');
+            $('.logo').attr("src", "{{asset('storage/Clientes/img/default.png')}}")
+        }
+    }
 
-            $(".select2_form").select2({
-                placeholder: "SELECCIONAR",
-                allowClear: true,
-                height: '200px',
-                width: '100%',
+    function editmarker(lat, lng) {
+        var marker = new google.maps.Marker({
+            position: {
+                lat: lat,
+                lng: lng
+            },
+            map: map,
+            draggable: true
+        })
+        $("#lat").val(marker.getPosition().lat());
+        $("#lng").val(marker.getPosition().lng());
+        google.maps.event.addListener(marker, "dragend", function(event) {
+            $("#lat").val(this.getPosition().lat());
+            $("#lng").val(this.getPosition().lng());
+        });
+    }
+
+    function setLongitudDocumento() {
+
+        var tipo_documento = $('#tipo_documento').val();
+        if (tipo_documento !== undefined && tipo_documento !== null && tipo_documento !== "" && tipo_documento.length >
+            0) {
+
+            @if (!$cliente)
+                clearDatosPersona(true);                                
+            @endif
+
+            switch (tipo_documento) {
+                case 'DNI':
+                    $('#entidad').text('Reniec')
+                    $('#lblNombre').text('Nombre')
+                    $("#documento").attr('maxlength', 8);
+                    @if (!$cliente)
+                        $("#activo").val("SIN VERIFICAR");
+                    @endif
+                    break;
+
+                case 'RUC':
+                    $('#entidad').text('Sunat')
+                    $('#lblNombre').text('Razón social')
+                    $("#documento").attr('maxlength', 11);
+                    @if (!$cliente)
+                        $("#activo").val("SIN VERIFICAR");
+                    @endif
+                    break;
+
+                case 'CARNET EXT.':
+                    $("#documento").attr('maxlength', 20);
+                    $('#lblNombre').text('Nombre')
+                    $("#activo").val("SIN VERIFICAR");
+                    @if (!$cliente)
+                        $("#activo").val("SIN VERIFICAR");
+                    @endif
+                    break;
+
+                case 'PASAPORTE':
+                    $("#documento").attr('maxlength', 20);
+                    $('#lblNombre').text('Nombre')
+                    $("#activo").val("SIN VERIFICAR");
+                    @if (!$cliente)
+                        $("#activo").val("SIN VERIFICAR");
+                    @endif
+                    break;
+
+                case 'P. NAC.':
+                    $("#documento").attr('maxlength', 25);
+                    $('#lblNombre').text('Nombre')
+                    @if (!$cliente)
+                        $("#activo").val("SIN VERIFICAR");
+                    @endif
+                    break;
+            }
+        }
+    }
+
+    function consultarDocumento() {
+
+        var tipo_documento = $('#tipo_documento').val();
+        var documento = $('#documento').val();
+
+        // Consultamos nuestra BBDD
+        $.ajax({
+            dataType: 'json',
+            type: 'post',
+            url: '{{ route('ventas.cliente.getDocumento') }}',
+            data: {
+                '_token': $('input[name=_token]').val(),
+                'tipo_documento': tipo_documento,
+                'documento': documento,
+                'id': null
+            }
+        }).done(function(result) {
+            if (result.existe) {
+                toastr.error('El ' + tipo_documento + ' ingresado ya se encuentra registrado para un cliente',
+                    'Error');
+                clearDatosPersona(true);
+            } else {
+                if (tipo_documento === "DNI") {
+                    if (documento.length === 8) {
+                        consultarAPI(tipo_documento, documento);
+                    } else {
+                        toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
+                        clearDatosPersona(false);
+                    }
+                } else if (tipo_documento === "RUC") {
+                    if (documento.length === 11) {
+                        consultarAPI(tipo_documento, documento);
+                    } else {
+                        toastr.error('El RUC debe de contar con 11 dígitos', 'Error');
+                        clearDatosPersona(false);
+                    }
+                }
+            }
+        });
+    }
+
+    function consultarAPI(tipo_documento, documento) {
+
+        if (tipo_documento === 'DNI' || tipo_documento === 'RUC') {
+            var url = (tipo_documento === 'DNI') ? '{{ route('getApidni', ':documento') }}' :
+                '{{ route('getApiruc', ':documento') }}';
+            url = url.replace(':documento', documento);
+            var textAlert = (tipo_documento === 'DNI') ? "¿Desea consultar DNI a RENIEC?" :
+                "¿Desea consultar RUC a SUNAT?";
+            Swal.fire({
+                title: 'Consultar',
+                text: textAlert,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: "#1ab394",
+                confirmButtonText: 'Si, Confirmar',
+                cancelButtonText: "No, Cancelar",
+                showLoaderOnConfirm: true,
+                preConfirm: (login) => {
+                    return fetch(url)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(response.statusText)
+                            }
+                            return response.json()
+                        })
+                        .catch(error => {
+                            Swal.showValidationMessage(
+                                `El documento ingresado es incorrecto`
+                            );
+                            clearDatosPersona(true);
+                        })
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.value !== undefined && result.isConfirmed) {
+                    $('#documento').removeClass('is-invalid')
+                    if (tipo_documento === 'DNI')
+                        camposDNI(result);
+                    else
+                        camposRUC(result);
+
+                    consultaExitosa();
+                }
             });
-            
-            cambiarTipoDocumento()
+        }
+    }
 
-            @if ($cliente->agente_retencion == '1')
+    function camposDNI(objeto) {
+        if (objeto.value === undefined)
+            return;
+
+        if(objeto.value.success)
+        {
+            var nombres = objeto.value.data.nombres;
+            var apellido_paterno = objeto.value.data.apellido_paterno;
+            var apellido_materno = objeto.value.data.apellido_materno;
+            var codigo_verificacion = objeto.value.data.codigo_verificacion;
+
+            var direccion = objeto.value.data.direccion_completa;
+            var departamento = objeto.value.data.ubigeo[0];
+            var provincia = objeto.value.data.ubigeo[1];
+            var distrito = objeto.value.data.ubigeo[2];
+
+            if (direccion != '-' && direccion != "NULL") {
+                $('#direccion').val(direccion);
+            }
+
+            if(departamento && provincia && distrito)
+            {
+                camposUbigeoApi(departamento, provincia, distrito);
+            }
+
+            var nombre = "";
+            if (nombres !== '-' && nombres !== "NULL") {
+                nombre += nombres;
+            }
+            if (apellido_paterno !== '-' && apellido_paterno !== "NULL") {
+                nombre += (nombre.length === 0) ? apellido_paterno : ' ' + apellido_paterno
+            }
+            if (apellido_materno !== '-' && apellido_materno !== "NULL") {
+                nombre += (nombre.length === 0) ? apellido_materno : ' ' + apellido_materno
+            }
+            $("#nombre").val(nombre);
+            $("#activo").val("ACTIVO");
+            if (codigo_verificacion !== '-' && codigo_verificacion !== "NULL") {
+                $('#codigo_verificacion').val(codigo_verificacion);
+            }
+        }
+        else{
+            toastr.error('No se encontraron datos.')
+        }
+    }
+
+    function clearDatosPersona(limpiarDocumento) {
+        if (limpiarDocumento)
+            $('#documento').val("");
+
+        $('#nombre').val("");
+        $('#codigo_verificacion').val("");
+        $('#direccion').val("");
+        $('#departamento').val("").trigger("change");
+        $('#provincia').val("").trigger("change");
+        $('#distrito').val("").trigger("change");
+        $("#provincia").empty();
+        $("#distrito").empty();
+        $('#correo_electronico').val("");
+        $('#telefono_movil').val("");
+        $('#telefono_fijo').val("");
+
+        departamento_api = '';
+        provincia_api = '';
+        distrito_api = '';
+    }
+
+    $("#form_registrar_cliente").steps({
+        bodyTag: "fieldset",
+        transitionEffect: "fade",
+        labels: {
+            current: "actual paso:",
+            pagination: "Paginación",
+            finish: "Finalizar",
+            next: "Siguiente",
+            previous: "Anterior",
+            loading: "Cargando ..."
+        },
+        onStepChanging: function(event, currentIndex, newIndex) {
+            // Always allow going backward even if the current step contains invalid fields!
+            if (currentIndex > newIndex) {
+                return true;
+            }
+
+            var form = $(this);
+
+            // Clean up if user went backward before
+            if (currentIndex < newIndex) {
+                // To remove error styles
+                $(".body:eq(" + newIndex + ") label.error", form).remove();
+                $(".body:eq(" + newIndex + ") .error", form).removeClass("error");
+            }
+
+            // Start validation; Prevent going forward if false
+            return validarDatos(currentIndex + 1);
+        },
+        onStepChanged: function(event, currentIndex, priorIndex) {
+
+        },
+        onFinishing: function(event, currentIndex) {
+            var form = $(this);
+
+            // Start validation; Prevent form submission if false
+            return true;
+        },
+        onFinished: function(event, currentIndex) {
+            var form = $(this);
+
+            // Submit form input
+            form.submit();
+        }
+    });
+
+    function validarDatos(paso) {
+        switch (paso) {
+            case 1:
+                return validarDatosPersonales();
+                //return validarDatosContacto();
+
+            case 2:
+
+                return validarDatosContacto();
+                //return validarDatosLaborales();
+
+            case 3:
+                return validarDatosLaborales();
+
+            case 4:
+                return validarDatosAdicionales();
+
+            default:
+                return false;
+        }
+    }
+
+    function validarDatosPersonales() {
+        debugger;
+        var tipo_documento = $("#tipo_documento").val();
+        var documento = $("#documento").val();
+        var nombres = $("#nombre").val();
+        var departamento = $("#departamento").val();
+        var provincia = $("#provincia").val();
+        var distrito = $("#distrito").val();
+        var telefono_movil = $("#telefono_movil").val();
+        var tipo_cliente = $("#tipo_cliente").val();
+        var correo_electronico = $("#correo_electronico").val();
+
+        $('.datepicker-days').removeAttr("style").hide();
+        var sexo = $("#sexo_hombre").is(':checked') ? 'H' : 'M';
+
+        if ((tipo_documento !== null && tipo_documento.length === 0) || correo_electronico.length === 0 || documento
+            .length === 0 || nombres.length === 0 || departamento.length === 0 || provincia.length === 0 || sexo
+            .length === 0 || distrito.length === 0 || telefono_movil.length === 0 || tipo_cliente.length === 0) {
+            toastr.error('Complete la información de los campos obligatorios (*)', 'Error');
+            return false;
+        }
+
+        switch (tipo_documento) {
+            case 'RUC':
+
+                if (documento.length !== 11) {
+                    toastr.error('El RUC debe de contar con 11 dígitos', 'Error');
+                    return false;
+                }
+                break;
+
+            case 'DNI':
+
+                if (documento.length !== 8) {
+                    toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
+                    return false;
+                }
+                break;
+
+            case 'CARNET EXT.':
+                toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
+
+                if (documento.length !== 20) {
+                    toastr.error('El CARNET DE EXTRANJERIA debe de contar con 20 dígitos', 'Error');
+                    return false;
+                }
+                break;
+
+            case 'PASAPORTE':
+                $('#entidad').text('Entidad')
+                toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
+                if (documento.length !== 20) {
+                    toastr.error('El PASAPORTE debe de contar con 20 dígitos', 'Error');
+                    return false;
+                }
+                break;
+
+            case 'P. NAC.':
+                $('#entidad').text('Entidad')
+                toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
+                if (documento.length !== 25) {
+                    toastr.error('La PARTIDAD DE NACIMIENTO debe de contar con 25 dígitos', 'Error');
+                    return false;
+                }
+                break;
+
+            default:
+                $('#entidad').text('Entidad')
+                toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
+
+        }
+
+        return true;
+    }
+
+    function validarDatosContacto() {
+        var direccion_negocio = $("#direccion_negocio").val();
+
+        // if (direccion_negocio == '') {
+        //     toastr.error('Complete la información de los campos obligatorios (*)', 'Error');
+        //     return false;
+        // }
+        return true;
+    }
+
+    function validarDatosLaborales() {
+
+        debugger;
+
+        if (!emailIsValid($('#correo_propietario').val())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    function validarEmail() {
+        if (!emailIsValid($('#correo_electronico').val())) {
+            toastr.error('El formato del email es incorrecto', 'Error');
+            $('#correo_electronico').focus();
+        }
+    }
+
+    function cambiarTipoDocumento() {
+        var tipo_documento = $("#tipo_documento").val();
+        $('#check_retencion').removeAttr('checked');    
+        $('#retencion').val('0');
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            activeClass: '',
+        });
+
+        $('#tasa_retencion').val('0.00');
+        $('#monto_mayor').val('0.00');
+        
+        $('#tasa_retencion').attr('readonly', true);
+        $('#monto_mayor').attr('readonly', true);   
+        setLongitudDocumento();
+    }
+
+    function cargarProvincias() {
+        var departamento_id = $("#departamento").val();
+        if (departamento_id !== "" || departamento_id.length > 0) {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                data: {
+                    _token: $('input[name=_token]').val(),
+                    departamento_id: departamento_id
+                },
+                url: "{{ route('mantenimiento.ubigeo.provincias') }}",
+                success: function(data) {
+                    // Limpiamos data
+                    $("#provincia").empty();
+                    $("#distrito").empty();
+
+                    if (!data.error) {
+                        // Mostramos la información
+                        if (data.provincias != null) {
+                            if (provincia_api != '') {
+                                $("#provincia").select2({
+                                    data: data.provincias
+                                }).val(provincia_api).trigger('change');
+                                provincia_api='';
+                            } else {
+                                $("#provincia").select2({
+                                    data: data.provincias
+                                }).val($('#provincia').find(':selected').val()).trigger('change');
+
+                            }
+                        }
+                    } else {
+                        toastr.error(data.message, 'Mensaje de Error', {
+                            "closeButton": true,
+                            positionClass: 'toast-bottom-right'
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    function cargarDistritos() {
+        var provincia_id = $("#provincia").val();
+        if (provincia_id !== "" || provincia_id.length > 0) {
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                data: {
+                    _token: $('input[name=_token]').val(),
+                    provincia_id: provincia_id
+                },
+                url: "{{ route('mantenimiento.ubigeo.distritos') }}",
+                success: function(data) {
+                    // Limpiamos data
+                    $("#distrito").empty();
+
+                    if (!data.error) {
+                        // Mostramos la información
+                        if (data.distritos != null) {
+                            var selected = $('#distrito').find(':selected').val();
+                            if (distrito_api != '') {
+                                $("#distrito").select2({
+                                    data: data.distritos
+                                }).val(distrito_api).trigger('change');
+                                distrito_api='';
+                            } else {
+                                $("#distrito").select2({
+                                    data: data.distritos
+                                });
+                            }
+                        }
+                    } else {
+                        toastr.error(data.message, 'Mensaje de Error', {
+                            "closeButton": true,
+                            positionClass: 'toast-bottom-right'
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    function zonaDepartamento(depar) {
+        //y dale u
+      
+        @foreach (departamentos() as $departamento)
+            if ("{{ $departamento->id }}" == depar.value){
+            $('#zona').val("{{ $departamento->zona }}")
+            }
+        @endforeach
+
+
+    }
+
+    function camposRUC(objeto) {
+        console.log(objeto);
+        if (objeto.value === undefined)
+            return;
+        if(objeto.value.success)
+        {
+            var razonsocial = objeto.value.data.nombre_o_razon_social;
+            var direccion = objeto.value.data.direccion;
+            var departamento = objeto.value.data.ubigeo[0];
+            var provincia = objeto.value.data.ubigeo[1];
+            var distrito = objeto.value.data.ubigeo[2];
+            var estado = objeto.value.data.estado;
+            var condicion_retencion = objeto.value.data.es_agente_de_retencion;
+
+            if (condicion_retencion == 'SI') {
                 $('#check_retencion').attr('checked', true);
                 $('#retencion').val('1');
                 $('.i-checks').iCheck({
                     checkboxClass: 'icheckbox_square-green',
-                    activeClass: 'active'
+                    activeClass: 'active',
                 });
 
-                $('#tasa_retencion').val('{{$cliente->tasa_retencion}}');
-                $('#monto_mayor').val('{{$cliente->monto_mayor}}');
-                $('#tasa_retencion').attr('readonly', false);
-                $('#monto_mayor').attr('readonly', false);
-            @else
+                $('#tasa_retencion').val('3.00');
+                $('#monto_mayor').val('700.00');
+
+                $('#tasa_retencion').removeAttr('readonly');
+                $('#monto_mayor').removeAttr('readonly');
+            }
+            else {
                 $('#check_retencion').removeAttr('checked');
                 $('#retencion').val('0');
                 $('.i-checks').iCheck({
                     checkboxClass: 'icheckbox_square-green',
+                    activeClass: '',
                 });
 
+                $('#tasa_retencion').val('0.00');
+                $('#monto_mayor').val('0.00');
+
+                
                 $('#tasa_retencion').attr('readonly', true);
                 $('#monto_mayor').attr('readonly', true);
-            @endif  
-
-            $("#tipo_documento").on("change", cambiarTipoDocumento);
-
-            $("#departamento").on("change", cargarProvincias);
-
-            $('#provincia').on("change", cargarDistritos);
-
-            $("input[type='email']").on('change', function() {
-                if (!emailIsValid($(this).val())) {
-                    toastr.error('El formato del email es incorrecto', 'Error');
-                    $(this).focus();
-                }
-            });
-
-            $('#fecha_aniversario .input-group.date').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                autoclose: true,
-                language: 'es',
-                format: "dd/mm/yyyy",
-
-            });
-
-            $('#fecha_nacimiento_propietario .input-group.date').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                autoclose: true,
-                language: 'es',
-                format: "dd/mm/yyyy",
-
-            });
-            map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 12,
-                center: {
-                    lat: -8.1092027,
-                    lng: -79.0244529
-                },
-                gestureHandling: "greedy",
-                zoomControl: false,
-                mapTypeControl: false,
-                streetViewControl: false,
-                fullscreenControl: false,
-            });
-            google.maps.event.addListener(map, "click", function(event) {
-                if (onemarker == 0) {
-                    var marker = new google.maps.Marker({
-                        position: event.latLng,
-                        map: map,
-                        draggable: true
-                    });
-                    $("#lat").val(marker.getPosition().lat());
-                    $("#lng").val(marker.getPosition().lng());
-                    google.maps.event.addListener(marker, "dragend", function(event) {
-                        $("#lat").val(this.getPosition().lat());
-                        $("#lng").val(this.getPosition().lng());
-                    });
-                    onemarker = 1;
-                }
-            });
-            if ($("#onPosition").val() != undefined) {
-                var lat = $("#onPosition").data("lat");
-                var lng = $("#onPosition").data("lng");
-                if (lat != "") {
-
-                    editmarker(lat, lng);
-                }
-
             }
-        
-        });
-        function limpiar() {
-            $('.logo').attr("src", "{{asset('storage/Clientes/img/default.png')}}")
-            var fileName = "Seleccionar"
-            $('.custom-file-label').addClass("selected").html(fileName);
-            $('#logo').val('')
-        }
-        function seleccionarimagen() {
-            var fileInput = document.getElementById('logo');
-            var filePath = fileInput.value;
-            var allowedExtensions = /(.jpg|.jpeg|.png)$/i;
-            $imagenPrevisualizacion = document.querySelector(".logo");
-            if (allowedExtensions.exec(filePath)) {
-                var userFile = document.getElementById('logo');
-                userFile.src = URL.createObjectURL(event.target.files[0]);
-                var data = userFile.src;
-                $imagenPrevisualizacion.src = data
-                let fileName = $('#logo').val().split('\\').pop();
-                $('#logo').next('.custom-file-label').addClass("selected").html(fileName);
+
+            if (razonsocial != '-' && razonsocial != "NULL") {
+                $('#nombre').val(razonsocial);
+            }
+
+            if (estado == "ACTIVO") {
+                $('#activo').val(estado);
             } else {
-                toastr.error('Extensión inválida, formatos admitidos (.jpg . jpeg . png)', 'Error');
-                $('.logo').attr("src", "{{asset('storage/Clientes/img/default.png')}}")
+                toastr.error('Cliente con RUC no se encuentra "Activo"', 'Error');
             }
-        }
 
-        function editmarker(lat, lng) {
-            var marker = new google.maps.Marker({
-                position: {
-                    lat: lat,
-                    lng: lng
-                },
-                map: map,
-                draggable: true
-            })
-            $("#lat").val(marker.getPosition().lat());
-            $("#lng").val(marker.getPosition().lng());
-            google.maps.event.addListener(marker, "dragend", function(event) {
-                $("#lat").val(this.getPosition().lat());
-                $("#lng").val(this.getPosition().lng());
-            });
-        }
-
-        function setLongitudDocumento() {
-
-            var tipo_documento = $('#tipo_documento').val();
-            if (tipo_documento !== undefined && tipo_documento !== null && tipo_documento !== "" && tipo_documento.length >
-                0) {
-
-                @if (!$cliente)
-                    clearDatosPersona(true);                                
-                @endif
-
-                switch (tipo_documento) {
-                    case 'DNI':
-                        $('#entidad').text('Reniec')
-                        $('#lblNombre').text('Nombre')
-                        $("#documento").attr('maxlength', 8);
-                        @if (!$cliente)
-                            $("#activo").val("SIN VERIFICAR");
-                        @endif
-                        break;
-
-                    case 'RUC':
-                        $('#entidad').text('Sunat')
-                        $('#lblNombre').text('Razón social')
-                        $("#documento").attr('maxlength', 11);
-                        @if (!$cliente)
-                            $("#activo").val("SIN VERIFICAR");
-                        @endif
-                        break;
-
-                    case 'CARNET EXT.':
-                        $("#documento").attr('maxlength', 20);
-                        $('#lblNombre').text('Nombre')
-                        $("#activo").val("SIN VERIFICAR");
-                        @if (!$cliente)
-                            $("#activo").val("SIN VERIFICAR");
-                        @endif
-                        break;
-
-                    case 'PASAPORTE':
-                        $("#documento").attr('maxlength', 20);
-                        $('#lblNombre').text('Nombre')
-                        $("#activo").val("SIN VERIFICAR");
-                        @if (!$cliente)
-                            $("#activo").val("SIN VERIFICAR");
-                        @endif
-                        break;
-
-                    case 'P. NAC.':
-                        $("#documento").attr('maxlength', 25);
-                        $('#lblNombre').text('Nombre')
-                        @if (!$cliente)
-                            $("#activo").val("SIN VERIFICAR");
-                        @endif
-                        break;
-                }
+            if (direccion != '-' && direccion != "NULL") {
+                $('#direccion').val(direccion);
             }
+
+            camposUbigeoApi(departamento, provincia, distrito);
         }
+        else
+        {
+            toastr.error('No se encontraron datos.')
+        }
+    }
 
-        function consultarDocumento() {
+    function camposUbigeoApi(departamento, provincia, distrito) {
+        departamento_api = '';
+        provincia_api = '';
+        distrito_api = '';
 
-            var tipo_documento = $('#tipo_documento').val();
-            var documento = $('#documento').val();
-
-            // Consultamos nuestra BBDD
+        if (departamento !== '-' && departamento !== null && provincia !== '-' && provincia !== null &&
+            distrito !== '-' && distrito !== null) {
             $.ajax({
-                dataType: 'json',
                 type: 'post',
-                url: '{{ route('ventas.cliente.getDocumento') }}',
+                dataType: 'json',
                 data: {
-                    '_token': $('input[name=_token]').val(),
-                    'tipo_documento': tipo_documento,
-                    'documento': documento,
-                    'id': null
-                }
-            }).done(function(result) {
-                if (result.existe) {
-                    toastr.error('El ' + tipo_documento + ' ingresado ya se encuentra registrado para un cliente',
-                        'Error');
-                    clearDatosPersona(true);
-                } else {
-                    if (tipo_documento === "DNI") {
-                        if (documento.length === 8) {
-                            consultarAPI(tipo_documento, documento);
-                        } else {
-                            toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
-                            clearDatosPersona(false);
+                    _token: $('input[name=_token]').val(),
+                    departamento: departamento,
+                    provincia: provincia,
+                    distrito: distrito
+                },
+                url: "{{ route('mantenimiento.ubigeo.api_ruc') }}",
+                success: function(data) {
+                    // Limpiamos data
+                    $("#provincia").empty();
+                    $("#distrito").empty();
+
+                    if (!data.error) {
+                        // Mostramos la información
+                        if (data.ubigeo != null) {
+
+                            departamento_api = data.ubigeo.departamento_id;
+                            provincia_api = parseInt(data.ubigeo.provincia_id);
+                            distrito_api = data.ubigeo.id;
+
+                            $("#departamento").val(parseInt(departamento_api)).trigger('change');
                         }
-                    } else if (tipo_documento === "RUC") {
-                        if (documento.length === 11) {
-                            consultarAPI(tipo_documento, documento);
-                        } else {
-                            toastr.error('El RUC debe de contar con 11 dígitos', 'Error');
-                            clearDatosPersona(false);
-                        }
+                    } else {
+                        toastr.error(data.message, 'Mensaje de Error', {
+                            "closeButton": true,
+                            positionClass: 'toast-bottom-right'
+                        });
                     }
                 }
             });
         }
+    }
 
-        function consultarAPI(tipo_documento, documento) {
-
-            if (tipo_documento === 'DNI' || tipo_documento === 'RUC') {
-                var url = (tipo_documento === 'DNI') ? '{{ route('getApidni', ':documento') }}' :
-                    '{{ route('getApiruc', ':documento') }}';
-                url = url.replace(':documento', documento);
-                var textAlert = (tipo_documento === 'DNI') ? "¿Desea consultar DNI a RENIEC?" :
-                    "¿Desea consultar RUC a SUNAT?";
-                Swal.fire({
-                    title: 'Consultar',
-                    text: textAlert,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: "#1ab394",
-                    confirmButtonText: 'Si, Confirmar',
-                    cancelButtonText: "No, Cancelar",
-                    showLoaderOnConfirm: true,
-                    preConfirm: (login) => {
-                        return fetch(url)
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error(response.statusText)
-                                }
-                                return response.json()
-                            })
-                            .catch(error => {
-                                Swal.showValidationMessage(
-                                    `El documento ingresado es incorrecto`
-                                );
-                                clearDatosPersona(true);
-                            })
-                    },
-                    allowOutsideClick: () => !Swal.isLoading()
-                }).then((result) => {
-                    if (result.value !== undefined && result.isConfirmed) {
-                        $('#documento').removeClass('is-invalid')
-                        if (tipo_documento === 'DNI')
-                            camposDNI(result);
-                        else
-                            camposRUC(result);
-
-                        consultaExitosa();
-                    }
-                });
-            }
+    function consultar() {
+        var tipo = $('#tipo_documento').val()
+        switch (tipo) {
+            case 'DNI':
+                // $('#entidad').text('Reniec')
+                // consultarDocumento()
+                break;
+            case 'CARNET EXT.':
+                toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
+                $('#entidad').text('Entidad')
+                break;
+            case 'RUC':
+                // $('#entidad').text('Sunat')
+                // consultarDocumento()
+                break;
+            case 'P. NAC.':
+                $('#entidad').text('Entidad')
+                toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
+                break;
+            case 'PASAPORTE':
+                $('#entidad').text('Entidad')
+                toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
+                break;
+                // default:
+                //     $('#entidad').text('Entidad')
+                //     toastr.error('El tipo de documento no tiene entidad para consultar','Error');
         }
 
-        function camposDNI(objeto) {
-            if (objeto.value === undefined)
-                return;
+    }
 
-            if(objeto.value.success)
-            {
-                var nombres = objeto.value.data.nombres;
-                var apellido_paterno = objeto.value.data.apellido_paterno;
-                var apellido_materno = objeto.value.data.apellido_materno;
-                var codigo_verificacion = objeto.value.data.codigo_verificacion;
-
-                var direccion = objeto.value.data.direccion_completa;
-                var departamento = objeto.value.data.ubigeo[0];
-                var provincia = objeto.value.data.ubigeo[1];
-                var distrito = objeto.value.data.ubigeo[2];
-
-                if (direccion != '-' && direccion != "NULL") {
-                    $('#direccion').val(direccion);
-                }
-
-                if(departamento && provincia && distrito)
-                {
-                    camposUbigeoApi(departamento, provincia, distrito);
-                }
-
-                var nombre = "";
-                if (nombres !== '-' && nombres !== "NULL") {
-                    nombre += nombres;
-                }
-                if (apellido_paterno !== '-' && apellido_paterno !== "NULL") {
-                    nombre += (nombre.length === 0) ? apellido_paterno : ' ' + apellido_paterno
-                }
-                if (apellido_materno !== '-' && apellido_materno !== "NULL") {
-                    nombre += (nombre.length === 0) ? apellido_materno : ' ' + apellido_materno
-                }
-                $("#nombre").val(nombre);
-                $("#activo").val("ACTIVO");
-                if (codigo_verificacion !== '-' && codigo_verificacion !== "NULL") {
-                    $('#codigo_verificacion').val(codigo_verificacion);
-                }
-            }
-            else{
-                toastr.error('No se encontraron datos.')
-            }
-        }
-
-        function clearDatosPersona(limpiarDocumento) {
-            if (limpiarDocumento)
-                $('#documento').val("");
-
-            $('#nombre').val("");
-            $('#codigo_verificacion').val("");
-            $('#direccion').val("");
-            $('#departamento').val("").trigger("change");
-            $('#provincia').val("").trigger("change");
-            $('#distrito').val("").trigger("change");
-            $("#provincia").empty();
-            $("#distrito").empty();
-            $('#correo_electronico').val("");
-            $('#telefono_movil').val("");
-            $('#telefono_fijo').val("");
-
-            departamento_api = '';
-            provincia_api = '';
-            distrito_api = '';
-        }
-
-        $("#form_registrar_cliente").steps({
-            bodyTag: "fieldset",
-            transitionEffect: "fade",
-            labels: {
-                current: "actual paso:",
-                pagination: "Paginación",
-                finish: "Finalizar",
-                next: "Siguiente",
-                previous: "Anterior",
-                loading: "Cargando ..."
-            },
-            onStepChanging: function(event, currentIndex, newIndex) {
-                // Always allow going backward even if the current step contains invalid fields!
-                if (currentIndex > newIndex) {
-                    return true;
-                }
-
-                var form = $(this);
-
-                // Clean up if user went backward before
-                if (currentIndex < newIndex) {
-                    // To remove error styles
-                    $(".body:eq(" + newIndex + ") label.error", form).remove();
-                    $(".body:eq(" + newIndex + ") .error", form).removeClass("error");
-                }
-
-                // Start validation; Prevent going forward if false
-                return validarDatos(currentIndex + 1);
-            },
-            onStepChanged: function(event, currentIndex, priorIndex) {
-
-            },
-            onFinishing: function(event, currentIndex) {
-                var form = $(this);
-
-                // Start validation; Prevent form submission if false
-                return true;
-            },
-            onFinished: function(event, currentIndex) {
-                var form = $(this);
-
-                // Submit form input
-                form.submit();
-            }
+    $("#documento").keyup(function() {
+        $('#activo').val('SIN VERIFICAR');
+        $('#nombre').val('');
+        $('#codigo_verificacion').val('');
+        $('#check_retencion').removeAttr('checked');
+        $('#retencion').val('0');
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            activeClass: '',
         });
 
-        function validarDatos(paso) {
-            switch (paso) {
-                case 1:
-                    return validarDatosPersonales();
-                    //return validarDatosContacto();
+        $('#tasa_retencion').val('0.00');
+        $('#monto_mayor').val('0.00');
+        
+        $('#tasa_retencion').attr('readonly', true);
+        $('#monto_mayor').attr('readonly', true);
+    })
 
-                case 2:
+    $("#nombre").keyup(function() {
+        $('#activo').val('SIN VERIFICAR');
+        $('#codigo_verificacion').val('');
+        $('#check_retencion').removeAttr('checked');
+        $('#retencion').val('0');
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            activeClass: '',
+        });
 
-                    return validarDatosContacto();
-                    //return validarDatosLaborales();
+        $('#tasa_retencion').val('0.00');
+        $('#monto_mayor').val('0.00');
+        
+        $('#tasa_retencion').attr('readonly', true);
+        $('#monto_mayor').attr('readonly', true);
+    })
 
-                case 3:
-                    return validarDatosLaborales();
+    $("#tipo_documento").on('change', function(e) {
+        $('#activo').val('SIN VERIFICAR')
+    })
 
-                case 4:
-                    return validarDatosAdicionales();
+</script>
+@endpush
 
-                default:
-                    return false;
-            }
-        }
-
-        function validarDatosPersonales() {
-            debugger;
-            var tipo_documento = $("#tipo_documento").val();
-            var documento = $("#documento").val();
-            var nombres = $("#nombre").val();
-            var departamento = $("#departamento").val();
-            var provincia = $("#provincia").val();
-            var distrito = $("#distrito").val();
-            var telefono_movil = $("#telefono_movil").val();
-            var tipo_cliente = $("#tipo_cliente").val();
-            var correo_electronico = $("#correo_electronico").val();
-
-            $('.datepicker-days').removeAttr("style").hide();
-            var sexo = $("#sexo_hombre").is(':checked') ? 'H' : 'M';
-
-            if ((tipo_documento !== null && tipo_documento.length === 0) || correo_electronico.length === 0 || documento
-                .length === 0 || nombres.length === 0 || departamento.length === 0 || provincia.length === 0 || sexo
-                .length === 0 || distrito.length === 0 || telefono_movil.length === 0 || tipo_cliente.length === 0) {
-                toastr.error('Complete la información de los campos obligatorios (*)', 'Error');
-                return false;
-            }
-
-            switch (tipo_documento) {
-                case 'RUC':
-
-                    if (documento.length !== 11) {
-                        toastr.error('El RUC debe de contar con 11 dígitos', 'Error');
-                        return false;
-                    }
-                    break;
-
-                case 'DNI':
-
-                    if (documento.length !== 8) {
-                        toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
-                        return false;
-                    }
-                    break;
-
-                case 'CARNET EXT.':
-                    toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
-
-                    if (documento.length !== 20) {
-                        toastr.error('El CARNET DE EXTRANJERIA debe de contar con 20 dígitos', 'Error');
-                        return false;
-                    }
-                    break;
-
-                case 'PASAPORTE':
-                    $('#entidad').text('Entidad')
-                    toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
-                    if (documento.length !== 20) {
-                        toastr.error('El PASAPORTE debe de contar con 20 dígitos', 'Error');
-                        return false;
-                    }
-                    break;
-
-                case 'P. NAC.':
-                    $('#entidad').text('Entidad')
-                    toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
-                    if (documento.length !== 25) {
-                        toastr.error('La PARTIDAD DE NACIMIENTO debe de contar con 25 dígitos', 'Error');
-                        return false;
-                    }
-                    break;
-
-                default:
-                    $('#entidad').text('Entidad')
-                    toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
-
-            }
-
-            return true;
-        }
-
-        function validarDatosContacto() {
-            var direccion_negocio = $("#direccion_negocio").val();
-
-            // if (direccion_negocio == '') {
-            //     toastr.error('Complete la información de los campos obligatorios (*)', 'Error');
-            //     return false;
-            // }
-            return true;
-        }
-
-        function validarDatosLaborales() {
-
-            debugger;
-
-            if (!emailIsValid($('#correo_propietario').val())) {
-                return false;
-            }
-
-            return true;
-        }
-
-        function validarEmail() {
-            if (!emailIsValid($('#correo_electronico').val())) {
-                toastr.error('El formato del email es incorrecto', 'Error');
-                $('#correo_electronico').focus();
-            }
-        }
-
-        function cambiarTipoDocumento() {
-            var tipo_documento = $("#tipo_documento").val();
-            $('#check_retencion').removeAttr('checked');    
-            $('#retencion').val('0');
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                activeClass: '',
-            });
-
-            $('#tasa_retencion').val('0.00');
-            $('#monto_mayor').val('0.00');
-            
-            $('#tasa_retencion').attr('readonly', true);
-            $('#monto_mayor').attr('readonly', true);   
-            setLongitudDocumento();
-        }
-
-        function cargarProvincias() {
-            var departamento_id = $("#departamento").val();
-            if (departamento_id !== "" || departamento_id.length > 0) {
-                $.ajax({
-                    type: 'post',
-                    dataType: 'json',
-                    data: {
-                        _token: $('input[name=_token]').val(),
-                        departamento_id: departamento_id
-                    },
-                    url: "{{ route('mantenimiento.ubigeo.provincias') }}",
-                    success: function(data) {
-                        // Limpiamos data
-                        $("#provincia").empty();
-                        $("#distrito").empty();
-
-                        if (!data.error) {
-                            // Mostramos la información
-                            if (data.provincias != null) {
-                                if (provincia_api != '') {
-                                    $("#provincia").select2({
-                                        data: data.provincias
-                                    }).val(provincia_api).trigger('change');
-                                    provincia_api='';
-                                } else {
-                                    $("#provincia").select2({
-                                        data: data.provincias
-                                    }).val($('#provincia').find(':selected').val()).trigger('change');
-
-                                }
-                            }
-                        } else {
-                            toastr.error(data.message, 'Mensaje de Error', {
-                                "closeButton": true,
-                                positionClass: 'toast-bottom-right'
-                            });
-                        }
-                    }
-                });
-            }
-        }
-
-        function cargarDistritos() {
-            var provincia_id = $("#provincia").val();
-            if (provincia_id !== "" || provincia_id.length > 0) {
-                $.ajax({
-                    type: 'post',
-                    dataType: 'json',
-                    data: {
-                        _token: $('input[name=_token]').val(),
-                        provincia_id: provincia_id
-                    },
-                    url: "{{ route('mantenimiento.ubigeo.distritos') }}",
-                    success: function(data) {
-                        // Limpiamos data
-                        $("#distrito").empty();
-
-                        if (!data.error) {
-                            // Mostramos la información
-                            if (data.distritos != null) {
-                                var selected = $('#distrito').find(':selected').val();
-                                if (distrito_api != '') {
-                                    $("#distrito").select2({
-                                        data: data.distritos
-                                    }).val(distrito_api).trigger('change');
-                                    distrito_api='';
-                                } else {
-                                    $("#distrito").select2({
-                                        data: data.distritos
-                                    });
-                                }
-                            }
-                        } else {
-                            toastr.error(data.message, 'Mensaje de Error', {
-                                "closeButton": true,
-                                positionClass: 'toast-bottom-right'
-                            });
-                        }
-                    }
-                });
-            }
-        }
-
-        function zonaDepartamento(depar) {
-            //y dale u
-            // alert(depar.value)
-            @foreach (departamentos() as $departamento)
-                if ("{{ $departamento->id }}" == depar.value){
-                $('#zona').val("{{ $departamento->zona }}")
-                }
-            @endforeach
-
-
-        }
-
-        function camposRUC(objeto) {
-            console.log(objeto);
-            if (objeto.value === undefined)
-                return;
-            if(objeto.value.success)
-            {
-                var razonsocial = objeto.value.data.nombre_o_razon_social;
-                var direccion = objeto.value.data.direccion;
-                var departamento = objeto.value.data.ubigeo[0];
-                var provincia = objeto.value.data.ubigeo[1];
-                var distrito = objeto.value.data.ubigeo[2];
-                var estado = objeto.value.data.estado;
-                var condicion_retencion = objeto.value.data.es_agente_de_retencion;
-
-                if (condicion_retencion == 'SI') {
-                    $('#check_retencion').attr('checked', true);
-                    $('#retencion').val('1');
-                    $('.i-checks').iCheck({
-                        checkboxClass: 'icheckbox_square-green',
-                        activeClass: 'active',
-                    });
-
-                    $('#tasa_retencion').val('3.00');
-                    $('#monto_mayor').val('700.00');
-
-                    $('#tasa_retencion').removeAttr('readonly');
-                    $('#monto_mayor').removeAttr('readonly');
-                }
-                else {
-                    $('#check_retencion').removeAttr('checked');
-                    $('#retencion').val('0');
-                    $('.i-checks').iCheck({
-                        checkboxClass: 'icheckbox_square-green',
-                        activeClass: '',
-                    });
-
-                    $('#tasa_retencion').val('0.00');
-                    $('#monto_mayor').val('0.00');
-
-                    
-                    $('#tasa_retencion').attr('readonly', true);
-                    $('#monto_mayor').attr('readonly', true);
-                }
-
-                if (razonsocial != '-' && razonsocial != "NULL") {
-                    $('#nombre').val(razonsocial);
-                }
-
-                if (estado == "ACTIVO") {
-                    $('#activo').val(estado);
-                } else {
-                    toastr.error('Cliente con RUC no se encuentra "Activo"', 'Error');
-                }
-
-                if (direccion != '-' && direccion != "NULL") {
-                    $('#direccion').val(direccion);
-                }
-
-                camposUbigeoApi(departamento, provincia, distrito);
-            }
-            else
-            {
-                toastr.error('No se encontraron datos.')
-            }
-        }
-
-        function camposUbigeoApi(departamento, provincia, distrito) {
-            departamento_api = '';
-            provincia_api = '';
-            distrito_api = '';
-
-            if (departamento !== '-' && departamento !== null && provincia !== '-' && provincia !== null &&
-                distrito !== '-' && distrito !== null) {
-                $.ajax({
-                    type: 'post',
-                    dataType: 'json',
-                    data: {
-                        _token: $('input[name=_token]').val(),
-                        departamento: departamento,
-                        provincia: provincia,
-                        distrito: distrito
-                    },
-                    url: "{{ route('mantenimiento.ubigeo.api_ruc') }}",
-                    success: function(data) {
-                        // Limpiamos data
-                        $("#provincia").empty();
-                        $("#distrito").empty();
-
-                        if (!data.error) {
-                            // Mostramos la información
-                            if (data.ubigeo != null) {
-
-                                departamento_api = data.ubigeo.departamento_id;
-                                provincia_api = parseInt(data.ubigeo.provincia_id);
-                                distrito_api = data.ubigeo.id;
-
-                                $("#departamento").val(parseInt(departamento_api)).trigger('change');
-                            }
-                        } else {
-                            toastr.error(data.message, 'Mensaje de Error', {
-                                "closeButton": true,
-                                positionClass: 'toast-bottom-right'
-                            });
-                        }
-                    }
-                });
-            }
-        }
-
-        function consultar() {
-            var tipo = $('#tipo_documento').val()
-            switch (tipo) {
-                case 'DNI':
-                    // $('#entidad').text('Reniec')
-                    // consultarDocumento()
-                    break;
-                case 'CARNET EXT.':
-                    toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
-                    $('#entidad').text('Entidad')
-                    break;
-                case 'RUC':
-                    // $('#entidad').text('Sunat')
-                    // consultarDocumento()
-                    break;
-                case 'P. NAC.':
-                    $('#entidad').text('Entidad')
-                    toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
-                    break;
-                case 'PASAPORTE':
-                    $('#entidad').text('Entidad')
-                    toastr.error('El tipo de documento no tiene entidad para consultar', 'Error');
-                    break;
-                    // default:
-                    //     $('#entidad').text('Entidad')
-                    //     toastr.error('El tipo de documento no tiene entidad para consultar','Error');
-            }
-
-        }
-
-        $("#documento").keyup(function() {
-            $('#activo').val('SIN VERIFICAR');
-            $('#nombre').val('');
-            $('#codigo_verificacion').val('');
-            $('#check_retencion').removeAttr('checked');
-            $('#retencion').val('0');
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                activeClass: '',
-            });
-
-            $('#tasa_retencion').val('0.00');
-            $('#monto_mayor').val('0.00');
-            
-            $('#tasa_retencion').attr('readonly', true);
-            $('#monto_mayor').attr('readonly', true);
-        })
-
-        $("#nombre").keyup(function() {
-            $('#activo').val('SIN VERIFICAR');
-            $('#codigo_verificacion').val('');
-            $('#check_retencion').removeAttr('checked');
-            $('#retencion').val('0');
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                activeClass: '',
-            });
-
-            $('#tasa_retencion').val('0.00');
-            $('#monto_mayor').val('0.00');
-            
-            $('#tasa_retencion').attr('readonly', true);
-            $('#monto_mayor').attr('readonly', true);
-        })
-
-        $("#tipo_documento").on('change', function(e) {
-            $('#activo').val('SIN VERIFICAR')
-        })
-
-    </script>
+   
 
