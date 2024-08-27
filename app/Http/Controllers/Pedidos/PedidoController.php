@@ -672,7 +672,7 @@ class PedidoController extends Controller
             //======= DE ACUERDO AL TIPO CLIENTE ; LIMITAR LOS TIPOS DE VENTAS =====
             //===== SI ES CLIENTE CON DNI, QUITAMOS LA FACTURA ======
             $tipo_doc_cliente   =   $pedido->cliente->tipo_documento;
-            if($tipo_doc_cliente !== 'RUC'){
+            if($tipo_doc_cliente === 'DNI'){
                 $tipoVentas = $tipoVentas->reject(function ($tipoVenta){
                     return $tipoVenta['id'] == 127;
                 });
@@ -685,6 +685,16 @@ class PedidoController extends Controller
                 });
             }
 
+            //====== SI EL CLIENTE NO TIENE DNI NI RUC ========
+            //======= PERMITIR SOLO NOTAS DE VENTA =======
+            if($tipo_doc_cliente !== 'RUC' && $tipo_doc_cliente !== 'DNI'){
+                $tipoVentas = $tipoVentas->reject(function ($tipoVenta){
+                    return $tipoVenta['id'] == 127;
+                });
+                $tipoVentas = $tipoVentas->reject(function ($tipoVenta){
+                    return $tipoVenta['id'] == 128;
+                });
+            }
 
             //======= SI EL PEDIDO YA FUE FACTURADO, PERMITIR SOLO ATENDER CON NOTAS DE VENTA ======
             if($pedido->facturado === 'SI'){
@@ -1345,8 +1355,12 @@ public function generarDocumentoVenta(Request $request){
             if($cliente_tipo_documento === "RUC"){
                 $tipo_venta = 127;
             }
-            if($cliente_tipo_documento === "DNI" || $cliente_tipo_documento !== "RUC"){
+            if($cliente_tipo_documento === "DNI" ){
                 $tipo_venta = 128;
+            }
+
+            if($cliente_tipo_documento !== "RUC" && $cliente_tipo_documento !== "DNI"){
+                throw new Exception("SE REQUIERE DNI O RUC PARA FACTURAR UN PEDIDO");
             }
             
             //======= OBTENIENDO DETALLE DEL PEDIDO ===========
@@ -1438,7 +1452,7 @@ public function generarDocumentoVenta(Request $request){
                     'message'=>'SE HA GENERADO EL DOCUMENTO DE VENTA '.$doc_venta->serie.'-'.$doc_venta->correlativo,
                     'documento_id'  => $jsonResponse->documento_id]);
             }else{
-
+                
                 DB::rollBack();
                 return response()->json(['success'=>false,'message'=>$jsonResponse->mensaje]);
 

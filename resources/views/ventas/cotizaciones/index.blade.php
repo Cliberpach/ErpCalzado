@@ -210,20 +210,18 @@
                                         <a class='dropdown-item' href='${url_editar}' title='Modificar'>
                                         <b><i class='fa fa-edit'></i> Modificar</b>
                                         </a>
-                                    </li>`;
-                       }
-                         
-                        options += `<li>
-                                            <a class='dropdown-item' onclick='eliminar(${data.id})' title='Eliminar'>
-                                            <b><i class='fa fa-trash'></i> Eliminar</b>
-                                            </a>
                                     </li>
-                                        </ul>
+                                    <li>
+                                        <a class='dropdown-item' onclick='eliminar(${data.id})' title='Eliminar'>
+                                        <b><i class='fa fa-trash'></i> Eliminar</b>
+                                        </a>
+                                    </li>
+                                    </ul>
                                     </div>`;
+                       }
                                 
                         return options;
 
-                    
                     }
                 }
 

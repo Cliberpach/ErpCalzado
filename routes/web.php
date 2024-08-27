@@ -573,6 +573,7 @@ function(){
         Route::post('/setDespacho', 'Ventas\DespachoController@setDespacho')->name('ventas.despachos.setDespacho');
         Route::get('get-despacho/{documento_id}','Ventas\DespachoController@getDespacho')->name('ventas.despachos.getDespacho');
         Route::post('/updateDespacho', 'Ventas\DespachoController@updateDespacho')->name('ventas.despachos.updateDespacho');
+        Route::post('/eliminarDespacho', 'Ventas\DespachoController@eliminarDespacho')->name('ventas.despachos.eliminarDespacho');
 
     });
 

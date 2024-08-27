@@ -54,6 +54,8 @@ class CreateEnviosVentasTable extends Migration
             $table->foreign('user_despachador_id')->references('id')->on('users'); 
             $table->string('user_despachador_nombre',260); 
 
+     
+
 
             $table->enum('estado', ['PENDIENTE', 'EMBALADO','DESPACHADO'])->default('PENDIENTE');
             $table->timestamps();

@@ -707,6 +707,7 @@
                             <td>${pd.cantidad}</td>
                             <td>${pd.cantidad_atendida}</td>
                             <td>${pd.cantidad_pendiente}</td>
+                            <td>${pd.cantidad_enviada}</td>
                             <td>${pd.cantidad_devuelta}</td>
                         </tr>`;
         })

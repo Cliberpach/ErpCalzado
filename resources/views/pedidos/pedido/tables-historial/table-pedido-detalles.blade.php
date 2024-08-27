@@ -7,6 +7,7 @@
         <th scope="col">CANT</th>
         <th scope="col">ATEN.</th>
         <th scope="col">PEND.</th>
+        <th scope="col">DESP.</th>
         <th scope="col">DEV.</th>
 
       </tr>

@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-lg" style="max-width: 94%;">
         <div class="modal-content animated bounceInRight">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" @click.prevent="Cerrar">
+                <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only">Close</span>
                 </button>
@@ -15,7 +15,9 @@
                     <div class="col-12">
                         <div class="row">
                             <div class="col-12">
-                                @include('pedidos.pedido.tables-historial.table-pedido-detalles')
+                                <div class="table-responsive">
+                                    @include('pedidos.pedido.tables-historial.table-pedido-detalles')
+                                </div>
                             </div>
                         </div>
                     </div>   

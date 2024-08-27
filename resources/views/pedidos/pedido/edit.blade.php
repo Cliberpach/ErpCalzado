@@ -1655,6 +1655,7 @@
                             <th>${producto.cantidad}</th>
                             <th>${producto.cantidad_atendida}</th>
                             <th>${producto.cantidad_pendiente}</th>
+                            <th>${producto.cantidad_enviada}</th>
                             <th>${producto.cantidad_devuelta}</th>
                         </tr>`;
         })

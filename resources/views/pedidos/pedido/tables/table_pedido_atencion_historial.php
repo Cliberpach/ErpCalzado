@@ -9,6 +9,7 @@
       <th style="text-align: center;">CANT</th>
       <th style="text-align: center;">CANT ATEND</th>
       <th style="text-align: center;">CANT PEND</th>
+      <th scope="col">CANT DESP</th>
       <th style="text-align: center;">CANT DEV</th>
 
     </tr>

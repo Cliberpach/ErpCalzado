@@ -275,7 +275,7 @@
                                     
                             
 
-                            if(row.estado !== "FINALIZADO" && !row.facturado){
+                            if(row.estado !== "FINALIZADO"){
                                 acciones+=`<li><a class='dropdown-item' onclick="modificarPedido(${row.id})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>`;
 
                                 acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='FINALIZAR'><b><i class='fa fa-trash'></i> Finalizar</a></b></li>`;
@@ -496,6 +496,7 @@
                 <td scope="row">${pd.cantidad}</td>
                 <td scope="row">${pd.cantidad_atendida}</td>
                 <td scope="row">${pd.cantidad_pendiente}</td>
+                <td scope="row">${pd.cantidad_enviada}</td>
                 <td scope="row">${pd.cantidad_devuelta}</td>
             </tr>`;
         })
@@ -620,21 +621,23 @@
 
     }
 
-    function eliminarPedido(pedido_id) {
+    async function eliminarPedido(pedido_id) {
 
         //======== VALIDAR ESTADO DEL PEDIDO ======
         const pedido    =   pedidos_data_table.rows().data().filter(function (value, index) {
             return value['id'] == pedido_id;
         });
+      
+        let descripcion =   '';
+        if(pedido[0].facturado === 'SI'){
+            descripcion =   'Recuerde realizar la nota de crédito del documento facturado';
+        }else{
+            descripcion =   'Operación no reversible';
+        }
 
         if(pedido.length >0){
             const estado    =   pedido[0].estado;
                    
-            // if(estado === "ATENDIENDO"){
-            //     toastr.error('EL PEDIDO NO PUEDE SER ELIMINADO','PEDIDO EN PROCESO');
-            //     return;
-            // }
-
             if(estado === "FINALIZADO"){
                 toastr.error('EL PEDIDO NO PUEDE SER FINALIZADO','PEDIDO FINALIZADO');
                 return;
@@ -650,34 +653,46 @@
             return;
         } 
 
-        Swal.fire({
-            title: "ESTÁS SEGURO DE FINALIZAR EL PEDIDO?",
-            text: "NO SE PODRÁ REVERTIR ESTA ACCIÓN!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "SÍ, FINALIZAR EL PEDIDO!"
-            }).then(async (result) => {
-            if (result.isConfirmed) {
-                const res = await axios.delete(`{{ route('pedidos.pedido.destroy', ['id' => ':id']) }}`.replace(':id', pedido_id));
-                if(res.data.type == 'success'){
-                    //====== ELIMINAR PEDIDO DEL DATATABLE ======
-                    pedidos_data_table.rows((idx, data) => data.id == res.data.pedido_id).remove().draw()
-                    //===== ALERTA ======
-                    toastr.success(`PEDIDO NRO° ${res.data.pedido_id}`,'FINALIZADO');
+        //====== OBTENIENDO INFO DEL CLIENTE ======
+        const res_cliente   =   await axios.get(route('pedidos.pedido.getCliente',{pedido_id}));
+
+        if(!res_cliente.data.success){
+            toastr.error('ERROR AL OBTENER INFORMACION DEL CLIENTE');
+        }   
+
+        if(res_cliente.data.success){
+            const cliente_pedido    =   res_cliente.data.cliente;
+            const tipo_comprobante  =   cliente_pedido.tipo_documento === 'RUC'?'FACTURA':'BOLETA';
+            Swal.fire({
+                title: `Desea finalizar el pedido? CLIENTE: ${cliente_pedido.nombre} - ${cliente_pedido.tipo_documento}:${cliente_pedido.documento}`,
+                text: descripcion,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "SÍ, FINALIZAR EL PEDIDO!"
+                }).then(async (result) => {
+                if (result.isConfirmed) {
+                    const res = await axios.delete(`{{ route('pedidos.pedido.destroy', ['id' => ':id']) }}`.replace(':id', pedido_id));
+                    if(res.data.type == 'success'){
+                        //====== ELIMINAR PEDIDO DEL DATATABLE ======
+                        pedidos_data_table.rows().draw();
+                        //===== ALERTA ======
+                        toastr.success(`PEDIDO NRO° ${res.data.pedido_id}`,'FINALIZADO');
+                    }
+                    if(res.data.type == 'error'){
+                        toastr.error(res.data.message,'ERROR');
+                    }
+                    console.log(res);
+                    Swal.fire({
+                    title: "FINALIZADO!",
+                    text: "EL PEDIDO HA SIDO FINALIZADO.",
+                    icon: "success"
+                    });
                 }
-                if(res.data.type == 'error'){
-                    toastr.error(res.data.message,'ERROR');
-                }
-                console.log(res);
-                Swal.fire({
-                title: "FINALIZADO!",
-                text: "EL PEDIDO HA SIDO FINALIZADO.",
-                icon: "success"
-                });
-            }
-        });
+            });
+            
+        }
     }
 
     function controlFechas(target){
