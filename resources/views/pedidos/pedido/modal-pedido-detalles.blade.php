@@ -1,5 +1,5 @@
 <div class="modal inmodal" id="modal_pedido_detalles" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" style="max-width: 94%;">
+    <div class="modal-dialog" style="max-width:900px;">
         <div class="modal-content animated bounceInRight">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">

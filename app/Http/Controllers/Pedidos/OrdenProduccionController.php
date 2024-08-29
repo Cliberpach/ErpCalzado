@@ -24,7 +24,7 @@ class OrdenProduccionController extends Controller
         
         $ordenes_produccion =   DB::select('select CONCAT("OP","-",op.id) as op_id_name,
                                 op.id, op.user_id, op.user_nombre,op.fecha_propuesta_atencion,op.observacion,
-                                op.created_at as fecha_registro,op.estado,op.tipo
+                                op.created_at as fecha_registro,op.estado,op.tipo,op.estado
                                 from ordenes_produccion as op 
                                 where op.estado != "ANULADO"');
 

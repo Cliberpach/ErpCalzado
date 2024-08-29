@@ -23,16 +23,17 @@
   
   async function openMdlAtenciones(pedido_id,producto_id,color_id,talla_id){
         try {
-            mostrarAnimacionCotizacion();
-            const res   =  await axios.get(route('pedidos.pedidos_detalles.getDetallesAtenciones',{pedido_id,producto_id,color_id,talla_id}));
-            console.log(res);
-            if(res.data.success){
-                pintarMdlDetallesAtenciones(res.data.documentos_atenciones);
-                $('#modal_detalles_atenciones').modal('show');
-                toastr.info('VISUALIZANDO ATENCIONES');
-            }else{
-                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
-            }
+          toastr.clear();
+          mostrarAnimacionCotizacion();
+          const res   =  await axios.get(route('pedidos.pedidos_detalles.getDetallesAtenciones',{pedido_id,producto_id,color_id,talla_id}));
+            
+          if(res.data.success){
+            pintarMdlDetallesAtenciones(res.data.documentos_atenciones);
+            $('#modal_detalles_atenciones').modal('show');
+            toastr.info('VISUALIZANDO ATENCIONES');
+          }else{
+            toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+          }
         } catch (error) {
             toastr.error(error,'ERROR EN LA PETICIÓN VER ATENCIONES DEL DETALLE');
         }finally{

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Pedidos;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Pedido\DetalleGenerarOrdenProduccion;
 use App\Pedidos\OrdenProduccion;
 use App\Pedidos\OrdenPedidoDetalle;
 use App\Pedidos\OrdenProduccionDetalle;
+use Exception;
 use Illuminate\Http\Request;
 use App\Ventas\PedidoDetalle;
 use Yajra\DataTables\Facades\DataTables;
@@ -40,6 +42,7 @@ class DetalleController extends Controller
 
         $pedidos_detalles = PedidoDetalle::from('pedidos_detalles as pd')
                             ->select(
+                                'pd.orden_produccion_id',
                                 'p.id as pedido_id',
                                 'p.created_at as pedido_fecha',
                                 'p.cliente_id',
@@ -60,6 +63,7 @@ class DetalleController extends Controller
                                 'pd.cantidad_pendiente',
                                 'pd.cantidad_enviada',
                                 'pd.cantidad_devuelta',
+                                'pd.cantidad_fabricacion',
                                 \DB::raw('concat("PE-", p.id) as pedido_name_id')
                             )
                             ->join('pedidos as p', 'pd.pedido_id', '=', 'p.id')
@@ -114,6 +118,28 @@ class DetalleController extends Controller
             //dd($documentos_antenciones);
 
             return response()->json(['success'=>true,'documentos_atenciones'=>$documentos_antenciones]);
+            
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
+    public function getDetallesFabricaciones($pedido_id,$producto_id,$color_id,$talla_id){
+        try {
+            $fabricaciones_ordenes =   DB::select('select op.id,op.created_at as fecha_registro,
+                                        op.user_nombre as usuario, op.fecha_propuesta_atencion,
+                                        op.observacion,op.tipo , op.estado
+                                        from  ordenes_produccion as op 
+                                        inner join ordenes_produccion_detalles as opd on op.id = opd.orden_produccion_id
+                                        where opd.pedido_id = ? and 
+                                        opd.producto_id = ? and
+                                        opd.color_id = ?  and
+                                        opd.talla_id = ? and op.estado != "ANULADO"',
+                                        [$pedido_id,$producto_id,$color_id,$talla_id]);
+            
+            
+
+            return response()->json(['success'=>true,'fabricaciones'=>$fabricaciones_ordenes]);
             
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
@@ -235,11 +261,12 @@ class DetalleController extends Controller
 
     }
 
-    public function generarOrdenProduccion(Request $request){
+    public function generarOrdenProduccion(DetalleGenerarOrdenProduccion $request){
         DB::beginTransaction();
- 
+       
         try {
             $lstProgramacionProduccion  =   json_decode($request->get('lstProgramacionProduccion'));
+            
             
             //===== CREAMOS LA ORDEN DE PEDIDO CABEZERA ========
             $orden_produccion                           =   new OrdenProduccion();
@@ -251,24 +278,57 @@ class DetalleController extends Controller
             $orden_produccion->save();
 
             //======= GUARDANDO DETALLES DE LA ORDEN DE PEDIDO =====
-            foreach ($lstProgramacionProduccion as $producto) {
-                foreach ($producto->colores as $color ) {
-                    foreach ($color->tallas as $talla) {
-                        $orden_produccion_detalle                       =   new OrdenProduccionDetalle();
-                        $orden_produccion_detalle->orden_produccion_id  =   $orden_produccion->id;
-                        $orden_produccion_detalle->modelo_id            =   $producto->modelo->id;
-                        $orden_produccion_detalle->producto_id          =   $producto->id;
-                        $orden_produccion_detalle->color_id             =   $color->id;
-                        $orden_produccion_detalle->talla_id             =   $talla->id;
-                        $orden_produccion_detalle->modelo_nombre        =   $producto->modelo->nombre;
-                        $orden_produccion_detalle->producto_nombre      =   $producto->nombre;
-                        $orden_produccion_detalle->color_nombre         =   $color->nombre;
-                        $orden_produccion_detalle->talla_nombre         =   $talla->nombre;
-                        $orden_produccion_detalle->cantidad             =   $talla->cantidad_pendiente;
-                        $orden_produccion_detalle->save();                    
-                    }  
-                } 
+            foreach ($lstProgramacionProduccion as $pedido) {
+                foreach ($pedido->productos as $producto) {
+                    foreach ($producto->colores as $color ) {
+                        foreach ($color->tallas as $talla) {
+
+                            //====== VERIFICAR SI EL DETALLE DEL PEDIDO ID YA TIENE ORDEN DE PRODUCCION =====
+                            $pedido_detalle =   DB::select('select pd.orden_produccion_id 
+                                                from pedidos_detalles as pd
+                                                where pd.pedido_id = ? and
+                                                pd.producto_id = ? and
+                                                pd.color_id = ? and
+                                                pd.talla_id = ?',
+                                                [$pedido->id,
+                                                $producto->id,$color->id,$talla->id]);
+
+                            if(count($pedido_detalle) !== 1){
+                                throw new Exception("ERROR AL VALIDAR EL PEDIDO ID DE LOS PRODUCTOS DE LA LISTA DE PRODUCCIÓN");
+                            }
+
+                            if($pedido_detalle[0]->orden_produccion_id !== null){
+                                throw new Exception($producto->nombre.'-'.$color->nombre.'-'.$talla->nombre.' YA SE ENCUENTRA EN UNA ORDEN DE PRODUCCIÓN');
+                            }
+
+                            //======== GRABANDO DETALLE DE LA ORDEN DE PRODUCCIÓN =======
+                            $orden_produccion_detalle                       =   new OrdenProduccionDetalle();
+                            $orden_produccion_detalle->orden_produccion_id  =   $orden_produccion->id;
+                            $orden_produccion_detalle->pedido_id            =   $pedido->id;
+                            $orden_produccion_detalle->modelo_id            =   $producto->modelo->id;
+                            $orden_produccion_detalle->producto_id          =   $producto->id;
+                            $orden_produccion_detalle->color_id             =   $color->id;
+                            $orden_produccion_detalle->talla_id             =   $talla->id;
+                            $orden_produccion_detalle->modelo_nombre        =   $producto->modelo->nombre;
+                            $orden_produccion_detalle->producto_nombre      =   $producto->nombre;
+                            $orden_produccion_detalle->color_nombre         =   $color->nombre;
+                            $orden_produccion_detalle->talla_nombre         =   $talla->nombre;
+                            $orden_produccion_detalle->cantidad             =   $talla->cantidad_pendiente;
+                            $orden_produccion_detalle->save();        
+                            
+                            //======== INCREMENTANDO CANTIDAD FABRICADA EN EL PEDIDO ID =======
+                            //======= ASOCIANDO DETALLE DEL PEDIDO CON LA ORDEN DE PRODUCCIÓN =======
+                            DB::update('UPDATE pedidos_detalles 
+                            SET orden_produccion_id = ?,cantidad_fabricacion = cantidad_fabricacion + ? 
+                            WHERE pedido_id = ? and producto_id = ?  and color_id = ?  and talla_id = ?', 
+                            [$orden_produccion->id,
+                            $talla->cantidad_pendiente,$pedido->id,$producto->id,$color->id,$talla->id]);
+
+                        }  
+                    } 
+                }
             }
+           
 
             DB::commit();
             return response()->json(['success'=>true,'message'=>'ORDEN DE PRODUCCIÓN N° '.$orden_produccion->id.' GENERADA CON ÉXITO']);

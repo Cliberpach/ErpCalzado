@@ -18,6 +18,8 @@ class CreateOrdenesProduccionDetallesTable extends Migration
             $table->unsignedBigInteger('orden_produccion_id');
             $table->foreign('orden_produccion_id')->references('id')->on('ordenes_produccion')->onDelete('cascade');
 
+            $table->unsignedBigInteger('pedido_id');
+            $table->foreign('pedido_id')->references('id')->on('pedidos')->onDelete('cascade');
 
             $table->unsignedInteger('modelo_id');
             $table->foreign('modelo_id')->references('id')->on('modelos');
@@ -38,8 +40,11 @@ class CreateOrdenesProduccionDetallesTable extends Migration
 
             $table->unsignedInteger('cantidad');
 
-            $table->primary(['orden_produccion_id', 'modelo_id', 'producto_id', 'color_id', 'talla_id'], 'pk_orden_modelo_prod_color_talla');
-
+            $table->primary(['orden_produccion_id']);
+            $table->unique(
+                ['orden_produccion_id', 'pedido_id', 'modelo_id', 'producto_id', 'color_id', 'talla_id'],
+                'uq_orden_produccion_detalle'
+            );
             $table->timestamps();
         });
     }

@@ -5,6 +5,7 @@
 @include('pedidos.detalles.modals.modal_detalles_anteciones')
 @include('pedidos.detalles.modals.modal_detalles_despachos')
 @include('pedidos.detalles.modals.modal_detalles_devoluciones')
+@include('pedidos.detalles.modals.modal_detalles_fabricaciones')
 
 <style>
 
@@ -161,34 +162,7 @@
             <div class="ibox ">
                 <div class="ibox-content">
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered table-hover" id="pedidos_detalles"
-                            style="text-transform:uppercase" width="100%">
-                            <thead>
-                                <tr>
-                                    <th><i class="fas fa-vote-yea"></i></th>
-                                    <th class="text-center">PED</th>
-                                    <th class="text-center">FECHA</th>
-                                    <th class="text-center">CLIENTE</th>
-                                    <th class="text-center">VENDEDOR</th>
-                                    <th class="text-center">PRODUCTO</th>
-                                    <th class="text-center">COLOR</th>
-                                    <th class="text-center">TALLA</th>
-                                    <th class="text-center">CANT </th>
-                                    <th class="text-center">PRECIO</th>
-                                    <th class="text-center">TOTAL</th>
-                                    <th class="text-center">CANT ATENDIDA</th>
-                                    <th class="text-center">CANT PENDIENTE</th>
-                                    <th class="text-center">CANT ENVIADA</th>
-                                    <th class="text-center">CANT FABRICACION</th>
-                                    <th class="text-center">CANT CAMBIO</th>
-                                    <th class="text-center">CANT DEVUELTA</th>
-
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                            </tbody>
-                        </table>
+                        @include('pedidos.detalles.tables.table_pedidos_detalles')
                     </div>
                 </div>
             </div>
@@ -207,8 +181,9 @@
                             </a>                        
                         </div> --}}
                         <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                            <label style="font-weight: bold;" for="fecha_propuesta_atencion">FECHA PROPUESTA ATENCIÓN</label>
-                            <input id="fecha_propuesta_atencion" type="date" class="form-control">                       
+                            <label class="required" style="font-weight: bold;" for="fecha_propuesta_atencion">FECHA PROPUESTA ATENCIÓN</label>
+                            <input id="fecha_propuesta_atencion" type="date" class="form-control">   
+                            <p style="font-weight: bold;color:red;" class="fecha_propuesta_atencion_error spanError"></p>                    
                         </div>
                         <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
                             <label style="font-weight: bold;" for="observacion" class="form-label">OBSERVACIÓN</label>
@@ -247,10 +222,12 @@
     const lstProgramaProduccion         =   [];
     const lstChecksProductosMarcados    =   [];
     let dataTablePedidoDetalles         =   null;
+    let dataTableProgramacionProduccion =   null;
 
     document.addEventListener('DOMContentLoaded',()=>{
         loadSelect2();
         loadDataTablePedidoDetalles();
+        loadDataTableProgramacionProduccion();
         events();
     })
 
@@ -267,8 +244,11 @@
                 if(!e.target.checked){
                     quitarProductoToProduccion(producto,checkProductoId);
                 }
+
+                destruirDataTableProgramacionProduccion();
+                limpiarTableProgramacionProduccion();
                 pintarTableProgramacionProduccion();
-                
+                loadDataTableProgramacionProduccion();
             }
         })
 
@@ -295,6 +275,42 @@
             height: '200px',
             width: '100%',
         });
+    }
+
+    function destruirDataTableProgramacionProduccion(){
+        if(dataTableProgramacionProduccion){
+            dataTableProgramacionProduccion.destroy();
+        }
+    }
+
+    function loadDataTableProgramacionProduccion(){
+        dataTableProgramacionProduccion = $('#table_programacion_produccion').DataTable({
+            language: {
+                "decimal": "",
+                "emptyTable": "No hay información disponible en la tabla",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "Mostrando 0 a 0 de 0 registros",
+                "infoFiltered": "(filtrado de _MAX_ registros totales)",
+                "infoPostFix": "",
+                "thousands": ",",
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "loadingRecords": "Cargando...",
+                "processing": "Procesando...",
+                "search": "Buscar:",
+                "zeroRecords": "No se encontraron resultados",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                },
+                "aria": {
+                    "sortAscending": ": activar para ordenar la columna de manera ascendente",
+                    "sortDescending": ": activar para ordenar la columna de manera descendente"
+                }
+            }
+        });
+
     }
 
     function loadDataTablePedidoDetalles(){
@@ -364,8 +380,12 @@
                     data: null,
                     className: "text-center",
                     render: function (data, type, row) {
-                        let etiqueta    =   `  <input class="form-control checkProducto" id="checkProducto_${row.pedido_id}_${row.producto_id}_${row.color_id}_${row.talla_id}" type="checkbox" data-modelo-id="${row.modelo_id}" data-producto-id="${row.producto_id}" data-color-id="${row.color_id}" data-talla-id="${row.talla_id}" 
-                        data-modelo-nombre="${row.modelo_nombre}" data-producto-nombre="${row.producto_nombre}" data-color-nombre="${row.color_nombre}" data-talla-nombre="${row.talla_nombre}"  data-cant-pend="${row.cantidad_pendiente}">`;   
+                        let etiqueta    =   ``;   
+
+                        if(row.orden_produccion_id == null){
+                            etiqueta = `<input class="form-control checkProducto" id="checkProducto_${row.pedido_id}_${row.producto_id}_${row.color_id}_${row.talla_id}" type="checkbox" data-modelo-id="${row.modelo_id}" data-producto-id="${row.producto_id}" data-color-id="${row.color_id}" data-talla-id="${row.talla_id}" 
+                            data-pedido-id="${row.pedido_id}" data-modelo-nombre="${row.modelo_nombre}" data-producto-nombre="${row.producto_nombre}" data-color-nombre="${row.color_nombre}" data-talla-nombre="${row.talla_nombre}"  data-cant-pend="${row.cantidad_pendiente}">`;
+                        }
 
                         return etiqueta;
                     }
@@ -452,11 +472,20 @@
                     }
                 },
                 {
-                    data: 'detalle_id',
+                    data: 'cantidad_fabricacion',
                     className: "text-center",
                     render: function (data, type, row) {
                         
-                        return 'CANT FABRICACION';
+                        let etiqueta    =   '';
+                        if(data > 0){
+                            etiqueta    =   `<p style="cursor:pointer;font-weight:bold;margin:0;color:blue;" onclick="openMdlFabricaciones(${row.pedido_id}, ${row.producto_id}, ${row.color_id}, ${row.talla_id})" style="font-weight:bold;">${data}</p>`;   
+                        }
+
+                        if(data == 0){
+                            etiqueta    =   `<p style="margin:0;">${data}</p>`
+                        }
+
+                        return etiqueta;
                     }
                 },
                 {
@@ -484,6 +513,7 @@
     }
 
     function getProducto(checkProducto){
+        const pedido_id             =   checkProducto.getAttribute('data-pedido-id');
         const modelo_id             =   checkProducto.getAttribute('data-modelo-id');
         const producto_id           =   checkProducto.getAttribute('data-producto-id');
         const color_id              =   checkProducto.getAttribute('data-color-id');
@@ -495,7 +525,7 @@
         const cantidad_pendiente    =   checkProducto.getAttribute('data-cant-pend');    
 
         
-        return {modelo_id,producto_id,color_id,talla_id,
+        return {pedido_id,modelo_id,producto_id,color_id,talla_id,
             modelo_nombre,producto_nombre,color_nombre,talla_nombre,cantidad_pendiente};
 
     }
@@ -503,15 +533,21 @@
 
     //========= AGREGAR PRODUCTO AL LISTADO DE PRODUCCIÓN =======
     function agregarProductoToProduccion(producto_nuevo){
-        //========= REVIZAR SI EL PRODUCTO YA EXISTE EN EL LISTADO ========
-        const indiceProducto    =   lstProgramaProduccion.findIndex((item)=>{
-            return  item.id == producto_nuevo.producto_id;
+        
+        //====== REVIZAR SI EL PEDIDO ID YA EXISTE EN EL LISTADO ======
+        const indicePedido    =   lstProgramaProduccion.findIndex((item)=>{
+            return  item.id == producto_nuevo.pedido_id;
         })
 
-        //====== EL PRODUCTO  ES NUEVO ======
-        if(indiceProducto === -1){
+        //======= EN CASO EL PEDIDO SEA NUEVO ======
+        if(indicePedido === -1){
+
+            //======= INSTANCIAR PEDIDO ======
+            const instancia_pedido  =   {id:producto_nuevo.pedido_id};
+
+           
             //======== INSTANCIAR PRODUCTO ======
-            const instancia_producto    =   {id:producto_nuevo.producto_id,nombre:producto_nuevo.producto_nombre}
+             const instancia_producto    =   {id:producto_nuevo.producto_id,nombre:producto_nuevo.producto_nombre}
 
             //======== INSTANCIANDO MODELO ======
             const instancia_modelo      =   {id:producto_nuevo.modelo_id,nombre:producto_nuevo.modelo_nombre};
@@ -526,142 +562,213 @@
             instancia_producto.modelo               =   instancia_modelo;
             instancia_producto.colores              =   [instancia_color];
             instancia_producto.colores[0].tallas    =   [instancia_talla];
+            instancia_pedido.productos              =   [instancia_producto];
 
-            lstProgramaProduccion.push(instancia_producto);
+            lstProgramaProduccion.push(instancia_pedido);
+            
         }
 
-        //===== EL PRODUCTO YA EXISTE =======
-        if(indiceProducto !== -1){
-            //===== VERIFICAR SI EXISTE EL COLOR =======
-            const producto_existe   =   lstProgramaProduccion[indiceProducto];
+        //====== EN CASO EL PEDIDO YA EXISTA ======
+        if(indicePedido !== -1){
 
-            const indiceColor       =   producto_existe.colores.findIndex((item)=>{
-                return  item.id ==  producto_nuevo.color_id;
+            const pedido_existe =   lstProgramaProduccion[indicePedido];
+
+            //========= REVIZAR SI EL PRODUCTO YA EXISTE EN EL LISTADO DE PRODUCTOS DEL PEDIDO ========
+            const indiceProducto    =   pedido_existe.productos.findIndex((item)=>{
+                return  item.id == producto_nuevo.producto_id;
             })
 
-            //====== EL COLOR NO EXISTE ======
-            if(indiceColor === -1){
-                //====== INSTANCIAR COLOR =====
-                const instancia_color   =   {id:producto_nuevo.color_id,nombre:producto_nuevo.color_nombre};
 
-                //===== INSTANCIAR TALLA =======
+            //====== EL PRODUCTO  ES NUEVO ======
+            if(indiceProducto === -1){
+                //======== INSTANCIAR PRODUCTO ======
+                const instancia_producto    =   {id:producto_nuevo.producto_id,nombre:producto_nuevo.producto_nombre}
+
+                //======== INSTANCIANDO MODELO ======
+                const instancia_modelo      =   {id:producto_nuevo.modelo_id,nombre:producto_nuevo.modelo_nombre};
+
+                //====== INSTANCIANDO COLOR =======
+                const instancia_color       =   {id:producto_nuevo.color_id,nombre:producto_nuevo.color_nombre};
+
+                //====== INSTANCIANDO TALLA ======
                 const instancia_talla       =   {id:producto_nuevo.talla_id,nombre:producto_nuevo.talla_nombre,cantidad_pendiente:parseInt(producto_nuevo.cantidad_pendiente)};
-                
-                //======= FORMANDO =======
-                instancia_color.tallas      =   [instancia_talla];
 
-                producto_existe.colores.push(instancia_color)
+                //====== FORMANDO =======
+                instancia_producto.modelo               =   instancia_modelo;
+                instancia_producto.colores              =   [instancia_color];
+                instancia_producto.colores[0].tallas    =   [instancia_talla];
+
+                pedido_existe.productos.push(instancia_producto);
             }
 
-            //======== EL COLOR YA EXISTE ======
-            if(indiceColor !== -1){
-                //==== VERIFICAR SI LA TALLA EXISTE =====
-                const color_existe  =   producto_existe.colores[indiceColor];
+            //====== PRODUCTO YA EXISTE =======
+            if(indiceProducto !== -1){
+                //===== VERIFICAR SI EXISTE EL COLOR =======
+                const producto_existe   =   pedido_existe.productos[indiceProducto];
 
-                const indiceTalla   =   color_existe.tallas.findIndex((item)=>{
-                    return  item.id == producto_nuevo.talla_id;
+                const indiceColor       =   producto_existe.colores.findIndex((item)=>{
+                    return  item.id ==  producto_nuevo.color_id;
                 })
 
-                //==== SI LA TALLA ES NUEVA ======
-                if(indiceTalla === -1){
+                //====== EL COLOR NO EXISTE ======
+                if(indiceColor === -1){
+                    //====== INSTANCIAR COLOR =====
+                    const instancia_color   =   {id:producto_nuevo.color_id,nombre:producto_nuevo.color_nombre};
+
                     //===== INSTANCIAR TALLA =======
                     const instancia_talla       =   {id:producto_nuevo.talla_id,nombre:producto_nuevo.talla_nombre,cantidad_pendiente:parseInt(producto_nuevo.cantidad_pendiente)};
                     
                     //======= FORMANDO =======
-                    color_existe.tallas.push(instancia_talla);
+                    instancia_color.tallas      =   [instancia_talla];
+
+                    producto_existe.colores.push(instancia_color)
                 }
 
-                //===== SI LA TALLA YA EXISTE =====
-                if(indiceTalla !== -1){
-                    color_existe.tallas[indiceTalla].cantidad_pendiente +=  parseInt(producto_nuevo.cantidad_pendiente);
+                //======== EL COLOR YA EXISTE ======
+                if(indiceColor !== -1){
+                    //==== VERIFICAR SI LA TALLA EXISTE =====
+                    const color_existe  =   producto_existe.colores[indiceColor];
+
+                    const indiceTalla   =   color_existe.tallas.findIndex((item)=>{
+                        return  item.id == producto_nuevo.talla_id;
+                    })
+
+                    //==== SI LA TALLA ES NUEVA ======
+                    if(indiceTalla === -1){
+                        //===== INSTANCIAR TALLA =======
+                        const instancia_talla       =   {id:producto_nuevo.talla_id,nombre:producto_nuevo.talla_nombre,cantidad_pendiente:parseInt(producto_nuevo.cantidad_pendiente)};
+                        
+                        //======= FORMANDO =======
+                        color_existe.tallas.push(instancia_talla);
+                    }
+
+                    //===== SI LA TALLA YA EXISTE =====
+                    if(indiceTalla !== -1){
+                        color_existe.tallas[indiceTalla].cantidad_pendiente +=  parseInt(producto_nuevo.cantidad_pendiente);
+                    }
                 }
             }
         }
+
+       
+
+        //===== EL PRODUCTO YA EXISTE =======
+        /**/
     }
 
     //========= QUITAR PRODUCTO DEL LISTADO DE PROGRAMACIÓN DE PRODUCCIÓN ======
     function quitarProductoToProduccion(producto_desmarcado,checkProductoId){
-        //===== VERIFICAR SI EXISTE EL PRODUCTO ======
-        const indiceProducto    =   lstProgramaProduccion.findIndex((producto)=>{
-            return producto.id  == producto_desmarcado.producto_id;
+
+        //======== VERIFICAR SI EXISTE EL PEDIDO ID ======
+        const indicePedido  =   lstProgramaProduccion.findIndex((pedido)=>{
+            return pedido.id    ==   producto_desmarcado.pedido_id;
         })
 
-        //====== EN CASO EXISTA =======
-        if(indiceProducto !== -1){
-            //======= VERIFICAR SI EXISTE EL COLOR ========
-            const producto_existe   =   lstProgramaProduccion[indiceProducto];
-            const indiceColor       =   producto_existe.colores.findIndex((color)=>{
-                return  color.id    ==  producto_desmarcado.color_id;
-            })
 
-            //====== EN CASO EL COLOR EXISTA =====
-            if(indiceColor !== -1){
-                const   color_existe    =   producto_existe.colores[indiceColor];
-
-                //======== VERIFICAR QUE LA TALLA EXISTA ======
-                const indiceTalla   =   color_existe.tallas.findIndex((talla)=>{
-                    return talla.id == producto_desmarcado.talla_id;
-                })
-
-                //====== EN CASO EXISTA LA TALLA ======
-                if(indiceTalla !== -1){
-                    const talla_existe      =   color_existe.tallas[indiceTalla];
-
-                    //====== CONTROLAR LA CANTIDAD AL RESTAR =======
-                    let aux_cant_resultante =   talla_existe.cantidad_pendiente - parseInt(producto_desmarcado.cantidad_pendiente);
-                    
-                    //======== LA RESTA FUE CORRECTA =====
-                    if(aux_cant_resultante >= 0){
-                        //==== RESTAMOS =======
-                        talla_existe.cantidad_pendiente -=  parseInt(producto_desmarcado.cantidad_pendiente);
-
-                        //======= QUITAMOS EL CHECKBOX DEL LISTADO DE CHECKBOX MARCADOS ======
-                        const indiceCheckMarcado    =   lstChecksProductosMarcados.findIndex((chkId)=>{
-                            return chkId    === checkProductoId;
-                        })
-                        if(indiceCheckMarcado !== -1){
-                            lstChecksProductosMarcados.splice(indiceCheckMarcado,1);
-                        }
-
-                        //======= ELIMINAR LA TALLA EN CASO SU CANTIDAD LLEGUE A SER 0 ========
-                        if(talla_existe.cantidad_pendiente == 0){
-                            color_existe.tallas.splice(indiceTalla,1);
-
-                            //====== EN CASO EL COLOR SE QUEDE SIN TALLAS, ELIMINAR EL COLOR =========
-                            if(color_existe.tallas.length === 0){
-                                producto_existe.colores.splice(indiceColor,1);
-
-                                //===== EN CASO EL PRODUCTO SE QUEDE SIN COLORES, ELIMINAR EL PRODUCTO =====
-                                if(producto_existe.colores.length === 0){
-                                    lstProgramaProduccion.splice(indiceProducto,1);
-                                }
-                            }
-                        }
-
-
-                    }
-
-                    //====== RESTA INCORRECTA =======
-                    if(aux_cant_resultante < 0){
-                        toastr.error('ERROR AL RESTAR LA CANTIDAD DEL PRODUCTO DEL LISTADO DE PROGRAMACIÓN DE PRODUCCIÓN');
-                    }
-                }
-
-                //==== EN CASO LA TALLA NO EXISTA ======
-                if(indiceTalla === -1){
-                    toastr.error('ERROR AL QUITAR EL PRODUCTO DEL LISTADO PROGRAMACIÓN DE PRODUCCIÓN','TALLA NO ENCONTRADA');
-                }
-            }
-
-            //======== EN CASO EL COLOR NO EXISTA =====
-            if(indiceColor === -1){
-                toastr.error('ERROR AL QUITAR EL PRODUCTO DEL LISTADO PROGRAMACIÓN DE PRODUCCIÓN','COLOR NO ENCONTRADO');
-            }
+        //====== EN CASO EL PEDIDO NO EXISTA ======
+        if(indicePedido === -1){
+            toastr.error('ERROR AL ELIMINAR PRODUCTO DE LA LISTA DE PRODUCCIÓN','PEDIDO NO ENCONTRADO');
+            return;
         }
 
-        //====== EN CASO EL PRODUCTO NO EXISTA =====
-        if(indiceProducto === -1){
-            toastr.error('ERROR AL QUITAR EL PRODUCTO DEL LISTADO PROGRAMACIÓN DE PRODUCCIÓN','PRODUCTO NO ENCONTRADO');
+        //======= EN CASO EXISTA EL PEDIDO =======
+        if(indicePedido !== -1){
+
+            const pedido_existe =   lstProgramaProduccion[indicePedido];
+
+            //===== VERIFICAR SI EXISTE EL PRODUCTO ======
+            const indiceProducto    =   pedido_existe.productos.findIndex((producto)=>{
+                return producto.id  == producto_desmarcado.producto_id;
+            })
+
+             //====== EN CASO EL PRODUCTO NO EXISTA =====
+             if(indiceProducto === -1){
+                toastr.error('ERROR AL QUITAR EL PRODUCTO DEL LISTADO PROGRAMACIÓN DE PRODUCCIÓN','PRODUCTO NO ENCONTRADO');
+                return;
+            }
+
+            //======== EN CASO EL PRODUCTO EXISTA ======
+            if(indiceProducto !== -1){
+                //======= VERIFICAR SI EXISTE EL COLOR ========
+                const producto_existe   =   pedido_existe.productos[indiceProducto];
+                const indiceColor       =   producto_existe.colores.findIndex((color)=>{
+                    return  color.id    ==  producto_desmarcado.color_id;
+                })
+
+                //====== EN CASO EL COLOR EXISTA =====
+                if(indiceColor !== -1){
+                    const   color_existe    =   producto_existe.colores[indiceColor];
+
+                    //======== VERIFICAR QUE LA TALLA EXISTA ======
+                    const indiceTalla   =   color_existe.tallas.findIndex((talla)=>{
+                        return talla.id == producto_desmarcado.talla_id;
+                    })
+
+                    //====== EN CASO EXISTA LA TALLA ======
+                    if(indiceTalla !== -1){
+                        const talla_existe      =   color_existe.tallas[indiceTalla];
+
+                        //====== CONTROLAR LA CANTIDAD AL RESTAR =======
+                        let aux_cant_resultante =   talla_existe.cantidad_pendiente - parseInt(producto_desmarcado.cantidad_pendiente);
+                        
+                        //======== LA RESTA FUE CORRECTA =====
+                        if(aux_cant_resultante >= 0){
+                            //==== RESTAMOS =======
+                            talla_existe.cantidad_pendiente -=  parseInt(producto_desmarcado.cantidad_pendiente);
+
+                            //======= QUITAMOS EL CHECKBOX DEL LISTADO DE CHECKBOX MARCADOS ======
+                            const indiceCheckMarcado    =   lstChecksProductosMarcados.findIndex((chkId)=>{
+                                return chkId    === checkProductoId;
+                            })
+                            if(indiceCheckMarcado !== -1){
+                                lstChecksProductosMarcados.splice(indiceCheckMarcado,1);
+                            }
+
+                            //======= ELIMINAR LA TALLA EN CASO SU CANTIDAD LLEGUE A SER 0 ========
+                            if(talla_existe.cantidad_pendiente == 0){
+                                color_existe.tallas.splice(indiceTalla,1);
+
+                                //====== EN CASO EL COLOR SE QUEDE SIN TALLAS, ELIMINAR EL COLOR =========
+                                if(color_existe.tallas.length === 0){
+                                    producto_existe.colores.splice(indiceColor,1);
+
+                                    //===== EN CASO EL PRODUCTO SE QUEDE SIN COLORES, ELIMINAR EL PRODUCTO =====
+                                    if(producto_existe.colores.length === 0){
+                                        pedido_existe.productos.splice(indiceProducto,1);
+                                    }
+                                }
+                            }
+
+
+                        }
+
+                        //====== RESTA INCORRECTA =======
+                        if(aux_cant_resultante < 0){
+                            toastr.error('ERROR AL RESTAR LA CANTIDAD DEL PRODUCTO DEL LISTADO DE PROGRAMACIÓN DE PRODUCCIÓN');
+                        }
+                    }
+
+                    //==== EN CASO LA TALLA NO EXISTA ======
+                    if(indiceTalla === -1){
+                        toastr.error('ERROR AL QUITAR EL PRODUCTO DEL LISTADO PROGRAMACIÓN DE PRODUCCIÓN','TALLA NO ENCONTRADA');
+                    }
+                }
+
+                //======== EN CASO EL COLOR NO EXISTA =====
+                if(indiceColor === -1){
+                    toastr.error('ERROR AL QUITAR EL PRODUCTO DEL LISTADO PROGRAMACIÓN DE PRODUCCIÓN','COLOR NO ENCONTRADO');
+                }
+            }
+
+           
+        }
+  
+    }
+
+    function limpiarTableProgramacionProduccion(){
+        const   tbody       =   document.querySelector('#table_programacion_produccion tbody');
+        while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
         }
     }
 
@@ -670,42 +777,44 @@
         const   tallasBD    =   @json($tallas);
         const   tbody       =   document.querySelector('#table_programacion_produccion tbody');
 
-        lstProgramaProduccion.forEach((producto)=>{
+        lstProgramaProduccion.forEach((pedido)=>{
             
-            //===== COLORES =======
-            producto.colores.forEach((color)=>{
-                filas   +=  `<tr>
-                                <th><div style="width:120px;">${producto.modelo.nombre}</div></th>
-                                <td><div style="width:120px;">${producto.nombre}</div></td>
-                                <td><div style="width:120px;">${color.nombre}</div></td>`;
+            //========= RECORRIENDO PRODUCTOS DE CADA PEDIDO =====
+            pedido.productos.forEach((producto)=>{
 
-                //====== RECORRIENDO EN BASE A LAS TALLAS DE LA BD =======
-                tallasBD.forEach((tallaBD)=>{
+                //===== COLORES =======
+                producto.colores.forEach((color)=>{
+                    filas   +=  `<tr>
+                                    <th><div style="width:120px;">PE-${pedido.id}</div></th>
+                                    <th><div style="width:120px;">${producto.modelo.nombre}</div></th>
+                                    <td><div style="width:120px;">${producto.nombre}</div></td>
+                                    <td><div style="width:120px;">${color.nombre}</div></td>`;
 
-                    //======== REVIZANDO EL COLOR TIENE ESTA TALLA =====
-                    const indiceTalla   =   color.tallas.findIndex((t)=>{
-                        return  t.id == tallaBD.id;
+                    //====== RECORRIENDO EN BASE A LAS TALLAS DE LA BD =======
+                    tallasBD.forEach((tallaBD)=>{
+
+                        //======== REVIZANDO EL COLOR TIENE ESTA TALLA =====
+                        const indiceTalla   =   color.tallas.findIndex((t)=>{
+                            return  t.id == tallaBD.id;
+                        })
+
+                        let elementCantPendiente    =   ``;
+                        //===== SI TIENE LA TALLA =====
+                        if(indiceTalla !== -1){
+                            elementCantPendiente    =   `<p style="margin:0;font-weight:bold;">${color.tallas[indiceTalla].cantidad_pendiente}</p>`;
+                        }
+
+                        //========= AÑADIENDO A LA FILA =======
+                        filas   +=  `<td>${elementCantPendiente}</td>`;
+
                     })
 
-                    let elementCantPendiente    =   ``;
-                    //===== SI TIENE LA TALLA =====
-                    if(indiceTalla !== -1){
-                        elementCantPendiente    =   `<p style="margin:0;font-weight:bold;">${color.tallas[indiceTalla].cantidad_pendiente}</p>`;
-                    }
-
-                    //========= AÑADIENDO A LA FILA =======
-                    filas   +=  `<td>${elementCantPendiente}</td>`;
-
                 })
-
             })
-
         })
 
         tbody.innerHTML =   filas;
     }
-
-    
 
     async function llenarCantEnviada(){
         try {
@@ -825,14 +934,14 @@
         }
 
        
-            const swalWithBootstrapButtons = Swal.mixin({
+        const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
                 confirmButton: "btn btn-success",
                 cancelButton: "btn btn-danger"
             },
             buttonsStyling: false
-            });
-            swalWithBootstrapButtons.fire({
+        });
+        swalWithBootstrapButtons.fire({
             title: "Desea generar una orden de producción?",
             text: "Acción no reversible!",
             icon: "warning",
@@ -840,10 +949,11 @@
             confirmButtonText: "Sí, genérala!",
             cancelButtonText: "No, cancelar!",
             reverseButtons: true
-            }).then( async (result) => {
+        }).then( async (result) => {
             if (result.isConfirmed) {
                
                 try {
+                    limpiarMessagesErrorValidacion();
                     mostrarAnimacionCotizacion();
                     const fecha_propuesta_atencion  =   document.querySelector('#fecha_propuesta_atencion').value;
                     const observacion               =   document.querySelector('#observacion').value;
@@ -853,14 +963,22 @@
                             fecha_propuesta_atencion,observacion
                         }
                     );
+                   
 
                     if(res.data.success){
+                        dataTablePedidoDetalles.ajax.reload();
                         toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
                     }else{
+                        console.log(res.data);
+                      
                         toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                     }    
                     
                 } catch (error) {
+                    if('errors' in error.response.data){
+                        pintarMessagesErrorValidacion(error.response.data.errors);
+                        return;
+                    }
                     toastr.error(error,'ERROR EN LA PETICIÓN GENERAR ORDEN DE PEDIDO');
                 }finally{
                     ocultarAnimacionCotizacion();
@@ -878,9 +996,27 @@
                 });
             }
             });
-           
-       
+        
     }
+
+    function limpiarMessagesErrorValidacion(){
+        const spanErrors    =   document.querySelectorAll('.spanError');
+        spanErrors.forEach((span)=>{
+            span.textContent    =   '';
+        })
+    }
+
+    function pintarMessagesErrorValidacion(messagesErrors){
+        for (let key in messagesErrors) {
+            if (messagesErrors.hasOwnProperty(key)) {
+                const message           =   messagesErrors[key];
+
+                const spanError         =   document.querySelector(`.${key}_error`);
+                spanError.textContent   =   message;
+            }
+        }
+    }
+
 </script>
 
 @endpush

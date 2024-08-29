@@ -43,13 +43,24 @@
         clearTableVerDetalleOrden();
 
         lstDetalleOrden.forEach((producto)=>{
-            filas   += `<tr>
+
+          let etiquetaPedidoId  = `-`;
+
+          if(producto.pedido_id){
+            etiquetaPedidoId  = `PE-${producto.pedido_id}`;
+          }
+
+          filas   += `<tr>
+                        <th>
+                          ${etiquetaPedidoId}
+                        </th>
                         <th>${producto.modelo_nombre}</th>
                         <td>${producto.producto_nombre}</td>
                         <td>${producto.color_nombre}</td>
                         <td>${producto.talla_nombre}</td>
                         <td>${producto.cantidad}</td>
-                        </tr>`;
+                      </tr>`;
+
         })
 
         tbody.innerHTML =   filas;

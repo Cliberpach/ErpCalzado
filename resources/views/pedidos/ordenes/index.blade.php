@@ -128,6 +128,7 @@
                                     <th class="text-center">FECHA PROPUESTA</th>
                                     <th class="text-center">OBSERVACIÓN</th>
                                     <th class="text-center">TIPO</th>
+                                    <th class="text-center">ESTADO</th>
                                     <th class="text-center">ACCIONES</th>
                                 </tr>
                             </thead>
@@ -266,6 +267,29 @@
                 {
                     data: 'tipo',
                     className: "text-center"
+                },
+                {
+                    data: 'estado',
+                    className: "text-center",
+                    render: function(data) {
+                    
+                        let etiquetaEstado =   "";
+
+                        if(data === 'EN PROCESO'){
+                            etiquetaEstado  =   `<span class="badge badge-success">${data}</span>`;
+                        }
+
+                        if(data === 'FINALIZADO'){
+                            etiquetaEstado  =   `<span class="badge badge-primary">${data}</span>`;
+                        }
+
+                        if(data === 'ANULADO'){
+                            etiquetaEstado  =   `<span class="badge badge-danger">${data}</span>`;
+                        }
+                       
+                        return etiquetaEstado;
+                    
+                    }
                 },
                 {
                     data: null,

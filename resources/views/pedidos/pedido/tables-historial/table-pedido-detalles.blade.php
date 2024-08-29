@@ -9,6 +9,7 @@
         <th scope="col">PEND.</th>
         <th scope="col">DESP.</th>
         <th scope="col">DEV.</th>
+        <th scope="col">FABR.</th>
 
       </tr>
     </thead>

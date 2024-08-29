@@ -473,7 +473,7 @@
                toastr.error(`${message} - ${exception}`,'ERROR');
             }
         } catch (error) {
-        
+            toastr.error(error,'ERROR EN LA PETICIÓN VER DETALLE DEL PEDIDO');
         }
 
     })
@@ -498,6 +498,7 @@
                 <td scope="row">${pd.cantidad_pendiente}</td>
                 <td scope="row">${pd.cantidad_enviada}</td>
                 <td scope="row">${pd.cantidad_devuelta}</td>
+                <td scope="row">${pd.cantidad_fabricacion}</td>
             </tr>`;
         })
 

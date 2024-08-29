@@ -543,6 +543,7 @@ function(){
         Route::get('getDetallesAtenciones/{pedido_id}/{producto_id}/{color_id}/{talla_id}', 'Pedidos\DetalleController@getDetallesAtenciones')->name('pedidos.pedidos_detalles.getDetallesAtenciones');
         Route::get('getDetallesDespachos/{pedido_id}/{producto_id}/{color_id}/{talla_id}', 'Pedidos\DetalleController@getDetallesDespachos')->name('pedidos.pedidos_detalles.getDetallesDespachos');
         Route::get('getDetallesDevoluciones/{pedido_id}/{producto_id}/{color_id}/{talla_id}', 'Pedidos\DetalleController@getDetallesDevoluciones')->name('pedidos.pedidos_detalles.getDetallesDevoluciones');
+        Route::get('getDetallesFabricaciones/{pedido_id}/{producto_id}/{color_id}/{talla_id}', 'Pedidos\DetalleController@getDetallesFabricaciones')->name('pedidos.pedidos_detalles.getDetallesFabricaciones');
         Route::post('llenarCantEnviada/', 'Pedidos\DetalleController@llenarCantEnviada')->name('pedidos.pedidos_detalles.llenarCantEnviada');
         Route::post('generarOrdenProduccion/', 'Pedidos\DetalleController@generarOrdenProduccion')->name('pedidos.pedidos_detalles.generarOrdenProduccion');
         Route::get('getExcel/{pedido_detalle_estado?}/{cliente_id?}/{modelo_id?}/{producto_id?}', 'Pedidos\DetalleController@getExcel')->name('pedidos.pedidos_detalles.getExcel');
