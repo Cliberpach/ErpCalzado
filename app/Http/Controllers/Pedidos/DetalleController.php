@@ -80,6 +80,9 @@ class DetalleController extends Controller
             if($pedido_detalle_estado === "ATENDIDO"){
                 $pedidos_detalles->where('pd.cantidad_pendiente', '=', 0);
             }
+            if($pedido_detalle_estado === "FABRICACION"){
+                $pedidos_detalles->where('pd.cantidad_fabricacion', '>', 0);
+            }
         }
 
         if (!empty($cliente_id)) {

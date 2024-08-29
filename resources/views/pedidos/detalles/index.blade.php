@@ -117,6 +117,7 @@
                     <select  id="pedido_detalle_estado" class="form-control select2_form" onchange="filtrarEstadoDetalle()" >
                         <option value="PENDIENTE">PENDIENTE</option>
                         <option value="ATENDIDO">ATENDIDO</option>
+                        <option value="FABRICACION">FABRICACION</option>
                     </select>
                 </div> 
 
@@ -382,7 +383,7 @@
                     render: function (data, type, row) {
                         let etiqueta    =   ``;   
 
-                        if(row.orden_produccion_id == null){
+                        if(row.orden_produccion_id == null && row.cantidad_pendiente > 0){
                             etiqueta = `<input class="form-control checkProducto" id="checkProducto_${row.pedido_id}_${row.producto_id}_${row.color_id}_${row.talla_id}" type="checkbox" data-modelo-id="${row.modelo_id}" data-producto-id="${row.producto_id}" data-color-id="${row.color_id}" data-talla-id="${row.talla_id}" 
                             data-pedido-id="${row.pedido_id}" data-modelo-nombre="${row.modelo_nombre}" data-producto-nombre="${row.producto_nombre}" data-color-nombre="${row.color_nombre}" data-talla-nombre="${row.talla_nombre}"  data-cant-pend="${row.cantidad_pendiente}">`;
                         }
