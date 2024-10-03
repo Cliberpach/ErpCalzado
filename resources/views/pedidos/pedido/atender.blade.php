@@ -8,19 +8,21 @@
 <style>
 
     .overlay_pedido {
-      position: fixed; /* Fija el overlay para que cubra todo el viewport */
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
-      z-index: 9999; /* Asegura que el overlay esté sobre todo */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 24px;
-      visibility:hidden;
+        position: fixed; /* Fija el overlay para que cubra todo el viewport */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
+        z-index: 9999; /* Asegura que el overlay esté sobre todo */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 24px;
+        visibility: hidden; /* Inicialmente oculto */
+        opacity: 0; /* Transparente por defecto */
+        transition: opacity 0.3s ease-in-out; /* Transición suave de visibilidad */
     }
     
     /*========== LOADER SPINNER =======*/
@@ -30,14 +32,14 @@
         height: 100px;
         background-repeat: no-repeat;
         background-image: linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0);
+                            linear-gradient(#DDD 50px, transparent 0),
+                            linear-gradient(#DDD 50px, transparent 0),
+                            linear-gradient(#DDD 50px, transparent 0),
+                            linear-gradient(#DDD 50px, transparent 0);
         background-size: 8px 100%;
         background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px;
         animation: pillerPushUp 4s linear infinite;
-      }
+    }
     .loader_pedido:after {
         content: '';
         position: absolute;
@@ -80,6 +82,10 @@
         
 </style>
 
+<div class="overlay_pedido">
+    <span class="loader_pedido"></span>
+</div>
+
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
         <h2 style="text-transform:uppercase"><b>Atender Pedido</b></h2>
@@ -92,10 +98,6 @@
             </li>
         </ol>
     </div>
-</div>
-
-<div class="overlay_pedido">
-    <span class="loader_pedido"></span>
 </div>
 
 <div class="wrapper wrapper-content animated fadeInRight">
@@ -709,6 +711,7 @@
                             <td>${pd.cantidad_pendiente}</td>
                             <td>${pd.cantidad_enviada}</td>
                             <td>${pd.cantidad_devuelta}</td>
+                            <td>${pd.cantidad_fabricacion}</td>
                         </tr>`;
         })
 
@@ -916,36 +919,34 @@
 
     //========= PINTAR DETALLE PEDIDO =======
     function pintarDetallePedido(carrito){
+
         let fila= ``;
         let htmlTallas= ``;
         const bodyDetalleTable  =   document.querySelector('#table-detalle-atender tbody');
         const tallas            =   @json($tallas);
-        clearTabla(bodyDetalleTable);
-
-        if(dataTableDetallePedido){
-            dataTableDetallePedido.destroy();
-        }
 
         carrito.forEach((c)=>{
             htmlTallas=``;
                 fila+= `<tr>   
-                            <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
+                            <th>
+                                <div style="min-width:150px;">${c.producto_nombre} - ${c.color_nombre}</div>    
+                            </th>`;
 
                 //tallas
                 tallas.forEach((t)=>{
                     let talla_data = c.tallas.filter((ct)=>{
-                        return t.id==ct.talla_id;
+                        return t.id == ct.talla_id;
                     });
                     
                     if(talla_data.length === 0){
-                        htmlTallas += `<td></td>`; 
-                        htmlTallas += `<td></td>`; 
+                        htmlTallas += `<td></td>
+                                        <td></td>`; 
                     }else{
                         htmlTallas += `<td>
-                                        <div class="d-flex flex-column align-items-center">
-                                            <p  style="margin:0px;color:rgb(7, 7, 183);font-weight:bold;">${talla_data[0].cantidad_pendiente}</p>
-                                            <p  style="margin:0px;color:black;font-weight:bold;">${talla_data[0].stock_logico}</p>
-                                        </div>
+                                            <div class="d-flex flex-column align-items-center">
+                                                <p  style="margin:0px;color:rgb(7, 7, 183);font-weight:bold;">${talla_data[0].cantidad_pendiente}</p>
+                                                <p  style="margin:0px;color:black;font-weight:bold;">${talla_data[0].stock_logico}</p>
+                                            </div>
                                         </td>`; 
                         
                         htmlTallas += ` <td>
@@ -980,12 +981,15 @@
 
         bodyDetalleTable.innerHTML=fila;            
 
-        loadDataTableDetallePedido();
     }
 
   
     //=========== CARGAR PRODUCTOS PREVIOS =======
-    const cargarProductosPrevios=()=>{
+    const cargarProductosPrevios = ()=>{
+
+        limpiarTableDetallePedido();
+        destruirDataTableDetallePedido();
+
         const productosPrevios  =   @json($atencion_detalle);
         //====== CARGANDO CARRITO ======
         const producto_color_procesados = [];
@@ -1052,6 +1056,22 @@
         
         //===== CALCULAR MONTOS Y PINTARLOS ======
         calcularMontos();
+
+        loadDataTableDetallePedido();
+    }
+
+    function limpiarTableDetallePedido() {
+        const table = document.querySelector('#table-detalle-atender tbody'); 
+
+        while (table.firstChild) {
+            table.removeChild(table.firstChild);
+        }
+    }
+
+    function destruirDataTableDetallePedido(){
+        if(dataTableDetallePedido){
+            dataTableDetallePedido.destroy();
+        }
     }
 
     //======== CALCULAR SUBTOTAL POR PRODUCTO COLOR EN EL DETALLE ======
