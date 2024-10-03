@@ -1661,9 +1661,7 @@ class DocumentoController extends Controller
 
             $documento->save();
 
-            
-
-
+        
             //========== VERIFICANDO SI EL USUARIO ESTÁ PARTICIPANDO DE ALGUNA CAJA ACTUALMENTE ==========
             $caja_usuario           =   movimientoUser();
           
