@@ -1576,10 +1576,10 @@ class DocumentoController extends Controller
 
            
       
-            $documento = new Documento();
-            $documento->fecha_documento = $request->get('fecha_documento_campo');
-            $documento->fecha_atencion = $request->get('fecha_atencion_campo');
-            $documento->fecha_vencimiento = $request->get('fecha_vencimiento_campo');
+            $documento                      = new Documento();
+            $documento->fecha_documento     = $request->get('fecha_documento_campo');
+            $documento->fecha_atencion      = $request->get('fecha_atencion_campo');
+            $documento->fecha_vencimiento   = $request->get('fecha_vencimiento_campo');
 
             //EMPRESA
             $empresa = Empresa::findOrFail($request->get('empresa_id'));

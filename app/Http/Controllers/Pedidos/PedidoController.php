@@ -1334,6 +1334,7 @@ public function generarDocumentoVenta(Request $request){
 
         DB::beginTransaction();
         try {
+
             //====== RECIBIENDO PEDIDO ID =====
             $pedido_id      =   $request->get('pedido_id');
             $pedido         =   Pedido::find($pedido_id);
@@ -1386,12 +1387,12 @@ public function generarDocumentoVenta(Request $request){
            
             //======= AGREGANDO DATOS AL REQUEST =====
             $additionalData = [
-                'fecha_documento_campo'     =>  $pedido->fecha_registro,
+                'fecha_documento_campo'     =>  Carbon::now(),
                 'empresa'                   =>  $pedido->empresa_id,
-                'fecha_atencion_campo'      =>  $pedido->fecha_registro,
+                'fecha_atencion_campo'      =>  Carbon::now(),
                 'tipo_venta'                =>  $tipo_venta,
                 'condicion_id'              =>  $pedido->condicion_id,
-                'fecha_vencimiento_campo'   =>  $pedido->fecha_registro,
+                'fecha_vencimiento_campo'   =>  Carbon::now(),
                 'cliente_id'                =>  $pedido->cliente_id,
                 'igv'                       =>  "18",
                 "igv_check"                 =>  "on",
