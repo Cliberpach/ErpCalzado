@@ -1,7 +1,9 @@
 <?php
 namespace App\Http\Controllers\Ventas;
 
+use App\Almacenes\Categoria;
 use App\Almacenes\LoteProducto;
+use App\Almacenes\Marca;
 use App\Almacenes\Producto;
 use App\Almacenes\Modelo;
 use App\Almacenes\Talla;
@@ -30,7 +32,7 @@ use App\Ventas\PedidoDetalle;
 use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Distrito;
 use App\Mantenimiento\Ubigeo\Provincia;
-
+use Exception;
 
 class CotizacionController extends Controller
 {
@@ -84,6 +86,8 @@ class CotizacionController extends Controller
         $fecha_hoy          =   Carbon::now()->toDateString();
         $condiciones        =   Condicion::where('estado','ACTIVO')->get();
         $modelos            =   Modelo::where('estado','ACTIVO')->get();
+        $categorias         =   Categoria::where('estado','ACTIVO')->get();
+        $marcas             =   Marca::where('estado','ACTIVO')->get();
         $tallas             =   Talla::where('estado','ACTIVO')->get();
        
         $vendedor_actual    =   DB::select('select c.id from user_persona as up
@@ -95,7 +99,7 @@ class CotizacionController extends Controller
         
         
         return view('ventas.cotizaciones.create', compact('vendedor_actual','tallas','modelos','empresas',
-         'clientes', 'fecha_hoy', 'condiciones','tipos_documento','departamentos','tipo_clientes'));
+         'clientes', 'fecha_hoy', 'condiciones','tipos_documento','departamentos','tipo_clientes','categorias','marcas'));
     }
 
     public function store(Request $request)
@@ -724,11 +728,37 @@ class CotizacionController extends Controller
     
     }
 
-    public function getProductosByModelo($modelo_id){
+    public function getProductos(Request $request){
         try {
-            $productos  =   DB::select('select p.id,p.nombre 
-                            from productos as p
-                            where p.modelo_id = ? and p.estado = "ACTIVO"',[$modelo_id]);
+            
+            $categoria_id   =   $request->get('categoria_id');
+            $marca_id       =   $request->get('marca_id');
+            $modelo_id      =   $request->get('modelo_id');
+
+
+
+            $query = 'SELECT p.id, p.nombre 
+                    FROM productos AS p 
+                    WHERE p.estado = "ACTIVO"';
+
+            $params = [];
+
+            if ($modelo_id) {
+                $query .= ' AND p.modelo_id = ?';
+                $params[] = $modelo_id;
+            }
+
+            if ($marca_id) {
+                $query .= ' AND p.marca_id = ?';
+                $params[] = $marca_id;
+            }
+
+            if ($categoria_id) {
+                $query .= ' AND p.categoria_id = ?';
+                $params[] = $categoria_id;
+            }
+
+            $productos = DB::select($query, $params);
 
             return response()->json(['success' => true,'productos'=>$productos]);
         } catch (\Throwable $th) {
@@ -739,6 +769,7 @@ class CotizacionController extends Controller
     public function getColoresTallas($producto_id){
        
         try {
+
             $precios_venta  =   DB::select('SELECT 
                                 p.id AS producto_id,
                                 p.nombre AS producto_nombre,
@@ -858,6 +889,37 @@ class CotizacionController extends Controller
         $producto['colores'] = $lstColores;
 
         return $producto;
+    }
+
+    public function getProductoBarCode($barcode){
+        try {
+
+            $producto   =   DB::select('select 
+                            pct.*,
+                            c.descripcion as color_nombre,
+                            t.descripcion as talla_nombre,
+                            p.id,
+                            p.nombre as nombre,
+                            p.categoria_id,
+                            p.marca_id,
+                            p.modelo_id,
+                            p.precio_venta_1
+                            from producto_color_tallas as pct
+                            inner join colores as c on c.id = pct.color_id
+                            inner join tallas as t on t.id = pct.talla_id
+                            inner join productos as p on p.id = pct.producto_id
+                            where pct.codigo_barras = ?',[$barcode]);
+
+            if(count($producto) === 0){
+                throw new Exception("NO SE ENCONTRÓ NINGÚN PRODUCTO CON ESTE CÓDIGO DE BARRAS!!!");
+            }
+
+
+            return response()->json(['success'=>true,'producto'=> $producto[0] ]);
+
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=> $th->getMessage() ]);
+        }
     }
 
 }

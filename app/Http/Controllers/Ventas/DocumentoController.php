@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Ventas;
 
+use App\Almacenes\Categoria;
 use stdClass;
 use Exception;
 use Carbon\Carbon;
@@ -61,6 +62,7 @@ use App\Almacenes\DetalleNotaIngreso;
 use App\Almacenes\NotaIngreso;
 
 use App\Almacenes\DetalleNotaSalidad;
+use App\Almacenes\Marca;
 use App\Almacenes\NotaSalidad;
 
 use Illuminate\Support\Facades\Response; 
@@ -350,6 +352,121 @@ class DocumentoController extends Controller
             'success' => true,
             'ventas' => $coleccion,
         ]);
+    }
+
+    public function getProductos(Request $request){
+        try {
+          
+            $categoria_id   =   $request->get('categoria_id');
+            $marca_id       =   $request->get('marca_id');
+            $modelo_id      =   $request->get('modelo_id');
+
+
+
+            $query = 'SELECT p.id, p.nombre 
+                    FROM productos AS p 
+                    WHERE p.estado = "ACTIVO"';
+
+            $params = [];
+
+            if ($modelo_id) {
+                $query .= ' AND p.modelo_id = ?';
+                $params[] = $modelo_id;
+            }
+
+            if ($marca_id) {
+                $query .= ' AND p.marca_id = ?';
+                $params[] = $marca_id;
+            }
+
+            if ($categoria_id) {
+                $query .= ' AND p.categoria_id = ?';
+                $params[] = $categoria_id;
+            }
+
+            $productos = DB::select($query, $params);
+
+            return response()->json(['success' => true,'productos'=>$productos]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
+    public function getColoresTallas($producto_id){
+
+        try {
+
+            $stocks =  DB::select('select p.id as producto_id, p.nombre as producto_nombre,
+                                    p.precio_venta_1,p.precio_venta_2,p.precio_venta_3,
+                                    pct.color_id,c.descripcion as color_name,
+                                    pct.talla_id,t.descripcion as talla_name,pct.stock,
+                                    pct.stock_logico
+                                    from producto_color_tallas as pct
+                                    inner join productos as p
+                                    on p.id = pct.producto_id
+                                    inner join colores as c
+                                    on c.id = pct.color_id
+                                    inner join tallas as t
+                                    on t.id = pct.talla_id
+                                    where p.id = ? 
+                                    AND c.estado="ACTIVO" 
+                                    AND t.estado="ACTIVO"
+                                    AND p.estado="ACTIVO" 
+                                    order by p.id,c.id,t.id',[$producto_id]);
+
+            $producto_colores = DB::select('select p.id as producto_id,p.nombre as producto_nombre,
+                                            c.id as color_id, c.descripcion as color_nombre,
+                                            p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
+                                            from producto_colores as pc
+                                            inner join productos as p
+                                            on p.id = pc.producto_id
+                                            inner join colores as c
+                                            on c.id = pc.color_id
+                                            where 
+                                            p.id = ? 
+                                            AND c.estado="ACTIVO" 
+                                            AND p.estado="ACTIVO"
+                                            group by p.id,p.nombre,c.id,c.descripcion,
+                                            p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
+                                            order by p.id,c.id',[$producto_id]);
+
+            $precios_venta  =   DB::select('SELECT 
+                                p.precio_venta_1,
+                                p.precio_venta_2,
+                                p.precio_venta_3
+                                FROM 
+                                    productos AS p 
+                                WHERE 
+                                p.id = ? AND p.estado = "ACTIVO" ',[$producto_id]);  
+
+            if (!empty($precios_venta)) {
+                $precios_venta_array = array_filter([
+                    $precios_venta[0]->precio_venta_1,
+                    $precios_venta[0]->precio_venta_2,
+                    $precios_venta[0]->precio_venta_3,
+                ]);
+            } else {
+                $precios_venta_array = [];
+            }
+
+            $productosProcesados=[];
+            foreach ($producto_colores as $pc) {
+                if(!in_array($pc->producto_id, $productosProcesados)){
+                    $pc->printPreciosVenta=TRUE;
+                    array_push($productosProcesados, $pc->producto_id);
+                }else{
+                    $pc->printPreciosVenta=FALSE;
+                }
+            }
+
+            return response()->json(["success" => true , 
+                                    "stocks" => $stocks 
+                                    ,"producto_colores" => $producto_colores,
+                                    'precios_venta'     =>  $precios_venta_array ]);
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+        
     }
 
     public function storePago(Request $request)
@@ -890,16 +1007,16 @@ class DocumentoController extends Controller
 
             $this->authorize('haveaccess', 'documento_venta.index');
 
-            $empresas = Empresa::where('estado', 'ACTIVO')->get();
-            $clientes = Cliente::where('estado', 'ACTIVO')->get([
-                "id","tabladetalles_id","tipo_documento","documento","nombre"
-            ]);
+            $empresas   =   Empresa::where('estado', 'ACTIVO')->get();
+            $clientes   =   Cliente::where('estado', 'ACTIVO')->get([
+                                "id","tabladetalles_id","tipo_documento","documento","nombre"
+                            ]);
 
-            $condiciones = Condicion::where('estado', 'ACTIVO')->get();
-            $dolar = 0;
-            $fullaccess = false;
-            $tipos_ventas = tipos_venta();
-            $tipoVentaArray=collect();
+            $condiciones    =   Condicion::where('estado', 'ACTIVO')->get();
+            $dolar          =   0;
+            $fullaccess     =   false;
+            $tipos_ventas   =   tipos_venta();
+            $tipoVentaArray =   collect();
 
             if (count(Auth::user()->roles) > 0) {
                     $cont = 0;
@@ -935,7 +1052,9 @@ class DocumentoController extends Controller
                     'dolar'         =>  $dolar,
                     'vista'         =>  $vista,
                     "tipoVentas"    =>  $tipoVentaArray,
-                    "modelos"       =>  Modelo::all(),
+                    "modelos"       =>  Modelo::where('estado','ACTIVO')->get(),
+                    "marcas"        =>  Marca::where('estado','ACTIVO')->get(),
+                    "categorias"    =>  Categoria::where('estado','ACTIVO')->get(),
                     "tallas"        =>  Talla::where('estado', 'ACTIVO')->get(),
                 ],
                 "succes"=>true

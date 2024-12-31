@@ -421,9 +421,11 @@ function(){
         Route::get('reporte/{id}','Ventas\CotizacionController@report')->name('ventas.cotizacion.reporte');
         Route::get('email/{id}','Ventas\CotizacionController@email')->name('ventas.cotizacion.email');
         Route::get('documento/{id}','Ventas\CotizacionController@document')->name('ventas.cotizacion.documento');
+        Route::get('/getProductoBarCode/{barcode}', 'Ventas\CotizacionController@getProductoBarCode')->name('ventas.cotizacion.getProductoBarCode');
+
 
         Route::post('pedido/','Ventas\CotizacionController@generarPedido')->name('ventas.cotizacion.pedido');
-        Route::get('/getProductosByModelo/{modelo_id}', 'Ventas\CotizacionController@getProductosByModelo')->name('ventas.cotizacion.getProductosByModelo');
+        Route::get('/getProductos', 'Ventas\CotizacionController@getProductos')->name('ventas.cotizacion.getProductos');
         Route::get('/getColoresTallas/{producto_id}', 'Ventas\CotizacionController@getColoresTallas')->name('ventas.cotizacion.getColoresTallas');
 
         Route::get('nuevodocumento/{id}','Ventas\CotizacionController@newdocument')->name('ventas.cotizacion.nuevodocumento');
@@ -445,6 +447,9 @@ function(){
         Route::get('show/{id}','Ventas\DocumentoController@show')->name('ventas.documento.show');
         Route::get('reporte/{id}','Ventas\DocumentoController@report')->name('ventas.documento.reporte');
         Route::get('tipoPago/{id}','Ventas\DocumentoController@TypePay')->name('ventas.documento.tipo_pago.existente');
+        Route::get('getProductos','Ventas\DocumentoController@getProductos')->name('ventas.documento.getProductos');
+        Route::get('/getColoresTallas/{producto_id}', 'Ventas\DocumentoController@getColoresTallas')->name('ventas.documento.getColoresTallas');
+
         // Route::get('comprobante/{id}','Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');
         // Route::get('xml/{id}','Ventas\DocumentoController@xml')->name('ventas.documento.xml');
 

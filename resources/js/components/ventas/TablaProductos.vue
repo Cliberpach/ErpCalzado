@@ -13,16 +13,16 @@
     }
 
     .overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
     }
 
     .fulfilling-bouncing-circle-spinner, .fulfilling-bouncing-circle-spinner * {
@@ -134,7 +134,9 @@
 </style>
 <template>
 
+    
     <div class="row">
+        
         <div class="col-lg-12">
            
             <!-- PRIMER PANEL  -->
@@ -152,20 +154,62 @@
 
                     <div class="row" v-if="idcotizacion == 0">
 
-                        <div class="col-12 col-md-12 select-required d-flex justify-content-between align-items-center">
-                            <div class="form-group">
-                                <label class="required">SELECCIONA UN MODELO: </label>
-                                <v-select
-                                    v-model="modeloSeleccionado"
-                                    :options="modelos"
-                                    :reduce="modelo => modelo.id"
-                                    label="descripcion"
-                                    placeholder="Seleccionar modelo...">
-                                </v-select>
-                            </div>
-                            <div class="form-group">
-                                <button class="btn btn-danger" @click="eliminarCarrito"> ELIMINAR TODO </button>
-                            </div>
+                        <div class="col-12 mb-3 d-flex justify-content-end">
+                            <button class="btn btn-danger" @click="eliminarCarrito"> ELIMINAR TODO </button>
+                        </div>
+
+                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
+                            <label class="required" style="font-weight: bold;">CATEGORÍA</label>
+                            <v-select
+                                v-model="categoriaSeleccionada"
+                                :options="categorias"
+                                :reduce="categoria => categoria.id"
+                                label="descripcion"
+                                placeholder="Seleccionar">
+                            </v-select>
+                        </div>
+
+                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
+                            <label class="required" style="font-weight: bold;">MARCA</label>
+                            <v-select
+                                v-model="marcaSeleccionada"
+                                :options="marcas"
+                                :reduce="marca => marca.id"
+                                label="marca"
+                                placeholder="Seleccionar">
+                            </v-select>
+                        </div>
+                    
+
+                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
+                            <label class="required" style="font-weight: bold;">MODELO</label>
+                            <v-select
+                                v-model="modeloSeleccionado"
+                                :options="modelos"
+                                :reduce="modelo => modelo.id"
+                                label="descripcion"
+                                placeholder="Seleccionar">
+                            </v-select>
+                        </div>
+
+                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
+                            <label class="required" style="font-weight: bold;">PRODUCTO</label>
+                            <v-select
+                                v-model="productoSeleccionado"
+                                :options="productos"
+                                label="nombre"
+                                placeholder="Seleccionar">
+                            </v-select>
+                        </div>
+
+                        
+                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 mt-3" >
+                            <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
+                            <v-select
+                                v-model="precioVentaSeleccionado"
+                                :options="preciosVenta"
+                                placeholder="Seleccionar">
+                            </v-select>
                         </div>
                     
                        
@@ -226,7 +270,7 @@
                                         </th>
                                         <th>CANT</th>
                                     </template>
-                                    <th class="">PRECIO VENTA</th>
+                                    <!-- <th class="">PRECIO VENTA</th> -->
 
                                     <!-- <th v-for="talla in tallas" :key="talla.id">
                                         {{ talla.descripcion }}<th>CANT</th>
@@ -263,7 +307,7 @@
                                         </td>
                                     </template>
                                
-                                    <td v-if="pc.printPreciosVenta">
+                                    <!-- <td v-if="pc.printPreciosVenta">
                                         <select class="form-control" :id="'precio-venta-' + pc.producto_id" >
                                             <option>{{ pc.precio_venta_1 }}</option>    
                                             <option>{{ pc.precio_venta_2 }}</option>    
@@ -272,7 +316,7 @@
                                     </td>
                                     <td v-else>
                                         
-                                    </td> 
+                                    </td>  -->
                                 
                                 </tr>
                             </tbody>
@@ -449,7 +493,7 @@
                                     </tr>
                                 </template>
                             </tbody>
-                            <tfoot>
+                            <!-- <tfoot>
                                 <tr>
                                     <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">SUBTOTAL:</td>
                                     <td class="subtotal" colspan="1" style="font-weight: bold;text-align:end;">
@@ -502,9 +546,71 @@
                                         {{ `S/. ${Number(monto_total_pagar).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}   
                                     </td> 
                                 </tr>
-                            </tfoot>
+                            </tfoot> -->
                         </table> 
                     </div>
+                    
+                        <div class="col-12 d-flex justify-content-end">
+                            <div class="table-responsive">
+                                <table style="margin:0 0 0 auto;">
+                                    <tfoot>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">SUBTOTAL:</td>
+                                            <td class="subtotal" colspan="1" style="font-weight: bold; text-align:end;">
+                                                {{ `S/. ${Number(monto_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">EMBALAJE:</td>
+                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                                <div class="input-group">
+                                                    <span class="input-group-text" id="basic-addon1">
+                                                        <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M425.7 256c-16.9 0-32.8-9-41.4-23.4L320 126l-64.2 106.6c-8.7 14.5-24.6 23.5-41.5 23.5-4.5 0-9-.6-13.3-1.9L64 215v178c0 14.7 10 27.5 24.2 31l216.2 54.1c10.2 2.5 20.9 2.5 31 0L551.8 424c14.2-3.6 24.2-16.4 24.2-31V215l-137 39.1c-4.3 1.3-8.8 1.9-13.3 1.9zm212.6-112.2L586.8 41c-3.1-6.2-9.8-9.8-16.7-8.9L320 64l91.7 152.1c3.8 6.3 11.4 9.3 18.5 7.3l197.9-56.5c9.9-2.9 14.7-13.9 10.2-23.1zM53.2 41L1.7 143.8c-4.6 9.2 .3 20.2 10.1 23l197.9 56.5c7.1 2 14.7-1 18.5-7.3L320 64 69.8 32.1c-6.9-.8-13.5 2.7-16.6 8.9z"/></svg>
+                                                    </span>
+                                                    <input style="width: 70px;" v-model="monto_embalaje" type="text" class="form-control" aria-label="PRECIO DESPACHO" aria-describedby="basic-addon1">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">ENVÍO:</td>
+                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                                <div class="input-group">
+                                                    <span class="input-group-text btn btn-light" id="basic-addon1"  @click.prevent="setDataEnvio">
+                                                        <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>                                                    
+                                                    </span>
+                                                    <input style="width: 70px;" v-model="monto_envio" type="text" class="form-control" aria-label="PRECIO ENVÍO" aria-describedby="basic-addon1">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">DESCUENTO:</td>
+                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                                <span>{{ `S/. ${Number(monto_descuento).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">MONTO TOTAL:</td>
+                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                                {{ `S/. ${Number(monto_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">IGV:</td>
+                                            <td class="igv" colspan="1" style="font-weight: bold; text-align:end;">
+                                                {{ `S/. ${Number(monto_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">MONTO TOTAL A PAGAR:</td>
+                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                                {{ `S/. ${Number(monto_total_pagar).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>    
+                        </div>
+
                 </div>
             </div>
             <!-- FIN SEGUNDO PANEL -->
@@ -543,7 +649,7 @@ export default {
     TablaProductos
 },
     props: ["fullaccessTable", "btnDisabled", "parametros",
-     "productoTabla", "TotalesObj", 'idcotizacion','modelos','tallas','cliente'],
+     "productoTabla", "TotalesObj", 'idcotizacion','modelos','categorias','marcas','tallas','cliente'],
     data() {
         return {
             monto_embalaje:0,
@@ -560,6 +666,12 @@ export default {
             deshabilitarBtnAgregar: true,
             productosPorModelo: {},
             modeloSeleccionado:null,
+            categoriaSeleccionada:null,
+            marcaSeleccionada:null,
+            productoSeleccionado:null,
+            precioVentaSeleccionado:null,
+            productos:[],
+            preciosVenta:[],
             asegurarCierre: 5,
             formDetalles: {
                 producto_id: "",
@@ -755,7 +867,28 @@ export default {
         modeloSeleccionado: {
             handler(value) {
                 console.log('modeloSeleccionado cambió:', value);
-                this.getProductosByModelo();
+                this.getProductos();
+            },
+            deep: true,
+        },
+        categoriaSeleccionada: {
+            handler(value) {
+                console.log('categoriaSeleccionada cambió:', value);
+                this.getProductos();
+            },
+            deep: true,
+        },
+        marcaSeleccionada: {
+            handler(value) {
+                console.log('marcaSeleccionada cambió:', value);
+                this.getProductos();
+            },
+            deep: true,
+        },
+        productoSeleccionado: {
+            handler(value) {
+                console.log('productoSeleccionado cambió:', value);
+                this.getColoresTallas();
             },
             deep: true,
         },
@@ -912,7 +1045,7 @@ export default {
         },
        async eliminarCarrito(){
             if(this.carrito.length !== 0){
-                document.getElementById('overlay').style.display = 'flex';
+                this.$parent.mostrarAnimacionVenta();            
                 try {
                     await this.axios.post(route('ventas.documento.devolver.cantidades'), {
                         carrito: JSON.stringify(this.carrito)
@@ -921,13 +1054,13 @@ export default {
                     this.monto_subtotal=0;
                     this.monto_igv=0;
                     this.monto_total=0;
-                    await this.getProductosByModelo();       
-                    document.getElementById('overlay').style.display = 'none';
+                    await this.getColoresTallas();       
+                    this.$parent.ocultarAnimacionVenta();            
                     toastr.success('Detalle eliminado','Completado');
                 } catch (error) {
                     toastr.error('Ocurrio un error al eliminar el detalle','Error');
                 } finally{
-                    document.getElementById('overlay').style.display = 'none';
+                    this.$parent.ocultarAnimacionVenta();            
                 }
             }else{
                 toastr.warning('El detalle no tiene productos','Advertencia');
@@ -1019,11 +1152,16 @@ export default {
         async validarCantidadCarrito(inputCantidad){
             const stockLogico           =   await  this.getStockLogico(inputCantidad);
             const cantidadSolicitada    =   inputCantidad.value;
-            return stockLogico>=cantidadSolicitada;
+            return stockLogico >= cantidadSolicitada;
         },
         async agregarProducto() {
+
+            if(!this.precioVentaSeleccionado){
+                toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA!!!');
+                return;
+            }
             
-            document.getElementById('overlay').style.display = 'flex';
+            this.$parent.mostrarAnimacionVenta();            
 
             const inputsCantidad = document.querySelectorAll('.inputCantidad');
             
@@ -1034,6 +1172,7 @@ export default {
                 if (cantidad) {
                     try {
                         const cantidadValida = await this.validarCantidadCarrito(ic);
+                        
 
                         if (cantidadValida) {
                             const producto      = this.formarProducto(ic);
@@ -1132,8 +1271,8 @@ export default {
             })
             
             //===== ACTUALIZANDO TABLERO DE PRODUCTOS BY MODELO =====
-            this.getProductosByModelo().then(()=>{
-                document.getElementById('overlay').style.display = 'none';
+            this.getColoresTallas().then(()=>{
+                this.$parent.ocultarAnimacionVenta();            
             });
 
             console.log(this.asegurarCierre);
@@ -1167,7 +1306,7 @@ export default {
             const color_nombre      = ic.getAttribute('data-color-nombre');
             const talla_id          = ic.getAttribute('data-talla-id');
             const talla_nombre      = ic.getAttribute('data-talla-nombre');
-            const precio_venta      = document.querySelector(`#precio-venta-${producto_id}`).value;
+            const precio_venta      = this.precioVentaSeleccionado;
             const cantidad          = ic.value?ic.value:0;
 
             const monto_descuento           =   0.0;
@@ -1213,10 +1352,73 @@ export default {
                 console.error('Error al obtener stock logico:', error);
             }
         },
+        async  getProductos() {
+            toastr.clear();
+
+            const modelo_id                   =   this.modeloSeleccionado;
+            const marca_id                    =   this.marcaSeleccionada;
+            const categoria_id                =   this.categoriaSeleccionada;
+            
+            if(modelo_id || marca_id || categoria_id){
+                try {
+                    const res = await axios.get(route('ventas.documento.getProductos'), {
+                        params: {
+                            modelo_id: modelo_id,
+                            marca_id: marca_id,
+                            categoria_id: categoria_id
+                        }
+                    });   
+
+                    if(res.data.success){
+                        this.productos                  =   res.data.productos;
+                        this.productoSeleccionado       = null;
+                        this.precioVentaSeleccionado    = null;
+
+                        toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
+                    }else{
+                        //ocultarAnimacionCotizacion();
+                        toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    }
+                } catch (error) {
+                    //ocultarAnimacionCotizacion();
+                    toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
+                }
+                
+            }else{
+                //ocultarAnimacionCotizacion();
+            }
+        },
+        async  getColoresTallas(){             //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
+            //mostrarAnimacionCotizacion();
+            const producto_id   =   this.productoSeleccionado;
+            if(producto_id){
+                try {
+                    const res   =   await   axios.get(route('ventas.documento.getColoresTallas',{producto_id}));
+                    if(res.data.success){
+                        this.productosPorModelo =   res.data;
+                        this.preciosVenta       =   res.data.precios_venta;
+                    
+                        // pintarTableStocks(res.data.producto_color_tallas);
+                        // pintarPreciosVenta(res.data.producto_color_tallas);
+                        // loadCarrito();
+                    }else{
+                        toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    }
+                } catch (error) {
+                    toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
+                }finally{
+                    //ocultarAnimacionCotizacion();
+                }
+            }else{
+                // limpiarTableStocks();
+                // limpiarSelectPreciosVenta();
+                // ocultarAnimacionCotizacion();
+            }
+        },
         async  getProductosByModelo() {
             try {
-                const url = `/get-producto-by-modelo/${this.modeloSeleccionado}`;
-                const response = await axios.get(url);
+                const url       = `/get-producto-by-modelo/${this.modeloSeleccionado}`;
+                const response  = await axios.get(url);
                 //console.log(response.data);
                 this.productosPorModelo = response.data;
                 //this.pintarTableStocks(response.data.stocks,tallas,response.data.producto_colores);
@@ -1500,7 +1702,7 @@ export default {
                 this.actualizarStockLogico(item, "eliminar");
                 //====== obtenemos los stocks logicos actualizados de la bd ========
                 //======== renderizamos la tabla de stocks ==============
-                this.getProductosByModelo();
+                this.getColoresTallas();
                 //========== eliminar el item del carrito ========
                 //============ renderizamos la tabla detalle =======
                 this.carrito.splice(index, 1);
