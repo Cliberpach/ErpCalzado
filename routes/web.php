@@ -449,6 +449,10 @@ function(){
         Route::get('tipoPago/{id}','Ventas\DocumentoController@TypePay')->name('ventas.documento.tipo_pago.existente');
         Route::get('getProductos','Ventas\DocumentoController@getProductos')->name('ventas.documento.getProductos');
         Route::get('/getColoresTallas/{producto_id}', 'Ventas\DocumentoController@getColoresTallas')->name('ventas.documento.getColoresTallas');
+        Route::get('/getProductoBarCode/{barcode}', 'Ventas\DocumentoController@getProductoBarCode')->name('ventas.documento.getProductoBarCode');
+        Route::post('/validarStockVentas', 'Ventas\DocumentoController@validarStockVentas')->name('ventas.documento.validarStockVentas');
+        Route::post('/actualizarStockVentas', 'Ventas\DocumentoController@actualizarStockVentas')->name('ventas.documento.actualizarStockVentas');
+
 
         // Route::get('comprobante/{id}','Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');
         // Route::get('xml/{id}','Ventas\DocumentoController@xml')->name('ventas.documento.xml');

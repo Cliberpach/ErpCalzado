@@ -211,6 +211,18 @@
                                 placeholder="Seleccionar">
                             </v-select>
                         </div>
+
+                        <div class="col-12 mt-3">
+                            <label style="font-weight: bold;">CÓDIGO BARRA</label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                        <span class="input-group-text" id="basic-addon1">
+                                            <i class="fas fa-barcode"></i>
+                                    </span>
+                                </div>
+                                <input v-model="buscarCodigoBarra" class="inputBarCode form-control" maxlength="8" type="text" placeholder="Escriba el código de barra" aria-label="Username" aria-describedby="basic-addon1">
+                            </div> 
+                        </div>
                     
                        
                         <!-- <div class="col-lg-6 col-xs-12">
@@ -475,9 +487,13 @@
                                                 </button>
                                             </div>
                                         </td>
-                                        <td class="text-center">{{ item.producto_nombre }}-{{ item.color_nombre }}</td>
+                                        <td class="text-center">
+                                            <div style="width: 160px;">
+                                                {{ item.producto_nombre }}-{{ item.color_nombre }}
+                                            </div>
+                                        </td>
                                         <td v-for="t in tallas">
-                                            {{ printTallaDetalle(t.id,item) }}
+                                            <p style="font-weight: bold;">{{ printTallaDetalle(t.id,item) }}</p>
                                         </td>
                                         <td>{{ item.porcentaje_descuento!=0 ? item.precio_venta_nuevo : item.precio_venta }}</td>
                                         <td>{{ item.porcentaje_descuento !=0 ? item.subtotal_nuevo : item.subtotal }}</td>
@@ -670,6 +686,7 @@ export default {
             marcaSeleccionada:null,
             productoSeleccionado:null,
             precioVentaSeleccionado:null,
+            buscarCodigoBarra:null,
             productos:[],
             preciosVenta:[],
             asegurarCierre: 5,
@@ -863,6 +880,14 @@ export default {
                 });
             },
             deep: true,
+        },
+        buscarCodigoBarra:{
+            handler(value){
+                if(value.trim().length === 8){
+                    this.getProductoBarCode(value);
+                }
+            },
+            deep:true,
         },
         modeloSeleccionado: {
             handler(value) {
@@ -1123,7 +1148,7 @@ export default {
           
             const itemTalla =  item.tallas.find((t)=>  talla_id==t.talla_id);
             // console.log(itemTalla);
-            const cantidad  =    itemTalla?itemTalla.cantidad:0;
+            const cantidad  =    itemTalla?itemTalla.cantidad:'';
             
             return cantidad;
         },
@@ -1154,129 +1179,193 @@ export default {
             const cantidadSolicitada    =   inputCantidad.value;
             return stockLogico >= cantidadSolicitada;
         },
+        clearInputsCantidad(){
+            const inputsCantidad    =   document.querySelectorAll('.inputCantidad');
+            inputsCantidad.forEach((ic)=>{
+                ic.value    =   '';
+            })
+        },
         async agregarProducto() {
 
+            toastr.clear();
+
+            //====== VALIDACIONES =======
             if(!this.precioVentaSeleccionado){
                 toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA!!!');
                 return;
             }
+
+            //======== ANIMACIÓN =======
+            this.$parent.mostrarAnimacionVenta();       
             
-            this.$parent.mostrarAnimacionVenta();            
+            //========= GET INPUTS TO PRODUCTS ARRAY ======
+            const resInputProducts  =   this.getInputProductos();
 
-            const inputsCantidad = document.querySelectorAll('.inputCantidad');
-            
-            for (const ic of inputsCantidad) {
-                ic.classList.remove('inputCantidadIncorrecto');
-                const cantidad = ic.value ? ic.value : null;
-
-                if (cantidad) {
-                    try {
-                        const cantidadValida = await this.validarCantidadCarrito(ic);
-                        
-
-                        if (cantidadValida) {
-                            const producto      = this.formarProducto(ic);
-                            const indiceExiste  = this.carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
-
-                            //===== PRODUCTO NUEVO =====
-                            if (indiceExiste == -1) {
-                                const objProduct = {
-                                    producto_id: producto.producto_id,
-                                    color_id: producto.color_id,
-                                    producto_nombre: producto.producto_nombre,
-                                    color_nombre: producto.color_nombre,
-                                    precio_venta: producto.precio_venta,
-                                    monto_descuento:0,
-                                    porcentaje_descuento:0,
-                                    precio_venta_nuevo:0,
-                                    subtotal_nuevo:0,
-                                    tallas: [{
-                                        talla_id: producto.talla_id,
-                                        talla_nombre: producto.talla_nombre,
-                                        cantidad: producto.cantidad
-                                    }]
-                                };
-
-                                await this.carrito.push(objProduct);
-                                this.asegurarCierre = 1;
-                                await this.actualizarStockLogico(producto, "nuevo");
-                            } else {
-                                const productoModificar = this.carrito[indiceExiste];
-                                productoModificar.precio_venta = producto.precio_venta;
-
-                                const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
-
-                                if (indexTalla !== -1) {
-                                    const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
-                                    productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
-                                    this.carrito[indiceExiste] = productoModificar;
-                                    this.asegurarCierre = 1;
-                                    await this.actualizarStockLogico(producto, "editar", cantidadAnterior);
-                                } else {
-                                    const objTallaProduct = {
-                                        talla_id: producto.talla_id,
-                                        talla_nombre: producto.talla_nombre,
-                                        cantidad: producto.cantidad
-                                    };
-                                    console.log(`${productoModificar.producto_nombre} - ${productoModificar.color_nombre}`);
-                                    this.carrito[indiceExiste].tallas.push(objTallaProduct);
-                                    console.log(this.carrito);
-                                    // productoModificar.tallas.push(objTallaProduct);
-                                    //this.carrito[indiceExiste] = productoModificar;
-                                    //this.carrito.splice(indiceExiste, 1, productoModificar);
-                                    this.asegurarCierre = 1;
-                                    await this.actualizarStockLogico(producto, "nuevo");
-                                }
-                            }
-                            
-                        } else {
-                            ic.classList.add('inputCantidadIncorrecto');
-                        }
-
-                    } catch (error) {
-                        console.error("Error:", error);
-                    }
-
-                } else {
-                    const producto = this.formarProducto(ic);
-                    const indiceProductoColor = this.carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
-
-                    if (indiceProductoColor !== -1) {
-                        const indiceTalla = this.carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
-
-                        if (indiceTalla !== -1) {
-                            const cantidadAnterior = this.carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
-                            this.carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
-                            
-                            this.asegurarCierre = 1;
-                            await this.actualizarStockLogico(producto, "editar", cantidadAnterior);
-
-                            const cantidadTallas = this.carrito[indiceProductoColor].tallas.length;
-
-                            if (cantidadTallas == 0) {
-                                this.carrito.splice(indiceProductoColor, 1);
-                            }
-                        }
-                    }
-                }
+            if(!resInputProducts.validacion){
+                this.$parent.ocultarAnimacionVenta();            
+                return;
             }
 
-            this.reordenarCarrito();
-            this.calcularSubTotal();
-            this.calcularMontos();
+            try {
 
-            //===== RECALCULANDO DESCUENTOS =====
-            this.carrito.forEach((c)=>{
-                this.calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
-            })
+                //====== VALIDAR STOCK VENTAS ======
+                const res_stock =   await this.validarStockVentas(resInputProducts.lstInputProducts);
+
+                if(!res_stock.data.success){
+                    toastr.error(res_stock.data.message,'ERROR EN EL SERVIDOR');
+                }
+
+                toastr.success(res_stock.data.message,'VALIDACIÓN COMPLETADA');
+
             
-            //===== ACTUALIZANDO TABLERO DE PRODUCTOS BY MODELO =====
-            this.getColoresTallas().then(()=>{
-                this.$parent.ocultarAnimacionVenta();            
-            });
+                const res_actualizar_stock    =   await this.actualizarStockLogicoVentas(resInputProducts.lstInputProducts);
+
+                if(!res_actualizar_stock.data.success){
+                    toastr.error(res_actualizar_stock.data.message,'ERROR EN EL SERVIDOR');
+                }
+
+                
+                //======== ACTIVAR LA DEVOLUCIÓN DE STOCK ======
+                this.asegurarCierre = 1;
+                toastr.success(res_actualizar_stock.data.message,'OPERACIÓN COMPLETADA');
+
+                //====== AGREGAR AL CARRITO =======
+                this.agregarCarrito(resInputProducts.lstInputProducts);
+
+                //======= LIMPIAR INPUTS CANTIDAD ======
+                this.clearInputsCantidad();
+
+                //======== ACTUALIZAR TABLERO STOCKS =======
+                this.getColoresTallas();
+
+                this.reordenarCarrito();
+                this.calcularSubTotal();
+                this.calcularMontos();
+
+                //===== RECALCULANDO DESCUENTOS =====
+                this.carrito.forEach((c)=>{
+                    this.calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+                })
+               
+
+            } catch (error) {
+                toastr.error(error,'ERROR AL AGREGAR PRODUCTO!!!');
+            }
+           
+            this.$parent.ocultarAnimacionVenta();            
 
             console.log(this.asegurarCierre);
             console.log(this.carrito);
+        },
+        async validarStockVentas(lstInputProducts){
+
+            const res   =   await axios.post(route('ventas.documento.validarStockVentas'),
+                            {lstInputProducts:JSON.stringify(lstInputProducts)});
+
+            return res;   
+
+        },
+        async actualizarStockLogicoVentas(lstInputProducts){
+            
+            //===== RESTAR STOCK LÓGICO ======
+            const res  =   await axios.post(route('ventas.documento.actualizarStockVentas')
+                                        ,{lstInputProducts:JSON.stringify(lstInputProducts)});  
+
+            return res;
+        },
+        agregarCarrito(lstInputProducts){
+            lstInputProducts.forEach((producto)=>{
+
+                //========= REVIZAR SI EXISTE EL PRODUCTO COLOR EN EL CARRITO ======
+                const indiceExiste  = this.carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+                console.log('existe carrito',indiceExiste);
+                //======= EN CASO EL PRODUCTO COLOR SEA NUEVO ======
+                if (indiceExiste == -1) {
+
+                    const objProduct = {
+                        producto_id: producto.producto_id,
+                        color_id: producto.color_id,
+                        producto_nombre: producto.producto_nombre,
+                        color_nombre: producto.color_nombre,
+                        precio_venta: producto.precio_venta,
+                        monto_descuento:0,
+                        porcentaje_descuento:0,
+                        precio_venta_nuevo:0,
+                        subtotal_nuevo:0,
+                        tallas: [{
+                            talla_id: producto.talla_id,
+                            talla_nombre: producto.talla_nombre,
+                            cantidad: producto.cantidad
+                        }]
+                    };
+
+                    this.carrito.push(objProduct);
+                }else{
+
+                    //======== PRODUCTO COLOR EXISTE =========
+                    const productoModificar         = this.carrito[indiceExiste];
+                    productoModificar.precio_venta  = producto.precio_venta;
+
+                    //===== PREGUNTANDO SI EXISTE LA TALLA EN EL CARRITO ======
+                    const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                    //========== TALLA NUEVA ======
+                    if (indexTalla === -1) {
+
+                        const objTallaProduct = {
+                                                    talla_id: producto.talla_id,
+                                                    talla_nombre: producto.talla_nombre,
+                                                    cantidad: producto.cantidad
+                                                };
+
+                        console.log(`${productoModificar.producto_nombre} - ${productoModificar.color_nombre}`);
+                        this.carrito[indiceExiste].tallas.push(objTallaProduct);
+                        console.log(this.carrito);
+                                   
+                    }
+                } 
+
+            })
+        },
+        getInputProductos(){
+
+            //========= OBTENER TODOS LOS INPUT CANTIDAD =======
+            const inputsCantidad    =   document.querySelectorAll('.inputCantidad');
+            const lstInputProducts  =   [];
+            let validacion          =   true;
+
+            for (let i = 0; i < inputsCantidad.length; i++) {
+                const ic = inputsCantidad[i];
+
+                if (ic.value) {
+                    const producto = this.formarProducto(ic);
+
+                    // Verificar si el producto ya existe en el carrito
+                    const indiceProductoColor = this.carrito.findIndex((c) => {
+                        return c.producto_id == producto.producto_id && c.color_id == producto.color_id;
+                    });
+
+                    if (indiceProductoColor !== -1) {
+                        // Verificar si la talla ya existe
+                        const indiceTalla = this.carrito[indiceProductoColor].tallas.findIndex((t) => {
+                            return t.talla_id == producto.talla_id;
+                        });
+
+                        if (indiceTalla !== -1) {
+                            toastr.error(
+                                `YA FUE AGREGADO!! ${this.carrito[indiceProductoColor].producto_nombre}-${this.carrito[indiceProductoColor].color_nombre}-${this.carrito[indiceProductoColor].tallas[indiceTalla].talla_nombre}`
+                            );
+                            validacion = false;
+                            break; // Rompe el bucle
+                        }
+                    }
+
+                    lstInputProducts.push(producto);
+                }
+            }
+
+            return {validacion,lstInputProducts};
+
         },
         async actualizarStockLogico(producto,modo,cantidadAnterior){
 
@@ -1388,8 +1477,8 @@ export default {
                 //ocultarAnimacionCotizacion();
             }
         },
-        async  getColoresTallas(){             //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
-            //mostrarAnimacionCotizacion();
+        async  getColoresTallas(){             //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======  
+            this.$parent.mostrarAnimacionVenta();                     
             const producto_id   =   this.productoSeleccionado;
             if(producto_id){
                 try {
@@ -1414,6 +1503,7 @@ export default {
                 // limpiarSelectPreciosVenta();
                 // ocultarAnimacionCotizacion();
             }
+            this.$parent.ocultarAnimacionVenta();            
         },
         async  getProductosByModelo() {
             try {
@@ -1429,7 +1519,7 @@ export default {
         printStockLogico(productoId, colorId, tallaId) {
             const stock = this.productosPorModelo.stocks.find(st => st.producto_id === productoId && st.color_id === colorId && st.talla_id === tallaId);
             return stock ? stock.stock_logico : 0;
-         },
+        },
         // async ExecuteDevolverCantidades() {
         //     if (this.asegurarCierre == 1) {
         //         await this.DevolverCantidades();
@@ -1440,7 +1530,7 @@ export default {
         // }
         async DevolverCantidades() {
                 await this.axios.post(route('ventas.documento.devolver.cantidades'), {
-                    // cantidades: JSON.stringify(this.tablaDetalles)
+                    //cantidades: JSON.stringify(this.tablaDetalles)
                     carrito: JSON.stringify(this.carrito)
                 });  
                 this.ChangeAsegurarCierre();
@@ -1754,7 +1844,60 @@ export default {
         ChangeAsegurarCierre() {
             this.asegurarCierre = 5;
             console.log('devuelvo',this.asegurarCierre);
+        },
+        async getProductoBarCode(barcode){
+            try {
+                toastr.clear();
+                this.$parent.mostrarAnimacionVenta();            
+                const res   =   await axios.get(route('ventas.documento.getProductoBarCode',{barcode}));
+                
+                if(res.data.success){  //====== STOCK LÓGICO VALIDO Y PRODUCTO EXISTE ====
+
+                    toastr.info('STOCK LÓGICO VÁLIDO');
+
+                    res.data.producto.cantidad  =   1;
+                    const lstInputProducts      =   [res.data.producto];
+                    const res_actualizar_stock  =   await this.actualizarStockLogicoVentas(lstInputProducts);
+
+                    if(!res_actualizar_stock.data.success){
+                        toastr.error(res_actualizar_stock.data.message,'ERROR EN EL SERVIDOR');
+                        return;
+                    }
+
+                    this.asegurarCierre = 1;
+
+                    //====== AGREGAR AL CARRITO =======
+                    this.agregarCarrito(lstInputProducts);
+
+                    //======= LIMPIAR INPUTS CANTIDAD ======
+                    this.clearInputsCantidad();
+
+                    //======== ACTUALIZAR TABLERO STOCKS =======
+                    this.getColoresTallas();
+
+                    this.reordenarCarrito();
+                    this.calcularSubTotal();
+                    this.calcularMontos();
+
+                    //===== RECALCULANDO DESCUENTOS =====
+                    this.carrito.forEach((c)=>{
+                        this.calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+                    })
+
+                    
+                    toastr.info('AGREGADO AL DETALLE!!!',`${res.data.producto.producto_nombre} - ${res.data.producto.color_nombre} - ${res.data.producto.talla_nombre}
+                                PRECIO: ${res.data.producto.precio_venta_1}`,{timeOut:0});
+
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR EN LA PETICIÓN OBTENER PRODUCTO POR CÓDIGO DE BARRA');
+            }finally{
+                this.$parent.ocultarAnimacionVenta();            
+            }
         }
+
     }
 }
 </script>

@@ -4542,4 +4542,140 @@ class DocumentoController extends Controller
            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
     }
+
+    public function getProductoBarCode($barcode){
+        try {
+
+            $producto   =   DB::select('select 
+                            pct.*,
+                            c.descripcion as color_nombre,
+                            t.descripcion as talla_nombre,
+                            p.id,
+                            p.nombre as producto_nombre,
+                            p.categoria_id,
+                            p.marca_id,
+                            p.modelo_id,
+                            p.precio_venta_1
+                            from producto_color_tallas as pct
+                            inner join colores as c on c.id = pct.color_id
+                            inner join tallas as t on t.id = pct.talla_id
+                            inner join productos as p on p.id = pct.producto_id
+                            where pct.codigo_barras = ?',[$barcode]);
+
+            if(count($producto) === 0){
+                throw new Exception("NO SE ENCONTRÓ NINGÚN PRODUCTO CON ESTE CÓDIGO DE BARRAS!!!");
+            }
+
+            if($producto[0]->stock_logico <= 0){
+                throw new Exception("STOCK LÓGICO INSUFICIENTE: ".$producto[0]->stock_logico."!!!");
+            }
+
+
+            return response()->json(['success'=>true,'producto'=> $producto[0] ]);
+
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=> $th->getMessage() ]);
+        }
+    }
+
+/*
+    array:1 [
+        "lstInputProducts" => "[{"producto_id":"2","producto_nombre":"KAREN","color_id":"1","color_nombre":"BLANCO CUERO","talla_id":"1","talla_nombre":"35","cantidad":"2","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0},{"producto_id":"2","producto_nombre":"KAREN","color_id":"3","color_nombre":"NEGRO CUERO","talla_id":"1","talla_nombre":"35","cantidad":"3","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0},{"producto_id":"2","producto_nombre":"KAREN","color_id":"6","color_nombre":"NUDE CUERO","talla_id":"1","talla_nombre":"35","cantidad":"4","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0},{"producto_id":"2","producto_nombre":"KAREN","color_id":"6","color_nombre":"NUDE CUERO","talla_id":"3","talla_nombre":"37","cantidad":"1","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0},{"producto_id":"2","producto_nombre":"KAREN","color_id":"15","color_nombre":"AMARILLO CUERO","talla_id":"3","talla_nombre":"37","cantidad":"2","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0}]"
+    ]
+*/ 
+    public function validarStockVentas(Request $request){
+        try {
+            
+            $lstInputProducts   =   json_decode($request->get('lstInputProducts'));
+
+            if(count($lstInputProducts) === 0){
+                throw new Exception("DEBE INGRESAR UNA CANTIDAD PARA AGREGAR PRODUCTOS!!!");
+            }
+
+            foreach ($lstInputProducts as  $inputProduct) {
+
+                $producto   =   DB::select('select pct.stock_logico 
+                                from producto_color_tallas as pct
+                                where pct.producto_id = ?
+                                and pct.color_id = ?
+                                and pct.talla_id = ?',
+                                [$inputProduct->producto_id,$inputProduct->color_id,$inputProduct->talla_id]);
+
+                if(count($producto) === 0){
+                    throw new Exception("NO EXISTE EL PRODUCTO ".$inputProduct->producto_nombre.'-'.$inputProduct->color_nombre.'-'.$inputProduct->talla_nombre);
+                }
+
+                if($producto[0]->stock_logico < $inputProduct->cantidad){
+                    throw new Exception("STOCK (".$producto[0]->stock_logico.") ". "INSUFICIENTE PARA EL PRODUCTO ".$inputProduct->producto_nombre.'-'.$inputProduct->color_nombre.'-'.$inputProduct->talla_nombre);
+                }
+
+            }
+
+            return response()->json(['success'=>true,'message'=>'STOCKS VÁLIDOS']);
+          
+
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
+
+/*
+array:1 [
+    "lstInputProducts" => "[{"producto_id":"2","producto_nombre":"KAREN","color_id":"1","color_nombre":"BLANCO CUERO","talla_id":"1","talla_nombre":"35","cantidad":"2","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0},{"producto_id":"2","producto_nombre":"KAREN","color_id":"3","color_nombre":"NEGRO CUERO","talla_id":"1","talla_nombre":"35","cantidad":"3","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0},{"producto_id":"2","producto_nombre":"KAREN","color_id":"6","color_nombre":"NUDE CUERO","talla_id":"1","talla_nombre":"35","cantidad":"4","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0},{"producto_id":"2","producto_nombre":"KAREN","color_id":"6","color_nombre":"NUDE CUERO","talla_id":"3","talla_nombre":"37","cantidad":"1","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0},{"producto_id":"2","producto_nombre":"KAREN","color_id":"15","color_nombre":"AMARILLO CUERO","talla_id":"3","talla_nombre":"37","cantidad":"2","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0}]"
+]
+*/ 
+    public function actualizarStockVentas(Request $request){
+        DB::beginTransaction();
+
+        try {
+            $lstInputProducts   =   json_decode($request->get('lstInputProducts'));
+
+            if(count($lstInputProducts) === 0){
+                throw new Exception("DEBE INGRESAR UNA CANTIDAD PARA AGREGAR PRODUCTOS!!!");
+            }
+
+            foreach ($lstInputProducts as  $inputProduct) {
+
+                $producto   =   DB::select('select pct.stock_logico 
+                                from producto_color_tallas as pct
+                                where pct.producto_id = ?
+                                and pct.color_id = ?
+                                and pct.talla_id = ?',
+                                [$inputProduct->producto_id,$inputProduct->color_id,$inputProduct->talla_id]);
+
+                if(count($producto) === 0){
+                    throw new Exception("NO EXISTE EL PRODUCTO ".$inputProduct->producto_nombre.'-'.$inputProduct->color_nombre.'-'.$inputProduct->talla_nombre);
+                }
+
+                if($producto[0]->stock_logico < $inputProduct->cantidad){
+                    throw new Exception("STOCK (".$producto[0]->stock_logico.") ". "INSUFICIENTE PARA EL PRODUCTO ".$inputProduct->producto_nombre.'-'.$inputProduct->color_nombre.'-'.$inputProduct->talla_nombre);
+                }  
+                
+                DB::update('UPDATE producto_color_tallas 
+                SET stock_logico = stock_logico - ?,updated_at = ?
+                WHERE 
+                producto_id = ? 
+                and color_id = ?
+                and talla_id = ?
+                and estado = "ACTIVO"', 
+                [
+                    $inputProduct->cantidad,
+                    Carbon::now(),
+                    $inputProduct->producto_id,
+                    $inputProduct->color_id,
+                    $inputProduct->talla_id
+                ]);
+
+            }
+
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>'STOCK LÓGICO ACTUALIZADO']);
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
 }
