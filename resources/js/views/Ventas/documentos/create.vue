@@ -78,6 +78,16 @@
     
     <div class="">
 
+        <EditarItemVue 
+        :visible="modalVisible" 
+        :title="modalTitle" 
+        :tallas="initData.tallas"
+        :tallasProducto="tallasProductoEdit"
+        :productoEditar="productoEditar"
+        :detalleVenta="productos_tabla"
+        @close="closeModal">
+        </EditarItemVue>
+
         <div class="overlay_venta">
             <span class="loader_cotizacion_create"></span>
         </div> 
@@ -214,6 +224,7 @@
                                 </div>
                             </form>
                             <hr>
+
                             <TablaProductos @addProductoDetalle="AddProductoDetalles" @addDataEnvio="addDataEnvio"
                                 :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto"
                                 :parametros="paramsLotes"
@@ -265,12 +276,14 @@
 <script>
 import ModalClienteVue from '../../../components/ventas/ModalCliente.vue';
 import TablaProductos from '../../../components/ventas/TablaProductos.vue';
+import EditarItemVue from '../../../components/ventas/EditarItem.vue';
 
 export default {
     name: "VentaCreate",
     components: {
         ModalClienteVue,
-        TablaProductos
+        TablaProductos,
+        EditarItemVue
     },
     props: {
         ruta: {
@@ -284,6 +297,13 @@ export default {
     },
     data() {
         return {
+
+            //======= MODAL EDITAR ITEM ======
+            productoEditar:{producto_id:null,color_id:null},
+            tallasProductoEdit:[],
+            modalTitle:'',
+            modalVisible: false,
+
             checkDespacho: false,
             checkEnvio: false,
             initData: {
@@ -451,6 +471,16 @@ export default {
         }
     },
     methods: {
+        openModal(producto) {
+            console.log('edit',producto.producto_nombre);
+            this.modalVisible       =   true;
+            this.modalTitle         =   `EDITAR: ${producto.producto_nombre}-${producto.color_nombre}`;
+            this.tallasProductoEdit =   producto.tallas;
+            this.productoEditar     =   {producto_id:producto.producto_id,color_id:producto.color_id};
+        },
+        closeModal() {
+            this.modalVisible       = false;  
+        },
         addDataEnvio(value){
             // const { departamento,provincia,distrito,tipo_envio,empresa_envio,sede_envio,destinatario } = value;
             this.formCreate.data_envio             = value;
@@ -504,10 +534,10 @@ export default {
         },
         //======= obteniendo carrito del componente hijo TablaProductos.vue ==========
         AddProductoDetalles(value) {
-            const { detalles, totales } = value;
-            this.productos_tabla        =   this.formatearDetalle(detalles);
-            //this.productos_tabla    = detalles;
-            this.formCreate             = Object.assign(this.formCreate, totales);
+            const { detalles, totales } =   value;
+            //this.productos_tabla      =   this.formatearDetalle(detalles);
+            this.productos_tabla        =   detalles;
+            this.formCreate             =   Object.assign(this.formCreate, totales);
             console.log(this.formCreate);
         },
         Grabar() {

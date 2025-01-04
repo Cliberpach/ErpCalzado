@@ -4555,7 +4555,7 @@ class DocumentoController extends Controller
                             p.categoria_id,
                             p.marca_id,
                             p.modelo_id,
-                            p.precio_venta_1
+                            p.precio_venta_1 as precio_venta
                             from producto_color_tallas as pct
                             inner join colores as c on c.id = pct.color_id
                             inner join tallas as t on t.id = pct.talla_id
@@ -4625,7 +4625,7 @@ array:1 [
     "lstInputProducts" => "[{"producto_id":"2","producto_nombre":"KAREN","color_id":"1","color_nombre":"BLANCO CUERO","talla_id":"1","talla_nombre":"35","cantidad":"2","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0},{"producto_id":"2","producto_nombre":"KAREN","color_id":"3","color_nombre":"NEGRO CUERO","talla_id":"1","talla_nombre":"35","cantidad":"3","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0},{"producto_id":"2","producto_nombre":"KAREN","color_id":"6","color_nombre":"NUDE CUERO","talla_id":"1","talla_nombre":"35","cantidad":"4","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0},{"producto_id":"2","producto_nombre":"KAREN","color_id":"6","color_nombre":"NUDE CUERO","talla_id":"3","talla_nombre":"37","cantidad":"1","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0},{"producto_id":"2","producto_nombre":"KAREN","color_id":"15","color_nombre":"AMARILLO CUERO","talla_id":"3","talla_nombre":"37","cantidad":"2","precio_venta":"45.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0}]"
 ]
 */ 
-    public function actualizarStockVentas(Request $request){
+    public function actualizarStockAdd(Request $request){
         DB::beginTransaction();
 
         try {
@@ -4665,6 +4665,132 @@ array:1 [
                     $inputProduct->producto_id,
                     $inputProduct->color_id,
                     $inputProduct->talla_id
+                ]);
+
+            }
+
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>'STOCK LÓGICO ACTUALIZADO']);
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
+
+/*
+array:3 [
+  "producto_id" => "2"
+  "color_id"    => "1"
+  "tallas"      => "[{"talla_id":"1","talla_nombre":"35","cantidad":"1"},{"talla_id":"2","talla_nombre":"36","cantidad":"1"},{"talla_id":"3","talla_nombre":"37","cantidad":"1"},{"talla_id":"4","talla_nombre":"38","cantidad":"1"},{"talla_id":"5","talla_nombre":"39","cantidad":"1"}]"
+]
+*/ 
+    public function actualizarStockDelete(Request $request){
+        DB::beginTransaction();
+        try {
+            $producto_id    =   $request->get('producto_id');
+            $color_id       =   $request->get('color_id');
+            $tallas         =   json_decode($request->get('tallas'));
+
+            foreach ($tallas as $talla) {
+                
+                $producto   =   DB::select('select pct.stock_logico 
+                                from producto_color_tallas as pct
+                                where pct.producto_id = ?
+                                and pct.color_id = ?
+                                and pct.talla_id = ?',
+                                [$producto_id,$color_id,$talla->talla_id]);
+
+                if(count($producto) === 0){
+                    throw new Exception("NO EXISTE ESTE PRODUCTO EN LA BD!!!");
+                }
+
+                DB::update('UPDATE producto_color_tallas 
+                SET stock_logico = stock_logico + ?,updated_at = ?
+                WHERE 
+                producto_id = ? 
+                and color_id = ?
+                and talla_id = ?
+                and estado = "ACTIVO"', 
+                [
+                    $talla->cantidad,
+                    Carbon::now(),
+                    $producto_id,
+                    $color_id,
+                    $talla->talla_id
+                ]);
+
+            }
+
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>"STOCK LÓGICO DEVUELTO!!!"]);
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
+
+/*
+array:1 [
+  "lstProductos" => "[{"producto_id":"2","color_id":"1","talla_id":1,"cantidad_actual":"4","cantidad_anterior":"3"},
+                    {"producto_id":"2","color_id":"1","talla_id":2,"cantidad_actual":"1","cantidad_anterior":"1"}]"
+]
+*/ 
+    public function actualizarStockEdit(Request $request){
+        DB::beginTransaction();
+
+        try {
+            $lstProductos   =   json_decode($request->get('lstProductos'));
+
+            if(count($lstProductos) === 0){
+                throw new Exception("EL LISTADO DE PRODUCTOS ESTÁ VACÍO!!!");
+            }
+
+            foreach ($lstProductos as  $item) {
+
+                $item->cantidad_anterior    =   $item->cantidad_anterior == '' ?0:$item->cantidad_anterior;
+                $item->cantidad_actual      =   $item->cantidad_actual == '' ?0:$item->cantidad_actual;
+
+                $producto   =   DB::select('select 
+                                pct.stock_logico,
+                                p.nombre as producto_nombre,
+                                c.descripcion as color_nombre,
+                                t.descripcion as talla_nombre
+                                from producto_color_tallas as pct
+                                inner join productos as p on p.id = pct.producto_id
+                                inner join colores as c on c.id = pct.color_id
+                                inner join tallas as t on t.id = pct.talla_id
+                                where pct.producto_id = ?
+                                and pct.color_id = ?
+                                and pct.talla_id = ?',
+                                [$item->producto_id,$item->color_id,$item->talla_id]);
+
+                if(count($producto) === 0){
+                    throw new Exception("NO EXISTE EL PRODUCTO EN LA BD!!!");
+                }
+
+                $stock_logico   =   $producto[0]->stock_logico;   
+
+                if($stock_logico + $item->cantidad_anterior < $item->cantidad_actual){
+                    throw new Exception("STOCK (".$producto[0]->stock_logico.") ". "INSUFICIENTE PARA EL PRODUCTO ".$producto[0]->producto_nombre.'-'.$producto[0]->color_nombre.'-'.$producto[0]->talla_nombre);
+                }  
+                
+                DB::update('UPDATE producto_color_tallas 
+                SET stock_logico = stock_logico + ?,updated_at = ?
+                WHERE 
+                producto_id = ? 
+                and color_id = ?
+                and talla_id = ?
+                and estado = "ACTIVO"', 
+                [
+                    $item->cantidad_anterior - $item->cantidad_actual,
+                    Carbon::now(),
+                    $item->producto_id,
+                    $item->color_id,
+                    $item->talla_id
                 ]);
 
             }

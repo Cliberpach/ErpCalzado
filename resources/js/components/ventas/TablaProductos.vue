@@ -481,6 +481,10 @@
                                     <tr v-for="(item, index) in carrito" :key="index">
                                         <td class="text-center">
                                             <div class='btn-group'>
+                                                <button type="button" class='btn btn-sm btn-warning btn-edit'
+                                                    style='color:white' @click.prevent="openModal(item)">
+                                                    <i class='fa fa-edit'></i>
+                                                </button>
                                                 <button type="button" class='btn btn-sm btn-danger btn-delete'
                                                     style='color:white' @click.prevent="EliminarItem(item, index)">
                                                     <i class='fa fa-trash'></i>
@@ -639,6 +643,7 @@
             @addCodigoPrecioMenor="SaveCodigoPrecioMenor" />
         <ModalEditaDetalleVue :item.sync="itemLote" :detalles.sync="tablaDetalles" /> -->
         <ModalEnvioVue :cliente="cliente" @addDataEnvio="addDataEnvio"/>
+
         </div>
         <!-- FIN COLUMNA -->
     </div>
@@ -1004,6 +1009,16 @@ export default {
         });
     },
     methods: {
+        openModal(producto) {
+           this.$parent.openModal(producto);
+        },
+        closeModal(){
+            this.$parent.closeModal(producto);
+        },
+        closeModal() {
+            this.modalVisible = false;
+            this.selectedProducto = null;
+        },
         addDataEnvio(value){
             this.$emit('addDataEnvio', value);
         },
@@ -1268,7 +1283,7 @@ export default {
         async actualizarStockLogicoVentas(lstInputProducts){
             
             //===== RESTAR STOCK LÓGICO ======
-            const res  =   await axios.post(route('ventas.documento.actualizarStockVentas')
+            const res  =   await axios.post(route('ventas.documento.actualizarStockAdd')
                                         ,{lstInputProducts:JSON.stringify(lstInputProducts)});  
 
             return res;
@@ -1785,12 +1800,30 @@ export default {
 
             }
         },
-        EliminarItem(item, index) {
+        async actualizarStockDelete(producto){
+            const res   =   await   axios.post(route('ventas.documento.actualizarStockDelete'),
+                            {
+                                producto_id:producto.producto_id,
+                                color_id:producto.color_id,
+                                tallas:JSON.stringify(producto.tallas)
+                            });
+
+            return res;
+        },
+        async EliminarItem(item, index) {
            
             try {
+                toastr.clear();
+                this.$parent.mostrarAnimacionVenta();            
+
                 //==== devolvemos el stock logico separado ========
-                this.actualizarStockLogico(item, "eliminar");
-                //====== obtenemos los stocks logicos actualizados de la bd ========
+                const res_delete    =   await this.actualizarStockDelete(item);
+
+                if(!res_delete.data.success){
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR AL DEVOLVER STOCK LÓGICO!!!');
+                }
+
+                //this.actualizarStockLogico(item, "eliminar");
                 //======== renderizamos la tabla de stocks ==============
                 this.getColoresTallas();
                 //========== eliminar el item del carrito ========
@@ -1798,14 +1831,14 @@ export default {
                 this.carrito.splice(index, 1);
                 //========= recalcular subtotal,igv,total =========
                 this.calcularMontos();
-                console.log('ITEM ELIMINADO DEL CARRITO');
-                console.log(this.carrito);
+               
                 //======= alerta ======================
-                toastr.success('Producto eliminado',"Cantidad devuelta")
+                this.$parent.ocultarAnimacionVenta();            
+                toastr.info('ITEM ELIMINADO',"CANTIDAD DEVUELTA");
             } catch (error) {
-                console.error("Error en Eliminar item:", error);
-                alert("Error en Eliminar item: " + error);
+                toastr.error(error,'ERROR EN LA PETICIÓN ELIMINAR ITEM!!!');
             } 
+
             // try {
             //     this.asegurarCierre = 0; //aumentar
             //     this.CambiarCantidadLogica(item);
@@ -1814,7 +1847,7 @@ export default {
             //     alert("Error en Eliminar item" + ex);
             // }
         },
-        async EditarItem(item) {
+        /*async EditarItem(item) {
             try {
                 const { data } = await this.axios.post(route('ventas.documento.obtener.lote'), {
                     lote_id: Number(item.producto_id)
@@ -1840,7 +1873,7 @@ export default {
             } catch (ex) {
 
             }
-        },
+        },*/
         ChangeAsegurarCierre() {
             this.asegurarCierre = 5;
             console.log('devuelvo',this.asegurarCierre);
@@ -1857,6 +1890,26 @@ export default {
 
                     res.data.producto.cantidad  =   1;
                     const lstInputProducts      =   [res.data.producto];
+                    let indiceProductoColor     =   -1;
+                    let indiceTalla             =   -1;
+
+                    //======= VALIDAR QUE EL PRODUCTO NO EXISTA EN EL DETALLE ======
+                    indiceProductoColor = this.carrito.findIndex((c) => {
+                                                    return c.producto_id == res.data.producto.producto_id && c.color_id == res.data.producto.color_id;
+                                                });
+
+                    if (indiceProductoColor !== -1) {
+                        indiceTalla = this.carrito[indiceProductoColor].tallas.findIndex((t) => {
+                                                return t.talla_id == res.data.producto.talla_id;
+                                            });
+                    }
+
+                    if(indiceTalla !== -1){
+                        toastr.error(`${res.data.producto.producto_nombre}-${res.data.producto.color_nombre}-${res.data.producto.talla_nombre}`,'ERROR, YA EXISTE EN EL DETALLE!!!');
+                        return;
+                    }
+
+                    //======= RESTAR STOCK LÓGICO ======
                     const res_actualizar_stock  =   await this.actualizarStockLogicoVentas(lstInputProducts);
 
                     if(!res_actualizar_stock.data.success){
@@ -1886,7 +1939,7 @@ export default {
 
                     
                     toastr.info('AGREGADO AL DETALLE!!!',`${res.data.producto.producto_nombre} - ${res.data.producto.color_nombre} - ${res.data.producto.talla_nombre}
-                                PRECIO: ${res.data.producto.precio_venta_1}`,{timeOut:0});
+                                PRECIO: ${res.data.producto.precio_venta}`,{timeOut:0});
 
                 }else{
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');

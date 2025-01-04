@@ -190,7 +190,14 @@ function(){
         Route::post('/update-sede', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@updateSede')->name('mantenimiento.metodo_entrega.updateSede');
         Route::post('/delete-sede', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@deleteSede')->name('mantenimiento.metodo_entrega.deleteSede');
 
-       
+    });
+
+    //=========== MANTENIMIENTO/SEDES ========
+    Route::prefix('mantenimiento/sedes')->group(function() {
+        Route::get('/', 'Mantenimiento\Sede\SedeController@index')->name('mantenimiento.sedes.index');
+        Route::get('/create', 'Mantenimiento\Sede\SedeController@create')->name('mantenimiento.sedes.create');
+        Route::post('/store', 'Mantenimiento\Sede\SedeController@store')->name('mantenimiento.sedes.store');
+
     });
     
 
@@ -451,7 +458,10 @@ function(){
         Route::get('/getColoresTallas/{producto_id}', 'Ventas\DocumentoController@getColoresTallas')->name('ventas.documento.getColoresTallas');
         Route::get('/getProductoBarCode/{barcode}', 'Ventas\DocumentoController@getProductoBarCode')->name('ventas.documento.getProductoBarCode');
         Route::post('/validarStockVentas', 'Ventas\DocumentoController@validarStockVentas')->name('ventas.documento.validarStockVentas');
-        Route::post('/actualizarStockVentas', 'Ventas\DocumentoController@actualizarStockVentas')->name('ventas.documento.actualizarStockVentas');
+        Route::post('/actualizarStockAdd', 'Ventas\DocumentoController@actualizarStockAdd')->name('ventas.documento.actualizarStockAdd');
+        Route::post('/actualizarStockDelete', 'Ventas\DocumentoController@actualizarStockDelete')->name('ventas.documento.actualizarStockDelete');
+        Route::post('/actualizarStockEdit', 'Ventas\DocumentoController@actualizarStockEdit')->name('ventas.documento.actualizarStockEdit');
+
 
 
         // Route::get('comprobante/{id}','Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');

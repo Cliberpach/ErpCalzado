@@ -25,6 +25,7 @@ window.Vue = require('vue');
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('ventas-component', require('./components/caja/VentasComponent.vue').default);
 Vue.component('modal-cliente', require('./components/ventas/ModalCliente.vue').default);
+app.component('modal', Modal);
 
 
 Vue.component('v-select', vSelect)
