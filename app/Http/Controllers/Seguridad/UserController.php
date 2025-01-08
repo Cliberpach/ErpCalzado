@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Seguridad;
 
 use App\Http\Controllers\Controller;
 use App\Mantenimiento\Persona\Persona;
+use App\Mantenimiento\Sedes\Sede;
 use App\Permission\Model\Role;
 use App\User;
 use App\UserPersona;
@@ -26,7 +27,8 @@ class UserController extends Controller
     {
         $this->authorize('haveaccess','user.create');
 
-        $auxs = Persona::where('estado','ACTIVO')->get();
+        $auxs   =   Persona::where('estado','ACTIVO')->get();
+        $sedes  =   Sede::where('estado','ACTIVO')->get();
 
         $colaboradores = array();
         foreach($auxs as $aux)
@@ -45,7 +47,7 @@ class UserController extends Controller
 
         $roles = Role::all();
 
-        return view('seguridad.users.create',compact('roles','colaboradores'));
+        return view('seguridad.users.create',compact('roles','colaboradores','sedes'));
     }
 
     public function store(Request $request)
@@ -91,10 +93,11 @@ class UserController extends Controller
 
         $password = strtoupper($request->password);
 
-        $user->usuario = strtoupper($request->get('usuario'));
-        $user->email = strtoupper($request->get('email'));
-        $user->password = bcrypt($password);
-        $user->contra = $password;
+        $user->usuario  =   strtoupper($request->get('usuario'));
+        $user->email    =   strtoupper($request->get('email'));
+        $user->password =   bcrypt($password);
+        $user->contra   =   $password;
+        $user->sede_id  =   $request->get('sede');
 
         $user->save();
 
@@ -172,7 +175,9 @@ class UserController extends Controller
 
     public function edit($id)
     {
-        $user = User::find($id);
+        $user   =   User::find($id);
+        $sedes  =   Sede::where('estado','ACTIVO')->get();
+
         $this->authorize('view',[$user,['user.edit','userown.edit']]);
 
         $auxs = Persona::where('estado','ACTIVO')->get();
@@ -215,7 +220,7 @@ class UserController extends Controller
             $role_user[] = $role->id;
         }
 
-        return view('seguridad.users.edit',compact('roles','role_user','user','colaboradores'));
+        return view('seguridad.users.edit',compact('roles','role_user','user','colaboradores','sedes'));
     }
 
     public function update(Request $request, $id)
@@ -269,10 +274,11 @@ class UserController extends Controller
 
         $password = strtoupper($request->password);
 
-        $user->usuario = strtoupper($request->usuario);
-        $user->email = strtoupper($request->email);
-        $user->password = bcrypt($password);
-        $user->contra = $password;
+        $user->usuario  =   strtoupper($request->usuario);
+        $user->email    =   strtoupper($request->email);
+        $user->password =   bcrypt($password);
+        $user->contra   =   $password;
+        $user->sede_id  =   $request->get('sede');
         $user->update();
 
         $user_persona = UserPersona::find($user->user->id);

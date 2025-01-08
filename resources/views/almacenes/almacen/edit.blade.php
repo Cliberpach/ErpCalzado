@@ -15,7 +15,8 @@
                     {{ csrf_field() }} {{method_field('PUT')}}
 
                    <input type="hidden" name="tabla_id" id="tabla_id_editar" value="{{old('tabla_id')}}">
-                   
+                   <input type="hidden" value="{{$sede_id}}" name="sede_id" id="sede_id">
+
                    <div class="form-group">
                         <label class="required">Descripción:</label> 
                         <input type="text" class="form-control {{ $errors->has('descripcion') ? ' is-invalid' : '' }}" name="descripcion" id="descripcion_editar" value="{{old('descripcion')}}" onkeyup="return mayus(this)" required>

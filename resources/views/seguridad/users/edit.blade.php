@@ -81,7 +81,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 mb-3">
                                         <label class="required">Confirmar contraseña</label>
                                         <div class="input-group">
                                             <input type="password" id="confirm_password" class="form-control {{ session('confirm_password') ? ' is-invalid' : '' }} text-uppercase" name="confirm_password" value="{{session('confirm_password') ? session('confirm_password') : $user->contra}}" required>
@@ -92,8 +92,24 @@
                                             </span>
                                             @endif
                                         </div>
-
                                     </div>
+
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                        <label for="sede" class="required">SEDE</label>
+                                        <select required class="select2_form" name="sede" id="sede">
+
+                                            <option value=""></option>
+                                            @foreach ($sedes as $sede)
+
+                                                <option 
+                                                @if ($sede->id == $user->sede_id)
+                                                    selected
+                                                @endif value="{{$sede->id}}">{{$sede->tipo_sede.'-'.$sede->direccion}}</option>
+                                            
+                                            @endforeach
+                                        </select>
+                                    </div>
+
                                 </div>
                             </div>
 

@@ -1,32 +1,14 @@
 <form action="" id="formStoreSede" method="post">
 
-    <h4 style="font-weight: bold;">DATOS EMPRESA</h4>
+    <h4 style="font-weight: bold;">DATOS SEDE</h4>
     <hr>
 
     @csrf
     <div class="row">
         <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12 mb-3">
             <div class="row">
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
-                    <label for="ruc" class="required" style="font-weight: bold;">RUC</label>
-                    <div class="input-group">
-                        <input required value="" id="ruc" name="ruc" maxlength="11" type="text" class="form-control" placeholder="RUC" aria-label="Recipient's username" aria-describedby="button-addon2">
-                        <button class="btn btn-primary" type="button" id="btn_consultar_documento">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                    <span class="ruc_error msgError"  style="color:red;"></span>
-                </div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
-                    <label for="razon_social" class="required" style="font-weight: bold;">RAZÓN SOCIAL</label>
-                    <div class="input-group">
-                        <span class="input-group-text" id="basic-addon1">
-                            <i class="fas fa-building"></i>
-                        </span>
-                        <input required maxlength="150" value="" name="razon_social" id="razon_social" type="text" class="form-control" placeholder="RAZÓN SOCIAL" aria-label="Username" aria-describedby="basic-addon1">
-                    </div>
-                    <span class="razon_social_error msgError"  style="color:red;"></span>
-                </div>
+               
+                
                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
                     <label class="required" for="direccion"  style="font-weight: bold;">DIRECCIÓN</label>
                     <div class="input-group">
@@ -82,6 +64,17 @@
                     </select>
                     <span class="distrito_error msgError"  style="color:red;"></span>
                 </div>
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
+                    <label class="required" for="serie" style="font-weight: bold;">CÓDIGO DE SERIE</label>
+                    <div class="input-group">
+                        <span class="input-group-text" id="basic-addon1">
+                            <i class="fas fa-list-ol"></i>
+                        </span>
+                        <input minlength="3" maxlength="3" value="" name="serie" id="serie" type="email" class="form-control" placeholder="Serie" aria-label="Username" aria-describedby="basic-addon1">
+                    </div>
+                    <span class="urbanizacion_error msgError"  style="color:red;"></span>
+                    <span style="color: blue; font-style: italic;">Ingrese una serie de 3 caracteres numéricos o alfanuméricos</span>
+                </div>
             </div>
         </div>
 
@@ -89,11 +82,11 @@
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
                     <div>
-                        <label for="img_empresa" style="font-weight:bold;" class="form-label">IMAGEN</label> <i class="fa-solid fa-trash-can btn btn-danger btnSetImageDefault"></i>
-                        <input id="img_empresa" name="img_empresa" class="form-control form-control-sm"  type="file" accept="image/*">
+                        <label for="img_empresa" style="font-weight:bold;" class="form-label">IMAGEN</label><i class="fa-solid fa-trash-can btn btn-danger btnSetImageDefault" onclick="resetImage()"></i>
+                        <input id="img_empresa" name="img_empresa" class="form-control"  type="file" accept="image/*" onchange="previewImage(event)">
                     </div> 
                 </div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
                     <div id="img_preview_container" style="overflow-x:hidden;overflow-y:hidden;heigth:310px;width:100%;border: 2px dashed #ddd; border-radius: 10px; padding: 10px; text-align: center;display:flex;align-items:center;justify-content:center;">
                         <img class="imgShowLightBox"
                         {{-- @if ($empresa->img_ruta)
@@ -104,7 +97,7 @@
                         id="img_vista_previa" style="height: 260px;max-width:260px; object-fit: cover;cursor:pointer;">
                     </div>
                 </div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
                     <label for="urbanizacion" style="font-weight: bold;">URBANIZACIÓN</label>
                     <div class="input-group">
                         <span class="input-group-text" id="basic-addon1">
@@ -123,57 +116,6 @@
                         <input required maxlength="100" value="" name="codigo_local" id="codigo_local" type="text" class="form-control" placeholder="CÓDIGO LOCAL" aria-label="Username" aria-describedby="basic-addon1">
                     </div>
                     <span class="codigo_local_error msgError"  style="color:red;"></span>
-                </div>
-            </div>
-        </div>
-
-        
-
-        <div class="col-12 mb-3">
-            <h4 style="font-weight: bold;">FACTURACIÓN</h4>
-            <hr>
-            <div class="row">
-                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3">
-                    <label for="usuario_sol" class="" style="font-weight: bold;">USUARIO SOL</label>
-                    <div class="input-group">
-                        <input  value="" id="usuario_sol" name="usuario_sol"  type="text" class="form-control" placeholder="Usuario Sol" aria-label="Recipient's username" aria-describedby="button-addon2">
-                    </div>
-                    <span class="ruc_error msgError"  style="color:red;"></span>
-                </div>
-                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3">
-                    <label for="clave_sol" class="" style="font-weight: bold;">CLAVE SOL</label>
-                    <div class="input-group">
-                        <input  value="" id="clave_sol" name="clave_sol" type="text" class="form-control" placeholder="Contraseña Sol" aria-label="Recipient's username" aria-describedby="button-addon2">
-                    </div>
-                    <span class="ruc_error msgError"  style="color:red;"></span>
-                </div>
-                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3">
-                    <label for="id_api_guia" class="" style="font-weight: bold;">ID API GUÍA REMISIÓN</label>
-                    <div class="input-group">
-                        <input  value="" id="id_api_guia" name="id_api_guia"  type="text" class="form-control" placeholder="ID API GUÍA" aria-label="Recipient's username" aria-describedby="button-addon2">
-                    </div>
-                    <span class="id_api_guia msgError"  style="color:red;"></span>
-                </div>
-                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3">
-                    <label for="clave_api_guia" class="" style="font-weight: bold;">CLAVE API GUÍA REMISIÓN</label>
-                    <div class="input-group">
-                        <input  value="" id="clave_api_guia" name="clave_api_guia"  type="text" class="form-control" placeholder="CLAVE API GUÍA" aria-label="Recipient's username" aria-describedby="button-addon2">
-                    </div>
-                    <span class="clave_api_guia msgError"  style="color:red;"></span>
-                </div>
-                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3">
-                    <label for="" style="font-weight: bold;">CERTIFICADO(PEM)</label>
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                          <span class="input-group-text" id="inputGroupFileAddon01">
-                            <i class="fas fa-file-archive"></i>
-                          </span>
-                        </div>
-                        <div class="custom-file">
-                          <input accept=".pem" name="certificado"  type="file" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
-                          <label class="custom-file-label" for="inputGroupFile01">Seleccionar certificado</label>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

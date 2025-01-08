@@ -28,6 +28,7 @@ use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class ProductoController extends Controller
 {
@@ -95,8 +96,9 @@ class ProductoController extends Controller
         DB::beginTransaction();
 
         try {
-            //guardando producto
-            $producto = new Producto();
+            
+            //======= GUARDANDO PRODUCTO =======
+            $producto                   =   new Producto();
             $producto->codigo           =   $request->get('codigo');
             $producto->codigo_barra     =   $request->get('codigo_barra');
             $producto->nombre           =   $request->get('nombre');
@@ -112,12 +114,11 @@ class ProductoController extends Controller
             $producto->save();
            
 
-
-            //======= guardamos los colores asignados al producto ========
+            //======= GUARDAMOS LOS COLORES ASIGNADOS AL PRODUCTO ========
             $coloresAsignados = json_decode($request->get('coloresJSON'));
 
             foreach ($coloresAsignados as $color_id) {
-                $producto_color =  new ProductoColor();
+                $producto_color                 =   new ProductoColor();
                 $producto_color->producto_id    =   $producto->id;
                 $producto_color->color_id       =   $color_id;
                 $producto_color->save();     
@@ -127,24 +128,7 @@ class ProductoController extends Controller
             $producto->codigo = 1000 + $producto->id;
             $producto->update();
 
-            // if($request->get('codigo_barra'))
-            // {
-            //     $generatorPNG   =   new \Picqer\Barcode\BarcodeGeneratorPNG();
-            //     $code           =   base64_encode($generatorPNG->getBarcode($request->get('codigo_barra'), $generatorPNG::TYPE_CODE_128));
-            //     $data_code      =   base64_decode($code);
-            //     $name           =   $producto->codigo_barra.'.png';
-
-            //     if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
-            //         mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
-            //     }
-
-            //     $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'.DIRECTORY_SEPARATOR.$name);
-
-            //     file_put_contents($pathToFile, $data_code);
-            // }
-
-        
-
+    
             //Registro de actividad
             $descripcion = "SE AGREGÓ EL PRODUCTO CON LA DESCRIPCION: ". $producto->nombre;
             $gestion = "PRODUCTO";

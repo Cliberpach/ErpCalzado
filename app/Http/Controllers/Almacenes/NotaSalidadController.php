@@ -102,7 +102,7 @@ class NotaSalidadController extends Controller
         
         $origenes   =   General::find(28)->detalles;
         $destinos   =   General::find(29)->detalles;
-        $lotes      =   DB::table('lote_productos')->get();
+        //$lotes      =   DB::table('lote_productos')->get();
         $ngenerado  =   $fecha.(DB::table('nota_salidad')->count()+1);
         $usuarios   =   User::get();
         $productos  =   Producto::where('estado','ACTIVO')->get();
@@ -110,6 +110,10 @@ class NotaSalidadController extends Controller
         $tallas     =   Talla::where('estado','ACTIVO')->get();
         $fullaccess =   false;
         $modelos    =   Modelo::where('estado','ACTIVO')->get();
+        $sede_id    =   Auth::user()->sede->id;
+        $almacenes  =   Almacen::where('estado','ACTIVO')   
+                                ->where('sede_id',$sede_id)
+                                ->get();
 
         if(count(Auth::user()->roles)>0)
         {
@@ -128,8 +132,9 @@ class NotaSalidadController extends Controller
         'tallas' => $tallas, 'modelos' => $modelos,
         "origenes"=>$origenes,'destinos'=>$destinos,
         'ngenerado'=>$ngenerado,'usuarios'=>$usuarios,
-        "almacenes"=>$almacenes,
-        'productos'=>$productos,'lotes'=>$lotes,'fullaccess'=>$fullaccess]);
+        'productos'=>$productos,'fullaccess'=>$fullaccess,
+        'sede_id'   =>  $sede_id,
+        'almacenes' =>  $almacenes]);
     }
 
     /**
@@ -140,65 +145,82 @@ class NotaSalidadController extends Controller
      */
     public function store(Request $request)
     {
-        
         $this->authorize('haveaccess','nota_salida.index');
-       $fecha_hoy= Carbon::now()->toDateString();
-       $fecha=Carbon::createFromFormat('Y-m-d',$fecha_hoy);
-       $fecha = str_replace("-", "", $fecha);
-       $fecha = str_replace(" ", "", $fecha);
-       $fecha = str_replace(":", "", $fecha);
-       $destino= Almacen::find($request->destino);
+        $fecha_hoy  =   Carbon::now()->toDateString();
+        $fecha      =   Carbon::createFromFormat('Y-m-d',$fecha_hoy);
+        $fecha      =   str_replace("-", "", $fecha);
+        $fecha      =   str_replace(" ", "", $fecha);
+        $fecha      =   str_replace(":", "", $fecha);
+        $destino    =   Almacen::find($request->destino);
     
         $data = $request->all();
 
         $rules = [
-
-            'fecha' => 'required',
-            'destino' => 'required',
-            'origen' => 'nullable',
-            'notadetalle_tabla'=>'required',
-
-
+            'fecha'             => 'required',
+            'almacen_origen'    => 'required|different:almacen_destino', 
+            'almacen_destino'   => 'required|different:almacen_origen',
+            'notadetalle_tabla' => 'required',
         ];
+        
         $message = [
-            'fecha.required' => 'El campo fecha  es Obligatorio',
-            'destino.required' => 'El campo destino  es Obligatorio',
-            'notadetalle_tabla.required'=>'No hay dispositivos',
+            'fecha.required'                => 'El campo fecha es obligatorio.',
+            'almacen_origen.required'       => 'El campo almacén de origen es obligatorio.',
+            'almacen_destino.required'      => 'El campo almacén de destino es obligatorio.',
+            'almacen_origen.different'      => 'El almacén de origen debe ser diferente del almacén de destino.',
+            'almacen_destino.different'     => 'El almacén de destino debe ser diferente del almacén de origen.',
+            'notadetalle_tabla.required'    => 'El detalle está vacío.',
         ];
 
         Validator::make($data, $rules, $message)->validate();
 
-        $notasalidad=new NotaSalidad();
-        $notasalidad->numero=$request->numero;
-        $notasalidad->fecha=$request->fecha;
-        // $destino=DB::table('tabladetalles')->where('id',$request->destino)->first();
-        $notasalidad->destino=$destino->descripcion;
-        $notasalidad->origen=$request->origen;
-        $notasalidad->observacion=$request->observacion;
-        $notasalidad->usuario=Auth()->user()->usuario;
-        $notasalidad->save();
 
-        $articulosJSON = $request->get('notadetalle_tabla');
-        $notatabla = json_decode($articulosJSON[0]);
-     
-        foreach ($notatabla as $fila) {
-           DetalleNotaSalidad::create([
-                'nota_salidad_id' => $notasalidad->id,
-                // 'lote_id' => $fila->lote_id,
-                'color_id' => $fila->color_id,
-                'talla_id' => $fila->talla_id,
-                'cantidad' => $fila->cantidad,
-                'producto_id'=> $fila->producto_id,
-            ]);
+        DB::beginTransaction();
+
+        try {
+
+            $notasalidad                =   new NotaSalidad();
+            $notasalidad->numero        =   $request->numero;
+            $notasalidad->fecha         =   $request->fecha;
+            //$notasalidad->destino     =   $destino->descripcion;
+            //$notasalidad->origen      =   $request->origen;
+            $notasalidad->observacion   =   $request->observacion;
+            $notasalidad->usuario       =   Auth()->user()->usuario;
+            $notasalidad->almacen_origen_id     =   $request->get('almacen_origen');
+            $notasalidad->almacen_destino_id    =   $request->get('almacen_destino');
+            $notasalidad->save();
+    
+            $articulosJSON  = $request->get('notadetalle_tabla');
+            $notatabla      = json_decode($articulosJSON[0]);
+         
+            foreach ($notatabla as $fila) {
+
+                $detalle                     =   new   DetalleNotaSalidad();
+
+                $detalle->setAlmacenOrigenId($request->get('almacen_origen'));
+                $detalle->setAlmacenDestinoId($request->get('almacen_destino'));
+                $detalle->setSedeId($request->get('sede_id'));
+
+                $detalle->nota_salidad_id    =   $notasalidad->id;
+                $detalle->producto_id        =   $fila->producto_id;
+                $detalle->color_id           =   $fila->color_id;
+                $detalle->talla_id           =   $fila->talla_id;
+                $detalle->cantidad           =   $fila->cantidad;
+                $detalle->save();
+
+            }
+          
+            $descripcion = "SE AGREGÓ LA NOTA DE SALIDAD";
+            $gestion = "ALMACEN / NOTA SALIDAD";
+            crearRegistro($notasalidad, $descripcion , $gestion);
+    
+    
+            Session::flash('success','NOTA DE SALIDAD');
+            return redirect()->route('almacenes.nota_salidad.index')->with('guardar', 'success');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            dd($th);
         }
-      
-        $descripcion = "SE AGREGÓ LA NOTA DE SALIDAD";
-        $gestion = "ALMACEN / NOTA SALIDAD";
-        crearRegistro($notasalidad, $descripcion , $gestion);
 
-
-        Session::flash('success','NOTA DE SALIDAD');
-        return redirect()->route('almacenes.nota_salidad.index')->with('guardar', 'success');
     }
 
     /**
@@ -695,6 +717,48 @@ class NotaSalidadController extends Controller
         } catch (\Exception $e) {
             return response()->json(["message" => "Error al obtener el stock", "error" => $e->getMessage()], 500);
         }                    
+    }
+
+    public function getProductosAlmacen($modelo_id,$almacen_origen_id){
+        
+        $stocks =   DB::select('select p.id as producto_id, p.nombre as producto_nombre,
+                    p.precio_venta_1,p.precio_venta_2,p.precio_venta_3,
+                    pct.color_id,c.descripcion as color_name,
+                    pct.talla_id,t.descripcion as talla_name,pct.stock,
+                    pct.stock_logico
+                    from producto_color_tallas as pct
+                    inner join productos as p
+                    on p.id = pct.producto_id
+                    inner join colores as c
+                    on c.id = pct.color_id
+                    inner join tallas as t
+                    on t.id = pct.talla_id
+                    where p.modelo_id = ? 
+                    AND pct.almacen_id = ?
+                    AND c.estado="ACTIVO" 
+                    AND t.estado="ACTIVO"
+                    AND p.estado="ACTIVO" 
+                    order by p.id,c.id,t.id',[$modelo_id,$almacen_origen_id]);
+
+        $producto_colores = DB::select('select 
+                            p.id as producto_id,p.nombre as producto_nombre,
+                            c.id as color_id, c.descripcion as color_nombre,
+                            p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
+                            from producto_colores as pc
+                            inner join productos as p on p.id = pc.producto_id
+                            inner join colores as c on c.id = pc.color_id
+                            where 
+                            p.modelo_id = ? 
+                            AND pc.almacen_id = ?
+                            AND c.estado="ACTIVO" 
+                            AND p.estado="ACTIVO"
+                            group by p.id,p.nombre,c.id,c.descripcion,
+                            p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
+                            order by p.id,c.id',[$modelo_id,$almacen_origen_id]);
+
+        return response()->json(["message" => "success" , "stocks" => $stocks 
+            ,"producto_colores" => $producto_colores ]);
+
     }
 
 

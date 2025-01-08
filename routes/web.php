@@ -194,9 +194,15 @@ function(){
 
     //=========== MANTENIMIENTO/SEDES ========
     Route::prefix('mantenimiento/sedes')->group(function() {
+
         Route::get('/', 'Mantenimiento\Sede\SedeController@index')->name('mantenimiento.sedes.index');
         Route::get('/create', 'Mantenimiento\Sede\SedeController@create')->name('mantenimiento.sedes.create');
         Route::post('/store', 'Mantenimiento\Sede\SedeController@store')->name('mantenimiento.sedes.store');
+        Route::get('/getSedes', 'Mantenimiento\Sede\SedeController@getSedes')->name('mantenimiento.sedes.getSedes');
+        
+        Route::get('/numeracion/create/{sede_id}', 'Mantenimiento\Sede\SedeController@numeracionCreate')->name('mantenimiento.sedes.numeracionCreate');
+        Route::get('/numeracion/getNumeracion', 'Mantenimiento\Sede\SedeController@getNumeracion')->name('mantenimiento.sedes.getNumeracion');
+        Route::post('/numeracion/store', 'Mantenimiento\Sede\SedeController@numeracionStore')->name('mantenimiento.sedes.numeracionStore');
 
     });
     
@@ -303,6 +309,7 @@ function(){
     });
     //NotaSalida
     Route::prefix('almacenes/nota_salidad')->group(function() {
+
         Route::get('index', 'Almacenes\NotaSalidadController@index')->name('almacenes.nota_salidad.index');
         Route::get('getdata','Almacenes\NotaSalidadController@gettable')->name('almacenes.nota_salidad.data');
         Route::get('create','Almacenes\NotaSalidadController@create')->name('almacenes.nota_salidad.create');
@@ -316,7 +323,7 @@ function(){
         Route::get('getLot','Almacenes\NotaSalidadController@getLot')->name('almacenes.nota_salidad.getLot');
 
         Route::get('getStock/{producto_id}/{color_id}/{talla_id}','Almacenes\NotaSalidadController@getStock')->name('almacenes.nota_salidad.getStock');
-
+        Route::get('/getProductosAlmacen/{modelo_id}/{almacen_id}', 'Almacenes\NotaSalidadController@getProductosAlmacen')->name('almacenes.nota_salidad.getProductosAlmacen');
 
         Route::post('cantidad/', 'Almacenes\NotaSalidadController@quantity')->name('almacenes.nota_salidad.cantidad');
         Route::post('devolver/cantidad', 'Almacenes\NotaSalidadController@returnQuantity')->name('almacenes.nota_salidad.devolver.cantidades');

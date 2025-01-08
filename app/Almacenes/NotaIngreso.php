@@ -6,24 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class NotaIngreso extends Model
 {
-    protected $table = 'nota_ingreso';
-    protected $fillable = [
-        'numero',
-        'fecha',
-        'origen',
-        'destino',
-        'usuario',
-        'estado',
-        'observacion'
-        // 'moneda',
-        // 'tipo_cambio',
-        // 'dolar',
-        // 'total',
-        // 'total_soles',
-        // 'total_dolares',
-        // 'total_mas_igv_soles',
-        // 'total_mas_igv_dolares',
-    ];
+    protected $table    = 'nota_ingreso';
+    protected $guarded  =   [''];
+
     public $timestamps = true;
 
     public function detalles()

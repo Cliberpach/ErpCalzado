@@ -224,8 +224,22 @@
                     <ul class="nav navbar-top-links navbar-right" id="appNotify">
                         <notify-component></notify-component>
                         <li>
-                            <span class="m-r-sm text-muted welcome-message">Bienvenid@ <b>
-                                    {{auth()->user()->usuario}}</b></span>
+                            <div style="display:flex;flex-direction:column;">
+                                <span class="m-r-sm text-muted welcome-message"> 
+                                    <b>{{auth()->user()->usuario}}</b>
+                                </span>
+                                <span>
+                                    <b>
+                                        @if (auth()->user()->sede->tipo_sede === 'PRINCIPAL')
+                                            CENTRAL
+                                        @endif
+                                        @if (auth()->user()->sede->tipo_sede === 'SECUNDARIA')
+                                            {{auth()->user()->sede->direccion}}
+                                        @endif
+                                    </b>
+                                </span>
+                            </div>
+                            
                         </li>
                         <li>
                             <a href="{{route('logout')}}">

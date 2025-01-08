@@ -96,6 +96,29 @@
         });
     }
 
+    function previewImage(event) {
+        const input = event.target;
+        const preview = document.getElementById('img_vista_previa');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                preview.src = e.target.result; 
+            };
+
+            reader.readAsDataURL(input.files[0]); 
+        }
+    }
+
+    function resetImage() {
+        const preview = document.getElementById('img_vista_previa');
+        const input = document.getElementById('img_empresa');
+
+        preview.src = '{{ asset("img/img_default.png") }}'; // Volver a la imagen por defecto
+        input.value = ''; // Limpiar el campo de entrada
+    }
+
     async function registrarSede(formStoreSede){
 
         const swalWithBootstrapButtons = Swal.mixin({
@@ -132,6 +155,7 @@
             });
 
             try {
+                
                 const formData  =   new FormData(formStoreSede);
 
                 const res   =   await axios.post(route('mantenimiento.sedes.store'),formData);
@@ -142,6 +166,7 @@
                 }else{
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
+
             } catch (error) {
                 console.log(error);
 

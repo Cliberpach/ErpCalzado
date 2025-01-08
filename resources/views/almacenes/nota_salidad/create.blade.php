@@ -67,20 +67,30 @@
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-3">
-                                        <label>Origen</label>
-                                        <input type="text" name="origen" id="origen" readonly value="ALMACEN" class="form-control">
-                                    </div>
-                                    <div class="col-12 col-md-3">
-                                        <label class="required">Destino</label>
-                                        <select name="destino" id="destino" class="select2_form form-control {{ $errors->has('destino') ? ' is-invalid' : '' }}" required>
-                                            <option value="">Seleccionar Destino</option>
-                                            @foreach ($almacenes as $tabla)
-                                                <option {{ old('destino') == $tabla->id ? 'selected' : '' }} value="{{$tabla->id}}">{{$tabla->descripcion}}</option>
+                                        <label class="required" style="font-weight: bold;">Almacén Origen</label>
+                                        <select onchange="cambiarAlmacen(this);" name="almacen_origen" id="almacen_origen" class="select2_form form-control {{ $errors->has('almacen_origen') ? ' is-invalid' : '' }}" required>
+                                            <option value="">Seleccionar</option>
+                                            @foreach ($almacenes as $almacen_origen)
+                                                <option  value="{{$almacen_origen->id}}">{{$almacen_origen->descripcion}}</option>
                                             @endforeach
                                         </select>
-                                        @if ($errors->has('destino'))
+                                        @if ($errors->has('almacen_origen'))
                                         <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $errors->first('destino') }}</strong>
+                                            <strong>{{ $errors->first('almacen_origen') }}</strong>
+                                        </span>
+                                        @endif
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <label class="required" style="font-weight: bold;">Almacén Destino</label>
+                                        <select onchange="cambiarAlmacen(this);" name="almacen_destino" id="almacen_destino" class="select2_form form-control {{ $errors->has('almacen_destino') ? ' is-invalid' : '' }}" required>
+                                            <option value="">Seleccionar</option>
+                                            @foreach ($almacenes as $almacen_destino)
+                                                <option  value="{{$almacen_destino->id}}">{{$almacen_destino->descripcion}}</option>
+                                            @endforeach
+                                        </select>
+                                        @if ($errors->has('almacen_destino'))
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $errors->first('almacen_destino') }}</strong>
                                         </span>
                                         @endif
                                     </div>
@@ -714,7 +724,7 @@ $(".select2_form").select2({
                 });
                 formNotaSalida.submit();
             }else{
-                toastr.error('El detalle de la nota de ingreso está vacío!!!')
+                toastr.error('El detalle de la nota de salida está vacío!!!')
                 btnGrabar.disabled = false;
             }
            
@@ -798,13 +808,27 @@ $(".select2_form").select2({
 
      //======= CARGAR STOCKS LOGICOS DE PRODUCTOS POR MODELO =======
      async function getProductosByModelo(idModelo){
-        modelo_id = idModelo;
-         btnAgregarDetalle.disabled=false;
+
+        modelo_id                   =   idModelo;
+        btnAgregarDetalle.disabled  =   false;
+        const almacen_origen_id     =   $('#almacen_origen').val();
+
+        if(!modelo_id){
+            tableStocksBody.innerHTML = ``;
+            return;
+        }
+
+        if(almacen_origen_id.toString().length === 0){
+            $('#modelo').val(null).trigger('change');
+            toastr.error('DEBES SELECCIONAR UN ALMACÉN DE ORIGEN!!!');
+            return;
+        }
 
         if(modelo_id){
             try {
-                const url = `/get-producto-by-modelo/${modelo_id}`;
-                const response = await axios.get(url);
+                const url       =   route('almacenes.nota_salidad.getProductosAlmacen',
+                                    {modelo_id,almacen_id:almacen_origen_id});
+                const response  =   await axios.get(url);
                 console.log(response.data);
                 pintarTableStocks(response.data.stocks,tallasBD,response.data.producto_colores);
             } catch (error) {
@@ -930,6 +954,25 @@ console.log(stocks);
 
         tableStocksBody.innerHTML = options;
         // btnAgregarDetalle.disabled = false;
+    }
+
+    function cambiarAlmacen(selectAlmacen){
+
+        toastr.clear();
+        const almacen_id        =   selectAlmacen.getAttribute('id');
+        const almacen_origen_id =   $('#almacen_origen').val();
+        const almacen_destino_id=   $('#almacen_destino').val();
+
+        if(almacen_origen_id.toString().trim().length === 0 && almacen_destino_id.toString().trim().length === 0){
+           return;
+        }
+
+        if(almacen_origen_id == almacen_destino_id){
+            toastr.error('DEBES SELECCIONAR ALMACENES DIFERENTES!!!');
+            $(`#${almacen_id}`).val(null).trigger('change');
+            return;
+        }
+
     }
 
     

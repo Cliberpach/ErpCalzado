@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Almacenes;
 
+use App\Almacenes\Almacen;
 use App\Almacenes\Color; 
 use App\Almacenes\Talla; 
 use App\Almacenes\Modelo; 
@@ -30,7 +31,7 @@ use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade as PDF;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Almacenes\ProductoColorTalla;
-
+use Illuminate\Support\Facades\Auth;
 
 class NotaIngresoController extends Controller
 {
@@ -93,35 +94,44 @@ class NotaIngresoController extends Controller
     {
 
         $this->authorize('haveaccess','nota_ingreso.index');
-        $fecha_hoy = Carbon::now()->toDateString();
-        $fecha = Carbon::createFromFormat('Y-m-d', $fecha_hoy);
-        $fecha = str_replace("-", "", $fecha);
-        $fecha = str_replace(" ", "", $fecha);
-        $fecha = str_replace(":", "", $fecha);
-        $fecha_actual = Carbon::now();
-        $fecha_actual = date("d/m/Y",strtotime($fecha_actual));
-        $fecha_5 = date("Y-m-d",strtotime($fecha_hoy."+ 5 years"));
-        $origenes =  General::find(28)->detalles;
-        $destinos =  General::find(29)->detalles;
-        $lotes = DB::table('lote_productos')->get();
-        $ngenerado = $fecha . (DB::table('nota_ingreso')->count() + 1);
-        $usuarios = User::get();
-        $productos = Producto::where('estado', 'ACTIVO')->get();
-        $monedas =  tipos_moneda();
-        $modelos = Modelo::where('estado','ACTIVO')->get();
-        $tallas = Talla::where('estado','ACTIVO')->get();
-        $colores =  Color::where('estado','ACTIVO')->get();
+
+        $fecha_hoy      =   Carbon::now()->toDateString();
+        $fecha          =   Carbon::createFromFormat('Y-m-d', $fecha_hoy);
+        $fecha          =   str_replace("-", "", $fecha);
+        $fecha          =   str_replace(" ", "", $fecha);
+        $fecha          =   str_replace(":", "", $fecha);
+        $fecha_actual   =   Carbon::now();
+        $fecha_actual   =   date("d/m/Y",strtotime($fecha_actual));
+        $fecha_5        =   date("Y-m-d",strtotime($fecha_hoy."+ 5 years"));
+        $origenes       =   General::find(28)->detalles;
+        $destinos       =   General::find(29)->detalles;
+        $ngenerado      =   $fecha . (DB::table('nota_ingreso')->count() + 1);
+        $usuarios       =   User::get();
+        $productos      =   Producto::where('estado', 'ACTIVO')->get();
+        $monedas        =   tipos_moneda();
+        $modelos        =   Modelo::where('estado','ACTIVO')->get();
+        $tallas         =   Talla::where('estado','ACTIVO')->get();
+        $colores        =   Color::where('estado','ACTIVO')->get();
+        $sede_id        =   Auth::user()->sede->id;
+        $almacenes_destino  =   Almacen::where('estado','ACTIVO')   
+                                ->where('sede_id',$sede_id)
+                                ->get();
+
         return view('almacenes.nota_ingresos.create', [
-            "fecha_hoy" => $fecha_hoy,
-            "fecha_actual" => $fecha_actual,
-            "fecha_5" => $fecha_5,
-            "origenes" => $origenes, 'destinos' => $destinos,
-            'ngenerado' => $ngenerado, 'usuarios' => $usuarios,
-            'productos' => $productos, 'lotes' => $lotes,
-            'monedas' => $monedas,
-            'modelos' => $modelos,
-            'colores' => $colores,
-            'tallas' => $tallas
+            "fecha_hoy"     => $fecha_hoy,
+            "fecha_actual"  => $fecha_actual,
+            "fecha_5"   =>  $fecha_5,
+            "origenes"  =>  $origenes, 
+            'destinos'  =>  $destinos,
+            'ngenerado' =>  $ngenerado, 
+            'usuarios'  =>  $usuarios,
+            'productos' =>  $productos, 
+            'monedas'   =>  $monedas,
+            'modelos'   =>  $modelos,
+            'colores'   =>  $colores,
+            'tallas'    =>  $tallas,
+            'sede_id'   =>  $sede_id,
+            'almacenes_destino' =>  $almacenes_destino
         ]);
     }
     
@@ -140,98 +150,98 @@ class NotaIngresoController extends Controller
     public function store(Request $request)
     {
         $this->authorize('haveaccess','nota_ingreso.index');
-        $fecha_hoy = Carbon::now()->toDateString();
-        $fecha = Carbon::createFromFormat('Y-m-d', $fecha_hoy);
-        $fecha = str_replace("-", "", $fecha);
-        $fecha = str_replace(" ", "", $fecha);
-        $fecha = str_replace(":", "", $fecha);
+        $fecha_hoy  = Carbon::now()->toDateString();
+        $fecha      = Carbon::createFromFormat('Y-m-d', $fecha_hoy);
+        $fecha      = str_replace("-", "", $fecha);
+        $fecha      = str_replace(" ", "", $fecha);
+        $fecha      = str_replace(":", "", $fecha);
 
         $data = $request->all();
 
         $rules = [
-            'fecha' => 'required',
-            'destino' => 'nullable',
-            'origen' => 'required',
-            'notadetalle_tabla' => 'required',
-            //'moneda' => 'required',
+            'fecha'                 =>  'required',
+            //'destino'             =>  'nullable',
+            'origen'                =>  'required',
+            'notadetalle_tabla'     =>  'required',
+            'almacen_destino'       =>  'required'
+            //'moneda'              => 'required',
         ];
         $message = [
 
-            'fecha.required' => 'El campo fecha  es Obligatorio',
-            'origen.required' => 'El campo origen  es Obligatorio',
-            //'moneda.required' => 'El campo moneda  es Obligatorio',
+            'fecha.required'            => 'El campo fecha  es Obligatorio',
+            'origen.required'           => 'El campo origen  es Obligatorio',
+            //'moneda.required'         => 'El campo moneda  es Obligatorio',
             'notadetalle_tabla.required' => 'No hay detalles',
+            'almacen_destino.required'   =>  'Debe seleccionar un almacén de  destino'
         ];
 
-        Validator::make($data, $rules, $message)->validate();
+        $validator = Validator::make($data, $rules, $message);
 
-        // $dolar_aux = json_encode(precio_dolar(), true);
-        // $dolar_aux = json_decode($dolar_aux, true);
+        $validatedData = $validator->validated(); 
 
-        // $dolar = (float)$dolar_aux['original']['venta'];
+        DB::beginTransaction();
+
+        try {
+
+            //======= OBTENIENDO ALMACÉN DESTINO =======
+            $almacen_destino    =   DB::select('select 
+                                    a.id,a.descripcion
+                                    from almacenes as a
+                                    where a.id = ?',[$request->get('almacen_destino')])[0];
+
+            $origen             =   DB::table('tabladetalles')->where('id', $request->origen)->first();
 
 
-        // //$registro_sanitario = new RegistroSanitario();
-         $notaingreso = new NotaIngreso();
-         $notaingreso->numero = $fecha . (DB::table('nota_ingreso')->count() + 1);
-         $notaingreso->fecha = $request->get('fecha');
-       if($request->destino)
-       {
-            $destino = DB::table('tabladetalles')->where('id', $request->destino)->first();
-            $notaingreso->destino = $destino->descripcion;
-       }
-        $origen                     = DB::table('tabladetalles')->where('id', $request->origen)->first();
-        $notaingreso->origen        = $origen->descripcion;
-        $notaingreso->usuario       = Auth()->user()->usuario;
-        $notaingreso->observacion   =   $request->get('observacion');
-        // $notaingreso->total = $request->get('monto_total');
-        // $notaingreso->moneda = $request->get('moneda');
-        // $notaingreso->tipo_cambio = $dolar;
-        // $notaingreso->dolar = $dolar;
-        // if($request->get('moneda') == 'DOLARES')
-        // {
-        //     $notaingreso->total_soles = (float) $request->get('monto_total') * (float) $dolar;
+            $notaingreso                            =   new NotaIngreso();
+            $notaingreso->numero                    =   $fecha . (DB::table('nota_ingreso')->count() + 1);
+            $notaingreso->fecha                     =   $request->get('fecha');
+            $notaingreso->origen                    =   $origen->descripcion;
+            $notaingreso->almacen_destino_id        =   $almacen_destino->id;
+            $notaingreso->sede_id                   =   $request->get('sede_id');
+            $notaingreso->usuario                   =   Auth()->user()->usuario;
+            $notaingreso->observacion               =   $request->get('observacion');
+            $notaingreso->save();
 
-        //     $notaingreso->total_dolares = (float) $request->get('monto_total');
-        // }
-        // else
-        // {
-        //     $notaingreso->total_soles = (float) $request->get('monto_total');
+            $articulosJSON = $request->get('notadetalle_tabla');
+            $notatabla = json_decode($articulosJSON[0]);
 
-        //     $notaingreso->total_dolares = (float) $request->get('monto_total') / $dolar;
-        // }
-        $notaingreso->save();
+            foreach ($notatabla as $fila) {
+                $detalleNotaIngreso                     =   new   DetalleNotaIngreso();
 
-        $articulosJSON = $request->get('notadetalle_tabla');
-        $notatabla = json_decode($articulosJSON[0]);
+                $detalleNotaIngreso->setAlmacenDestinoId($request->get('almacen_destino'));
+                $detalleNotaIngreso->setSedeId($request->get('sede_id'));
 
-        foreach ($notatabla as $fila) {
-            $detalleNotaIngreso                     =   new   DetalleNotaIngreso();
-            $detalleNotaIngreso->nota_ingreso_id    =   $notaingreso->id;
-            $detalleNotaIngreso->producto_id        =   $fila->producto_id;
-            $detalleNotaIngreso->color_id           =   $fila->color_id;
-            $detalleNotaIngreso->talla_id           =   $fila->talla_id;
-            $detalleNotaIngreso->cantidad           =   $fila->cantidad;
-            $detalleNotaIngreso->save();
+                $detalleNotaIngreso->nota_ingreso_id    =   $notaingreso->id;
+                $detalleNotaIngreso->producto_id        =   $fila->producto_id;
+                $detalleNotaIngreso->color_id           =   $fila->color_id;
+                $detalleNotaIngreso->talla_id           =   $fila->talla_id;
+                $detalleNotaIngreso->cantidad           =   $fila->cantidad;
+                $detalleNotaIngreso->save();
 
-            $this->generarCodigoBarras($fila);
+                $this->generarCodigoBarras($fila);
+            }
+
+
+
+            //========== REGISTRO DE ACTIVIDAD =======
+            $descripcion    = "SE AGREGÓ LA NOTA DE INGRESO ";
+            $gestion        = "ALMACEN / NOTA INGRESO";
+            crearRegistro($notaingreso, $descripcion, $gestion);
+
+            Session::flash('succes_store_nota_ingreso', 'NOTA INGRESO REGISTRADA');
+
+            if($request->get('generarAdhesivos') === "SI"){
+                Session::flash('generarAdhesivos', 'GENERANDO ADHESIVOS');
+                Session::flash('nota_id',$notaingreso->id);
+            }
+
+            DB::commit();
+            return redirect()->route('almacenes.nota_ingreso.index');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            dd($th);
         }
-
-        
-
-        //Registro de actividad
-        $descripcion = "SE AGREGÓ LA NOTA DE INGRESO ";
-        $gestion = "ALMACEN / NOTA INGRESO";
-        crearRegistro($notaingreso, $descripcion, $gestion);
-        
-        Session::flash('succes_store_nota_ingreso', 'NOTA INGRESO REGISTRADA');
-
-        if($request->get('generarAdhesivos') === "SI"){
-            Session::flash('generarAdhesivos', 'GENERANDO ADHESIVOS');
-            Session::flash('nota_id',$notaingreso->id);
-        }
-
-        return redirect()->route('almacenes.nota_ingreso.index');
+      
     }
 
     public function storeFast(Request $request)

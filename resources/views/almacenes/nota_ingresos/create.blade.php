@@ -47,7 +47,8 @@
                                     </div>
                                     <div class="form-group row">
 
-                                            <input type="hidden" id="numero"  name="numero" class="form-control" value="{{$ngenerado}}" >
+                                        <input type="hidden" id="numero"  name="numero" class="form-control" value="{{$ngenerado}}" >
+                                        <input type="hidden" id="sede_id"  name="sede_id" class="form-control" value="{{$sede_id}}" >
 
 
                                         <div class="col-12 col-lg-3 col-md-3"  id="fecha">
@@ -106,16 +107,16 @@
                                             @endif
                                         </div>
                                         <div class="col-12 col-lg-3 col-md-3">
-                                            <label>Destino</label>
-                                            <select name="destino" id="destino" class="select2_form form-control {{ $errors->has('destino') ? ' is-invalid' : '' }}">
+                                            <label style="font-weight: bold;" class="required">Almacén Destino</label>
+                                            <select required name="almacen_destino" id="almacen_destino" class="select2_form form-control {{ $errors->has('almacen_destino') ? ' is-invalid' : '' }}">
                                                 <option value="">Seleccionar Destino</option>
-                                                @foreach ($destinos as $tabla)
-                                                    <option {{ old('destino') == $tabla->id ? 'selected' : '' }} value="{{$tabla->id}}">{{$tabla->descripcion}}</option>
+                                                @foreach ($almacenes_destino as $almacen_destino)
+                                                    <option value="{{$almacen_destino->id}}">{{$almacen_destino->descripcion}}</option>
                                                 @endforeach
                                             </select>
                                             @if ($errors->has('destino'))
                                             <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $errors->first('destino') }}</strong>
+                                                <strong>{{ $errors->first('almacen_destino') }}</strong>
                                             </span>
                                             @endif
                                         </div>

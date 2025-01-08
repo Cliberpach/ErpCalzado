@@ -36,28 +36,7 @@
                 <div class="ibox-content">
                     <div class="table-responsive">
 
-                        <table class="table dataTables-gui table-striped table-bordered table-hover"
-                        style="text-transform:uppercase" id="table-resumenes" width="100%">
-                            <thead>
-                             
-                                <tr>
-                                    <th class="text-center">NRO</th>
-                                    <th class="text-center">FEC.EMISIÓN</th>
-                                    <th class="text-center">FEC. REFERENCIA</th>
-                                    <th class="text-center">IDENTIFICADOR</th>
-
-                                    <th class="text-center">ESTADO</th>
-                                    <th class="text-center">TICKET</th>
-                                    <th class="text-center">DESCARGAS</th>
-                                    <th class="text-center">ACCIONES</th> 
-                                    
-                                </tr>
-                            </thead>
-                            <tbody>
-                               
-                            </tbody>
-                        </table>
-
+                        @include('mantenimiento.sedes.tables.tbl_lst_sedes')
 
                     </div>
                 </div>
@@ -90,7 +69,7 @@
 <script>
     const btnGetComprobantes            =   document.querySelector('#btn-get-comprobantes');
     const bodyTableSearchComprobantes   =   document.querySelector('.table-search-comprobantes tbody');
-    let tableResumenes  = null;
+    let tblLstSedes  = null;
 
     let fecha_comprobantes              =   null;
     let listComprobantes                =   [];   
@@ -111,109 +90,43 @@
 
 
     function cargarDataTable(){
-        const getResumenesUrl = "{{ route('ventas.resumenes.getResumenes') }}";
+        const getSedes = "{{ route('mantenimiento.sedes.getSedes') }}";
 
-        tableResumenes = new DataTable('#table-resumenes',
+        tblLstSedes = new DataTable('#tbl_lst_sedes',
         {
             serverSide: true,
             ajax: {
-                url: getResumenesUrl,
+                url: getSedes,
                 type: 'GET' 
             },
             columns: [
                 { data: 'id'},
-                { data: 'created_at' },
-                { data: 'fecha_comprobantes' },
+                { data: 'direccion' },
+                { data: 'ubigeo' },
+                { data: 'codigo_local'},
+                { data: 'tipo_sede'},
                 { 
                     data: null, 
                     render: function(data, type, row) {
-                        return data.serie + '-' + data.correlativo;
-                    }
-                },
-                { 
-                    data: null, 
-                    render: function(data, type, row) {
-
-                        //======= ENVIADO A SUNAT ======
-                        if(data.send_sunat == 1){
-                            //===== ACEPTADO POR SUNAT =====
-                            if(data.code_estado == '0'){
-                                return `<span class="badge badge-success">ACEPTADO</span>`;
-                            }
-                            //====== RESPUESTA DE SUNAT "ERRORES EN EL ARCHIVO" ====
-                            if(data.code_estado == 99){
-                                return `<span class="badge badge-danger">ENVIADO CON ERRORES</span>`;
-                            }
-                            //===== EN PROCESO =====
-                            if(data.code_estado == 98){
-                                return `<span class="badge badge-warning">EN PROCESO</span>`;
-                            }
-                            if(!data.code_estado){
-                                return `<span class="badge badge-primary">ENVIADO</span>`;
-                            }
-                        }
-                      
-                        //====== AÚN NO ENVIADO A SUNAT =====
-                        if(data.send_sunat == 0){
-                            //======== ERRORES HTTP,ETC ======
-                            if(!data.ticket){
-                                return `<span class="badge badge-danger">ERROR AL ENVIAR</span>`;
-                            }
-                           
-                        }
-
-                    }
-                },
-                { data: 'ticket', title: 'ticket' },
-                { 
-                    data: null, 
-                    render: function(data, type, row) {
-                        var html = `<td style="white-space: nowrap;"><div style="display: flex; justify-content: center;">`;
                         
-                        if (data.ruta_xml) {
-                            let urlGetXml       =   "{{ route('ventas.resumenes.getXml', ['resumen_id' => ':resumen_id']) }}";
-                            urlGetXml           =   urlGetXml.replace(':resumen_id', data.id);
+                        let acciones            =   ``;
+                        const ruta_numeracion   =   `{{ route('mantenimiento.sedes.numeracionCreate', ':sede_id') }}`.replace(':sede_id', row.id);
 
-                            html += `<form action="${urlGetXml}" method="get">`;
-                            html += `<button type="submit" class="btn btn-primary btn-xml">XML</button>`;
-                            html += `</form>`;
+                        if(data.tipo_sede == 'SECUNDARIA'){
+                            acciones  =   `
+                                            <div class="dropdown">
+                                                <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
+                                                    <i class="fas fa-th-large"></i>
+                                                </button>
+                                                <div class="dropdown-menu">
+                                                    <a class="dropdown-item" href="#">Editar</a>
+                                                    <a class="dropdown-item" href="${ruta_numeracion}">Numeración</a>
+                                                </div>
+                                            </div>
+                                            `;
                         }
-                                                
-                        if (data.ruta_cdr) {
-                            let urlGetCdr     = "{{ route('ventas.resumenes.getCdr', ['resumen_id' => ':resumen_id']) }}";
-                            let url_getCdr    = urlGetCdr.replace(':resumen_id', data.id);
-
-
-                            html += `<form style="margin-left:3px;" action="${url_getCdr}" method="get">`;
-                            html += `<button type="submit" class="btn btn-primary btn-xml">CDR</button>`;
-                            html += `</form>`;
-                        }
-                                                
-                        html += `</div></td>`;
                         
-                        return html;
-                    }
-                },
-                { 
-                    data: null, 
-                    render: function(data, type, row) {
-                        var html = '<td><div class="btn-group">';
-                        
-                            if (data.send_sunat == 1) {
-                                if (data.code_estado == 98 || (data.ticket && !data.code_estado)) {
-                                    html += `<button type="button" data-resumen-id="${data.id}" class="btn btn-primary btn-consultar-resumen">CONSULTAR</button>`;
-                                }
-                            }
-
-                            if (data.send_sunat == 0 && !data.ticket) {
-                                html += `<button type="button" data-resumen-id="${data.id}" class="btn btn-primary btn-reenviar-resumen">REENVIAR</button>`;
-                            }
-
-                            html += `<i class="fas fa-eye btn btn-success d-flex align-items-center btn-detalle-resumen" data-resumen-id="${data.id}"></i>`; 
-                       
-                        html += '</div></td>';
-                        
-                        return html;
+                        return acciones;
                     }
                 } 
             ],
