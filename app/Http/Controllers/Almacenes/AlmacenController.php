@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Yajra\DataTables\Facades\DataTables;
 
 class AlmacenController extends Controller
 {
@@ -18,24 +19,33 @@ class AlmacenController extends Controller
     {
         $this->authorize('haveaccess','almacen.index');
         
-        $sede_id   =   Auth::user()->sede->id;
+        $sede_id                =   Auth::user()->sede->id;
 
-        return view('almacenes.almacen.index',compact('sede_id'));
+        $sede_have_principal    =   Almacen::where('estado', 'ACTIVO')
+                                    ->where('sede_id', $sede_id)
+                                    ->where('tipo_almacen','PRINCIPAL')
+                                    ->exists();
+
+        return view('almacenes.almacen.index',compact('sede_id','sede_have_principal'));
     }
     public function getRepository(){
 
         $sede_id   =   Auth::user()->sede->id;
 
-        return datatables()->query(
-            DB::table('almacenes')
-            ->select('almacenes.*', 
-            DB::raw('DATE_FORMAT(created_at, "%d/%m/%Y") as creado'),
-            DB::raw('DATE_FORMAT(updated_at, "%d/%m/%Y") as actualizado')
-            )
-            ->where('almacenes.estado','ACTIVO')
-            ->where('almacenes.sede_id',$sede_id)
-            ->orderBy('id','DESC')
-        )->toJson();
+        $almacenes  =   DB::table('almacenes as a')
+                        ->join('empresa_sedes as es','es.id','a.sede_id')
+                        ->select('a.*',
+                        'es.direccion as sede_direccion', 
+                        DB::raw('DATE_FORMAT(a.created_at, "%d/%m/%Y") as creado'),
+                        DB::raw('DATE_FORMAT(a.updated_at, "%d/%m/%Y") as actualizado')
+                        )
+                        ->where('a.estado','ACTIVO')
+                        ->where('a.sede_id',$sede_id)
+                        ->orderBy('a.id','DESC')
+                        ->get();
+
+        return DataTables::of($almacenes)
+        ->make(true);
     }
 
     public function store(Request $request){

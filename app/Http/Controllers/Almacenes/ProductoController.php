@@ -20,13 +20,10 @@ use App\Http\Requests\Almacen\Producto\ProductoStoreRequest;
 use App\Http\Requests\Almacen\Producto\ProductoUpdateRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
 
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
-use Picqer\Barcode\BarcodeGeneratorPNG;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -60,86 +57,107 @@ class ProductoController extends Controller
     {
         $this->authorize('haveaccess','producto.index');
 
-         return datatables()->query(
-             DB::table('productos')
-             ->join('marcas','productos.marca_id','=','marcas.id')
-             ->join('almacenes','almacenes.id','=','productos.almacen_id')
-             ->join('categorias','categorias.id','=','productos.categoria_id')
-             ->join('tabladetalles','tabladetalles.id','=','productos.medida')
-             ->join('modelos','modelos.id','=','productos.modelo_id')
-             ->select('categorias.descripcion as categoria','almacenes.descripcion as almacen','modelos.descripcion as modelo','marcas.marca','productos.*')
-             ->orderBy('productos.id','DESC')
-             ->where('productos.estado', 'ACTIVO')
-         )->toJson();    
+        $productos  =    DB::table('productos')
+                        ->join('marcas','productos.marca_id','=','marcas.id')
+                        ->join('categorias','categorias.id','=','productos.categoria_id')
+                        ->join('modelos','modelos.id','=','productos.modelo_id')
+                        ->select('categorias.descripcion as categoria','modelos.descripcion as modelo','marcas.marca','productos.*')
+                        ->orderBy('productos.id','DESC')
+                        ->where('productos.estado', 'ACTIVO')
+                        ->get();
+
+        return DataTables::of($productos)
+        ->make(true);
+         
     }
 
     public function create()
     {
         $this->authorize('haveaccess','producto.index');
-        $marcas = Marca::where('estado', 'ACTIVO')->get();
-        $almacenes = Almacen::where('estado', 'ACTIVO')->get();
-        $categorias = Categoria::where('estado', 'ACTIVO')->get();
-        $modelos = Modelo::where('estado', 'ACTIVO')->get();
-        $colores = Color::where('estado', 'ACTIVO')->get();
-        $tallas = Talla::where('estado', 'ACTIVO')->get();
+        
+        $marcas         = Marca::where('estado', 'ACTIVO')->get();
+        $categorias     = Categoria::where('estado', 'ACTIVO')->get();
+        $modelos        = Modelo::where('estado', 'ACTIVO')->get();
+        $colores        = Color::where('estado', 'ACTIVO')->get();
+        $tallas         = Talla::where('estado', 'ACTIVO')->get();
 
+        $sede_id    =   Auth::user()->sede->id;
+        $almacenes  =   Almacen::where('estado','ACTIVO')   
+                        ->where('sede_id',$sede_id)
+                        ->get();
 
-        return view('almacenes.productos.create', compact('marcas', 'categorias','almacenes','modelos','colores','tallas'));
+        return view('almacenes.productos.create', 
+        compact('marcas', 'categorias','almacenes','modelos','colores','tallas'));
     }
 
+
+/*
+array:12 [
+  "_token"              => "VwOfqQXxOTEgeJMRf05aOJU6I3o1BGag7yMP7m4D"
+  "coloresJSON"         => "["2","3"]"
+  "nombre"              => "LUIS DANIEL ALVA LUJAN"
+  "categoria"           => "1"
+  "marca"               => "1"
+  "modelo"              => "1"
+  "precio1"             => "1"
+  "precio2"             => "2"
+  "precio3"             => "3"
+  "costo"               => "1"
+  "almacen"             => "1"
+  "table-colores_length" => "10"
+]
+*/ 
     public function store(ProductoStoreRequest $request)
     {
      
         $this->authorize('haveaccess','producto.index');
         $data = $request->all();
+     
       
         DB::beginTransaction();
 
         try {
-            
+
             //======= GUARDANDO PRODUCTO =======
             $producto                   =   new Producto();
-            $producto->codigo           =   $request->get('codigo');
-            $producto->codigo_barra     =   $request->get('codigo_barra');
             $producto->nombre           =   $request->get('nombre');
             $producto->marca_id         =   $request->get('marca');
-            $producto->almacen_id       =   $request->get('almacen');
             $producto->categoria_id     =   $request->get('categoria');
             $producto->modelo_id        =   $request->get('modelo');
-            $producto->medida           =   $request->get('medida');
+            $producto->medida           =   105;
             $producto->precio_venta_1   =   $request->get('precio1');
             $producto->precio_venta_2   =   $request->get('precio2');
             $producto->precio_venta_3   =   $request->get('precio3');
             $producto->costo            =   $request->get('costo')?$request->get('costo'):0;  
             $producto->save();
            
-
             //======= GUARDAMOS LOS COLORES ASIGNADOS AL PRODUCTO ========
             $coloresAsignados = json_decode($request->get('coloresJSON'));
 
             foreach ($coloresAsignados as $color_id) {
+                $almacen_id     =   $request->get('almacen');
+
                 $producto_color                 =   new ProductoColor();
                 $producto_color->producto_id    =   $producto->id;
                 $producto_color->color_id       =   $color_id;
+                $producto_color->almacen_id     =   $almacen_id;
                 $producto_color->save();     
             }
-
 
             $producto->codigo = 1000 + $producto->id;
             $producto->update();
 
-    
-            //Registro de actividad
+            //======= REGISTRO DE ACTIVIDAD ========
             $descripcion = "SE AGREGÓ EL PRODUCTO CON LA DESCRIPCION: ". $producto->nombre;
             $gestion = "PRODUCTO";
             crearRegistro($producto, $descripcion , $gestion);
 
             DB::commit();
             Session::flash('success','Producto creado.');
-            return redirect()->route('almacenes.producto.index')->with('guardar', 'success');
+            return response()->json(['success'=>true,'message'=>'PRODUCTO REGISTRADO CON ÉXITO']);
         } catch (\Throwable $th) {
             DB::rollBack();
-            dd($th->getMessage());
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
              
     }
@@ -152,14 +170,23 @@ class ProductoController extends Controller
         $marcas     =   Marca::where('estado', 'ACTIVO')->get();
         $clientes   =   TipoCliente::where('estado','ACTIVO')->where('producto_id',$id)->get();
         $categorias =   Categoria::where('estado', 'ACTIVO')->get();
-        $almacenes  =   Almacen::where('estado', 'ACTIVO')->get();
         $modelos    =   Modelo::where('estado','ACTIVO')->get();
         $colores    =   Color::where('estado','ACTIVO')->get();
         $tallas     =   Talla::where('estado','ACTIVO')->get();
-        $colores_asignados     =   DB::select('select * from producto_colores as pc
-                        inner join colores  as c on c.id = pc.color_id
-                        where c.estado = "ACTIVO" and pc.producto_id = ?',
-                        [$id]);       
+
+        $sede_id    =   Auth::user()->sede->id;
+        $almacenes  =   Almacen::where('estado','ACTIVO')   
+                        ->where('sede_id',$sede_id)
+                        ->get();
+
+        $colores_asignados  =   DB::select('select 
+                                pc.* 
+                                from producto_colores as pc
+                                inner join colores  as c on c.id = pc.color_id
+                                where 
+                                c.estado = "ACTIVO" 
+                                and pc.producto_id = ?',
+                                [$id]);       
 
         return view('almacenes.productos.edit', [
             'producto' => $producto,
@@ -174,81 +201,79 @@ class ProductoController extends Controller
         ]);
     }
 
+/*
+array:13 [
+  "_token"          => "3xqT4tlXrWUKISDONEZ773EikNVHqFjCnWbfVU6K"
+  "_method"         => "PUT"
+  "coloresJSON"     => "[null,"1","6"]"
+  "nombre"          => "PRODUCTO TEST SEDE CENTRAL"
+  "categoria"       => "1"
+  "marca"           => "1"
+  "modelo"          => "1"
+  "precio1"         => "1.00"
+  "precio2"         => "2.00"
+  "precio3"         => "3.00"
+  "costo"           => "1.00"
+  "almacen"         => "1"
+  "table-colores_length" => "10"
+]
+*/ 
     public function update(ProductoUpdateRequest $request, $id)
     {
-
         $this->authorize('haveaccess','producto.index');
-
+        
         DB::beginTransaction();
         
         try {
+
             $producto                   =   Producto::findOrFail($id);
-            $producto->codigo           =   $request->get('codigo');
             $producto->nombre           =   $request->get('nombre');
             $producto->marca_id         =   $request->get('marca');
-            $producto->almacen_id       =   $request->get('almacen');
             $producto->categoria_id     =   $request->get('categoria');
             $producto->modelo_id        =   $request->get('modelo');
             $producto->precio_venta_1   =   $request->get('precio1');
             $producto->precio_venta_2   =   $request->get('precio2');
             $producto->precio_venta_3   =   $request->get('precio3');
-            $producto->medida           =   $request->get('medida');
-            $producto->codigo_barra     =   $request->get('codigo_barra');
             $producto->costo            =   $request->get('costo')?$request->get('costo'):0;  
-            // $producto->peso_producto = $request->get('peso_producto') ? $request->get('peso_producto') : 0;
-            // $producto->stock_minimo = $request->get('stock_minimo');
-            // $producto->precio_venta_minimo = $request->get('precio_venta_minimo');
-            // $producto->precio_venta_maximo = $request->get('precio_venta_maximo');
-            // $producto->igv = $request->get('igv');
-            // $producto->peso_producto = $request->get('peso_producto');
-            // $producto->facturacion = $request->get("facturacion_producto");
             $producto->update();
-
-            // if($request->get('codigo_barra'))
-            // {
-            //     $generatorPNG = new \Picqer\Barcode\BarcodeGeneratorPNG();
-            //     $code = base64_encode($generatorPNG->getBarcode($request->get('codigo_barra'), $generatorPNG::TYPE_CODE_128));
-            //     $data_code = base64_decode($code);
-            //     $name =  $producto->codigo_barra.'.png';
-
-            //     if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
-            //         mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
-            //     }
-
-            //     $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'.DIRECTORY_SEPARATOR.$name);
-
-            //     file_put_contents($pathToFile, $data_code);
-            // }
 
             //=========== EDITAMOS LOS COLORES DEL PRODUCTO ==========
             $coloresNuevos = json_decode($request->get('coloresJSON'));//['A','C']     ['A','R','C']  ['A','B']      
             
 
-            //===== OBTENIENDO COLORES ANTERIORES DEL PRODUCTO ===== //['A','R','C']     ['A','C']   ['A','B']
-            $colores_anteriores =   DB::select('select pc.producto_id as producto_id, 
-                                    pc.color_id as color_id
+            //===== OBTENIENDO COLORES ANTERIORES DEL PRODUCTO ALMACÉN ===== //['A','R','C']     ['A','C']   ['A','B']
+            $colores_anteriores =   DB::select('select 
+                                    pc.producto_id as producto_id, 
+                                    pc.color_id as color_id,
+                                    pc.almacen_id
                                     from producto_colores as pc
-                                    where pc.producto_id=?',[$id]);
+                                    where 
+                                    pc.producto_id = ?
+                                    and pc.almacen_id = ?',
+                                    [$id,
+                                    $request->get('almacen')]);
 
             $collection_colores_anteriores  =   collect($colores_anteriores);   
             $collection_colores_nuevos      =   collect($coloresNuevos);   
 
             $ids_colores_anteriores = $collection_colores_anteriores->pluck('color_id')->toArray();
-            $ids_colores_nuevos = $collection_colores_nuevos->toArray();
+            $ids_colores_nuevos     = $collection_colores_nuevos->toArray();
 
             //===== CASO I: COLORES DE LA LISTA ANTERIOR NO ESTÁN EN LA LISTA NUEVA =====
             //===== DEBEN DE ELIMINARSE =====
             $colores_diferentes_1 = array_diff($ids_colores_anteriores, $ids_colores_nuevos);
             foreach ($colores_diferentes_1 as $key => $value) {
-                //==== ELIMINANDO COLORES ======
+                //==== ELIMINANDO COLORES DEL ALMACÉN ======
                 DB::table('producto_colores')
                 ->where('producto_id', $id)
                 ->where('color_id', $value)
+                ->where('almacen_id', $request->get('almacen'))
                 ->delete();
-                //===== ELIMINANDO TALLAS DEL COLOR =====
+                //===== ELIMINANDO TALLAS DEL COLOR DEL ALMACÉN =====
                 DB::table('producto_color_tallas')
                 ->where('producto_id', $id)
                 ->where('color_id', $value)
+                ->where('almacen_id', $request->get('almacen'))
                 ->delete();
             }
 
@@ -260,11 +285,10 @@ class ProductoController extends Controller
                 $producto_color                 =  new ProductoColor();
                 $producto_color->producto_id    =   $id;
                 $producto_color->color_id       =   $value;
+                $producto_color->almacen_id     =   $request->get('almacen');
                 $producto_color->save(); 
             }
                      
-      
-
             //Registro de actividad
             $descripcion = "SE MODIFICÓ EL PRODUCTO CON LA DESCRIPCION: ". $producto->nombre;
             $gestion = "PRODUCTO";
@@ -272,10 +296,10 @@ class ProductoController extends Controller
 
             Session::flash('success','Producto modificado.');
             DB::commit();
-            return redirect()->route('almacenes.producto.index')->with('guardar', 'success');
+            return response()->json(['success'=>true,'message'=>'PRODUCTO ACTUALIZADO CON ÉXITO']);
         } catch (\Throwable $th) {
             DB::rollBack();
-            dd($th->getMessage());
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
    
     }
@@ -482,6 +506,28 @@ class ProductoController extends Controller
         } catch (\Exception $e) {
             return response()->json(["message" => "Error al obtener el stock lógico", "error" => $e->getMessage()], 500);
         }                    
+    }
+
+    public function getProductoColores($almacen_id,$producto_id){
+        try {
+            
+            $producto_colores   =   DB::select('select 
+                                    pc.color_id 
+                                    from producto_colores as pc
+                                    where 
+                                    pc.producto_id = ?
+                                    and pc.almacen_id = ?
+                                    and pc.estado = "ACTIVO"',[$producto_id,$almacen_id]);
+
+            
+
+            return response()->json(['success'=>true,
+            'message'=>'COLORES DEL PRODUCTO EN ALMACÉN OBTENIDOS',
+            'data'=>$producto_colores]);
+            
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
     }
 
 

@@ -160,24 +160,21 @@ class NotaIngresoController extends Controller
 
         $rules = [
             'fecha'                 =>  'required',
-            //'destino'             =>  'nullable',
             'origen'                =>  'required',
             'notadetalle_tabla'     =>  'required',
             'almacen_destino'       =>  'required'
-            //'moneda'              => 'required',
         ];
+
         $message = [
 
-            'fecha.required'            => 'El campo fecha  es Obligatorio',
-            'origen.required'           => 'El campo origen  es Obligatorio',
-            //'moneda.required'         => 'El campo moneda  es Obligatorio',
-            'notadetalle_tabla.required' => 'No hay detalles',
-            'almacen_destino.required'   =>  'Debe seleccionar un almacén de  destino'
+            'fecha.required'                => 'El campo fecha  es Obligatorio',
+            'origen.required'               => 'El campo origen  es Obligatorio',
+            'notadetalle_tabla.required'    => 'No hay detalles',
+            'almacen_destino.required'      =>  'Debe seleccionar un almacén de  destino'
         ];
 
         $validator = Validator::make($data, $rules, $message);
 
-        $validatedData = $validator->validated(); 
 
         DB::beginTransaction();
 
@@ -185,7 +182,8 @@ class NotaIngresoController extends Controller
 
             //======= OBTENIENDO ALMACÉN DESTINO =======
             $almacen_destino    =   DB::select('select 
-                                    a.id,a.descripcion
+                                    a.id,
+                                    a.descripcion
                                     from almacenes as a
                                     where a.id = ?',[$request->get('almacen_destino')])[0];
 
@@ -615,18 +613,28 @@ class NotaIngresoController extends Controller
     }
 
 
-    public function getProductos($modelo_id){
-
+    public function getProductos($modelo_id,$almacen_id){
+        
         try {
-            $productos      =       DB::select('select p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre, 
-                                    pct.stock,pct.stock_logico,p.id as producto_id, c.id as color_id,t.id as talla_id 
-                                    from producto_colores as pc 
-                                    inner join productos as p on p.id=pc.producto_id 
-                                    inner join colores as c on c.id=pc.color_id 
-                                    left join producto_color_tallas as pct on (pc.color_id=pct.color_id and pc.producto_id=pct.producto_id) 
-                                    left join tallas as t on t.id = pct.talla_id 
-                                    where p.modelo_id=? and p.estado="ACTIVO";
-                                    ',[$modelo_id]);
+            $productos  =   DB::select('select 
+                            p.nombre as producto_nombre,
+                            c.descripcion as color_nombre,
+                            t.descripcion as talla_nombre, 
+                            pct.stock,
+                            pct.stock_logico,
+                            p.id as producto_id, 
+                            c.id as color_id,
+                            t.id as talla_id 
+                            from producto_colores as pc 
+                            inner join productos as p on p.id=pc.producto_id 
+                            inner join colores as c on c.id=pc.color_id 
+                            left join producto_color_tallas as pct on (pc.color_id=pct.color_id and pc.producto_id=pct.producto_id) 
+                            left join tallas as t on t.id = pct.talla_id 
+                            where 
+                            p.modelo_id = ? 
+                            and pc.almacen_id = ?
+                            and p.estado="ACTIVO";
+                            ',[$modelo_id,$almacen_id,$almacen_id]);
 
             return response()->json(['success'=>true,'productos'=>$productos]);
         } catch (\Throwable $th) {

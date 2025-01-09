@@ -264,17 +264,16 @@ function(){
 
     //Productos
     Route::prefix('almacenes/productos')->group(function() {
+
         Route::get('/', 'Almacenes\ProductoController@index')->name('almacenes.producto.index');
         Route::get('/getTable', 'Almacenes\ProductoController@getTable')->name('almacenes.producto.getTable');
         Route::get('/registrar', 'Almacenes\ProductoController@create')->name('almacenes.producto.create');
-        Route::post('/registrar', 'Almacenes\ProductoController@store')->name('almacenes.producto.store');
+        Route::post('/store', 'Almacenes\ProductoController@store')->name('almacenes.producto.store');
         Route::get('/actualizar/{id}', 'Almacenes\ProductoController@edit')->name('almacenes.producto.edit');
-        Route::put('/actualizar/{id}', 'Almacenes\ProductoController@update')->name('almacenes.producto.update');
+        Route::put('/update/{id}', 'Almacenes\ProductoController@update')->name('almacenes.producto.update');
         Route::get('/datos/{id}', 'Almacenes\ProductoController@show')->name('almacenes.producto.show');
         Route::get('/destroy/{id}', 'Almacenes\ProductoController@destroy')->name('almacenes.producto.destroy');
-        Route::post('/destroyDetalle', 'Almacenes\ProductoController@destroyDetalle')->name('almacenes.producto.destroyDetalle');
-        Route::post('/getCodigo', 'Almacenes\ProductoController@getCodigo')->name('almacenes.producto.getCodigo');
-        Route::get('/codigoBarras/{id}', 'Almacenes\ProductoController@codigoBarras')->name('almacenes.producto.codigoBarras');
+        Route::get('/getProductoColores/{almacen_id}/{producto_id}', 'Almacenes\ProductoController@getProductoColores')->name('almacenes.producto.getProductoColores');
 
         Route::get('/getExcel', 'Almacenes\ProductoController@getExcel')->name('almacenes.producto.getExcel');
 
@@ -284,7 +283,6 @@ function(){
 
         Route::get('/obtenerProducto/{id}', 'Almacenes\ProductoController@obtenerProducto')->name('almacenes.producto.obtenerProducto');
 
-        Route::get('/productoDescripcion/{id}', 'Almacenes\ProductoController@productoDescripcion')->name('almacenes.producto.productoDescripcion');
 
     });
     //NotaIngreso
@@ -303,7 +301,7 @@ function(){
         Route::get('downloadexcel', 'Almacenes\NotaIngresoController@getDownload')->name('almacenes.nota_ingreso.downloadexcel');
         Route::get('downloadproductosexcel', 'Almacenes\NotaIngresoController@getProductosExcel')->name('almacenes.nota_ingreso.downloadproductosexcel');
         Route::get('downloaderrorexcel', 'Almacenes\NotaIngresoController@getErrorExcel')->name('almacenes.nota_ingreso.error_excel');
-        Route::get('/getProductos/{modelo_id}', 'Almacenes\NotaIngresoController@getProductos')->name('almacenes.nota_ingreso.getProductos');
+        Route::get('/getProductos/{modelo_id}/{almacen_id}', 'Almacenes\NotaIngresoController@getProductos')->name('almacenes.nota_ingreso.getProductos');
         Route::get('/generarEtiquetas/{nota_id}', 'Almacenes\NotaIngresoController@generarEtiquetas')->name('almacenes.nota_ingreso.generarEtiquetas');
 
     });

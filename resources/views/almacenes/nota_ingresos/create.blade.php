@@ -35,99 +35,10 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form action="{{route('almacenes.nota_ingreso.store')}}" method="POST" id="enviar_ingresos">
-                                {{csrf_field()}}
-                                <input type="hidden" name="generarAdhesivos" id="generarAdhesivos">
-                                <div class="col-sm-12">
-                                    <h4 class=""><b>Nota de Ingreso</b></h4>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <p>Registrar datos de la Nota de Ingreso :</p>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-
-                                        <input type="hidden" id="numero"  name="numero" class="form-control" value="{{$ngenerado}}" >
-                                        <input type="hidden" id="sede_id"  name="sede_id" class="form-control" value="{{$sede_id}}" >
+                            
+                            @include('almacenes.nota_ingresos.forms.form_nota_ingreso_create')
 
 
-                                        <div class="col-12 col-lg-3 col-md-3"  id="fecha">
-                                            <label>Fecha</label>
-                                            <div class="input-group date">
-                                                <span class="input-group-addon">
-                                                    <i class="fa fa-calendar"></i>
-                                                </span>
-                                                <input type="date" id="fecha" name="fecha"
-                                                    class="form-control {{ $errors->has('fecha') ? ' is-invalid' : '' }}"
-                                                    value="{{old('fecha',$fecha_hoy)}}"
-                                                    autocomplete="off" readonly required>
-                                                @if ($errors->has('fecha'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('fecha') }}</strong>
-                                                </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <div class="col-12 col-md-3 d-none">
-
-                                            <label class="required">Moneda</label>
-                                            <select
-                                                class="select2_form form-control {{ $errors->has('moneda') ? ' is-invalid' : '' }}"
-                                                style="text-transform: uppercase; width:100%" value="{{old('moneda')}}"
-                                                name="moneda" id="moneda" required disabled>
-                                                {{-- onchange="cambioMoneda(this)" --}}
-                                                    <option></option>
-                                                @foreach ($monedas as $moneda)
-                                                <option value="{{$moneda->descripcion}}" @if(old('moneda') == $moneda->descripcion || $moneda->descripcion == 'SOLES') {{'selected'}} @endif
-                                                    >{{$moneda->simbolo.' - '.$moneda->descripcion}}</option>
-                                                @endforeach
-                                                @if ($errors->has('moneda'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('moneda') }}</strong>
-                                                </span>
-                                                @endif
-
-                                            </select>
-
-                                            <input type="hidden" id="moneda" name="moneda" value="SOLES">
-
-                                        </div>
-                                        <div class="col-12 col-lg-3 col-md-3">
-                                            <label class="required">Origen</label>
-                                            <select name="origen" id="origen" class="select2_form form-control {{ $errors->has('origen') ? ' is-invalid' : '' }}" required>
-                                                <option value="">Seleccionar Origen</option>
-                                                @foreach ($origenes as  $tabla)
-                                                    <option {{ old('origen') == $tabla->id ? 'selected' : '' }} value="{{$tabla->id}}">{{$tabla->descripcion}}</option>
-                                                @endforeach
-                                            </select>
-                                            @if ($errors->has('origen'))
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $errors->first('origen') }}</strong>
-                                            </span>
-                                            @endif
-                                        </div>
-                                        <div class="col-12 col-lg-3 col-md-3">
-                                            <label style="font-weight: bold;" class="required">Almacén Destino</label>
-                                            <select required name="almacen_destino" id="almacen_destino" class="select2_form form-control {{ $errors->has('almacen_destino') ? ' is-invalid' : '' }}">
-                                                <option value="">Seleccionar Destino</option>
-                                                @foreach ($almacenes_destino as $almacen_destino)
-                                                    <option value="{{$almacen_destino->id}}">{{$almacen_destino->descripcion}}</option>
-                                                @endforeach
-                                            </select>
-                                            @if ($errors->has('destino'))
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $errors->first('almacen_destino') }}</strong>
-                                            </span>
-                                            @endif
-                                        </div>
-                                        <div class="col-12 col-lg-3 col-md-3">
-                                            <label for="observacion">OBSERVACIÓN</label>
-                                            <textarea class="form-control" name="observacion" id="observacion" cols="30" rows="3"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                                <input type="hidden" id="notadetalle_tabla" name="notadetalle_tabla[]">
-                            </form>
                         </div>
                     </div>
                     <hr>
@@ -375,341 +286,11 @@ div.content-window.sk__loading::after {
 
 
 <script>
-//Select2
     $(".select2_form").select2({
         placeholder: "SELECCIONAR",
         allowClear: true,
         width: '100%',
     });
-
-
-    // $('.input-group.date #fechavencimiento').datepicker({
-    //     todayBtn: "linked",
-    //     keyboardNavigation: false,
-    //     forceParse: false,
-    //     autoclose: true,
-    //     language: 'es',
-    //     format: "dd/mm/yyyy",
-    // });
-    // $('.modal_editar_detalle #fechavencimiento').datepicker({
-    //     todayBtn: "linked",
-    //     keyboardNavigation: false,
-    //     forceParse: false,
-    //     autoclose: true,
-    //     language: 'es',
-    //     format: "dd/mm/yyyy",
-    // });
-
-
-
-
-    // $('#enviar_ingresos').submit(function(e) {
-    //     e.preventDefault();
-    //     let correcto = true;
-    //     cargarDetalle();
-    //     let detalles = JSON.parse($('#notadetalle_tabla').val());
-    //     if (detalles.length < 1) {
-    //         correcto = false;
-    //         toastr.error('El documento debe tener almenos un producto de ingreso.');
-    //     }
-    //     console.log(detalles.length);
-    //     if (correcto) {
-    //         const swalWithBootstrapButtons = Swal.mixin({
-    //             customClass: {
-    //                 confirmButton: 'btn btn-success',
-    //                 cancelButton: 'btn btn-danger',
-    //             },
-    //             buttonsStyling: false
-    //         })
-
-    //         Swal.fire({
-    //             title: 'Opción Guardar',
-    //             text: "¿Seguro que desea guardar cambios?",
-    //             icon: 'question',
-    //             showCancelButton: true,
-    //             confirmButtonColor: "#1ab394",
-    //             confirmButtonText: 'Si, Confirmar',
-    //             cancelButtonText: "No, Cancelar",
-    //         }).then((result) => {
-    //             if (result.isConfirmed) {
-    //                 this.submit();
-    //             } else if (
-    //                 /* Read more about handling dismissals below */
-    //                 result.dismiss === Swal.DismissReason.cancel
-    //             ) {
-    //                 swalWithBootstrapButtons.fire(
-    //                     'Cancelado',
-    //                     'La Solicitud se ha cancelado.',
-    //                     'error'
-    //                 )
-    //             }
-    //         })
-    //     }
-
-    // })
-
-
-    //  $(document).ready(function() {
-
-    //     $('#lote').val('LT-{{ $fecha_actual }}');
-    //     $('#fechavencimiento').val('{{$fecha_5}}');
-
-         // DataTables
-    //      table = $('#table-productos').DataTable({
-    //          "dom": '<"html5buttons"B>lTfgitp',
-    //          "buttons": [
-    //         ],
-    //          "bPaginate": true,
-    //          "bLengthChange": true,
-    //          "bFilter": true,
-    //          "bInfo": true,
-    //          "bAutoWidth": false,
-    //          "language": {
-    //              "url": "{{asset('Spanish.json')}}"
-    //          },
-
-    //          "columnDefs": [{
-    //                  "targets": [0],
-    //                  "visible": false,
-    //                  "searchable": false
-    //              },
-    //              {
-
-    //                  "targets": [1],
-    //                  className: "text-center",
-    //                  render: function(data, type, row) {
-    //                      return "<div class='btn-group'>" +
-    //                          "<a class='btn btn-warning btn-sm modificarDetalle btn-edit'  style='color:white;' title='Modificar'><i class='fa fa-edit'></i></a>" +
-    //                          "<a class='btn btn-danger btn-sm' id='borrar_detalle' style='color:white;' title='Eliminar'><i class='fa fa-trash'></i></a>" +
-    //                          "</div>";
-    //                  }
-    //              },
-    //              {
-    //                  "targets": [2],
-    //              },
-    //              {
-    //                 "targets": [3],
-    //                  className: "text-center",
-    //                  "visible": false,
-    //              },
-    //              {
-    //                  "targets": [4],
-    //                  className: "text-center",
-    //              },
-    //              {
-    //                  "targets": [5],
-    //                  className: "text-center",
-    //                  "visible": false,
-    //              },
-    //              {
-    //                  "targets": [6],
-    //                  className: "text-center"
-    //              },
-    //              {
-    //                  "targets": [7],
-    //                  className: "text-center"
-    //              }
-
-    //         ],
-
-    //     });
-
-    // })
-
-    // //Borrar registro de articulos
-    // $(document).on('click', '#borrar_detalle', function(event) {
-
-    //     const swalWithBootstrapButtons = Swal.mixin({
-    //         customClass: {
-    //             confirmButton: 'btn btn-success',
-    //             cancelButton: 'btn btn-danger',
-    //         },
-    //         buttonsStyling: false
-    //     })
-
-    //     Swal.fire({
-    //         title: 'Opción Eliminar',
-    //         text: "¿Seguro que desea eliminar Artículo?",
-    //         icon: 'question',
-    //         showCancelButton: true,
-    //         confirmButtonColor: "#1ab394",
-    //         confirmButtonText: 'Si, Confirmar',
-    //         cancelButtonText: "No, Cancelar",
-    //     }).then((result) => {
-    //         if (result.isConfirmed) {
-    //             var table = $('.dataTables-ingreso').DataTable();
-    //             table.row($(this).parents('tr')).remove().draw();
-
-    //         } else if (
-    //             /* Read more about handling dismissals below */
-    //             result.dismiss === Swal.DismissReason.cancel
-    //         ) {
-    //             swalWithBootstrapButtons.fire(
-    //                 'Cancelado',
-    //                 'La Solicitud se ha cancelado.',
-    //                 'error'
-    //             )
-    //         }
-    //     })
-
-
-
-    // });
-
-
-    // //Validacion al ingresar tablas
-    // $(".enviar_detalle").click(function() {
-
-    //     var enviar = true;
-    //     var cantidad = $('#cantidad').val();
-    //     var costo_aux = $('#costo').val();
-    //     var lote= $('#lote').val();
-    //     var producto= $('#producto').val();
-    //     var fechavencimiento= $('#fechavencimiento').val();
-
-    //     if ($('#producto').val() == '') {
-    //         toastr.error('Seleccione Producto.', 'Error');
-    //         enviar = false;
-    //     } else {
-    //         var existe = buscarproducto($('#producto').val())
-    //         if (existe == true) {
-    //             toastr.error('Producto con el mismo lote ya se encuentra ingresado.', 'Error');
-    //             enviar = false;
-    //         }
-    //     }
-
-    //     if(cantidad.length==0|| lote.length==0 || fechavencimiento.length==0)
-    //     {
-    //         toastr.error('Ingrese datos', 'Error');
-    //         enviar = false;
-    //     }
-
-
-    //     if (enviar) {
-
-    //         let aux = convertFloat(costo_aux) / convertFloat(cantidad);
-    //         let costo = (aux).toFixed(4)
-    //         const swalWithBootstrapButtons = Swal.mixin({
-    //             customClass: {
-    //                 confirmButton: 'btn btn-success',
-    //                 cancelButton: 'btn btn-danger',
-    //             },
-    //             buttonsStyling: false
-    //         })
-
-    //         Swal.fire({
-    //             title: 'Opción Agregar',
-    //             text: "¿Seguro que desea agregar Producto?",
-    //             icon: 'question',
-    //             showCancelButton: true,
-    //             confirmButtonColor: "#1ab394",
-    //             confirmButtonText: 'Si, Confirmar',
-    //             cancelButtonText: "No, Cancelar",
-    //         }).then((result) => {
-    //             if (result.isConfirmed) {
-
-    //                 var detalle = {
-    //                     cantidad: convertFloat($('#cantidad').val()).toFixed(2),
-    //                     lote:$('#lote').val(),
-    //                     producto:$( "#producto option:selected" ).text(),
-    //                     fechavencimiento: $('#fechavencimiento').val(),
-    //                     producto_id:$( "#producto" ).val(),
-    //                     costo:costo
-
-    //                 }
-    //                 agregarTabla(detalle);
-    //                 limpiarDetalle();
-
-    //             } else if (
-    //                 /* Read more about handling dismissals below */
-    //                 result.dismiss === Swal.DismissReason.cancel
-    //             ) {
-    //                 swalWithBootstrapButtons.fire(
-    //                     'Cancelado',
-    //                     'La Solicitud se ha cancelado.',
-    //                     'error'
-    //                 )
-    //             }
-    //         })
-
-    //     }
-    // });
-
-    // function limpiarDetalle()
-    // {
-    //     $('#cantidad').val('');
-    //     $('#costo').val('');
-    //     $('#lote').val('LT-{{ $fecha_actual }}');
-    //     $('#fechavencimiento').val('{{$fecha_5}}');
-    //     $('#producto').val($('#producto option:first-child').val()).trigger('change');
-    // }
-
-    // $(document).on('click', '.btn-edit', function(event) {
-    //     var table = $('.dataTables-ingreso').DataTable();
-    //     var data = table.row($(this).parents('tr')).data();
-    //     $('#modal_editar_detalle #indice').val(table.row($(this).parents('tr')).index());
-    //     $('#modal_editar_detalle #lote').val(data[3]);
-    //     $('#modal_editar_detalle #cantidad').val(data[2]);
-    //     $('#modal_editar_detalle #costo').val(data[6]);
-    //     $('#modal_editar_detalle #prod_id').val(data[0]);
-    //     $('#modal_editar_detalle #fechavencimiento').val(data[5]);
-    //     $('#modal_editar_detalle').modal('show');
-    //     $("#modal_editar_detalle #producto").val(data[0]).trigger('change');
-    // });
-
-
-    // function agregarTabla($detalle) {
-    //     var t = $('.dataTables-ingreso').DataTable();
-    //     t.row.add([
-    //         $detalle.producto_id,'',
-    //         $detalle.cantidad,
-    //         $detalle.lote,
-    //         $detalle.producto,
-    //         $detalle.fechavencimiento,
-    //         $detalle.costo,
-    //         ($detalle.costo * $detalle.cantidad).toFixed(2),
-    //     ]).draw(false);
-    //     sumaTotal();
-    //     cargarDetalle();
-    // }
-
-    // function cargarDetalle() {
-    //     var notadetalle = [];
-    //     var table = $('.dataTables-ingreso').DataTable();
-    //     var data = table.rows().data();
-    //     data.each(function(value, index) {
-    //         let fila = {
-    //             cantidad: value[2],
-    //             lote: value[3],
-    //             producto_id: value[0],
-    //             fechavencimiento: value[5],
-    //             costo: value[6],
-    //             valor_ingreso: value[7],
-    //         };
-
-    //         notadetalle.push(fila);
-
-    //     });
-    //     $('#notadetalle_tabla').val(JSON.stringify(notadetalle))
-    // }
-
-    // function sumaTotal() {
-    //     var total = 0;
-    //     table.rows().data().each(function(el, index) {
-    //         total = Number(el[7]) + total
-    //     });
-    //     $('#total').text(total.toFixed(2))
-    //     $('#monto_total').val(total.toFixed(2))
-    // }
-
-    // function buscarproducto(id) {
-    //     var existe = false;
-    //     table.rows().data().each(function(el, index) {
-    //         (el[0] == id) ? existe = true : ''
-    //     });
-    //     return existe
-    // }
-
 </script>
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
@@ -736,8 +317,8 @@ div.content-window.sk__loading::after {
                                         })
 
     let modelo_id   = null;
-    let carrito = [];
-    let table = null;
+    let carrito     = [];
+    let table       = null;
 
     document.addEventListener('DOMContentLoaded',()=>{
         events();
@@ -848,16 +429,25 @@ div.content-window.sk__loading::after {
     }
 
     //============== FUNCIÓN OBTENER PRODUCTOS DE UN MODELO ==============
-     
     async function getProductosByModelo(e){
+
+        toastr.clear();
         modelo_id                   =   e.value;
         btnAgregarDetalle.disabled  =   true;
         
+        const almacen_id    =   document.querySelector('#almacen_destino').value;
+
+        if(!almacen_id){
+            toastr.error('DEBE SELECCIONAR UN ALMACÉN DE DESTINO!!!');
+            document.querySelector('#almacen_destino').focus();
+            bodyTablaProductos.innerHTML = ``;
+            return;
+        }
 
         if(modelo_id){
             mostrarAnimacion();
             try {
-                const res       =   await axios.get(route('almacenes.nota_ingreso.getProductos',modelo_id));
+                const res       =   await axios.get(route('almacenes.nota_ingreso.getProductos',{modelo_id,almacen_id}));
                 if(res.data.success){
                     pintarTableStocks(tallas,res.data.productos);
                 }else{

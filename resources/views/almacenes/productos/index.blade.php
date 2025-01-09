@@ -47,24 +47,7 @@
                         </div>
                         <div class="col-12">
                             <div class="table-responsive">
-                                <table class="table dataTables-producto table-striped table-bordered table-hover"
-                                    style="text-transform:uppercase" id="table_productos">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center">CÓDIGO</th>
-                                            <th class="text-center">CÓDIGO BARRA</th>
-                                            <th class="text-center">NOMBRE</th>
-                                            <th class="text-center">MODELO</th>
-                                            <th class="text-center">MARCA</th>
-                                            <th class="text-center">CATEGORIA</th>
-                                            <th class="text-center">STOCK</th>
-                                            <th class="text-center">ACCIONES</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-
-                                    </tbody>
-                                </table>
+                                @include('almacenes.productos.tables.tbl_list_productos')
                             </div>
                         </div>
                     </div>
@@ -140,11 +123,6 @@
                     data: 'codigo',
                     className: "text-left",
                     name:"productos.codigo"
-                },
-                {
-                    data: 'codigo_barra',
-                    className: "text-left",
-                    name:"productos.codigo_barra"
                 },
                 {
                     data: 'nombre',

@@ -127,3 +127,18 @@ function pintarErroresValidacion(objValidationErrors,suffix){
     }
 
 }
+
+//========= LIMPIAR UNA TABLA =======
+function limpiarTabla(idTabla) {
+    const tbody =   document.querySelector(`#${idTabla} tbody`);
+    while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
+    }
+}
+
+function destruirDataTable(dtTable){
+    if(dtTable){
+        dtTable.destroy();
+        dtTable =   null;
+    }
+}

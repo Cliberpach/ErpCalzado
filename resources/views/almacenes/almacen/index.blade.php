@@ -34,22 +34,7 @@
             <div class="ibox-content">
 
                 <div class="table-responsive">
-                    <table class="table dataTables-almacenes table-striped table-bordered table-hover"  style="text-transform:uppercase">
-                    <thead>
-                        <tr>
-                            <th class="text-center"></th>
-                            <th class="text-center">DESCRIPCION</th>
-                            <th class="text-center">UBICACION</th>
-                            <th class="text-center">CREADO</th>
-                            <th class="text-center">ACTUALIZADO</th>
-                            <th class="text-center">ACCIONES</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    
-                    </tbody>
-
-                    </table>
+                    @include('almacenes.almacen.tables.tbl_list_almacenes')
                 </div>
 
             </div>
@@ -115,11 +100,13 @@
             "ajax": '{{ route("getRepository")}}',
             "columns": [
                 //Tabla General
-                {data: 'id', className:"text-center", "visible":false, name:'almacenes.descripcion'},
-                {data: 'descripcion', className:"text-center", name:'almacenes.descripcion'},
-                {data: 'ubicacion', className:"text-center", name:'almacenes.ubicacion'},
-                {data: 'creado', className:"text-center", name: 'almacenes.created_at'},
-                {data: 'actualizado', className:"text-center", name: 'almacenes.updated_at'},
+                {data: 'id', className:"text-center", "visible":false, name:'descripcion'},
+                {data: 'descripcion', className:"text-center", name:'descripcion'},
+                {data: 'ubicacion', className:"text-center", name:'ubicacion'},
+                {data: 'sede_direccion', className:"text-center", name:'sede_direccion'},
+                {data: 'tipo_almacen', className:"text-center", name:'tipo_almacen'},
+                {data: 'creado', className:"text-center", name: 'created_at'},
+                {data: 'actualizado', className:"text-center", name: 'updated_at'},
                 {
                     data: null,
                     className:"text-center",
