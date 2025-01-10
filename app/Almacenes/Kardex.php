@@ -6,24 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Kardex extends Model
 {
-    protected $table = 'kardex';
-    protected $fillable =[
-        'id', 
-        'producto_id',
-        'color_id',
-        'talla_id',
-        'origen',
-        'numero_doc',
-        'fecha',
-        'cantidad',
-        'descripcion',
-        'precio',
-        'importe',
-        'stock',
-        'accion',
-        'documento_id'
-    ];
-    public $timestamps = true;
+    protected $table    =   'kardex';
+    protected $guarded  =   ['']; 
+    public $timestamps  =   true;
 
     public function producto()
     {
