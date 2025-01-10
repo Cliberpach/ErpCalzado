@@ -71,7 +71,7 @@
             </div>
             <div class="col-12 col-lg-3 col-md-3">
                 <label style="font-weight: bold;" class="required">Almacén Destino</label>
-                <select required name="almacen_destino" id="almacen_destino" class="select2_form form-control {{ $errors->has('almacen_destino') ? ' is-invalid' : '' }}">
+                <select onchange="cambiarAlmacenDestino();"  required name="almacen_destino" id="almacen_destino" class="select2_form form-control {{ $errors->has('almacen_destino') ? ' is-invalid' : '' }}">
                     <option value="">Seleccionar Destino</option>
                     @foreach ($almacenes_destino as $almacen_destino)
                         <option value="{{$almacen_destino->id}}">{{$almacen_destino->descripcion}}</option>

@@ -124,7 +124,7 @@
 </li>
 @endcan
 
-@can('restore', [Auth::user(),['almacen.index','categoria.index','marca.index','producto.index','nota_ingreso.index','nota_salida.index']])
+@can('restore', [Auth::user(),['almacen.index','categoria.index','marca.index','producto.index','nota_ingreso.index','nota_salida.index','traslados.index']])
 <li class="@yield('almacenes-active')">
     <a href="#"><i class="fa fa-bar-chart-o"></i> <span class="nav-label">Almacén</span><span
             class="fa arrow"></span></a>
@@ -157,6 +157,9 @@
         @endcan
         @can('haveaccess', 'nota_salida.index')
             <li class="@yield('nota_salidad-active')"><a href="{{ route('almacenes.nota_salidad.index') }}">Nota Salida</a></li>
+        @endcan
+        @can('haveaccess', 'traslados.index')
+            <li class="@yield('traslados-active')"><a href="{{ route('almacenes.traslados.index') }}">Traslados</a></li>
         @endcan
     </ul>
 </li>

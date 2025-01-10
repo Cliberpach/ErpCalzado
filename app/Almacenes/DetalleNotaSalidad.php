@@ -94,7 +94,7 @@ class DetalleNotaSalidad extends Model
                             pct.* 
                             from producto_color_tallas as pct
                             where pct.producto_id = ? 
-                            andpct.color_id = ? 
+                            and pct.color_id = ? 
                             and pct.talla_id = ?',
                             [$detalleNotaSalida->producto_id,
                             $detalleNotaSalida->color_id,
@@ -162,7 +162,6 @@ class DetalleNotaSalidad extends Model
                             //===== PREGUNTAMOS SI EXISTE EL PRODUCTO COLOR EN DESTINO =====
                             $existeColor    =   ProductoColor::where('producto_id', $detalleNotaSalida->producto_id)
                                                 ->where('color_id', $detalleNotaSalida->color_id)
-                                                ->where('talla_id', $detalleNotaSalida->talla_id)
                                                 ->where('almacen_id',$detalleNotaSalida->getAlmacenDestinoId())
                                                 ->exists();
 

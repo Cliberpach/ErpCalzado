@@ -628,13 +628,13 @@ class NotaIngresoController extends Controller
                             from producto_colores as pc 
                             inner join productos as p on p.id=pc.producto_id 
                             inner join colores as c on c.id=pc.color_id 
-                            left join producto_color_tallas as pct on (pc.color_id=pct.color_id and pc.producto_id=pct.producto_id) 
+                            left join producto_color_tallas as pct on (pc.color_id=pct.color_id and pc.producto_id=pct.producto_id and pc.almacen_id = pct.almacen_id) 
                             left join tallas as t on t.id = pct.talla_id 
                             where 
                             p.modelo_id = ? 
                             and pc.almacen_id = ?
                             and p.estado="ACTIVO";
-                            ',[$modelo_id,$almacen_id,$almacen_id]);
+                            ',[$modelo_id,$almacen_id]);
 
             return response()->json(['success'=>true,'productos'=>$productos]);
         } catch (\Throwable $th) {

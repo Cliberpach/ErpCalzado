@@ -214,6 +214,7 @@ class NotaSalidadController extends Controller
             crearRegistro($notasalidad, $descripcion , $gestion);
     
     
+            DB::commit();
             Session::flash('success','NOTA DE SALIDAD');
             return redirect()->route('almacenes.nota_salidad.index')->with('guardar', 'success');
         } catch (\Throwable $th) {

@@ -1,18 +1,18 @@
 @extends('layout') @section('content')
 
 @section('almacenes-active', 'active')
-@section('nota_salidad-active', 'active')
+@section('traslados-active', 'active')
 
 <div class="row wrapper border-bottom white-bg page-heading">
 
     <div class="col-lg-12">
-       <h2  style="text-transform:uppercase"><b>REGISTRAR NUEVAS NOTA DE SALIDA</b></h2>
+       <h2  style="text-transform:uppercase"><b>REGISTRAR NUEVO TRASLADO</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{route('home')}}">Panel de Control</a>
             </li>
             <li class="breadcrumb-item">
-                <a href="{{route('almacenes.nota_salidad.index')}}">Nota de Salida</a>
+                <a href="{{route('almacenes.nota_salidad.index')}}">Traslados</a>
             </li>
             <li class="breadcrumb-item active">
                 <strong>Registrar</strong>
@@ -31,20 +31,17 @@
         <div class="col-lg-12">
             <div class="ibox">
                 <div class="ibox-content">
-                    @include('almacenes.nota_salidad.forms.form_ns_create')
+                    @include('almacenes.traslados.forms.form_traslado_create')
                 </div>
             </div>
         </div>
 
     </div>
 </div>
-
 @stop
 
 @push('styles')
-
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-
 @endpush
 
 @push('scripts')
@@ -57,7 +54,6 @@
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
-//Select2
 $(".select2_form").select2({
     placeholder: "SELECCIONAR",
     allowClear: true,
@@ -71,8 +67,8 @@ $(".select2_form").select2({
     const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
     const  bodyTablaDetalle     =   document.querySelector('#tabla_ns_detalle tbody');
     let detallesSalida          =   [];
-    let formNotaSalida          =   document.querySelector('#enviar_nota_salida');//boton que hace de formulario para enviar los registros salida
-    const btnGrabar             =   document.querySelector('#btn_grabar');// boton que guardar los registros de salida
+    let formTrasladoStore       =   document.querySelector('#formTrasladoStore');
+    const btnGrabar             =   document.querySelector('#btn_grabar');
     const inputProductos        =   document.querySelector('#notadetalle_tabla');
     let modelo_id               =   null;
     let dtNsDetalle             =   null;
@@ -86,7 +82,7 @@ $(".select2_form").select2({
 
     function events(){
         
-        //Agrega los datos que son de salida
+        //====== AGREGAR  PRODUCTO AL DETALLE ======
         btnAgregarDetalle.addEventListener('click',()=>{
             let inputsCantidad = document.querySelectorAll('.inputCantidad');
             inputsCantidad.forEach((ic)=>{
@@ -123,7 +119,7 @@ $(".select2_form").select2({
             dtNsDetalle = iniciarDataTable('tabla_ns_detalle');
         })
 
-        /////////////
+        //========= ELIMINAR PRODUCTO DEL DETALLE =======
         document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('delete-product')){
                 const productoId    = e.target.getAttribute('data-producto');
@@ -139,38 +135,59 @@ $(".select2_form").select2({
         })
 
          //============ EVENTO ENVIAR FORMULARIO =============
-         formNotaSalida.addEventListener('submit',(e)=>{
+         formTrasladoStore.addEventListener('submit',async (e)=>{
             e.preventDefault();
-            btnGrabar.disabled=true;
+            btnGrabar.disabled  =   true;
             console.log(detallesSalida);
             if(detallesSalida.length>0){
-                inputProductos.value=JSON.stringify(detallesSalida);
-                console.log(inputProductos);
-                const formData = new FormData(formNotaSalida);
-                formData.forEach((valor, clave) => {
-                    console.log(`${clave}: ${valor}`);
-                });
-                formNotaSalida.submit();
+                
+                try {
+                    
+                    const formData  =   new FormData(e.target);
+                    formData.append('sede_id',@json($sede_id));
+                    formData.append('detalle',JSON.stringify(detallesSalida));
+                    const res       =   await axios.post(route('almacenes.traslados.store'),formData);
+
+                    if(res.data.success){
+                        toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                    }else{
+
+                    }
+
+                } catch (error) {
+                    if (error.response) {
+                        if (error.response.status === 422) {
+                            const errors = error.response.data.errors;
+                            pintarErroresValidacion(errors, 'error');
+                            toastr.error('Errores de validación encontrados.', 'ERROR DE VALIDACIÓN');
+                        } else {
+                            toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                        }
+                    } else if (error.request) {
+                        toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+                    } else {
+                        toastr.error(error.message, 'ERROR DESCONOCIDO');
+                    }    
+                }
+
             }else{
-                toastr.error('El detalle de la nota de salida está vacío!!!')
+                toastr.error('El detalle del traslado está vacío!!!')
                 btnGrabar.disabled = false;
             }
            
         })
 
-        //======= validar el contenido input cantidad =======
+        //======= VALIDAR INPUTS CANTIDAD =======
         document.addEventListener('input',(e)=>{
             if(e.target.classList.contains('inputCantidad')){
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
-                this.validarCantidadInstantanea(e);
+                validarCantidadInstantanea(e);
             }
         })
-
-
     }
 
-       //============ REORDENAR CARRITO ===============
-       const reordenarDetallesSalida= ()=>{
+    //============ REORDENAR CARRITO ===============
+    const reordenarDetallesSalida= ()=>{
         detallesSalida.sort(function(a, b) {
             if (a.producto_id === b.producto_id) {
                 return a.color_id - b.color_id;
@@ -256,7 +273,7 @@ $(".select2_form").select2({
 
         if(modelo_id){
             try {
-                const url       =   route('almacenes.nota_salidad.getProductosAlmacen',
+                const url       =   route('almacenes.traslados.getProductosAlmacen',
                                     {modelo_id,almacen_id:almacen_origen_id});
                 const response  =   await axios.get(url);
                 console.log(response.data);
@@ -275,11 +292,13 @@ $(".select2_form").select2({
    
     //======== VALIDAR CANTIDAD DE INPUTS AL ESCRIBIR =========   
     async function validarCantidadInstantanea(event) {
+        toastr.clear();
         btnAgregarDetalle.disabled  =   true;
         const cantidadSolicitada    =   event.target.value;
         try {
             if(cantidadSolicitada !== ''){
-                const stock_logico  =  await this.getStockLogico(event.target);
+                const stock_logico  =  await getStockLogico(event.target);
+                
                 if(stock_logico < cantidadSolicitada){
                         event.target.classList.add('inputCantidadIncorrecto');
                         event.target.classList.remove('inputCantidadValido');
@@ -306,7 +325,6 @@ $(".select2_form").select2({
     }
 
 
-
     //=============== Da forma de objeto a los datos obtenidos de la tabla salida =============
     const formarProducto = (ic)=>{
         const producto_id       =   ic.getAttribute('data-producto-id');
@@ -326,12 +344,15 @@ $(".select2_form").select2({
             const producto_id           =   inputCantidad.getAttribute('data-producto-id');
             const color_id              =   inputCantidad.getAttribute('data-color-id');
             const talla_id              =   inputCantidad.getAttribute('data-talla-id');
+            const almacen_id            =   document.querySelector('#almacen_origen').value;
             
             try {  
-                const url = `/almacenes/nota_salidad/getStock/${producto_id}/${color_id}/${talla_id}`;
-                const response = await axios.get(url);
+                const url       = `/almacenes/traslados/getStock/${producto_id}/${color_id}/${talla_id}/${almacen_id}`;
+                const response  = await axios.get(url);
+
+                
                 if(response.data.message=='success'){
-                    const stock  =   response.data.data[0].stock;
+                    const stock  =   response.data.data[0].stock_logico;
                     return stock;
                 }
                  
@@ -343,8 +364,8 @@ $(".select2_form").select2({
             }
     }
 
-     //========= PINTAR TABLA STOCKS ==========
-     const pintarTableStocks = (stocks,tallas,producto_colores)=>{
+    //========= PINTAR TABLA STOCKS ==========
+    const pintarTableStocks = (stocks,tallas,producto_colores)=>{
         let options =``;
         console.log(stocks);
         producto_colores.forEach((pc)=>{
@@ -379,8 +400,6 @@ $(".select2_form").select2({
                                 `;   
             })
 
-           
-
             htmlTallas += `</tr>`;
             options += htmlTallas;
         })
@@ -389,9 +408,9 @@ $(".select2_form").select2({
         //btnAgregarDetalle.disabled = false;
     }
 
+
     function cambiarAlmacen(selectAlmacen){
 
-        
         toastr.clear();
         const almacen_id        =   selectAlmacen.getAttribute('id');
         const almacen_origen_id =   $('#almacen_origen').val();
@@ -448,10 +467,7 @@ $(".select2_form").select2({
 
             return;
         }
-
     }
 
-    
 </script>
-
 @endpush

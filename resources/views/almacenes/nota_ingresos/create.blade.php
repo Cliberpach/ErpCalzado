@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('almacenes-active', 'active')
 @section('nota_ingreso-active', 'active')
@@ -35,10 +36,7 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            
                             @include('almacenes.nota_ingresos.forms.form_nota_ingreso_create')
-
-
                         </div>
                     </div>
                     <hr>
@@ -56,7 +54,7 @@
                                                     <label class="required">Modelo</label>
                                                     <select id="modelo"
                                                         class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
-                                                        onchange="getProductosByModelo(this)" >
+                                                        onchange="getNiProductos(this)" >
                                                         <option></option>
                                                         @foreach ($modelos as $modelo)
                                                             <option value="{{ $modelo->id }}"
@@ -78,7 +76,7 @@
                                                         <div class="sk-rect4"></div>
                                                         <div class="sk-rect5"></div>
                                                     </div>
-                                                    @include('almacenes.nota_ingresos.tabla-productos')
+                                                    @include('almacenes.nota_ingresos.tables.tbl_ni_productos')
                                                 </div>
                                             </div>
                                             <div class="form-group row mt-1">
@@ -92,98 +90,14 @@
                                     </div>
                                     <div class="row m-t-sm" style="text-transform:uppercase">
                                         <div class="col-lg-12">
-                                            @include('almacenes.nota_ingresos.tabla-productos',[
-                                                "carrito" => "carrito"
-                                            ])
+                                            <div class="table-responsive">
+                                                @include('almacenes.nota_ingresos.tables.tbl_ni_detalle')
+                                            </div>
                                         </div>
                                     </div> 
                                 </div>
-                                {{-- <div class="panel-body">
-                                    <div class="row align-items-end">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="col-form-label">Producto</label>
-                                            <select name="producto" id="producto" class="form-control select2_form">
-                                                <option value=""></option>
-                                                @foreach ($productos as $producto)
-                                                    <option  value="{{$producto->id}}" id="{{$producto->id}}">{{$producto->nombre}}</option>
-                                                @endforeach
-                                            </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <div class="form-group">
-                                                <label class="col-form-label">Cantidad </label>
-                                                <input type="text" id="cantidad" class="form-control" min="1" onkeypress="return filterFloat(event, this, true);">
-                                                <div class="invalid-feedback"><b><span id="error-cantidad"></span></b></div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-2">
-                                            <div class="form-group">
-                                                <label class="col-form-label">Costo(Total)</label>
-                                                <input type="text" name="costo" id="costo" class="form-control" onkeypress="return filterFloat(event, this, true);">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-2 d-none">
-                                            <div class="form-group">
-                                                <label class="col-form-label">lote</label>
-                                                <input type="text" name="lote" id="lote" class="form-control">
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-3 d-none">
-                                            <div class="form-group">
-                                                <label class="col-form-label">Fecha Vencimiento</label>
-                                                <div class="input-group date">
-                                                    <span class="input-group-addon">
-                                                        <i class="fa fa-calendar"></i>
-                                                    </span>
-                                                    <input type="date" id="fechavencimiento" name="fechavencimiento" class="form-control" autocomplete="off">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-12 col-md-2">
-                                            <div class="form-group">
-                                            <a class="btn btn-block btn-warning enviar_detalle"
-                                            style='color:white;'> <i class="fa fa-plus"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <hr>
-
-                                    <div class="table-responsive">
-                                        <table
-                                            class="table dataTables-ingreso table-striped table-bordered table-hover"
-                                                onkeyup="return mayus(this)">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th class="text-center">ACCIONES</th>
-                                                    <th class="text-center">Cantidad</th>
-                                                    <th class="text-center">Lote</th>
-                                                    <th class="text-center">Producto</th>
-                                                    <th class="text-center">Fecha Vencimiento</th>
-                                                    <th class="text-center">Costo U.</th>
-                                                    <th class="text-center">Total</th>
-
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-
-                                            </tbody>
-                                            <tfoot>
-                                                <tr>
-                                                    <th colspan="7" class="text-center">TOTAL:</th>
-                                                    <th class="text-right"><span id="total">0.00</span></th>
-
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                </div> --}}
                             </div>
                         </div>
-
                     </div>
 
                     <div class="hr-line-dashed"></div>
@@ -213,10 +127,7 @@
 @stop
 
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css') }}"
-    rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/datapicker/datepicker3.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/daterangepicker/daterangepicker-bs3.css') }}" rel="stylesheet">
+
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 
 
@@ -269,12 +180,6 @@ div.content-window.sk__loading::after {
 @endpush
 
 @push('scripts')
-<!-- Data picker -->
-<script src="{{ asset('Inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
-<!-- Date range use moment.js same as full calendar plugin -->
-<script src="{{ asset('Inspinia/js/plugins/fullcalendar/moment.min.js') }}"></script>
-<!-- Date range picker -->
-<script src="{{ asset('Inspinia/js/plugins/daterangepicker/daterangepicker.js') }}"></script>
 <!-- Select2 -->
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
@@ -297,14 +202,14 @@ div.content-window.sk__loading::after {
 <script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
 
 <script>
-    const selectModelo  =  document.querySelector('#modelo');
-    const tokenValue    = document.querySelector('input[name="_token"]').value;
-    const tallas        = @json($tallas);
-    const colores       = @json($colores);
-    const bodyTablaProductos  =  document.querySelector('#table-productos tbody');
-    const bodyTablaDetalle  =  document.querySelector('#table-detalle tbody');
-    const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle');
-    const inputProductos=document.querySelector('#notadetalle_tabla');
+    const selectModelo          =   document.querySelector('#modelo');
+    const tokenValue            =   document.querySelector('input[name="_token"]').value;
+    const tallas                =   @json($tallas);
+    const colores               =   @json($colores);
+    const bodyTablaProductos    =   document.querySelector('#tabla_ni_productos tbody');
+    const bodyTablaDetalle      =   document.querySelector('#tabla_ni_detalle tbody');
+    const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
+    const inputProductos        =   document.querySelector('#notadetalle_tabla');
    
     const formNotaIngreso   = document.querySelector('#enviar_ingresos');
     const btnGrabar         =   document.querySelector('#btn_grabar');
@@ -316,13 +221,17 @@ div.content-window.sk__loading::after {
                                             buttonsStyling: false
                                         })
 
-    let modelo_id   = null;
-    let carrito     = [];
-    let table       = null;
+    let modelo_id       =   null;
+    let carrito         =   [];
+    let dtNiDetalle     =   null;
+    let dtNiProductos   =   null;
+
 
     document.addEventListener('DOMContentLoaded',()=>{
         events();
-        //cargarDataTables();
+        
+        dtNiDetalle     =   iniciarDataTable('tabla_ni_detalle');
+        dtNiProductos   =   iniciarDataTable('tabla_ni_productos');
     })
 
     function events(){
@@ -355,8 +264,13 @@ div.content-window.sk__loading::after {
                 }
                   
             })
+
             reordenarCarrito();
+
+            destruirDataTable(dtNiDetalle);
+            limpiarTabla('tabla_ni_detalle');
             pintarDetalleNotaIngreso(carrito);
+            dtNiDetalle   =   iniciarDataTable('tabla_ni_detalle');
             
         })
 
@@ -429,7 +343,7 @@ div.content-window.sk__loading::after {
     }
 
     //============== FUNCIÓN OBTENER PRODUCTOS DE UN MODELO ==============
-    async function getProductosByModelo(e){
+    async function getNiProductos(e){
 
         toastr.clear();
         modelo_id                   =   e.value;
@@ -437,19 +351,22 @@ div.content-window.sk__loading::after {
         
         const almacen_id    =   document.querySelector('#almacen_destino').value;
 
-        if(!almacen_id){
+        if(modelo_id && !almacen_id){
             toastr.error('DEBE SELECCIONAR UN ALMACÉN DE DESTINO!!!');
             document.querySelector('#almacen_destino').focus();
             bodyTablaProductos.innerHTML = ``;
-            return;
+            $('#modelo').val(null).trigger('change');
         }
 
-        if(modelo_id){
+        if(modelo_id && almacen_id){
             mostrarAnimacion();
             try {
                 const res       =   await axios.get(route('almacenes.nota_ingreso.getProductos',{modelo_id,almacen_id}));
                 if(res.data.success){
+                    destruirDataTable(dtNiProductos);
+                    limpiarTabla('tabla_ni_productos');
                     pintarTableStocks(tallas,res.data.productos);
+                    dtNiProductos   =   iniciarDataTable('tabla_ni_productos');
                 }else{
                     toastr.error(res.data.exception,res.data.message);
                 }
@@ -457,11 +374,9 @@ div.content-window.sk__loading::after {
                 toastr.error(error,'ERROR AL REALIZAR LA SOLICITUD DE PRODUCTOS');
             }finally{
                 ocultarAnimacion();
-            }
-             
-        }else{
-            bodyTablaProductos.innerHTML = ``;
+            }   
         }
+
     }
 
     //============ REORDENAR CARRITO ===============
@@ -477,16 +392,18 @@ div.content-window.sk__loading::after {
 
     //=============== FORMAR OBJETO PRODUCTO PARA INSERTAR EN EL CARRITO POSTERIORMENTE =============
     const formarProducto = (ic)=>{
-        const producto_id = ic.getAttribute('data-producto-id');
-        const producto_nombre = ic.getAttribute('data-producto-nombre');
-        const color_id = ic.getAttribute('data-color-id');
-        const color_nombre = ic.getAttribute('data-color-nombre');
-        const talla_id = ic.getAttribute('data-talla-id');
-        const talla_nombre = ic.getAttribute('data-talla-nombre');
-        const cantidad     = ic.value?ic.value:0;
-        const producto = {producto_id,producto_nombre,color_id,color_nombre,
-                            talla_id,talla_nombre,cantidad};
+
+        const producto_id       =   ic.getAttribute('data-producto-id');
+        const producto_nombre   =   ic.getAttribute('data-producto-nombre');
+        const color_id          =   ic.getAttribute('data-color-id');
+        const color_nombre      =   ic.getAttribute('data-color-nombre');
+        const talla_id          =   ic.getAttribute('data-talla-id');
+        const talla_nombre      =   ic.getAttribute('data-talla-nombre');
+        const cantidad          =   ic.value?ic.value:0;
+        const producto          =   {producto_id,producto_nombre,color_id,color_nombre,
+                                    talla_id,talla_nombre,cantidad};
         return producto;
+
     }
 
     //============ RENDERIZAR TABLA DE CANTIDADES ============
@@ -560,19 +477,12 @@ div.content-window.sk__loading::after {
         btnAgregarDetalle.disabled = false;
     }
 
-    //================== LIMPIAR TABLA DETALLE ===============
-    function clearDetalleCotizacion(){
-        while (bodyTablaDetalle.firstChild) {
-            bodyTablaDetalle.removeChild(bodyTablaDetalle.firstChild);
-        }
-    }
-
     //====== RENDERIZAR TABLA DETALLE NOTA INGRESO ==============
     function pintarDetalleNotaIngreso(carrito){
         let fila= ``;
         let htmlTallas= ``;
         const producto_color_procesado=[];
-        clearDetalleCotizacion();
+        
 
         carrito.forEach((c)=>{
             htmlTallas=``;
@@ -603,37 +513,19 @@ div.content-window.sk__loading::after {
         })
     }
 
-    function cargarDataTables(){
-        table = new DataTable('#table-productos',
-        {
-            language: {
-                processing:     "Traitement en cours...",
-                search:         "BUSCAR: ",
-                lengthMenu:    "MOSTRAR _MENU_ PRODUCTOS",
-                info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ PRODUCTOS",
-                infoEmpty:      "MOSTRANDO 0 ELEMENTOS",
-                infoFiltered:   "(FILTRADO de _MAX_ PRODUCTOS)",
-                infoPostFix:    "",
-                loadingRecords: "CARGA EN CURSO",
-                zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
-                emptyTable:     "NO HAY PRODUCTOS DISPONIBLES",
-                paginate: {
-                    first:      "PRIMERO",
-                    previous:   "ANTERIOR",
-                    next:       "SIGUIENTE",
-                    last:       "ÚLTIMO"
-                },
-                aria: {
-                    sortAscending:  ": activer pour trier la colonne par ordre croissant",
-                    sortDescending: ": activer pour trier la colonne par ordre décroissant"
-                }
-            }
-        });
-        
-        const tableStocks   = document.querySelector('#table-productos');
-        if(tableStocks.children[1]){
-            tableStocks.children[1].remove();
-        }
+
+    function cambiarAlmacenDestino(){
+
+        destruirDataTable(dtNiProductos);
+        limpiarTabla('tabla_ni_productos');
+        dtNiProductos = iniciarDataTable('tabla_ni_productos')
+
+        carrito =   [];
+        destruirDataTable(dtNiDetalle);
+        limpiarTabla('tabla_ni_detalle');
+        dtNiDetalle =   iniciarDataTable('tabla_ni_detalle');
+
+        $('#modelo').val(null).trigger('change');
     }
 
 </script>

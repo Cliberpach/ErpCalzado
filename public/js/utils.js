@@ -142,3 +142,32 @@ function destruirDataTable(dtTable){
         dtTable =   null;
     }
 }
+
+function iniciarDataTable(idTabla) {
+    dtGenerico = new DataTable(`#${idTabla}`, {
+        language: {
+            processing:     "Procesando...",
+            search:         "Buscar: ",
+            lengthMenu:     "Mostrar _MENU_ elementos",
+            info:           "Mostrando _START_ a _END_ de _TOTAL_ elementos",
+            infoEmpty:      "Mostrando 0 elementos",
+            infoFiltered:   "(filtrado de _MAX_ elementos)",
+            infoPostFix:    "",
+            loadingRecords: "Cargando...",
+            zeroRecords:    "No se encontraron registros",
+            emptyTable:     "No hay datos disponibles",
+            paginate: {
+                first:      "Primero",
+                previous:   "Anterior",
+                next:       "Siguiente",
+                last:       "Último"
+            },
+            aria: {
+                sortAscending:  ": activar para ordenar la columna de manera ascendente",
+                sortDescending: ": activar para ordenar la columna de manera descendente"
+            }
+        }
+    });
+
+    return dtGenerico;
+}

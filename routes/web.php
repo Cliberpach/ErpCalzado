@@ -305,6 +305,7 @@ function(){
         Route::get('/generarEtiquetas/{nota_id}', 'Almacenes\NotaIngresoController@generarEtiquetas')->name('almacenes.nota_ingreso.generarEtiquetas');
 
     });
+
     //NotaSalida
     Route::prefix('almacenes/nota_salidad')->group(function() {
 
@@ -329,6 +330,15 @@ function(){
         Route::post('devolver/lotesinicio', 'Almacenes\NotaSalidadController@returnQuantityLoteInicio')->name('almacenes.nota_salidad.devolver.lotesinicio');
         Route::post('obtener/lote', 'Almacenes\NotaSalidadController@returnLote')->name('almacenes.nota_salidad.obtener.lote');
         Route::post('update/lote', 'Almacenes\NotaSalidadController@updateLote')->name('almacenes.nota_salidad.update.lote');
+    });
+
+    //========== TRASLADOS =====
+    Route::prefix('almacenes/traslados')->group(function() {
+        Route::get('index', 'Almacenes\TrasladoController@index')->name('almacenes.traslados.index');
+        Route::get('create', 'Almacenes\TrasladoController@create')->name('almacenes.traslados.create');
+        Route::get('/getProductosAlmacen/{modelo_id}/{almacen_id}', 'Almacenes\TrasladoController@getProductosAlmacen')->name('almacenes.traslados.getProductosAlmacen');
+        Route::get('getStock/{producto_id}/{color_id}/{talla_id}/{almacen_id}','Almacenes\TrasladoController@getStock')->name('almacenes.traslados.getStock');
+        Route::post('store','Almacenes\TrasladoController@store')->name('almacenes.traslados.store');
     });
 
     //Compras
