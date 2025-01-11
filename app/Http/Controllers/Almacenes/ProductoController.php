@@ -32,25 +32,13 @@ class ProductoController extends Controller
     public function index()
     {
         $this->authorize('haveaccess','producto.index');
-        $colores = DB::select('select c.id as color_id,c.descripcion as color_nombre,
-                    p.id as producto_id,p.nombre as producto_nombre 
-                    from producto_colores as pc
-                    inner join colores as c on c.id=pc.color_id
-                    inner join productos as p on p.id=pc.producto_id
-                    where c.estado="ACTIVO" and p.estado="ACTIVO" ');
 
-        $tallas = Talla::where('estado', 'ACTIVO')->get();
-
-        $stocks = ProductoColorTalla::join('colores', 'producto_color_tallas.color_id', '=', 'colores.id')
-        ->join('tallas', 'producto_color_tallas.talla_id', '=', 'tallas.id')
-        ->select('producto_color_tallas.*')
-        ->where('colores.estado', 'ACTIVO')
-        ->where('tallas.estado', 'ACTIVO')
-        ->get();
-
-  
-
-        return view('almacenes.productos.index',compact('colores','tallas','stocks'));
+        $sede_id    =   Auth::user()->sede_id;
+        $almacenes  =   Almacen::where('estado','ACTIVO')
+                        ->where('sede_id',$sede_id)
+                        ->get();
+      
+        return view('almacenes.productos.index',compact('almacenes'));
     }
 
     public function getTable()
@@ -508,27 +496,51 @@ array:13 [
         }                    
     }
 
-    public function getProductoColores($almacen_id,$producto_id){
+    public function getColores($almacen_id,$producto_id){
         try {
             
             $producto_colores   =   DB::select('select 
-                                    pc.color_id 
+                                    pc.color_id,
+                                    c.descripcion as color_nombre
                                     from producto_colores as pc
+                                    inner join colores as c on c.id = pc.color_id
                                     where 
                                     pc.producto_id = ?
                                     and pc.almacen_id = ?
                                     and pc.estado = "ACTIVO"',[$producto_id,$almacen_id]);
 
-            
-
             return response()->json(['success'=>true,
-            'message'=>'COLORES DEL PRODUCTO EN ALMACÉN OBTENIDOS',
-            'data'=>$producto_colores]);
+            'message'   =>  'COLORES DEL PRODUCTO EN ALMACÉN OBTENIDOS',
+            'data'      =>  $producto_colores]);
             
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
     }
 
+    public function getTallas($almacen_id,$producto_id,$color_id){
+        try {
+            
+            $tallas     =   DB::select('select 
+                            pct.stock,
+                            t.descripcion as talla_nombre
+                            from producto_color_tallas as pct
+                            inner join tallas as t on t.id = pct.talla_id
+                            where 
+                            pct.almacen_id = ?
+                            and pct.producto_id = ?
+                            and pct.color_id = ?
+                            and pct.estado = "ACTIVO"',[$almacen_id,$producto_id,$color_id]);
+
+            return response()->json(['success'=>true,
+            'message'   =>  'TALLAS DEL PRODUCTO EN ALMACÉN OBTENIDOS',
+            'data'      =>  $tallas]);
+            
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
+  
 
 }

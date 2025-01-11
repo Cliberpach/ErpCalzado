@@ -12,24 +12,45 @@
             </div>
             <div class="form-group row">
 
-                <div class="col-12 col-md-3"  id="fecha">
-                    <label>Fecha</label>
-                    <div class="input-group date">
+                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                    <label for="registrador_nombre" style="font-weight:bold;" class="required">Registrador</label>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text" id="basic-addon1">
+                            <i class="fas fa-user-alt"></i>
+                        </span>
+                        </div>
+                        <input value="{{Auth::user()->usuario}}" readonly name="registrador_nombre" id="registrador_nombre" type="text" class="form-control" placeholder="Registrador" aria-label="Username" aria-describedby="basic-addon1">
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                    <label for="fecha_registro" style="font-weight:bold;" class="required">Fecha Registro</label>
+                    <div class="input-group">
                         <span class="input-group-addon">
                             <i class="fa fa-calendar"></i>
                         </span>
-                        <input type="date" id="fecha" name="fecha"
-                            class="form-control {{ $errors->has('fecha') ? ' is-invalid' : '' }}"
+                        <input type="date" id="fecha_registro" name="fecha_registro"
+                            class="form-control {{ $errors->has('fecha_registro') ? ' is-invalid' : '' }}"
                             value="<?php echo date('Y-m-d'); ?>"
                             autocomplete="off" readonly required>
-                        @if ($errors->has('fecha'))
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $errors->first('fecha') }}</strong>
-                        </span>
-                        @endif
                     </div>
                 </div>
-                <div class="col-12 col-md-3">
+
+                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                    <label for="fecha_traslado" style="font-weight:bold;" class="required">Fecha Traslado</label>
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="fa fa-calendar"></i>
+                        </span>
+                        <input type="date" id="fecha_traslado" name="fecha_traslado"
+                            class="form-control {{ $errors->has('fecha_traslado') ? ' is-invalid' : '' }}"
+                            value="<?php echo date('Y-m-d'); ?>"
+                            required>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                     <label class="required" style="font-weight: bold;">Almacén Principal Origen</label>
                     <select onchange="cambiarAlmacen(this);" name="almacen_origen" id="almacen_origen" class="select2_form form-control {{ $errors->has('almacen_origen') ? ' is-invalid' : '' }}" required>
                         <option value="">Seleccionar</option>
@@ -43,7 +64,8 @@
                     </span>
                     @endif
                 </div>
-                <div class="col-12 col-md-3">
+
+                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                     <label class="required" style="font-weight: bold;">Almacén Principal Destino</label>
                     <select onchange="cambiarAlmacen(this);" name="almacen_destino" id="almacen_destino" class="select2_form form-control {{ $errors->has('almacen_destino') ? ' is-invalid' : '' }}" required>
                         <option value="">Seleccionar</option>
@@ -59,8 +81,8 @@
                 </div>
 
                 <div class="col-12 col-md-3">
-                    <label>Observación</label>
-                    <textarea type="text" name="observacion" rows="2" id="observacion" class="form-control" placeholder="Observación"></textarea>
+                    <label style="font-weight: bold;">Observación</label>
+                    <textarea maxlength="200" type="text" name="observacion" rows="2" id="observacion" class="form-control" placeholder="Observación"></textarea>
                 </div>
 
             </div>

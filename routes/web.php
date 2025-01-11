@@ -273,7 +273,8 @@ function(){
         Route::put('/update/{id}', 'Almacenes\ProductoController@update')->name('almacenes.producto.update');
         Route::get('/datos/{id}', 'Almacenes\ProductoController@show')->name('almacenes.producto.show');
         Route::get('/destroy/{id}', 'Almacenes\ProductoController@destroy')->name('almacenes.producto.destroy');
-        Route::get('/getProductoColores/{almacen_id}/{producto_id}', 'Almacenes\ProductoController@getProductoColores')->name('almacenes.producto.getProductoColores');
+        Route::get('/getColores/{almacen_id}/{producto_id}', 'Almacenes\ProductoController@getColores')->name('almacenes.producto.getColores');
+        Route::get('/getTallas/{almacen_id}/{producto_id}/{color_id}', 'Almacenes\ProductoController@getTallas')->name('almacenes.producto.getTallas');
 
         Route::get('/getExcel', 'Almacenes\ProductoController@getExcel')->name('almacenes.producto.getExcel');
 
@@ -282,6 +283,7 @@ function(){
         Route::get('generarCode','Almacenes\ProductoController@generarCode')->name('generarCode');
 
         Route::get('/obtenerProducto/{id}', 'Almacenes\ProductoController@obtenerProducto')->name('almacenes.producto.obtenerProducto');
+        
 
 
     });
@@ -335,6 +337,7 @@ function(){
     //========== TRASLADOS =====
     Route::prefix('almacenes/traslados')->group(function() {
         Route::get('index', 'Almacenes\TrasladoController@index')->name('almacenes.traslados.index');
+        Route::get('getTraslados', 'Almacenes\TrasladoController@getTraslados')->name('almacenes.traslados.getTraslados');
         Route::get('create', 'Almacenes\TrasladoController@create')->name('almacenes.traslados.create');
         Route::get('/getProductosAlmacen/{modelo_id}/{almacen_id}', 'Almacenes\TrasladoController@getProductosAlmacen')->name('almacenes.traslados.getProductosAlmacen');
         Route::get('getStock/{producto_id}/{color_id}/{talla_id}/{almacen_id}','Almacenes\TrasladoController@getStock')->name('almacenes.traslados.getStock');

@@ -28,23 +28,7 @@
             <div class="ibox ">
                 <div class="ibox-content">
                     <div class="table-responsive">
-                        <table class="table dataTables-ingreso_mercaderia table-striped table-bordered table-hover"
-                        style="text-transform:uppercase">
-                            <thead>
-                                <tr>
-                                    <th class="text-center">#</th>
-                                    <th class="text-center">Usuario</th>
-                                    <th class="text-center">Fecha Registro</th>
-                                    <th class="text-center">Destino</th>
-                                    <th class="text-center">Producto</th>
-                                    <th class="text-center">Observaciones</th>
-                                    <th class="text-center">ACCIONES</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                            </tbody>
-                        </table>
+                       @include('almacenes.traslados.tables.tbl_traslados_index')
                     </div>
                 </div>
             </div>
@@ -68,7 +52,7 @@
 $(document).ready(function() {
 
     // DataTables
-    $('.dataTables-ingreso_mercaderia').DataTable({
+    $('.dataTables-traslados').DataTable({
         "dom": '<"html5buttons"B>lTfgitp',
         "buttons": [{
                 extend: 'excelHtml5',
@@ -95,18 +79,25 @@ $(document).ready(function() {
         "bInfo": true,
         "bAutoWidth": false,
         "processing": true,
-        "ajax": "{{ route('almacenes.nota_salidad.data')}}",
+        "ajax": "{{ route('almacenes.traslados.getTraslados')}}",
         "columns": [
-            //ingreso_mercaderia INTERNA
-            //{ data: 'id',className: "text-center"},
-             
-            { data: 'id',className: "text-center"},
-            { data: 'usuario',className: "text-center"},
-            { data: 'created_at',className: "text-center"},
-            { data: 'destino',className: "text-center"}, 
-            
-            { data: 'cadena_detalles',className: "text-center"},
+            { 
+                data: 'simbolo', 
+                className: "text-center", 
+                render: function(data, type, row) {
+                    return `<div style="width:100px;">
+                                <p style="margin:0;padding:0;font-weight:bold;">${data}</p>
+                            </div>`; 
+                }
+            },
+            { data: 'almacen_origen_nombre',className: "text-center"},
+            { data: 'almacen_destino_nombre',className: "text-center"},
+            { data: 'sede_origen_direccion',className: "text-center"},
+            { data: 'sede_destino_direccion',className: "text-center"}, 
             { data: 'observacion',className: "text-center"}, 
+            { data: 'fecha_registro',className: "text-center"}, 
+            { data: 'fecha_traslado',className: "text-center"}, 
+            { data: 'registrador_nombre',className: "text-center"}, 
             {
                 data: null,
                 className: "text-center",

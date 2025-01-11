@@ -8,7 +8,7 @@ use App\Almacenes\Modelo;
 use App\Almacenes\MovimientoNota;
 use App\Almacenes\NotaIngreso;
 use App\Almacenes\NotaSalidad;
-use App\Almacenes\Producto;
+use Yajra\DataTables\Facades\DataTables;
 use App\Almacenes\ProductoColor;
 use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
@@ -26,6 +26,31 @@ class TrasladoController extends Controller
     public function index(){
         return view('almacenes.traslados.index');
     }
+
+    public function getTraslados(Request $request){
+
+        $traslados  =   DB::table('traslados as t')
+                        ->join('almacenes as ao', 'ao.id', '=', 't.almacen_origen_id')
+                        ->join('almacenes as ad', 'ad.id', '=', 't.almacen_destino_id')
+                        ->join('empresa_sedes as eso', 'eso.id', '=', 't.sede_origen_id')
+                        ->join('empresa_sedes as esd', 'esd.id', '=', 't.sede_destino_id')
+                        ->select(
+                            DB::raw('CONCAT("TR-", t.id) as simbolo'),
+                            't.id',
+                            'ao.descripcion as almacen_origen_nombre',
+                            'ad.descripcion as almacen_destino_nombre',
+                            't.observacion',
+                            'eso.direccion as sede_origen_direccion',
+                            'esd.direccion as sede_destino_direccion',
+                            't.created_at as fecha_registro',
+                            't.fecha_traslado',
+                            't.registrador_nombre',
+                        )->get();
+
+        return DataTables::of($traslados)->make(true);
+
+    }
+
 
     public function create(){
 
@@ -116,20 +141,21 @@ class TrasladoController extends Controller
 
 
 /*
-array:10 [
+array:12 [
   "notadetalle_tabla" => array:1 [
     0 => null
   ]
-  "_token"                      => "uzjjE8H1q7pQjSz63y59f4eMTVLD21aDecg3A9Ah"
-  "fecha"                       => "2025-01-09"
+  "_token"                      => "1spzO1oq9XyJSxSRjR65I8WhUCKGIZQQCGCnGzr6"
+  "registrador_nombre"          => "ADMINISTRADOR"
+  "fecha_registro"              => "2025-01-11"
+  "fecha_traslado"              => "2025-01-11"
   "almacen_origen"              => "1"
   "almacen_destino"             => "7"
-  "observacion"                 => "traslado grabado"
+  "observacion"                 => null
   "tabla_ns_productos_length"   => "10"
   "tabla_ns_detalle_length"     => "10"
   "sede_id"                     => "14"
-  "detalle"                     => "[{"producto_id":"1","producto_nombre":"ABRIL","color_id":"6","color_nombre":"NUDE CUERO","talla_id":"1","talla_nombre":"35","cantidad":"1"},
-                                    {"producto_id":"503","producto_nombre":"PRODUCTO TEST SEDE CENTRAL","color_id":"30","color_nombre":"DORADO ESPEJO","talla_id":"2","talla_nombre":"36","cantidad":"1"}]"
+  "detalle"                     => "[{"producto_id":"503","producto_nombre":"PRODUCTO TEST SEDE CENTRAL","color_id":"30","color_nombre":"DORADO ESPEJO","talla_id":"2","talla_nombre":"36","cantidad":"1"},{"producto_id":"503","producto_nombre":"PRODUCTO TEST SEDE CENTRAL","color_id":"86","color_nombre":"PLATEADO BRILLO","talla_id":"2","talla_nombre":"36","cantidad":"2"}]"
 ]
 */ 
     public function store(Request $request){
@@ -153,6 +179,9 @@ array:10 [
             $traslado->observacion          =   $request->get('observacion');
             $traslado->sede_origen_id       =   $request->get('sede_id');
             $traslado->sede_destino_id      =   $sede_destino[0]->sede_id;
+            $traslado->fecha_traslado       =   $request->get('fecha_traslado');
+            $traslado->registrador_id       =   Auth::user()->id;
+            $traslado->registrador_nombre   =   Auth::user()->usuario;
             $traslado->save();
 
             $almacen_origen_bd              =   Almacen::find($request->get('almacen_origen'));
@@ -266,6 +295,7 @@ array:10 [
 
             }
 
+            DB::commit();
             return response()->json(['success'=>true,'message'=>'TRASLADO REGISTRADO']);
         } catch (\Throwable $th) {
             DB::rollBack();

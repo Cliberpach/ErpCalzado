@@ -594,7 +594,7 @@
                 return;
             }
 
-            const res           =   await axios.get(route('almacenes.producto.getProductoColores',{almacen_id,producto_id}));
+            const res           =   await axios.get(route('almacenes.producto.getColores',{almacen_id,producto_id}));
             
             if(res.data.success){
 

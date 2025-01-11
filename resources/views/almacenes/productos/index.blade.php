@@ -1,8 +1,8 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 @section('almacenes-active', 'active')
 @section('producto-active', 'active')
-@include('almacenes.productos.modalfile')
-@include('almacenes.productos.modal-show-stocks')
+@include('almacenes.productos.modals.mdl_producto_stocks')
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
@@ -57,12 +57,10 @@
     </div>
 </div>
 
-@include('almacenes.productos.modalIngreso')
 
 @stop
 @push('styles')
-<!-- DataTable -->
-<link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 <style>
 
 
@@ -70,23 +68,45 @@
 @endpush
 
 @push('scripts')
-<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
-<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
-<!-- DataTable -->
-<script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
-    const stocks = @json($stocks);
-    const tallas = @json($tallas);
-    const colores = @json($colores);
-    let table   =null;
-    const bodyTableShowStocks = document.querySelector('#tableShowStocks tbody');
+
+    let table                   =   null;
+    const bodyTableShowStocks   =   document.querySelector('#tableShowStocks tbody');
+    let dtProductoColores       =   null;
+    let dtProductoTallas        =   null;
 
     document.addEventListener('DOMContentLoaded',()=>{
-           // DataTables
-           $('.dataTables-producto').DataTable({
+
+        iniciarSelect2();
+        iniciarDataTableProductos();
+        events();
+
+        dtProductoColores   =   iniciarDataTable('tbl_producto_colores');
+        dtProductoTallas    =   iniciarDataTable('tbl_producto_tallas');
+    })
+
+    function events(){
+        $('#btn_añadir_producto').on('click', añadirProducto);
+        eventsMdlStocks();
+    }
+
+    function iniciarSelect2(){
+        $(".select2_form").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            width: '100%',
+        });
+    }
+
+    function iniciarDataTableProductos(){
+        // DataTables
+        $('.dataTables-producto').DataTable({
             "dom": '<"html5buttons"B>lTfgitp',
             "buttons": [
                 {
@@ -151,8 +171,11 @@
                     className: "text-center",
                     render: function(data,type,row) {
                        
+                        const btnStock  =   `<a onclick="openMdlStocks(${data});"     data-id=${data} class='btn btn-primary' href='javascript:void(0);' title='STOCKS'>
+                                                <i class='fa fa-eye ver-stocks-producto'></i> Ver
+                                            </a>`;
 
-                        return `<a  data-product-nombre="${row.nombre}"  data-whatever="${data}" data-toggle="modal" data-target="#modal_show_stocks" data-id=${data} class='btn btn-primary ver-stocks-producto' href='javascript:void(0);' title='STOCKS'><i class='fa fa-eye ver-stocks-producto'></i> Ver</a>`;
+                        return btnStock;
                     }
                 },
                 {
@@ -191,31 +214,9 @@
                 $(row).attr('data-href', "");
             },
         });
+    }
 
-        $('buttons-html5').removeClass('.btn-default');
-        $('#table_productos_wrapper').removeClass('');
-        $('.dataTables-productos tbody').on( 'click', 'tr', function () {
-                $('.dataTables-productos').DataTable().$('tr.selected').removeClass('selected');
-                $(this).addClass('selected');
-        } );
-
-        // Eventos
-        $('#btn_añadir_producto').on('click', añadirProducto);
-    })
-
-    $(".dataTables-producto").on('click','.nuevo-ingreso',function(){
-        var data = $(".dataTables-producto").dataTable().fnGetData($(this).closest('tr'));
-
-        $('#modal_ingreso').modal('show');
-        $('#cantidad_fast').val('');
-        $('#producto_id_fast').val(data.id);
-        setTimeout(function() { $('#cantidad_fast').focus() }, 10);
-
-    });
-
-
-
-
+    
     //Controlar Error
     $.fn.DataTable.ext.errMode = 'throw';
 
@@ -275,49 +276,49 @@
     });
 
 
-    $('#modal_show_stocks').on('show.bs.modal', function (event) {
+    // $('#modal_show_stocks').on('show.bs.modal', function (event) {
        
-        if(table){
-            table.destroy();
-        }
-        resetearTabla();
+    //     if(table){
+    //         table.destroy();
+    //     }
+    //     resetearTabla();
 
-        var button = $(event.relatedTarget) 
-        var product_id = button.data('whatever') 
-        const product_name = button.data('product-nombre');
+    //     var button = $(event.relatedTarget) 
+    //     var product_id = button.data('whatever') 
+    //     const product_name = button.data('product-nombre');
 
-        let filas = ``;
+    //     let filas = ``;
 
-        const colores_producto = colores.filter((c)=>{
-            return c.producto_id==product_id;
-        })
+    //     const colores_producto = colores.filter((c)=>{
+    //         return c.producto_id==product_id;
+    //     })
 
-        colores_producto.forEach((color)=>{
-            filas +=    `
-                            <tr>
-                                <th scope="row">${color.color_nombre}</th>
-                        `;
-            tallas.forEach((t)=>{
-                let stock = stocks.filter((s) => {
-                    return s.producto_id == product_id && s.color_id == color.color_id && s.talla_id == t.id;
-                });
+    //     colores_producto.forEach((color)=>{
+    //         filas +=    `
+    //                         <tr>
+    //                             <th scope="row">${color.color_nombre}</th>
+    //                     `;
+    //         tallas.forEach((t)=>{
+    //             let stock = stocks.filter((s) => {
+    //                 return s.producto_id == product_id && s.color_id == color.color_id && s.talla_id == t.id;
+    //             });
 
-                stock = stock.length > 0 ? stock[0].stock : 0;
-                filas +=    `
-                                <td><span style="font-weight: ${stock > 0 ? 'bold' : 'normal'}">${stock}</span></td>
-                            `;
+    //             stock = stock.length > 0 ? stock[0].stock : 0;
+    //             filas +=    `
+    //                             <td><span style="font-weight: ${stock > 0 ? 'bold' : 'normal'}">${stock}</span></td>
+    //                         `;
 
-            })
-            filas+=`</tr>`;
-        })
+    //         })
+    //         filas+=`</tr>`;
+    //     })
 
-        bodyTableShowStocks.innerHTML= filas;
+    //     bodyTableShowStocks.innerHTML= filas;
        
-         var modal = $(this)
-         modal.find('.modal-title').text('Stocks: ' + product_name)
-         modal.find('.product_name').text(product_name);
-         cargarDataTables();
-    })
+    //      var modal = $(this)
+    //      modal.find('.modal-title').text('Stocks: ' + product_name)
+    //      modal.find('.product_name').text(product_name);
+    //      cargarDataTables();
+    // })
 
 
     function resetearTabla(){

@@ -141,35 +141,8 @@ $(".select2_form").select2({
             console.log(detallesSalida);
             if(detallesSalida.length>0){
                 
-                try {
-                    
-                    const formData  =   new FormData(e.target);
-                    formData.append('sede_id',@json($sede_id));
-                    formData.append('detalle',JSON.stringify(detallesSalida));
-                    const res       =   await axios.post(route('almacenes.traslados.store'),formData);
-
-                    if(res.data.success){
-                        toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
-                    }else{
-
-                    }
-
-                } catch (error) {
-                    if (error.response) {
-                        if (error.response.status === 422) {
-                            const errors = error.response.data.errors;
-                            pintarErroresValidacion(errors, 'error');
-                            toastr.error('Errores de validación encontrados.', 'ERROR DE VALIDACIÓN');
-                        } else {
-                            toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
-                        }
-                    } else if (error.request) {
-                        toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
-                    } else {
-                        toastr.error(error.message, 'ERROR DESCONOCIDO');
-                    }    
-                }
-
+                registrarTraslado(e.target);
+               
             }else{
                 toastr.error('El detalle del traslado está vacío!!!')
                 btnGrabar.disabled = false;
@@ -184,6 +157,80 @@ $(".select2_form").select2({
                 validarCantidadInstantanea(e);
             }
         })
+    }
+
+    function registrarTraslado(formRegistrarTraslado){
+        const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: false
+        });
+        swalWithBootstrapButtons.fire({
+        title: "Desea registrar el traslado?",
+        text: "Se generará una nota de salida en la sede origen, y una nota de ingreso en la sede destino!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí!",
+        cancelButtonText: "No!",
+        reverseButtons: true
+        }).then(async (result) => {
+        if (result.isConfirmed) {
+            
+            Swal.fire({
+                title: "Registrando traslado...",
+                text: "Por favor, espera mientras procesamos la solicitud.",
+                allowOutsideClick: false, 
+                allowEscapeKey: false,   
+                didOpen: () => {
+                    Swal.showLoading(); 
+                },
+            });
+
+            try {
+                    
+                const formData  =   new FormData(formRegistrarTraslado);
+                formData.append('sede_id',@json($sede_id));
+                formData.append('detalle',JSON.stringify(detallesSalida));
+                const res       =   await axios.post(route('almacenes.traslados.store'),formData);
+
+                if(res.data.success){
+                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                    window.location =  route('almacenes.traslados.index');
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+
+            } catch (error) {
+
+                if (error.response) {
+                    if (error.response.status === 422) {
+                        const errors = error.response.data.errors;
+                        pintarErroresValidacion(errors, 'error');
+                        toastr.error('Errores de validación encontrados.', 'ERROR DE VALIDACIÓN');
+                    } else {
+                        toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                    }
+                } else if (error.request) {
+                    toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+                } else {
+                     toastr.error(error.message, 'ERROR DESCONOCIDO');
+                }  
+
+            }
+
+        } else if (
+            /* Read more about handling dismissals below */
+            result.dismiss === Swal.DismissReason.cancel
+        ) {
+            swalWithBootstrapButtons.fire({
+            title: "Operación cancelada",
+            text: "No se realizaron acciones",
+            icon: "error"
+            });
+        }
+        });
     }
 
     //============ REORDENAR CARRITO ===============
