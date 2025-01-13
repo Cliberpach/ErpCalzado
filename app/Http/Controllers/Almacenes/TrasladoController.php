@@ -373,6 +373,10 @@ array:12 [
         return $kardex_datos;
     }
 
+    
+    public function generarGuiaCreate($traslado_id){
+        dd($traslado_id);
+    }
    
 
 }

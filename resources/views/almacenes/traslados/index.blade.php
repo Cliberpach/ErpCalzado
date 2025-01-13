@@ -111,15 +111,25 @@ $(document).ready(function() {
                     var url_detalles = '{{ route("almacenes.nota_salidad.show", ":id")}}';
                     url_detalles = url_detalles.replace(':id', data.id);
 
-                    return "<div class='btn-group' style='text-transform:capitalize;'><button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class='fa fa-bars'></i></button><ul class='dropdown-menu'>" +
-                        "<li><a class='dropdown-item' href='" + url_detalles +
-                        "' title='Detalles' ><b><i class='fa fa-eye'></i> Detalles</a></b></li>" +
-                        "<li class=''><a class='dropdown-item' href='#' title='Comprobante' onclick='comprobante("+data.id+")'><b><i class='fa fa-file-pdf-o'></i> Comprobante</a></b></li>" +
-                        "<li class='d-none'><a class='dropdown-item' href='" + url_editar +
-                        "' title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>" +
-                        "<li class='d-none'><a class='dropdown-item' onclick='eliminar(" + data.id +
-                        ")' title='Eliminar'><b><i class='fa fa-trash'></i> Eliminar</a></b></li>" +
-                    "</ul></div>"
+                    return `
+                            <div class='btn-group' style='text-transform:capitalize;'>
+                                <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
+                                <i class='fa fa-bars'></i>
+                                </button>
+                                <ul class='dropdown-menu'>
+                                    <li>
+                                        <a class='dropdown-item' href='${url_detalles}' title='Detalles'>
+                                        <b><i class='fa fa-eye'></i> Detalles</b>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class='dropdown-item' href='javascript:void(0);' title='Guía Remisión' onclick='generarGuia(${data.id})'>
+                                            <b><i class='fa fa-file-pdf-o'></i> Guía Remisión</b>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            `;
                 }
             }
 
@@ -152,10 +162,10 @@ function comprobante(id) {
 }
 
 
-function eliminar(id) {
+function generarGuia(id) {
     Swal.fire({
-        title: 'Opción Eliminar',
-        text: "¿Seguro que desea guardar cambios?",
+        title: 'Desea generar una guía de remisión',
+        text: "Será redirigido a un formulario de guía de remisión",
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: "#1ab394",
@@ -163,10 +173,12 @@ function eliminar(id) {
         cancelButtonText: "No, Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
-            //Ruta Eliminar
-            var url_eliminar = '{{ route("almacenes.nota_salidad.destroy", ":id")}}';
-            url_eliminar = url_eliminar.replace(':id', id);
-            $(location).attr('href', url_eliminar);
+
+            //==== RUTA GUÍA REMISIÓN ====
+            let guia_create    = '{{ route("almacenes.traslados.generarGuiaCreate", ":id")}}';
+            guia_create        = guia_create.replace(':id', id);
+
+            window.location.href = guia_create;
 
         } else if (
             /* Read more about handling dismissals below */

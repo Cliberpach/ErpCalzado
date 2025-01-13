@@ -66,49 +66,37 @@ class GuiaController extends Controller
         return view('ventas.guias.index');
     }
 
-    public function create($id)
+    public function create()
     {
       
-        $empresas = Empresa::where('estado','ACTIVO')->get();
-        $documento = Documento::findOrFail($id);
-        $detalles = Detalle::where('documento_id',$id)->get();
-        $clientes = Cliente::where('estado', 'ACTIVO')->get();
-        $productos = Producto::where('estado', 'ACTIVO')->get();
-        $direccion_empresa = Empresa::findOrFail($documento->empresa_id);
+        $empresas           = Empresa::where('estado','ACTIVO')->get();
+        // $documento          = Documento::findOrFail($id);
+        // // $detalles           = Detalle::where('documento_id',$id)->get();
+        $clientes           = Cliente::where('estado', 'ACTIVO')->get();
+        $productos          = Producto::where('estado', 'ACTIVO')->get();
+        // $direccion_empresa  = Empresa::findOrFail($documento->empresa_id);
         
-        /*$pesos_productos =  DB::table('cotizacion_documento_detalles')
-                    ->join('lote_productos','lote_productos.id','=','cotizacion_documento_detalles.lote_id')
-                    ->join('productos','productos.id','=','lote_productos.producto_id')
-                    ->select('productos.*','cotizacion_documento_detalles.*')
-                    ->where('cotizacion_documento_detalles.documento_id','=',$id)
-                    ->sum("productos.peso_producto");*/
-        $pesos_productos = 0.00;
-        // foreach($detalles as $detalle)
-        // {
-        //     $peso_item = $detalle->cantidad * $detalle->lote->producto->peso_producto;
-        //     $pesos_productos = $pesos_productos + $peso_item;
-        // }
+       
+        // $pesos_productos = 0.00;
+     
 
-
-      $detalles = $this->formatearArrayDetalle($detalles);
+        // $detalles = $this->formatearArrayDetalle($detalles);
       
-        $cantidad_productos =  DB::table('cotizacion_documento_detalles')
-                    ->where('cotizacion_documento_detalles.documento_id','=',$id)
-                    ->sum("cotizacion_documento_detalles.cantidad");
+        // $cantidad_productos =   DB::table('cotizacion_documento_detalles')
+        //                         ->where('cotizacion_documento_detalles.documento_id','=',$id)
+        //                         ->sum("cotizacion_documento_detalles.cantidad");
 
         return view('ventas.guias.create',[
 
-            'documento' => $documento,
-            'detalles' => $detalles,
-            'empresas' => $empresas,
-            'direccion_empresa' => $direccion_empresa,
-            'clientes' => $clientes,
-            'productos' => $productos,
-            'pesos_productos' => $pesos_productos,
-            'cantidad_productos' => $cantidad_productos,
+            // 'documento' => $documento,
+            // 'detalles' => $detalles,
+            'empresas'      => $empresas,
+            // 'direccion_empresa' => $direccion_empresa,
+            'clientes'      => $clientes,
+            'productos'     => $productos,
+            // 'pesos_productos'   => $pesos_productos,
+            // 'cantidad_productos' => $cantidad_productos,
         ]);
-
-
 
     }
 

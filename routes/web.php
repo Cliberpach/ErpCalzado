@@ -4,6 +4,7 @@ use App\Almacenes\Kardex;
 use App\Almacenes\LoteProducto;
 use App\Events\NotifySunatEvent;
 use App\Events\VentasCajaEvent;
+use App\Http\Controllers\Almacenes\ConductorController;
 use App\Http\Controllers\Almacenes\NotaSalidadController;
 use App\Http\Controllers\Pos\CajaController;
 use App\Mail\NotificacionFacturacionMail;
@@ -336,12 +337,42 @@ function(){
 
     //========== TRASLADOS =====
     Route::prefix('almacenes/traslados')->group(function() {
+
         Route::get('index', 'Almacenes\TrasladoController@index')->name('almacenes.traslados.index');
         Route::get('getTraslados', 'Almacenes\TrasladoController@getTraslados')->name('almacenes.traslados.getTraslados');
         Route::get('create', 'Almacenes\TrasladoController@create')->name('almacenes.traslados.create');
         Route::get('/getProductosAlmacen/{modelo_id}/{almacen_id}', 'Almacenes\TrasladoController@getProductosAlmacen')->name('almacenes.traslados.getProductosAlmacen');
         Route::get('getStock/{producto_id}/{color_id}/{talla_id}/{almacen_id}','Almacenes\TrasladoController@getStock')->name('almacenes.traslados.getStock');
         Route::post('store','Almacenes\TrasladoController@store')->name('almacenes.traslados.store');
+        Route::get('generarGuiaCreate/{traslado_id}', 'Almacenes\TrasladoController@generarGuiaCreate')->name('almacenes.traslados.generarGuiaCreate');
+    
+    });
+
+    //========== VEHÍCULOS =====
+    Route::prefix('almacenes/vehiculos')->group(function() {
+
+        Route::get('index', 'Almacenes\VehiculoController@index')->name('almacenes.vehiculos.index');
+        Route::get('getVehiculos', 'Almacenes\VehiculoController@getVehiculos')->name('almacenes.vehiculos.getVehiculos');
+        Route::get('create', 'Almacenes\VehiculoController@create')->name('almacenes.vehiculos.create');
+        Route::post('store', 'Almacenes\VehiculoController@store')->name('almacenes.vehiculos.store');
+        Route::get('edit/{id}', 'Almacenes\VehiculoController@edit')->name('almacenes.vehiculos.edit');
+        Route::put('update/{id}', 'Almacenes\VehiculoController@update')->name('almacenes.vehiculos.update');
+        Route::delete('destroy/{id}', 'Almacenes\VehiculoController@destroy')->name('almacenes.vehiculos.destroy');
+
+    });
+
+    //========== CONDUCTORES =====
+    Route::prefix('almacenes/conductores')->group(function() {
+
+        Route::get('index', 'Almacenes\ConductorController@index')->name('almacenes.conductores.index');
+        Route::get('getConductores', 'Almacenes\ConductorController@getConductores')->name('almacenes.conductores.getConductores');
+        Route::get('create', 'Almacenes\ConductorController@create')->name('almacenes.conductores.create');
+        Route::post('store', 'Almacenes\ConductorController@store')->name('almacenes.conductores.store');
+        Route::get('edit/{id}', 'Almacenes\ConductorController@edit')->name('almacenes.conductores.edit');
+        Route::put('update/{id}', 'Almacenes\ConductorController@update')->name('almacenes.conductores.update');
+        Route::delete('destroy/{id}', 'Almacenes\ConductorController@destroy')->name('almacenes.conductores.destroy');
+        Route::get('/consultarDni/{dni}', [ConductorController::class, 'consultarDni'])->name('almacenes.conductores.consultarDni');
+
     });
 
     //Compras
@@ -631,8 +662,8 @@ function(){
 
         Route::get('index', 'Ventas\GuiaController@index')->name('ventas.guiasremision.index');
         Route::get('getGuia','Ventas\GuiaController@getGuias')->name('ventas.getGuia');
-        Route::get('create/{id}', 'Ventas\GuiaController@create')->name('ventas.guiasremision.create');
-        Route::get('create_new', 'Ventas\GuiaController@create_new')->name('ventas.guiasremision.create_new');
+        // Route::get('create/{id}', 'Ventas\GuiaController@create')->name('ventas.guiasremision.create');
+        Route::get('create', 'Ventas\GuiaController@create')->name('ventas.guiasremision.create');
         Route::post('store', 'Ventas\GuiaController@store')->name('ventas.guiasremision.store');
         Route::put('update/{id}', 'Ventas\GuiaController@update')->name('ventas.guiasremision.update');
         Route::post('destroy', 'Ventas\GuiaController@destroy')->name('ventas.guiasremision.delete');

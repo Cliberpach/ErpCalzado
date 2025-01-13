@@ -171,3 +171,30 @@ function iniciarDataTable(idTabla) {
 
     return dtGenerico;
 }
+
+//=========== OBTENER FILA POR EL ID DE UN DATATABLE =========
+function getRowById(dtTabla,registro_id) {
+    let data    = dtTabla.rows().data();
+    let rowData = null;
+
+    for (let i = 0; i < data.length; i++) {
+        if (data[i].id == registro_id) {
+            rowData = data[i];
+            break;
+        }
+    }
+
+    return rowData;
+}
+
+//======== OBTENER FILA POR EL INDEX DEL DATATABLE ========
+function getRowByIndex(dtTabla, index) {
+    
+    if (index < 0 || index >= dtTabla.rows().count()) {
+        return null; 
+    }
+
+    let data = dtTabla.rows().data();
+    
+    return data[index];
+}
