@@ -6,7 +6,7 @@
 <div class="row wrapper border-bottom white-bg page-heading">
 
     <div class="col-lg-12">
-       <h2  style="text-transform:uppercase"><b>REGISTRAR NUEVAS NOTA DE SALIDA</b></h2>
+       <h2  style="text-transform:uppercase"><b>REGISTRAR NUEVA NOTA DE SALIDA</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{route('home')}}">Panel de Control</a>
@@ -141,16 +141,16 @@ $(".select2_form").select2({
          //============ EVENTO ENVIAR FORMULARIO =============
          formNotaSalida.addEventListener('submit',(e)=>{
             e.preventDefault();
-            btnGrabar.disabled=true;
-            console.log(detallesSalida);
-            if(detallesSalida.length>0){
-                inputProductos.value=JSON.stringify(detallesSalida);
-                console.log(inputProductos);
+            btnGrabar.disabled  =   true;
+          
+            if(detallesSalida.length > 0){
+
                 const formData = new FormData(formNotaSalida);
-                formData.forEach((valor, clave) => {
-                    console.log(`${clave}: ${valor}`);
-                });
-                formNotaSalida.submit();
+                formData.append('lstNs',JSON.stringify(detallesSalida))
+                formData.append('registrador_id',@json($registrador->id));
+                formData.append('sede_id',@json($sede_id));
+                registrarNotaSalida(formData);
+
             }else{
                 toastr.error('El detalle de la nota de salida está vacío!!!')
                 btnGrabar.disabled = false;
@@ -169,8 +169,8 @@ $(".select2_form").select2({
 
     }
 
-       //============ REORDENAR CARRITO ===============
-       const reordenarDetallesSalida= ()=>{
+    //============ REORDENAR CARRITO ===============
+    const reordenarDetallesSalida= ()=>{
         detallesSalida.sort(function(a, b) {
             if (a.producto_id === b.producto_id) {
                 return a.color_id - b.color_id;
@@ -226,7 +226,7 @@ $(".select2_form").select2({
 
      //======= CARGAR STOCKS LOGICOS DE PRODUCTOS POR MODELO =======
      async function getProductosByModelo(idModelo){
-
+        
         toastr.clear();
         modelo_id                   =   idModelo;
         btnAgregarDetalle.disabled  =   false;
@@ -256,18 +256,24 @@ $(".select2_form").select2({
 
         if(modelo_id){
             try {
+                mostrarAnimacion();
                 const url       =   route('almacenes.nota_salidad.getProductosAlmacen',
                                     {modelo_id,almacen_id:almacen_origen_id});
                 const response  =   await axios.get(url);
-                console.log(response.data);
-
-                destruirDataTable(dtNsProductos);
-                limpiarTabla('tabla_ns_productos');
-                pintarTableStocks(response.data.stocks,tallasBD,response.data.producto_colores);
-                dtNsProductos = iniciarDataTable('tabla_ns_productos');
+                
+                if(response.data.success){
+                    destruirDataTable(dtNsProductos);
+                    limpiarTabla('tabla_ns_productos');
+                    pintarTableStocks(response.data.stocks,tallasBD,response.data.producto_colores);
+                    dtNsProductos = iniciarDataTable('tabla_ns_productos');
+                }else{
+                    toastr.error(response.data.message,'ERROR EN EL SERVIDOR')
+                }
 
             } catch (error) {
                 console.error('Error al obtener productos por modelo:', error);
+            }finally{
+                ocultarAnimacion();
             }
         }
     }
@@ -426,7 +432,7 @@ $(".select2_form").select2({
             };
         }
 
-        if(almacen_origen_id.toString().trim().length === 0 && almacen_destino_id.toString().trim().length === 0){
+        if(!almacen_origen_id && !almacen_destino_id){
            return;
         }
 
@@ -448,6 +454,81 @@ $(".select2_form").select2({
 
             return;
         }
+
+    }
+
+
+    async function registrarNotaSalida(formData){
+
+        const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: false
+        });
+        swalWithBootstrapButtons.fire({
+        title: "Desea registrar la nota de salida?",
+        text: "Se generará una nota de ingreso para el almacén destino!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí!",
+        cancelButtonText: "No, cancelar!",
+        reverseButtons: true
+        }).then(async (result) => {
+        if (result.isConfirmed) {
+        
+            Swal.fire({
+                title: "Procesando...",
+                text: "Por favor, espere",
+                icon: "info",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            try {
+                toastr.clear();
+                const res   =   await axios.post(route('almacenes.nota_salidad.store'),formData);
+                
+                if(res.data.success){
+                    window.location =  route('almacenes.nota_salidad.index');
+                    toastr.success(res.data.message,'OPERCIÓN COMPLETADA');
+                }else{
+                    Swal.close();
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                if (error.response) {
+                    if (error.response.status === 422) {
+                        const errors = error.response.data.errors;
+                        pintarErroresValidacion(errors, 'error');
+                        Swal.close();
+                        toastr.error('Errores de validación encontrados.', 'ERROR DE VALIDACIÓN');
+                    } else {
+                        Swal.close();
+                        toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                    }
+                } else if (error.request) {
+                    Swal.close();
+                    toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+                } else {
+                    Swal.close();
+                    toastr.error(error.message, 'ERROR DESCONOCIDO');
+                }        
+            }
+
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            swalWithBootstrapButtons.fire({
+            title: "Operación cancelada",
+            text: "No se realizaron acciones",
+            icon: "error"
+            });
+        }
+        });
 
     }
 

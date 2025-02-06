@@ -14,13 +14,27 @@ class CreateNotaSalidadTable extends Migration
     public function up()
     {
         Schema::create('nota_salidad', function (Blueprint $table) {
+
             $table->Increments('id');
-            $table->string("numero");
-            $table->date("fecha");
-            $table->string("origen")->nullable();
-            $table->string("destino")->nullable();
-            $table->string("observacion")->nullable();
-            $table->string("usuario");
+
+            $table->unsignedBigInteger('sede_id'); 
+            $table->foreign('sede_id')->references('id')->on('empresa_sedes');
+
+            $table->unsignedBigInteger('registrador_id');
+            $table->foreign('registrador_id')->references('id')->on('users');
+
+            $table->unsignedBigInteger('almacen_origen_id');
+            $table->foreign('almacen_origen_id')->references('id')->on('almacenes');
+
+            $table->unsignedBigInteger('almacen_destino_id');
+            $table->foreign('almacen_destino_id')->references('id')->on('almacenes');
+
+            $table->string('registrador_nombre',200);
+            $table->string('almacen_origen_nombre',160);
+            $table->string('almacen_destino_nombre',160);
+
+            $table->string("observacion",200)->nullable();
+
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
             $table->timestamps();
         });

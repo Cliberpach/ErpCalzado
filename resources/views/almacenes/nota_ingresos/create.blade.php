@@ -69,13 +69,7 @@
 
                                             <div class="form-group row mt-3 content-window">
                                                 <div class="col-lg-12">
-                                                    <div class="sk-spinner sk-spinner-wave hide-window" >
-                                                        <div class="sk-rect1"></div>
-                                                        <div class="sk-rect2"></div>
-                                                        <div class="sk-rect3"></div>
-                                                        <div class="sk-rect4"></div>
-                                                        <div class="sk-rect5"></div>
-                                                    </div>
+                                            
                                                     @include('almacenes.nota_ingresos.tables.tbl_ni_productos')
                                                 </div>
                                             </div>
@@ -123,7 +117,6 @@
     </div>
 
 </div>
-@include('almacenes.nota_ingresos.modal')
 @stop
 
 @push('styles')
@@ -132,49 +125,13 @@
 
 
 <!-- DataTable -->
-<link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
+{{-- <link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet"> --}}
 
 <style>
     .talla-no-creada{
         color:rgb(201, 47, 9);
         font-weight: bold;
     }
-
-div.content-window {
-    position: relative;
-}
-
-div.content-window.sk__loading::after {
-    content: '';
-    background-color: rgba(255, 255, 255, 0.7);
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 3000;
-}
-
-.content-window.sk__loading>.sk-spinner.sk-spinner-wave {
-    margin: 0 auto;
-    width: 50px;
-    height: 30px;
-    text-align: center;
-    font-size: 10px;
-}
-
-.content-window.sk__loading>.sk-spinner {
-    display: block;
-    position: absolute;
-    top: 40%;
-    left: 0;
-    right: 0;
-    z-index: 3500;
-}
-
-.content-window .sk-spinner.sk-spinner-wave.hide-window {
-    display: none;
-}
 </style>
 
 @endpush
@@ -182,12 +139,6 @@ div.content-window.sk__loading::after {
 @push('scripts')
 <!-- Select2 -->
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-
-<!-- DataTable -->
-<script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
-
-
 
 
 <script>
@@ -198,8 +149,10 @@ div.content-window.sk__loading::after {
     });
 </script>
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
-<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
     const selectModelo          =   document.querySelector('#modelo');
@@ -289,8 +242,7 @@ div.content-window.sk__loading::after {
             e.preventDefault();
             btnGrabar.disabled          =   true;
             
-            if(carrito.length>0){
-                inputProductos.value    =   JSON.stringify(carrito);
+            if(carrito.length > 0){
 
                 Swal.fire({
                     title: 'Generar etiquetas adhesivas?',
@@ -301,12 +253,18 @@ div.content-window.sk__loading::after {
                     confirmButtonText: 'Si, generar',
                     cancelButtonText: "No",
                 }).then((result) => {
+
                     if (result.isConfirmed) {
                         document.querySelector('#generarAdhesivos').value   =   'SI';            
                     }else if (result.dismiss === Swal.DismissReason.cancel) {
                         document.querySelector('#generarAdhesivos').value   =   'NO';            
                     }
-                    formNotaIngreso.submit();
+                    
+                    const formData  =   new FormData(e.target);
+                    formData.append('lstNi',JSON.stringify(carrito))
+                    formData.append('registrador_id',@json($registrador->id));
+                    formData.append('sede_id',@json($sede_id));
+                    registrarNotaIngreso(formData);
                 })
             }else{
                 toastr.error('El detalle de la nota de ingreso está vacío!!!')
@@ -321,6 +279,80 @@ div.content-window.sk__loading::after {
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
             }
         })
+    }
+
+    async function registrarNotaIngreso(formData){
+
+        const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: false
+        });
+        swalWithBootstrapButtons.fire({
+        title: "Desea registrar la nota de ingreso?",
+        text: "Se ingresará stock en el almacén destino!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí!",
+        cancelButtonText: "No, cancelar!",
+        reverseButtons: true
+        }).then(async (result) => {
+        if (result.isConfirmed) {
+           
+            Swal.fire({
+                title: "Procesando...",
+                text: "Por favor, espere",
+                icon: "info",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            try {
+                toastr.clear();
+                const res   =   await axios.post(route('almacenes.nota_ingreso.store'),formData);
+                console.log(res);
+                if(res.data.success){
+                    window.location =  route('almacenes.nota_ingreso.index');
+                    toastr.success(res.data.message,'OPERCIÓN COMPLETADA');
+                }else{
+                    Swal.close();
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                if (error.response) {
+                    if (error.response.status === 422) {
+                        const errors = error.response.data.errors;
+                        pintarErroresValidacion(errors, 'error');
+                        Swal.close();
+                        toastr.error('Errores de validación encontrados.', 'ERROR DE VALIDACIÓN');
+                    } else {
+                        Swal.close();
+                        toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                    }
+                } else if (error.request) {
+                    Swal.close();
+                    toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+                } else {
+                    Swal.close();
+                    toastr.error(error.message, 'ERROR DESCONOCIDO');
+                }        
+            }
+
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            swalWithBootstrapButtons.fire({
+            title: "Operación cancelada",
+            text: "No se realizaron acciones",
+            icon: "error"
+            });
+        }
+        });
+       
     }
 
   
@@ -347,15 +379,26 @@ div.content-window.sk__loading::after {
 
         toastr.clear();
         modelo_id                   =   e.value;
+
         btnAgregarDetalle.disabled  =   true;
         
-        const almacen_id    =   document.querySelector('#almacen_destino').value;
+        const almacen_id            =   document.querySelector('#almacen_destino').value;
 
         if(modelo_id && !almacen_id){
+            mostrarAnimacion();
             toastr.error('DEBE SELECCIONAR UN ALMACÉN DE DESTINO!!!');
-            document.querySelector('#almacen_destino').focus();
-            bodyTablaProductos.innerHTML = ``;
+            
+            destruirDataTable(dtNiProductos);
+            limpiarTabla('tabla_ni_productos');
+            dtNiProductos   =   iniciarDataTable('tabla_ni_productos');
+
+            document.querySelector('#modelo').onchange = null;
             $('#modelo').val(null).trigger('change');
+            document.querySelector('#modelo').onchange = function() {
+                getNiProductos(this);
+            };
+            $('#almacen_destino').select2('open');
+            ocultarAnimacion();
         }
 
         if(modelo_id && almacen_id){

@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Ventas;
 
+use App\Almacenes\Almacen;
 use App\Almacenes\Categoria;
 use App\Almacenes\LoteProducto;
 use App\Almacenes\Marca;
@@ -8,6 +9,7 @@ use App\Almacenes\Producto;
 use App\Almacenes\Modelo;
 use App\Almacenes\Talla;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Ventas\Cotizacion\CotizacionStoreRequest;
 use App\Mantenimiento\Condicion;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Ventas\Cliente;
@@ -43,11 +45,15 @@ class CotizacionController extends Controller
 
     public function getTable()
     {
-        //$cotizaciones = Cotizacion::where('estado', '<>', 'ANULADO')->orderBy('id', 'desc')->get();
 
-        $cotizaciones   =   DB::select('select co.id,e.razon_social as empresa,cl.nombre as cliente,
-                            co.created_at,u.usuario,
-                            co.total_pagar,co.estado,
+        $cotizaciones   =   DB::select('select 
+                            co.id,
+                            e.razon_social as empresa,
+                            cl.nombre as cliente,
+                            co.created_at,
+                            u.usuario,
+                            co.total_pagar,
+                            co.estado,
                             IF(cd.cotizacion_venta IS NULL, "0", "1") as documento, 
                             IF(p.id is null,"-",concat("PE-",p.id)) as pedido_id,
                             IF(cd.cotizacion_venta IS NULL,"-",concat(cd.serie,"-",cd.correlativo)) as documento_cod
@@ -55,23 +61,10 @@ class CotizacionController extends Controller
                             left join cotizacion_documento as cd on cd.cotizacion_venta = co.id
                             left join pedidos as p on p.cotizacion_id = co.id
                             inner join empresas as e on e.id=co.empresa_id
-                            inner join clientes as cl on cl.id=co.cliente_id
-                            inner join users as u on u.id = co.user_id
+                            inner join clientes as cl on cl.id = co.cliente_id
+                            inner join users as u on u.id = co.registrador_id
                             order by co.id desc',[Auth::user()->id]);
-        
-        //$cotizaciones = collect($cotizaciones);
-        // $coleccion = collect([]);
-        // foreach($cotizaciones as $cotizacion) {
-        //     $coleccion->push([
-        //         'id' => $cotizacion->id,
-        //         'empresa' => $cotizacion->empresa->razon_social,
-        //         'cliente' => $cotizacion->cliente->nombre,
-        //         'fecha_documento' => Carbon::parse($cotizacion->fecha_documento)->format( 'd/m/Y'),
-        //         'total_pagar' => $cotizacion->total_pagar,
-        //         'estado' => $cotizacion->estado,
-        //         'documento' => $cotizacion->documento ? '1' : '0'
-        //     ]);
-        // }
+    
         return DataTables::of($cotizaciones)->toJson();
     }
 
@@ -81,149 +74,152 @@ class CotizacionController extends Controller
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();
 
-        $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
         $clientes           =   Cliente::where('estado', 'ACTIVO')->get();
-        $fecha_hoy          =   Carbon::now()->toDateString();
         $condiciones        =   Condicion::where('estado','ACTIVO')->get();
         $modelos            =   Modelo::where('estado','ACTIVO')->get();
         $categorias         =   Categoria::where('estado','ACTIVO')->get();
         $marcas             =   Marca::where('estado','ACTIVO')->get();
         $tallas             =   Talla::where('estado','ACTIVO')->get();
        
-        $vendedor_actual    =   DB::select('select c.id from user_persona as up
-                                inner join colaboradores  as c
-                                on c.persona_id=up.persona_id
-                                where up.user_id = ?',[Auth::id()]);
+        $registrador        =   DB::select('select 
+                                u.* 
+                                from users as u where u.id = ?',
+                                [Auth::user()->id])[0];
 
-        $vendedor_actual    =   $vendedor_actual?$vendedor_actual[0]->id:null;
-        
-        
-        return view('ventas.cotizaciones.create', compact('vendedor_actual','tallas','modelos','empresas',
-         'clientes', 'fecha_hoy', 'condiciones','tipos_documento','departamentos','tipo_clientes','categorias','marcas'));
+        $sede_id            =   Auth::user()->sede_id;
+
+        $almacenes          =   Almacen::where('sede_id',$sede_id)->where('estado','ACTIVO')->get();
+        $porcentaje_igv     =   Empresa::find(1)->igv;
+
+        return view('ventas.cotizaciones.create', 
+        compact(
+            'tallas',
+            'modelos',
+            'clientes', 
+            'condiciones',
+            'tipos_documento',
+            'departamentos',
+            'tipo_clientes',
+            'categorias',
+            'marcas',
+            'registrador',
+            'almacenes',
+            'sede_id',
+            'porcentaje_igv')
+        );
     }
 
-    public function store(Request $request)
+
+/*
+array:10 [
+  "_token"              => "XCcigubfOivrL6d1gCUmLO5X52q2rCU2nt6Xk2vN"
+  "registrador"         => "ADMINISTRADOR"
+  "fecha_registro"      => "2025-02-05"
+  "almacen"             => "1"
+  "condicion_id"        => "1"
+  "cliente"             => "1"
+  "lstCotizacion"       => "[{"producto_id":"1","color_id":"1","producto_nombre":"PRODUCTO TEST","color_nombre":"BLANCO","precio_venta":"1.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0,"tallas":[{"talla_id":"1","talla_nombre":"34","cantidad":"10"}],"subtotal":10},{"producto_id":"1","color_id":"2","producto_nombre":"PRODUCTO TEST","color_nombre":"AZUL","precio_venta":"1.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0,"tallas":[{"talla_id":"1","talla_nombre":"34","cantidad":"20"}],"subtotal":20},{"producto_id":"1","color_id":"3","producto_nombre":"PRODUCTO TEST","color_nombre":"CELESTE","precio_venta":"1.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0,"tallas":[{"talla_id":"1","talla_nombre":"34","cantidad":"30"}],"subtotal":30},{"producto_id":"1","color_id":"4","producto_nombre":"PRODUCTO TEST","color_nombre":"PLOMO","precio_venta":"1.00","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0,"tallas":[{"talla_id":"1","talla_nombre":"34","cantidad":"40"}],"subtotal":40}]"
+  "sede_id"             => "1"
+  "registrador_id"      => "1"
+  "porcentaje_igv"      => "18.00"
+  "montos_cotizacion"   => 
+                            "{"subtotal":"100.00","embalaje":"11.00","envio":"12.00",
+                            "total":"104.24","igv":"18.76",
+                            "totalPagar":"123.00","monto_descuento":"0.00"}"
+]
+*/ 
+    public function store(CotizacionStoreRequest $request)
     {
-        $data = $request->all();
-        $productos = json_decode($request->input('productos_tabla')[0]);
+
+        DB::beginTransaction();
+        try {
+            
+            $lstCotizacion      =   json_decode($request->get('lstCotizacion'));
+            $montos_cotizacion  =   json_decode($request->get('montos_cotizacion'));
         
-        $rules = [
-            'empresa' => 'required',
-            'cliente' => 'required',
-            'condicion_id' => 'required',
-            'fecha_documento' => 'required',
-            'fecha_atencion' => 'nullable',
-            // 'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
-        ];
+            //======= CALCULANDO MONTOS ========
+            $monto_subtotal     =   0.0;
+            $monto_embalaje     =   $montos_cotizacion->embalaje??0;
+            $monto_envio        =   $montos_cotizacion->envio??0;
+            $monto_total        =   0.0;
+            $monto_igv          =   0.0;
+            $monto_total_pagar  =   0.0;
+            $monto_descuento    =   $montos_cotizacion->monto_descuento??0;
 
-        $message = [
-            'empresa.required' => 'El campo Empresa es obligatorio',
-            'cliente.required' => 'El campo Cliente es obligatorio',
-            'condicion_id.required' => 'El campo condicion es obligatorio',
-            'moneda' => 'El campo Moneda es obligatorio',
-            'fecha_documento.required' => 'El campo Fecha de Documento es obligatorio',
-            // // 'igv.required_if' => 'El campo Igv es obligatorio.',
-            // // 'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
-            // // 'igv.numeric' => 'El campo Igv debe se numérico.',
-        ];
-
-        Validator::make($data, $rules, $message)->validate();
-
-        // $igv = $request->get('igv') && $request->get('igv_check') == "on" ? (float) $request->get('igv') : 18;
-        // $total = (float) $request->get('monto_total');
-        // $sub_total = $total / (1 + ($igv/100));
-        // $total_igv = $total - $sub_total;
-
-
-        //======= CALCULANDO MONTOS ========
-        $monto_subtotal     =   0.0;
-        $monto_embalaje     =   $request->get('monto_embalaje')??0;
-        $monto_envio        =   $request->get('monto_envio')??0;
-        $monto_total        =   0.0;
-        $monto_igv          =   0.0;
-        $monto_total_pagar  =   0.0;
-        $monto_descuento    =   $request->get('monto_descuento')??0;
-
-        foreach ($productos as $producto) {
-            if( floatval($producto->porcentaje_descuento) == 0){
-                $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta);
-            }else{
-                $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta_nuevo);
+            foreach ($lstCotizacion as $producto) {
+                if( floatval($producto->porcentaje_descuento) == 0){
+                    $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta);
+                }else{
+                    $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta_nuevo);
+                }
             }
+
+            $monto_total_pagar      =   $monto_subtotal+$monto_embalaje+$monto_envio;
+            $monto_total            =   $monto_total_pagar/1.18;
+            $monto_igv              =   $monto_total_pagar-$monto_total;
+            $porcentaje_descuento   =   ($monto_descuento*100)/($monto_total_pagar);
+
+
+            //======== REGISTRANDO MAESTRO COTIZACIÓN ======
+            $cotizacion                     =   new Cotizacion();
+            $cotizacion->empresa_id         =   1;
+            $cotizacion->cliente_id         =   $request->get('cliente');
+            $cotizacion->condicion_id       =   $request->get('condicion_id');
+            $cotizacion->registrador_id     =   $request->get('registrador_id');
+            $cotizacion->fecha_documento    =   Carbon::now()->format('Y-m-d');
+            $cotizacion->fecha_atencion     =   Carbon::now()->format('Y-m-d');
+            $cotizacion->sede_id            =   $request->get('sede_id');
+
+            $cotizacion->sub_total              =   $monto_subtotal;
+            $cotizacion->monto_embalaje         =   $monto_embalaje;
+            $cotizacion->monto_envio            =   $monto_envio;
+            $cotizacion->total_igv              =   $monto_igv;
+            $cotizacion->total                  =   $monto_total;
+            $cotizacion->total_pagar            =   $monto_total_pagar;  
+            $cotizacion->monto_descuento        =   $monto_descuento;
+            $cotizacion->porcentaje_descuento   =   $porcentaje_descuento;
+
+            $cotizacion->moneda             =   4;
+            $cotizacion->igv                =   $request->get('porcentaje_igv');
+            $cotizacion->igv_check          =   "1";
+            $cotizacion->save();
+
+            //Llenado de los Productos
+            foreach ($lstCotizacion as $item) {
+                //==== CALCULANDO MONTOS PARA EL DETALLE ====
+                $importe        =  floatval($item->cantidad) * floatval($item->precio_venta);
+                $precio_venta   =   $item->porcentaje_descuento == 0?$item->precio_venta:$item->precio_venta_nuevo;
+
+                CotizacionDetalle::create([
+                    'cotizacion_id'             => $cotizacion->id,
+                    'producto_id'               => $producto->producto_id,
+                    'color_id'                  => $producto->color_id,
+                    'talla_id'                  => $producto->talla_id,
+                    'cantidad'                  => $producto->cantidad,
+                    'precio_unitario'           => $producto->precio_venta,
+                    'importe'                   => $importe,
+                    'precio_unitario_nuevo'     =>  floatval($precio_venta),
+                    'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
+                    'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
+                    'importe_nuevo'             =>  floatval($precio_venta) * floatval($producto->cantidad),  
+
+                ]);
+            }
+
+            //Registro de actividad
+            $descripcion = "SE AGREGÓ LA COTIZACION CON LA FECHA: ". Carbon::parse($cotizacion->fecha_documento)->format('d/m/y');
+            $gestion = "COTIZACION";
+            crearRegistro($cotizacion, $descripcion , $gestion);
+
+            Session::flash('message_success','COTIZACIÓN REGISTRADA CON ÉXITO');
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>"COTIZACIÓN REGISTRADA CON ÉXITO"]);
+        
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
         }
-
-        $monto_total_pagar      =   $monto_subtotal+$monto_embalaje+$monto_envio;
-        $monto_total            =   $monto_total_pagar/1.18;
-        $monto_igv              =   $monto_total_pagar-$monto_total;
-        $porcentaje_descuento   = ($monto_descuento*100)/($monto_total_pagar);
-
-
-        $cotizacion = new Cotizacion();
-        $cotizacion->empresa_id         = $request->get('empresa');
-        $cotizacion->cliente_id         = $request->get('cliente');
-        $cotizacion->condicion_id       = $request->get('condicion_id');
-        //$cotizacion->vendedor_id = $request->get('vendedor');
-        $cotizacion->vendedor_id        =   $request->get('vendedor');
-        $cotizacion->moneda             = 4;
-        $cotizacion->fecha_documento    = $request->get('fecha_documento');
-        $cotizacion->fecha_atencion     = $request->get('fecha_atencion');
-
-        $cotizacion->sub_total              = $monto_subtotal;
-        $cotizacion->monto_embalaje         = $monto_embalaje;
-        $cotizacion->monto_envio            = $monto_envio;
-        $cotizacion->total_igv              = $monto_igv;
-        $cotizacion->total                  = $monto_total;
-        $cotizacion->total_pagar            = $monto_total_pagar;  
-        $cotizacion->monto_descuento        = $monto_descuento;
-        $cotizacion->porcentaje_descuento   = $porcentaje_descuento;
-
-        $cotizacion->user_id = Auth::id();
-        //$cotizacion->igv = $request->get('igv');
-        $cotizacion->igv = "18";
-        //if ($request->get('igv_check') == "on") {
-        $cotizacion->igv_check = "1";
-        //}
-        $cotizacion->save();
-
-        //Llenado de los Productos
-        //$productosJSON = $request->get('productos_tabla');
-        //$productotabla = json_decode($productosJSON[0]);
-        foreach ($productos as $producto) {
-            //==== CALCULANDO MONTOS PARA EL DETALLE ====
-            $importe =  floatval($producto->cantidad) * floatval($producto->precio_venta);
-            $precio_venta   =   $producto->porcentaje_descuento == 0?$producto->precio_venta:$producto->precio_venta_nuevo;
-
-            CotizacionDetalle::create([
-                'cotizacion_id' => $cotizacion->id,
-                'producto_id' => $producto->producto_id,
-                'color_id'  => $producto->color_id,
-                'talla_id' => $producto->talla_id,
-                'cantidad' => $producto->cantidad,
-                'precio_unitario' => $producto->precio_venta,
-                'importe' => $importe,
-                'precio_unitario_nuevo'     =>  floatval($precio_venta),
-                'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
-                'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
-                'importe_nuevo'             =>  floatval($precio_venta) * floatval($producto->cantidad),  
-
-                //'descuento'=> $producto->descuento,
-                //'dinero'=> $producto->dinero,
-                //'valor_unitario' => $producto->valor_unitario,
-                //'precio_unitario' => $producto->precio_unitario,
-                //'precio_inicial' => $producto->precio_inicial,
-                //'precio_nuevo' => $producto->precio_nuevo,
-                //'cantidad' => $producto->cantidad,
-                //'valor_venta' => $producto->valor_venta,
-            ]);
-        }
-
-        //Registro de actividad
-        $descripcion = "SE AGREGÓ LA COTIZACION CON LA FECHA: ". Carbon::parse($cotizacion->fecha_documento)->format('d/m/y');
-        $gestion = "COTIZACION";
-        crearRegistro($cotizacion, $descripcion , $gestion);
-
-        Session::flash('success','Cotización creada.');
-        return redirect()->route('ventas.cotizacion.index')->with('guardar', 'success');
+        
     }
 
     public function edit($id)
@@ -736,7 +732,6 @@ class CotizacionController extends Controller
             $modelo_id      =   $request->get('modelo_id');
 
 
-
             $query = 'SELECT p.id, p.nombre 
                     FROM productos AS p 
                     WHERE p.estado = "ACTIVO"';
@@ -766,7 +761,7 @@ class CotizacionController extends Controller
         }
     }
 
-    public function getColoresTallas($producto_id){
+    public function getColoresTallas($almacen_id,$producto_id){
        
         try {
 
@@ -792,17 +787,29 @@ class CotizacionController extends Controller
                                     inner join productos as p on p.id = pc.producto_id
                                     inner join colores as c on c.id = pc.color_id
                                 WHERE 
-                                    pc.producto_id = ? 
-                                    AND p.estado = "ACTIVO" and c.estado = "ACTIVO" ',[$producto_id]);
+                                    pc.almacen_id  = ?
+                                    AND pc.producto_id = ? 
+                                    AND p.estado = "ACTIVO" and c.estado = "ACTIVO" ',
+                        [$almacen_id,$producto_id]);
 
-            $stocks =   DB::select('select  pct.producto_id,pct.color_id,pct.talla_id,
-                        pct.stock,pct.stock_logico, t.descripcion as talla_nombre
+            $stocks =   DB::select('select  
+                        pct.producto_id,
+                        pct.color_id,
+                        pct.talla_id,
+                        pct.stock,
+                        pct.stock_logico, 
+                        t.descripcion as talla_nombre
                         from producto_color_tallas as pct
                         inner join productos as p on p.id = pct.producto_id
                         inner join colores as c on c.id = pct.color_id 
                         inner join tallas as t on t.id = pct.talla_id
-                        where p.estado = "ACTIVO" and c.estado = "ACTIVO" and t.estado = "ACTIVO"
-                        and p.id = ?',[$producto_id]);
+                        where 
+                        p.estado = "ACTIVO" 
+                        and c.estado = "ACTIVO" 
+                        and t.estado = "ACTIVO"
+                        and pct.almacen_id = ?
+                        AND p.id = ?',
+                        [$almacen_id,$producto_id]);
 
             $tallas =   Talla::where('estado','ACTIVO')->orderBy('id')->get();   
 
@@ -811,8 +818,6 @@ class CotizacionController extends Controller
                 $producto_color_tallas  =   $this->formatearColoresTallas($colores,$stocks,$precios_venta,$tallas);
             }
 
-          
-            
             return response()->json(['success' => true,'producto_color_tallas'=>$producto_color_tallas]);
         } catch (\Throwable $th) {
     

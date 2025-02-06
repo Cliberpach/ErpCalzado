@@ -164,11 +164,13 @@
                     toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
                     window.location.href = "{{ route('mantenimiento.sedes.index') }}";
                 }else{
+                    Swal.close();
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
 
             } catch (error) {
-                console.log(error);
+                
+                Swal.close();
 
                 if(error.response.status === 422){
                     toastr.error('VALIDACIÓN CON ERRORES!!!','ERROR EN EL SERVIDOR');
@@ -178,8 +180,6 @@
                 }
 
                 toastr.error(error,'ERROR EN LA PETICIÓN REGISTRAR SEDE!!!');
-            }finally{
-                Swal.close();
             }
 
         } else if (

@@ -24,6 +24,10 @@ class CreateUsersTable extends Migration
             $table->rememberToken();
             $table->string('ruta_imagen')->nullable();
             $table->string('nombre_imagen')->nullable();
+            
+            $table->unsignedBigInteger('sede_id'); 
+            $table->foreign('sede_id')->references('id')->on('empresa_sedes');
+
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
             $table->timestamps();
         });

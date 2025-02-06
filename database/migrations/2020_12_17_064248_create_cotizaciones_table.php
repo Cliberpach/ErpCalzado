@@ -16,15 +16,23 @@ class CreateCotizacionesTable extends Migration
         Schema::create('cotizaciones', function (Blueprint $table) {
             $table->Increments('id');
 
+            $table->unsignedBigInteger('almacen_id');
+            $table->foreign('almacen_id')->references('id')->on('almacenes');
+
             $table->unsignedInteger('empresa_id');
-            $table->foreign('empresa_id')->references('id')->on('empresas')->onDelete('cascade');
+            $table->foreign('empresa_id')->references('id')->on('empresas');
+
+            $table->unsignedBigInteger('sede_id');
+            $table->foreign('sede_id')->references('id')->on('empresa_sedes');
             
             $table->unsignedInteger('cliente_id');
-            $table->foreign('cliente_id')->references('id')->on('clientes')->onDelete('cascade');
+            $table->foreign('cliente_id')->references('id')->on('clientes');
             
-            $table->foreignId('condicion_id')->nullable()->constrained()->onDelete('SET NULL');
+            $table->unsignedBigInteger('condicion_id');
+            $table->foreign('sedecondicion_id_id')->references('id')->on('condicions');
 
-            $table->unsignedInteger('vendedor_id')->nullable();
+            $table->unsignedBigInteger('registrador_id');
+            $table->foreign('registrador_id')->references('id')->on('users');
 
             $table->date('fecha_documento');
             $table->date('fecha_atencion')->nullable();
@@ -43,9 +51,6 @@ class CreateCotizacionesTable extends Migration
 
             $table->string('moneda');
 
-            //$table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->unsignedInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->enum('estado',['VIGENTE','ATENDIDA', 'ANULADO', 'VENCIDA'])->default('VIGENTE');
             $table->timestamps();
         });

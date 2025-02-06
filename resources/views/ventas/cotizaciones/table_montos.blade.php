@@ -35,7 +35,7 @@
           <td class="total" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
         </tr>
         <tr>
-          <td colspan="{{count($tallas) + 5 }}" style="font-weight: bold;text-align:end;">IGV:</td>
+          <td colspan="{{count($tallas) + 5 }}" style="font-weight: bold;text-align:end;">IGV({{$porcentaje_igv}}%):</td>
           <td class="igv" colspan="1" style="font-weight: bold;text-align:end;">S/. 00.00</td>
         </tr>
         <tr>

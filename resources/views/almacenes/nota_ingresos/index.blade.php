@@ -33,22 +33,7 @@
             <div class="ibox ">
                 <div class="ibox-content">
                     <div class="table-responsive">
-                        <table class="table dataTables-ingreso_mercaderia table-striped table-bordered table-hover"
-                        style="text-transform:uppercase">
-                            <thead>
-                                <tr>
-                                    <th class="text-center">#</th>
-                                    <th class="text-center">Usuario</th>
-                                    <th class="text-center">Fecha Registro</th>
-                                    <th class="text-center">Productos</th>
-                                    <th class="text-center">Observación</th>
-                                    <th class="text-center">ACCIONES</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                            </tbody>
-                        </table>
+                       @include('almacenes.nota_ingresos.tables.tbl_ni_list')
                     </div>
                 </div>
             </div>
@@ -68,31 +53,17 @@
 <script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 
-<script>
-    let message     =   null;
-    let exception   =   null;
 
-    @if(Session::has('nota_ingreso_error_message') && Session::has('nota_ingreso_error_exception'))
-        message         =   "{{ Session::get('nota_ingreso_error_message') }}";   
-        exception       =   "{{ Session::get('nota_ingreso_error_exception') }}";   
-
-        toastr.error(exception,message,{timeOut:0});
-    @endif
-</script>
-
-<script>
-     @if(Session::has('succes_store_nota_ingreso'))
-        toastr.success('{{ Session::get('succes_store_nota_ingreso') }}','OPERACIÓN COMPLETADA');
-    @endif
-</script>
 
 
 <script>
-$(document).on("click","#importar",function(e)
-{
-    $("#modal_file").modal("show");
-});
+// $(document).on("click","#importar",function(e)
+// {
+//     $("#modal_file").modal("show");
+// });
+
 $(document).ready(function() {
+
     $('.dataTables-errores').DataTable({
         "dom": '<"html5buttons"B>lTfgitp',
         "buttons": [
@@ -159,8 +130,9 @@ $(document).ready(function() {
         "columns": [
             //ingreso_mercaderia INTERNA
             { data: 'id',className: "text-center"},
-            { data: 'usuario',className: "text-center"},
+            { data: 'registrador_nombre',className: "text-center"},
             { data: 'created_at',className: "text-center"},
+            { data: 'almacen_destino_nombre',className: "text-center"},
             { data: 'cadena_detalles',className: "text-center"},
             { data: 'observacion',className: "text-center"},
             {
@@ -224,35 +196,6 @@ const swalWithBootstrapButtons = Swal.mixin({
     },
     buttonsStyling: false
 })
-
-function eliminar(id) {
-    Swal.fire({
-        title: 'Opción Eliminar',
-        text: "¿Seguro que desea guardar cambios?",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: "#1ab394",
-        confirmButtonText: 'Si, Confirmar',
-        cancelButtonText: "No, Cancelar",
-    }).then((result) => {
-        if (result.isConfirmed) {
-            //Ruta Eliminar
-            var url_eliminar = '{{ route("almacenes.nota_ingreso.destroy", ":id")}}';
-            url_eliminar = url_eliminar.replace(':id', id);
-            $(location).attr('href', url_eliminar);
-
-        } else if (
-            /* Read more about handling dismissals below */
-            result.dismiss === Swal.DismissReason.cancel
-        ) {
-            swalWithBootstrapButtons.fire(
-                'Cancelado',
-                'La Solicitud se ha cancelado.',
-                'error'
-            )
-        }
-    })
-}
 
 </script>
 @endpush

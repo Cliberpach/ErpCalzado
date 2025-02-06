@@ -82,7 +82,7 @@ class DetalleNotaSalidad extends Model
     }
 
     
-    protected static function booted()
+    /*protected static function booted()
     {
        //=========== ACTUALIZANDO STOCK PRODUCTOS ===============
        static::created(function(DetalleNotaSalidad $detalleNotaSalida){
@@ -271,8 +271,9 @@ class DetalleNotaSalidad extends Model
             $kardex->save();
           
        });
+    */
        
-   //     static::created(function (detalleNotaSalida $detalle) {
+    /*     static::created(function (detalleNotaSalida $detalle) {
 
    //         $lote = new LoteProducto();
    //         $lote->nota_ingreso_id = $detalle->nota_ingreso->id;
@@ -369,4 +370,5 @@ class DetalleNotaSalidad extends Model
     //          //$producto->update();
     //     });
     // }
+    */
 }

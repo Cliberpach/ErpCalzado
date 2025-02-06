@@ -14,13 +14,18 @@ class CreateProductoColoresTable extends Migration
     public function up()
     {
         Schema::create('producto_colores', function (Blueprint $table) {
+
+            $table->unsignedInteger('almacen_id'); 
             $table->unsignedInteger('producto_id'); 
             $table->unsignedInteger('color_id'); 
+
+            $table->foreign('almacen_id')->references('id')->on('almacenes');
             $table->foreign('producto_id')->references('id')->on('productos');
             $table->foreign('color_id')->references('id')->on('colores');
+
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
             $table->timestamps();
-            $table->primary(['producto_id', 'color_id']); 
+            $table->primary(['almacen_id', 'producto_id', 'color_id'], 'pk_apc');
         });
     }
 

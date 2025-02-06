@@ -246,7 +246,9 @@ array:4 [
             }
 
             //======== EVITAR DUPLICADOS =======
-            $existe =   DB::select('select * from empresa_numeracion_facturaciones as enf
+            $existe =   DB::select('select 
+                        enf.* 
+                        from empresa_numeracion_facturaciones as enf
                         where 
                         enf.tipo_comprobante = ?
                         and enf.sede_id = ?
@@ -273,7 +275,7 @@ array:4 [
             }
 
             //========= REGISTRANDO NUMERACIÓN =====
-            $numeracion                     = new Numeracion();
+            $numeracion                     =   new Numeracion();
             $numeracion->empresa_id         =   1;
             $numeracion->sede_id            =   $sede_id;
             $numeracion->serie              =   $tipo_comprobante[0]->parametro.$sede->serie; 

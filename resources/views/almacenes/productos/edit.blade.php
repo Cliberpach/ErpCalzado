@@ -154,7 +154,8 @@
         //=========== CUANDO SE CARGUE EL HTML Y CSS HACER ESTO =========
         document.addEventListener('DOMContentLoaded',()=>{
 
-            limpiarTabla('table-colores');
+            limpiarTabla('tbl_producto_colores');
+            //pintarTablaColores(@json($colores));
             cargarDatatables();
 
             loadSelect2();
@@ -395,7 +396,7 @@
 
         //========== cargar datatables =======
         const cargarDatatables = ()=>{
-            datatableColores = new DataTable('#table-colores',
+            datatableColores = new DataTable('#tbl_producto_colores',
             {
                 language: {
                     processing:     "Cargando...",
@@ -549,7 +550,7 @@
     }
 
     function pintarTablaColores(lstColores){
-        const tbody =   document.querySelector('#table-colores tbody');
+        const tbody =   document.querySelector('#tbl_producto_colores tbody');
 
         let filas   =   '';
 
@@ -588,7 +589,7 @@
 
             if(!producto_id || !almacen_id){
                 destruirDataTable(datatableColores);
-                limpiarTabla('table-colores');
+                limpiarTabla('tbl_producto_colores');
                 cargarDatatables();
                 coloresAsignados    =   [];
                 return;
@@ -605,7 +606,7 @@
                 })
 
                 destruirDataTable(datatableColores);
-                limpiarTabla('table-colores');
+                limpiarTabla('tbl_producto_colores');
                 pintarTablaColores(@json($colores));
                 cargarDatatables();
                 

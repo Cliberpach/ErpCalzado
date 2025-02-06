@@ -14,10 +14,13 @@ class CreateProductoColorTallasTable extends Migration
     public function up()
     {
         Schema::create('producto_color_tallas', function (Blueprint $table) {
+
+            $table->unsignedInteger('almacen_id'); 
             $table->unsignedInteger('producto_id'); 
             $table->unsignedInteger('color_id'); 
             $table->unsignedInteger('talla_id'); 
 
+            $table->foreign('almacen_id')->references('id')->on('almacenes');
             $table->foreign('producto_id')->references('id')->on('productos');
             $table->foreign('color_id')->references('id')->on('colores');
             $table->foreign('talla_id')->references('id')->on('tallas');
@@ -29,7 +32,7 @@ class CreateProductoColorTallasTable extends Migration
             $table->longText('ruta_cod_barras')->nullable(); 
 
             $table->timestamps();
-            $table->primary(['producto_id', 'color_id','talla_id']); 
+            $table->primary(['almacen_id', 'producto_id', 'color_id', 'talla_id'], 'pk_apct');
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
         });
     }

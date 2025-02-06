@@ -70,7 +70,7 @@
                         <span class="input-group-text" id="basic-addon1">
                             <i class="fas fa-list-ol"></i>
                         </span>
-                        <input minlength="3" maxlength="3" value="" name="serie" id="serie" type="email" class="form-control" placeholder="Serie" aria-label="Username" aria-describedby="basic-addon1">
+                        <input minlength="3" maxlength="3" value="" name="serie" id="serie" type="text" class="form-control" placeholder="Serie" aria-label="Username" aria-describedby="basic-addon1">
                     </div>
                     <span class="urbanizacion_error msgError"  style="color:red;"></span>
                     <span style="color: blue; font-style: italic;">Ingrese una serie de 3 caracteres numéricos o alfanuméricos</span>

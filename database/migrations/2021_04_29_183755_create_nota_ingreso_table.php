@@ -14,22 +14,22 @@ class CreateNotaIngresoTable extends Migration
     public function up()
     {
         Schema::create('nota_ingreso', function (Blueprint $table) {
-            $table->Increments('id');
-            $table->string("numero");
-            $table->date("fecha");
-            $table->string("origen")->nullable();
-            $table->string("destino")->nullable();
-            $table->string("usuario");
-            $table->longText("observacion")->nullable();
 
-            // $table->string('moneda')->nullable();
-            // $table->unsignedDecimal('tipo_cambio', 15, 4)->nullable();
-            // $table->unsignedDecimal('dolar', 15, 4)->nullable();
-            // $table->unsignedDecimal('total', 15, 4)->nullable();
-            // $table->unsignedDecimal('total_soles', 15, 4)->nullable();
-            // $table->unsignedDecimal('total_dolares', 15, 4)->nullable();
-            // $table->unsignedDecimal('total_mas_igv_soles', 15, 4)->nullable();
-            // $table->unsignedDecimal('total_mas_igv_dolares', 15, 4)->nullable();
+            $table->Increments('id');
+
+            $table->unsignedBigInteger('registrador_id'); 
+            $table->foreign('registrador_id')->references('id')->on('users');
+
+         
+            $table->unsignedInteger('almacen_destino_id'); 
+            $table->foreign('almacen_destino_id')->references('id')->on('almacenes');
+
+            $table->string("almacen_destino_nombre",160);
+
+            $table->unsignedBigInteger('sede_id'); 
+            $table->foreign('sede_id')->references('id')->on('empresa_sedes');
+            
+            $table->string("observacion",200)->nullable();
 
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
             $table->timestamps();

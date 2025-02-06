@@ -15,20 +15,30 @@ class CreateDetalleNotaSalidadTable extends Migration
     {
         Schema::create('detalle_nota_salidad', function (Blueprint $table) {
             $table->Increments('id');
+
             $table->unsignedInteger('nota_salidad_id')->unsigned();
-            $table->foreign('nota_salidad_id')
-                  ->references('id')->on('nota_salidad') 
-                  ->onDelete('cascade');
+            $table->foreign('nota_salidad_id')->references('id')->on('nota_salidad');
+
+            $table->unsignedInteger('almacen_id')->unsigned();
+            $table->foreign('almacen_id')->references('id')->on('almacenes');
 
             $table->unsignedInteger('producto_id')->unsigned();
             $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
+            
             $table->unsignedInteger('color_id')->unsigned();
             $table->foreign('color_id')->references('id')->on('colores')->onDelete('cascade');
+            
             $table->unsignedInteger('talla_id')->unsigned();
             $table->foreign('talla_id')->references('id')->on('tallas')->onDelete('cascade');
-            // $table->unsignedInteger('lote_id')->unsigned();
-            // $table->foreign('lote_id')->references('id')->on('lote_productos')->onDelete('cascade');
+           
+            
+            $table->string('almacen_nombre',160);
+            $table->string('producto_nombre',160);
+            $table->string('color_nombre',160);
+            $table->string('talla_nombre',160);
+            
             $table->unsignedDecimal('cantidad', 15,2);
+
             $table->timestamps();
         });
     }

@@ -12,24 +12,30 @@
             </div>
             <div class="form-group row">
 
-                <input type="hidden" id="numero" name="numero" class="form-control" value="{{$ngenerado}}" >
-                <div class="col-12 col-md-3"  id="fecha">
-                    <label>Fecha</label>
-                    <div class="input-group date">
-                        <span class="input-group-addon">
-                            <i class="fa fa-calendar"></i>
-                        </span>
-                        <input type="date" id="fecha" name="fecha"
-                            class="form-control {{ $errors->has('fecha') ? ' is-invalid' : '' }}"
-                            value="{{old('fecha',$fecha_hoy)}}"
-                            autocomplete="off" readonly required>
-                        @if ($errors->has('fecha'))
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $errors->first('fecha') }}</strong>
-                        </span>
-                        @endif
+                <div class="col-12 col-lg-3 col-md-3 mb-3">
+                    <label for="registrador" style="font-weight: bold;">REGISTRADOR</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text" id="basic-addon1">
+                            <i class="fas fa-user-shield"></i>
+                          </span>
+                        </div>
+                        <input value="{{$registrador->usuario}}" readonly name="registrador" id="registrador" type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+                      </div>
+                </div>
+
+                <div class="col-12 col-lg-3 col-md-3 mb-3">
+                    <label for="fecha_registro" style="font-weight: bold;">FECHA REGISTRO</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text" id="basic-addon1">
+                            <i class="fas fa-calendar-alt"></i>
+                          </span>
+                        </div>
+                        <input value="<?= date('Y-m-d'); ?>" readonly name="registrador" id="fecha_registro" type="date" class="form-control">
                     </div>
                 </div>
+
                 <div class="col-12 col-md-3">
                     <label class="required" style="font-weight: bold;">Almacén Origen</label>
                     <select onchange="cambiarAlmacen(this);" name="almacen_origen" id="almacen_origen" class="select2_form form-control {{ $errors->has('almacen_origen') ? ' is-invalid' : '' }}" required>
@@ -61,7 +67,7 @@
 
                 <div class="col-12 col-md-3">
                     <label>Observación</label>
-                    <textarea type="text" name="observacion" rows="2" id="observacion" class="form-control" placeholder="Observación"></textarea>
+                    <textarea maxlength="160" type="text" name="observacion" rows="2" id="observacion" class="form-control" placeholder="Observación"></textarea>
                 </div>
 
             </div>

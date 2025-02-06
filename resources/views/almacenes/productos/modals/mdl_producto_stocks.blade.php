@@ -132,6 +132,7 @@
         let filas   =   ``;
         lstColores.forEach((c)=>{
             filas   +=  `<tr data-color-id="${c.color_id}">
+                            <td>${c.color_id}</td>
                             <td>${c.color_nombre}</td>
                         </tr>`;
         })

@@ -100,7 +100,6 @@ array:12 [
      
         $this->authorize('haveaccess','producto.index');
         $data = $request->all();
-     
       
         DB::beginTransaction();
 
@@ -123,12 +122,12 @@ array:12 [
             $coloresAsignados = json_decode($request->get('coloresJSON'));
 
             foreach ($coloresAsignados as $color_id) {
-                $almacen_id     =   $request->get('almacen');
+                $almacen_id                     =   $request->get('almacen');
 
                 $producto_color                 =   new ProductoColor();
+                $producto_color->almacen_id     =   $almacen_id;
                 $producto_color->producto_id    =   $producto->id;
                 $producto_color->color_id       =   $color_id;
-                $producto_color->almacen_id     =   $almacen_id;
                 $producto_color->save();     
             }
 

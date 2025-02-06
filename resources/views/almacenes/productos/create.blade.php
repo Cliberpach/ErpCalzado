@@ -67,11 +67,13 @@
         const tableColores              =   document.querySelector('#table-colores');
 
         let coloresAsignados    = [];
-        let datatableColores = null;
+        let datatableColores    = null;
 
         //=========== CUANDO SE CARGUE EL HTML Y CSS HACER ESTO =========
         document.addEventListener('DOMContentLoaded',()=>{
+            const colores   =   @json($colores);
             loadSelect2();
+            pintarTablaColores(colores);
             cargarDatatables();
             events();
         })
@@ -307,8 +309,8 @@
         }
 
         //========== cargar datatables =======
-        const cargarDatatables = ()=>{
-            datatableColores = new DataTable('#table-colores',
+        const cargarDataTablaColores = ()=>{
+            datatableColores = new DataTable('#tbl_producto_colores',
             {
                 language: {
                     processing:     "Cargando...",
@@ -416,7 +418,7 @@
                         toastr.error(error.message, 'ERROR DESCONOCIDO');
                     }           
                 }finally{
-                    Swal.close();
+                    Swal.close(); 
                 }
                     
             } else if (result.dismiss === Swal.DismissReason.cancel) {
@@ -427,6 +429,59 @@
                 )
             }
         })        
+    }
+
+
+        //========== cargar datatables =======
+        const cargarDatatables = ()=>{
+            datatableColores = new DataTable('#tbl_producto_colores',
+            {
+                language: {
+                    processing:     "Cargando...",
+                    search:         "BUSCAR: ",
+                    lengthMenu:    "MOSTRAR _MENU_ COLORES",
+                    info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ COLORES",
+                    infoEmpty:      "MOSTRANDO 0 ELEMENTOS",
+                    infoFiltered:   "(FILTRADO de _MAX_ COLORES)",
+                    infoPostFix:    "",
+                    loadingRecords: "CARGA EN CURSO",
+                    zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+                    emptyTable:     "NO HAY COLORES DISPONIBLES",
+                    paginate: {
+                        first:      "PRIMERO",
+                        previous:   "ANTERIOR",
+                        next:       "SIGUIENTE",
+                        last:       "ÚLTIMO"
+                    },
+                    aria: {
+                        sortAscending:  ": activer pour trier la colonne par ordre croissant",
+                        sortDescending: ": activer pour trier la colonne par ordre décroissant"
+                    }
+                }
+            });
+        }
+
+    function pintarTablaColores(lstColores){
+        const tbody =   document.querySelector('#tbl_producto_colores tbody');
+
+        let filas   =   '';
+
+        lstColores.forEach((color)=>{
+
+            filas   +=  `<tr>
+                            <td style="text-align:start;font-weight:bold;">${color.id}</td>
+                            <td>
+                                <div class="form-check">
+                                    <input  class="form-check-input checkColor" type="checkbox" value="" id="checkColor_${color.id}" data-color-id="${color.id}">
+                                    <label class="form-check-label" for="checkColor_${color.id}">
+                                        ${color.descripcion}
+                                    </label>
+                                </div> 
+                            </td>
+                        </tr>`;
+        })
+
+        tbody.innerHTML =   filas;
     }
 
 </script>

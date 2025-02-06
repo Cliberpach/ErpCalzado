@@ -7,10 +7,12 @@ use App\Almacenes\Color;
 use App\Almacenes\Talla; 
 use App\Almacenes\Modelo; 
 use App\Almacenes\DetalleNotaIngreso;
+use App\Almacenes\Kardex;
 use App\Almacenes\LoteProducto;
 use App\Almacenes\MovimientoNota;
 use App\Almacenes\NotaIngreso;
 use App\Almacenes\Producto;
+use App\Almacenes\ProductoColor;
 use App\Exports\ErrorExcel;
 use App\Exports\ModeloExport;
 use App\Exports\ProductosExport;
@@ -45,15 +47,18 @@ class NotaIngresoController extends Controller
         $this->authorize('haveaccess','nota_ingreso.index');
         return view('almacenes.nota_ingresos.index');
     }
+
     public function gettable()
     {
-        $data = DB::table("nota_ingreso as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
-        $detalles = DB::select('select distinct p.nombre as producto_nombre,ni.id as nota_ingreso_id,ni.observacion
-                from nota_ingreso as ni 
-                inner join detalle_nota_ingreso as dni
-                on ni.id=dni.nota_ingreso_id
-                inner join productos as p
-                on p.id=dni.producto_id');
+        $data       =   DB::table("nota_ingreso as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
+        $detalles   =   DB::select('select distinct 
+                        p.nombre as producto_nombre,
+                        ni.id as nota_ingreso_id,
+                        ni.almacen_destino_nombre,
+                        ni.observacion
+                        from nota_ingreso as ni 
+                        inner join detalle_nota_ingreso as dni on ni.id=dni.nota_ingreso_id
+                        inner join productos as p on p.id=dni.producto_id');
 
         foreach ($data as $notaIngreso) {
             
@@ -95,87 +100,44 @@ class NotaIngresoController extends Controller
 
         $this->authorize('haveaccess','nota_ingreso.index');
 
-        $fecha_hoy      =   Carbon::now()->toDateString();
-        $fecha          =   Carbon::createFromFormat('Y-m-d', $fecha_hoy);
-        $fecha          =   str_replace("-", "", $fecha);
-        $fecha          =   str_replace(" ", "", $fecha);
-        $fecha          =   str_replace(":", "", $fecha);
-        $fecha_actual   =   Carbon::now();
-        $fecha_actual   =   date("d/m/Y",strtotime($fecha_actual));
-        $fecha_5        =   date("Y-m-d",strtotime($fecha_hoy."+ 5 years"));
-        $origenes       =   General::find(28)->detalles;
-        $destinos       =   General::find(29)->detalles;
-        $ngenerado      =   $fecha . (DB::table('nota_ingreso')->count() + 1);
-        $usuarios       =   User::get();
-        $productos      =   Producto::where('estado', 'ACTIVO')->get();
-        $monedas        =   tipos_moneda();
         $modelos        =   Modelo::where('estado','ACTIVO')->get();
         $tallas         =   Talla::where('estado','ACTIVO')->get();
         $colores        =   Color::where('estado','ACTIVO')->get();
-        $sede_id        =   Auth::user()->sede->id;
+        $sede_id        =   Auth::user()->sede_id;
+        $registrador    =   Auth::user();
+
         $almacenes_destino  =   Almacen::where('estado','ACTIVO')   
                                 ->where('sede_id',$sede_id)
                                 ->get();
 
         return view('almacenes.nota_ingresos.create', [
-            "fecha_hoy"     => $fecha_hoy,
-            "fecha_actual"  => $fecha_actual,
-            "fecha_5"   =>  $fecha_5,
-            "origenes"  =>  $origenes, 
-            'destinos'  =>  $destinos,
-            'ngenerado' =>  $ngenerado, 
-            'usuarios'  =>  $usuarios,
-            'productos' =>  $productos, 
-            'monedas'   =>  $monedas,
             'modelos'   =>  $modelos,
             'colores'   =>  $colores,
             'tallas'    =>  $tallas,
             'sede_id'   =>  $sede_id,
-            'almacenes_destino' =>  $almacenes_destino
+            'almacenes_destino' =>  $almacenes_destino,
+            'registrador'       =>  $registrador
         ]);
     }
     
-    // public function getProductos(Request $request)
-    // {
-    //     $data = DB::table('lote_productos')->where('id', $request->lote_id)->get();
-    //     return json_encode($data);
-    // }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+/*
+array:7 [
+  "_token"              => "Ybnff0a5bpqfjqzZcjo6Mf45L6V3KkTMhVlNMJ5u"
+  "generarAdhesivos"    => "NO"
+  "registrador"         => "2025-02-05"
+  "almacen_destino"     => "1"
+  "observacion"         => null
+  "lstNi"               => "[{"producto_id":"1","producto_nombre":"PRODUCTO TEST","color_id":"2","color_nombre":"AZUL","talla_id":"1","talla_nombre":"34","cantidad":"10"},{"producto_id":"1","producto_nombre":"PRODUCTO TEST","color_id":"3","color_nombre":"CELESTE","talla_id":"1","talla_nombre":"34","cantidad":"20"}]"
+  "registrador_id"      => "1"
+  "sede_id"             => "1"
+]
+*/ 
     public function store(Request $request)
     {
         $this->authorize('haveaccess','nota_ingreso.index');
-        $fecha_hoy  = Carbon::now()->toDateString();
-        $fecha      = Carbon::createFromFormat('Y-m-d', $fecha_hoy);
-        $fecha      = str_replace("-", "", $fecha);
-        $fecha      = str_replace(" ", "", $fecha);
-        $fecha      = str_replace(":", "", $fecha);
-
+       
         $data = $request->all();
-
-        $rules = [
-            'fecha'                 =>  'required',
-            'origen'                =>  'required',
-            'notadetalle_tabla'     =>  'required',
-            'almacen_destino'       =>  'required'
-        ];
-
-        $message = [
-
-            'fecha.required'                => 'El campo fecha  es Obligatorio',
-            'origen.required'               => 'El campo origen  es Obligatorio',
-            'notadetalle_tabla.required'    => 'No hay detalles',
-            'almacen_destino.required'      =>  'Debe seleccionar un almacén de  destino'
-        ];
-
-        $validator = Validator::make($data, $rules, $message);
-
-
+      
         DB::beginTransaction();
 
         try {
@@ -187,57 +149,179 @@ class NotaIngresoController extends Controller
                                     from almacenes as a
                                     where a.id = ?',[$request->get('almacen_destino')])[0];
 
-            $origen             =   DB::table('tabladetalles')->where('id', $request->origen)->first();
+            $registrador        =   User::find($request->get('registrador_id'));
 
 
             $notaingreso                            =   new NotaIngreso();
-            $notaingreso->numero                    =   $fecha . (DB::table('nota_ingreso')->count() + 1);
-            $notaingreso->fecha                     =   $request->get('fecha');
-            $notaingreso->origen                    =   $origen->descripcion;
             $notaingreso->almacen_destino_id        =   $almacen_destino->id;
+            $notaingreso->almacen_destino_nombre    =   $almacen_destino->descripcion;
             $notaingreso->sede_id                   =   $request->get('sede_id');
-            $notaingreso->usuario                   =   Auth()->user()->usuario;
-            $notaingreso->observacion               =   $request->get('observacion');
+            $notaingreso->registrador_nombre        =   $registrador->usuario;
+            $notaingreso->registrador_id            =   $request->get('registrador_id');
+            $notaingreso->observacion               =   mb_strtoupper($request->get('observacion'), 'UTF-8');
             $notaingreso->save();
 
-            $articulosJSON = $request->get('notadetalle_tabla');
-            $notatabla = json_decode($articulosJSON[0]);
+            $lstNi = json_decode($request->get('lstNi'));
 
-            foreach ($notatabla as $fila) {
-                $detalleNotaIngreso                     =   new   DetalleNotaIngreso();
+            foreach ($lstNi as $item) {
 
-                $detalleNotaIngreso->setAlmacenDestinoId($request->get('almacen_destino'));
-                $detalleNotaIngreso->setSedeId($request->get('sede_id'));
+                $producto_existe     =  DB::select('select 
+                                        p.nombre as producto_nombre
+                                        from productos as p
+                                        where
+                                        p.id = ?
+                                        and p.estado = "ACTIVO"',[$item->producto_id]);
 
-                $detalleNotaIngreso->nota_ingreso_id    =   $notaingreso->id;
-                $detalleNotaIngreso->producto_id        =   $fila->producto_id;
-                $detalleNotaIngreso->color_id           =   $fila->color_id;
-                $detalleNotaIngreso->talla_id           =   $fila->talla_id;
-                $detalleNotaIngreso->cantidad           =   $fila->cantidad;
-                $detalleNotaIngreso->save();
+                $color_existe       =  DB::select('select 
+                                        c.descripcion as color_nombre
+                                        from colores as c
+                                        where
+                                        c.id = ?
+                                        and c.estado = "ACTIVO"',[$item->color_id]);
 
-                $this->generarCodigoBarras($fila);
+                $talla_existe       =  DB::select('select 
+                                        t.descripcion as talla_nombre
+                                        from tallas as t
+                                        where
+                                        t.id = ?
+                                        and t.estado = "ACTIVO"',[$item->talla_id]);
+
+                $detalle                     =   new   DetalleNotaIngreso();
+                $detalle->nota_ingreso_id    =   $notaingreso->id;
+                $detalle->almacen_id         =   $almacen_destino->id;
+                $detalle->producto_id        =   $item->producto_id;
+                $detalle->color_id           =   $item->color_id;
+                $detalle->talla_id           =   $item->talla_id;
+                $detalle->cantidad           =   $item->cantidad;
+                $detalle->almacen_nombre     =   $almacen_destino->descripcion;
+                $detalle->producto_nombre    =   $producto_existe[0]->producto_nombre;
+                $detalle->color_nombre       =   $color_existe[0]->color_nombre;  
+                $detalle->talla_nombre       =   $talla_existe[0]->talla_nombre;  
+                $detalle->save();
+
+                //======== INGRESANDO STOCK EN ALMACÉN DESTINO =======
+                //=>COMPROBANDO SI EXISTE EL PRODUCTO COLOR TALLA
+                $producto_destino   =   DB::select('select 
+                                        pct.* 
+                                        from producto_color_tallas as pct
+                                        where 
+                                        pct.almacen_id  = ?
+                                        and pct.producto_id = ? 
+                                        and pct.color_id = ? 
+                                        and pct.talla_id = ?',
+                                        [
+                                            $request->get('almacen_destino'),
+                                            $item->producto_id,
+                                            $item->color_id,
+                                            $item->talla_id
+                                        ]);
+
+                 //======== TALLA EXISTE, INCREMENTAR STOCK =========
+                if (count($producto_destino) > 0) {
+
+                    ProductoColorTalla::where('producto_id', $item->producto_id)
+                    ->where('color_id', $item->color_id)
+                    ->where('talla_id', $item->talla_id)
+                    ->where('almacen_id', $request->get('almacen_destino'))
+                    ->update([
+                        'stock'         =>  DB::raw("stock + $item->cantidad"),
+                        'stock_logico'  =>  DB::raw("stock_logico + $item->cantidad"),
+                        'estado'        =>  '1',  
+                    ]);
+
+                } else {
+
+                    //========= TALLA NO EXISTE =============
+
+                    //======= VERIFICANDO EXISTENCIA DEL COLOR ======
+                    $existeColor    =   ProductoColor::where('producto_id', $item->producto_id)
+                                            ->where('color_id', $item->color_id)
+                                            ->where('almacen_id',$request->get('almacen_destino'))
+                                            ->exists();
+                
+                    //======== COLOR NO EXISTE, REGISTRAR COLOR =======
+                    if(!$existeColor){
+                        $producto_color                 =   new ProductoColor();
+                        $producto_color->producto_id    =   $item->producto_id;
+                        $producto_color->color_id       =   $item->color_id;
+                        $producto_color->almacen_id     =   $request->get('almacen_destino');
+                        $producto_color->save(); 
+                    }  
+
+                    //====== REGISTRAR TALLA ============
+                    $producto                   =   new ProductoColorTalla();
+                    $producto->producto_id      =   $item->producto_id;
+                    $producto->color_id         =   $item->color_id;
+                    $producto->talla_id         =   $item->talla_id;
+                    $producto->stock            =   $item->cantidad;
+                    $producto->stock_logico     =   $item->cantidad;
+                    $producto->almacen_id       =   $request->get('almacen_destino');
+                    $producto->save();
+
+                }  
+
+                //========== REGISTRANDO EN KARDEX ========
+                //=========== OBTENIENDO PRODUCTO CON STOCK NUEVO ===========
+                $producto   =   DB::select('select 
+                                pct.* 
+                                from producto_color_tallas as pct
+                                where 
+                                pct.producto_id = ? 
+                                and pct.color_id = ? 
+                                and pct.talla_id = ?
+                                and pct.almacen_id = ?',
+                                [$item->producto_id,
+                                $item->color_id,
+                                $item->talla_id,
+                                $request->get('almacen_destino')]);
+                        
+                //==================== KARDEX ==================
+                $kardex                     =   new Kardex();
+                $kardex->sede_id            =   $request->get('sede_id');
+                $kardex->almacen_id         =   $request->get('almacen_destino');
+                $kardex->producto_id        =   $item->producto_id;
+                $kardex->color_id           =   $item->color_id;
+                $kardex->talla_id           =   $item->talla_id;
+                $kardex->almacen_nombre     =   $almacen_destino->descripcion;
+                $kardex->producto_nombre    =   $producto_existe[0]->producto_nombre;
+                $kardex->color_nombre       =   $color_existe[0]->color_nombre;
+                $kardex->talla_nombre       =   $talla_existe[0]->talla_nombre;
+                $kardex->cantidad           =   $item->cantidad;
+                $kardex->precio             =   null;
+                $kardex->importe            =   null;
+                $kardex->accion             =   'INGRESO';
+                $kardex->stock              =   $producto[0]->stock;
+                $kardex->numero_doc         =   'NI-'.$notaingreso->id;
+                $kardex->documento_id       =   $notaingreso->id;
+                $kardex->registrador_id     =   $registrador->id;
+                $kardex->registrador_nombre =   $registrador->usuario;
+                $kardex->fecha              =   Carbon::today()->toDateString();
+                $kardex->descripcion        =   mb_strtoupper($request->get('observacion'), 'UTF-8');
+                $kardex->save();
+
+                //$this->generarCodigoBarras($item);
             }
 
-
+            
 
             //========== REGISTRO DE ACTIVIDAD =======
             $descripcion    = "SE AGREGÓ LA NOTA DE INGRESO ";
             $gestion        = "ALMACEN / NOTA INGRESO";
             crearRegistro($notaingreso, $descripcion, $gestion);
 
-            Session::flash('succes_store_nota_ingreso', 'NOTA INGRESO REGISTRADA');
+            Session::flash('message_success', 'NOTA INGRESO REGISTRADA CON ÉXITO');
 
-            if($request->get('generarAdhesivos') === "SI"){
+            /*if($request->get('generarAdhesivos') === "SI"){
                 Session::flash('generarAdhesivos', 'GENERANDO ADHESIVOS');
                 Session::flash('nota_id',$notaingreso->id);
-            }
+            }*/
 
-            DB::commit();
-            return redirect()->route('almacenes.nota_ingreso.index');
+            //DB::commit();
+            return response()->json(['success'=>true,'message'=>'NOTA INGRESO REGISTRADA CON ÉXITO']);
+            // return redirect()->route('almacenes.nota_ingreso.index');
         } catch (\Throwable $th) {
             DB::rollBack();
-            dd($th);
+            return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
         }
       
     }
@@ -687,9 +771,14 @@ class NotaIngresoController extends Controller
     }
 
     public function generarCodigoBarras($item){
-        $producto   =   DB::select('select * from producto_color_tallas as pct
-                        where pct.producto_id = ? and
-                        pct.color_id = ? and pct.talla_id = ?',[$item->producto_id,
+        $producto   =   DB::select('select 
+                        pct.* 
+                        from producto_color_tallas as pct
+                        where 
+                        pct.producto_id = ? 
+                        and pct.color_id = ? 
+                        and pct.talla_id = ?',
+                        [$item->producto_id,
                         $item->color_id,$item->talla_id]);
         
         //======== SI EL PRODUCTO YA EXISTE ========
