@@ -118,7 +118,6 @@
                                             <div class="form-group row mt-3">
                                                 <div class="col-lg-12">
                                                     @include('ventas.cotizaciones.table-stocks')
-                                                    
                                                 </div>
                                             </div>
 
@@ -143,6 +142,7 @@
                                     <h4><b>Detalle de la Cotización</b></h4>
                                 </div>
                                 <div class="panel-body">
+                                    
                                     @include('ventas.cotizaciones.table-stocks',[
                                         "carrito" => "carrito"
                                     ])
@@ -185,9 +185,6 @@
         </div>
     </div>
 </div>
-
-
-
 @stop
 
 @push('styles')
@@ -219,14 +216,6 @@
     const tfootTotalPagar       =   document.querySelector('.total-pagar');
     const tfootDescuento        =   document.querySelector('.descuento');
     
-    /*const inputSubTotal         =   document.querySelector('#monto_sub_total');
-    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
-    const inputEnvio            =   document.querySelector('#monto_envio');
-    const inputTotal            =   document.querySelector('#monto_total');
-    const inputIgv              =   document.querySelector('#monto_total_igv');
-    const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
-    const inputMontoDescuento   =   document.querySelector('#monto_descuento');*/
-
     const selectClientes        =   document.querySelector('#cliente');
 
     const inputProductos        =   document.querySelector('#productos_tabla');

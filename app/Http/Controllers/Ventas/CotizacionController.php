@@ -34,6 +34,7 @@ use App\Ventas\PedidoDetalle;
 use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Distrito;
 use App\Mantenimiento\Ubigeo\Provincia;
+use App\User;
 use Exception;
 
 class CotizacionController extends Controller
@@ -136,6 +137,9 @@ array:10 [
             
             $lstCotizacion      =   json_decode($request->get('lstCotizacion'));
             $montos_cotizacion  =   json_decode($request->get('montos_cotizacion'));
+
+            $almacen            =   Almacen::find($request->get('almacen'));
+            $registrador        =   User::find($request->get('registrador_id'));
         
             //======= CALCULANDO MONTOS ========
             $monto_subtotal     =   0.0;
@@ -166,9 +170,12 @@ array:10 [
             $cotizacion->cliente_id         =   $request->get('cliente');
             $cotizacion->condicion_id       =   $request->get('condicion_id');
             $cotizacion->registrador_id     =   $request->get('registrador_id');
+            $cotizacion->registrador_nombre =   $registrador->usuario;
             $cotizacion->fecha_documento    =   Carbon::now()->format('Y-m-d');
             $cotizacion->fecha_atencion     =   Carbon::now()->format('Y-m-d');
             $cotizacion->sede_id            =   $request->get('sede_id');
+            $cotizacion->almacen_id         =   $almacen->id;
+            $cotizacion->almacen_nombre     =   $almacen->descripcion;
 
             $cotizacion->sub_total              =   $monto_subtotal;
             $cotizacion->monto_embalaje         =   $monto_embalaje;
@@ -184,26 +191,56 @@ array:10 [
             $cotizacion->igv_check          =   "1";
             $cotizacion->save();
 
-            //Llenado de los Productos
+            //======= REGISTRO DETALLE DE LA COTIZACIÓN =====
             foreach ($lstCotizacion as $item) {
+
+                //======= PRODUCTO EXISTE EN ALMACÉN =======
+                $existe     =   DB::select('select 
+                                p.nombre as producto_nombre,
+                                c.descripcion as color_nombre,
+                                t.descripcion as talla_nombre
+                                from producto_color_tallas as pct
+                                inner join productos as p on p.id = pct.producto_id
+                                inner join colores as c on c.id =  pct.color_id
+                                inner join tallas as t on t.id = pct.talla_id
+                                where 
+                                pct.almacen_id = ?
+                                AND pct.producto_id = ?
+                                AND pct.color_id = ?
+                                AND pct.talla_id = ?',
+                                [$request->get('almacen'),
+                                $item->producto_id,
+                                $item->color_id,
+                                $item->talla_id]);
+                                
+                if(count($existe) === 0){
+                    throw new Exception("EL PRODUCTO NO EXISTE EN LA BD!!!");
+                }
+
                 //==== CALCULANDO MONTOS PARA EL DETALLE ====
-                $importe        =  floatval($item->cantidad) * floatval($item->precio_venta);
+                $importe        =   floatval($item->cantidad) * floatval($item->precio_venta);
                 $precio_venta   =   $item->porcentaje_descuento == 0?$item->precio_venta:$item->precio_venta_nuevo;
 
-                CotizacionDetalle::create([
-                    'cotizacion_id'             => $cotizacion->id,
-                    'producto_id'               => $producto->producto_id,
-                    'color_id'                  => $producto->color_id,
-                    'talla_id'                  => $producto->talla_id,
-                    'cantidad'                  => $producto->cantidad,
-                    'precio_unitario'           => $producto->precio_venta,
-                    'importe'                   => $importe,
-                    'precio_unitario_nuevo'     =>  floatval($precio_venta),
-                    'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
-                    'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
-                    'importe_nuevo'             =>  floatval($precio_venta) * floatval($producto->cantidad),  
 
-                ]);
+                $detalle                            =   new CotizacionDetalle();
+                $detalle->cotizacion_id             =   $cotizacion->id;
+                $detalle->almacen_id                =   $almacen->id;
+                $detalle->producto_id               =   $producto->producto_id;
+                $detalle->color_id                  =   $producto->color_id;
+                $detalle->talla_id                  =   $producto->talla_id;
+                $detalle->almacen_nombre            =   $almacen->descripcion;
+                $detalle->producto_nombre           =   $existe[0]->producto_nombre;
+                $detalle->color_nombre              =   $existe[0]->color_nombre;
+                $detalle->talla_nombre              =   $existe[0]->talla_nombre;
+                $detalle->cantidad                  =   $producto->cantidad;
+                $detalle->precio_unitario           =   $producto->precio_venta;
+                $detalle->importe                   =   $importe;
+                $detalle->precio_unitario_nuevo     =   floatval($precio_venta);
+                $detalle->porcentaje_descuento      =   floatval($producto->porcentaje_descuento);
+                $detalle->monto_descuento           =   floatval($importe) * floatval($producto->porcentaje_descuento) / 100;
+                $detalle->importe_nuevo             =   floatval($precio_venta) * floatval($producto->cantidad);
+                $detalle->save();
+
             }
 
             //Registro de actividad
@@ -236,32 +273,37 @@ array:10 [
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();
 
-        $cotizacion = Cotizacion::findOrFail($id);
-        $empresas = Empresa::where('estado', 'ACTIVO')->get();
-        $clientes = Cliente::where('estado', 'ACTIVO')->get();
-        $condiciones = Condicion::where('estado','ACTIVO')->get();
-        $fecha_hoy = Carbon::now()->toDateString();
-        //$lotes = LoteProducto::where('estado', '1')->distinct()->get(['producto_id']);
-        // $lotes = Producto::where('estado','ACTIVO')->get();
-        $detalles = CotizacionDetalle::where('cotizacion_id',$id)->where('estado', 'ACTIVO')
-                    ->with('producto', 'color', 'talla')->get();
-        $modelos = Modelo::where('estado','ACTIVO')->get();
-        $tallas = Talla::where('estado','ACTIVO')->get();
+        $cotizacion         =   Cotizacion::findOrFail($id);
+        $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
+        $clientes           =   Cliente::where('estado', 'ACTIVO')->get();
+        $condiciones        =   Condicion::where('estado','ACTIVO')->get();
+        $detalles           =   CotizacionDetalle::where('cotizacion_id',$id)->where('estado', 'ACTIVO')
+                                ->with('producto', 'color', 'talla')->get();
 
+        $modelos            =   Modelo::where('estado','ACTIVO')->get();
+        $categorias         =   Categoria::where('estado','ACTIVO')->get();
+        $marcas             =   Marca::where('estado','ACTIVO')->get();        $tallas         =   Talla::where('estado','ACTIVO')->get();
+        $porcentaje_igv =   Empresa::find(1)->igv;
+
+        $registrador    =   User::find($cotizacion->registrador_id);
+        $almacenes      =   Almacen::where('estado','ACTIVO')->get();
 
         return view('ventas.cotizaciones.edit', [
-            'cotizacion' => $cotizacion,
-            'empresas' => $empresas,
-            'clientes' => $clientes,
-            'fecha_hoy' => $fecha_hoy,
-            'condiciones' => $condiciones,
-            // 'lotes' => $lotes,
-            'detalles' => $detalles,
-            'modelos' => $modelos,
-            'tallas' => $tallas,
-            'tipos_documento' => $tipos_documento,
-            'departamentos' => $departamentos,
-            'tipo_clientes' => $tipo_clientes
+            'cotizacion'        =>  $cotizacion,
+            'empresas'          =>  $empresas,
+            'clientes'          =>  $clientes,
+            'condiciones'       =>  $condiciones,
+            'detalles'          =>  $detalles,
+            'modelos'           =>  $modelos,
+            'categorias'        =>  $categorias,
+            'marcas'            =>  $marcas,
+            'tallas'            =>  $tallas,
+            'tipos_documento'   =>  $tipos_documento,
+            'departamentos'     =>  $departamentos,
+            'tipo_clientes'     =>  $tipo_clientes,
+            'porcentaje_igv'    =>  $porcentaje_igv,
+            'registrador'       =>  $registrador,
+            'almacenes'         =>  $almacenes
         ]);
     }
 
@@ -765,6 +807,7 @@ array:10 [
        
         try {
 
+
             $precios_venta  =   DB::select('SELECT 
                                 p.id AS producto_id,
                                 p.nombre AS producto_nombre,
@@ -814,18 +857,26 @@ array:10 [
             $tallas =   Talla::where('estado','ACTIVO')->orderBy('id')->get();   
 
             $producto_color_tallas  =   null;
+            $_precios_venta          =   null;
             if(count($colores) > 0){
-                $producto_color_tallas  =   $this->formatearColoresTallas($colores,$stocks,$precios_venta,$tallas);
+                $producto_color_tallas  =   $this->formatearColoresTallas($colores,$stocks,$tallas);
+            }
+            if(count($precios_venta)!== 0){
+                $_precios_venta   =   $precios_venta[0];
             }
 
-            return response()->json(['success' => true,'producto_color_tallas'=>$producto_color_tallas]);
+            return response()->json(['success' => true,
+            'producto_color_tallas'     =>  $producto_color_tallas,
+            'precios_venta'             =>  $_precios_venta,
+            'message'                   =>  'TALLAS OBTENIDAS']);
+
         } catch (\Throwable $th) {
     
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
     }
 
-    public function formatearColoresTallas($colores, $stocks, $precios_venta, $tallas)
+    public function formatearColoresTallas($colores, $stocks, $tallas)
     {
         $producto = [];
 
@@ -837,18 +888,6 @@ array:10 [
             // Maneja el caso cuando $colores está vacío
             $producto['id'] = null;
             $producto['nombre'] = null;
-        }
-
-        // Verifica si $precios_venta no está vacío
-        if (count($precios_venta) > 0) {
-            $producto['precio_venta_1'] = $precios_venta[0]->precio_venta_1;
-            $producto['precio_venta_2'] = $precios_venta[0]->precio_venta_2;
-            $producto['precio_venta_3'] = $precios_venta[0]->precio_venta_3;
-        } else {
-            // Maneja el caso cuando $precios_venta está vacío
-            $producto['precio_venta_1'] = null;
-            $producto['precio_venta_2'] = null;
-            $producto['precio_venta_3'] = null;
         }
 
         $lstColores = [];

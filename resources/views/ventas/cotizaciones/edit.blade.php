@@ -1,86 +1,10 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 @include('ventas.cotizaciones.modal-cliente') 
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
 
-<style>
 
-    .overlay_cotizacion_edit {
-      position: fixed; /* Fija el overlay para que cubra todo el viewport */
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
-      z-index: 9999; /* Asegura que el overlay esté sobre todo */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 24px;
-      visibility:hidden;
-    }
-    
-    /*========== LOADER SPINNER =======*/
-    .loader_cotizacion_edit {
-        position: relative;
-        width: 75px;
-        height: 100px;
-        background-repeat: no-repeat;
-        background-image: linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0);
-        background-size: 8px 100%;
-        background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px;
-        animation: pillerPushUp 4s linear infinite;
-      }
-    .loader_cotizacion_edit:after {
-        content: '';
-        position: absolute;
-        bottom: 10px;
-        left: 0;
-        width: 10px;
-        height: 10px;
-        background: #de3500;
-        border-radius: 50%;
-        animation: ballStepUp 4s linear infinite;
-      }
-    
-    @keyframes pillerPushUp {
-      0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
-      50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
-    }
-    
-    @keyframes ballStepUp {
-      0% {transform: translate(0, 0)}
-      5% {transform: translate(8px, -14px)}
-      10% {transform: translate(15px, -10px)}
-      17% {transform: translate(23px, -24px)}
-      20% {transform: translate(30px, -20px)}
-      27% {transform: translate(38px, -34px)}
-      30% {transform: translate(45px, -30px)}
-      37% {transform: translate(53px, -44px)}
-      40% {transform: translate(60px, -40px)}
-      50% {transform: translate(60px, 0)}
-      57% {transform: translate(53px, -14px)}
-      60% {transform: translate(45px, -10px)}
-      67% {transform: translate(37px, -24px)}
-      70% {transform: translate(30px, -20px)}
-      77% {transform: translate(22px, -34px)}
-      80% {transform: translate(15px, -30px)}
-      87% {transform: translate(7px, -44px)}
-      90% {transform: translate(0, -40px)}
-      100% {transform: translate(0, 0);}
-    }
-        
-        
-</style>
-
-<div class="overlay_cotizacion_edit">
-    <span class="loader_cotizacion_edit"></span>
-</div>
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
@@ -106,179 +30,7 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form action="{{ route('ventas.cotizacion.update', $cotizacion->id) }}" method="POST"
-                                id="form-cotizacion">
-                                @csrf @method('PUT')
-                                <div class="row">
-                                    <div class="col-12">
-                                        <h4><b>Datos Generales</b></h4>
-                                    </div>
-                                    <div class="col-12 d-none">
-                                        <div class="form-group row">
-                                            <div class="col-12">
-                                                <label class="required">Fecha de Documento</label>
-                                                <div class="input-group date">
-                                                    <span class="input-group-addon">
-                                                        <i class="fa fa-calendar"></i>
-                                                    </span>
-                                                    <input type="date" id="fecha_documento" name="fecha_documento"
-                                                        class="form-control input-required {{ $errors->has('fecha_documento') ? ' is-invalid' : '' }}"
-                                                        value="{{ old('fecha_documento', $cotizacion->fecha_documento) }}"
-                                                        autocomplete="off" required readonly>
-                                                    @if ($errors->has('fecha_documento'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('fecha_documento') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="required">Moneda</label>
-                                                <select id="moneda" name="moneda" disabled
-                                                    class="select2_form form-control {{ $errors->has('moneda') ? ' is-invalid' : '' }}">
-                                                    <option selected>SOLES</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="required">Empresa</label>
-                                                <select id="empresa" name="empresa"
-                                                    class="select2_form form-control {{ $errors->has('empresa') ? ' is-invalid' : '' }}">
-                                                    <option></option>
-                                                    @foreach ($empresas as $empresa)
-                                                        <option value="{{ $empresa->id }}"
-                                                            {{ old('empresa', $cotizacion->empresa_id) == $empresa->id ? 'selected' : '' }}>
-                                                            {{ 'RUC: ' . $empresa->ruc . ' - ' . $empresa->razon_social }}</option>
-                                                    @endforeach
-                                                </select>
-                                                @if ($errors->has('empresa'))
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $errors->first('empresa') }}</strong>
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="row">
-                                            <div class="col-12 col-md-4">
-                                                <div class="form-group">
-                                                    <label class="required">Fecha de Atención</label>
-                                                    <div class="input-group date">
-                                                        <span class="input-group-addon">
-                                                            <i class="fa fa-calendar"></i>
-                                                        </span>
-                                                        <input type="date" id="fecha_atencion" name="fecha_atencion"
-                                                            class="form-control input-required {{ $errors->has('fecha_atencion') ? ' is-invalid' : '' }}"
-                                                            value="{{ old('fecha_atencion', $cotizacion->fecha_atencion) }}"
-                                                            autocomplete="off" required readonly>
-                                                        @if ($errors->has('fecha_atencion'))
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $errors->first('fecha_atencion') }}</strong>
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {{-- <div class="col-12 col-md-4">
-                                                <div class="form-group">
-                                                    <label id="igv_requerido">IGV (%):</label>
-                                                    <div class="input-group">
-                                                        <div class="input-group-prepend">
-                                                            <span class="input-group-addon">
-                                                                <input type="checkbox" id="igv_check" name="igv_check">
-                                                            </span>
-                                                        </div>
-                                                        <input type="text" value="{{ old('igv', $cotizacion->igv) }}" maxlength="3"
-                                                            class="form-control input-required {{ $errors->has('igv') ? ' is-invalid' : '' }}"
-                                                            name="igv" id="igv" onkeyup="return mayus(this)" required>
-                                                        @if ($errors->has('igv'))
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $errors->first('igv') }}</strong>
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div> --}}
-                                            <div class="col-12 col-md-4">
-                                                <div class="form-group">
-                                                    <label class="___class_+?40___">Vendedor</label>
-                                                    <select disabled id="vendedor" name="vendedor" class="select2_form form-control">
-                                                        <option value=""></option>
-                                                        @foreach (vendedores() as $vendedor)
-                                                            <option value="{{ $vendedor->id }}" {{$cotizacion->vendedor_id==null? '' :($cotizacion->vendedor_id==$vendedor->id ? 'selected' : '')}}>
-                                                                {{ $vendedor->persona->apellido_paterno . ' ' . $vendedor->persona->apellido_materno . ' ' . $vendedor->persona->nombres }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <input hidden type="text" name="vendedor" value="{{$cotizacion->vendedor_id}}">
-
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="required">Cliente:
-                                                    <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
-                                                        Registrar
-                                                    </button>
-                                                </label>                                                
-                                                    <select id="cliente" name="cliente"
-                                                    class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}" required>
-                                                    <option></option>
-                                                    @foreach ($clientes as $cliente)
-                                                        <option value="{{ $cliente->id }}"
-                                                            {{ old('cliente', $cotizacion->cliente_id) == $cliente->id ? 'selected' : '' }}>
-                                                            {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @if ($errors->has('cliente'))
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $errors->first('cliente') }}</strong>
-                                                    </span>
-                                                @endif
-                                            </div>
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="required">Condición</label>
-                                                <select id="condicion_id" name="condicion_id"
-                                                    class="select2_form form-control {{ $errors->has('condicion_id') ? ' is-invalid' : '' }}"
-                                                    required>
-                                                    <option></option>
-                                                    @foreach ($condiciones as $condicion)
-                                                        <option value="{{ $condicion->id }}"
-                                                            {{ old('condicion_id') == $condicion->id || $cotizacion->condicion_id == $condicion->id ? 'selected' : '' }}>
-                                                            {{ $condicion->descripcion }} {{ $condicion->dias > 0 ? $condicion->dias.' dias' : '' }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @if ($errors->has('condicion_id'))
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $errors->first('condicion_id') }}</strong>
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <!-- OBTENER TIPO DE CLIENTE -->
-                                        <input type="hidden" name="" id="tipo_cliente">
-                                        <!-- OBTENER DATOS DEL PRODUCTO -->
-                                        <input type="hidden" name="" id="presentacion_producto">
-                                        <input type="hidden" name="" id="codigo_nombre_producto">
-                                        <!-- LLENAR DATOS EN UN ARRAY -->
-                                        <input type="hidden" id="productos_tabla" name="productos_tabla[]">
-                                    </div>
-                                </div>
-
-                                <input type="hidden" name="monto_sub_total" id="monto_sub_total"    value="{{$cotizacion->sub_total}}">
-                                <input type="hidden" name="monto_embalaje" id="monto_embalaje"      value="{{$cotizacion->monto_embalaje}}">
-                                <input type="hidden" name="monto_envio" id="monto_envio"            value="{{$cotizacion->monto_envio}}">
-                                <input type="hidden" name="monto_total_igv" id="monto_total_igv"                value="{{$cotizacion->total_igv}}">
-                                <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ $cotizacion->monto_descuento }}">
-                                <input type="hidden" name="monto_total" id="monto_total"            value="{{$cotizacion->total}}">
-                                <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{$cotizacion->total_pagar}}">
-
-                            </form>
+                           @include('ventas.cotizaciones.forms.form_edit_cotizacion')
                         </div>
                     </div>
                     <hr>
@@ -292,11 +44,37 @@
                                     <div class="row">
                                         <div class="col-lg-12">
                                             <div class="form-group row">
-                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                                                    <label class="required">Modelo</label>
+                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                                                    <label class="required" style="font-weight: bold;">CATEGORÍA</label>
+                                                    <select id="categoria"
+                                                        class="select2_form form-control {{ $errors->has('categoria') ? ' is-invalid' : '' }}"
+                                                        onchange="getProductos()" >
+                                                        <option></option>
+                                                        @foreach ($categorias as $categoria)
+                                                            <option value="{{ $categoria->id }}"
+                                                                {{ old('categoria') == $categoria->id ? 'selected' : '' }}>
+                                                                {{ $categoria->descripcion }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                                                    <label class="required" style="font-weight: bold;">MARCA</label>
+                                                    <select id="marca"
+                                                        class="select2_form form-control {{ $errors->has('marca') ? ' is-invalid' : '' }}"
+                                                        onchange="getProductos()" >
+                                                        <option></option>
+                                                        @foreach ($marcas as $marca)
+                                                            <option value="{{ $marca->id }}"
+                                                                {{ old('marca') == $marca->id ? 'selected' : '' }}>
+                                                                {{ $marca->marca }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                                                    <label class="required" style="font-weight: bold;">MODELO</label>
                                                     <select id="modelo"
                                                         class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
-                                                        onchange="getProductosByModelo(this)"  >
+                                                        onchange="getProductos()" >
                                                         <option></option>
                                                         @foreach ($modelos as $modelo)
                                                             <option value="{{ $modelo->id }}"
@@ -305,7 +83,7 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
-                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mb-3">
                                                     <label class="required" style="font-weight: bold;">PRODUCTO</label>
                                                     <select id="producto"
                                                         class="select2_form form-control {{ $errors->has('producto') ? ' is-invalid' : '' }}"
@@ -313,14 +91,12 @@
                                                         <option value=""></option>
                                                     </select>
                                                 </div>
-                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 mb-3">
                                                     <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
                                                     <select id="precio_venta" class="select2_form form-control">
                                                     </select>
                                                 </div>
                                           
-
-                                           
                                             </div>
 
                                             <div class="form-group row mt-3">
@@ -337,55 +113,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row m-t-sm" style="text-transform:uppercase">
-                                        <div class="col-lg-12">
-                                           
-                                            {{-- <div class="table-responsive">
-                                                <table
-                                                    class="table table-hover" id="table-detalle-cotizacion">
-                                                    <thead>
-                                                        <tr>
-                                                            <th></th>
-                                                            <th class="text-center">ACCIONES</th>
-                                                            <th class="text-center">CANT</th>
-                                                            <th class="text-center">PRODUCTO</th>
-                                                            <th class="text-center">MODELO</th>
-                                                            <th class="text-center">COLOR</th>
-                                                            <th class="text-center">TALLA</th>
-                                                            <th class="text-center">P.UNITARIO</th>
-                                                            <th class="text-center">SUBTOTAL</th>
-                                                            <th class="text-center">TOTAL</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-
-                                                    </tbody>
-                                                    <tfoot>
-                                                        <tr>
-                                                            <th colspan="7" style="text-align: right !important;">
-                                                                Sub Total:</th>
-                                                            <th class="text-center"><span
-                                                                    id="subtotal">0.00</span></th>
-
-                                                        </tr>
-                                                        <tr>
-                                                            <th colspan="7" class="text-right">IGV <span
-                                                                    id="igv_int"></span>:</th>
-                                                            <th class="text-center"><span
-                                                                    id="igv_monto">0.00</span></th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th colspan="8" class="text-right">TOTAL:</th>
-                                                            <th class="text-center"><span id="total">0.00</span>
-                                                            </th>
-                                                        </tr>
-                                                    </tfoot>
-                                                </table>
-                                            </div> --}}
-                                        </div>
-
-
-                                    </div>
+                                   
                                 </div>
                             </div>
                         </div>
@@ -446,21 +174,14 @@
 @stop
 
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css') }}"
-    rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/datapicker/datepicker3.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/daterangepicker/daterangepicker-bs3.css') }}" rel="stylesheet">
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
 @endpush
 
 @push('scripts')
-<script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
-<script src="{{ asset('Inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/fullcalendar/moment.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/daterangepicker/daterangepicker.js') }}"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 
 <script>
@@ -479,14 +200,16 @@
     const tfootTotalPagar       =   document.querySelector('.total-pagar');
     const tfootDescuento        =   document.querySelector('.descuento');
     
-    const inputSubTotal         =   document.querySelector('#monto_sub_total');
-    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
-    const inputEnvio            =   document.querySelector('#monto_envio');
-    const inputTotal            =   document.querySelector('#monto_total');
-    const inputIgv              =   document.querySelector('#monto_total_igv');
-    const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
-    const inputMontoDescuento   =   document.querySelector('#monto_descuento');
 
+    const amountsCotizacion         =   {
+                                            subtotal:0,
+                                            embalaje:0,
+                                            envio:0,
+                                            total:0,
+                                            igv:0,
+                                            totalPagar:0,
+                                            monto_descuento:0
+                                        }
 
     const inputProductos        =   document.querySelector('#productos_tabla');
     const tallas                =   @json($tallas);
@@ -618,7 +341,7 @@
         //===== AGREGAR DETALLE ======
         btnAgregarDetalle.addEventListener('click',()=>{
 
-            mostrarAnimacionCotizacion();
+            mostrarAnimacion();
             if(!$('#modelo').val()){
                 toastr.error('DEBE SELECCIONAR UN MODELO','OPERACIÓN INCORRECTA');
                 return;
@@ -644,7 +367,7 @@
             })
             calcularMontos();
             loadDataTableDetallesCotizacion();
-            ocultarAnimacionCotizacion();
+            ocultarAnimacion();
           
         })
     }
@@ -927,13 +650,13 @@
         tfootSubtotal.textContent   =   'S/. ' + subtotal.toFixed(2);
         tfootDescuento.textContent  =   'S/. ' + descuento.toFixed(2);
         
-        inputTotalPagar.value       =   total_pagar.toFixed(2);
-        inputIgv.value              =   igv.toFixed(2);
-        inputTotal.value            =   total.toFixed(2);
-        inputEmbalaje.value         =   embalaje.toFixed(2);
-        inputEnvio.value            =   envio.toFixed(2);
-        inputSubTotal.value         =   subtotal.toFixed(2);
-        inputMontoDescuento.value   =   descuento.toFixed(2);
+        amountsCotizacion.totalPagar        =   total_pagar.toFixed(2);
+        amountsCotizacion.igv               =   igv.toFixed(2);
+        amountsCotizacion.total             =   total.toFixed(2);
+        amountsCotizacion.embalaje          =   embalaje.toFixed(2);
+        amountsCotizacion.envio             =   envio.toFixed(2);
+        amountsCotizacion.subtotal          =   subtotal.toFixed(2);
+        amountsCotizacion.monto_descuento   =   descuento.toFixed(2);
     }
 
 
@@ -1041,57 +764,87 @@
         }
     }
 
-    //======== OBTENER PRODUCTOS POR MODELO ========
-    async function  getProductosByModelo(e){
-        mostrarAnimacionCotizacion();
+     //======== OBTENER PRODUCTOS POR MODELO ========
+     async function  getProductos(){
+        toastr.clear();
+        mostrarAnimacion();
         limpiarTableStocks();
-        modelo_id                   =   e.value;
+
+        modelo_id                   =   document.querySelector('#modelo').value;
+        marca_id                    =   document.querySelector('#marca').value;
+        categoria_id                =   document.querySelector('#categoria').value;
+
         btnAgregarDetalle.disabled  =   true;
-            
-        if(modelo_id){
+        
+        if(modelo_id || marca_id || categoria_id){
             try {
-                const res   =   await axios.get(route('ventas.cotizacion.getProductosByModelo',{modelo_id}));
-                if(res.data.success){
+                const res = await axios.get(route('ventas.cotizacion.getProductos'), {
+                    params: {
+                        modelo_id: modelo_id,
+                        marca_id: marca_id,
+                        categoria_id: categoria_id
+                    }
+                });   
+
+             if(res.data.success){
                     pintarSelectProductos(res.data.productos);
                     toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
                 }else{
-                    ocultarAnimacionCotizacion();
+                    ocultarAnimacion();
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
-                ocultarAnimacionCotizacion();
+                ocultarAnimacion();
                 toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
             }
-                
+               
         }else{
-            ocultarAnimacionCotizacion();
+            ocultarAnimacion();
         }
     }
 
-    //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
-    async function getColoresTallas(){
-        mostrarAnimacionCotizacion();
+     //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
+     async function getColoresTallas(){
+        mostrarAnimacion();
+        toastr.clear();
+
         const producto_id   =   $('#producto').val();
+        const almacen_id    =   document.querySelector('#almacen').value;
+
+        if(!almacen_id){
+            $('#almacen').select2('open'); 
+
+            document.querySelector('#producto').onchange    =   null;
+            $('#producto').val(null).trigger('change');
+            document.querySelector('#producto').onchange = function() {
+                getColoresTallas();
+            };
+
+            toastr.error('DEBE SELECCIONAR UN ALMACÉN!!!');
+            ocultarAnimacion();
+            return;
+        }
+
         if(producto_id){
             try {
-                const res   =   await   axios.get(route('ventas.cotizacion.getColoresTallas',{producto_id}));
+                const res   =   await   axios.get(route('ventas.cotizacion.getColoresTallas',
+                                        {almacen_id,producto_id}));
                 if(res.data.success){
                     pintarTableStocks(res.data.producto_color_tallas);
-                    pintarPreciosVenta(res.data.producto_color_tallas);
+                    pintarPreciosVenta(res.data.precios_venta);
                     loadCarrito();
-                    loadPrecioVentaProductoCarrito(producto_id);
                 }else{
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
                 toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
             }finally{
-                ocultarAnimacionCotizacion();
+                ocultarAnimacion();
             }
         }else{
             limpiarTableStocks();
             limpiarSelectPreciosVenta();
-            ocultarAnimacionCotizacion();
+            ocultarAnimacion();
         }
     }
 
@@ -1101,25 +854,25 @@
     }
 
     //======= PINTAR PRECIOS VENTA =======
-    function pintarPreciosVenta(producto_color_tallas){
+    function pintarPreciosVenta(precios_venta){
         //======= LIMPIAR SELECT2 DE PRODUCTOS ======
         $('#precio_venta').empty();
 
         //====== LLENAR =======
 
-        if(producto_color_tallas){
-            if(producto_color_tallas.precio_venta_1 != null){
-                const option_1 = new Option(producto_color_tallas.precio_venta_1, 'precio_venta_1', false, false);
+        if(precios_venta){
+            if(precios_venta.precio_venta_1 != null){
+                const option_1 = new Option(precios_venta.precio_venta_1, 'precio_venta_1', false, false);
                 $('#precio_venta').append(option_1);
             }
 
-            if(producto_color_tallas.precio_venta_2 != null){
-                const option_2 = new Option(producto_color_tallas.precio_venta_2, 'precio_venta_2', false, false);
+            if(precios_venta.precio_venta_2 != null){
+                const option_2 = new Option(precios_venta.precio_venta_2, 'precio_venta_2', false, false);
                 $('#precio_venta').append(option_2);
             }
            
-            if(producto_color_tallas.precio_venta_3 != null){
-                const option_3 = new Option(producto_color_tallas.precio_venta_3, 'precio_venta_3', false, false);
+            if(precios_venta.precio_venta_3 != null){
+                const option_3 = new Option(precios_venta.precio_venta_3, 'precio_venta_3', false, false);
                 $('#precio_venta').append(option_3);
             }
         }
@@ -1134,7 +887,7 @@
         $('#producto').empty();
     
         if(productos.length === 0){
-            ocultarAnimacionCotizacion();
+            ocultarAnimacion();
         }
         
         //====== LLENAR =======
@@ -1155,33 +908,35 @@
             dataTableStocksCotizacion.destroy();
         }
 
-        producto.colores.forEach((color)=>{
-            filas   +=  `  <tr>
-                            <th scope="row" data-producto=${producto.id} data-color=${color.id} >
-                                <div style="width:200px;">${producto.nombre}</div>
-                            </th>
-                            <th scope="row">${color.nombre}</th>
-                        `;
+        if(producto){
+            producto.colores.forEach((color)=>{
+                filas   +=  `  <tr>
+                                <th scope="row" data-producto=${producto.id} data-color=${color.id} >
+                                    <div style="width:200px;">${producto.nombre}</div>
+                                </th>
+                                <th scope="row">${color.nombre}</th>
+                            `;
 
-            color.tallas.forEach((talla)=>{
-                filas   +=  `<td style="background-color: rgb(210, 242, 242);">
-                                        <p style="margin:0;width:20px;text-align:center;${talla.stock != 0?'font-weight:bold':''};">${talla.stock}</p>
-                            </td>
-                            <td width="8%">
-                                <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
-                                id="inputCantidad_${producto.id}_${color.id}_${talla.id}" 
-                                data-producto-id="${producto.id}"
-                                data-producto-nombre="${producto.nombre}"
-                                data-color-nombre="${color.nombre}"
-                                data-talla-nombre="${talla.nombre}"
-                                data-color-id="${color.id}" data-talla-id="${talla.id}"></input>    
-                            </td>`;
+                color.tallas.forEach((talla)=>{
+                    filas   +=  `<td style="background-color: rgb(210, 242, 242);">
+                                            <p style="margin:0;width:20px;text-align:center;${talla.stock != 0?'font-weight:bold':''};">${talla.stock}</p>
+                                </td>
+                                <td width="8%">
+                                    <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
+                                    id="inputCantidad_${producto.id}_${color.id}_${talla.id}" 
+                                    data-producto-id="${producto.id}"
+                                    data-producto-nombre="${producto.nombre}"
+                                    data-color-nombre="${color.nombre}"
+                                    data-talla-nombre="${talla.nombre}"
+                                    data-color-id="${color.id}" data-talla-id="${talla.id}"></input>    
+                                </td>`;
+                })
+
+                filas   +=  `</tr>`;
+            
             })
-
-            filas   +=  `</tr>`;
-           
-        })
-
+        }
+      
         tableStocksBody.innerHTML = filas;
         loadDataTableStocksCotizacion();
         btnAgregarDetalle.disabled = false;
@@ -1293,11 +1048,11 @@
     }
 
     function cargarEmbalajeEnvioPrevios(){
-        const precioEmbalaje    =   inputEmbalaje.value;
-        const precioEnvio       =   inputEnvio.value;
+        const precioEmbalaje    =   parseFloat(@json($cotizacion->monto_embalaje));
+        const precioEnvio       =   parseFloat(@json($cotizacion->monto_envio));
 
-        tfootEmbalaje.value     =   precioEmbalaje;
-        tfootEnvio.value        =   precioEnvio;
+        amountsCotizacion.embalaje     =   precioEmbalaje;
+        amountsCotizacion.envio        =   precioEnvio;
     }
 
     //============= ABRIR MODAL CLIENTE =============
@@ -1305,11 +1060,11 @@
         $("#modal_cliente").modal("show");
     }
 
-    function mostrarAnimacionCotizacion(){
+    function mostrarAnimacion(){
         document.querySelector('.overlay_cotizacion_edit').style.visibility   =   'visible';
     }
 
-    function ocultarAnimacionCotizacion(){
+    function ocultarAnimacion(){
         document.querySelector('.overlay_cotizacion_edit').style.visibility   =   'hidden';
     }
 

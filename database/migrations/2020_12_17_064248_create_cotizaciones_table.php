@@ -34,6 +34,10 @@ class CreateCotizacionesTable extends Migration
             $table->unsignedBigInteger('registrador_id');
             $table->foreign('registrador_id')->references('id')->on('users');
 
+            $table->string('almacen_nombre',160);
+            $table->string('registrador_nombre',160);
+
+
             $table->date('fecha_documento');
             $table->date('fecha_atencion')->nullable();
 
@@ -50,6 +54,7 @@ class CreateCotizacionesTable extends Migration
             $table->char('igv',3)->nullable();
 
             $table->string('moneda');
+
 
             $table->enum('estado',['VIGENTE','ATENDIDA', 'ANULADO', 'VENCIDA'])->default('VIGENTE');
             $table->timestamps();
