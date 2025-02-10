@@ -301,51 +301,34 @@
         })
 
         formCotizacion.addEventListener('submit',(e)=>{
+           
             e.preventDefault();
 
-            //===== VALIDAR FECHA =====
-            const correcto =  validaciones();
-            if (correcto) {
-                Swal.fire({
-                    title: 'Opción Guardar',
-                    text: "¿Seguro que desea guardar cambios?",
-                    icon: 'question',
-                showCancelButton: true,
-                    confirmButtonColor: "#1ab394",
-                    confirmButtonText: 'Si, Confirmar',
-                    cancelButtonText: "No, Cancelar",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        document.querySelector('#btn_grabar').disabled = true;
-                        formatearDetalle();
-                        saveCarritoJSON()
-                        formCotizacion.submit();
-                    } else if (result.dismiss === Swal.DismissReason.cancel) {
-                        swalWithBootstrapButtons.fire(
-                        'Cancelado',
-                        'La Solicitud se ha cancelado.',
-                        'error'
-                        )
-                        document.querySelector('#btn_grabar').disabled = false;
-                    }
-                })
+            toastr.clear();
+            if(carrito.length === 0){
+                toastr.error('EL DETALLE DE LA COTIZACIÓN ESTÁ VACÍO!!');
+                return;
             }
-
-            // const formData = new FormData(formCotizacion);
-            // formData.append("carrito", JSON.stringify(carrito));
-            // formData.forEach((valor, clave) => {
-            //      console.log(`${clave}: ${valor}`);
-            // });
+         
+            formatearDetalle();
+            const formData      =   new FormData(e.target);
+            formData.append('lstCotizacion',JSON.stringify(carritoFormateado));
+            formData.append('sede_id',@json($sede_id));
+            formData.append('registrador_id',@json($registrador->id));
+            formData.append('montos_cotizacion',JSON.stringify(amountsCotizacion));
+            formData.append('porcentaje_igv',@json($porcentaje_igv));
+            actualizarCotizacion(formData);
+          
         })
        
         //===== AGREGAR DETALLE ======
         btnAgregarDetalle.addEventListener('click',()=>{
 
             mostrarAnimacion();
-            if(!$('#modelo').val()){
-                toastr.error('DEBE SELECCIONAR UN MODELO','OPERACIÓN INCORRECTA');
-                return;
-            }
+            // if(!$('#modelo').val()){
+            //     toastr.error('DEBE SELECCIONAR UN MODELO','OPERACIÓN INCORRECTA');
+            //     return;
+            // }
             if(!$('#producto').val()){
                 toastr.error('DEBE SELECCIONAR UN PRODUCTO','OPERACIÓN INCORRECTA');
                 return;
@@ -489,6 +472,7 @@
 
     //====== FORMATEAR EL CARRITO A FORMATO DE BD ======
     function formatearDetalle(){
+        carritoFormateado.length    =   0;
         carrito.forEach((d)=>{
             d.tallas.forEach((t)=>{
                 const producto ={};
@@ -512,7 +496,7 @@
     const cargarProductosPrevios=()=>{
         //====== CARGANDO CARRITO ======
         const producto_color_procesados = [];
-
+      
         productosPrevios.forEach((productoPrevio)=>{
             const id    =   `${productoPrevio.producto_id}-${productoPrevio.color_id}`;
 
@@ -1076,6 +1060,82 @@
         while (tableStocksBody.firstChild) {
             tableStocksBody.removeChild(tableStocksBody.firstChild);
         }
+    }
+
+    function actualizarCotizacion(formData){
+        const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: false
+        });
+        swalWithBootstrapButtons.fire({
+        title: "Deseas actualizar la cotización?",
+        text: "Se modificará la cotización!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí!",
+        cancelButtonText: "No, cancelar!",
+        reverseButtons: true
+        }).then(async (result) => {
+        if (result.isConfirmed) {
+           
+            Swal.fire({
+                title: "Actualizando cotización...",
+                text: "Por favor, espere",
+                icon: "info",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const cotizacion_id =   @json($cotizacion->id);
+                
+                const res = await axios.post(route("ventas.cotizacion.update", cotizacion_id), formData, {
+                    headers: {
+                        "X-HTTP-Method-Override": "PUT"
+                    }
+                });
+
+                if(res.data.success){
+                    window.location =  route('ventas.cotizacion.index');
+                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                if (error.response) {
+                    if (error.response.status === 422) {
+                        const errors = error.response.data.errors;
+                        pintarErroresValidacion(errors, 'error');
+                        Swal.close();
+                        toastr.error("ERRORES DE VALIDACIÓN!!!");
+                    } else {
+                        Swal.close();
+                        toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                    }
+                } else if (error.request) {
+                    Swal.close();
+                    toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+                } else {
+                    Swal.close();
+                    toastr.error(error.message, 'ERROR DESCONOCIDO');
+                }    
+            }
+
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            swalWithBootstrapButtons.fire({
+            title: "Operación cancelada",
+            text: "No se realizaron acciones",
+            icon: "error"
+            });
+        }
+        });
     }
 
 </script>

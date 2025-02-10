@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Ventas;
 
 use App\Almacenes\Almacen;
 use App\Almacenes\Categoria;
+use App\Almacenes\Color;
 use App\Almacenes\LoteProducto;
 use App\Almacenes\Marca;
 use App\Almacenes\Producto;
@@ -131,7 +132,6 @@ array:10 [
 */ 
     public function store(CotizacionStoreRequest $request)
     {
-
         DB::beginTransaction();
         try {
             
@@ -191,32 +191,27 @@ array:10 [
             $cotizacion->igv_check          =   "1";
             $cotizacion->save();
 
+
             //======= REGISTRO DETALLE DE LA COTIZACIÓN =====
             foreach ($lstCotizacion as $item) {
 
-                //======= PRODUCTO EXISTE EN ALMACÉN =======
-                $existe     =   DB::select('select 
-                                p.nombre as producto_nombre,
-                                c.descripcion as color_nombre,
-                                t.descripcion as talla_nombre
-                                from producto_color_tallas as pct
-                                inner join productos as p on p.id = pct.producto_id
-                                inner join colores as c on c.id =  pct.color_id
-                                inner join tallas as t on t.id = pct.talla_id
-                                where 
-                                pct.almacen_id = ?
-                                AND pct.producto_id = ?
-                                AND pct.color_id = ?
-                                AND pct.talla_id = ?',
-                                [$request->get('almacen'),
-                                $item->producto_id,
-                                $item->color_id,
-                                $item->talla_id]);
-                                
-                if(count($existe) === 0){
+                $existe_producto    =   Producto::find($item->producto_id);
+                $existe_color       =   Color::find($item->color_id);
+                $existe_talla       =   Talla::find($item->talla_id);
+
+                if(!$existe_producto){
                     throw new Exception("EL PRODUCTO NO EXISTE EN LA BD!!!");
                 }
 
+                if(!$existe_color){
+                    throw new Exception("EL COLOR NO EXISTE EN LA BD!!!");
+                }
+
+                if(!$existe_talla){
+                    throw new Exception("LA TALLA NO EXISTE EN LA BD!!!");
+                }
+
+              
                 //==== CALCULANDO MONTOS PARA EL DETALLE ====
                 $importe        =   floatval($item->cantidad) * floatval($item->precio_venta);
                 $precio_venta   =   $item->porcentaje_descuento == 0?$item->precio_venta:$item->precio_venta_nuevo;
@@ -225,20 +220,20 @@ array:10 [
                 $detalle                            =   new CotizacionDetalle();
                 $detalle->cotizacion_id             =   $cotizacion->id;
                 $detalle->almacen_id                =   $almacen->id;
-                $detalle->producto_id               =   $producto->producto_id;
-                $detalle->color_id                  =   $producto->color_id;
-                $detalle->talla_id                  =   $producto->talla_id;
+                $detalle->producto_id               =   $item->producto_id;
+                $detalle->color_id                  =   $item->color_id;
+                $detalle->talla_id                  =   $item->talla_id;
                 $detalle->almacen_nombre            =   $almacen->descripcion;
-                $detalle->producto_nombre           =   $existe[0]->producto_nombre;
-                $detalle->color_nombre              =   $existe[0]->color_nombre;
-                $detalle->talla_nombre              =   $existe[0]->talla_nombre;
-                $detalle->cantidad                  =   $producto->cantidad;
-                $detalle->precio_unitario           =   $producto->precio_venta;
+                $detalle->producto_nombre           =   $existe_producto->nombre;
+                $detalle->color_nombre              =   $existe_color->descripcion;
+                $detalle->talla_nombre              =   $existe_talla->descripcion;
+                $detalle->cantidad                  =   $item->cantidad;
+                $detalle->precio_unitario           =   $item->precio_venta;
                 $detalle->importe                   =   $importe;
                 $detalle->precio_unitario_nuevo     =   floatval($precio_venta);
-                $detalle->porcentaje_descuento      =   floatval($producto->porcentaje_descuento);
-                $detalle->monto_descuento           =   floatval($importe) * floatval($producto->porcentaje_descuento) / 100;
-                $detalle->importe_nuevo             =   floatval($precio_venta) * floatval($producto->cantidad);
+                $detalle->porcentaje_descuento      =   floatval($item->porcentaje_descuento);
+                $detalle->monto_descuento           =   floatval($importe) * floatval($item->porcentaje_descuento) / 100;
+                $detalle->importe_nuevo             =   floatval($precio_venta) * floatval($item->cantidad);
                 $detalle->save();
 
             }
@@ -287,6 +282,8 @@ array:10 [
 
         $registrador    =   User::find($cotizacion->registrador_id);
         $almacenes      =   Almacen::where('estado','ACTIVO')->get();
+        $sede_id        =   Auth::user()->sede_id;
+
 
         return view('ventas.cotizaciones.edit', [
             'cotizacion'        =>  $cotizacion,
@@ -303,153 +300,153 @@ array:10 [
             'tipo_clientes'     =>  $tipo_clientes,
             'porcentaje_igv'    =>  $porcentaje_igv,
             'registrador'       =>  $registrador,
-            'almacenes'         =>  $almacenes
+            'almacenes'         =>  $almacenes,
+            'sede_id'           =>  $sede_id
         ]);
     }
 
+
+/*
+array:11 [
+  "_token"              => "tUfxjoYQNI8rXMfIXQtSNELqv4znU9yyUA5PT9hD"
+  "registrador"         => "ADMINISTRADOR"
+  "fecha_registro"      => "2025-02-10"
+  "almacen"             => "2"
+  "condicion_id"        => "1"
+  "cliente"             => "1"
+  "lstCotizacion"       => "[{"producto_id":1,"color_id":3,"talla_id":1,"cantidad":8,"precio_venta":"1.00","porcentaje_descuento":0,"precio_venta_nuevo":0},{"producto_id":1,"color_id":3,"talla_id":1,"cantidad":8,"precio_venta":"1.00","porcentaje_descuento":0,"precio_venta_nuevo":0},{"producto_id":1,"color_id":3,"talla_id":1,"cantidad":8,"precio_venta":"1.00","porcentaje_descuento":0,"precio_venta_nuevo":0},{"producto_id":1,"color_id":3,"talla_id":1,"cantidad":8,"precio_venta":"1.00","porcentaje_descuento":0,"precio_venta_nuevo":0}]"
+  "sede_id"             => "1"
+  "registrador_id"      => "1"
+  "montos_cotizacion"   => "{"subtotal":"16.00","embalaje":"0.00","envio":"0.00","total":"13.56","igv":"2.44","totalPagar":"16.00","monto_descuento":"0.00"}"
+  "porcentaje_igv"      => "18.00"
+]
+*/ 
     public function update(Request $request,$id)
     {
-        $data = $request->all();
-        $productos = json_decode($request->input('productos_tabla')[0]);
-        
        
-        $rules = [
-            'empresa' => 'required',
-            'cliente' => 'required',
-            'condicion_id' => 'required',
-            'fecha_documento' => 'required',
-            'fecha_atencion' => 'nullable',
-            // 'igv' => 'required_if:igv_check,==,on|numeric|digits_between:1,3',
-        ];
+        DB::beginTransaction();
 
-        $message = [
-            'empresa.required' => 'El campo Empresa es obligatorio',
-            'cliente.required' => 'El campo Cliente es obligatorio',
-            'condicion_id.required' => 'El campo condicion es obligatorio',
-            'moneda' => 'El campo Moneda es obligatorio',
-            'fecha_documento.required' => 'El campo Fecha de Documento es obligatorio',
-            // 'igv.required_if' => 'El campo Igv es obligatorio.',
-            // 'igv.digits' => 'El campo Igv puede contener hasta 3 dígitos.',
-            // 'igv.numeric' => 'El campo Igv debe se numérico.',
-        ];
 
-        Validator::make($data, $rules, $message)->validate();
+        try {
+            $lstCotizacion      =   json_decode($request->get('lstCotizacion'));
+            $montos_cotizacion  =   json_decode($request->get('montos_cotizacion'));
 
-        // $igv = $request->get('igv') && $request->get('igv_check') == "on" ? (float) $request->get('igv') : 18;
-        // $total = (float) $request->get('monto_total');
-        // $sub_total = $total / (1 + ($igv/100));
-        // $total_igv = $total - $sub_total;
+            $almacen            =   Almacen::find($request->get('almacen'));
+            $registrador        =   User::find($request->get('registrador_id'));
 
-        //======= CALCULANDO MONTOS ========
-        $monto_subtotal     =   0.0;
-        $monto_embalaje     =   $request->get('monto_embalaje')??0;
-        $monto_envio        =   $request->get('monto_envio')??0;
-        $monto_total        =   0.0;
-        $monto_igv          =   0.0;
-        $monto_total_pagar  =   0.0;
-        $monto_descuento    =   $request->get('monto_descuento')??0;
-     
-        foreach ($productos as $producto) {
-            if( floatval($producto->porcentaje_descuento) == 0){
-                $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta);
-            }else{
-                     $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta_nuevo);
+            //======= CALCULANDO MONTOS ========
+            $monto_subtotal     =   0.0;
+            $monto_embalaje     =   $montos_cotizacion->embalaje??0;
+            $monto_envio        =   $montos_cotizacion->envio??0;
+            $monto_total        =   0.0;
+            $monto_igv          =   0.0;
+            $monto_total_pagar  =   0.0;
+            $monto_descuento    =   $montos_cotizacion->monto_descuento??0;
+
+            foreach ($lstCotizacion as $producto) {
+                if( floatval($producto->porcentaje_descuento) == 0){
+                    $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta);
+                }else{
+                    $monto_subtotal +=  ($producto->cantidad * $producto->precio_venta_nuevo);
+                }
             }
-        }
-     
-        $monto_total_pagar      =   $monto_subtotal+$monto_embalaje+$monto_envio;
-        $monto_total            =   $monto_total_pagar/1.18;
-        $monto_igv              =   $monto_total_pagar-$monto_total;
-        $porcentaje_descuento   =   ($monto_descuento*100)/($monto_total_pagar+$monto_descuento);
-        
-             
-        $cotizacion =  Cotizacion::findOrFail($id);
-        $cotizacion->empresa_id = $request->get('empresa');
-        $cotizacion->cliente_id = $request->get('cliente');
-        $cotizacion->condicion_id = $request->get('condicion_id');
-        //$cotizacion->vendedor_id = $request->get('vendedor');
-        $cotizacion->vendedor_id    =   $request->get('vendedor');
-        $cotizacion->fecha_documento = $request->get('fecha_documento');
-        $cotizacion->fecha_atencion = $request->get('fecha_atencion');
 
-        $cotizacion->sub_total              = $monto_subtotal;
-        $cotizacion->monto_embalaje         = $monto_embalaje;
-        $cotizacion->monto_envio            = $monto_envio;
-        $cotizacion->total_igv              = $monto_igv;
-        $cotizacion->total                  = $monto_total;
-        $cotizacion->total_pagar            = $monto_total_pagar;  
-        $cotizacion->monto_descuento        = $monto_descuento;
-        $cotizacion->porcentaje_descuento   = $porcentaje_descuento;
+            $monto_total_pagar      =   $monto_subtotal+$monto_embalaje+$monto_envio;
+            $monto_total            =   $monto_total_pagar/1.18;
+            $monto_igv              =   $monto_total_pagar-$monto_total;
+            $porcentaje_descuento   =   ($monto_descuento*100)/($monto_total_pagar);
 
-        $cotizacion->user_id = Auth::id();
-         //$cotizacion->igv = $request->get('igv');
-         $cotizacion->igv = "18";
-         //if ($request->get('igv_check') == "on") {
-            $cotizacion->igv_check = "1";
-         //}
+            //======== REGISTRANDO MAESTRO COTIZACIÓN ======
+            $cotizacion                     =   Cotizacion::find($id);
+            $cotizacion->empresa_id         =   1;
+            $cotizacion->cliente_id         =   $request->get('cliente');
+            $cotizacion->condicion_id       =   $request->get('condicion_id');
+            $cotizacion->registrador_id     =   $request->get('registrador_id');
+            $cotizacion->registrador_nombre =   $registrador->usuario;
+            $cotizacion->fecha_documento    =   Carbon::now()->format('Y-m-d');
+            $cotizacion->fecha_atencion     =   Carbon::now()->format('Y-m-d');
+            $cotizacion->sede_id            =   $request->get('sede_id');
+            $cotizacion->almacen_id         =   $almacen->id;
+            $cotizacion->almacen_nombre     =   $almacen->descripcion;
 
-        $cotizacion->update();
+            $cotizacion->sub_total              =   $monto_subtotal;
+            $cotizacion->monto_embalaje         =   $monto_embalaje;
+            $cotizacion->monto_envio            =   $monto_envio;
+            $cotizacion->total_igv              =   $monto_igv;
+            $cotizacion->total                  =   $monto_total;
+            $cotizacion->total_pagar            =   $monto_total_pagar;  
+            $cotizacion->monto_descuento        =   $monto_descuento;
+            $cotizacion->porcentaje_descuento   =   $porcentaje_descuento;
 
-        //$productosJSON = $request->get('productos_tabla');
-        //$productotabla = json_decode($productosJSON[0]);
-        if ($productos) {
-            CotizacionDetalle::where('cotizacion_id', $id)->delete();
+            $cotizacion->moneda             =   4;
+            $cotizacion->igv                =   $request->get('porcentaje_igv');
+            $cotizacion->igv_check          =   "1";
+            $cotizacion->update();
 
-            foreach ($productos as $producto) {
-                //==== CALCULANDO MONTOS PARA EL DETALLE ====
-                $importe =  floatval($producto->cantidad) * floatval($producto->precio_venta);
-                $precio_venta   =   $producto->porcentaje_descuento == 0?$producto->precio_venta:$producto->precio_venta_nuevo;
+            if ($lstCotizacion) {
 
-                CotizacionDetalle::create([
-                    'cotizacion_id'             => $cotizacion->id,
-                    'producto_id'               => $producto->producto_id,
-                    'color_id'                  => $producto->color_id,
-                    'talla_id'                  => $producto->talla_id,
-                    'cantidad'                  => $producto->cantidad,
-                    'precio_unitario'           => $producto->precio_venta,
-                    'importe'                   => $importe,
-                    'precio_unitario_nuevo'     =>  floatval($precio_venta),
-                    'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
-                    'monto_descuento'           =>  floatval($importe)*floatval($producto->porcentaje_descuento)/100,
-                    'importe_nuevo'             =>  floatval($precio_venta) * floatval($producto->cantidad),  
-                ]);
+                //======== ELIMINAR DETALLE ANTERIOR ======
+                CotizacionDetalle::where('cotizacion_id', $id)->delete();
+    
+                foreach ($lstCotizacion as $item) {
+
+                    $existe_producto    =   Producto::find($item->producto_id);
+                    $existe_color       =   Color::find($item->color_id);
+                    $existe_talla       =   Talla::find($item->talla_id);
+    
+                    if(!$existe_producto){
+                        throw new Exception("EL PRODUCTO NO EXISTE EN LA BD!!!");
+                    }
+    
+                    if(!$existe_color){
+                        throw new Exception("EL COLOR NO EXISTE EN LA BD!!!");
+                    }
+    
+                    if(!$existe_talla){
+                        throw new Exception("LA TALLA NO EXISTE EN LA BD!!!");
+                    }
+    
+                    //==== CALCULANDO MONTOS PARA EL DETALLE ====
+                    $importe        =   floatval($item->cantidad) * floatval($item->precio_venta);
+                    $precio_venta   =   $item->porcentaje_descuento == 0?$item->precio_venta:$item->precio_venta_nuevo;
+    
+                    $detalle                        = new CotizacionDetalle();
+                    $detalle->cotizacion_id         = $cotizacion->id;
+                    $detalle->almacen_id            = $almacen->id;
+                    $detalle->producto_id           = $item->producto_id;
+                    $detalle->color_id              = $item->color_id;
+                    $detalle->talla_id              = $item->talla_id;
+                    $detalle->almacen_nombre        = $almacen->descripcion;
+                    $detalle->producto_nombre       = $existe_producto->nombre;
+                    $detalle->color_nombre          = $existe_color->descripcion;
+                    $detalle->talla_nombre          = $existe_talla->descripcion;
+                    $detalle->cantidad              = $item->cantidad;
+                    $detalle->precio_unitario       = $item->precio_venta;
+                    $detalle->importe               = $importe;
+                    $detalle->precio_unitario_nuevo = floatval($precio_venta);
+                    $detalle->porcentaje_descuento  = floatval($item->porcentaje_descuento);
+                    $detalle->monto_descuento       = floatval($importe) * floatval($item->porcentaje_descuento) / 100;
+                    $detalle->importe_nuevo         = floatval($precio_venta) * floatval($item->cantidad);
+                    $detalle->save();
+    
+                }
             }
+    
+            //Registro de actividad
+            $descripcion = "SE MODIFICÓ LA COTIZACION CON LA FECHA: ". Carbon::parse($cotizacion->fecha_documento)->format('d/m/y');
+            $gestion    = "COTIZACION";
+            modificarRegistro($cotizacion, $descripcion , $gestion);
+    
+            Session::flash('success','Cotización modificada.');
+            
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>"COTIZACIÓN ACTUALIZADA"]);
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
 
-        //Registro de actividad
-        $descripcion = "SE MODIFICÓ LA COTIZACION CON LA FECHA: ". Carbon::parse($cotizacion->fecha_documento)->format('d/m/y');
-        $gestion = "COTIZACION";
-        modificarRegistro($cotizacion, $descripcion , $gestion);
-
-        Session::flash('success','Cotización modificada.');
-        return redirect()->route('ventas.cotizacion.index')->with('modificar', 'success');
-
-
-        //ELIMINAR DOCUMENTO DE ORDEN DE COMPRA SI EXISTE
-        // $documento = Documento::where('cotizacion_venta',$id)->where('estado','!=','ANULADO')->first();
-        // if ($documento) {
-        //     $documento->estado = 'ANULADO';
-        //     $documento->update();
-
-        //     $detalles = Detalle::where('documento_id',$id)->get();
-        //     foreach ($detalles as $detalle) {
-        //         $lote = LoteProducto::find($detalle->lote_id);
-        //         $cantidad = $lote->cantidad + $detalle->cantidad;
-        //         $lote->cantidad = $cantidad;
-        //         $lote->cantidad_logica = $cantidad;
-        //         $lote->update();
-        //         //ANULAMOS EL DETALLE
-        //         $detalle->estado = "ANULADO";
-        //         $detalle->update();
-        //     }
-
-        //     Session::flash('success','Cotización modificada y documento eliminado.');
-        //     return redirect()->route('ventas.cotizacion.index')->with('modificar', 'success');
-
-        // }else{
-        //     Session::flash('success','Cotización modificada.');
-        //     return redirect()->route('ventas.cotizacion.index')->with('modificar', 'success');
-        // }
     }
 
     public function show($id)

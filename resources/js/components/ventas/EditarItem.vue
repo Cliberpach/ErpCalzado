@@ -97,6 +97,21 @@ export default {
             console.log('PRODUCTOS TABLA',this.detalleVenta);
             
             this.$parent.mostrarAnimacionVenta();
+
+            const almacen_id    =   this.$parent.almacenSeleccionado;
+
+            //======= DEBE SELECCIONARSE UN ALMACÉN =======
+            if(!almacen_id){
+                toastr.clear();
+                toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
+                //======= FOCUS AL VSELECT ALMACÉN ========
+                this.$nextTick(() => {
+                    this.$parent.$refs.selectAlmacen.$el.querySelector("input").focus();
+                });
+                this.$parent.ocultarAnimacionVenta();
+                return;
+            }
+
             //======= CANTIDADES NUEVAS =====
             const cantidadPorTallaSinCeros = this.cantidadPorTalla.filter(ct => ct.cantidad != '0' && ct.cantidad != '');
 
@@ -136,7 +151,8 @@ export default {
             console.log('CANTIDADES EDIT',lstCantidadesEdit);
 
             //======== ACTUALIZANDO STOCK EDIT =======
-            const res   =   await axios.post(route('ventas.documento.actualizarStockEdit'),{lstProductos:JSON.stringify(lstCantidadesEdit)});
+            const res   =   await axios.post(route('ventas.documento.actualizarStockEdit'),
+                            {almacenId:almacen_id,lstProductos:JSON.stringify(lstCantidadesEdit)});
 
             if(res.data.success){
                 toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
@@ -148,13 +164,12 @@ export default {
 
             if(cantidadPorTallaSinCeros.length === 0){
 
-                 if(indiceProductoColor !== -1){
-                     this.detalleVenta.splice(indiceProductoColor,1);
-                     alert('eliminado');
-                 }
+                if(indiceProductoColor !== -1){
+                    this.detalleVenta.splice(indiceProductoColor,1);
+                }
 
              }else{
-                 this.detalleVenta[indiceProductoColor].tallas   =   cantidadPorTallaSinCeros;
+                this.detalleVenta[indiceProductoColor].tallas   =   cantidadPorTallaSinCeros;
             }
 
             this.$parent.ocultarAnimacionVenta();

@@ -99,56 +99,55 @@
                         <div class="ibox-content">
                             <form @submit.prevent="Grabar" class="formulario" id="EnviarVenta">
                                 <div class="row">
+
                                     <div class="col-12 col-md-6 b-r">
+
                                         <div class="row">
-                                            <div class="col-12 col-md-6" id="fecha_documento">
-                                                <div class="form-group">
-                                                    <label class="">Fecha de Documento</label>
+
+                                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3" id="fecha_documento">
+                                                    <label style="font-weight: bold;">FECHA DOCUMENTO</label>
                                                     <div class="input-group">
                                                         <span class="input-group-addon">
                                                             <i class="fa fa-calendar"></i>
                                                         </span>
 
-                                                        <input type="date" id="fecha_documento_campo"
+                                                        <input readonly type="date" id="fecha_documento_campo"
                                                             name="fecha_documento_campo"
                                                             class="form-control input-required" autocomplete="off"
                                                             required v-model="formCreate.fecha_documento_campo">
+
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong></strong>
                                                         </span>
 
                                                     </div>
-                                                </div>
                                             </div>
 
-                                            <div class="col-12 col-md-6 d-none" id="fecha_entrega">
-                                                <div class="form-group">
-                                                    <label>Placa</label>
+                                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3" id="almacen">
 
-                                                    <input type="text" placeholder="" class="form-control"
-                                                        name="observacion" id="observacion" onkeyup="return mayus(this)"
-                                                        maxlength="7" v-model="formCreate.observacion">
-
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong></strong>
-                                                    </span>
-
-                                                </div>
+                                                <label style="font-weight: bold;">ALMACÉN</label>
+                                                    
+                                                <v-select v-model="almacenSeleccionado" :options="initData.almacenes"
+                                                    :reduce="a => a.id" label="descripcion"
+                                                    placeholder="Seleccionar"  ref="selectAlmacen">
+                                                </v-select>
+                                                    
                                             </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-12 col-md-6 select-required">
+
+
+                                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 select-required mb-3">
                                                 <div class="form-group">
-                                                    <label class="required">Tipo de Comprobante: </label>
+                                                    <label style="font-weight: bold;" class="required">COMPROBANTE </label>
                                                     <v-select v-model="tipo_venta" :options="initData.tipoVentas"
                                                         :reduce="tipo => tipo.id" label="nombre"
                                                         placeholder="Seleccionar comprobante...">
                                                     </v-select>
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-md-6 select-required">
+
+                                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 select-required mb-3">
                                                 <div class="form-group">
-                                                    <label>Moneda:</label>
+                                                    <label style="font-weight: bold;">MONEDA</label>
                                                     <select id="moneda" name="moneda" class="select2_form form-control"
                                                         disabled>
                                                         <option selected>SOLES</option>
@@ -157,6 +156,8 @@
                                             </div>
                                         </div>
                                     </div>
+
+
                                     <div class="col-12 col-md-6">
                                         <div class="row">
                                             <div class="col-12 col-md-6 select-required">
@@ -210,15 +211,6 @@
 
                                                 </div>
                                             </div>
-                                            <!-- <div class="col-12 col-md-4">
-                                                <div class="form-group">
-                                                    <label>
-                                                        <input type="checkbox" class="i-checks" name="envio_sunat"
-                                                            id="envio_sunat" v-model="formCreate.envio_sunat">
-                                                        <b class="text-danger">Enviar a Sunat</b>
-                                                    </label>
-                                                </div>
-                                            </div> -->
                                         </div>
                                     </div>
                                 </div>
@@ -226,12 +218,15 @@
                             <hr>
 
                             <TablaProductos @addProductoDetalle="AddProductoDetalles" @addDataEnvio="addDataEnvio"
-                                :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto"
+                                :fullaccessTable="FullaccessTable" 
+                                :idcotizacion="idcotizacion" 
+                                :btnDisabled="disabledBtnProducto"
                                 :parametros="paramsLotes"
                                 :modelos="initData.modelos" :categorias="initData.categorias" :marcas="initData.marcas"
                                 :tallas="initData.tallas" :precio_envio="formCreate.precio_envio"
                                 :precio_despacho="formCreate.precio_despacho"
                                 :cliente="cliente_id"
+                                :almacenSeleccionado="almacenSeleccionado"
                             ref="tablaDetalles" />
 
                             <div class="hr-line-dashed"></div>
@@ -259,13 +254,7 @@
                     </div>
                 </div>
             </div>
-            <div class="sk-spinner sk-spinner-wave" :class="{'hide':!loading}">
-                <div class="sk-rect1"></div>
-                <div class="sk-rect2"></div>
-                <div class="sk-rect3"></div>
-                <div class="sk-rect4"></div>
-                <div class="sk-rect5"></div>
-            </div>
+           
         </div>
 
         <ModalClienteVue @newCliente="formAddCliente" />
@@ -304,6 +293,8 @@ export default {
             modalTitle:'',
             modalVisible: false,
 
+            //====== ALMACÉN =====
+            almacenSeleccionado:null,
             checkDespacho: false,
             checkEnvio: false,
             initData: {
@@ -356,7 +347,6 @@ export default {
                 tipo_documento: ""
             },
             loading: true,
-            loadingLotes: false,
             loadingClienteNew: false,
             paramsLotes: {
                 tipo_cliente: '',
@@ -459,8 +449,8 @@ export default {
         }
     },
     created() {
-        this.formCreate.fecha_documento_campo = this.$fechaActual;
-        this.formCreate.fecha_atencion_campo = this.$fechaActual;
+        this.formCreate.fecha_documento_campo   = this.$fechaActual;
+        this.formCreate.fecha_atencion_campo    = this.$fechaActual;
         this.formCreate.fecha_vencimiento_campo = this.$fechaActual;
         this.ObtenerData();
     },
@@ -594,15 +584,14 @@ export default {
                 //======= spiner de carga =========
                 this.loading = true;
 
-                //======== verificar si existen cajas abiertas ==========
-                //const { data } = await this.axios.get(route('Caja.movimiento.verificarestado'));
+                //======== VERIFICAR SI EXISTEN CAJAS ABIERTAS ==========
                 const res = await this.axios.get(route('Caja.movimiento.verificarestado'));
                 console.log('VERIFICAR CAJA ESTADO');
                 console.log(res);
                 //======= desestructuración de objeto ===========
                 const success  = res.data.success;
 
-                //======== si existen cajas abiertas ===========
+                //======== SÍ EXISTEN CAJAS ABIERTAS ===========
                 if (success) {
 
                     let envio_ok = true;
@@ -618,12 +607,12 @@ export default {
                         console.log('FORM ENVIADO');
                         console.log(this.formCreate)
 
-                        //const { data } = await this.axios.post(route("ventas.documento.store"), this.formCreate);
+                        this.formCreate.almacenSeleccionado =   this.almacenSeleccionado;
+
                         const res = await this.axios.post(route("ventas.documento.store"), this.formCreate);
                         
                         console.log('RES DOCUMENT STORE');
                         console.log(res);
-                        //const { success, documento_id } = data;
 
 
                         if (res.data.success) {
@@ -793,42 +782,6 @@ export default {
 }
 </script>
 <style lang="scss">
-div.content-create {
-    position: relative;
-}
-
-div.content-create.sk__loading::after {
-    content: '';
-    background-color: rgba(255, 255, 255, 0.7);
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 10;
-}
-
-.content-create.sk__loading>.sk-spinner.sk-spinner-wave {
-    margin: 0 auto;
-    width: 50px;
-    height: 30px;
-    text-align: center;
-    font-size: 10px;
-}
-
-.content-create.sk__loading>.sk-spinner {
-    display: block;
-    position: absolute;
-    top: 40%;
-    left: 0;
-    right: 0;
-    z-index: 2000;
-}
-
-.content-create .sk-spinner.sk-spinner-wave.hide {
-    display: none;
-}
-
 @media (min-width: 992px) {
     .modal-lg {
         max-width: 1200px;

@@ -635,13 +635,7 @@
             </div>
             <!-- FIN SEGUNDO PANEL -->
 
-        <!-- <ModalLotesVue :show.sync="modalLote" :fullAccess="fullaccessTable" :tipoCliente="paramsLotes.tipo_cliente"
-            :tipoComprobante="paramsLotes.tipocomprobante" @selectedProductos="ProductoSeleccionado" /> -->
-        <!-- <ModalLotesVue :dataLotes="Lotes" :fullAccess="fullaccessTable" :searchInput.sync="searchInput"
-            @selectedProductos="ProductoSeleccionado" /> -->
-        <!-- <ModalCodigoPrecioMenorVue :estadoPrecioMenor="estadoPrecioMenor"
-            @addCodigoPrecioMenor="SaveCodigoPrecioMenor" />
-        <ModalEditaDetalleVue :item.sync="itemLote" :detalles.sync="tablaDetalles" /> -->
+      
         <ModalEnvioVue :cliente="cliente" @addDataEnvio="addDataEnvio"/>
 
         </div>
@@ -670,7 +664,8 @@ export default {
     TablaProductos
 },
     props: ["fullaccessTable", "btnDisabled", "parametros",
-     "productoTabla", "TotalesObj", 'idcotizacion','modelos','categorias','marcas','tallas','cliente'],
+     "productoTabla", "TotalesObj", 'idcotizacion','modelos',
+     'categorias','marcas','tallas','cliente','almacenSeleccionado'],
     data() {
         return {
             monto_embalaje:0,
@@ -917,7 +912,7 @@ export default {
         },
         productoSeleccionado: {
             handler(value) {
-                console.log('productoSeleccionado cambió:', value);
+                //====== OBTENER COLORES Y TALLAS DEL PRODUCTO ======
                 this.getColoresTallas();
             },
             deep: true,
@@ -1210,6 +1205,18 @@ export default {
                 return;
             }
 
+            //======= DEBE SELECCIONARSE UN ALMACÉN =======
+            if(!this.almacenSeleccionado){
+                toastr.clear();
+                toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
+                //======= FOCUS AL VSELECT ALMACÉN ========
+                this.$nextTick(() => {
+                    this.$parent.$refs.selectAlmacen.$el.querySelector("input").focus();
+                });
+                this.$parent.ocultarAnimacionVenta();
+                return;
+            }
+
             //======== ANIMACIÓN =======
             this.$parent.mostrarAnimacionVenta();       
             
@@ -1224,19 +1231,21 @@ export default {
             try {
 
                 //====== VALIDAR STOCK VENTAS ======
-                const res_stock =   await this.validarStockVentas(resInputProducts.lstInputProducts);
+                /*const res_stock =   await this.validarStockVentas(this.almacenSeleccionado,resInputProducts.lstInputProducts);
 
                 if(!res_stock.data.success){
                     toastr.error(res_stock.data.message,'ERROR EN EL SERVIDOR');
                 }
 
-                toastr.success(res_stock.data.message,'VALIDACIÓN COMPLETADA');
+                toastr.success(res_stock.data.message,'VALIDACIÓN COMPLETADA');*/
 
             
-                const res_actualizar_stock    =   await this.actualizarStockLogicoVentas(resInputProducts.lstInputProducts);
+                const res_actualizar_stock    =   await this.actualizarStockLogicoVentas(this.almacenSeleccionado,resInputProducts.lstInputProducts);
 
                 if(!res_actualizar_stock.data.success){
                     toastr.error(res_actualizar_stock.data.message,'ERROR EN EL SERVIDOR');
+                    this.$parent.ocultarAnimacionVenta();            
+                    return;
                 }
 
                 
@@ -1272,19 +1281,19 @@ export default {
             console.log(this.asegurarCierre);
             console.log(this.carrito);
         },
-        async validarStockVentas(lstInputProducts){
+        async validarStockVentas(almacenId,lstInputProducts){
 
             const res   =   await axios.post(route('ventas.documento.validarStockVentas'),
-                            {lstInputProducts:JSON.stringify(lstInputProducts)});
+                            {almacenId,lstInputProducts:JSON.stringify(lstInputProducts)});
 
             return res;   
 
         },
-        async actualizarStockLogicoVentas(lstInputProducts){
+        async actualizarStockLogicoVentas(almacenId,lstInputProducts){
             
             //===== RESTAR STOCK LÓGICO ======
             const res  =   await axios.post(route('ventas.documento.actualizarStockAdd')
-                                        ,{lstInputProducts:JSON.stringify(lstInputProducts)});  
+                            ,{almacenId,lstInputProducts:JSON.stringify(lstInputProducts)});  
 
             return res;
         },
@@ -1492,19 +1501,36 @@ export default {
                 //ocultarAnimacionCotizacion();
             }
         },
-        async  getColoresTallas(){             //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======  
+        //======= OBTENER COLORES Y TALLAS POR PRODUCTO ======= 
+        async  getColoresTallas(){   
+            
+            //======= MOSTRAR ANIMACIÓN =======
             this.$parent.mostrarAnimacionVenta();                     
             const producto_id   =   this.productoSeleccionado;
+            const almacen_id    =   this.almacenSeleccionado;
+
+            if(!producto_id){
+                this.$parent.ocultarAnimacionVenta();
+                return;
+            }
+           //======= DEBE SELECCIONARSE UN ALMACÉN =======
+           if(!this.almacenSeleccionado){
+                toastr.clear();
+                toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
+                //======= FOCUS AL VSELECT ALMACÉN ========
+                this.$nextTick(() => {
+                    this.$parent.$refs.selectAlmacen.$el.querySelector("input").focus();
+                });
+                this.$parent.ocultarAnimacionVenta();
+                return;
+            }
+
             if(producto_id){
                 try {
-                    const res   =   await   axios.get(route('ventas.documento.getColoresTallas',{producto_id}));
+                    const res   =   await   axios.get(route('ventas.documento.getColoresTallas',{almacen_id,producto_id}));
                     if(res.data.success){
                         this.productosPorModelo =   res.data;
                         this.preciosVenta       =   res.data.precios_venta;
-                    
-                        // pintarTableStocks(res.data.producto_color_tallas);
-                        // pintarPreciosVenta(res.data.producto_color_tallas);
-                        // loadCarrito();
                     }else{
                         toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                     }
@@ -1513,10 +1539,6 @@ export default {
                 }finally{
                     //ocultarAnimacionCotizacion();
                 }
-            }else{
-                // limpiarTableStocks();
-                // limpiarSelectPreciosVenta();
-                // ocultarAnimacionCotizacion();
             }
             this.$parent.ocultarAnimacionVenta();            
         },
@@ -1639,79 +1661,6 @@ export default {
                 this.productoJson = obj;
             }
         },
-        Agregar(condicion = "VISTA") {
-            try {
-                let enviar = true;
-                // let cantidad = !isNaN(Number(this.formDetalles.cantidad)) ? Number(this.formDetalles.cantidad) : 0;
-                // let precio = !isNaN(Number(this.formDetalles.precio)) ? Number(this.formDetalles.precio) : 0;
-                // let precioActual = this.evaluarPrecioigv(this.productoJson);
-                // if (this.productoJson.producto_id == "") {
-                //     toastr.error("Seleccione Producto.");
-                //     enviar = false;
-                // } else {
-                //     var existe = this.buscarProductoAdded(this.formDetalles.producto_id)
-                //     if (existe) {
-                //         toastr.error('Producto ya se encuentra ingresado.', 'Error');
-                //         enviar = false;
-                //     }
-                // }
-
-                // if (this.formDetalles.precio == "") {
-                //     toastr.error('Ingrese el precio del producto.', 'Error');
-                //     enviar = false;
-                // } else {
-                //     if (precio == 0) {
-                //         toastr.error('Ingrese el precio del producto superior a 0.0.', 'Error');
-                //         enviar = false;
-                //     }
-
-                //     if (precio < precioActual) {
-
-                //         this.estadoPrecioMenor = this.dataEmpresa.estado_precio_menor;
-
-                //         if (this.dataEmpresa.estado_precio_menor == '1') {
-
-                //             if (this.codigo_precio_menor != this.dataEmpresa.codigo_precio_menor) {
-
-                //                 if (condicion == 'MODAL') {
-                //                     toastr.error('El codigo para poder vender a un precio menor a lo establecido es incorrecto.', 'Error');
-                //                 } else {
-                //                     this.codigo_precio_menor = "";
-                //                     $('#modal-codigo-precio').modal('show');
-                //                 }
-
-                //                 enviar = false;
-
-                //             } else {
-                //                 this.codigo_precio_menor = "";
-                //                 $('#modal-codigo-precio').modal('hide');
-                //             }
-                //         } else {
-                //             toastr.error('No puedes vender a un precio menor a lo establecido.', 'Error');
-                //             enviar = false;
-                //         }
-                //     }
-                // }
-
-                // if (cantidad == '') {
-                //     toastr.error('Ingrese cantidad del artículo.', 'Error');
-                //     enviar = false;
-                // }
-
-                // if (cantidad == 0) {
-                //     enviar = false;
-                // }
-
-                if (enviar) {
-                    this.asegurarCierre = 1;
-                    this.CambiarCantidadLogica(detalle);
-                    //this.LlenarDatos();
-                }
-
-            } catch (ex) {
-                alert(ex);
-            }
-        },
         LlenarDatos() {
             try {
                 let pdescuento = 0;
@@ -1774,11 +1723,6 @@ export default {
             this.formDetalles.monto_sub_total = subtotal.toFixed(2);
             this.formDetalles.monto_total_igv = igv_calculado.toFixed(2);
             this.formDetalles.monto_total = total.toFixed(2);
-        },
-        SaveCodigoPrecioMenor(value) {
-            const { codigoPrecio, condicion } = value;
-            this.codigo_precio_menor = codigoPrecio;
-            this.Agregar(condicion);
         },
         TransformarNumber(item) {
             if (item && !isNaN(Number(item))) {

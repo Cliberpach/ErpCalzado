@@ -571,6 +571,7 @@
 
     //====== FORMATEAR EL CARRITO A FORMATO DE BD ======
     function formatearDetalle(){
+        carritoFormateado.length    =   0;
         carrito.forEach((d)=>{
             console.log('producto_color')
             d.tallas.forEach((t)=>{
@@ -857,7 +858,7 @@
                                         {almacen_id,producto_id}));
                 if(res.data.success){
                     pintarTableStocks(res.data.producto_color_tallas);
-                    pintarPreciosVenta(res.data.producto_color_tallas);
+                    pintarPreciosVenta(res.data.precios_venta);
                     loadCarrito();
                 }else{
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
@@ -1184,6 +1185,7 @@
                     window.location =  route('ventas.cotizacion.index');
                     toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
                 }else{
+                    Swal.close();
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
