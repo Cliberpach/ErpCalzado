@@ -67,6 +67,8 @@ use App\Almacenes\Marca;
 use App\Almacenes\NotaSalidad;
 use App\Http\Controllers\UtilidadesController;
 use App\Http\Requests\Ventas\DocVenta\DocVentaStoreRequest;
+use App\Mantenimiento\Ubigeo\Departamento;
+use App\Mantenimiento\Ubigeo\Provincia;
 use Illuminate\Support\Facades\Response; 
 use App\Ventas\CambioTalla;
 
@@ -755,12 +757,15 @@ class DocumentoController extends Controller
         $empresas       = Empresa::where('estado', 'ACTIVO')->get();
         $clientes       = Cliente::where('estado', 'ACTIVO')->get();
         $fecha_hoy      = Carbon::now()->toDateString();
-        //$productos      = Producto::where('estado', 'ACTIVO')->get();
         $condiciones    = Condicion::where('estado', 'ACTIVO')->get();
 
         $almacenes      =   Almacen::where('sede_id',Auth::user()->sede_id)
                             ->where('estado','ACTIVO')->get();
-     
+
+        $departamentos  =   Departamento::all();
+        $provincias     =   Provincia::all();
+        $distritos      =   Distrito::all();
+
         $dolar = 0;
 
         $fullaccess = false;
@@ -811,8 +816,8 @@ class DocumentoController extends Controller
 
             $cantidadErrores =  count($detallesWithStockInsuficiente)+ count($detallesNotExists);
 
-            //============= SEPARAR STOCK_LOGICO ===========
-            if($cantidadErrores==0){
+            //============= SEPARAR STOCK_LOGICO CUANDO NO HAY ERRORES ===========
+            if($cantidadErrores == 0){
                foreach ($validaciones as $itemValidado) {
                 DB::table('producto_color_tallas')
                 ->where('almacen_id', $itemValidado->getAlmacenId())
@@ -866,16 +871,10 @@ class DocumentoController extends Controller
         }
 
         if (empty($cotizacion)) {
-       
             return view('ventas.documentos.' . $vista, [
-                /*'empresas'      =>  $empresas,
-                'clientes'      =>  $clientes,
-                'productos'     =>  $productos,
-                'condiciones'   =>  $condiciones,
-                'fecha_hoy'     =>  $fecha_hoy,
-                'fullaccess'    =>  $fullaccess,
-                'dolar'         =>  $dolar,
-                'almacenes'     =>  $almacenes*/
+                'departamentos' =>  $departamentos,
+                'provincias'    =>  $provincias,
+                'distritos'     =>  $distritos,
             ]);
         }
     }
@@ -899,10 +898,12 @@ class DocumentoController extends Controller
                             ]);
 
             $condiciones    =   Condicion::where('estado', 'ACTIVO')->get();
-            $dolar          =   0;
             $fullaccess     =   false;
             $tipos_ventas   =   tipos_venta();
             $tipoVentaArray =   collect();
+            $departamentos  =   Departamento::all();
+            $provincias     =   Provincia::all();
+            $distritos      =   Distrito::all();
 
             if (count(Auth::user()->roles) > 0) {
                     $cont = 0;
@@ -935,7 +936,6 @@ class DocumentoController extends Controller
                     'clientes'      =>  $clientes,
                     'condiciones'   =>  $condiciones,
                     'fullaccess'    =>  $fullaccess,
-                    'dolar'         =>  $dolar,
                     'vista'         =>  $vista,
                     "tipoVentas"    =>  $tipoVentaArray,
                     "modelos"       =>  Modelo::where('estado','ACTIVO')->get(),
@@ -943,7 +943,10 @@ class DocumentoController extends Controller
                     "categorias"    =>  Categoria::where('estado','ACTIVO')->get(),
                     "tallas"        =>  Talla::where('estado', 'ACTIVO')->get(),
                     'almacenes'     =>  $almacenes,
-                    'sede_id'       =>  $sede_id
+                    'sede_id'       =>  $sede_id,
+                    'departamentos' =>  $departamentos,
+                    'provincias'    =>  $provincias,
+                    'distritos'     =>  $distritos
                 ],
                 "succes"=>true
             ]);
@@ -1554,13 +1557,14 @@ array:27 [
   "monto_total_pagar"       => 6
   "monto_descuento"         => 0
   "almacenSeleccionado"     => 2
+  "data_envio" => "{"departamento":{"id":13,"nombre":"LA LIBERTAD","zona":"NORTE"},"provincia":{"id":1301,"text":"TRUJILLO"},"distrito":{"id":130101,"text":"TRUJILLO"},"tipo_envio":{"id":188,"descripcion":"AGENCIA"},"empresa_envio":{"id":2,"empresa":"EMTRAFESA","tipo_envio":"AGENCIA","estado":"ACTIVO","created_at":"2025-02-12 17:43:16","updated_at":"2025-02-12 17:43:16"},"sede_envio":{"id":2,"empresa_envio_id":2,"direccion":"AV TUPAC AMARU 123","departamento":"LA LIBERTAD","provincia":"TRUJILLO","distrito":"TRUJILLO","estado":"ACTIVO","created_at":"2025-02-12 17:45:21","updated_at":"2025-02-12 17:45:21"},"destinatario":{"tipo_documento":"DNI","nro_documento":"75563122","nombres":"ALTRUCAZ"},"direccion_entrega":"AV UNION 342","entrega_domicilio":true,"origen_venta":{"descripcion":"FACEBOOK"},"fecha_envio_propuesta":"2025-02-12","obs_rotulo":"OBS ROTULADO","obs_despacho":"OBS DESPACHADO","tipo_pago_envio":{"descripcion":"PAGAR ENVÍO"}}"
 ]
 */
     public function store(DocVentaStoreRequest $request){
 
         $this->authorize('haveaccess', 'documento_venta.index');
         ini_set("max_execution_time", 60000);
-
+        
         DB::beginTransaction();
         try {
 
@@ -1749,6 +1753,92 @@ array:27 [
                 }
             }
 
+            //========== GUARDAR DATOS DE DESPACHO =======
+
+            $data_envio     =   json_decode($request->get('data_envio'));
+           
+            if (!empty((array)$data_envio)) {
+
+                $envio_venta                        =   new EnvioVenta();
+                $envio_venta->documento_id          =   $documento->id;
+                $envio_venta->departamento          =   $data_envio->departamento->nombre;
+                $envio_venta->provincia             =   $data_envio->provincia->text;
+                $envio_venta->distrito              =   $data_envio->distrito->text;
+                $envio_venta->empresa_envio_id      =   $data_envio->empresa_envio->id;
+                $envio_venta->empresa_envio_nombre  =   $data_envio->empresa_envio->empresa;
+                $envio_venta->sede_envio_id         =   $data_envio->sede_envio->id;
+                $envio_venta->sede_envio_nombre     =   $data_envio->sede_envio->direccion;
+                $envio_venta->tipo_envio            =   $data_envio->tipo_envio->descripcion;
+                $envio_venta->destinatario_tipo_doc =   $data_envio->destinatario->tipo_documento;
+                $envio_venta->destinatario_nro_doc  =   $data_envio->destinatario->nro_documento;
+                $envio_venta->destinatario_nombre   =   $data_envio->destinatario->nombres;
+                $envio_venta->cliente_id            =   $documento->cliente_id;
+                $envio_venta->cliente_nombre        =   $documento->cliente;
+                $envio_venta->tipo_pago_envio       =   $data_envio->tipo_pago_envio->descripcion;
+                $envio_venta->monto_envio           =   $documento->monto_envio;
+                $envio_venta->entrega_domicilio     =   $data_envio->entrega_domicilio?"SI":"NO";
+                $envio_venta->direccion_entrega     =   $data_envio->direccion_entrega;
+                $envio_venta->documento_nro         =   $documento->serie.$documento->correlativo;
+                $envio_venta->fecha_envio_propuesta =   $data_envio->fecha_envio_propuesta;
+                $envio_venta->origen_venta          =   $data_envio->origen_venta->descripcion;
+                $envio_venta->obs_rotulo            =   $data_envio->obs_rotulo;
+                $envio_venta->obs_despacho          =   $data_envio->obs_despacho;
+                $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
+                $envio_venta->user_vendedor_id      =   $documento->user_id;
+                $envio_venta->user_vendedor_nombre  =   $documento->user->usuario;
+                $envio_venta->almacen_id            =   $documento->almacen_id;
+                $envio_venta->almacen_nombre        =   $documento->almacen_nombre;
+                $envio_venta->sede_id               =   $documento->sede_id;
+                $envio_venta->save();
+             
+            }else{
+                   
+                    
+                //======== OBTENER EMPRESA ENVÍO =======
+                $empresa_envio                      =   DB::select('select ee.id,ee.empresa,ee.tipo_envio
+                                                            from empresas_envio as ee')[0];
+                    
+                $sede_envio                         =   DB::select('select ees.id,ees.direccion 
+                                                        from empresa_envio_sedes as ees
+                                                        where ees.empresa_envio_id=?',[$empresa_envio->id])[0];
+                
+                $envio_venta                        =   new EnvioVenta();
+                $envio_venta->documento_id          =   $documento->id;
+                $envio_venta->departamento          =   "LA LIBERTAD";
+                $envio_venta->provincia             =   "TRUJILLO";
+                $envio_venta->distrito              =   "TRUJILLO";
+                $envio_venta->empresa_envio_id      =   $empresa_envio->id;
+                $envio_venta->empresa_envio_nombre  =   $empresa_envio->empresa;
+                $envio_venta->sede_envio_id         =   $sede_envio->id;
+                $envio_venta->sede_envio_nombre     =   $sede_envio->direccion;
+                $envio_venta->tipo_envio            =   $empresa_envio->tipo_envio;
+                $envio_venta->destinatario_tipo_doc =   $documento->tipo_documento_cliente;
+                $envio_venta->destinatario_nro_doc  =   $documento->documento_cliente;
+                $envio_venta->destinatario_nombre   =   $documento->cliente;
+                $envio_venta->cliente_id            =   $documento->cliente_id;
+                $envio_venta->cliente_nombre        =   $documento->cliente;
+                $envio_venta->tipo_pago_envio       =   "-";
+                $envio_venta->monto_envio           =   $documento->monto_envio;
+                $envio_venta->entrega_domicilio     =   "NO";
+                $envio_venta->direccion_entrega     =   null;
+                $envio_venta->documento_nro         =   $documento->serie.$documento->correlativo;
+                $envio_venta->fecha_envio_propuesta =   null;
+                $envio_venta->origen_venta          =   "WHATSAPP";
+                $envio_venta->obs_despacho          =   null;
+                $envio_venta->obs_rotulo            =   null;
+                $envio_venta->estado                =   'DESPACHADO';
+                $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
+                $envio_venta->user_vendedor_id      =   $documento->user_id;
+                $envio_venta->user_vendedor_nombre  =   $documento->user->usuario;
+                $envio_venta->user_despachador_id   =   $documento->user_id;
+                $envio_venta->user_despachador_nombre   =   $documento->user->usuario;
+                $envio_venta->almacen_id            =   $documento->almacen_id;
+                $envio_venta->almacen_nombre        =   $documento->almacen_nombre;
+                $envio_venta->sede_id               =   $documento->sede_id;
+                $envio_venta->save();
+            }
+
+            
             //========== ACTUALIZAR ESTADO FACTURACIÓN A INICIADA ======
             DB::table('empresa_numeracion_facturaciones')
             ->where('empresa_id', Empresa::find(1)->id) 
@@ -1761,6 +1851,7 @@ array:27 [
                'updated_at'             => Carbon::now()
            ]);
 
+       
             DB::commit();
             return response()->json(['success'=>true,
             'message'=>'DOCUMENTO VENTA REGISTRADO CON ÉXITO',
@@ -3966,296 +4057,6 @@ array:27 [
         return response()->json($enviar);
     }
 
-    //LOTES PARA BUSQUEDA
-    public function getLot($tipo_cliente,$tipocomprobante)
-    {
-
-        $facturacion = (int)$tipocomprobante == 129 ? "NO" : "SI";
-        $datos = null;
-
-        if($facturacion =="NO"){
-            $datos= DB::table('lote_productos')
-            ->join('productos', 'productos.id', '=', 'lote_productos.producto_id')
-            ->join('productos_clientes', 'productos_clientes.producto_id', '=', 'productos.id')
-            ->join('categorias', 'categorias.id', '=', 'productos.categoria_id')
-            ->join('marcas', 'marcas.id', '=', 'productos.marca_id')
-            ->join('tabladetalles', 'tabladetalles.id', '=', 'productos.medida')
-            ->leftJoin('detalle_nota_ingreso', 'detalle_nota_ingreso.lote_id', '=', 'lote_productos.id')
-            ->leftJoin('nota_ingreso', 'nota_ingreso.id', '=', 'detalle_nota_ingreso.nota_ingreso_id')
-            ->leftJoin('compra_documento_detalles', 'compra_documento_detalles.lote_id', '=', 'lote_productos.id')
-            ->leftJoin('compra_documentos', 'compra_documentos.id', '=', 'compra_documento_detalles.documento_id')
-            ->select(
-                'nota_ingreso.moneda as moneda_ingreso',
-                'compra_documentos.moneda as moneda_compra',
-                'compra_documentos.tipo_cambio as dolar_compra',
-                'compra_documentos.igv_check as igv_compra',
-                'compra_documento_detalles.precio_soles',
-                'compra_documento_detalles.precio as precio_compra',
-                'compra_documento_detalles.costo_flete_soles',
-                'compra_documento_detalles.costo_flete_dolares',
-                'compra_documento_detalles.cantidad as cantidad_comprada',
-                'detalle_nota_ingreso.costo as precio_ingreso',
-                'detalle_nota_ingreso.costo_soles as precio_ingreso_soles',
-                'nota_ingreso.dolar as dolar_ingreso',
-                'compra_documento_detalles.precio_mas_igv_soles',
-                'lote_productos.*',
-                'productos.nombre',
-                'productos.igv',
-                'productos.codigo_barra',
-                'productos.facturacion',
-                DB::raw('ifnull((select porcentaje
-                from productos_clientes pc
-                where pc.producto_id = lote_productos.producto_id
-                and pc.cliente = 121
-                and pc.estado = "ACTIVO"
-            order by id desc
-            limit 1),20) as porcentaje_normal'),
-                DB::raw('ifnull((select porcentaje
-                from productos_clientes pc
-                where pc.producto_id = lote_productos.producto_id
-                and pc.cliente = 122
-                and pc.estado = "ACTIVO"
-            order by id desc
-            limit 1),20) as porcentaje_distribuidor'),
-                'productos_clientes.cliente',
-                'productos_clientes.moneda',
-                'productos_clientes.porcentaje',
-                'tabladetalles.simbolo as unidad_producto',
-                'categorias.descripcion as categoria',
-                'marcas.marca',
-                DB::raw('DATE_FORMAT(lote_productos.fecha_vencimiento, "%d/%m/%Y") as fecha_venci')
-            )
-            ->where('lote_productos.cantidad_logica', '>', 0)
-            ->where('lote_productos.estado', '1')
-            ->where('productos_clientes.cliente', $tipo_cliente)
-            ->where('productos_clientes.moneda', '1')
-            ->orderBy('lote_productos.id', 'ASC')
-            ->where('productos_clientes.estado', 'ACTIVO');
-        }else{
-
-            $datos= DB::table('lote_productos')
-            ->join('productos', 'productos.id', '=', 'lote_productos.producto_id')
-            ->join('productos_clientes', 'productos_clientes.producto_id', '=', 'productos.id')
-            ->join('categorias', 'categorias.id', '=', 'productos.categoria_id')
-            ->join('marcas', 'marcas.id', '=', 'productos.marca_id')
-            ->join('tabladetalles', 'tabladetalles.id', '=', 'productos.medida')
-            ->leftJoin('detalle_nota_ingreso', 'detalle_nota_ingreso.lote_id', '=', 'lote_productos.id')
-            ->leftJoin('nota_ingreso', 'nota_ingreso.id', '=', 'detalle_nota_ingreso.nota_ingreso_id')
-            ->leftJoin('compra_documento_detalles', 'compra_documento_detalles.lote_id', '=', 'lote_productos.id')
-            ->leftJoin('compra_documentos', 'compra_documentos.id', '=', 'compra_documento_detalles.documento_id')
-            ->select(
-                'nota_ingreso.moneda as moneda_ingreso',
-                'compra_documentos.moneda as moneda_compra',
-                'compra_documentos.dolar as dolar_compra',
-                'compra_documentos.igv_check as igv_compra',
-                'compra_documento_detalles.precio_soles',
-                'compra_documento_detalles.precio as precio_compra',
-                'compra_documento_detalles.costo_flete_soles',
-                'compra_documento_detalles.costo_flete_dolares',
-                'compra_documento_detalles.cantidad as cantidad_comprada',
-                'detalle_nota_ingreso.costo as precio_ingreso',
-                'detalle_nota_ingreso.costo_soles as precio_ingreso_soles',
-                'nota_ingreso.dolar as dolar_ingreso',
-                'compra_documento_detalles.precio_mas_igv_soles',
-                'lote_productos.*',
-                'productos.nombre',
-                'productos.igv',
-                'productos.codigo_barra',
-                'productos.facturacion',
-                DB::raw('ifnull((select porcentaje
-                from productos_clientes pc
-                where pc.producto_id = lote_productos.producto_id
-                and pc.cliente = 121
-                and pc.estado = "ACTIVO"
-            order by id desc
-            limit 1),20) as porcentaje_normal'),
-                DB::raw('ifnull((select porcentaje
-                from productos_clientes pc
-                where pc.producto_id = lote_productos.producto_id
-                and pc.cliente = 122
-                and pc.estado = "ACTIVO"
-            order by id desc
-            limit 1),20) as porcentaje_distribuidor'),
-                'productos_clientes.cliente',
-                'productos_clientes.moneda',
-                'productos_clientes.porcentaje',
-                'tabladetalles.simbolo as unidad_producto',
-                'categorias.descripcion as categoria',
-                'marcas.marca',
-                DB::raw('DATE_FORMAT(lote_productos.fecha_vencimiento, "%d/%m/%Y") as fecha_venci')
-            )
-            ->where('lote_productos.cantidad_logica', '>', 0)
-            ->where('lote_productos.estado', '1')
-            ->where('productos_clientes.cliente', $tipo_cliente)
-            ->where('productos_clientes.moneda', '1')
-            ->orderBy('lote_productos.id', 'ASC')
-            ->where('productos_clientes.estado', 'ACTIVO')
-            ->where("productos.facturacion","=",$facturacion);
-        }
-        
-        return datatables()->query($datos)->toJson();
-    }
-    public function getLoteProductos(Request $request)
-    {
-        sleep(.5);
-        $tipo_cliente = $request->tipo_cliente;
-        $tipocomprobante = $request->tipocomprobante;
-
-        $facturacion = (int)$tipocomprobante == 129 ? "NO" : "SI";
-        $datos = null;
-        $search = $request->search;
-
-        if($facturacion =="NO"){
-            $datos= DB::table('lote_productos')
-            ->join('productos', 'productos.id', '=', 'lote_productos.producto_id')
-            ->join('productos_clientes', 'productos_clientes.producto_id', '=', 'productos.id')
-            ->join('categorias', 'categorias.id', '=', 'productos.categoria_id')
-            ->join('marcas', 'marcas.id', '=', 'productos.marca_id')
-            ->join('tabladetalles', 'tabladetalles.id', '=', 'productos.medida')
-            ->leftJoin('detalle_nota_ingreso', 'detalle_nota_ingreso.lote_id', '=', 'lote_productos.id')
-            ->leftJoin('nota_ingreso', 'nota_ingreso.id', '=', 'detalle_nota_ingreso.nota_ingreso_id')
-            ->leftJoin('compra_documento_detalles', 'compra_documento_detalles.lote_id', '=', 'lote_productos.id')
-            ->leftJoin('compra_documentos', 'compra_documentos.id', '=', 'compra_documento_detalles.documento_id')
-            ->select(
-                'nota_ingreso.moneda as moneda_ingreso',
-                'compra_documentos.moneda as moneda_compra',
-                'compra_documentos.dolar as dolar_compra',
-                'compra_documentos.igv_check as igv_compra',
-                'compra_documento_detalles.precio_soles',
-                'compra_documento_detalles.precio as precio_compra',
-                'compra_documento_detalles.costo_flete_soles',
-                'compra_documento_detalles.costo_flete',
-                'compra_documento_detalles.costo_flete_dolares',
-                'compra_documento_detalles.cantidad as cantidad_comprada',
-                'detalle_nota_ingreso.costo as precio_ingreso',
-                'detalle_nota_ingreso.costo_soles as precio_ingreso_soles',
-                'nota_ingreso.dolar as dolar_ingreso',
-                'compra_documento_detalles.precio_mas_igv_soles',
-                'lote_productos.*',
-                'productos.nombre',
-                'productos.igv',
-                'productos.codigo_barra',
-                'productos.facturacion',
-                DB::raw('ifnull((select porcentaje
-                from productos_clientes pc
-                where pc.producto_id = lote_productos.producto_id
-                and pc.cliente = 121
-                and pc.estado = "ACTIVO"
-            order by id desc
-            limit 1),20) as porcentaje_normal'),
-                DB::raw('ifnull((select porcentaje
-                from productos_clientes pc
-                where pc.producto_id = lote_productos.producto_id
-                and pc.cliente = 122
-                and pc.estado = "ACTIVO"
-            order by id desc
-            limit 1),20) as porcentaje_distribuidor'),
-                'productos_clientes.cliente',
-                'productos_clientes.moneda',
-                'productos_clientes.porcentaje',
-                'tabladetalles.simbolo as unidad_producto',
-                'categorias.descripcion as categoria',
-                'marcas.marca',
-                DB::raw('DATE_FORMAT(lote_productos.fecha_vencimiento, "%d/%m/%Y") as fecha_venci')
-            )
-            ->where('lote_productos.cantidad_logica', '>', 0)
-            ->where('lote_productos.estado','=','1')
-            ->where('productos_clientes.cliente', $tipo_cliente)
-            ->where('productos_clientes.moneda', '1')
-            ->orderBy('lote_productos.id', 'ASC')
-            ->where('productos_clientes.estado', 'ACTIVO')
-            ->where(function($query) use ($search){
-                $query->orWhere("productos.nombre","LIKE","%$search%")
-                ->orWhere("lote_productos.codigo_lote","LIKE","%$search%");
-            })->paginate(10);
-        }else{
-
-            $datos= DB::table('lote_productos')
-            ->join('productos', 'productos.id', '=', 'lote_productos.producto_id')
-            ->join('productos_clientes', 'productos_clientes.producto_id', '=', 'productos.id')
-            ->join('categorias', 'categorias.id', '=', 'productos.categoria_id')
-            ->join('marcas', 'marcas.id', '=', 'productos.marca_id')
-            ->join('tabladetalles', 'tabladetalles.id', '=', 'productos.medida')
-            ->leftJoin('detalle_nota_ingreso', 'detalle_nota_ingreso.lote_id', '=', 'lote_productos.id')
-            ->leftJoin('nota_ingreso', 'nota_ingreso.id', '=', 'detalle_nota_ingreso.nota_ingreso_id')
-            ->leftJoin('compra_documento_detalles', 'compra_documento_detalles.lote_id', '=', 'lote_productos.id')
-            ->leftJoin('compra_documentos', 'compra_documentos.id', '=', 'compra_documento_detalles.documento_id')
-            ->select(
-                'nota_ingreso.moneda as moneda_ingreso',
-                'compra_documentos.moneda as moneda_compra',
-                'compra_documentos.dolar as dolar_compra',
-                'compra_documentos.igv_check as igv_compra',
-                'compra_documento_detalles.precio_soles',
-                'compra_documento_detalles.precio as precio_compra',
-                'compra_documento_detalles.costo_flete_soles',
-                'compra_documento_detalles.costo_flete',
-                'compra_documento_detalles.costo_flete_dolares',
-                'compra_documento_detalles.cantidad as cantidad_comprada',
-                'detalle_nota_ingreso.costo as precio_ingreso',
-                'detalle_nota_ingreso.costo_soles as precio_ingreso_soles',
-                'nota_ingreso.dolar as dolar_ingreso',
-                'compra_documento_detalles.precio_mas_igv_soles',
-                'lote_productos.*',
-                'productos.nombre',
-                'productos.igv',
-                'productos.codigo_barra',
-                'productos.facturacion',
-                DB::raw('ifnull((select porcentaje
-                from productos_clientes pc
-                where pc.producto_id = lote_productos.producto_id
-                and pc.cliente = 121
-                and pc.estado = "ACTIVO"
-            order by id desc
-            limit 1),20) as porcentaje_normal'),
-                DB::raw('ifnull((select porcentaje
-                from productos_clientes pc
-                where pc.producto_id = lote_productos.producto_id
-                and pc.cliente = 122
-                and pc.estado = "ACTIVO"
-            order by id desc
-            limit 1),20) as porcentaje_distribuidor'),
-                'productos_clientes.cliente',
-                'productos_clientes.moneda',
-                'productos_clientes.porcentaje',
-                'tabladetalles.simbolo as unidad_producto',
-                'categorias.descripcion as categoria',
-                'marcas.marca',
-                DB::raw('DATE_FORMAT(lote_productos.fecha_vencimiento, "%d/%m/%Y") as fecha_venci')
-            )
-            ->where('lote_productos.cantidad_logica', '>', 0)
-            ->where('lote_productos.estado', '=','1')
-            ->where('productos_clientes.cliente', $tipo_cliente)
-            ->where('productos_clientes.moneda','1')
-            ->orderBy('lote_productos.id', 'ASC')
-            ->where('productos_clientes.estado', 'ACTIVO')
-            ->where("productos.facturacion","=",$facturacion)
-            ->where(function($query) use ($search){
-                $query->orWhere("productos.nombre","LIKE","%$search%")
-                ->orWhere("lote_productos.codigo_lote","LIKE","%$search%");
-            })->paginate(10);
-        }
-        
-        return response()->json([
-            "lotes"=>$datos,
-        ]);
-    }
-
-    public function getLotProcedure($tipo_cliente, $tipocomprobante,Request $request)
-    {
-        
-        try{
-            $facturacion = (int) $tipocomprobante == 129 ? "NO" : "SI";
-            $search = $request->has("search") ? ($request->search["value"] ==null ? "%%" : "%{$request->search['value']}%") : "%%";
-            $datos = DB::select("call LISTA_LOTEPRODUCTOS(?,?,?)",[$tipo_cliente,$facturacion,$search]);
-            return DataTables::of($datos)->make(true);
-        }catch(\Exception $ex){
-            return response()->json([
-                "all"=>"%{$request->search['value']}%",
-                "ex"=>$ex->getMessage()
-            ]);
-        }
-    }
-   
     //CAMBIAR CANTIDAD LOGICA DEL LOTE
     public function quantity(Request $request)
     {
@@ -4269,17 +4070,6 @@ array:27 [
         $tallas         =   $request->input('tallas', null);
         $mensaje        = '';
 
-      
-        //$lote = LoteProducto::findOrFail($producto_id);
-
-        //DISMINUIR
-        // if ($lote->cantidad_logica >= $cantidad && $condicion == '1') {
-        //     $nuevaCantidad = $lote->cantidad_logica - $cantidad;
-        //     $lote->cantidad_logica = $nuevaCantidad;
-        //     $lote->update();
-        //     $mensaje = 'Cantidad aceptada';
-        // }
-       
         if ($condicion == '1' && $modo=='nuevo') {
             //$producto->stock_logico = $nuevaCantidad;
             DB::table('producto_color_tallas')
@@ -4320,113 +4110,37 @@ array:27 [
             $mensaje = 'Cantidades devuelta';
         }
 
-
-        //AUMENTAR
-        // if ($condicion == '0') {
-        //     $nuevaCantidad = $lote->cantidad_logica + $cantidad;
-        //     $lote->cantidad_logica = $nuevaCantidad;
-        //     $lote->update();
-        //     $mensaje = 'Cantidad regresada';
-        // }
-
         return $mensaje;
     }
 
-    //DEVOLVER CANTIDAD LOGICA AL CERRAR VENTANA
-    public function returnQuantity(Request $request)
+    //====== DEVOLVER CANTIDAD LÓGICA AL SALIR DE VENTA CREATE ========
+    public function devolverCantidades(Request $request)
     {
         
         $mensaje        =   false;
 
         if($request->has('carrito')){
-            $data           =   $request->all();
-            $carrito        =   $data['carrito'];
+            $almacen_id     =   $request->get('almacen_id');
+            $carrito        =   $request->get('carrito');
             $productosJSON  =   json_decode($carrito);
 
             foreach ($productosJSON as $producto) {
                 $mensaje=true;
                 foreach ($producto->tallas as $talla) {
-        
                     DB::table('producto_color_tallas')
-                        ->where('producto_id', $producto->producto_id)
-                        ->where('color_id', $producto->color_id)
-                        ->where('talla_id', $talla->talla_id) 
-                        ->increment('stock_logico', $talla->cantidad); 
+                    ->where('almacen_id', $almacen_id)
+                    ->where('producto_id', $producto->producto_id)
+                    ->where('color_id', $producto->color_id)
+                    ->where('talla_id', $talla->talla_id) 
+                    ->increment('stock_logico', $talla->cantidad); 
                 }
             }
         }
-
-        // $cantidades = $data['cantidades'];
-        // $productosJSON = $cantidades;
-        // $productotabla = json_decode($productosJSON);
-        // $mensaje = true;
-        // foreach ($productotabla as $detalle) {
-        //     //DEVOLVEMOS CANTIDAD AL LOTE Y AL LOTE LOGICO
-        //     $lote = LoteProducto::findOrFail($detalle->producto_id);
-        //     $lote->cantidad_logica = $lote->cantidad_logica + $detalle->cantidad;
-        //     //$lote->cantidad =  $lote->cantidad_logica;
-        //     $lote->estado = '1';
-        //     $lote->update();
-        //     $mensaje = true;
-        // };
 
         return $mensaje;
     }
     
     
-
-    //DEVOLVER LOTE
-    public function returnLote(Request $request)
-    {
-        $data = $request->all();
-        $lote_id = $data['lote_id'];
-        $lote = LoteProducto::find($lote_id);
-
-        if ($lote) {
-            return response()->json([
-                'success' => true,
-                'lote' => $lote,
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-            ]);
-        }
-    }
-
-    //ACTUALIZAR LOTE E EDICION DE CANTIDAD
-    public function updateLote(Request $request)
-    {
-        try {
-            DB::beginTransaction();
-            $data = $request->all();
-            $lote_id = $data['lote_id'];
-            $cantidad_sum = $data['cantidad_sum'];
-            $cantidad_res = $data['cantidad_res'];
-            $lote = LoteProducto::find($lote_id);
-
-            if ($lote) {
-                $lote->cantidad_logica = $lote->cantidad_logica + ($cantidad_sum - $cantidad_res);
-                $lote->update();
-                DB::commit();
-                return response()->json([
-                    'success' => true,
-                    'lote' => $lote,
-                ]);
-            } else {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                ]);
-            }
-        } catch (Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-            ]);
-        }
-    }
-
     //====== REGULARIZAR VENTAS ======
     //====== BOLETAS O FACTURAS =======
     public function regularizarVenta(Request $request){

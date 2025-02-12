@@ -224,50 +224,10 @@
                             </div> 
                         </div>
                     
-                       
-                        <!-- <div class="col-lg-6 col-xs-12">
-                            <label class="col-form-label required">Producto:</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="producto_lote" readonly
-                                    v-model="formDetalles.producto_lote">
-                                <span class="input-group-append">
-                                    <button type="button" class="btn btn-primary" id="ModalLotes"
-                                        @click.prevent="ModalLotes" :disabled="btnDisabled">
-                                        <i class='fa fa-search'></i>
-                                        Buscar
-                                    </button>
-                                </span>
-                            </div>
-                            <div class="invalid-feedback"><b><span id="error-producto"></span></b>
-                            </div>
-                        </div> -->
                         <input type="hidden" name="producto_id" id="producto_id">
                         <input type="hidden" name="producto_unidad" id="producto_unidad">
                         <input type="hidden" name="producto_json" id="producto_json">
-                        <!-- <div class="col-lg-2 col-xs-12">
-                            <label class="col-form-label required">Cantidad:</label>
-                            <input type="text" name="cantidad" id="cantidad" class="form-control"
-                                v-model="formDetalles.cantidad">
-                            <div class="invalid-feedback"><b><span id="error-cantidad"></span></b>
-                            </div>
-                        </div>
-                        <div class="col-lg-2 col-xs-12">
-                            <div class="form-group">
-                                <label class="col-form-label required" for="amount">Precio:</label>
-                                <input type="number" id="precio" name="precio" class="form-control"
-                                    v-model="formDetalles.precio">
-                                <div class="invalid-feedback"><b><span id="error-precio"></span></b>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-2 col-xs-12">
-                            <div class="form-group">
-                                <label class="col-form-label" for="amount">&nbsp;</label>
-                                <button type=button class="btn btn-block btn-warning" style='color:white;'
-                                    id="btn_agregar_detalle" @click.prevent="Agregar"> <i class="fa fa-plus"></i>
-                                    AGREGAR</button>
-                            </div>
-                        </div> -->
+                       
                     </div>
                     <hr>
                     <div class="table-responsive">
@@ -282,12 +242,6 @@
                                         </th>
                                         <th>CANT</th>
                                     </template>
-                                    <!-- <th class="">PRECIO VENTA</th> -->
-
-                                    <!-- <th v-for="talla in tallas" :key="talla.id">
-                                        {{ talla.descripcion }}<th>CANT</th>
-                                    </th> -->
-                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -318,47 +272,11 @@
 
                                         </td>
                                     </template>
-                               
-                                    <!-- <td v-if="pc.printPreciosVenta">
-                                        <select class="form-control" :id="'precio-venta-' + pc.producto_id" >
-                                            <option>{{ pc.precio_venta_1 }}</option>    
-                                            <option>{{ pc.precio_venta_2 }}</option>    
-                                            <option>{{ pc.precio_venta_3 }}</option>    
-                                        </select>
-                                    </td>
-                                    <td v-else>
-                                        
-                                    </td>  -->
-                                
                                 </tr>
                             </tbody>
 
-                           
                             <tfoot>
-                                <!-- <tr>
-                                    <th class="text-right" colspan="7">Sub Total:</th>
-                                    <th class="text-center">
-                                        <span id="subtotal">{{ formDetalles.monto_sub_total }}</span>
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th class="text-right" colspan="7">IGV <span id="igv_int">{{
-                                            formDetalles.igv_int
-                                    }}</span>:</th>
-                                    <th class="text-center">
-                                        <span id="igv_monto">
-                                            {{ formDetalles.monto_total_igv }}
-                                        </span>
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th class="text-right" colspan="7">TOTAL:</th>
-                                    <th class="text-center">
-                                        <span id="total">
-                                            {{ formDetalles.monto_total }}
-                                        </span>
-                                    </th>
-                                </tr> -->
+                            
                             </tfoot>
                         </table>
                     </div>
@@ -373,79 +291,7 @@
                             </button>
                         </div>
                     </div>
-                        <!-- <table class="table table-sm table-striped table-bordered table-hover"
-                            style="text-transform:uppercase">
-                            <thead>
-                                <tr>
-                                    <th class="text-center">
-                                        <i class="fa fa-dashboard"></i>
-                                    </th>
-                                    <th class="text-center">CANT</th>
-                                    <th class="text-center">UM</th>
-                                    <th class="text-center">PRODUCTO</th>
-                                    <th class="text-center">P. UNITARIO</th>
-                                    <th class="text-center">DESCUENTO</th>
-                                    <th class="text-center">P. NUEVO</th>
-                                    <th class="text-center">TOTAL</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="tablaDetalles.length > 0">
-                                    <tr v-for="(item, index) in tablaDetalles" :key="index">
-                                        <td class="text-center">
-                                            <div class='btn-group'>
-                                                <button type="button" class='btn btn-sm btn-warning btn-edit'
-                                                    style='color:white' @click.prevent="EditarItem(item)">
-                                                    <i class='fa fa-pencil'></i>
-                                                </button>
-                                                <button type="button" class='btn btn-sm btn-danger btn-delete'
-                                                    style='color:white' @click.prevent="EliminarItem(item, index)">
-                                                    <i class='fa fa-trash'></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">{{ item.cantidad }}</td>
-                                        <td class="text-center">{{ item.unidad }}</td>
-                                        <td class="text-left">{{ item.producto }}</td>
-                                        <td class="text-center">{{ item.precio_unitario }}</td>
-                                        <td class="text-center">{{ item.dinero }}</td>
-                                        <td class="text-center">{{ item.precio_nuevo }}</td>
-                                        <td class="text-center">{{ item.valor_venta }}</td>
-                                    </tr>
-                                </template>
-                                <template v-else>
-                                    <tr>
-                                        <td colspan="8" class="text-center"><strong>no hay detalles</strong></td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th class="text-right" colspan="7">Sub Total:</th>
-                                    <th class="text-center">
-                                        <span id="subtotal">{{ formDetalles.monto_sub_total }}</span>
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th class="text-right" colspan="7">IGV <span id="igv_int">{{
-                                            formDetalles.igv_int
-                                    }}</span>:</th>
-                                    <th class="text-center">
-                                        <span id="igv_monto">
-                                            {{ formDetalles.monto_total_igv }}
-                                        </span>
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th class="text-right" colspan="7">TOTAL:</th>
-                                    <th class="text-center">
-                                        <span id="total">
-                                            {{ formDetalles.monto_total }}
-                                        </span>
-                                    </th>
-                                </tr>
-                            </tfoot>
-                        </table>  -->
+                      
                 </div>
             </div>
             <!-- FIN PRIMER PANEL -->
@@ -470,8 +316,6 @@
                                     </template>
                                     
                                     <th class="text-center">P. VENTA</th>
-                                    <!-- <th class="text-center">DESCUENTO</th> -->
-                                    <!-- <th class="text-center">P. NUEVO</th> -->
                                     <th class="text-center">SUBTOTAL</th>
                                     <th class="text-center">DSCTO %</th>
                                 </tr>
@@ -513,60 +357,6 @@
                                     </tr>
                                 </template>
                             </tbody>
-                            <!-- <tfoot>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">SUBTOTAL:</td>
-                                    <td class="subtotal" colspan="1" style="font-weight: bold;text-align:end;">
-                                        {{`S/. ${Number(monto_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`}}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">EMBALAJE:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        <div class="input-group">
-                                            <span class="input-group-text" id="basic-addon1">
-                                                <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M425.7 256c-16.9 0-32.8-9-41.4-23.4L320 126l-64.2 106.6c-8.7 14.5-24.6 23.5-41.5 23.5-4.5 0-9-.6-13.3-1.9L64 215v178c0 14.7 10 27.5 24.2 31l216.2 54.1c10.2 2.5 20.9 2.5 31 0L551.8 424c14.2-3.6 24.2-16.4 24.2-31V215l-137 39.1c-4.3 1.3-8.8 1.9-13.3 1.9zm212.6-112.2L586.8 41c-3.1-6.2-9.8-9.8-16.7-8.9L320 64l91.7 152.1c3.8 6.3 11.4 9.3 18.5 7.3l197.9-56.5c9.9-2.9 14.7-13.9 10.2-23.1zM53.2 41L1.7 143.8c-4.6 9.2 .3 20.2 10.1 23l197.9 56.5c7.1 2 14.7-1 18.5-7.3L320 64 69.8 32.1c-6.9-.8-13.5 2.7-16.6 8.9z"/></svg>
-                                            </span>
-                                            <input style="width: 10px;" v-model="monto_embalaje" type="text" class="form-control" aria-label="PRECIO DESPACHO" aria-describedby="basic-addon1">
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">ENVÍO:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        <div class="input-group">
-                                            <span class="input-group-text btn btn-light" id="basic-addon1"  @click.prevent="setDataEnvio">
-                                                <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>                                                    
-                                            </span>
-                                            <input style="width: 10px;" v-model="monto_envio"  type="text" class="form-control"  aria-label="PRECIO ENVÍO" aria-describedby="basic-addon1">
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">DESCUENTO:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        <span>    {{ `S/. ${Number(monto_descuento).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }} </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">MONTO TOTAL:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        {{ `S/. ${Number(monto_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">IGV:</td>
-                                    <td class="igv" colspan="1" style="font-weight: bold;text-align:end;">
-                                        {{`S/. ${Number(monto_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`}}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">MONTO TOTAL A PAGAR:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        {{ `S/. ${Number(monto_total_pagar).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}   
-                                    </td> 
-                                </tr>
-                            </tfoot> -->
                         </table> 
                     </div>
                     
@@ -645,7 +435,6 @@
 </template>
 <script>
 
-// import ModalLotesVue from '../ModalLotes.vue';
 import ModalEnvioVue from "./ModalEnvio.vue";
 import { Empresa } from "../../interfaces/Empresa.js";
 import ModalCodigoPrecioMenorVue from './ModalCodigoPrecioMenor.vue';
@@ -657,15 +446,27 @@ import axios from "axios";
 export default {
     name: "TablaProductos",
     components: {
-    // ModalLotesVue,
     ModalEnvioVue,
     ModalCodigoPrecioMenorVue,
     ModalEditaDetalleVue,
     TablaProductos
 },
-    props: ["fullaccessTable", "btnDisabled", "parametros",
-     "productoTabla", "TotalesObj", 'idcotizacion','modelos',
-     'categorias','marcas','tallas','cliente','almacenSeleccionado'],
+    props: [
+    "fullaccessTable", 
+    "btnDisabled", 
+    "parametros",
+    "productoTabla",
+    "TotalesObj", 
+    'idcotizacion',
+    'modelos',
+    'categorias',
+    'marcas',
+    'tallas',
+    'cliente',
+    'almacenSeleccionado',
+    'lst_departamentos_base',
+    'lst_provincias_base',
+    'lst_distritos_base'],
     data() {
         return {
             monto_embalaje:0,
@@ -702,59 +503,6 @@ export default {
                 monto_total_igv: 0,
                 monto_total: 0
             },
-            productoJson: {
-                cantidad: 0,
-                cantidad_inicial: 0,
-                cantidad_logica: 0,
-                costo_flete_soles: 0,
-                costo_flete: 0,
-                costo_flete_dolares: 0,
-                cantidad_comprada: 0,
-                categoria: "",
-                cliente: "",
-                codigo_barra: "",
-                codigo_lote: "",
-                compra_documento_id: "",
-                confor_almacen: "",
-                created_at: "",
-                dolar_compra: "",
-                dolar_ingreso: "",
-                estado: "",
-                facturacion: "",
-                fecha_entrega: "",
-                fecha_venci: "",
-                fecha_vencimiento: "",
-                id: "",
-                igv: "",
-                igv_compra: "",
-                marca: "",
-                moneda: "",
-                moneda_compra: "",
-                moneda_ingreso: "",
-                nombre: "",
-                nota_ingreso_id: "",
-                observacion: "",
-                porcentaje: "",
-                porcentaje_distribuidor: "",
-                porcentaje_normal: "",
-                precioCompra: "",
-                precioDistribuidor: "",
-                precioNormal: "",
-                precio_compra: "",
-                precio_ingreso: "",
-                precio_ingreso_soles: "",
-                precio_mas_igv_soles: "",
-                precio_soles: "",
-                producto_id: 0,
-                unidad_producto: "",
-                updated_at: "",
-            },
-            Lotes: [],
-            paramsLotes: {
-                tipo_cliente: 0,
-                tipocomprobante: 0,
-                search: ""
-            },
             searchInput: "",
             dataEmpresa: new Empresa(),
             codigo_precio_menor: "",
@@ -780,10 +528,6 @@ export default {
         monto_envio: {
             handler(value) {
                 let valor = value;
-             
-                // console.log('MONTO ENVÍO')
-                // console.log(value);
-                // console.log(typeof value);
 
                 if (!/^\d*\.?\d*$/.test(valor)) {
                     //========= PERMITIR ENTEROS Y DECIMALES ========
@@ -796,7 +540,6 @@ export default {
                     return;
                 }
 
-                // console.log('CALCULANDO MONTOS')
                 //======== RECALCULAR MONTOS =======
                 this.calcularMontos();
 
@@ -822,10 +565,6 @@ export default {
             handler(value) {
                 let valor = value;
              
-                // console.log('MONTO EMBALAJE')
-                // console.log(value);
-                // console.log(typeof value);
-
                 if (!/^\d*\.?\d*$/.test(valor)) {
                     //========= PERMITIR ENTEROS Y DECIMALES ========
                     valor   = valor.replace(/^0+/, '0'); 
@@ -837,7 +576,6 @@ export default {
                     return;
                 }
 
-                // console.log('CALCULANDO MONTOS')
                 //======== RECALCULAR MONTOS =======
                 this.calcularMontos();
 
@@ -917,44 +655,10 @@ export default {
             },
             deep: true,
         },
-        tablaDetalles: {
-            handler(value) {
-                let total = this.tablaDetalles.reduce((sum, { valor_venta }) => Number(sum + valor_venta), 0);
-                console.log(total);
-                this.conIgv(total);
-                this.$emit("addProductoDetalle", {
-                    detalles: this.tablaDetalles,
-                    totales: {
-                        igv: this.Igv,
-                        igv_int: "",
-                        monto_sub_total: convertFloat(this.formDetalles.monto_sub_total),
-                        monto_total_igv: convertFloat(this.formDetalles.monto_total_igv),
-                        monto_total: convertFloat(this.formDetalles.monto_total)
-                    }
-                });
-            },
-            deep: true
-        },
+       
         codigoPrecioMenor: {
             handler(value) {
                 this.estadoPrecioMenor = value.estado_precio_menor;
-            },
-            deep: true,
-        },
-        productoJson: {
-            handler(value) {
-                this.formDetalles.precio = this.evaluarPrecioigv(value);
-                this.formDetalles.producto_id = value.id;
-                this.formDetalles.producto_lote = `${value.nombre} - ${value.codigo_lote}`;
-                this.formDetalles.cantidad = "";
-                this.formDetalles.producto_unidad = value.unidad_producto;
-            },
-            deep: true,
-        },
-        parametros: {
-            handler(value) {
-                this.paramsLotes.tipo_cliente = value.tipo_cliente;
-                this.paramsLotes.tipocomprobante = value.tipocomprobante;
             },
             deep: true,
         },
@@ -966,12 +670,6 @@ export default {
                 this.$nextTick(this.ObtenerLotes);
                 clearTimeout(timeout);
             }, 1000);
-        },
-        loadingLotes(value) {
-            if (value) {
-                this.Lotes = [];
-                this.loadingLotes = false;
-            }
         },
         formDetalles: {
             handler(value) {
@@ -987,21 +685,16 @@ export default {
         }
     },
     created() {
-        console.log('Cliente:');
-        console.log(this.cliente);
-        //this.ObtenerCodigoPrecioMenor();
-        //============= en caso la ventanta se cierre ===============
-        window.addEventListener('beforeunload', async () => {
-            console.log('saliendo...',this.asegurarCierre);
-            if (this.asegurarCierre == 1) {
-                 await this.DevolverCantidades();
-                 this.asegurarCierre = 10;
-            } else {
-                 console.log("beforeunload", this.asegurarCierre);
-            }
-            // await this.DevolverCantidades();
-            //this.asegurarCierre = 10;
-        });
+    //    console.log(this.asegurarCierre);
+    //     //============= EN CASO LA VENTANA SE CIERRE ===============
+    //     window.addEventListener('beforeunload', async () => {
+    //         if (this.asegurarCierre == 1) {
+    //              await this.devolverCantidades();
+    //              this.asegurarCierre = 10;
+    //         } else {
+    //              console.log("beforeunload", this.asegurarCierre);
+    //         }
+    //     });
     },
     methods: {
         openModal(producto) {
@@ -1230,16 +923,6 @@ export default {
 
             try {
 
-                //====== VALIDAR STOCK VENTAS ======
-                /*const res_stock =   await this.validarStockVentas(this.almacenSeleccionado,resInputProducts.lstInputProducts);
-
-                if(!res_stock.data.success){
-                    toastr.error(res_stock.data.message,'ERROR EN EL SERVIDOR');
-                }
-
-                toastr.success(res_stock.data.message,'VALIDACIÓN COMPLETADA');*/
-
-            
                 const res_actualizar_stock    =   await this.actualizarStockLogicoVentas(this.almacenSeleccionado,resInputProducts.lstInputProducts);
 
                 if(!res_actualizar_stock.data.success){
@@ -1542,35 +1225,20 @@ export default {
             }
             this.$parent.ocultarAnimacionVenta();            
         },
-        async  getProductosByModelo() {
-            try {
-                const url       = `/get-producto-by-modelo/${this.modeloSeleccionado}`;
-                const response  = await axios.get(url);
-                //console.log(response.data);
-                this.productosPorModelo = response.data;
-                //this.pintarTableStocks(response.data.stocks,tallas,response.data.producto_colores);
-            } catch (error) {
-                console.error('Error al obtener productos por modelo:', error);
-            }
-        },
         printStockLogico(productoId, colorId, tallaId) {
             const stock = this.productosPorModelo.stocks.find(st => st.producto_id === productoId && st.color_id === colorId && st.talla_id === tallaId);
             return stock ? stock.stock_logico : 0;
         },
-        // async ExecuteDevolverCantidades() {
-        //     if (this.asegurarCierre == 1) {
-        //         await this.DevolverCantidades();
-        //         this.asegurarCierre = 10;
-        //     } else {
-        //         console.log("ExecuteDevolverCantidades", this.asegurarCierre);
-        //     }
-        // }
-        async DevolverCantidades() {
-                await this.axios.post(route('ventas.documento.devolver.cantidades'), {
-                    //cantidades: JSON.stringify(this.tablaDetalles)
-                    carrito: JSON.stringify(this.carrito)
-                });  
+        async devolverCantidades() {
+
+            if(this.asegurarCierre == 1){
+                await this.axios.post(route('ventas.documento.devolverCantidades'), {
+                    carrito: JSON.stringify(this.carrito),
+                    almacen_id:this.almacenSeleccionado
+                }); 
                 this.ChangeAsegurarCierre();
+            }
+                
         },
         async ObtenerCodigoPrecioMenor() {
             
@@ -1581,24 +1249,6 @@ export default {
 
             }
         },
-        // ModalLotes() {
-        //     try {
-        //         this.modalLote = true;
-        //         // $("#modal_lote").modal("show");
-        //         // this.ObtenerLotes();
-        //     } catch (ex) {
-        //         console.log("error en ModalLotes ", ex);
-        //     }
-        // },
-        //async ObtenerLotes() {
-            // try {
-            //     const { data } = await this.axios.post(route("ventas.getLoteProductos"), this.paramsLotes);
-            //     const { lotes } = data;
-            //     this.Lotes = lotes.data;
-            // } catch (ex) {
-            //     console.log("error en ObtenerLotes ", ex);
-            // }
-        //},
         evaluarPrecioigv(producto) {
             if (producto.precio_compra == null) {
                 let cambio = convertFloat(producto.dolar_ingreso);
@@ -1647,63 +1297,6 @@ export default {
                 return convertFloat(precio_nuevo).toFixed(2);
             }
         },
-        ProductoSeleccionado(item) {
-
-            let existe = this.buscarProductoAdded(item.id);
-            if (existe) {
-                toastr.error('Este Producto ya se encuentra en el detalle.', 'Error');
-            } else {
-                this.modalLote = false;
-                let obj = item;
-                for (let key in item) {
-                    obj[key] = this.TransformarNumber(item[key]);
-                }
-                this.productoJson = obj;
-            }
-        },
-        LlenarDatos() {
-            try {
-                let pdescuento = 0;
-                let precio_inicial = convertFloat(this.formDetalles.precio);
-                let igv = convertFloat(this.formDetalles.igv);
-                let igv_calculado = convertFloat(igv / 100);
-
-                let valor_unitario = 0.00;
-                let precio_unitario = 0.00;
-                let dinero = 0.00;
-                let precio_nuevo = 0.00;
-                let valor_venta = 0.00;
-                let cantidad = convertFloat(this.formDetalles.cantidad);
-
-                precio_unitario = precio_inicial;
-                valor_unitario = precio_unitario / (1 + igv_calculado);
-                dinero = precio_unitario * (pdescuento / 100);
-                precio_nuevo = precio_unitario - dinero;
-                valor_venta = precio_nuevo * cantidad;
-
-                let detalle = {
-                    producto_id: this.formDetalles.producto_id,
-                    unidad: this.formDetalles.producto_unidad,
-                    producto: this.formDetalles.producto_lote,
-                    precio_unitario: precio_unitario,
-                    valor_unitario: RedondearDecimales(valor_unitario),
-                    valor_venta: RedondearDecimales(valor_venta),
-                    cantidad: cantidad,
-                    precio_inicial: precio_inicial,
-                    dinero: dinero,
-                    descuento: pdescuento,
-                    precio_nuevo: precio_nuevo,
-                    precio_minimo: convertFloat(this.evaluarPrecioigv(this.productoJson)),
-                }
-
-                this.AgregarDatos(detalle);
-                this.CambiarCantidadLogica(detalle);
-
-            } catch (ex) {
-                alert("Error en LlenarDatos " + ex);
-            }
-
-        },
         AgregarDatos(item) {
             this.tablaDetalles.push(item);
             this.formDetalles.precio = "";
@@ -1716,32 +1309,12 @@ export default {
             let obj = this.tablaDetalles.find(item => Number(item.producto_id) == Number(id));
             return obj ? true : false;
         },
-        conIgv(total) {
-            let subtotal = total / (1 + (this.formDetalles.igv / 100));
-            let igv_calculado = total - subtotal;
-            this.formDetalles.igv_int = this.formDetalles.igv + '%';
-            this.formDetalles.monto_sub_total = subtotal.toFixed(2);
-            this.formDetalles.monto_total_igv = igv_calculado.toFixed(2);
-            this.formDetalles.monto_total = total.toFixed(2);
-        },
         TransformarNumber(item) {
             if (item && !isNaN(Number(item))) {
 
                 return parseFloat(item);
             } else {
                 return item;
-            }
-        },
-        async CambiarCantidadLogica(detalle) {
-            
-            try {
-                await this.axios.post(route('ventas.documento.cantidad'), {
-                    'producto_id': detalle.producto_id,
-                    'cantidad': detalle.cantidad,
-                    'condicion': this.asegurarCierre,
-                });
-            } catch (ex) {
-
             }
         },
         async actualizarStockDelete(producto){
@@ -1782,45 +1355,10 @@ export default {
             } catch (error) {
                 toastr.error(error,'ERROR EN LA PETICIÓN ELIMINAR ITEM!!!');
             } 
-
-            // try {
-            //     this.asegurarCierre = 0; //aumentar
-            //     this.CambiarCantidadLogica(item);
-            //     this.tablaDetalles.splice(index, 1);
-            // } catch (ex) {
-            //     alert("Error en Eliminar item" + ex);
-            // }
         },
-        /*async EditarItem(item) {
-            try {
-                const { data } = await this.axios.post(route('ventas.documento.obtener.lote'), {
-                    lote_id: Number(item.producto_id)
-                });
-                const { success, lote } = data;
-                if (success) {
-                    let cantidad_logica = lote.cantidad_logica;
-
-                    this.itemLote.cantidadMax = parseFloat(cantidad_logica) + parseFloat(item.cantidad);
-                    this.itemLote.precio = item.precio_inicial;
-                    this.itemLote.producto = item.producto;
-                    this.itemLote.cantidad = item.cantidad;
-                    this.itemLote.unidadMedida = item.unidad;
-                    this.itemLote.id = item.producto_id;
-                    this.itemLote.precioMinimo = item.precio_minimo;
-                    this.itemLote.estado_precio_menor = this.dataEmpresa.estado_precio_menor;
-                    this.itemLote.codigo_precio_menor = this.dataEmpresa.codigo_precio_menor;
-                    this.itemLote.igv = this.Igv;
-                    $('#modal_editar_detalle').modal({ backdrop: 'static', keyboard: false });
-                } else {
-                    toastr.warning('Ocurrió un error porfavor recargar la pagina.')
-                }
-            } catch (ex) {
-
-            }
-        },*/
         ChangeAsegurarCierre() {
             this.asegurarCierre = 5;
-            console.log('devuelvo',this.asegurarCierre);
+            console.log('devuelto',this.asegurarCierre);
         },
         async getProductoBarCode(barcode){
             try {

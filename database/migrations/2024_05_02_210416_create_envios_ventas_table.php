@@ -15,8 +15,9 @@ class CreateEnviosVentasTable extends Migration
     {
         Schema::create('envios_ventas', function (Blueprint $table) {
             $table->id();
+
             $table->unsignedInteger('documento_id');
-            $table->foreign('documento_id')->references('id')->on('cotizacion_documento')->onDelete('cascade');
+            $table->foreign('documento_id')->references('id')->on('cotizacion_documento');
             $table->string('departamento');
             $table->string('provincia');
             $table->string('distrito');
@@ -35,6 +36,7 @@ class CreateEnviosVentasTable extends Migration
             $table->string('cliente_nombre');
             $table->string('cliente_celular');
             $table->string('tipo_pago_envio');
+
             $table->decimal('monto_envio', 10, 2)->unsigned();
             $table->char('entrega_domicilio', 2);
             $table->string('direccion_entrega')->nullable();
@@ -52,10 +54,17 @@ class CreateEnviosVentasTable extends Migration
 
             $table->unsignedInteger('user_despachador_id')->nullable(); 
             $table->foreign('user_despachador_id')->references('id')->on('users'); 
-            $table->string('user_despachador_nombre',260); 
+            $table->string('user_despachador_nombre',260)->nullable(); 
 
-     
 
+
+            $table->unsignedBigInteger('almacen_id');
+            $table->foreign('almacen_id')->references('id')->on('almacenes');
+
+            $table->unsignedBigInteger('sede_id');
+            $table->foreign('sede_id')->references('id')->on('empresa_sedes');
+            
+            $table->string('almacen_nombre',160);
 
             $table->enum('estado', ['PENDIENTE', 'EMBALADO','DESPACHADO'])->default('PENDIENTE');
             $table->timestamps();

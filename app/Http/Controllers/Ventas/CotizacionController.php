@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Ventas;
 use App\Almacenes\Almacen;
 use App\Almacenes\Categoria;
 use App\Almacenes\Color;
+use App\Almacenes\Kardex;
 use App\Almacenes\LoteProducto;
 use App\Almacenes\Marca;
 use App\Almacenes\Producto;
@@ -684,7 +685,6 @@ array:10 [
                   $documento->fecha_vencimiento   = Carbon::now()->toDateString();
             }
 
-            dd('asdas');
   
             //======== EMPRESA ========
             $empresa                                =   Empresa::find($cotizacion->empresa_id);
@@ -715,12 +715,12 @@ array:10 [
   
              
             //========= MONTOS Y MONEDA ========
-            $documento->sub_total               =   $cotizacion->monto_subtotal;
+            $documento->sub_total               =   $cotizacion->sub_total;
             $documento->monto_embalaje          =   $cotizacion->monto_embalaje;  
             $documento->monto_envio             =   $cotizacion->monto_envio;  
-            $documento->total                   =   $cotizacion->monto_total;  
-            $documento->total_igv               =   $cotizacion->monto_igv;
-            $documento->total_pagar             =   $cotizacion->monto_total_pagar;  
+            $documento->total                   =   $cotizacion->total;  
+            $documento->total_igv               =   $cotizacion->total_igv;
+            $documento->total_pagar             =   $cotizacion->total_pagar;  
             $documento->igv                     =   $cotizacion->igv;
             $documento->monto_descuento         =   $cotizacion->monto_descuento;
             $documento->porcentaje_descuento    =   $cotizacion->porcentaje_descuento;   
@@ -732,13 +732,131 @@ array:10 [
   
             $documento->legenda     =   $legenda;
   
-              $documento->sede_id         =   $datos_validados->sede_id;
-              $documento->almacen_id      =   $datos_validados->almacen->id;
-              $documento->almacen_nombre  =   $datos_validados->almacen->descripcion;
+            $documento->sede_id         =   $cotizacion->sede_id;
+            $documento->almacen_id      =   $cotizacion->almacen_id;
+            $documento->almacen_nombre  =   $cotizacion->almacen_nombre;
+
+            $documento->cotizacion_venta    =   $cotizacion->id;
   
-              $documento->save();
+            $documento->save();
+
+            //========= GRABAR DETALLE ========
+            foreach($cotizacion_detalle as $item){
+               
+                //====== COMPROBAR SI EXISTE EL PRODUCTO COLOR TALLA EN EL ALMACÉN =====
+                $existe =   DB::select('select 
+                            pct.*,
+                            p.nombre as producto_nombre,
+                            p.codigo as producto_codigo,
+                            c.descripcion as color_nombre,
+                            t.descripcion as talla_nombre,
+                            m.descripcion as modelo_nombre
+                            from producto_color_tallas as pct
+                            inner join productos as p on p.id = pct.producto_id
+                            inner join colores as c on c.id = pct.color_id
+                            inner join tallas as t on t.id = pct.talla_id
+                            inner join modelos as m on m.id = p.modelo_id
+                            where 
+                            pct.almacen_id = ?
+                            AND pct.producto_id = ?
+                            AND pct.color_id = ?
+                            AND pct.talla_id = ?',
+                            [$cotizacion->almacen_id,
+                            $item->producto_id,
+                            $item->color_id,
+                            $item->talla_id]);
+
+                if(count($existe) === 0){
+                        throw new Exception($item->producto_nombre.'-'.$item->color_nombre.'-'.$item->talla_nombre.', NO EXISTE EN EL ALMACÉN!!!');
+                }
+
+                  
+                $detalle                            =   new Detalle();
+                $detalle->documento_id              =   $documento->id;
+                $detalle->almacen_id                =   $item->almacen_id;
+                $detalle->producto_id               =   $item->producto_id;
+                $detalle->color_id                  =   $item->color_id;
+                $detalle->talla_id                  =   $item->talla_id;
+                $detalle->almacen_nombre            =   $item->almacen_nombre;
+                $detalle->codigo_producto           =   $existe[0]->producto_codigo;
+                $detalle->nombre_producto           =   $item->producto_nombre;
+                $detalle->nombre_color              =   $item->color_nombre;
+                $detalle->nombre_talla              =   $item->talla_nombre;
+                $detalle->nombre_modelo             =   $existe[0]->modelo_nombre;
+                $detalle->cantidad                  =   floatval($item->cantidad);
+                $detalle->precio_unitario           =   floatval($item->precio_unitario);
+                $detalle->importe                   =   $item->importe;
+                $detalle->precio_unitario_nuevo     =   floatval($item->precio_unitario_nuevo);
+                $detalle->porcentaje_descuento      =   floatval($item->porcentaje_descuento);
+                $detalle->monto_descuento           =   $item->monto_descuento;
+                $detalle->importe_nuevo             =   $item->importe_nuevo;
+                $detalle->cantidad_sin_cambio       =   (int) $item->cantidad;
+                $detalle->save();
+
+                //===== ACTUALIZANDO STOCK ===========
+                DB::update('UPDATE producto_color_tallas 
+                SET stock = stock - ? 
+                WHERE 
+                almacen_id = ?
+                AND producto_id = ? 
+                AND color_id = ? 
+                AND talla_id = ?', 
+                [$item->cantidad,
+                $item->almacen_id,
+                $item->producto_id, 
+                $item->color_id, 
+                $item->talla_id]);
+
+                $nuevo_stock    =   DB::table('producto_color_tallas')
+                                    ->where('almacen_id', $item->almacen_id)
+                                    ->where('producto_id', $item->producto_id)
+                                    ->where('color_id', $item->color_id)
+                                    ->where('talla_id', $item->talla_id)
+                                    ->value('stock');
+
+                //======= KARDEX CON STOCK YA MODIFICADO =======
+                $kardex                     =   new Kardex();
+                $kardex->sede_id            =   $cotizacion->sede_id;
+                $kardex->almacen_id         =   $item->almacen_id;
+                $kardex->producto_id        =   $item->producto_id;
+                $kardex->color_id           =   $item->color_id;
+                $kardex->talla_id           =   $item->talla_id;
+                $kardex->almacen_nombre     =   $item->almacen_nombre;
+                $kardex->producto_nombre    =   $item->producto_nombre;
+                $kardex->color_nombre       =   $item->color_nombre;
+                $kardex->talla_nombre       =   $item->talla_nombre;
+                $kardex->cantidad           =   $item->cantidad;
+                $kardex->precio             =   $item->precio_unitario_nuevo;
+                $kardex->importe            =   $item->importe_nuevo;
+                $kardex->accion             =   'VENTA';
+                $kardex->stock              =   $nuevo_stock;
+                $kardex->numero_doc         =   $documento->serie.'-'.$documento->correlativo;
+                $kardex->documento_id       =   $documento->id;
+                $kardex->registrador_id     =   $documento->user_id;
+                $kardex->registrador_nombre =   $cotizacion->registrador_nombre;
+                $kardex->fecha              =   Carbon::today()->toDateString();
+                $kardex->descripcion        =   mb_strtoupper($request->get('observacion'), 'UTF-8');
+                $kardex->save();
+                    
+            }
 
 
+            //========== ACTUALIZAR ESTADO FACTURACIÓN A INICIADA ======
+            DB::table('empresa_numeracion_facturaciones')
+             ->where('empresa_id', Empresa::find(1)->id) 
+             ->where('sede_id', $cotizacion->sede_id) 
+             ->where('tipo_comprobante', $documento->tipo_venta_id) 
+             ->where('emision_iniciada', '0') 
+             ->where('estado','ACTIVO')
+             ->update([
+                'emision_iniciada'       => '1',
+                'updated_at'             => Carbon::now()
+            ]);
+
+            DB::commit();
+            return response()->json(['success'=>true,
+            'message'=>'DOCUMENTO DE VENTA GENERADO CON ÉXITO',
+            'documento_id'=>$documento->id]);
 
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -1089,6 +1207,39 @@ array:10 [
 
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=> $th->getMessage() ]);
+        }
+    }
+
+    public function devolverCantidades(Request $request){
+
+        DB::beginTransaction();
+        try {
+            $cotizacion_detalle =   CotizacionDetalle::where('cotizacion_id',$request->get('cotizacion_id'))->get();
+           
+            foreach ($cotizacion_detalle as $item) {
+
+                //===== DEVOLVER STOCK LÓGICO ===========
+                DB::update('UPDATE producto_color_tallas 
+                SET stock_logico = stock_logico + ? 
+                WHERE 
+                almacen_id = ?
+                AND producto_id = ? 
+                AND color_id = ? 
+                AND talla_id = ?', 
+                [$item->cantidad,
+                $item->almacen_id,
+                $item->producto_id, 
+                $item->color_id, 
+                $item->talla_id]);
+
+            }
+           
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>'CANTIDAD DEVUELTA CON ÉXITO']);
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,$th->getMessage()]);
         }
     }
 

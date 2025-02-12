@@ -458,8 +458,7 @@ export default {
         };
     },
     mounted() {
-      
-
+        
         let $this = this;
         for(let i = 0; i < $this.modospago.length; i++)
         {

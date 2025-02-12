@@ -242,8 +242,4 @@
         
         </div>
     </div>
-
-   
-    <input type="hidden" name="cot_doc" id="cot_doc" value="SI">
-
 </form>

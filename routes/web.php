@@ -487,6 +487,7 @@ function(){
         Route::get('nuevodocumento/{id}','Ventas\CotizacionController@newdocument')->name('ventas.cotizacion.nuevodocumento');
     
         Route::post('convertirADocVenta','Ventas\CotizacionController@convertirADocVenta')->name('ventas.cotizacion.convertirADocVenta');
+        Route::post('devolverCantidades','Ventas\CotizacionController@devolverCantidades')->name('ventas.cotizacion.devolverCantidades');
 
     });
 
@@ -521,15 +522,13 @@ function(){
         Route::get('/getRecibosCaja/{cliente_id}', 'Ventas\DocumentoController@getRecibosCaja')->name('ventas.documento.getRecibosCaja');
 
         Route::post('quantity', 'Ventas\DocumentoController@quantity')->name('ventas.documento.cantidad');
-        Route::post('devolver/cantidad', 'Ventas\DocumentoController@returnQuantity')->name('ventas.documento.devolver.cantidades');
+        Route::post('devolverCantidades', 'Ventas\DocumentoController@devolverCantidades')->name('ventas.documento.devolverCantidades');
         Route::post('obtener/lote', 'Ventas\DocumentoController@returnLote')->name('ventas.documento.obtener.lote');
         Route::post('update/lote', 'Ventas\DocumentoController@updateLote')->name('ventas.documento.update.lote');
 
 
         Route::post('customers','Ventas\DocumentoController@customers')->name('ventas.customers');
         Route::post('customers-all','Ventas\DocumentoController@customers_all')->name('ventas.customers_all');
-        Route::get('getLot/{id}/{tipocomprobante}','Ventas\DocumentoController@getLot')->name('ventas.getLot');
-        Route::get('getLote-productos','Ventas\DocumentoController@getLoteProductos')->name('ventas.getLoteProductos');
         Route::post('vouchersAvaible','Ventas\DocumentoController@vouchersAvaible')->name('ventas.vouchersAvaible');
         
         Route::post('regularizar-venta','Ventas\DocumentoController@regularizarVenta')->name('ventas.regularizarVenta');

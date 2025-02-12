@@ -2,7 +2,7 @@
 
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
-<ventas-app :imginicial="'{{ asset('img/default.png') }}'"></ventas-app>
+    <ventas-app :imginicial="'{{ asset('img/default.png') }}'"></ventas-app>
 @stop
 @push('styles')
 <style>

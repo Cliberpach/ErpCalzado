@@ -31,10 +31,7 @@
             <div class="ibox">
                 <div class="ibox-content">
 
-                    <input type="hidden" id='asegurarCierre'>
-                    @isset($dolar)
-                        <input type="hidden" id='dolar' value="{{$dolar}}">
-                    @endisset
+                   
 
                     @include('ventas.documentos.cotizacion_a_docventa.forms.form_create')
                     
@@ -452,12 +449,26 @@
             formData.append('cotizacion_id',@json($cotizacion->id))
             const res   =   await axios.post(route('ventas.cotizacion.convertirADocVenta'),formData);
 
-            
+            if(res.data.success){
 
-            
+                asegurarCierre = 2;
+
+                let url_open_pdf = '{{ route("ventas.documento.comprobante", [":id1", ":size"]) }}'
+                    .replace(':id1', res.data.documento_id)
+                    .replace(':size', 80);
+
+                window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
+                location    = "{{ route('ventas.documento.index') }}";
+                toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+
+            }else{
+                Swal.close();
+                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+            }
+
         } catch (error) {
+            Swal.close();
             toastr.error(error,'ERROR EN LA PETICIÓN CONVERTIR COTIZACIÓN A DOC VENTA!!!');
-            asegurarCierre = 1;
         }
     }
 
@@ -814,28 +825,24 @@
         })
     }
 
-    //============= devolver stock logico, ya que hay errores en la cotización ===================
+    //============= DEVOLVER STOCK LÓGICO ===================
     window.addEventListener('beforeunload', async () => {
         if (asegurarCierre == 1) {
-            await this.DevolverCantidades();
+            await this.devolverCantidades();
             asegurarCierre = 2;
         } else {
             console.log("beforeunload", asegurarCierre);
         }
     });
 
-    //================ devolver cantidades ===============
-    async function DevolverCantidades() {
-            await this.axios.post(route('ventas.documento.devolver.cantidades'), {
-                 carrito: JSON.stringify(carrito)
-            });
+    //================ DEVOLVER STOCK LÓGICO ===============
+    async function devolverCantidades() {
+        await this.axios.post(route('ventas.cotizacion.devolverCantidades'), {cotizacion_id:@json($cotizacion->id)});
     }
 
    
-
     @if (!empty($errores))
-        // $('#asegurarCierre').val(1);
-        asegurarCierre = 1;
+        asegurarCierre  =   2;
         @foreach ($errores as $error)
             @if ($error->tipo == 'stocklogico') 
                 toastr.error('La cantidad solicitada {{ $error->cantidad }} excede al stock del producto {{ $error->producto }}', 'Error', {
@@ -851,8 +858,5 @@
         @endforeach
     @endif
 
-
 </script>
-
-
 @endpush

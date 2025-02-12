@@ -222,12 +222,15 @@
                                 :idcotizacion="idcotizacion" 
                                 :btnDisabled="disabledBtnProducto"
                                 :parametros="paramsLotes"
-                                :modelos="initData.modelos" :categorias="initData.categorias" :marcas="initData.marcas"
-                                :tallas="initData.tallas" :precio_envio="formCreate.precio_envio"
+                                :modelos="initData.modelos" 
+                                :categorias="initData.categorias" 
+                                :marcas="initData.marcas"
+                                :tallas="initData.tallas" 
+                                :precio_envio="formCreate.precio_envio"
                                 :precio_despacho="formCreate.precio_despacho"
                                 :cliente="cliente_id"
                                 :almacenSeleccionado="almacenSeleccionado"
-                            ref="tablaDetalles" />
+                            ref="tablaProductos" />
 
                             <div class="hr-line-dashed"></div>
                             <div class="form-group row">
@@ -257,7 +260,10 @@
            
         </div>
 
-        <ModalClienteVue @newCliente="formAddCliente" />
+        <ModalClienteVue @newCliente="formAddCliente"   
+        :lst_departamentos_base="this.lst_departamentos_base"
+        :lst_provincias_base="this.lst_provincias_base"
+        :lst_distritos_base="this.lst_distritos_base" />
 
     </div>
 </template>
@@ -282,7 +288,19 @@ export default {
         idcotizacion:{
             type:Number,
             default:0
-        }
+        },
+        lst_departamentos_base:{
+            type:Array,
+            default:[]
+        },
+        lst_provincias_base:{
+            type:Array,
+            default:[]
+        },
+        lst_distritos_base:{
+            type:Array,
+            default:[]
+        },
     },
     data() {
         return {
@@ -450,18 +468,24 @@ export default {
         }
     },
     created() {
+
+        window.addEventListener("beforeunload", this.handleBeforeUnload);
+
+
         this.formCreate.fecha_documento_campo   = this.$fechaActual;
         this.formCreate.fecha_atencion_campo    = this.$fechaActual;
         this.formCreate.fecha_vencimiento_campo = this.$fechaActual;
         this.ObtenerData();
     },
     beforeDestroy() {
-        console.log('destruyendo',this.$refs.tablaDetalles.asegurarCierre);
-        if(this.$refs.tablaDetalles.asegurarCierre == 1){
-            this.$refs.tablaDetalles.DevolverCantidades();
-        }
+        
+        this.$refs.tablaProductos.devolverCantidades();
+        
     },
     methods: {
+        handleBeforeUnload(event) {
+            this.$refs.tablaProductos?.devolverCantidades();
+        },
         openModal(producto) {
             console.log('edit',producto.producto_nombre);
             this.modalVisible       =   true;
@@ -499,11 +523,11 @@ export default {
         },
         async ObtenerData() {
             try {
-                this.loading = true;
-                const { data } = await this.axios.post(route("ventas.documento.getCreate"));
+                this.loading                = true;
+                const { data }              = await this.axios.post(route("ventas.documento.getCreate"));
                 const { success, initData } = data;
-                this.initData = initData;
-                this.loading = false;
+                this.initData               = initData;
+                this.loading                = false;
             } catch (ex) {
 
             }
@@ -595,7 +619,7 @@ export default {
                 const res   =   await this.axios.post(route('ventas.documento.store'),this.formCreate);
                 
                 if(res.data.success){
-                    this.$refs.tablaDetalles.ChangeAsegurarCierre();
+                    this.$refs.tablaProductos.ChangeAsegurarCierre();
                     toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
                     const url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id,size:80});
                     window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');

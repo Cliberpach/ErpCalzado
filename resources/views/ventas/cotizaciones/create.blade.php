@@ -949,32 +949,34 @@
             dataTableStocksCotizacion.destroy();
         }
 
-        producto.colores.forEach((color)=>{
-            filas   +=  `  <tr>
-                            <th scope="row" data-producto=${producto.id} data-color=${color.id} >
-                                <div style="width:200px;">${producto.nombre}</div>
-                            </th>
-                            <th scope="row">${color.nombre}</th>
-                        `;
+        if(producto){
+            producto.colores.forEach((color)=>{
+                filas   +=  `  <tr>
+                                <th scope="row" data-producto=${producto.id} data-color=${color.id} >
+                                    <div style="width:200px;">${producto.nombre}</div>
+                                </th>
+                                <th scope="row">${color.nombre}</th>
+                            `;
 
-            color.tallas.forEach((talla)=>{
-                filas   +=  `<td style="background-color: rgb(210, 242, 242);">
-                                        <p style="margin:0;width:20px;text-align:center;${talla.stock != 0?'font-weight:bold':''};">${talla.stock}</p>
-                            </td>
-                            <td width="8%">
-                                <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
-                                id="inputCantidad_${producto.id}_${color.id}_${talla.id}" 
-                                data-producto-id="${producto.id}"
-                                data-producto-nombre="${producto.nombre}"
-                                data-color-nombre="${color.nombre}"
-                                data-talla-nombre="${talla.nombre}"
-                                data-color-id="${color.id}" data-talla-id="${talla.id}"></input>    
-                            </td>`;
+                color.tallas.forEach((talla)=>{
+                    filas   +=  `<td style="background-color: rgb(210, 242, 242);">
+                                            <p style="margin:0;width:20px;text-align:center;${talla.stock != 0?'font-weight:bold':''};">${talla.stock}</p>
+                                </td>
+                                <td width="8%">
+                                    <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
+                                    id="inputCantidad_${producto.id}_${color.id}_${talla.id}" 
+                                    data-producto-id="${producto.id}"
+                                    data-producto-nombre="${producto.nombre}"
+                                    data-color-nombre="${color.nombre}"
+                                    data-talla-nombre="${talla.nombre}"
+                                    data-color-id="${color.id}" data-talla-id="${talla.id}"></input>    
+                                </td>`;
+                })
+
+                filas   +=  `</tr>`;
+            
             })
-
-            filas   +=  `</tr>`;
-           
-        })
+        }
 
         tableStocksBody.innerHTML = filas;
         loadDataTableStocksCotizacion();
