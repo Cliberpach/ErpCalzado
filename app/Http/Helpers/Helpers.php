@@ -1306,8 +1306,13 @@ if (!function_exists('movimientoUser')) {
             ======
             */
 
-            return DB::select('select dmc.movimiento_id from detalles_movimiento_caja as dmc
-            where dmc.usuario_id=? and dmc.fecha_salida is null',[Auth::user()->id]);
+            return  DB::select('select 
+                    dmc.movimiento_id 
+                    from detalles_movimiento_caja as dmc
+                    where 
+                    dmc.usuario_id = ? 
+                    and dmc.fecha_salida is null',
+                    [Auth::user()->id]);
 
 
             // if (FullAccess() || PuntoVenta()) {
@@ -1805,7 +1810,7 @@ if (!function_exists('ventas_mensual')) {
         $mes = date_format($fecha_hoy,'m');
         $anio = date_format($fecha_hoy,'Y');
         $total = DocumentoDocumento::where('estado','!=','ANULADO')->whereMonth('fecha_documento',$mes)->whereYear('fecha_documento',$anio)->sum('total');
-        $total_invalida = DocumentoDocumento::where('estado', '!=', 'ANULADO')->whereMonth('fecha_documento', $mes)->whereYear('fecha_documento', $anio)->where('convertir', '!=', '')->where('tipo_venta','!=','129')->sum('total');
+        $total_invalida = DocumentoDocumento::where('estado', '!=', 'ANULADO')->whereMonth('fecha_documento', $mes)->whereYear('fecha_documento', $anio)->where('convertir', '!=', '')->where('tipo_venta_id','!=','129')->sum('total');
         $total_notas = Nota::whereMonth('fechaEmision',$mes)->whereYear('fechaEmision',$anio)->sum('mtoImpVenta');
         return (float)($total - $total_invalida - $total_notas);
     }
@@ -1815,7 +1820,7 @@ if (!function_exists('ventas_mensual_random')) {
     function ventas_mensual_random($mes,$anio)
     {
         $total = DocumentoDocumento::where('estado','!=','ANULADO')->whereMonth('fecha_documento',$mes)->whereYear('fecha_documento',$anio)->sum('total');
-        $total_invalida = DocumentoDocumento::where('estado','!=','ANULADO')->whereMonth('fecha_documento',$mes)->whereYear('fecha_documento',$anio)->where('convertir','!=','')->where('tipo_venta','!=','129')->sum('total');
+        $total_invalida = DocumentoDocumento::where('estado','!=','ANULADO')->whereMonth('fecha_documento',$mes)->whereYear('fecha_documento',$anio)->where('convertir','!=','')->where('tipo_venta_id','!=','129')->sum('total');
         $total_notas = Nota::whereMonth('fechaEmision', $mes)->whereYear('fechaEmision', $anio)->sum('mtoImpVenta');
         return (float)($total - $total_invalida - $total_notas);
     }
@@ -2082,7 +2087,7 @@ if (!function_exists('ifNoConvertido')) {
     function ifNoConvertido($id)
     {
         $doc = DocumentoDocumento::find($id);
-        if($doc->tipo_venta == '129')
+        if($doc->tipo_venta_id == '129')
         {
             return true;
         }
@@ -2191,7 +2196,7 @@ if (!function_exists('refreshNotifications')) {
         ->select(
             'cotizacion_documento.*',
         )
-        ->whereIn('cotizacion_documento.tipo_venta',['127','128'])
+        ->whereIn('cotizacion_documento.tipo_venta_id',['127','128'])
         ->where('cotizacion_documento.estado', '!=','ANULADO')
         ->where('cotizacion_documento.sunat','0')
         ->where('cotizacion_documento.contingencia','0')
@@ -2215,7 +2220,7 @@ if (!function_exists('refreshNotifications')) {
             'cotizacion_documento.*',
         )
         ->orderBy('cotizacion_documento.id','DESC')
-        ->whereIn('cotizacion_documento.tipo_venta',['127','128'])
+        ->whereIn('cotizacion_documento.tipo_venta_id',['127','128'])
         ->where('cotizacion_documento.estado', '!=','ANULADO')
         ->where('cotizacion_documento.sunat', '!=','2')
         ->where('cotizacion_documento.contingencia', '0')

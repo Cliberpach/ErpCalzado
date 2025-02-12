@@ -316,7 +316,7 @@ array:7 [
                 Session::flash('nota_id',$notaingreso->id);
             }*/
 
-            //DB::commit();
+            DB::commit();
             return response()->json(['success'=>true,'message'=>'NOTA INGRESO REGISTRADA CON ÉXITO']);
             // return redirect()->route('almacenes.nota_ingreso.index');
         } catch (\Throwable $th) {

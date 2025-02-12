@@ -122,11 +122,11 @@ export default {
             }
         },
         DownlaodPdf(){
-            var url = route('ventas.documento.comprobante', {id:this.formPdf.id+"-100"});
+            var url = route('ventas.documento.comprobante', {id:this.formPdf.id,size:100});
             window.open(url, "Comprobante SISCOM", "width=900, height=600")
         },
         DownlaodTicket(){
-            var url = route('ventas.documento.comprobante', {id:this.formPdf.id+"-80"});
+            var url = route('ventas.documento.comprobante', {id:this.formPdf.id,size:80});
             window.open(url, "Comprobante SISCOM", "width=900, height=600");
         }
     }

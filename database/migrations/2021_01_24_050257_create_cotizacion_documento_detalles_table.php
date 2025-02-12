@@ -33,7 +33,10 @@ class CreateCotizacionDocumentoDetallesTable extends Migration
             $table->string('nombre_color');
             $table->string('nombre_talla');
             $table->string('nombre_modelo');
+
             $table->unsignedDecimal('cantidad', 15, 4);
+            $table->unsignedDecimal('cantidad_sin_cambio',15,4);
+
             $table->unsignedDecimal('precio_unitario', 15, 4);
             $table->unsignedDecimal('importe', 15, 4);
 
@@ -42,15 +45,7 @@ class CreateCotizacionDocumentoDetallesTable extends Migration
             $table->unsignedDecimal('importe_nuevo', 15, 2);
             $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
             
-            //$table->string('codigo_lote');
-            // $table->unsignedDecimal('precio_inicial', 15, 2);
-            // $table->unsignedDecimal('precio_unitario', 15, 2);
-            // $table->unsignedDecimal('descuento', 15, 2)->default(0.00);
-            // $table->unsignedDecimal('dinero', 15, 2)->default(0.00);
-            // $table->unsignedDecimal('precio_nuevo', 15, 2);
-            // $table->unsignedDecimal('precio_minimo', 15, 2)->nullable();
-            // $table->unsignedDecimal('valor_unitario', 15, 2);
-            // $table->unsignedDecimal('valor_venta', 15, 2);
+            
             $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
             $table->enum('eliminado', ['0', '1'])->default('0');
             $table->timestamps();

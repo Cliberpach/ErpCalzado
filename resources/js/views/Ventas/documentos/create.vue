@@ -310,6 +310,7 @@ export default {
                 categorias:[],
                 marcas:[],
                 tallas:[],
+                sede_id:null
             },
             formCreate: {
                 fecha_documento_campo: "",
@@ -576,90 +577,40 @@ export default {
             }
         },
         async EnviarVenta() {
+            
+
+            Swal.fire({
+                title: 'Registrando venta...',
+                text: 'Por favor, espera.',
+                allowOutsideClick: false, 
+                didOpen: () => {
+                    Swal.showLoading(); 
+                }
+            });
+
             try {
+                this.formCreate.almacenSeleccionado =   this.almacenSeleccionado;
+                this.formCreate.sede_id             =   this.initData.sede_id;
 
-                //=== desactivar botón grabar ======
-                document.querySelector('#btn_grabar').disabled=true;
+                const res   =   await this.axios.post(route('ventas.documento.store'),this.formCreate);
+                
+                if(res.data.success){
+                    this.$refs.tablaDetalles.ChangeAsegurarCierre();
+                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                    const url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id,size:80});
+                    window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
+                    //this.$emit("update:ruta", "index");
+                    window.location.href = route("ventas.documento.index");
 
-                //======= spiner de carga =========
-                this.loading = true;
-
-                //======== VERIFICAR SI EXISTEN CAJAS ABIERTAS ==========
-                const res = await this.axios.get(route('Caja.movimiento.verificarestado'));
-                console.log('VERIFICAR CAJA ESTADO');
-                console.log(res);
-                //======= desestructuración de objeto ===========
-                const success  = res.data.success;
-
-                //======== SÍ EXISTEN CAJAS ABIERTAS ===========
-                if (success) {
-
-                    let envio_ok = true;
-
-                    var tipo = this.validarTipo();
-                    console.log('VALIDAR TIPO',tipo);
-
-                    if (!tipo) {
-                        envio_ok = false;
-                    }
-
-                     if (envio_ok) {
-                        console.log('FORM ENVIADO');
-                        console.log(this.formCreate)
-
-                        this.formCreate.almacenSeleccionado =   this.almacenSeleccionado;
-
-                        const res = await this.axios.post(route("ventas.documento.store"), this.formCreate);
-                        
-                        console.log('RES DOCUMENT STORE');
-                        console.log(res);
-
-
-                        if (res.data.success) {
-                            
-
-                            toastr.success('¡Documento de venta creado!', 'Exito');
-
-                            var url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id +"-80"});
-
-                            window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
-
-                             this.$refs.tablaDetalles.ChangeAsegurarCierre();
-
-
-                            this.$emit("update:ruta", "index");
-
-                        } else {
-                            document.querySelector('#btn_grabar').disabled=false;
-                            this.loading = false;
-                            const excepcion   =   data.excepcion;
-                            if(data.codigo == "22003" && excepcion.includes('UPDATE producto_color_tallas') && excepcion.includes('SET stock')){
-                                toastr.error(`ERROR AL RESTAR STOCK DE: ${data.producto.producto.nombre} (ID: ${data.producto.producto.id}) - 
-                                ${data.producto.color.descripcion} (ID: ${data.producto.color.id}) - 
-                                ${data.producto.talla.descripcion} (ID: ${data.producto.talla.id})
-                                | STOCK: ${data.producto.stock} | CANTIDAD SOLICITADA: ${data.producto.cantidad_solicitada}
-                                RECOMENDACIÓN: Verificar que el producto no se encuentre en algún documento de venta en plena edición.
-                                EN OTRO CASO EL ADMINISTRADOR DEBE EMPAREJAR STOCKS.`,'ERROR EN EL SERVIDOR - STOCKS DESIGUALES',
-                                {timeOut:0, extendedTimeOut: 0,closeButton: true,progressBar: true})
-                                return;
-                            }
-                            toastr.error(data.excepcion,data.mensaje,{timeOut:0});
-                        }
-                     }
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    Swal.close();
                 }
-
-                //======== en caso no existan cajas abiertas ===========
-                if(!success){
-                    document.querySelector('#btn_grabar').disabled=false;
-                    toastr.error('Debe aperturar una caja previamente',"Error");
-                    this.loading = false;
-                }
-
-            } catch (e) {
-                document.querySelector('#btn_grabar').disabled=false;
-                this.loading = false;
-                toastr.error(e.message + "\n" + e.stack, 'Error',{timeOut:0});
+            } catch (error) {
+                toastr.error(error,'ERROR EN LA PETICIÓN REGISTRAR VENTA');
+                Swal.close();
             }
+               
         },
         validarTipo() {
 

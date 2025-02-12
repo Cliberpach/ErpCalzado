@@ -4,6 +4,7 @@ namespace App\Classes;
 
 class ValidatedDetail 
 {
+    protected $almacen_id;
     protected $producto_id;
     protected $color_id;
     protected $talla_id;
@@ -17,8 +18,9 @@ class ValidatedDetail
     protected $precio_unitario_nuevo;
     protected $tipo;
 
-    public function __construct($producto_id = null, $color_id = null, $talla_id = null, $producto_nombre = null, $color_nombre = null, $talla_nombre = null, $stock_logico = null, $cantidad_solicitada = null, $precio_unitario = null,$precio_unitario_nuevo = null,$porcentaje_descuento = null, $tipo = null)
+    public function __construct($almacen_id = null,$producto_id = null, $color_id = null, $talla_id = null, $producto_nombre = null, $color_nombre = null, $talla_nombre = null, $stock_logico = null, $cantidad_solicitada = null, $precio_unitario = null,$precio_unitario_nuevo = null,$porcentaje_descuento = null, $tipo = null)
     {
+        $this->almacen_id           =   $almacen_id;
         $this->producto_id          =   $producto_id;
         $this->color_id             =   $color_id;
         $this->talla_id             =   $talla_id;
@@ -33,7 +35,11 @@ class ValidatedDetail
         $this->tipo = $tipo;
     }
 
-    
+    public function setAlmacenId($almacen_id)
+    {
+        $this->almacen_id = $almacen_id;
+    }
+
     public function setProductoId($producto_id)
     {
         $this->producto_id = $producto_id;
@@ -105,6 +111,11 @@ class ValidatedDetail
 
 
      // Getters
+     public function getAlmacenId()
+     {
+         return $this->almacen_id;
+     }
+
      public function getProductoId()
      {
          return $this->producto_id;

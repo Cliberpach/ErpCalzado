@@ -7,6 +7,7 @@ use App\Almacenes\ProductoColorTalla;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Luecano\NumeroALetras\NumeroALetras;
 
 class UtilidadesController extends Controller
 {
@@ -136,6 +137,16 @@ class UtilidadesController extends Controller
             return response()->json(['success'=>false,'data'=>$th->getMessage()]);
         }
 
+    }
+
+    public static function convertNumeroLetras($monto){
+        $formatter          =   new NumeroALetras();
+        $montoFormateado    =   number_format($monto, 2, '.', '');
+        $partes             =   explode('.', $montoFormateado);
+        $parteEntera        =   $partes[0];
+        $decimales          =   $partes[1] ?? '00'; 
+        $legend             =   'SON ' . $formatter->toWords((int)$parteEntera) . ' CON ' . $decimales . '/100 SOLES';
+        return $legend;
     }
 
 }

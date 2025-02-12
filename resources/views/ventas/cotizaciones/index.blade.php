@@ -275,9 +275,9 @@
             cancelButtonText: "No, Cancelar",
         }).then((result) => {
             if (result.isConfirmed) {
-                //Ruta Documento
-                var url_concretar = '{{ route('ventas.cotizacion.documento', ':id') }}';
-                url_concretar = url_concretar.replace(':id', id);
+                
+                let url_concretar   = '{{ route('ventas.cotizacion.documento', ':id') }}';
+                url_concretar       = url_concretar.replace(':id', id);
                 $(location).attr('href', url_concretar);
 
             } else if (

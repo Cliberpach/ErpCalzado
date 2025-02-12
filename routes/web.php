@@ -485,6 +485,9 @@ function(){
         Route::get('/getColoresTallas/{almacen_id}/{producto_id}', 'Ventas\CotizacionController@getColoresTallas')->name('ventas.cotizacion.getColoresTallas');
 
         Route::get('nuevodocumento/{id}','Ventas\CotizacionController@newdocument')->name('ventas.cotizacion.nuevodocumento');
+    
+        Route::post('convertirADocVenta','Ventas\CotizacionController@convertirADocVenta')->name('ventas.cotizacion.convertirADocVenta');
+
     });
 
     // Documentos - cotizaciones
@@ -510,11 +513,6 @@ function(){
         Route::post('/actualizarStockAdd', 'Ventas\DocumentoController@actualizarStockAdd')->name('ventas.documento.actualizarStockAdd');
         Route::post('/actualizarStockDelete', 'Ventas\DocumentoController@actualizarStockDelete')->name('ventas.documento.actualizarStockDelete');
         Route::post('/actualizarStockEdit', 'Ventas\DocumentoController@actualizarStockEdit')->name('ventas.documento.actualizarStockEdit');
-
-
-
-        // Route::get('comprobante/{id}','Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');
-        // Route::get('xml/{id}','Ventas\DocumentoController@xml')->name('ventas.documento.xml');
 
         Route::post('getDocumentClient','Ventas\DocumentoController@getDocumentClient')->name('ventas.getDocumentClient');
         Route::post('/storePago', 'Ventas\DocumentoController@storePago')->name('ventas.documento.storePago');
@@ -1083,7 +1081,7 @@ function(){
     });
 });
 
-Route::get('ventas/documentos/comprobante/{id}','Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');
+Route::get('ventas/documentos/comprobante/{id}/{size}','Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');
 Route::get('ventas/documentos/xml/{id}','Ventas\DocumentoController@xml')->name('ventas.documento.xml');
 Route::get('/buscar','BuscarController@index');
 Route::post('/getDocument','BuscarController@getDocumento')->name('buscar.getDocument');

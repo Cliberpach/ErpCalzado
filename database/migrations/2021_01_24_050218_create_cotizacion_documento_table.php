@@ -14,12 +14,23 @@ class CreateCotizacionDocumentoTable extends Migration
     public function up()
     {
         Schema::create('cotizacion_documento', function (Blueprint $table) {
+            
             $table->Increments('id');
+
             //EMPRESA
             $table->BigInteger('ruc_empresa');
             $table->string('empresa');
             $table->mediumText('direccion_fiscal_empresa');
             $table->unsignedInteger('empresa_id'); //OBTENER NUMERACION DE LA EMPRESA
+            
+            $table->unsignedBigInteger('almacen_id');
+            $table->foreign('almacen_id')->references('id')->on('almacenes');
+
+            $table->unsignedBigInteger('sede_id');
+            $table->foreign('sede_id')->references('id')->on('empresa_sedes');
+            
+            $table->string('almacen_nombre',160);
+
             //CLIENTE
             $table->string('tipo_documento_cliente');
             $table->BigInteger('documento_cliente');
@@ -37,7 +48,9 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->date('fecha_vencimiento');
             $table->date('fecha_atencion')->nullable();
 
-            $table->string('tipo_venta');
+            $table->string('tipo_venta_id');
+            $table->string('tipo_venta_nombre',160);
+
 
             $table->unsignedDecimal('sub_total', 15, 2);
             $table->unsignedDecimal('monto_embalaje',15,2)->nullable();
@@ -69,26 +82,32 @@ class CreateCotizacionDocumentoTable extends Migration
                   ->onDelete('SET NULL');
 
             $table->string('igv_check',2)->nullable();
-            $table->char('igv',3)->nullable();
+            $table->unsignedDecimal('igv',15,4)->nullable();
             $table->string('moneda');
 
             $table->string('numero_doc')->nullable();
 
             $table->BigInteger('cotizacion_venta')->nullable();
-            //$table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
+
+            
             $table->unsignedInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
             $table->mediumText('observacion')->nullable();
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
             $table->enum('estado_pago',['PAGADA','PENDIENTE','ADELANTO','CONCRETADA','VIGENTE','DEVUELTO'])->default('PENDIENTE');
 
+            $table->longText('legenda');
+            
             $table->enum('sunat',['0','1','2'])->default('0');
 
             $table->json('getCdrResponse')->nullable();
             $table->json('getRegularizeResponse')->nullable();
             $table->enum('regularize',['0','1'])->default('0');
-            $table->BigInteger('correlativo')->nullable();
-            $table->string('serie')->nullable();
+
+
+            $table->unsignedBigInteger('correlativo');
+            $table->string('serie',20);
 
             $table->string('ruta_comprobante_archivo')->nullable();
             $table->string('nombre_comprobante_archivo')->nullable();
@@ -102,15 +121,18 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->json('getCdrResponse_contingencia')->nullable();
             $table->json('getRegularizeResponse_contingencia')->nullable();
 
+            $table->string('cambio_talla',1)->nullable();
+
+
             $table->string('cdr_response_description')->nullable();
             $table->string('cdr_response_code')->nullable();
             $table->string('cdr_response_id')->nullable();
             $table->string('response_error_message')->nullable();
             $table->string('response_error_code')->nullable();
-            $table->string('cambio_talla',1)->nullable();
             $table->longText('ruta_cdr')->nullable();
             $table->longText('cdr_response_notes')->nullable();
             $table->longText('cdr_response_reference')->nullable();
+
             $table->timestamps();
         });
     }

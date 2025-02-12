@@ -5,7 +5,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>{{ $documento->nombreDocumento() }}</title>
+        <title>{{ $documento->serie.'-'.$documento->correlativo }}</title>
         <link rel="icon" href="{{ base_path() . '/img/siscom.ico' }}" />
         <style>
             body{
@@ -213,16 +213,13 @@
                 </thead>
                 <tbody>
                     @foreach($detalles as $item)
-                        @if($documento->tipo_venta == 129)
+                        @if($documento->tipo_venta_id == 129)
                             @if ($item->cantidad - $item->detalles->sum('cantidad') > 0)
                                 <tr>
                                     <td style="text-align: left">{{ number_format($item->cantidad - $item->detalles->sum('cantidad'), 2) }}</td>
                                     <td style="text-align: left">{{ $item->unidad }}</td>
-                                    {{-- <td style="text-align: left">{{ $item->nombre_producto }}</td> --}}
                                     <td style="text-align: left">{{ $item->nombre_producto.'-'.$item->nombre_modelo.'-'.$item->nombre_color.'-'.$item->nombre_talla }}</td>
-                                    {{-- <td style="text-align: left">{{ $item->precio_nuevo }}</td> --}}
                                     <td style="text-align: left">{{ number_format($item->precio_unitario,2) }}</td>
-                                    {{-- <td style="text-align: right">{{ number_format(($item->cantidad - $item->detalles->sum('cantidad')) * $item->precio_nuevo, 2) }}</td> --}}
                                     <td style="text-align: right">{{ number_format(($item->cantidad - $item->detalles->sum('cantidad')) * $item->precio_unitario, 2) }}</td>
                                 </tr>
                             @endif
@@ -230,11 +227,8 @@
                             <tr>
                                 <td style="text-align: left">{{ number_format($item->cantidad, 2) }}</td>
                                 <td style="text-align: left">{{ $item->unidad }}</td>
-                                {{-- <td style="text-align: left">{{ $item->nombre_producto }}</td> --}}
                                 <td style="text-align: left">{{ $item->nombre_producto.'-'.$item->nombre_modelo.'-'.$item->nombre_color.'-'.$item->nombre_talla }}</td>
-                                {{-- <td style="text-align: left">{{ $item->precio_nuevo }}</td> --}}
                                 <td style="text-align: left">{{ number_format($item->precio_unitario, 2) }}</td>
-                                {{-- <td style="text-align: right">{{ number_format($item->valor_venta) }}</td> --}}
                                 <td style="text-align: right">{{ number_format($item->importe, 2) }}</td>
                             </tr>
                         @endif
@@ -259,7 +253,7 @@
                     @endif
                 </tbody>
                 <tfoot>
-                    @if($documento->tipo_venta != 129)
+                    @if($documento->tipo_venta_id != 129)
                         @if ($documento->monto_descuento!=0)
                             <tr>
                                 <th colspan="4" style="text-align:right">Descuento: S/.</th>
@@ -303,7 +297,7 @@
                 </tfoot>
             </table>
             <br>
-            <p class="p-0 m-0 text-uppercase text-cuerpo">SON: <b>{{ $legends[0]['value'] }}</b></p>
+            <p class="p-0 m-0 text-uppercase text-cuerpo">{{$documento->legenda}}</b></p>
             <br>
             @if ($mostrar_cuentas === "SI")
                 <table class="tbl-qr">

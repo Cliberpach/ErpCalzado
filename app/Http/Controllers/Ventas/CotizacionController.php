@@ -10,6 +10,8 @@ use App\Almacenes\Producto;
 use App\Almacenes\Modelo;
 use App\Almacenes\Talla;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\UtilidadesController;
+use App\Http\Requests\Ventas\Cotizacion\CotizacionADocVentaRequest;
 use App\Http\Requests\Ventas\Cotizacion\CotizacionStoreRequest;
 use App\Mantenimiento\Condicion;
 use App\Mantenimiento\Empresa\Empresa;
@@ -605,17 +607,144 @@ array:11 [
         if ($documento) {
             Session::flash('error', 'Esta cotizacion ya tiene un documento de venta generado.');
             return redirect()->route('ventas.cotizacion.index');
-            // return view('ventas.cotizaciones.index',[
-            //     'id' => $id
-            // ]);
         }else{
-            //REDIRECCIONAR AL DOCUMENTO DE VENTA
-
             return redirect()->route('ventas.documento.create',['cotizacion'=>$id]);
         }
 
     }
 
+
+/*
+array:10 [
+  "_token"                  => "qegJeKm09VqQFpw1FLfPFXpfNpbi9D6hQy2p9MtE"
+  "cotizacion_id"           => "15"
+  "data_envio"              => null
+  "fecha_documento_campo"   => "2025-02-11"
+  "tipo_venta"              => "129"
+  "observacion"             => null
+  "fecha_vencimiento_campo" => "2025-02-11"
+  "tipo_cliente_documento"  => null
+  "tipo_cliente_2"          => "1"
+  "cot_doc"                 => "SI"
+]
+*/ 
+    public function convertirADocVenta(CotizacionADocVentaRequest $request){
+        DB::beginTransaction();
+        try {
+
+            //======= VALIDAR EXISTENCIA DEL PARÁMETRO COTIZACIÓN ID =======
+            $cotizacion_id  =   $request->get('cotizacion_id');
+            if(!$cotizacion_id){
+                throw new Exception("NO EXISTE COTIZACIÓN ID EN LA PETICIÓN!!!");
+            } 
+
+            //======= VALIDAR EXISTENCIA DE COTIZACIÓN EN LA BD =======
+            $cotizacion     =   Cotizacion::find($request->get('cotizacion_id'));
+            if(!$cotizacion){
+                throw new Exception("NO EXISTE LA COTIZACIÓN EN LA BD!!!");
+            }
+
+            //========== VALIDAR QUE LA COTIZACIÓN NO ESTÉ CONVERTIDA AÚN =========
+            $documento  =   Documento::where('convertir', $request->get('cotizacion_id'))->first();
+            if($documento){
+                throw new Exception("LA COTIZACIÓN YA ESTÁ CONVERTIDA EN DOCUMENTO DE VENTA!!!");
+            }
+
+            //======== VALIDANDO QUE EL USUARIO QUE CREÓ LA COTIZACIÓN SEA EL MISMO QUE CONVIERTE ======
+            if(Auth::user()->id != $cotizacion->registrador_id){
+                throw new Exception("SOLO EL USUARIO QUE CREÓ LA COTIZACIÓN PUEDE CONVERTIRLA A DOC VENTA!!!");
+            }
+
+            $tipo_venta         =   DB::select('select td.* from tabladetalles as td
+                                    where td.id = ?',[$request->get('tipo_venta')])[0];
+
+            //======= VALIDAR QUE EL DOCUMENTO VENTA ESTÉ ACTIVO =======
+            DocumentoController::comprobanteActivo($cotizacion->sede_id,$tipo_venta);
+
+            //======== OBTENIENDO LEYENDA ======
+            $legenda                =   UtilidadesController::convertNumeroLetras($cotizacion->total_pagar);
+
+
+            $cotizacion_detalle =   CotizacionDetalle::where('cotizacion_id',$cotizacion->id)->get();
+
+            $datos_correlativo  =   DocumentoController::getCorrelativo($tipo_venta,$cotizacion->sede_id);
+            $condicion          =   Condicion::find($cotizacion->condicion_id);
+
+            //====== GRABAR MAESTRO VENTA =====
+            $documento                      = new Documento();
+
+            //========= FECHAS ========
+            $documento->fecha_documento     = Carbon::now()->toDateString();
+            $documento->fecha_atencion      = Carbon::now()->toDateString();
+  
+            if ($condicion->id != 1) {
+                $nro_dias                       = $condicion->dias; 
+                $documento->fecha_vencimiento   = Carbon::now()->addDays($nro_dias)->toDateString();
+            } else {
+                  $documento->fecha_vencimiento   = Carbon::now()->toDateString();
+            }
+
+            dd('asdas');
+  
+            //======== EMPRESA ========
+            $empresa                                =   Empresa::find($cotizacion->empresa_id);
+            $documento->ruc_empresa                 =   $empresa->ruc;
+            $documento->empresa                     =   $empresa->razon_social;
+            $documento->direccion_fiscal_empresa    =   $empresa->direccion_fiscal;
+            $documento->empresa_id                  =   $empresa->id; 
+  
+             
+            //========= CLIENTE =======
+            $cliente                            =   Cliente::find($cotizacion->cliente_id);
+            $documento->tipo_documento_cliente  =   $cliente->tipo_documento;
+            $documento->documento_cliente       =   $cliente->documento;
+            $documento->direccion_cliente       =   $cliente->direccion;
+            $documento->cliente                 =   $cliente->nombre;
+            $documento->cliente_id              =   $cliente->id; 
+  
+            //======== TIPO VENTA ======
+            $documento->tipo_venta_id           = $tipo_venta->id;   //boleta,factura,nota_venta
+            $documento->tipo_venta_nombre       = $tipo_venta->descripcion;   
+  
+            //========= CONDICIÓN PAGO ======
+            $documento->condicion_id            = $condicion->id;
+  
+              
+            $documento->observacion = $request->get('observacion');
+            $documento->user_id     = $cotizacion->registrador_id;
+  
+             
+            //========= MONTOS Y MONEDA ========
+            $documento->sub_total               =   $cotizacion->monto_subtotal;
+            $documento->monto_embalaje          =   $cotizacion->monto_embalaje;  
+            $documento->monto_envio             =   $cotizacion->monto_envio;  
+            $documento->total                   =   $cotizacion->monto_total;  
+            $documento->total_igv               =   $cotizacion->monto_igv;
+            $documento->total_pagar             =   $cotizacion->monto_total_pagar;  
+            $documento->igv                     =   $cotizacion->igv;
+            $documento->monto_descuento         =   $cotizacion->monto_descuento;
+            $documento->porcentaje_descuento    =   $cotizacion->porcentaje_descuento;   
+            $documento->moneda                  =   1;
+  
+            //======= SERIE Y CORRELATIVO ======
+            $documento->serie       =   $datos_correlativo->serie;
+            $documento->correlativo =   $datos_correlativo->correlativo;
+  
+            $documento->legenda     =   $legenda;
+  
+              $documento->sede_id         =   $datos_validados->sede_id;
+              $documento->almacen_id      =   $datos_validados->almacen->id;
+              $documento->almacen_nombre  =   $datos_validados->almacen->descripcion;
+  
+              $documento->save();
+
+
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
+        }
+    }
 
     public function newDocument($id){
         $documento_old =  Documento::where('cotizacion_venta',$id)->where('estado','!=','ANULADO')->first();
