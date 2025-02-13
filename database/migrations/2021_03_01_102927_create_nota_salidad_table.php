@@ -20,7 +20,7 @@ class CreateNotaSalidadTable extends Migration
             $table->unsignedBigInteger('sede_id'); 
             $table->foreign('sede_id')->references('id')->on('empresa_sedes');
 
-            $table->unsignedBigInteger('registrador_id');
+            $table->unsignedInteger('registrador_id');
             $table->foreign('registrador_id')->references('id')->on('users');
 
             $table->unsignedBigInteger('almacen_origen_id');
