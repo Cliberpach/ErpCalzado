@@ -31,7 +31,7 @@ class CreateCotizacionesTable extends Migration
             $table->unsignedBigInteger('condicion_id');
             $table->foreign('condicion_id')->references('id')->on('condicions');
 
-            $table->unsignedBigInteger('registrador_id');
+            $table->unsignedInteger('registrador_id');
             $table->foreign('registrador_id')->references('id')->on('users');
 
             $table->string('almacen_nombre',160);
