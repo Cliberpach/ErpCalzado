@@ -39,6 +39,7 @@ use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Distrito;
 use App\Mantenimiento\Ubigeo\Provincia;
 use App\User;
+use App\Ventas\EnvioVenta;
 use Exception;
 
 class CotizacionController extends Controller
@@ -50,10 +51,10 @@ class CotizacionController extends Controller
 
     public function getTable()
     {
-
         $cotizaciones   =   DB::select('select 
                             co.id,
                             e.razon_social as empresa,
+                            co.almacen_nombre,
                             cl.nombre as cliente,
                             co.created_at,
                             u.usuario,
@@ -627,9 +628,12 @@ array:10 [
   "tipo_cliente_documento"  => null
   "tipo_cliente_2"          => "1"
   "cot_doc"                 => "SI"
+  "data_envio" =>   "{"departamento":{"nombre":"LA LIBERTAD"},"provincia":{"text":"TRUJILLO"},"distrito":{"text":"TRUJILLO"},"empresa_envio":{"id":"2","empresa":"EMTRAFESA"},"sede_envio":{"id":"2","direccion":"AV TUPAC AMARU 123"},"tipo_envio":{"descripcion":"AGENCIA"},"destinatario":{"nro_documento":"75608753","nombres":"LUIS DANIEL ALVA LUJAN","tipo_documento":"DNI"},"tipo_pago_envio":{"descripcion":"PAGAR ENVÍO"},"entrega_domicilio":true,"direccion_entrega":"av rotulos 111","fecha_envio_propuesta":"2025-02-13","origen_venta":{"descripcion":"WATHSAPP"},"obs_rotulo":"obs rotulado","obs_despacho":"obs despacho"}"
+ 
 ]
 */ 
     public function convertirADocVenta(CotizacionADocVentaRequest $request){
+      
         DB::beginTransaction();
         try {
 
@@ -840,6 +844,90 @@ array:10 [
                     
             }
 
+            //======== GUARDAR ENVÍO ========
+            $data_envio     =   json_decode($request->get('data_envio'));
+            if (!empty((array)$data_envio)) {
+
+                $envio_venta                        =   new EnvioVenta();
+                $envio_venta->documento_id          =   $documento->id;
+                $envio_venta->departamento          =   $data_envio->departamento->nombre;
+                $envio_venta->provincia             =   $data_envio->provincia->text;
+                $envio_venta->distrito              =   $data_envio->distrito->text;
+                $envio_venta->empresa_envio_id      =   $data_envio->empresa_envio->id;
+                $envio_venta->empresa_envio_nombre  =   $data_envio->empresa_envio->empresa;
+                $envio_venta->sede_envio_id         =   $data_envio->sede_envio->id;
+                $envio_venta->sede_envio_nombre     =   $data_envio->sede_envio->direccion;
+                $envio_venta->tipo_envio            =   $data_envio->tipo_envio->descripcion;
+                $envio_venta->destinatario_tipo_doc =   $data_envio->destinatario->tipo_documento;
+                $envio_venta->destinatario_nro_doc  =   $data_envio->destinatario->nro_documento;
+                $envio_venta->destinatario_nombre   =   $data_envio->destinatario->nombres;
+                $envio_venta->cliente_id            =   $documento->cliente_id;
+                $envio_venta->cliente_nombre        =   $documento->cliente;
+                $envio_venta->tipo_pago_envio       =   $data_envio->tipo_pago_envio->descripcion;
+                $envio_venta->monto_envio           =   $documento->monto_envio;
+                $envio_venta->entrega_domicilio     =   $data_envio->entrega_domicilio?"SI":"NO";
+                $envio_venta->direccion_entrega     =   $data_envio->direccion_entrega;
+                $envio_venta->documento_nro         =   $documento->serie.$documento->correlativo;
+                $envio_venta->fecha_envio_propuesta =   $data_envio->fecha_envio_propuesta;
+                $envio_venta->origen_venta          =   $data_envio->origen_venta->descripcion;
+                $envio_venta->obs_rotulo            =   $data_envio->obs_rotulo;
+                $envio_venta->obs_despacho          =   $data_envio->obs_despacho;
+                $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
+                $envio_venta->user_vendedor_id      =   $documento->user_id;
+                $envio_venta->user_vendedor_nombre  =   $documento->user->usuario;
+                $envio_venta->almacen_id            =   $documento->almacen_id;
+                $envio_venta->almacen_nombre        =   $documento->almacen_nombre;
+                $envio_venta->sede_id               =   $documento->sede_id;
+                $envio_venta->save();
+             
+            }else{
+                   
+                    
+                //======== OBTENER EMPRESA ENVÍO =======
+                $empresa_envio                      =   DB::select('select 
+                                                        ee.id,ee.empresa,ee.tipo_envio
+                                                        from empresas_envio as ee')[0];
+                    
+                $sede_envio                         =   DB::select('select 
+                                                        ees.id,ees.direccion 
+                                                        from empresa_envio_sedes as ees
+                                                        where ees.empresa_envio_id=?',[$empresa_envio->id])[0];
+                
+                $envio_venta                        =   new EnvioVenta();
+                $envio_venta->documento_id          =   $documento->id;
+                $envio_venta->departamento          =   "LA LIBERTAD";
+                $envio_venta->provincia             =   "TRUJILLO";
+                $envio_venta->distrito              =   "TRUJILLO";
+                $envio_venta->empresa_envio_id      =   $empresa_envio->id;
+                $envio_venta->empresa_envio_nombre  =   $empresa_envio->empresa;
+                $envio_venta->sede_envio_id         =   $sede_envio->id;
+                $envio_venta->sede_envio_nombre     =   $sede_envio->direccion;
+                $envio_venta->tipo_envio            =   $empresa_envio->tipo_envio;
+                $envio_venta->destinatario_tipo_doc =   $documento->tipo_documento_cliente;
+                $envio_venta->destinatario_nro_doc  =   $documento->documento_cliente;
+                $envio_venta->destinatario_nombre   =   $documento->cliente;
+                $envio_venta->cliente_id            =   $documento->cliente_id;
+                $envio_venta->cliente_nombre        =   $documento->cliente;
+                $envio_venta->tipo_pago_envio       =   "-";
+                $envio_venta->monto_envio           =   $documento->monto_envio;
+                $envio_venta->entrega_domicilio     =   "NO";
+                $envio_venta->direccion_entrega     =   null;
+                $envio_venta->documento_nro         =   $documento->serie.$documento->correlativo;
+                $envio_venta->fecha_envio_propuesta =   null;
+                $envio_venta->origen_venta          =   "WHATSAPP";
+                $envio_venta->obs_despacho          =   null;
+                $envio_venta->obs_rotulo            =   null;
+                $envio_venta->estado                =   'DESPACHADO';
+                $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
+                $envio_venta->user_vendedor_id      =   $documento->user_id;
+                $envio_venta->user_vendedor_nombre  =   $documento->user->usuario;
+                $envio_venta->user_despachador_id   =   $documento->user_id;
+                $envio_venta->user_despachador_nombre   =   $documento->user->usuario;
+                $envio_venta->almacen_id            =   $documento->almacen_id;
+                $envio_venta->almacen_nombre        =   $documento->almacen_nombre;
+                $envio_venta->sede_id               =   $documento->sede_id;
+                $envio_venta->save();
+            }
 
             //========== ACTUALIZAR ESTADO FACTURACIÓN A INICIADA ======
             DB::table('empresa_numeracion_facturaciones')

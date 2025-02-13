@@ -4,9 +4,10 @@
             <th class="text-center">ID</th>
             <th class="text-center">DOC</th>
             <th class="text-center">PEDIDO</th>
+            <th class="text-center">ALMACÉN</th>
             <th class="text-center">CLIENTE</th>
             <th class="text-center">USUARIO</th>
-            <th class="text-center">FECHA DOCUMENTO</th>
+            <th class="text-center">FECHA REG</th>
             <th class="text-center">TOTAL</th>
             <th class="text-center">ESTADO</th>
             <th class="text-center">ACCIONES</th>

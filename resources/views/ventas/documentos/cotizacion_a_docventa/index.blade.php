@@ -1,6 +1,7 @@
 @extends('layout') 
 @section('content')
-@include('ventas.documentos.modal-envio')
+
+@include('ventas.documentos.cotizacion_a_docventa.modals.mdl_envio')
 
 @section('ventas-active', 'active')
 @section('documento-active', 'active')

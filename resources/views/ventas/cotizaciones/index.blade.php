@@ -100,6 +100,10 @@
                     className: "text-center"
                 },
                 {
+                    data: 'almacen_nombre',
+                    className: "text-left"
+                },
+                {
                     data: 'cliente',
                     className: "text-left"
                 },
