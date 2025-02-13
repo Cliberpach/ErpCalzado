@@ -16,7 +16,7 @@ class CreateKardexTable extends Migration
         Schema::create('kardex', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedInteger('sede_id');
+            $table->unsignedBigInteger('sede_id');
             $table->foreign('sede_id')->references('id')->on('empresa_sedes');
 
             $table->unsignedInteger('almacen_id');
