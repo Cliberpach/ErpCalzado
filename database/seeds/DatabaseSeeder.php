@@ -37,12 +37,8 @@ class DatabaseSeeder extends Seeder
         $caja->nombre   = "Caja Principal";
         $caja->save();
 
-        //$this->call(AlmacenSeeder::class);
+        $this->call(AlmacenSeeder::class);
 
-        $almacen = new Almacen();
-        $almacen->descripcion="CENTRAL";
-        $almacen->ubicacion="TIENDA";
-        $almacen->save();
 
         $persona = new Persona();
         $persona->tipo_documento = 'DNI';
