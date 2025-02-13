@@ -95,7 +95,7 @@ class CotizacionController extends Controller
 
         $sede_id            =   Auth::user()->sede_id;
 
-        $almacenes          =   Almacen::where('sede_id',$sede_id)->where('estado','ACTIVO')->get();
+        $almacenes          =   Almacen::where('estado','ACTIVO')->get();
         $porcentaje_igv     =   Empresa::find(1)->igv;
 
         return view('ventas.cotizaciones.create', 

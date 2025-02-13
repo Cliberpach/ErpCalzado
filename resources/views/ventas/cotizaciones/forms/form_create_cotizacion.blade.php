@@ -37,7 +37,11 @@
                 <select onchange="" id="almacen" name="almacen" class="select2_form form-control" required>
                     <option></option>
                     @foreach ($almacenes as $almacen)
-                        <option value="{{ $almacen->id }}">
+                        <option
+                        @if ($almacen->sede_id == $sede_id)
+                            seleceted
+                        @endif
+                        value="{{ $almacen->id }}">
                             {{ $almacen->descripcion }}
                         </option>
                     @endforeach
