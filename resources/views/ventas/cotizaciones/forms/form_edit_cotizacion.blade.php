@@ -34,7 +34,7 @@
         <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
             <div class="form-group">
                 <label style="font-weight: bold;" class="required" for="condicion_id">ALMACÉN</label>
-                <select onchange="" id="almacen" name="almacen" class="select2_form form-control" required>
+                <select onchange="cambiarAlmacen(this.value)" id="almacen" name="almacen" class="select2_form form-control" required>
                     <option></option>
                     @foreach ($almacenes as $almacen)
                         <option

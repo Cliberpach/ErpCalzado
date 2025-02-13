@@ -379,8 +379,8 @@
             agregarProductoCotizacion();
             reordenarCarrito();
             calcularSubTotal();
-            clearDetalleCotizacion();
             destruirDataTableDetalleCotizacion();
+            clearDetalleCotizacion();
             pintarDetalleCotizacion(carrito);
             //===== RECALCULANDO DESCUENTOS Y MONTOS =====
             carrito.forEach((c)=>{
@@ -1219,6 +1219,62 @@
             });
         }
         });
+    }
+
+    function cambiarAlmacen(almacen_id){
+        
+        toastr.clear();
+
+        mostrarAnimacionCotizacion();
+        //====== QUITAR EVENTOS ======
+        document.querySelector('#categoria').onchange   =   null;
+        document.querySelector('#marca').onchange       =   null;
+        document.querySelector('#modelo').onchange      =   null;
+        document.querySelector('#producto').onchange    =   null;
+
+
+        //======== LIMPIAR SELECTS ======
+        $('#categoria').val(null).trigger('change');
+        $('#marca').val(null).trigger('change');
+        $('#modelo').val(null).trigger('change');
+        $('#producto').val(null).trigger('change');
+        $('#precio_venta').val(null).trigger('change');
+
+        //======= LIMPIAR TABLERO STOCKS ======
+        destruirDataTable(dataTableStocksCotizacion);
+        limpiarTabla('table-stocks');
+        loadDataTableStocksCotizacion();
+
+        //========= AGREGAR EVENTOS NUEVAMENTE =======
+        document.querySelector('#categoria').onchange = function() {
+            getProductos();
+        };
+        document.querySelector('#marca').onchange = function() {
+            getProductos();
+        };
+        document.querySelector('#modelo').onchange = function() {
+            getProductos();
+        };
+        document.querySelector('#producto').onchange = function() {
+            getColoresTallas();
+        };
+
+
+        //========== LIMPIAR DETALLE DE LA COTIZACIÓN ========
+        carrito.length  =   0;
+        destruirDataTableDetalleCotizacion();
+        clearDetalleCotizacion();
+        pintarDetalleCotizacion(carrito);
+        loadDataTableDetallesCotizacion();
+
+        carrito.forEach((c)=>{
+            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+         })
+        calcularMontos();
+
+        ocultarAnimacionCotizacion();
+        toastr.info('SE HA LIMPIADO EL FORMULARIO');
+
     }
 
 
