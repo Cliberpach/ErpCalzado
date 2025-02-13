@@ -39,7 +39,7 @@
                     @foreach ($almacenes as $almacen)
                         <option
                         @if ($almacen->sede_id == $sede_id)
-                            seleceted
+                            selected
                         @endif
                         value="{{ $almacen->id }}">
                             {{ $almacen->descripcion }}
