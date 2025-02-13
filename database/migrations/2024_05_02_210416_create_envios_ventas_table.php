@@ -58,7 +58,7 @@ class CreateEnviosVentasTable extends Migration
 
 
 
-            $table->unsignedBigInteger('almacen_id');
+            $table->unsignedInteger('almacen_id');
             $table->foreign('almacen_id')->references('id')->on('almacenes');
 
             $table->unsignedBigInteger('sede_id');
