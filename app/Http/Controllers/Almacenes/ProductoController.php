@@ -49,7 +49,11 @@ class ProductoController extends Controller
                         ->join('marcas','productos.marca_id','=','marcas.id')
                         ->join('categorias','categorias.id','=','productos.categoria_id')
                         ->join('modelos','modelos.id','=','productos.modelo_id')
-                        ->select('categorias.descripcion as categoria','modelos.descripcion as modelo','marcas.marca','productos.*')
+                        ->select(
+                            'categorias.descripcion as categoria',
+                            'modelos.descripcion as modelo',
+                            'marcas.marca',
+                            'productos.*')
                         ->orderBy('productos.id','DESC')
                         ->where('productos.estado', 'ACTIVO')
                         ->get();

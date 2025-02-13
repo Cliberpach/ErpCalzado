@@ -142,27 +142,27 @@
             "columns": [{
                     data: 'codigo',
                     className: "text-left",
-                    name:"productos.codigo"
+                    name:"codigo"
                 },
                 {
                     data: 'nombre',
                     className: "text-left",
-                    name:"productos.nombre"
+                    name:"nombre"
                 },
                 {
                     data: 'modelo',
                     className: "text-left",
-                    name:"modelos.descripcion"
+                    name:"modelo"
                 },
                 {
                     data: 'marca',
                     className: "text-left",
-                    name:"marcas.marca"
+                    name:"marca"
                 },
                 {
                     data: 'categoria',
                     className: "text-left",
-                    name:"categorias.descripcion"
+                    name:"categoria"
                 },
                 {
                     data: 'id',
