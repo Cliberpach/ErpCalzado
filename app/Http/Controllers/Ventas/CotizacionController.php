@@ -69,6 +69,7 @@ class CotizacionController extends Controller
                             inner join empresas as e on e.id=co.empresa_id
                             inner join clientes as cl on cl.id = co.cliente_id
                             inner join users as u on u.id = co.registrador_id
+                            where co.registrador_id = ?
                             order by co.id desc',[Auth::user()->id]);
     
         return DataTables::of($cotizaciones)->toJson();
