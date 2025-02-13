@@ -90,6 +90,7 @@ class EmpresaSeeder extends Seeder
             'tipo_comprobante' => 127,
             'numero_iniciar' => 1,
             'emision_iniciada' => 1,
+            'sede_id'=>1
         ]);
 
         Numeracion::create([
@@ -98,6 +99,7 @@ class EmpresaSeeder extends Seeder
             'tipo_comprobante' => 128,
             'numero_iniciar' => 1,
             'emision_iniciada' => 1,
+            'sede_id'=>1
         ]);
 
         Numeracion::create([
@@ -106,6 +108,7 @@ class EmpresaSeeder extends Seeder
             'tipo_comprobante' => 129,
             'numero_iniciar' => 1,
             'emision_iniciada' => 1,
+            'sede_id'=>1
         ]);
 
 
