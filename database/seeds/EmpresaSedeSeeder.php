@@ -1,5 +1,6 @@
 <?php
 
+use App\Mantenimiento\Empresa\Numeracion;
 use App\Mantenimiento\Sedes\Sede;
 use Illuminate\Database\Seeder;
 
@@ -29,5 +30,33 @@ class EmpresaSedeSeeder extends Seeder
         $sede->tipo_sede                =  'PRINCIPAL';
         $sede->serie                    =   '001';
         $sede->save();
+
+
+        Numeracion::create([
+            'empresa_id' => 1,
+            'serie' => 'F001',
+            'tipo_comprobante' => 127,
+            'numero_iniciar' => 1,
+            'emision_iniciada' => 1,
+            'sede_id'=>1
+        ]);
+
+        Numeracion::create([
+            'empresa_id' => 1,
+            'serie' => 'B001',
+            'tipo_comprobante' => 128,
+            'numero_iniciar' => 1,
+            'emision_iniciada' => 1,
+            'sede_id'=>1
+        ]);
+
+        Numeracion::create([
+            'empresa_id' => 1,
+            'serie' => 'N001',
+            'tipo_comprobante' => 129,
+            'numero_iniciar' => 1,
+            'emision_iniciada' => 1,
+            'sede_id'=>1
+        ]);
     }
 }
