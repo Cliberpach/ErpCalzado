@@ -15,6 +15,7 @@ class AlmacenSeeder extends Seeder
         $almacen = new Almacen();
         $almacen->descripcion="CENTRAL";
         $almacen->ubicacion="TIENDA";
+        $almacen->sede_id=1;
         $almacen->save();
 
     }
