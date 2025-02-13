@@ -17,7 +17,7 @@ class CreateNotaIngresoTable extends Migration
 
             $table->Increments('id');
 
-            $table->unsignedBigInteger('registrador_id'); 
+            $table->unsignedInteger('registrador_id'); 
             $table->foreign('registrador_id')->references('id')->on('users');
 
          
