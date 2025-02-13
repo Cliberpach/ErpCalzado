@@ -23,7 +23,7 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->mediumText('direccion_fiscal_empresa');
             $table->unsignedInteger('empresa_id'); //OBTENER NUMERACION DE LA EMPRESA
             
-            $table->unsignedBigInteger('almacen_id');
+            $table->unsignedInteger('almacen_id');
             $table->foreign('almacen_id')->references('id')->on('almacenes');
 
             $table->unsignedBigInteger('sede_id');

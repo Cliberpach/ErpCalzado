@@ -19,7 +19,7 @@ class CreateCotizacionDetallesTable extends Migration
             $table->unsignedInteger('cotizacion_id');
             $table->foreign('cotizacion_id')->references('id')->on('cotizaciones');
             
-            $table->unsignedBigInteger('almacen_id');
+            $table->unsignedInteger('almacen_id');
             $table->foreign('almacen_id')->references('id')->on('almacenes');
 
             $table->unsignedInteger('producto_id');

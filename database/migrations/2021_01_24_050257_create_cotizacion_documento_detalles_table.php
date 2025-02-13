@@ -18,9 +18,12 @@ class CreateCotizacionDocumentoDetallesTable extends Migration
             $table->unsignedInteger('documento_id');
             $table->foreign('documento_id')->references('id')->on('cotizacion_documento')->onDelete('cascade');
             
+            $table->unsignedInteger('almacen_id');
             $table->unsignedInteger('producto_id');
             $table->unsignedInteger('color_id');
             $table->unsignedInteger('talla_id');
+
+            $table->foreign('almacen_id')->references('id')->on('almacenes');
             $table->foreign('producto_id')->references('id')->on('productos');
             $table->foreign('color_id')->references('id')->on('colores');
             $table->foreign('talla_id')->references('id')->on('tallas');
@@ -29,6 +32,7 @@ class CreateCotizacionDocumentoDetallesTable extends Migration
             // $table->foreign('lote_id')->references('id')->on('lote_productos')->onDelete('cascade');
             $table->string('codigo_producto')->nullable();
             $table->string('unidad')->default('NIU'); //NIU-BIENES
+            $table->string('almacen_nombre');
             $table->string('nombre_producto');
             $table->string('nombre_color');
             $table->string('nombre_talla');

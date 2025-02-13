@@ -16,7 +16,7 @@ class CreateCotizacionesTable extends Migration
         Schema::create('cotizaciones', function (Blueprint $table) {
             $table->Increments('id');
 
-            $table->unsignedBigInteger('almacen_id');
+            $table->unsignedInteger('almacen_id');
             $table->foreign('almacen_id')->references('id')->on('almacenes');
 
             $table->unsignedInteger('empresa_id');
