@@ -23,10 +23,10 @@ class CreateNotaSalidadTable extends Migration
             $table->unsignedInteger('registrador_id');
             $table->foreign('registrador_id')->references('id')->on('users');
 
-            $table->unsignedBigInteger('almacen_origen_id');
+            $table->unsignedInteger('almacen_origen_id');
             $table->foreign('almacen_origen_id')->references('id')->on('almacenes');
 
-            $table->unsignedBigInteger('almacen_destino_id');
+            $table->unsignedInteger('almacen_destino_id');
             $table->foreign('almacen_destino_id')->references('id')->on('almacenes');
 
             $table->string('registrador_nombre',200);
