@@ -67,10 +67,10 @@ class DespachoController extends Controller
             $query->whereDate('created_at', '<=', $fecha_fin);
         }
         if ($estado) {
-            $query->where('estado', '<=', $estado);
+            $query->where('estado', '=', $estado);
         }
         if ($cliente_id) {
-            $query->where('cliente_id', '<=', $cliente_id);
+            $query->where('cliente_id', '=', $cliente_id);
         }
     
         return DataTables::of($query)->toJson();
