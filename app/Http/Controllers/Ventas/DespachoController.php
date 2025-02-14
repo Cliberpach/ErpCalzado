@@ -72,8 +72,25 @@ class DespachoController extends Controller
         if ($cliente_id) {
             $query->where('cliente_id', '=', $cliente_id);
         }
+
+        //========= FILTRO POR ROLES ======
+        $roles = DB::table('role_user as rl')
+                ->join('roles as r', 'r.id', '=', 'rl.role_id')
+                ->where('rl.user_id', Auth::user()->id)
+                ->pluck('r.name')
+                ->toArray(); 
+
+        //======== ADMIN PUEDE VER TODOS LOS DESPACHOS DE SU SEDE =====
+        if (in_array('ADMIN', $roles)) {
+            $query->where('sede_id', Auth::user()->sede_id);
+        } else {
+            
+            //====== USUARIOS PUEDEN VER SUS PROPIOS DESPACHOS ======
+            $query->where('sede_id', Auth::user()->sede_id)
+            ->where('user_vendedor_id', Auth::user()->id);
+        }
     
-        return DataTables::of($query)->toJson();
+        return DataTables::of($query->get())->toJson();
     }
     
 

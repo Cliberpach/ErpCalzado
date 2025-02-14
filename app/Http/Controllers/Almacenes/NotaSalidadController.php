@@ -43,24 +43,42 @@ class NotaSalidadController extends Controller
         $this->authorize('haveaccess','nota_salida.index');
         return view('almacenes.nota_salidad.index');
     }
-    public function gettable()
+    public function gettable(Request $request)
     {
-        $data       =   DB::table("nota_salidad as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
+        $data       =   DB::table("nota_salidad as n")
+                        ->select('n.*',)
+                        ->where('n.estado', 'ACTIVO');
+
+        //========= FILTRO POR ROLES ======
+        $roles = DB::table('role_user as rl')
+                ->join('roles as r', 'r.id', '=', 'rl.role_id')
+                ->where('rl.user_id', Auth::user()->id)
+                ->pluck('r.name')
+                ->toArray(); 
+
+        //======== ADMIN PUEDE VER TODAS LAS NOTAS DE INGRESO DE SU SEDE =====
+        if (in_array('ADMIN', $roles)) {
+            $data->where('n.sede_id', Auth::user()->sede_id);
+        } else {
+            //====== USUARIOS PUEDEN VER SUS PROPIAS NOTAS DE INGRESO ======
+            $data->where('n.sede_id', Auth::user()->sede_id)
+            ->where('registrador_id', Auth::user()->id);
+        }
+
+        $data   =   $data->get();
+
+        
         $detalles   =   DB::select(
                         'select distinct 
                         p.nombre as producto_nombre,
-                        ni.id as nota_ingreso_id ,
-                        ni.almacen_destino_nombre, 
-                        ni.observacion as observacion
-                        from nota_salidad as ni 
-                        inner join detalle_nota_salidad  as dni on ni.id = dni.nota_salida_id 
-                        inner join productos as p
-                        on p.id=dni.producto_id');
+                        dns.nota_salida_id 
+                        from detalle_nota_salidad as dns 
+                        inner join productos as p on p.id = dns.producto_id');
 
-        foreach ($data as $notaIngreso) {
+        foreach ($data as $notaSalida) {
             
-            $detallesFiltrados = array_filter($detalles, function($detalle) use ($notaIngreso) {
-                return $detalle->nota_ingreso_id == $notaIngreso->id;
+            $detallesFiltrados = array_filter($detalles, function($detalle) use ($notaSalida) {
+                return $detalle->nota_salida_id == $notaSalida->id;
             });
 
             $cadenaDetalles = '';
@@ -79,13 +97,13 @@ class NotaSalidadController extends Controller
                     break;
                 }
 
-                if($notaIngreso->observacion==null){
-                    $notaIngreso->observacion='Sin Observaciones';
+                if($notaSalida->observacion == null){
+                    $notaSalida->observacion='Sin Observaciones';
                 }
             }
 
-            // Añadir la cadena de detalles como un nuevo campo en la nota de ingreso
-            $notaIngreso->cadena_detalles = rtrim($cadenaDetalles, ', '); // Eliminar la última coma
+            //====== AÑADIR CADENA DETALLES =====
+            $notaSalida->cadena_detalles = rtrim($cadenaDetalles, ', '); // Eliminar la última coma
         }
         
         return DataTables::of($data)->make(true);
@@ -189,14 +207,15 @@ array:11 [
             $nota_salida->save();
 
             //======= NOTA INGRESO ALMACÉN DESTINO ======
-            $notaingreso                            =   new NotaIngreso();
-            $notaingreso->almacen_destino_id        =   $almacen_destino->id;
-            $notaingreso->almacen_destino_nombre    =   $almacen_destino->descripcion;
-            $notaingreso->sede_id                   =   $request->get('sede_id');
-            $notaingreso->registrador_nombre        =   $registrador->usuario;
-            $notaingreso->registrador_id            =   $request->get('registrador_id');
-            $notaingreso->observacion               =   mb_strtoupper($request->get('observacion'), 'UTF-8');
-            $notaingreso->save();
+            $nota_ingreso                            =   new NotaIngreso();
+            $nota_ingreso->almacen_destino_id        =   $almacen_destino->id;
+            $nota_ingreso->almacen_destino_nombre    =   $almacen_destino->descripcion;
+            $nota_ingreso->sede_id                   =   $request->get('sede_id');
+            $nota_ingreso->registrador_nombre        =   $registrador->usuario;
+            $nota_ingreso->registrador_id            =   $request->get('registrador_id');
+            $nota_ingreso->observacion               =   mb_strtoupper($request->get('observacion'), 'UTF-8');
+            $nota_ingreso->nota_salida_id            =   $nota_salida->id;
+            $nota_ingreso->save();
     
             $lstNs = json_decode($request->get('lstNs'));
          

@@ -52,36 +52,48 @@ class CotizacionController extends Controller
 
     public function getTable()
     {
-       
-        $rol    =   DB::select('select 
-                    rl.* 
-                    from role_user as rl
-                    where rl.user_id = ?',Auth::user()->id);
-
-       
-        $cotizaciones   =   DB::select('select 
-                            co.id,
-                            e.razon_social as empresa,
-                            co.almacen_nombre,
-                            cl.nombre as cliente,
-                            co.created_at,
-                            u.usuario,
-                            co.total_pagar,
-                            co.estado,
-                            IF(cd.cotizacion_venta IS NULL, "0", "1") as documento, 
-                            IF(p.id is null,"-",concat("PE-",p.id)) as pedido_id,
-                            IF(cd.cotizacion_venta IS NULL,"-",concat(cd.serie,"-",cd.correlativo)) as documento_cod
-                            from cotizaciones  as co
-                            left join cotizacion_documento as cd on cd.cotizacion_venta = co.id
-                            left join pedidos as p on p.cotizacion_id = co.id
-                            inner join empresas as e on e.id=co.empresa_id
-                            inner join clientes as cl on cl.id = co.cliente_id
-                            inner join users as u on u.id = co.registrador_id
-                            where co.registrador_id = ?
-                            order by co.id desc',[Auth::user()->id]);
     
-        return DataTables::of($cotizaciones)->toJson();
+        $roles = DB::table('role_user as rl')
+            ->join('roles as r', 'r.id', '=', 'rl.role_id')
+            ->where('rl.user_id', Auth::user()->id)
+            ->pluck('r.name')
+            ->toArray(); 
+    
+        $query = DB::table('cotizaciones as co')
+            ->select([
+                'co.id',
+                'e.razon_social as empresa',
+                'co.almacen_nombre',
+                'cl.nombre as cliente',
+                'co.created_at',
+                'u.usuario',
+                'co.total_pagar',
+                'co.estado',
+                DB::raw('IF(cd.cotizacion_venta IS NULL, "0", "1") as documento'),
+                DB::raw('IF(p.id IS NULL, "-", CONCAT("PE-", p.id)) as pedido_id'),
+                DB::raw('IF(cd.cotizacion_venta IS NULL, "-", CONCAT(cd.serie, "-", cd.correlativo)) as documento_cod')
+            ])
+            ->leftJoin('cotizacion_documento as cd', 'cd.cotizacion_venta', '=', 'co.id')
+            ->leftJoin('pedidos as p', 'p.cotizacion_id', '=', 'co.id')
+            ->join('empresas as e', 'e.id', '=', 'co.empresa_id')
+            ->join('clientes as cl', 'cl.id', '=', 'co.cliente_id')
+            ->join('users as u', 'u.id', '=', 'co.registrador_id');
+    
+        //======== ADMIN PUEDE VER TODAS LAS COTIZACIONES DE SU SEDE =====
+        if (in_array('ADMIN', $roles)) {
+            $query->where('co.sede_id', Auth::user()->sede_id);
+        } else {
+            
+            //====== USUARIOS PUEDEN VER SUS PROPIAS COTIZACIONES ======
+            $query->where('co.sede_id', Auth::user()->sede_id)
+                  ->where('co.registrador_id', Auth::user()->id);
+        }
+    
+        $query->orderBy('co.id', 'desc');
+    
+        return DataTables::of($query)->toJson();
     }
+    
 
     public function create()
     {

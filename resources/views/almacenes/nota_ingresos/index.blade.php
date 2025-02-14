@@ -1,17 +1,18 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('almacenes-active', 'active')
 @section('nota_ingreso-active', 'active')
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-8">
-       <h2  style="text-transform:uppercase"><b>Listado de Nota de Ingresos</b></h2>
+       <h2  style="text-transform:uppercase"><b>Listado de Notas de Ingreso</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{route('home')}}">Panel de Control</a>
             </li>
             <li class="breadcrumb-item active">
-                <strong>Nota de Ingresos</strong>
+                <strong>Notas de Ingreso</strong>
             </li>
         </ol>
     </div>
@@ -149,7 +150,7 @@ $(document).ready(function() {
 
                     return `<div class="btn-group">
                             <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                               Opciones
+                               <i class="fas fa-th"></i>
                             </button>
                             <div class="dropdown-menu">
                                 <a class="dropdown-item" href="${url_editar}">
@@ -159,9 +160,6 @@ $(document).ready(function() {
                                 <a class="dropdown-item" href="${url_etiquetas}" target="_blank" id="adhesivo_${data.id}">
                                     <i class="fas fa-barcode"></i> GENERAR ETIQUETAS
                                 </a>
-                          
-                                
-                                
                             </div>
                             </div>`;
                 }

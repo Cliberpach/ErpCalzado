@@ -155,7 +155,6 @@
                                                                         </b-dropdown-item>
                                                                     </template>
 
-
                                                                     <template v-if="(item.tipo_venta_id == 129 && item.condicion == 'CONTADO' 
                                                                         && item.estado_pago == 'PAGADA') ||
                                                                         (item.tipo_venta_id == 129 &&
@@ -168,7 +167,6 @@
 
                                                                     </template>
 
-
                                                                     <template v-if="item.tipo_venta_id == 129 &&
                                                                         item.estado_pago == 'PENDIENTE'">
                                                                         <b-dropdown-item title="Guía Remisión" :href="routes(item.id, 'EDITAR')">
@@ -176,18 +174,9 @@
                                                                         </b-dropdown-item>
                                                                     </template>
 
-
                                                                     <b-dropdown-item title="Cambio de Talla" @click="cambiarTallas(item.id)">
                                                                         <i class="fas fa-exchange-alt" style="color: #3307ab;"></i> Cambio de Talla
                                                                     </b-dropdown-item>
-
-                                                                    <!-- <template v-if="(item.sunat == '2' && item.tipo_venta_id == 129) ||
-                                                                        (item.tipo_venta_id == 129 &&   item.estado_pago == 'PENDIENTE' &&
-                                                                        item.contingencia == '0')">
-                                                                        <b-dropdown-item title="Eliminar"  @click.prevent="eliminar(data.id)">
-                                                                            <i class="fa fa-trash"></i> Eliminar
-                                                                        </b-dropdown-item>
-                                                                    </template> -->
 
                                                                     <template v-if="item.condicion == 'CONTADO' &&
                                                                         item.estado_pago == 'PENDIENTE' &&
@@ -215,20 +204,6 @@
                                                                         </b-dropdown-item>
                                                                     </template>
 
-                                                                    <!-- <template v-if="
-                                                                    dias(item) <= 0 &&
-                                                                    item.contingencia == '0' &&
-                                                                    item.tipo_venta_id != '129' &&
-                                                                    item.sunat == '0'
-                                                                    ">
-                                                                        <button type="button" class="btn btn-sm btn-warning"
-                                                                            @click.prevent="contingencia(item.id)"
-                                                                            title="Convertir a comprobante de contingencia">
-                                                                            <i class="fa fa-exchange"></i> {{item.estado}}
-                                                                        </button> 
-                                                                    
-                                                                    </template> -->
-
                                                                     <template v-if="dias(item) <= 0 && item.estado == 'ACTIVO' &&
                                                                         item.tipo_venta_id != '129' && item.sunat == '0'">
                                                                         <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="regularizarVenta(item.id)">
@@ -243,21 +218,14 @@
                                                                         </b-dropdown-item>
                                                                     </template>
                                                                 
-
                                                                 </b-dropdown>
-
-                                                            
-                                                               
-                                                               
-
-                                                         
                                                         </td>
                                                     </tr>
                                                 </template>
 
                                                 <template v-if="!loading && documentos.length == 0">
                                                     <tr>
-                                                        <td colspan="12" class="text-center">
+                                                        <td colspan="13" class="text-center">
                                                             <strong class="font-bold">No hay datos</strong>
                                                         </td>
                                                     </tr>
@@ -344,7 +312,7 @@ Vue.use(BootstrapVue);
 import ModalPdfDownloadVue from '../../../components/ventas/ModalPdfDownload.vue';
 import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
 import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
-import { Alert } from 'bootstrap';
+
 export default {
     name: "VentaLista",
     props: ["imginicial"],
@@ -476,8 +444,11 @@ export default {
                 let { data } = await this.axios.get(route("ventas.getDocument"), {
                     params: this.params,
                 });
+
                 this.loading = false;
+
                 const { documentos, pagination, modos_pago } = data;
+                
                 this.modopagos = modos_pago;
                 this.documentos = documentos;
                 this.pagination = pagination;
@@ -858,7 +829,7 @@ export default {
         vertical-align:middle!important;
     }
     .dropdown-menu {
-    max-height: 100px; /* Establece la altura máxima del dropdown */
-    overflow-y: auto; /* Hace que el contenido sea deslizable verticalmente */
-}
+        max-height: 100px; 
+        overflow-y: auto; 
+    }
 </style>

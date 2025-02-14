@@ -28,7 +28,10 @@ class CreateNotaIngresoTable extends Migration
 
             $table->unsignedBigInteger('sede_id'); 
             $table->foreign('sede_id')->references('id')->on('empresa_sedes');
-            
+
+            $table->unsignedInteger('nota_salida_id')->nullable(); 
+            $table->foreign('nota_salida_id')->references('id')->on('nota_salidad');
+
             $table->string("observacion",200)->nullable();
 
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');

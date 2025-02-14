@@ -48,17 +48,36 @@ class NotaIngresoController extends Controller
         return view('almacenes.nota_ingresos.index');
     }
 
-    public function gettable()
+    public function gettable(Request $request)
     {
-        $data       =   DB::table("nota_ingreso as n")->select('n.*',)->where('n.estado', 'ACTIVO')->get();
+        $data       =   DB::table("nota_ingreso as n")
+                        ->select('n.*',)
+                        ->where('n.estado', 'ACTIVO');
+
+        //========= FILTRO POR ROLES ======
+        $roles = DB::table('role_user as rl')
+        ->join('roles as r', 'r.id', '=', 'rl.role_id')
+        ->where('rl.user_id', Auth::user()->id)
+        ->pluck('r.name')
+        ->toArray(); 
+
+        //======== ADMIN PUEDE VER TODAS LAS NOTAS DE INGRESO DE SU SEDE =====
+        if (in_array('ADMIN', $roles)) {
+            $data->where('n.sede_id', Auth::user()->sede_id);
+        } else {
+            //====== USUARIOS PUEDEN VER SUS PROPIAS NOTAS DE INGRESO ======
+            $data->where('n.sede_id', Auth::user()->sede_id)
+            ->where('n.registrador_id', Auth::user()->id);
+        }
+
+        $data   =   $data->get();
+        
+
         $detalles   =   DB::select('select distinct 
                         p.nombre as producto_nombre,
-                        ni.id as nota_ingreso_id,
-                        ni.almacen_destino_nombre,
-                        ni.observacion
-                        from nota_ingreso as ni 
-                        inner join detalle_nota_ingreso as dni on ni.id=dni.nota_ingreso_id
-                        inner join productos as p on p.id=dni.producto_id');
+                        dni.nota_ingreso_id
+                        from detalle_nota_ingreso as dni 
+                        inner join productos as p on p.id = dni.producto_id');
 
         foreach ($data as $notaIngreso) {
             
@@ -318,7 +337,7 @@ array:7 [
 
             DB::commit();
             return response()->json(['success'=>true,'message'=>'NOTA INGRESO REGISTRADA CON ÉXITO']);
-            // return redirect()->route('almacenes.nota_ingreso.index');
+      
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);

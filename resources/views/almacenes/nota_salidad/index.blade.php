@@ -5,13 +5,13 @@
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
-       <h2  style="text-transform:uppercase"><b>Listado de Nota de Salidad</b></h2>
+       <h2  style="text-transform:uppercase"><b>Listado de Notas de Salida</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{route('home')}}">Panel de Control</a>
             </li>
             <li class="breadcrumb-item active">
-                <strong>Nota de Salidad</strong>
+                <strong>Nota de Salida</strong>
             </li>
         </ol>
     </div>

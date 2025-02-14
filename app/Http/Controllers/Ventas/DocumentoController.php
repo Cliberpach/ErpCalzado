@@ -93,13 +93,11 @@ class DocumentoController extends Controller
     
     public function getDocument(Request $request)
     {
-       
-        $colleccion = collect([]);
-        $documentos = Documento::query()
+        $documentos = DB::table('cotizacion_documento')
             ->select([
                 'cotizacion_documento.id',
                 'cotizacion_documento.tipo_venta_id as tipo_venta',
-                DB::raw('(CONCAT(cotizacion_documento.serie, "-" ,cotizacion_documento.correlativo)) as numero_doc'),
+                DB::raw('CONCAT(cotizacion_documento.serie, "-", cotizacion_documento.correlativo) as numero_doc'),
                 'cotizacion_documento.serie',
                 'cotizacion_documento.correlativo',
                 'cotizacion_documento.pedido_id',
@@ -124,97 +122,61 @@ class DocumentoController extends Controller
                 'cotizacion_documento.documento_cliente',
                 'cotizacion_documento.estado',
                 'cotizacion_documento.cambio_talla',
-                //DB::raw('json_unquote(json_extract(cotizacion_documento.getRegularizeResponse, "$.code")) as code'),
                 'cotizacion_documento.total',
                 'cotizacion_documento.total_pagar',
-                DB::raw('DATEDIFF( now(),cotizacion_documento.fecha_documento) as dias'),
-                DB::raw('(select count(nota_electronica.id) from nota_electronica where nota_electronica.documento_id = cotizacion_documento.id) as notas'),
-                'envios_ventas.estado AS estado_despacho'
-            ])    
-            ->leftJoin('envios_ventas', 'cotizacion_documento.id', '=', 'envios_ventas.documento_id') 
-            ->with([
-                "condicion" => function ($query) {
-                    return $query->select();
-                },
-                "tablaDetalles" => function ($query) {
-                    return $query->select();
-                },
-                "clienteEntidad"=>function($query){
-                    return $query->select(['id','correo_electronico','telefono_movil','telefono_fijo',]);
-                }
-            ])->where('cotizacion_documento.estado', '<>', "ANULADO");
-        if (!PuntoVenta() && !FullAccess()) {
-            $documentos = $documentos->where('user_id', Auth::user()->id);
-        }
-
+                DB::raw('DATEDIFF(NOW(), cotizacion_documento.fecha_documento) as dias'),
+                DB::raw('(SELECT COUNT(nota_electronica.id) FROM nota_electronica WHERE nota_electronica.documento_id = cotizacion_documento.id) as notas'),
+                'envios_ventas.estado AS estado_despacho',
+                'condicions.descripcion as condicion',
+                'clientes.correo_electronico as correo',
+                'clientes.telefono_movil as telefonoMovil'
+            ])
+            ->leftJoin('envios_ventas', 'cotizacion_documento.id', '=', 'envios_ventas.documento_id')
+            ->leftJoin('condicions', 'cotizacion_documento.condicion_id', '=', 'condicions.id')
+            ->leftJoin('clientes', 'cotizacion_documento.cliente_id', '=', 'clientes.id')
+            ->where('cotizacion_documento.estado', '<>', 'ANULADO');
+    
+        /*if (!PuntoVenta() && !FullAccess()) {
+            $documentos->where('cotizacion_documento.user_id', Auth::user()->id);
+        }*/
+    
         if ($request->has('fechaInicial')) {
-            $documentos = $documentos->where('fecha_documento', '>=', "{$request->get('fechaInicial')}");
+            $documentos->where('cotizacion_documento.fecha_documento', '>=', $request->get('fechaInicial'));
         }
-
-        if ($request->has("cliente")) {
-            $cliente = $request->get("cliente");
-
+    
+        if ($request->has('cliente')) {
+            $cliente = $request->get('cliente');
             if (is_numeric($cliente)) {
-                $documentos = $documentos->where('documento_cliente', 'LIKE', "%{$request->get('cliente')}%");
+                $documentos->where('cotizacion_documento.documento_cliente', 'LIKE', "%{$cliente}%");
             } else {
-                $documentos = $documentos->where('cliente', 'LIKE', "%{$request->get('cliente')}%");
+                $documentos->where('cotizacion_documento.cliente', 'LIKE', "%{$cliente}%");
             }
         }
-
-        if ($request->has("numero_doc")) {
-            $numero_doc = $request->get("numero_doc");
-            if ($request->has("numero_doc")) {
-                $numero_doc = $request->get("numero_doc");
-                $documentos = $documentos->where(DB::raw('(CONCAT(serie, "-" ,correlativo))'), 'LIKE', "%{$numero_doc}%");
-            }            
+    
+        if ($request->has('numero_doc')) {
+            $numero_doc = $request->get('numero_doc');
+            $documentos->where(DB::raw('CONCAT(serie, "-", correlativo)'), 'LIKE', "%{$numero_doc}%");
         }
 
-        $documentos = $documentos->orderBy('id', 'desc')->paginate($request->tamanio);
+        //========= FILTRO POR ROLES ======
+        $roles = DB::table('role_user as rl')
+         ->join('roles as r', 'r.id', '=', 'rl.role_id')
+         ->where('rl.user_id', Auth::user()->id)
+         ->pluck('r.name')
+         ->toArray(); 
 
-        
-        foreach ($documentos as $key => $value) {
-            $colleccion->push([
-                'id'                    =>  $value->id,
-                "tipo_venta"            =>  $value->tablaDetalles->nombre,
-                'numero_doc'            =>  $value->numero_doc,
-                'pedido_id'             =>  $value->pedido_id,
-                'tipo_doc_venta_pedido' =>  $value->tipo_doc_venta_pedido,
-                'serie'             =>  $value->serie,
-                'correlativo'       =>  $value->correlativo,
-                'cliente'           =>  $value->cliente,
-                'empresa'           =>  $value->empresa,
-                'importe'           =>  $value->importe,
-                'efectivo'          =>  $value->efectivo,
-                'tipo_pago_id'      =>  $value->tipo_pago_id,
-                'ruta_pago'         =>  $value->ruta_pago,
-                'cliente_id'        =>  $value->cliente_id,
-                'convertir'         =>  $value->convertir,
-                'doc_convertido'    =>  $value->doc_convertido(),
-                'empresa_id'        =>  $value->empresa_id,
-                'cotizacion_venta'  =>  $value->cotizacion_venta,
-                'fecha_documento'   =>  $value->fecha_documento,
-                'estado_pago'       =>  $value->estado_pago,
-                'condicion_id'      =>  $value->condicion_id,
-                'sunat'             =>  $value->sunat,
-                'regularize'        =>  $value->regularize,
-                'contingencia'      =>  $value->contingencia,
-                'sunat_contingencia'=>  $value->sunat_contingencia,
-                'documento_cliente' =>  $value->documento_cliente,
-                'code'              =>  $value->code,
-                'total'             =>  $value->total,
-                'total_pagar'       =>  $value->total_pagar,
-                'dias'              =>  $value->dias,
-                'notas'             =>  $value->notas,
-                "condicion"         =>  $value->condicion->descripcion,
-                "tipo_venta_id"     =>  $value->tipo_venta,
-                "correo"            =>  $value->clienteEntidad->correo_electronico,
-                "telefonoMovil"     =>  $value->clienteEntidad->telefono_movil,
-                "estado"            =>  $value->estado,
-                "estado_despacho"   =>  $value->estado_despacho,
-                "cambio_talla"      =>  $value->cambio_talla
-            ]);
+        //======== ADMIN PUEDE VER TODOS LOS DESPACHOS DE SU SEDE =====
+        if (in_array('ADMIN', $roles)) {
+            $documentos->where('cotizacion_documento.sede_id', Auth::user()->sede_id);
+        } else {
+            
+            //====== USUARIOS PUEDEN VER SUS PROPIOS DESPACHOS ======
+            $documentos->where('cotizacion_documento.sede_id', Auth::user()->sede_id)
+            ->where('cotizacion_documento.user_id', Auth::user()->id);
         }
-
+    
+        $documentos = $documentos->orderBy('cotizacion_documento.id', 'desc')->paginate($request->tamanio);
+    
         return response()->json([
             'pagination' => [
                 'currentPage' => $documentos->currentPage(),
@@ -224,11 +186,12 @@ class DocumentoController extends Controller
                 'to' => $documentos->lastPage(),
                 'total' => $documentos->total(),
             ],
-            "documentos" => $colleccion,
-            "modos_pago"=>modos_pago()
+            'documentos' => $documentos->items(),
+            'modos_pago' => modos_pago()
         ]);
-       
     }
+    
+
     public function getDocumentAntiguo(Request $request){
         
         $documentos = DB::table('cotizacion_documento as cd')
