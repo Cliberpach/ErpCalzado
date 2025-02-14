@@ -22,52 +22,60 @@ class DespachoController extends Controller
         return view('ventas.despachos.index',compact('clientes'));
     }
 
+    
+    
     public function getTable(Request $request)
     {
-        $fecha_inicio   = $request->get('fecha_inicio');
-        $fecha_fin      = $request->get('fecha_fin');
+        $fecha_inicio   =   $request->get('fecha_inicio');
+        $fecha_fin      =   $request->get('fecha_fin');
+        $estado         =   $request->get('estado');
+        $cliente_id     =   $request->get('cliente_id');
+
     
-        $envios_ventas = EnvioVenta::orderBy('id', 'desc');
+        $query  =   DB::table('envios_ventas')
+                    ->select(
+                        'id',
+                        'documento_nro',
+                        'cliente_nombre',
+                        'cliente_celular',
+                        'user_vendedor_nombre',
+                        'almacen_nombre',
+                        'user_despachador_nombre',
+                        'fecha_envio_propuesta',
+                        DB::raw("IFNULL(fecha_envio, '-') AS fecha_envio"),
+                        DB::raw("DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS fecha_registro"),
+                        'tipo_envio',
+                        'empresa_envio_nombre',
+                        'sede_envio_nombre',
+                        DB::raw("CONCAT(departamento, ' - ', provincia, ' - ', distrito) AS ubigeo"),
+                        'tipo_pago_envio',
+                        'destinatario_nombre',
+                        DB::raw("CONCAT(destinatario_tipo_doc, ': ', destinatario_nro_doc) AS destinatario_nro_doc"),
+                        'monto_envio',
+                        'entrega_domicilio',
+                        'direccion_entrega',
+                        'estado',
+                        'documento_id',
+                        'obs_despacho'
+                    )
+                    ->orderByDesc('id');
     
         if ($fecha_inicio) {
-            $envios_ventas = $envios_ventas->whereDate('created_at', '>=', $fecha_inicio);
-        } 
+            $query->whereDate('created_at', '>=', $fecha_inicio);
+        }
         if ($fecha_fin) {
-            $envios_ventas = $envios_ventas->whereDate('created_at', '<=', $fecha_fin);
+            $query->whereDate('created_at', '<=', $fecha_fin);
+        }
+        if ($estado) {
+            $query->where('estado', '<=', $estado);
+        }
+        if ($cliente_id) {
+            $query->where('cliente_id', '<=', $cliente_id);
         }
     
-        $envios_ventas = $envios_ventas->get();
-        
-        $coleccion = collect([]);
-        foreach($envios_ventas as $envio_venta) {
-            $coleccion->push([
-                'id'                        =>  $envio_venta->id,
-                'documento_nro'             =>  $envio_venta->documento_nro,
-                'cliente_nombre'            =>  $envio_venta->cliente_nombre,
-                'cliente_celular'           =>  $envio_venta->cliente_celular,
-                'user_vendedor_nombre'      =>  $envio_venta->user_vendedor_nombre,
-                'user_despachador_nombre'   =>  $envio_venta->user_despachador_nombre,
-                'fecha_envio_propuesta' =>  $envio_venta->fecha_envio_propuesta,
-                'fecha_envio'           =>  $envio_venta->fecha_envio?$envio_venta->fecha_envio:"-",
-                'fecha_registro'        =>  Carbon::parse($envio_venta->created_at)->format('Y-m-d H:i:s'),
-                'tipo_envio'            =>  $envio_venta->tipo_envio,
-                'empresa_envio_nombre'  =>  $envio_venta->empresa_envio_nombre,
-                'sede_envio_nombre'     =>  $envio_venta->sede_envio_nombre,
-                'ubigeo'                =>  $envio_venta->departamento.' - '.$envio_venta->provincia.' - '.$envio_venta->distrito,
-                'tipo_pago_envio'       =>  $envio_venta->tipo_pago_envio,
-                'destinatario_nombre'   =>  $envio_venta->destinatario_nombre,
-                'destinatario_nro_doc'  =>  $envio_venta->destinatario_tipo_doc.': '.$envio_venta->destinatario_nro_doc,
-                'monto_envio'           =>  $envio_venta->monto_envio,
-                'entrega_domicilio'     =>  $envio_venta->entrega_domicilio,
-                'direccion_entrega'     =>  $envio_venta->direccion_entrega,
-                'estado'                =>  $envio_venta->estado,
-                'documento_id'          =>  $envio_venta->documento_id,
-                'obs_despacho'          =>  $envio_venta->obs_despacho
-                ]);
-        }
-        return DataTables::of($coleccion)->toJson();
+        return DataTables::of($query)->toJson();
     }
-
+    
 
     public function showDetalles($documento_id){
         try {

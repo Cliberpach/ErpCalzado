@@ -45,12 +45,20 @@ use Exception;
 class CotizacionController extends Controller
 {
     public function index()
-    {
+    { 
+
         return view('ventas.cotizaciones.index');
     }
 
     public function getTable()
     {
+       
+        $rol    =   DB::select('select 
+                    rl.* 
+                    from role_user as rl
+                    where rl.user_id = ?',Auth::user()->id);
+
+       
         $cotizaciones   =   DB::select('select 
                             co.id,
                             e.razon_social as empresa,
@@ -868,7 +876,7 @@ array:10 [
                 $envio_venta->monto_envio           =   $documento->monto_envio;
                 $envio_venta->entrega_domicilio     =   $data_envio->entrega_domicilio?"SI":"NO";
                 $envio_venta->direccion_entrega     =   $data_envio->direccion_entrega;
-                $envio_venta->documento_nro         =   $documento->serie.$documento->correlativo;
+                $envio_venta->documento_nro         =   $documento->serie.'-'.$documento->correlativo;
                 $envio_venta->fecha_envio_propuesta =   $data_envio->fecha_envio_propuesta;
                 $envio_venta->origen_venta          =   $data_envio->origen_venta->descripcion;
                 $envio_venta->obs_rotulo            =   $data_envio->obs_rotulo;
@@ -913,7 +921,7 @@ array:10 [
                 $envio_venta->monto_envio           =   $documento->monto_envio;
                 $envio_venta->entrega_domicilio     =   "NO";
                 $envio_venta->direccion_entrega     =   null;
-                $envio_venta->documento_nro         =   $documento->serie.$documento->correlativo;
+                $envio_venta->documento_nro         =   $documento->serie.'-'.$documento->correlativo;
                 $envio_venta->fecha_envio_propuesta =   null;
                 $envio_venta->origen_venta          =   "WHATSAPP";
                 $envio_venta->obs_despacho          =   null;

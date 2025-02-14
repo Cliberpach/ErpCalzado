@@ -1778,7 +1778,7 @@ array:27 [
                 $envio_venta->monto_envio           =   $documento->monto_envio;
                 $envio_venta->entrega_domicilio     =   $data_envio->entrega_domicilio?"SI":"NO";
                 $envio_venta->direccion_entrega     =   $data_envio->direccion_entrega;
-                $envio_venta->documento_nro         =   $documento->serie.$documento->correlativo;
+                $envio_venta->documento_nro         =   $documento->serie.'-'.$documento->correlativo;
                 $envio_venta->fecha_envio_propuesta =   $data_envio->fecha_envio_propuesta;
                 $envio_venta->origen_venta          =   $data_envio->origen_venta->descripcion;
                 $envio_venta->obs_rotulo            =   $data_envio->obs_rotulo;
@@ -1821,7 +1821,7 @@ array:27 [
                 $envio_venta->monto_envio           =   $documento->monto_envio;
                 $envio_venta->entrega_domicilio     =   "NO";
                 $envio_venta->direccion_entrega     =   null;
-                $envio_venta->documento_nro         =   $documento->serie.$documento->correlativo;
+                $envio_venta->documento_nro         =   $documento->serie.'-'.$documento->correlativo;
                 $envio_venta->fecha_envio_propuesta =   null;
                 $envio_venta->origen_venta          =   "WHATSAPP";
                 $envio_venta->obs_despacho          =   null;
