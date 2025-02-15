@@ -32,6 +32,7 @@
         <label class="required">TIPO:</label>
 
         <select required name="tipo_almacen" id="tipo_almacen" class="select2_form">
+            <option value=""></option>
             @if (!$sede_have_principal)
                 <option value="PRINCIPAL">PRINCIPAL</option>
             @endif

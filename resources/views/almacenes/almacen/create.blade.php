@@ -60,7 +60,15 @@
                                     $(this).focus();
                                     
                                 }else{
-                                    // this.submit();
+                                    
+                                    const tipo_almacen =   document.querySelector('#tipo_almacen').value;
+
+                                    if(!tipo_almacen){
+                                        toastr.clear();
+                                        toastr.error('DEBE SELECCIONAR UN TIPO DE ALMACÉN!!!');
+                                        return;
+                                    }
+
                                     var url = $('#crear_almacen').attr('id');
                                     var enviar = '#'+url;
                                     $(enviar).submit();

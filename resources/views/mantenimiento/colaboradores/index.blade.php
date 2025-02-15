@@ -68,6 +68,7 @@
             },
             columns: [
                 { data: 'id', name: 'id' },
+                { data: 'sede_nombre', name: 'sede_nombre' },
                 { data: 'nombre', name: 'nombre' },
                 { data: 'cargo_nombre', name: 'cargo_nombre' },
                 { data: 'direccion', name: 'direccion' },

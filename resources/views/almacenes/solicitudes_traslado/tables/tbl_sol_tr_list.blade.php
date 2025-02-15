@@ -1,4 +1,4 @@
-<table class="table dataTables-traslados table-striped table-bordered table-hover" style="text-transform:uppercase">
+<table id="tbl_sol_tr_list" class="table table-striped table-bordered table-hover" style="text-transform:uppercase">
     <thead>
         <tr>
             <th class="text-center">#</th>

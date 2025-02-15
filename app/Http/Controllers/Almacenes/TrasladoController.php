@@ -17,6 +17,7 @@ use App\Almacenes\TrasladoDetalle;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UtilidadesController;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +46,7 @@ class TrasladoController extends Controller
                             't.created_at as fecha_registro',
                             't.fecha_traslado',
                             't.registrador_nombre',
+                            't.estado'
                         )->get();
 
         return DataTables::of($traslados)->make(true);
@@ -182,13 +184,14 @@ array:12 [
             $traslado->fecha_traslado       =   $request->get('fecha_traslado');
             $traslado->registrador_id       =   Auth::user()->id;
             $traslado->registrador_nombre   =   Auth::user()->usuario;
+            $traslado->estado               =   'PENDIENTE';
             $traslado->save();
 
             $almacen_origen_bd              =   Almacen::find($request->get('almacen_origen'));
             $almacen_destino_bd             =   Almacen::find($request->get('almacen_destino'));
 
             //======= NOTA SALIDA ALMACÉN ORIGEN =======
-            $nota_salida                    =   new NotaSalidad();
+            /*$nota_salida                    =   new NotaSalidad();
             $nota_salida->numero            =   '-';
             $nota_salida->fecha             =   Carbon::now()->format('Y-m-d');
             $nota_salida->origen            =   $almacen_origen_bd->descripcion;
@@ -209,26 +212,40 @@ array:12 [
             $nota_ingreso->usuario              =   Auth::user()->usuario;
             $nota_ingreso->observacion          =   'TRASLADO';
             $nota_ingreso->sede_id              =   $sede_destino[0]->sede_id;
-            $nota_ingreso->save();  
+            $nota_ingreso->save();  */
 
             //======== GRABANDO DETALLE DEL TRASLADO =====
             foreach ($detalle as $item) {
 
-                //====== VALIDANDO ITEM ======
-                $item_bd_origen    =   UtilidadesController::validarItem($item,$request->get('almacen_origen'));
+                //====== VALIDANDO EXISTENCIA DEL ITEM ======
+                $item_bd_origen     =   UtilidadesController::validarItem($item,$request->get('almacen_origen'));
+
+                //====== VALIDANDO STOCK DEL ITEM =======
+                $stock              =   UtilidadesController::getStockItem($item_bd_origen);
+                if (!is_numeric($item->cantidad)) {
+                    throw new Exception("LA CANTIDAD DE LOS ITEMS DEBE SER NUMÉRICA!!!");
+                }
+                if((int)$stock < (int)$item->cantidad){
+                    throw new Exception("LA CANTIDAD DE LOS ITEMS DEBE SER MENOR O IGUAL AL STOCK!!!");
+                }
 
                 //======= DETALLE TRASLADO =======
-                $traslado_detalle               =   new TrasladoDetalle();
-                $traslado_detalle->traslado_id  =   $traslado->id;
-                $traslado_detalle->producto_id  =   $item->producto_id;
-                $traslado_detalle->color_id     =   $item->color_id;
-                $traslado_detalle->talla_id     =   $item->talla_id;
-                $traslado_detalle->almacen_id   =   $request->get('almacen_origen');
-                $traslado_detalle->cantidad     =   $item->cantidad;
+                $traslado_detalle                   =   new TrasladoDetalle();
+                $traslado_detalle->traslado_id      =   $traslado->id;
+                $traslado_detalle->producto_id      =   $item_bd_origen->producto_id;
+                $traslado_detalle->color_id         =   $item_bd_origen->color_id;
+                $traslado_detalle->talla_id         =   $item_bd_origen->talla_id;
+                $traslado_detalle->almacen_id       =   $request->get('almacen_origen');
+                $traslado_detalle->almacen_nombre   =   $item_bd_origen->almacen_nombre;
+                $traslado_detalle->producto_nombre  =   $item_bd_origen->producto_nombre;
+                $traslado_detalle->color_nombre     =   $item_bd_origen->color_nombre;
+                $traslado_detalle->talla_nombre     =   $item_bd_origen->talla_nombre;
+                $traslado_detalle->cantidad         =   $item->cantidad;
+                $traslado->estado                   =   'PENDIENTE';
                 $traslado_detalle->save();
 
                 //======== DETALLE NOTA SALIDA =====
-                DB::insert('INSERT INTO detalle_nota_salidad (nota_salidad_id, producto_id, cantidad, created_at, updated_at, color_id, talla_id) VALUES (?, ?, ?, ?, ?, ?, ?)', [
+               /* DB::insert('INSERT INTO detalle_nota_salidad (nota_salidad_id, producto_id, cantidad, created_at, updated_at, color_id, talla_id) VALUES (?, ?, ?, ?, ?, ?, ?)', [
                     $nota_salida->id, 
                     $item->producto_id, 
                     $item->cantidad, 
@@ -247,7 +264,7 @@ array:12 [
                     $item->cantidad, 
                     Carbon::now(), 
                     Carbon::now()
-                ]);
+                ]);*/
 
             //======== EN ALMACÉN ORIGEN (BAJA EL STOCK) =========
                 //=======> RESTAR STOCK LÓGICO ======
@@ -259,39 +276,6 @@ array:12 [
                 //=======> GUARDAR EN KARDEX ======
                 $kardex_datos   =   $this->getKardexData($traslado,$item_bd_origen,$request,$item->cantidad,$stock); 
                 UtilidadesController::guardarItemKardex($kardex_datos);
-
-            //======= EN ALMACÉN DESTINO (AUMENTA EL STOCK) ========
-                $this->sumarStockDestino($item,$request->get('almacen_destino'));
-
-                //====== GRABANDO MOVIMIENTO SALIDA EN ORIGEN =======
-                MovimientoNota::create([
-                    'cantidad'              =>  $item->cantidad,
-                    'observacion'           =>  $item_bd_origen->producto_nombre.'-'.$item_bd_origen->color_nombre.'-'.$item_bd_origen->talla_nombre,
-                    'movimiento'            =>  "SALIDA",
-                    'usuario_id'            =>  Auth::user()->id,
-                    'nota_id'               =>  $nota_salida->id,
-                    'producto_id'           =>  $item->producto_id,
-                    'color_id'              =>  $item->color_id,
-                    'talla_id'              =>  $item->talla_id,
-                    'almacen_origen_id'     =>  $request->get('almacen_origen'),
-                    'almacen_destino_id'    =>  $request->get('almacen_destino'),
-                    'sede_id'               =>  $request->get('sede_id')
-                ]);
-
-                //====== GRABANDO MOVIMIENTO INGRESO EN DESTINO ====
-                MovimientoNota::create([
-                    'cantidad'              =>  $item->cantidad,
-                    'observacion'           =>  $item_bd_origen->producto_nombre.'-'.$item_bd_origen->color_nombre.'-'.$item_bd_origen->talla_nombre,
-                    'movimiento'            =>  "SALIDA",
-                    'usuario_id'            =>  Auth::user()->id,
-                    'nota_id'               =>  $nota_ingreso->id,
-                    'producto_id'           =>  $item->producto_id,
-                    'color_id'              =>  $item->color_id,
-                    'talla_id'              =>  $item->talla_id,
-                    'almacen_origen_id'     =>  $request->get('almacen_origen'),
-                    'almacen_destino_id'    =>  $request->get('almacen_destino'),
-                    'sede_id'               =>  $sede_destino[0]->sede_id
-                ]);
 
             }
 

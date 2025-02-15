@@ -337,6 +337,17 @@ function(){
         Route::post('update/lote', 'Almacenes\NotaSalidadController@updateLote')->name('almacenes.nota_salidad.update.lote');
     });
 
+    //========== SOLICITUDES TRASLADO =====
+    Route::prefix('almacenes/solicitudes_traslado')->group(function() {
+
+        Route::get('index', 'Almacenes\SolicitudTrasladoController@index')->name('almacenes.solicitud_traslado.index');
+        Route::get('getSolicitudesTraslado', 'Almacenes\SolicitudTrasladoController@getSolicitudesTraslado')->name('almacenes.solicitud_traslado.getSolicitudesTraslado');
+        Route::get('confirmar/show/{id}', 'Almacenes\SolicitudTrasladoController@confirmarShow')->name('almacenes.solicitud_traslado.confirmarShow');
+        Route::post('/confirmar/store', 'Almacenes\SolicitudTrasladoController@confirmarStore')->name('almacenes.solicitud_traslado.confirmarStore');
+
+    
+    });
+
     //========== TRASLADOS =====
     Route::prefix('almacenes/traslados')->group(function() {
 

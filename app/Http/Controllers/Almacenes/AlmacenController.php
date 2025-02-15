@@ -48,10 +48,22 @@ class AlmacenController extends Controller
         ->make(true);
     }
 
+/*
+array:7 [▼
+  "_token" => "1GLZQwEm27g0iIhFDg4ixijgrzEPTT3PfQqqPkWE"
+  "_method" => "POST"
+  "almacen_existe" => null
+  "sede_id" => "2"
+  "descripcion_guardar" => "ASDA"
+  "ubicacion_guardar" => "SDASDAS"
+  "tipo_almacen" => "PRINCIPAL"
+]
+*/
     public function store(Request $request){
         
         $this->authorize('haveaccess','almacen.index'); 
         $data = $request->all();
+    
 
         $rules = [
             'descripcion_guardar' => [
@@ -75,6 +87,7 @@ class AlmacenController extends Controller
         $almacen->descripcion   =   $request->get('descripcion_guardar');
         $almacen->ubicacion     =   $request->get('ubicacion_guardar');
         $almacen->sede_id       =   $request->get('sede_id');
+        $alamcen->tipo_almacen  =   $request->get('tipo_almacen');
         $almacen->save();
 
         

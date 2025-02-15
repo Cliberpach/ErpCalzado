@@ -49,6 +49,7 @@
 <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 
 <script>
+
 $(document).ready(function() {
 
     // DataTables
@@ -98,6 +99,18 @@ $(document).ready(function() {
             { data: 'fecha_registro',className: "text-center"}, 
             { data: 'fecha_traslado',className: "text-center"}, 
             { data: 'registrador_nombre',className: "text-center"}, 
+            {
+                data: 'estado',
+                className: "text-center",
+                render: function(data, type, row) {
+                    if (data === 'PENDIENTE') {
+                        return '<span class="badge badge-danger">PENDIENTE</span>';
+                    } else if (data === 'RECIBIDO') {
+                        return '<span class="badge badge-primary">RECIBIDO</span>';
+                    }
+                    return data;
+                }
+            },
             {
                 data: null,
                 className: "text-center",

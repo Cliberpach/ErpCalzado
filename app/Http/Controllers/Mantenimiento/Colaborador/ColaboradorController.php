@@ -32,8 +32,10 @@ class ColaboradorController extends Controller
 
         $colaboradores  =   DB::table('colaboradores as co')
                             ->join('tabladetalles as td', 'td.id', '=', 'co.cargo_id')
+                            ->join('empresa_sedes as es','es.id','co.sede_id')
                             ->select(
                                 'co.id', 
+                                'es.nombre as sede_nombre',
                                 'co.nombre',
                                 'co.direccion',
                                 'co.telefono',

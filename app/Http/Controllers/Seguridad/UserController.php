@@ -11,6 +11,7 @@ use App\User;
 use App\UserPersona;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -21,7 +22,12 @@ class UserController extends Controller
     public function index()
     {
         $this->authorize('haveaccess','user.index');
-        $users = User::where('estado','ACTIVO')->get();
+
+        $users = User::with('sede')
+                ->where('estado', 'ACTIVO')
+                ->get();
+
+
         return view('seguridad.users.index',compact('users'));
     }
 
@@ -32,8 +38,10 @@ class UserController extends Controller
         $auxs   =   Persona::where('estado','ACTIVO')->get();
 
         $sede_id            =   Auth::user()->sede_id;
-        $colaboradores      =   Colaborador::where('estado','ACTIVO')
-                                ->where('sede_id',$sede_id)
+        $colaboradores      =   DB::table('colaboradores as c')
+                                ->join('empresa_sedes as es','es.id','c.sede_id')
+                                ->select('c.*','es.nombre as sede_nombre')
+                                ->where('c.estado','ACTIVO')
                                 ->get();
 
         $role_user = [];
@@ -98,15 +106,16 @@ array:8 [▼
             ]);
         }
 
-        $user = new User();
+        $colaborador            =   Colaborador::find($request->get('colaborador_id'));
 
-        $password = strtoupper($request->password);
+        $user                   =   new User();
+        $password               =   strtoupper($request->password);
 
         $user->usuario          =   strtoupper($request->get('usuario'));
         $user->email            =   strtoupper($request->get('email'));
         $user->password         =   bcrypt($password);
         $user->contra           =   $password;
-        $user->sede_id          =   $request->get('sede_id');
+        $user->sede_id          =   $colaborador->sede_id;
         $user->colaborador_id   =   $request->get('colaborador_id');
         $user->save();
 
@@ -192,8 +201,12 @@ array:8 [▼
 
         $auxs = Persona::where('estado','ACTIVO')->get();
 
-        $colaboradores      =   Colaborador::where('estado','ACTIVO')->get();
         $sede_id            =   Auth::user()->sede_id;
+        $colaboradores      =   DB::table('colaboradores as c')
+                                ->join('empresa_sedes as es','es.id','c.sede_id')
+                                ->select('c.*','es.nombre as sede_nombre')
+                                ->where('c.estado','ACTIVO')
+                                ->get();
 
         $role_user = [];
 
@@ -251,13 +264,15 @@ array:8 [▼
             ]);
         }
 
+        $colaborador            =   Colaborador::find($request->get('colaborador_id'));
+
         $password = strtoupper($request->password);
 
         $user->usuario          =   strtoupper($request->usuario);
         $user->email            =   strtoupper($request->email);
         $user->password         =   bcrypt($password);
         $user->contra           =   $password;
-        $user->sede_id          =   $request->get('sede_id');
+        $user->sede_id          =   $colaborador->sede_id;
         $user->colaborador_id   =   $request->get('colaborador_id');
         $user->update();
 

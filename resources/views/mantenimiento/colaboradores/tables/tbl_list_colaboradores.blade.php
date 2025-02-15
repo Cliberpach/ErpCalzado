@@ -2,6 +2,7 @@
     <thead>
         <tr>
             <th scope="col">#</th>
+            <th scope="col">SEDE</th>
             <th scope="col">NOMBRE</th>
             <th scope="col">CARGO</th>
             <th scope="col">DIRECCION</th>

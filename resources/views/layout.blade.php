@@ -310,12 +310,9 @@
                                 </span>
                                 <span>
                                     <b>
-                                        @if (auth()->user()->sede->tipo_sede === 'PRINCIPAL')
-                                            CENTRAL
-                                        @endif
-                                        @if (auth()->user()->sede->tipo_sede === 'SECUNDARIA')
-                                            {{auth()->user()->sede->direccion}}
-                                        @endif
+                                       
+                                        {{auth()->user()->sede->nombre}}
+                                        
                                     </b>
                                 </span>
                             </div>

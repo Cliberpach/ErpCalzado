@@ -34,6 +34,7 @@
                         <table id="usuarios" class="table dataTables-user table-striped table-bordered table-hover"  style="text-transform:uppercase" id="tbl_users">
                             <thead>
                             <tr>
+                                <th class="text-center">SEDE</th>
                                 <th class="text-center">USUARIO</th>
                                 <th class="text-center">CORREO</th>
                                 <th class="text-center">COLABORADOR</th>
@@ -44,6 +45,7 @@
                             <tbody>
                                 @foreach($users as $user)
                                     <tr>
+                                        <td class="text-center">{{$user->sede->nombre}}</td>
                                         <td class="text-center">{{$user->usuario}}</td>
                                         <td class="text-center">{{$user->email}}</td>
                                         <td class="text-center">@if(empty($user->colaborador)) NO ASIGNADO @else {{$user->colaborador->persona->getApellidosYNombres() }} @endif</td>

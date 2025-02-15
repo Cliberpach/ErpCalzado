@@ -58,7 +58,7 @@
                                     <select  required name="colaborador_id" id="colaborador_id" class="form-control select2_form {{ $errors->has('colaborador_id') ? ' is-invalid' : '' }}">
                                         <option></option>
                                         @foreach($colaboradores as $colaborador)
-                                            <option value="{{$colaborador->id}}"  {{old('colaborador_id') == $colaborador->id ? "selected" : ""}}{{session('colaborador_id') == $colaborador->id ? "selected" : ""}}>{{$colaborador->nombre}} - {{$colaborador->tipo_documento_nombre.':'.$colaborador->nro_documento}}</option>
+                                            <option value="{{$colaborador->id}}"  {{old('colaborador_id') == $colaborador->id ? "selected" : ""}}{{session('colaborador_id') == $colaborador->id ? "selected" : ""}}>{{$colaborador->nombre}} - {{$colaborador->tipo_documento_nombre.':'.$colaborador->nro_documento}} - {{$colaborador->sede_nombre}}</option>
                                         @endforeach
                                     </select>
                                     @if ($errors->has('colaborador_id'))
