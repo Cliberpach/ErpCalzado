@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Pos;
 use App\Compras\Documento\Detalle;
 use App\DetallesMovimientoCaja;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Pos\MovimientoCaja\MovimientoCajaAperturaRequest;
 use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Mantenimiento\Persona\Persona;
@@ -30,7 +31,9 @@ class CajaController extends Controller
     {
         $this->authorize('haveaccess', 'caja.index');
 
-        return view('pos.Cajas.index');
+        $sede_id    =   Auth::user()->sede_id;
+
+        return view('pos.Cajas.index',compact('sede_id'));
     }
 
     public function retirarColaborades(Request $request){
@@ -71,7 +74,11 @@ class CajaController extends Controller
     public function getCajas()
     {
         $datos = [];
-        $cajas = Caja::where('estado', 'ACTIVO')->get();
+
+        //====== USUARIOS PUEDEN VER CAJAS SOLO DE SU SEDE ======
+        $cajas = Caja::where('estado', 'ACTIVO')->where('sede_id', Auth::user()->sede_id)->get();
+
+
         foreach ($cajas as $key => $value) {
             array_push($datos, [
                 'id' => $value->id,
@@ -84,13 +91,25 @@ class CajaController extends Controller
         }
         return DataTables::of($datos)->toJson();
     }
+
+
+/*
+array:3 [▼
+  "_token"      => "uA8DojLYx1bnlHUStJrLNeX1e0TYsd5OkhYgNM2o"
+  "sede_id"     => "1"
+  "nombre"      => "asdas"
+]
+*/ 
     public function store(Request $request)
     {
-
+       
         $this->authorize('haveaccess', 'caja.index');
-        $caja = new Caja();
-        $caja->nombre = $request->nombre;
+
+        $caja           =   new Caja();
+        $caja->nombre   =   $request->nombre;
+        $caja->sede_id  =   $request->get('sede_id');
         $caja->save();
+
         return redirect()->route('Caja.index');
     }
     public function update(Request $request, $id)
@@ -107,99 +126,13 @@ class CajaController extends Controller
         $caja->save();
         return redirect()->route('Caja.index');
     }
+
+
     public function indexMovimiento()
     {
-        //Obtengo id de usuarios cajeros ocupados
-        $cajerosOcupados = DetallesMovimientoCaja::select('detalles_movimiento_caja.usuario_id')
-        ->join('movimiento_caja as mc','mc.id','=','detalles_movimiento_caja.movimiento_id')
-        ->join('caja as c','c.id','=','mc.caja_id')
-        ->join('users as u','u.id','=','detalles_movimiento_caja.usuario_id')
-        ->join('role_user as ru','ru.user_id','=','u.id')
-        ->join('roles as r','r.id','=','ru.role_id')
-        ->where('r.name','LIKE','%CAJE%')
-        ->where('c.estado_caja','LIKE','%ABIERTA%')
-        ->where('mc.estado_movimiento','APERTURA')
-        ->distinct()
-        ->get();
-
-
-
-        $getCajerosOcupados='';
-        $cajerosDesocupados= null;
-        if(count($cajerosOcupados) == 0){
-
-            $cajerosDesocupados=User::select('users.id','users.usuario')
-            ->join('role_user as ru','ru.user_id','=','users.id')
-            ->join('roles as r','r.id','=','ru.role_id')
-            ->orWhere('r.name','LIKE','%CAJERO%')
-            ->get();
-
-
-            if(count($cajerosDesocupados)==0){
-
-            $cajerosDesocupados=[];
-            }
-        }else{
-            foreach($cajerosOcupados as $u){
-
-                $getCajerosOcupados=$u->usuario_id.','.$getCajerosOcupados;
-            }
-            $getCajerosOcupados=substr($getCajerosOcupados,0,-1);
-
-            $cajerosDesocupados =   DB::select('select u.id,u.usuario 
-                                from users as u inner join role_user as ru on ru.user_id=u.id 
-                                inner join roles as r on r.id=ru.role_id 
-                                where u.id  not in('.$getCajerosOcupados.') and (r.name LIKE "%CAJER%")');
-        }
-        // return $cajerosDesocupados;
-
-        //=====================================
-
-
-        // Obtengo los id de los usuarios ventas ocupados
-        $usuariosOcupados= DetallesMovimientoCaja::select('detalles_movimiento_caja.usuario_id')
-        ->join('movimiento_caja as mc','mc.id','=','detalles_movimiento_caja.movimiento_id')
-        ->join('caja as c','c.id','=','mc.caja_id')
-        ->join('users as u','u.id','=','detalles_movimiento_caja.usuario_id')
-        ->join('role_user as ru','ru.user_id','=','u.id')
-        ->join('roles as r','r.id','=','ru.role_id')
-        ->where('r.name','LIKE','%venta%')
-        ->where('c.estado_caja','LIKE','%ABIERTA%')
-        ->whereNull('detalles_movimiento_caja.fecha_salida')
-        ->distinct()
-        ->get();
-     //  return $usuariosOcupados;
-
-        $getUsersOcupados='';
-        $usuariosDesocupados= null;
-
-        if(count($usuariosOcupados) == 0){
-            $usuariosDesocupados=User::select('users.id','users.usuario')
-            ->join('role_user as ru','ru.user_id','=','users.id')
-            ->join('roles as r','r.id','=','ru.role_id')
-            ->orWhere('r.name','LIKE','%VENTA%')
-            ->get();
-
-            if(count($usuariosDesocupados)==0){
-            $usuariosDesocupados=[];
-            }
-        }else{
-          //Obtengo los usuarios ventas desocupados ;
-            foreach($usuariosOcupados as $u){
-
-                $getUsersOcupados=$u->usuario_id.','.$getUsersOcupados;
-            }
-            $getUsersOcupados=substr($getUsersOcupados,0,-1);
-
-            $usuariosDesocupados=DB::select('select u.id,u.usuario 
-                                from users as u 
-                                inner join role_user as ru on ru.user_id=u.id 
-                                inner join roles as r on r.id=ru.role_id 
-                                where u.id  not in('.$getUsersOcupados.') and (r.name LIKE "%VENTA%" )');
-        }
-
-
         $this->authorize('haveaccess', 'movimiento_caja.index');
+
+       
         $lstAniosDB = DB::table('lote_productos')
             ->select(DB::raw('year(created_at) as value'))
             ->distinct()
@@ -220,21 +153,89 @@ class CajaController extends Controller
                 "value" =>(int)$anio_
             ]);
         }
-      //return $cajerosDesocupados;
-        
+
+        $sede_id    =   Auth::user()->sede_id;
+
         return view('pos.MovimientoCaja.indexMovimiento',[
-            'lstAnios'=>json_decode(json_encode($lstAnios->sortByDesc("value")->values())),
-            'mes'=>$mes,
-            'anio_'=>$anio_,
-            'usuariosDesocupados'=>$usuariosDesocupados,
-            'cajerosDesocupados'=>$cajerosDesocupados
+            'lstAnios'  =>  json_decode(json_encode($lstAnios->sortByDesc("value")->values())),
+            'mes'       =>  $mes,
+            'anio_'     =>  $anio_,
+            'sede_id'   =>  $sede_id
         ]);
     }
+
+    public function getDatosAperturaCaja(Request $request){
+        try {
+            $sede_id    =   $request->get('sede_id');
+
+            //======= 1 MOVIMIENTO DE CAJA => 1 CAJERO Y VENDEDORES =====
+            $cajas_desocupadas  =   Caja::where('estado_caja','CERRADA')
+                                    ->where('estado','ACTIVO')
+                                    ->where('sede_id',$sede_id)->get();
+
+            //======== CAJEROS DESOCUPADOS DE LA SEDE ======
+            $cajeros_desocupados =   DB::select('select 
+                                    co.id,
+                                    co.nombre 
+                                    from colaboradores as co 
+                                    inner join users as u on u.colaborador_id = co.id
+                                    inner join role_user as ru on ru.user_id = u.id 
+                                    inner join roles as r on r.id = ru.role_id 
+                                    where 
+                                    co.sede_id = ?
+                                    AND co.id  NOT IN 
+                                    ( 
+                                        select 
+                                        mc.colaborador_id 
+                                        from movimiento_caja as mc 
+                                        where 
+                                        mc.estado_movimiento = "APERTURA"
+                                        AND mc.sede_id = ?  
+                                    ) 
+                                    AND (r.name LIKE "%CAJER%")',
+                                [$sede_id,$sede_id]);
+
+
+
+                //======== ID DE VENDEDORES OCUPADOS ======
+                $vendedores_desocupados =   DB::select('select 
+                                            u.colaborador_id,
+                                            u.usuario 
+                                            from colaboradores as co 
+                                            inner join users as u on u.colaborador_id = co.id
+                                            inner join role_user as ru on ru.user_id = u.id 
+                                            inner join roles as r on r.id = ru.role_id 
+                                            where 
+                                            co.sede_id = ?
+                                            AND u.colaborador_id  NOT IN 
+                                            ( 
+                                                select 
+                                                DISTINCT  
+                                                dmc.colaborador_id 
+                                                from movimiento_caja as mc 
+                                                inner join detalles_movimiento_caja as dmc on dmc.movimiento_id = mc.id
+                                                where 
+                                                mc.estado_movimiento = "APERTURA" 
+                                                AND mc.sede_id = ? 
+                                            ) 
+                                            AND (r.name LIKE "%VENDEDOR%")',
+                                            [$sede_id,$sede_id]);
+
+            return response()->json(['success'=>true,
+            'cajas_desocupadas'         =>  $cajas_desocupadas,
+            'cajeros_desocupados'       =>  $cajeros_desocupados,
+            'vendedores_desocupados'    =>  $vendedores_desocupados]);
+            
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
     public function getMovimientosCajas(Request $request)
     {
-        $datos = [];
-        $consulta = null;
-        if ($request->filter=="ACTIVO") {
+        $datos      = [];
+        $consulta   = null;
+        if ($request->filter    ==  "ACTIVO") {
             $consulta = MovimientoCaja::where(DB::raw("CONVERT(fecha_apertura,date)"),">=",$request->desde)
             ->where(DB::raw("CONVERT(fecha_apertura,date)"),"<=",$request->hasta);
         } else {
@@ -243,6 +244,24 @@ class CajaController extends Controller
                 $request->mes
             )->whereYear('fecha_apertura', $request->anio);
         }
+
+        //========= FILTRO POR ROLES ======
+        $roles = DB::table('role_user as rl')
+          ->join('roles as r', 'r.id', '=', 'rl.role_id')
+          ->where('rl.user_id', Auth::user()->id)
+          ->pluck('r.name')
+          ->toArray(); 
+ 
+        //======== ADMIN PUEDE VER TODOS LOS MOVIMIENTOS CAJA DE SU SEDE =====
+        if (in_array('ADMIN', $roles)) {
+            $consulta->where('sede_id', Auth::user()->sede_id);
+        } else {
+             
+            //====== USUARIOS PUEDEN VER SOLO SUS PROPIOS MOVIMIENTOS CAJA ======
+            $consulta->where('sede_id', Auth::user()->sede_id)
+            ->where('colaborador_id', Auth::user()->colaborador_id);
+        }
+
         $movimientos = $consulta
             ->where('estado', 'ACTIVO')
             ->get([
@@ -284,88 +303,78 @@ class CajaController extends Controller
         return $caja->estado_caja == 'ABIERTA' ? 'true' : 'false';
     }
 
-    public function aperturaCaja(Request $request)
-    {
-       
-        // $this->authorize('haveaccess','pos.MovimientoCaja.indexMovimiento');
-        $this->authorize('haveaccess','movimiento_caja.create');
-        $data=$request->all();
-        $rules=[
-            'caja'              =>'required',
-            'turno'             =>'required',
-            'saldo_inicial'     =>'required',
-            'colaborador_id'    =>  'required'
-         ];
 
-         $message = [
-            'caja.required' => 'Seleccionar una caja  es Obligatorio',
-            'colaborador_id.required' => 'El campo cajero es obligatorio',
-            'turno.required'=>'El campo turno es obligatorio',
-            'saldo_inicial.required'=>'Ingresar un saldo en caja',
-        ];
-        Validator::make($data, $rules, $message)->validate();
+/*
+array:4 [
+  "caja"            => "1"
+  "cajero_id"       => "7"
+  "turno"           => "Mañana"
+  "saldo_inicial"   => "0"
+  "sede_id"         =>  1
+]
+*/ 
+public function aperturaCaja(MovimientoCajaAperturaRequest $request){
+    DB::beginTransaction();
+    try {
 
-        $usuarios_ventas_id   =  $request->usuarioVentas;
+        //======= VALIDAR CAJERO ====
+        $colaborador    =   DB::select('select 
+                            r.name as rol_nombre
+                            from users as u 
+                            inner join role_user as ru on ru.user_id = u.id 
+                            inner join roles as r on r.id = ru.role_id
+                            where u.colaborador_id = ?',[$request->get('cajero_id')]);
 
-        //====== BUSCAMOS EL ID COLABORADOR DEL USUARIO ID DEL CAJERO SELECCIONADO =====
-        $colaborador_id =   DB::select('select c.id as colaborador_id from user_persona as up 
-        inner join colaboradores as c on c.persona_id=up.persona_id
-        where up.user_id=?',[$request->colaborador_id]);
+        $roles = array_column($colaborador, 'rol_nombre');
 
-        if(isset($request->usuarioVentas)){
+        if (!in_array('CAJERO', $roles)) {
+            throw new Exception("EL COLABORADOR MAESTRO NO TIENE ROL DE CAJERO!!!"); 
+        } 
 
-          
+        //======== VALIDAR QUE EL COLABORADOR ESTÉ LIBRE =====
+        $cajero_libre   =   DB::select('select 
+                            mc.* 
+                            from movimiento_caja as mc
+                            where 
+                            mc.colaborador_id = ?
+                            AND mc.estado_movimiento = "APERTURA"',
+                            [$request->get('cajero_id')]);
 
-            $movimiento = new MovimientoCaja();
-            $movimiento->caja_id            = $request->caja;
-            $movimiento->colaborador_id     = $colaborador_id[0]->colaborador_id;
-            $movimiento->monto_inicial      = $request->saldo_inicial;
-            $movimiento->estado_movimiento  = 'APERTURA';
-            $movimiento->fecha_apertura     = date('Y-m-d h:i:s');
-            $movimiento->fecha              = date('Y-m-d');
-            $movimiento->save();
-
-            $detallesMovimiento                 =   new DetallesMovimientoCaja();
-            $detallesMovimiento->movimiento_id  =   $movimiento->id;
-            $detallesMovimiento->usuario_id     =   $request->colaborador_id;
-            $detallesMovimiento->fecha_entrada  =   date('Y-m-d h:i:s');
-            $detallesMovimiento->save();
-
-            foreach($usuarios_ventas_id as $usuario_venta_id){
-                $detallesMovimiento                 =   new DetallesMovimientoCaja();
-                $detallesMovimiento->movimiento_id  =   $movimiento->id;
-                $detallesMovimiento->usuario_id     =   $usuario_venta_id;
-                $detallesMovimiento->fecha_entrada  =   date('Y-m-d h:i:s');
-                $detallesMovimiento->save();
-            }
-
-            $caja = Caja::findOrFail($request->caja);
-            $caja->estado_caja = 'ABIERTA';
-            $caja->save();
-        return redirect()->route('Caja.Movimiento.index');
-        }else{
-
-            $movimiento                     = new MovimientoCaja();
-            $movimiento->caja_id            = $request->caja;
-            $movimiento->colaborador_id     = $colaborador_id[0]->colaborador_id;
-            $movimiento->monto_inicial      = $request->saldo_inicial;
-            $movimiento->estado_movimiento  = 'APERTURA';
-            $movimiento->fecha_apertura     = date('Y-m-d h:i:s');
-            $movimiento->fecha              = date('Y-m-d');
-            $movimiento->save();
-
-            $detallesMovimiento                 =   new DetallesMovimientoCaja();
-            $detallesMovimiento->movimiento_id  =   $movimiento->id;
-            $detallesMovimiento->usuario_id     =   $request->colaborador_id;
-            $detallesMovimiento->fecha_entrada  =   date('Y-m-d h:i:s');
-            $detallesMovimiento->save();
-
-            $caja = Caja::findOrFail($request->caja);
-            $caja->estado_caja = 'ABIERTA';
-            $caja->save();
-            return redirect()->route('Caja.Movimiento.index');
+        if(count($cajero_libre) > 0){
+            throw new Exception("EL CAJERO ESTÁ OCUPADO EN UNA CAJA!!!");
         }
+        
+        //========= MOVIMIENTO CAJA MAESTRO =======
+        $movimiento                     =   new MovimientoCaja();
+        $movimiento->caja_id            =   $request->get('caja');
+        $movimiento->colaborador_id     =   $request->get('cajero_id');
+        $movimiento->monto_inicial      =   $request->get('saldo_inicial');
+        $movimiento->estado_movimiento  =   'APERTURA';
+        $movimiento->fecha_apertura     =   date('Y-m-d h:i:s');
+        $movimiento->fecha              =   date('Y-m-d');
+        $movimiento->sede_id            =   $request->get('sede_id');
+        $movimiento->save();
+
+        //========= DETALLE DEL MOVIMIENTO =====
+        $detallesMovimiento                 =   new DetallesMovimientoCaja();
+        $detallesMovimiento->movimiento_id  =   $movimiento->id;
+        $detallesMovimiento->colaborador_id =   $request->get('colaborador_id');
+        $detallesMovimiento->fecha_entrada  =   date('Y-m-d h:i:s');
+        $detallesMovimiento->sede_id        =   $request->get('sede_id');
+
+        $detallesMovimiento->save();
+
+        $caja               =   Caja::findOrFail($request->caja);
+        $caja->estado_caja  =   'ABIERTA';
+        $caja->update();
+
+        DB::commit();
+        return response()->json(['success'=>true,'message'=>'CAJA APERTURADA CON ÉXITO']);
+    } catch (\Throwable $th) {
+        DB::rollBack();
+        return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);   
     }
+}
 
     public function cerrarCaja(Request $request)
     {
@@ -414,17 +423,11 @@ class CajaController extends Controller
 
     public function cajaDatosCierre(Request $request)
     {
-        $movimiento = MovimientoCaja::findOrFail($request->id);
-        $colaborador = $movimiento->colaborador;
-        // $ingresos =
-        //     cuadreMovimientoCajaIngresosVentaResum($movimiento, 1) -
-        //     cuadreMovimientoDevolucionesResum($movimiento, 1) +
-        //     cuadreMovimientoCajaIngresosCobranzaResum($movimiento, 1);
+        $movimiento     =   MovimientoCaja::findOrFail($request->id);
+
+        //======= CAJERO DEL MOVIMIENTO =====
+        $colaborador    =   Colaborador::find($movimiento->colaborador_id);
        
-        // $egresos =
-        //     cuadreMovimientoCajaEgresosEgresoResum($movimiento, 1) -
-        //     cuadreMovimientoDevolucionesResum($movimiento, 1) +
-        //     cuadreMovimientoCajaEgresosPagoResum($movimiento, 1);
 
         $ingresos =
         cuadreMovimientoCajaIngresosVentaResum($movimiento,5)+
@@ -438,13 +441,8 @@ class CajaController extends Controller
 
         return [
             'caja' => $movimiento->caja->nombre,
-            'monto_inicial' => $movimiento->monto_inicial,
-            'colaborador' =>
-                $colaborador->persona->apellido_paterno .
-                ' ' .
-                $colaborador->persona->apellido_paterno .
-                ' ' .
-                $colaborador->persona->nombre,
+            'monto_inicial' =>  $movimiento->monto_inicial,
+            'colaborador'   =>  $colaborador->nombre,
             'egresos' => $egresos,
             'ingresos' => $ingresos,
             'saldo' => $movimiento->monto_inicial + $ingresos - $egresos,

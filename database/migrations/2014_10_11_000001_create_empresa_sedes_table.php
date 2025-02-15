@@ -19,6 +19,7 @@ class CreateEmpresaSedesTable extends Migration
             $table->unsignedInteger('empresa_id'); 
             $table->foreign('empresa_id')->references('id')->on('empresas');
 
+            $table->string('nombre',160);
             $table->string('ruc', 20);
             $table->string('razon_social');
             $table->string('direccion');

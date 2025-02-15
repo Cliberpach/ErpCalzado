@@ -29,6 +29,7 @@
                 <div class="ibox-content">
                     <form action="{{route('user.store')}}" method="POST">
                         @csrf
+                        <input type="hidden" name="sede_id" id="sede_id" value="{{$sede_id}}">
                         <div class="row">
                             <div class="col-lg-6 col-xs-12 b-r">
                                 <h4><b>Datos Generales</b></h4>
@@ -54,10 +55,10 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="">Colaborador</label>
-                                    <select name="colaborador_id" id="colaborador_id" class="form-control select2_form {{ $errors->has('colaborador_id') ? ' is-invalid' : '' }}">
+                                    <select  required name="colaborador_id" id="colaborador_id" class="form-control select2_form {{ $errors->has('colaborador_id') ? ' is-invalid' : '' }}">
                                         <option></option>
                                         @foreach($colaboradores as $colaborador)
-                                            <option value="{{$colaborador->id}}"  {{old('colaborador_id') == $colaborador->id ? "selected" : ""}}{{session('colaborador_id') == $colaborador->id ? "selected" : ""}}>{{$colaborador->colaborador}} - {{$colaborador->area}}</option>
+                                            <option value="{{$colaborador->id}}"  {{old('colaborador_id') == $colaborador->id ? "selected" : ""}}{{session('colaborador_id') == $colaborador->id ? "selected" : ""}}>{{$colaborador->nombre}} - {{$colaborador->tipo_documento_nombre.':'.$colaborador->nro_documento}}</option>
                                         @endforeach
                                     </select>
                                     @if ($errors->has('colaborador_id'))
@@ -92,20 +93,6 @@
                                             </span>
                                             @endif
                                         </div>
-                                    </div>
-
-                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                                        <label for="sede" class="required">SEDE</label>
-                                        <select required class="select2_form" name="sede" id="sede">
-                                            @foreach ($sedes as $sede)
-
-                                                <option 
-                                                @if ($sede->tipo_sede == 'PRINCIPAL')
-                                                    selected
-                                                @endif value="{{$sede->id}}">{{$sede->tipo_sede.'-'.$sede->direccion}}</option>
-                                            
-                                            @endforeach
-                                        </select>
                                     </div>
                                     
                                 </div>

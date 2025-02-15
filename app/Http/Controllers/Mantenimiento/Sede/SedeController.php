@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Mantenimiento\Sede;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Mantenimiento\Sedes\NumeracionStoreRequest;
 use App\Http\Requests\Mantenimiento\Sedes\SedeStoreRequest;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Mantenimiento\Empresa\Numeracion;
@@ -49,6 +50,7 @@ class SedeController extends Controller
 /*
 array:14 [
   "_token"          => "NtBVgvSzRbuHIPf9aPqpHtk2YDKsJzlErNrAkxCs"
+  "nombre"          =  "SEDE NOMBRE"
   "ruc"             => "20370146994"
   "razon_social"    => "CORPORACION ACEROS AREQUIPA S.A."
   "direccion"       => "AV CHAVIMOCHIC 1234"
@@ -91,12 +93,14 @@ array:14 [
 ]
 */ 
     public function store(SedeStoreRequest $request){
+        
         DB::beginTransaction();
         try {
             
             $empresa            =   Empresa::find(1);
 
             $sede               =   new Sede();
+            $sede->nombre       =   $request->get('nombre');
             $sede->empresa_id   =   1;
             $sede->ruc          =   $empresa->ruc;
             $sede->razon_social =   $empresa->razon_social;
@@ -204,6 +208,8 @@ array:14 [
                                 WHERE 
                                     td.tabla_id = 21
                                     AND td.estado = "ACTIVO"
+                                    AND td.id <> 132 
+                                    AND td.id <> 134
                                     AND td.id NOT IN (
                                         SELECT enf.tipo_comprobante
                                         FROM empresa_numeracion_facturaciones AS enf
@@ -226,8 +232,8 @@ array:4 [
   "sede_id"         => "13"
 ]
 */ 
-    public function numeracionStore(Request $request){
-        
+    public function numeracionStore(NumeracionStoreRequest $request){
+      
         DB::beginTransaction();
         try {
 
@@ -278,7 +284,12 @@ array:4 [
             $numeracion                     =   new Numeracion();
             $numeracion->empresa_id         =   1;
             $numeracion->sede_id            =   $sede_id;
-            $numeracion->serie              =   $tipo_comprobante[0]->parametro.$sede->serie; 
+            $numeracion->serie              =   strtoupper(str_replace(
+                                                    ['á', 'é', 'í', 'ó', 'ú', 'ñ'],
+                                                    ['a', 'e', 'i', 'o', 'u', 'n'],
+                                                    $tipo_comprobante[0]->parametro . $request->get('serie')
+                                                ));
+            
             $numeracion->tipo_comprobante   =   $tipo_comprobante[0]->id;
             $numeracion->numero_iniciar     =   $request->get('nro_inicio');
             $numeracion->emision_iniciada   =   '0';

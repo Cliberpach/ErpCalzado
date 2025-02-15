@@ -78,11 +78,12 @@ class DocumentoController extends Controller
     {
         $this->authorize('haveaccess', 'documento_venta.index');
         $dato = "Message";
-        broadcast(new NotifySunatEvent($dato));
+
+        //broadcast(new NotifySunatEvent($dato));
        
-        //dd(Cache::get('ultimo'));
         return view('ventas.documentos.index');
     }
+
     public function indexAntiguo()
     {
         $this->authorize('haveaccess', 'documento_venta.index');
@@ -165,12 +166,12 @@ class DocumentoController extends Controller
          ->pluck('r.name')
          ->toArray(); 
 
-        //======== ADMIN PUEDE VER TODOS LOS DESPACHOS DE SU SEDE =====
+        //======== ADMIN PUEDE VER TODAS LAS VENTAS DE SU SEDE =====
         if (in_array('ADMIN', $roles)) {
             $documentos->where('cotizacion_documento.sede_id', Auth::user()->sede_id);
         } else {
             
-            //====== USUARIOS PUEDEN VER SUS PROPIOS DESPACHOS ======
+            //====== USUARIOS PUEDEN VER SUS PROPIAS VENTAS ======
             $documentos->where('cotizacion_documento.sede_id', Auth::user()->sede_id)
             ->where('cotizacion_documento.user_id', Auth::user()->id);
         }
@@ -192,73 +193,6 @@ class DocumentoController extends Controller
     }
     
 
-    public function getDocumentAntiguo(Request $request){
-        
-        $documentos = DB::table('cotizacion_documento as cd')
-            ->join('tabladetalles as td', 'td.id', '=', 'cd.tipo_venta')
-            ->join('condicions as c', 'c.id', '=', 'cd.condicion_id')
-            ->select(
-                [
-                    'cd.id',
-                    'td.nombre as tipo_venta',
-                    'cd.tipo_venta as tipo_venta_id',
-                    DB::raw('(CONCAT(cd.serie, "-" ,cd.correlativo)) as numero_doc'),
-                    'cd.serie',
-                    'cd.correlativo',
-                    'cd.cliente',
-                    'cd.empresa',
-                    'cd.importe',
-                    'cd.efectivo',
-                    'cd.tipo_pago_id',
-                    'cd.ruta_pago',
-                    'cd.cliente_id',
-                    'cd.convertir',
-                    'cd.empresa_id',
-                    'cd.cotizacion_venta',
-                    'cd.fecha_documento',
-                    'cd.estado_pago',
-                    'c.descripcion as condicion',
-                    'cd.condicion_id',
-                    'cd.sunat',
-                    'cd.regularize',
-                    'cd.contingencia',
-                    'cd.sunat_contingencia',
-                    'cd.documento_cliente',
-                    DB::raw('json_unquote(json_extract(cd.getRegularizeResponse, "$.code")) as code'),
-                    'cd.total',
-                    DB::raw('DATEDIFF( now(),cd.fecha_documento) as dias'),
-                    DB::raw('(select count(id) from nota_electronica where documento_id = cd.id) as notas')
-                ]
-            );
-            
-        return Datatables::of($documentos)
-            ->filter(function ($query) use ($request) {
-
-                if (!PuntoVenta() && !FullAccess()) {
-                    $documentos = $documentos->where('user_id', Auth::user()->id);
-                }
-
-                $query->orderBy('id', 'desc');
-
-                $query->where('cd.estado', '<>', "ANULADO");
-            
-                
-                if ($request->has('fechaInicial')) {
-                    $query->where('cd.fecha_documento', '>=', "{$request->get('fechaInicial')}");
-                }
-
-                if($request->has("cliente")){
-                    $cliente = $request->get("cliente");
-
-                    if(is_numeric($cliente)){
-                        $query->where('cd.documento_cliente', 'LIKE', "%{$request->get('cliente')}%");
-                    }else{
-                        $query->where('cd.cliente', 'LIKE', "%{$request->get('cliente')}%");
-                    }
-                }
-            })->make(true);
-    
-    }
     public function getDocumentClient(Request $request)
     {
         $documentos = Documento::where('estado', '!=', 'ANULADO')->where('cliente_id', $request->cliente_id)->where('estado_pago', 'PENDIENTE')->where('condicion_id', $request->condicion_id)->where('sunat', '!=', '2')->orderBy('id', 'desc')->get();

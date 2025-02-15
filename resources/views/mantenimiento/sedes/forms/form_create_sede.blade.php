@@ -8,6 +8,16 @@
         <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12 mb-3">
             <div class="row">
                
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
+                    <label class="required" for="nombre"  style="font-weight: bold;">NOMBRE</label>
+                    <div class="input-group">
+                        <span class="input-group-text" id="basic-addon1">
+                            <i class="fas fa-file-signature"></i>
+                        </span>
+                        <input required maxlength="160" value="" name="nombre" id="nombre" type="text" class="form-control" placeholder="NOMBRE" aria-label="Username" aria-describedby="basic-addon1">
+                    </div>
+                    <span class="nombre_error msgError"  style="color:red;"></span>
+                </div>
                 
                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
                     <label class="required" for="direccion"  style="font-weight: bold;">DIRECCIÓN</label>
@@ -64,7 +74,7 @@
                     </select>
                     <span class="distrito_error msgError"  style="color:red;"></span>
                 </div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
+                {{-- <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
                     <label class="required" for="serie" style="font-weight: bold;">CÓDIGO DE SERIE</label>
                     <div class="input-group">
                         <span class="input-group-text" id="basic-addon1">
@@ -74,7 +84,7 @@
                     </div>
                     <span class="urbanizacion_error msgError"  style="color:red;"></span>
                     <span style="color: blue; font-style: italic;">Ingrese una serie de 3 caracteres numéricos o alfanuméricos</span>
-                </div>
+                </div> --}}
             </div>
         </div>
 

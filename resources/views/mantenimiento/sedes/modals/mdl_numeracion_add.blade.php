@@ -74,6 +74,8 @@
             });
 
         try {
+          toastr.clear();
+          limpiarErroresValidacion('msgError');
           const formData  = new FormData(formNumeracionStore);
           const sede_id   = @json($sede->id);
 
@@ -96,7 +98,21 @@
           }
 
         } catch (error) {
-          toastr.error(error,'ERROR EN LA PETICIÓN AGREGAR NUMERACIÓN!!!');
+
+          if (error.response) {
+            if (error.response.status === 422) {
+              const errors = error.response.data.errors;
+              pintarErroresValidacion(errors, 'error');
+              toastr.error('Errores de validación encontrados.', 'ERROR DE VALIDACIÓN');
+            } else {
+              toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+            }
+          } else if (error.request) {
+              toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+          } else {
+            toastr.error(error.message, 'ERROR DESCONOCIDO');
+          }     
+
         }finally{
           Swal.close();
         }
@@ -135,6 +151,17 @@
     const inputParametro  = document.querySelector('#parametro');
 
     inputParametro.value  = tipo_comprobante[0].parametro; 
+
+    if(tipo_comprobante[0].parametro.length === 1){
+      inputSerie.value  = '';
+      document.querySelector('#pCodigoSerie').textContent = '3 caracteres permitidos';
+      inputSerie.maxLength  = 3;
+    }
+    if(tipo_comprobante[0].parametro.length === 2){
+      inputSerie.value  = '';
+      document.querySelector('#pCodigoSerie').textContent = '2 caracteres permitidos';
+      inputSerie.maxLength  = 2;
+    }
     
   }
 

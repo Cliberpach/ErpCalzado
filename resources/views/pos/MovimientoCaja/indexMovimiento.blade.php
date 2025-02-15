@@ -1,7 +1,9 @@
-@extends('layout') @section('content')
-@include('pos.MovimientoCaja.create')
-    @include('pos.MovimientoCaja.cerrar')
-    @include('pos.MovimientoCaja.detallesMovimiento')
+@extends('layout') 
+@section('content')
+
+@include('pos.MovimientoCaja.modals.mdl_abrir_caja')
+@include('pos.MovimientoCaja.cerrar')
+@include('pos.MovimientoCaja.detallesMovimiento')
 
 @section('caja-movimiento-active', 'active')
 @section('caja-chica-active', 'active')
@@ -19,7 +21,7 @@
     </div>
     <div class="col-lg-2 col-md-2">
         @can('haveaccess', 'movimiento_caja.create')
-            <a class="btn btn-block btn-w-m btn-modal btn-primary m-t-md" href="#">
+            <a class="btn btn-block btn-w-m btn-modal btn-primary m-t-md" href="javascript:void(0);" onclick="openMdlAbrirCaja()">
                 <i class="fa fa-plus-square"></i> Añadir nuevo
             </a>
         @endcan
@@ -99,23 +101,7 @@
                         </div>
                         <div class="col-md-12">
                             <div class="table-responsive">
-                                <table class="table dataTables-cajas table-striped table-bordered table-hover"
-                                    style="text-transform:uppercase">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th class="text-center">CAJA</th>
-                                            <th class="text-center">CANTIDAD INICIAL</th>
-                                            <th class="text-center">FECHA APERTURA</th>
-                                            <th class="text-center">FECHA CIERRE</th>
-                                            <th class="text-center">CANTIDAD CIERRE</th>
-                                            <th class="text-center">VENTA DEL DIA</th>
-                                            <th class="text-center">ACCIONES</th>
-
-                                         </tr>
-                                    </thead>
-
-                                </table>
+                               @include('pos.MovimientoCaja.tables.tbl_list_movimientos_caja')
                             </div>
                         </div>
                     </div>
@@ -126,8 +112,8 @@
 </div>
 @stop
 @push('styles')
-<!-- DataTable -->
-<link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+
 <style>
     .my-swal {
         z-index: 3000 !important;
@@ -135,102 +121,31 @@
 </style>
 @endpush
 @push('scripts')
-<!-- DataTable -->
-<script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
-
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
-    var detalles_colaborades = document.getElementById("modal_detalles_colaboradores");
-    var cuerpo_colaborades = document.querySelector('#modal_detalles_colaboradores table tbody');
-    let btnEnviar = document.getElementById('btnEnviarAperturaCaja');
+    var detalles_colaborades    = document.getElementById("modal_detalles_colaboradores");
+    var cuerpo_colaborades      = document.querySelector('#modal_detalles_colaboradores table tbody');
+    let btnEnviar               = document.getElementById('btnEnviarAperturaCaja');
+
+    let dtMovimientoCajas   =   null;
 
     document.addEventListener('DOMContentLoaded',()=>{
         iniciarDataTableMovimientos();
-        eventsCerrarCaja();
+        iniciarSelect2();
+        events();
     })
 
 
-    // function verificarUsuariosVentas(event){
-    //     event.preventDefault();
-    //     let cant= document.querySelectorAll('input[name="usuarioVentas[]"]');
-    //     let form= document.getElementById('crear_caja_movimiento');
-    //     form.submit();
-    //     //if(cant.length>0){
-    //     //    form.submit();
-    //     //}else{
-    //     //    alert('Seleccione al menos un usuairo de ventas para la apertura de caja');
-    //     //}
-
-    // }
-
-    function verificarSeleccion(id) {
-        let verificar = document.getElementById(`checkBox${id}`);
-
-        if (verificar.checked) {
-
-            // Se agregara el atributo name para que  se guarde ese dato
-            document.getElementById(`idUsuario${id}`).setAttribute('name', 'usuarioVentas[]');
-
-        } else {
-            // Se quitara el atributo name para que no se guarde ese dato
-            document.getElementById(`idUsuario${id}`).removeAttribute('name');
-        }
-
-
-    }
-
-    // Obtiene los datos de los colabores presentes en cada apertura de caja
-    function mostrarColaboradores(id) {
-        let url = '/get-colaborades/' + id;
-        fetch(url)
-            .then(response => response.json())
-            .then(data => mostrarData(data))
-            .catch(error => {
-                console.log('error al obtener los datos', error);
-            });
-    }
-
-    // rellena la tabla que muestra los colabores que participan en la apertura de caja
-    function mostrarData(datos) {
-        let btnColab= document.getElementById('btnRetirarColaboradores');
-
-        let body = '';
-        if (datos.length>0) {
-            btnColab.style.display='block';
-            datos.forEach(element => {
-                body += `<tr>
-                <th>
-                    <div class="m-auto p-auto">
-                    <input type="checkbox" class="btn-check" id="checkBox${element.usuario_id}" onclick="verificarSeleccion(${element.usuario_id})">
-                    <input type="hidden" id='idUsuario${element.usuario_id}' value="${element.usuario_id}">
-                    <input type="hidden" name="movimiento" value="${element.movimiento_id}">
-                    </div>
-
-                </th>
-                <th>
-                    ${element.usuario}
-                </th>
-                <th>
-                    ${element.fecha_entrada}
-                </th>
-                </tr>`
-            });
-
-        } else {
-                btnColab.style.display='none';
-                body = '<tr> <th colspan="3" class="text-center"> Sin colaborades disponibles </th>  </tr>';
-        }
-
-        cuerpo_colaborades.innerHTML = body;
-
-        $(detalles_colaborades).modal("show");
+    function events(){
+        eventsMdlAbrirCaja();
+        eventsCerrarCaja();
     }
 
 
     function iniciarDataTableMovimientos(){
-        var table = $('.dataTables-cajas').DataTable({
+        dtMovimientoCajas = $('.dataTables-cajas').DataTable({
             "dom": '<"html5buttons"B>lTfgitp',
             "buttons": [{
                     extend: 'excelHtml5',
@@ -344,7 +259,7 @@
                             html = `<div class='btn-group'>
                                 <button class='btn btn-warning btn-sm' onclick='cerrarCaja(${data.id})' title='Modificar'><i class='fa fa-lock'> Close</i></button>
                                 <button class='btn btn-danger btn-sm'  onclick='reporte(${data.id})' title='Pdf'><i class='fa fa-file-pdf-o'></i></button>
-                                <button class='btn btn-block btn-sm btn-modal btn-primary' id='btn_mostrar_colaborades_${data.id}'  data_id=${data.id}  onclick='mostrarColaboradores(${data.id})'>Detalles</button>
+                                <button class='btn btn-block btn-sm btn-primary' id='btn_mostrar_colaborades_${data.id}'  data_id=${data.id}  onclick='mostrarColaboradores(${data.id})'>Detalles</button>
                                 </div>
                                 `
                         }
@@ -378,9 +293,80 @@
             table.draw();
         });
     }
-  
-       
-   
+
+    function iniciarSelect2(){
+        $(".select2_form").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            height: '200px',
+            width: '100%',
+        });
+    }
+
+
+    function verificarSeleccion(id) {
+        let verificar = document.getElementById(`checkBox${id}`);
+
+        if (verificar.checked) {
+
+            // Se agregara el atributo name para que  se guarde ese dato
+            document.getElementById(`idUsuario${id}`).setAttribute('name', 'usuarioVentas[]');
+
+        } else {
+            // Se quitara el atributo name para que no se guarde ese dato
+            document.getElementById(`idUsuario${id}`).removeAttribute('name');
+        }
+
+
+    }
+
+    // Obtiene los datos de los colabores presentes en cada apertura de caja
+    function mostrarColaboradores(id) {
+        let url = '/get-colaborades/' + id;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => mostrarData(data))
+            .catch(error => {
+                console.log('error al obtener los datos', error);
+            });
+    }
+
+    // rellena la tabla que muestra los colabores que participan en la apertura de caja
+    function mostrarData(datos) {
+        let btnColab= document.getElementById('btnRetirarColaboradores');
+
+        let body = '';
+        if (datos.length>0) {
+            btnColab.style.display='block';
+            datos.forEach(element => {
+                body += `<tr>
+                <th>
+                    <div class="m-auto p-auto">
+                    <input type="checkbox" class="btn-check" id="checkBox${element.usuario_id}" onclick="verificarSeleccion(${element.usuario_id})">
+                    <input type="hidden" id='idUsuario${element.usuario_id}' value="${element.usuario_id}">
+                    <input type="hidden" name="movimiento" value="${element.movimiento_id}">
+                    </div>
+
+                </th>
+                <th>
+                    ${element.usuario}
+                </th>
+                <th>
+                    ${element.fecha_entrada}
+                </th>
+                </tr>`
+            });
+
+        } else {
+                btnColab.style.display='none';
+                body = '<tr> <th colspan="3" class="text-center"> Sin colaborades disponibles </th>  </tr>';
+        }
+
+        cuerpo_colaborades.innerHTML = body;
+
+        $(detalles_colaborades).modal("show");
+    }
+
 
     function reporte(id) {
         var url = "{{ route('Caja.reporte.movimiento', ':id') }}"
@@ -391,6 +377,7 @@
     //========= TRAER DATOS DEL MOVIMIENTO CAJA Y ABRIR MODAL CERRAR CAJA =======
     async function cerrarCaja(id) {
         if(id){
+            mostrarAnimacion();
             const res_validacion_docs   =  await validarVentasNoPagadas(id);
             if(res_validacion_docs){
                 axios.get("{{ route('Caja.datos.cierre') }}", {
@@ -408,16 +395,10 @@
                     $("#modal_cerrar_caja #saldo").val(convertFloat(datos.saldo).toFixed(2));
                     $("#modal_cerrar_caja").modal("show");
                 }).catch((value) => {})
+                .finally((r)=>{ ocultarAnimacion();});
             }
         }
     }
-
-    $(".btn-modal").click(function(e) {
-        e.preventDefault();
-        $("#modal_crear_caja").modal("show");
-    });
-
-
 
     async function validarVentasNoPagadas(movimiento_id){    
         const res =  await axios.get('{{ route('caja.movimiento.verificarVentasNoPagadas', ['movimiento_id' => ':movimiento_id']) }}'.replace(':movimiento_id', movimiento_id))

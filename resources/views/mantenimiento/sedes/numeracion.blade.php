@@ -36,7 +36,9 @@
             <div class="ibox ">
                 <div class="ibox-content">
                    
-                    @include('mantenimiento.sedes.tables.tbl_numeracion')
+                    <div class="table-responsive">
+                        @include('mantenimiento.sedes.tables.tbl_numeracion')
+                    </div>
 
                 </div>
             </div>

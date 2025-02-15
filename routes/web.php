@@ -154,15 +154,17 @@ function(){
     });
      // Colaboradores
      Route::prefix('mantenimiento/colaboradores')->group(function() {
-        Route::get('/', 'Mantenimiento\Colaborador\ColaboradorController@index')->name('mantenimiento.colaborador.index');
-        Route::get('/getTable', 'Mantenimiento\Colaborador\ColaboradorController@getTable')->name('mantenimiento.colaborador.getTable');
+        Route::get('/index', 'Mantenimiento\Colaborador\ColaboradorController@index')->name('mantenimiento.colaborador.index');
+        Route::get('/getColaboradores', 'Mantenimiento\Colaborador\ColaboradorController@getColaboradores')->name('mantenimiento.colaborador.getColaboradores');
         Route::get('/registrar', 'Mantenimiento\Colaborador\ColaboradorController@create')->name('mantenimiento.colaborador.create');
         Route::post('/registrar', 'Mantenimiento\Colaborador\ColaboradorController@store')->name('mantenimiento.colaborador.store');
-        Route::get('/actualizar/{id}', 'Mantenimiento\Colaborador\ColaboradorController@edit')->name('mantenimiento.colaborador.edit');
-        Route::put('/actualizar/{id}', 'Mantenimiento\Colaborador\ColaboradorController@update')->name('mantenimiento.colaborador.update');
+        Route::get('/edit/{id}', 'Mantenimiento\Colaborador\ColaboradorController@edit')->name('mantenimiento.colaborador.edit');
+        Route::put('/update/{id}', 'Mantenimiento\Colaborador\ColaboradorController@update')->name('mantenimiento.colaborador.update');
         Route::get('/datos/{id}', 'Mantenimiento\Colaborador\ColaboradorController@show')->name('mantenimiento.colaborador.show');
-        Route::get('/destroy/{id}', 'Mantenimiento\Colaborador\ColaboradorController@destroy')->name('mantenimiento.colaborador.destroy');
+        Route::delete('/destroy/{id}', 'Mantenimiento\Colaborador\ColaboradorController@destroy')->name('mantenimiento.colaborador.destroy');
         Route::post('/getDNI', 'Mantenimiento\Colaborador\ColaboradorController@getDNI')->name('mantenimiento.colaborador.getDni');
+        Route::get('/consultarDni/{dni}', 'Mantenimiento\Colaborador\ColaboradorController@consultarDni')->name('mantenimiento.colaborador.consultarDni');
+
     });
     // Vendedores
     Route::prefix('mantenimiento/vendedores')->group(function() {
@@ -496,7 +498,6 @@ function(){
 
         Route::get('index', 'Ventas\DocumentoController@index')->name('ventas.documento.index');
         Route::get('index-antiguo', 'Ventas\DocumentoController@indexAntiguo')->name('ventas.documento.indexAntiguo');
-        Route::get('getDocument-antiguo','Ventas\DocumentoController@getDocumentAntiguo')->name('ventas.getDocumentAntiguo');
         Route::get('getDocument','Ventas\DocumentoController@getDocument')->name('ventas.getDocument');
         Route::get('create', 'Ventas\DocumentoController@create')->name('ventas.documento.create');
         Route::post('create', 'Ventas\DocumentoController@getCreate')->name('ventas.documento.getCreate');
@@ -703,7 +704,10 @@ function(){
 
         Route::get('index/movimiento','Pos\CajaController@indexMovimiento')->name('Caja.Movimiento.index');
         Route::get('getMovimientosCajas','Pos\CajaController@getMovimientosCajas')->name('Caja.get_movimientos_cajas');
+        Route::get('getDatosAperturaCaja','Pos\CajaController@getDatosAperturaCaja')->name('Caja.getDatosAperturaCaja');
+        
         Route::post('aperturaCaja','Pos\CajaController@aperturaCaja')->name('Caja.apertura');
+        
         Route::post('cerrarCaja','Pos\CajaController@cerrarCaja')->name('Caja.cerrar');
         Route::get('estadoCaja','Pos\CajaController@estadoCaja')->name('Caja.estado');
         Route::get('cajaDatosCierre','Pos\CajaController@cajaDatosCierre')->name('Caja.datos.cierre');

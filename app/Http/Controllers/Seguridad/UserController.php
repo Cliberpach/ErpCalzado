@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Seguridad;
 
 use App\Http\Controllers\Controller;
+use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Persona\Persona;
 use App\Mantenimiento\Sedes\Sede;
 use App\Permission\Model\Role;
 use App\User;
 use App\UserPersona;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -28,32 +30,39 @@ class UserController extends Controller
         $this->authorize('haveaccess','user.create');
 
         $auxs   =   Persona::where('estado','ACTIVO')->get();
-        $sedes  =   Sede::where('estado','ACTIVO')->get();
 
-        $colaboradores = array();
-        foreach($auxs as $aux)
-        {
-            if(!$aux->user_persona && $aux->colaborador)
-            {
-                $colaborador = new stdClass();
-                $colaborador->id = $aux->id;
-                $colaborador->colaborador = $aux->getApellidosYNombres();
-                $colaborador->area = 'SIN ÁREA';
-                array_push($colaboradores,$colaborador);
-            }
-        }
+        $sede_id            =   Auth::user()->sede_id;
+        $colaboradores      =   Colaborador::where('estado','ACTIVO')
+                                ->where('sede_id',$sede_id)
+                                ->get();
 
         $role_user = [];
 
         $roles = Role::all();
 
-        return view('seguridad.users.create',compact('roles','colaboradores','sedes'));
+        return view('seguridad.users.create',compact('roles','colaboradores','sede_id'));
     }
 
+
+/*
+array:8 [▼
+  "_token" => "uA8DojLYx1bnlHUStJrLNeX1e0TYsd5OkhYgNM2o"
+  "usuario" => "luisdaniel"
+  "email" => "ld@gmail.com"
+  "colaborador_id" => "6"
+  "password" => "123456789"
+  "confirm_password" => "123456789"
+  "sede" => "2"
+  "role" => array:2 [▼
+    0 => "1"
+    1 => "3"
+  ]
+]
+*/ 
     public function store(Request $request)
     {
         $data = $request->all();
-
+      
         $rules = [
             'usuario' => 'required',
             'colaborador_id' => 'required',
@@ -93,18 +102,20 @@ class UserController extends Controller
 
         $password = strtoupper($request->password);
 
-        $user->usuario  =   strtoupper($request->get('usuario'));
-        $user->email    =   strtoupper($request->get('email'));
-        $user->password =   bcrypt($password);
-        $user->contra   =   $password;
-        $user->sede_id  =   $request->get('sede');
-
+        $user->usuario          =   strtoupper($request->get('usuario'));
+        $user->email            =   strtoupper($request->get('email'));
+        $user->password         =   bcrypt($password);
+        $user->contra           =   $password;
+        $user->sede_id          =   $request->get('sede_id');
+        $user->colaborador_id   =   $request->get('colaborador_id');
         $user->save();
 
-        $user_persona = new UserPersona();
-        $user_persona->user_id = $user->id;
-        $user_persona->persona_id = $request->get('colaborador_id');
-        $user_persona->save();
+        /*
+            $user_persona               = new UserPersona();
+            $user_persona->user_id      = $user->id;
+            $user_persona->persona_id   = $request->get('colaborador_id');
+            $user_persona->save();
+        */
 
         if($request->get('role'))
         {
@@ -176,40 +187,13 @@ class UserController extends Controller
     public function edit($id)
     {
         $user   =   User::find($id);
-        $sedes  =   Sede::where('estado','ACTIVO')->get();
 
         $this->authorize('view',[$user,['user.edit','userown.edit']]);
 
         $auxs = Persona::where('estado','ACTIVO')->get();
 
-        $colaboradores = [];
-        foreach($auxs as $aux)
-        {
-            if(!$aux->user_persona && $aux->colaborador)
-            {
-                $colaborador = new stdClass();
-                $colaborador->id = $aux->id;
-                $colaborador->colaborador = $aux->getApellidosYNombres();
-                $colaborador->area = 'SIN ÁREA';
-
-                array_push($colaboradores,$colaborador);
-            }
-            else
-            {
-                if(!empty($user->colaborador['persona_id']))
-                {
-                    if($aux->id == $user->colaborador['persona_id'])
-                    {
-                        $colaborador = new stdClass();
-                        $colaborador->id = $aux->id;
-                        $colaborador->colaborador = $aux->getApellidosYNombres();
-                        $colaborador->area = 'SIN ÁREA';
-
-                        array_push($colaboradores,$colaborador);
-                    }
-                }
-            }
-        }
+        $colaboradores      =   Colaborador::where('estado','ACTIVO')->get();
+        $sede_id            =   Auth::user()->sede_id;
 
         $role_user = [];
 
@@ -220,7 +204,8 @@ class UserController extends Controller
             $role_user[] = $role->id;
         }
 
-        return view('seguridad.users.edit',compact('roles','role_user','user','colaboradores','sedes'));
+        return view('seguridad.users.edit',
+        compact('roles','role_user','user','colaboradores','sede_id'));
     }
 
     public function update(Request $request, $id)
@@ -228,12 +213,6 @@ class UserController extends Controller
         $user = User::find($id);
 
         $this->authorize('view',[$user,['user.edit','userown.edit']]);
-
-        // $request->validate([
-        //     'usuario' => 'required|max:50|unique:users,usuario,'.$user->id,
-        //     'colaborador_id' => 'required',
-        //     'email' => 'required|max:50|unique:users,email,'.$user->id
-        // ]);
 
         $data = $request->all();
 
@@ -274,17 +253,20 @@ class UserController extends Controller
 
         $password = strtoupper($request->password);
 
-        $user->usuario  =   strtoupper($request->usuario);
-        $user->email    =   strtoupper($request->email);
-        $user->password =   bcrypt($password);
-        $user->contra   =   $password;
-        $user->sede_id  =   $request->get('sede');
+        $user->usuario          =   strtoupper($request->usuario);
+        $user->email            =   strtoupper($request->email);
+        $user->password         =   bcrypt($password);
+        $user->contra           =   $password;
+        $user->sede_id          =   $request->get('sede_id');
+        $user->colaborador_id   =   $request->get('colaborador_id');
         $user->update();
 
-        $user_persona = UserPersona::find($user->user->id);
-        $user_persona->user_id = $user->id;
-        $user_persona->persona_id = $request->get('colaborador_id');
-        $user_persona->update();
+        /*
+            $user_persona               = UserPersona::find($user->user->id);
+            $user_persona->user_id      = $user->id;
+            $user_persona->persona_id   = $request->get('colaborador_id');
+            $user_persona->update();
+        */
 
         if($request->get('role'))
         {
