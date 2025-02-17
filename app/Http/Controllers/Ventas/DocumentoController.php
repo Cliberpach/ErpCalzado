@@ -662,8 +662,8 @@ class DocumentoController extends Controller
         $fecha_hoy      = Carbon::now()->toDateString();
         $condiciones    = Condicion::where('estado', 'ACTIVO')->get();
 
-        $almacenes      =   Almacen::where('sede_id',Auth::user()->sede_id)
-                            ->where('estado','ACTIVO')->get();
+        $almacenes          =   Almacen::where('estado','ACTIVO')->where('tipo_almacen','PRINCIPAL')->get();
+
 
         $departamentos  =   Departamento::all();
         $provincias     =   Provincia::all();
@@ -792,8 +792,8 @@ class DocumentoController extends Controller
 
             $sede_id        =   Auth::user()->sede_id;
 
-            $almacenes      =   Almacen::where('sede_id',Auth::user()->sede_id)
-                                ->where('estado','ACTIVO')->get();
+            $almacenes          =   Almacen::where('estado','ACTIVO')->where('tipo_almacen','PRINCIPAL')->get();
+
 
             $empresas   =   Empresa::where('estado', 'ACTIVO')->get();
             $clientes   =   Cliente::where('estado', 'ACTIVO')->get([
