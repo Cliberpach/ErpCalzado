@@ -224,7 +224,7 @@ function pintarDetalleTraslado() {
                            t.id == det.talla_id;
                 });
 
-                cantidad.length != 0 ? cantidad = cantidad[0].cantidad : cantidad = 0;
+                cantidad.length != 0 ? cantidad = cantidad[0].cantidad : cantidad = '';
                 
                 htmlTallas += `<td>${cantidad}</td>`;
             });
