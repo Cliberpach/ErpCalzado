@@ -481,15 +481,15 @@ array:13 [
                                 ,"producto_colores" => $producto_colores ]);
     }
 
-    public function getStockLogico($producto_id,$color_id,$talla_id){
+    public function getStockLogico($almacen_id,$producto_id,$color_id,$talla_id){
 
         try {
 
             $stock_logico = DB::select('
                 SELECT pct.stock_logico 
                 FROM producto_color_tallas as pct
-                WHERE pct.producto_id = ? AND pct.color_id = ? AND pct.talla_id = ?',
-                [$producto_id, $color_id, $talla_id]
+                WHERE pct.almacen_id = ? AND pct.producto_id = ? AND pct.color_id = ? AND pct.talla_id = ?',
+                [$almacen_id,$producto_id, $color_id, $talla_id]
             );
 
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Ventas;
 
+use App\Almacenes\Conductor;
 use Illuminate\Support\Facades\Storage;
 
 use App\Almacenes\DetalleNotaSalidad;
@@ -69,11 +70,19 @@ class GuiaController extends Controller
     public function create()
     {
       
-        $empresas           = Empresa::where('estado','ACTIVO')->get();
+        $tallas             =   Talla::where('estado','ACTIVO')->get();
+        $empresas           =   Empresa::where('estado','ACTIVO')->get();
+        $conductores        =   Conductor::where('estado','ACTIVO')->get();
         // $documento          = Documento::findOrFail($id);
         // // $detalles           = Detalle::where('documento_id',$id)->get();
-        $clientes           = Cliente::where('estado', 'ACTIVO')->get();
-        $productos          = Producto::where('estado', 'ACTIVO')->get();
+        $clientes           =   Cliente::where('estado', 'ACTIVO')->get();
+        $productos          =   Producto::where('estado', 'ACTIVO')->get();
+        $tipos_documento    =   DB::select('select 
+                                td.* 
+                                from tabladetalles as td 
+                                where td.tabla_id = 3');
+
+       
         // $direccion_empresa  = Empresa::findOrFail($documento->empresa_id);
         
        
@@ -90,10 +99,13 @@ class GuiaController extends Controller
 
             // 'documento' => $documento,
             // 'detalles' => $detalles,
-            'empresas'      => $empresas,
+            'tallas'            =>  $tallas,
+            'empresas'          =>  $empresas,
+            'conductores'       =>  $conductores,
             // 'direccion_empresa' => $direccion_empresa,
-            'clientes'      => $clientes,
-            'productos'     => $productos,
+            'clientes'          =>  $clientes,
+            'productos'         =>  $productos,
+            'tipos_documento'   =>  $tipos_documento
             // 'pesos_productos'   => $pesos_productos,
             // 'cantidad_productos' => $cantidad_productos,
         ]);

@@ -27,24 +27,49 @@
 </div>
 
 
-<div class="wrapper wrapper-content animated fadeInRight">
-
+<div class="wrapper wrapper-content animated fadeInRight" style="padding-bottom: 0px;">
     <div class="row">
         <div class="col-lg-12">
             <div class="ibox">
-
                 <div class="ibox-content">
-
                     @include('ventas.guias.forms.form_guia_create')
-
                 </div>
-
             </div>
         </div>
-
     </div>
-    
 </div>
+
+
+<div class="wrapper wrapper-content animated fadeInRight" style="padding-top:0px;">
+
+    <div class="row">
+        <div class="col-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <h3 class="font-weight-bold text-primary">
+                                <i class="fas fa-box-open"></i> PRODUCTOS
+                            </h3>
+                            <hr>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            @include('ventas.guias.table-stocks')
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+
 @stop
 
 @push('styles')

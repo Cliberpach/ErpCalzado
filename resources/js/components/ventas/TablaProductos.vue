@@ -258,6 +258,7 @@
                                             <input
                                             type="text"
                                             class="form-control inputCantidad inputCantidadColor"
+                                            :data-almacen-id="pc.almacen_id"
                                             :data-producto-id="pc.producto_id"
                                             :data-producto-nombre="pc.producto_nombre"
                                             :data-color-nombre="pc.color_nombre"
@@ -828,12 +829,13 @@ export default {
             this.monto_descuento    =   descuento;
         },
         async getStockLogico(inputCantidad){
+            const almacen_id            =   inputCantidad.getAttribute('data-almacen-id');
             const producto_id           =   inputCantidad.getAttribute('data-producto-id');
             const color_id              =   inputCantidad.getAttribute('data-color-id');
             const talla_id              =   inputCantidad.getAttribute('data-talla-id');
             
             try {  
-                const url = `/get-stocklogico/${producto_id}/${color_id}/${talla_id}`;
+                const url = `/get-stocklogico/${almacen_id}/${producto_id}/${color_id}/${talla_id}`;
                 const response = await axios.get(url);
                 if(response.data.message=='success'){
                     const stock_logico  =   response.data.data[0].stock_logico;

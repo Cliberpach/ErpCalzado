@@ -42,6 +42,7 @@
                <option value="19">TRASLADO A ZONA PRIMARIA</option>
             </select>
         </div>
+
         <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
             <label class="required" for="modalidad_traslado" style="font-weight: bold;">MODALIDAD DE TRASLADO</label>
             <select name="modalidad_traslado" id="modalidad_traslado" class="select2_form">
@@ -49,6 +50,7 @@
                <option value="02">TRANSPORTE PRIVADO</option>
             </select>
         </div>
+
         <div class="col-lg-4 col-md-6 col-sm-6 col-xs-12 mb-3">
             <label class="required" for="fecha_traslado" style="font-weight: bold;">FECHA TRASLADO</label>
             <?php
@@ -83,5 +85,10 @@
             </div>
         </div>
     </div>
+
+    @include('ventas.guias.subforms.sub_transporte_publico')
+    @include('ventas.guias.subforms.sub_ubigeo')
+
+
 
 </form>

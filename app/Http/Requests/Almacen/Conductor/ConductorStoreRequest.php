@@ -24,44 +24,71 @@ class ConductorStoreRequest extends FormRequest
      */
     public function rules()
     {
-        return [
-            'tipo_documento'    => 'required|in:1,3', // Solo puede ser 1 o 3
-            'nro_documento'     => [
+        $rules = [
+            'modalidad_transporte' => 'required|in:PRIVADO,PUBLICO',  
+
+            'tipo_documento'    => 'required', 
+            'nro_documento'  => [
                 'required',
                 'string',
-                Rule::when($this->tipo_documento == 1, 'digits:8'), // Si tipo_documento es 1, debe ser exactamente 8 dígitos
-                Rule::when($this->tipo_documento == 3, 'string|min:10|max:20'), // Si tipo_documento es 3, entre 10 y 20 caracteres
-            ],
-            'nombre'            => 'required|string|max:150',
-            'apellido'          => 'required|string|max:150',
-            'licencia'          => [
-                'required',
-                'string',
-                'min:9',
-                'max:10',
-                'regex:/^[A-Za-z0-9]+$/', // Solo letras y números
-                function($attribute, $value, $fail) {
-                    if (preg_match('/^0+$/', $value)) {
-                        $fail('La licencia no puede contener solo ceros.');
+                function ($attribute, $value, $fail) {
+                    if ($this->tipo_documento == 6 && !preg_match('/^\d{8}$/', $value)) {
+                        $fail('El número de documento debe tener exactamente 8 dígitos para tipo 6.');
+                    } elseif ($this->tipo_documento == 8 && !preg_match('/^\d{11}$/', $value)) {
+                        $fail('El número de documento debe tener exactamente 11 dígitos para tipo 8.');
+                    } elseif (!in_array($this->tipo_documento, [6, 8]) && (strlen($value) < 10 || strlen($value) > 20)) {
+                        $fail('El número de documento debe tener entre 10 y 20 caracteres.');
                     }
                 },
-                Rule::unique('conductores')->where(function ($query) {
-                    return $query->where('estado', 'ACTIVO');
-                }),
+                Rule::unique('conductores', 'nro_documento')->where(fn($query) => $query->where('estado', 'ACTIVO')),
             ],
-            'telefono'          => 'nullable|string|max:20', // Opcional, máximo 20 caracteres
+            'nombre'            => 'required|string|max:150',
         ];
+    
+        // Validaciones condicionales dependiendo de modalidad_transporte
+        if ($this->modalidad_transporte == 'PRIVADO') {
+            $rules = array_merge($rules, [
+                'apellido'          => 'required|string|max:150',
+                'licencia'          => [
+                    'required',
+                    'string',
+                    'min:9',
+                    'max:10',
+                    'regex:/^[A-Za-z0-9]+$/', // Solo letras y números
+                    function($attribute, $value, $fail) {
+                        if (preg_match('/^0+$/', $value)) {
+                            $fail('La licencia no puede contener solo ceros.');
+                        }
+                    },
+                    Rule::unique('conductores')->where(function ($query) {
+                        return $query->where('estado', 'ACTIVO');
+                    }),
+                ],
+                'telefono'          => 'nullable|string|max:20', // Opcional, máximo 20 caracteres
+            ]);
+        } else {
+            $rules = array_merge($rules, [
+                'registro_mtc' => 'nullable|string|max:100', // Puedes agregar validación si es necesario
+            ]);
+        }
+    
+        return $rules;
     }
-
+    
     public function messages()
     {
         return [
+            'modalidad_transporte.required' => 'La modalidad de transporte es obligatoria.',
+            'modalidad_transporte.in'       => 'La modalidad de transporte debe ser PRIVADO o PUBLICO.',
+
+            
             'tipo_documento.required'       => 'El tipo de documento es obligatorio.',
-            'tipo_documento.in'             => 'El tipo de documento debe ser 1 (DNI) o 3 (CARNET DE EXTRANJERÍA).',
+            'tipo_documento.in'             => 'El tipo de documento no es válido.',
             
             'nro_documento.required'        => 'El número de documento es obligatorio.',
             'nro_documento.max'             => 'El número de documento no puede exceder los 150 caracteres.',
-            
+            'nro_documento.unique'          => 'El número de documento ya está registrado en un conductor ACTIVO.',
+
             'nombre.required'               => 'El nombre es obligatorio.',
             'nombre.max'                    => 'El nombre no puede exceder los 150 caracteres.',
             

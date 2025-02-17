@@ -77,21 +77,27 @@
 
         //======= CONSULTAR API DOCUMENTO DNI ========
         document.querySelector('#btn_consultar_documento').addEventListener('click',()=>{
-            const dni               =   document.querySelector('#nro_documento').value;
+
+            const nro_documento     =   document.querySelector('#nro_documento').value;
             const tipo_documento    =   document.querySelector('#tipo_documento').value;
             toastr.clear();
 
-            if(tipo_documento != 6){
-                toastr.error('SOLO SE PUEDE CONSULTAR TIPO DE DOCUMENTO DNI');
+            if(tipo_documento != 6 && tipo_documento != 8){
+                toastr.error('SOLO SE PUEDE CONSULTAR DNI Y RUC');
                 return;
             }
 
-            if(dni.length != 8){
+            if(tipo_documento == 6 && nro_documento.length != 8){
                 toastr.error('NRO DE DNI DEBE CONTAR CON 8 DÍGITOS');
                 return;
             }
 
-            consultarDocumento(dni);
+            if(tipo_documento == 8 && nro_documento.length != 11){
+                toastr.error('NRO DE RUC DEBE CONTAR CON 11 DÍGITOS');
+                return;
+            }
+
+            consultarDocumento(tipo_documento,nro_documento);
 
         })
 
@@ -123,12 +129,7 @@
             input.value = value;
         })
 
-        //===== PERMITIR SOLO NUMEROS ========
-        document.querySelector('#nro_documento').addEventListener('input', (e) => {
-            const input = e.target;
-
-            input.value = input.value.replace(/\D/g, '');
-        });
+      
     }
 
     function iniciarSelect2(){
@@ -240,8 +241,16 @@
             btnConsultarDocumento.disabled  =   false;
         }
 
+         //======== RUC =======
+         if(tipo_documento == 8){
+            inputNroDoc.value               =   '';
+            inputNroDoc.readOnly            =   false;
+            inputNroDoc.maxLength           =   11;
+            btnConsultarDocumento.disabled  =   false;
+        }
+
         //====== CARNET EXTRANJERÍA =====
-        if(tipo_documento == 7){
+        if(tipo_documento != 6 && tipo_documento != 8){
             inputNroDoc.value               =   '';
             inputNroDoc.readOnly            =   false;
             inputNroDoc.maxLength           =   20;
@@ -266,8 +275,12 @@
             const   res =   await response.json();
 
             if(res.success){
-                setDatosDni(res.data.data);
-                toastr.info(res.message);
+                if(tipo_documento == 1){
+                    setDatosDni(res.data.data);
+                }
+                if(tipo_documento == 2){
+                    setDatosRuc(res.data.data);
+                }
             }else{
                 toastr.error(res.message,'ERROR EN EL SERVIDOR AL CONSULTAR DNI');
             }
@@ -279,13 +292,170 @@
     }
 
     function setDatosDni(data){
+
         const nombres           =   data.nombres;
         const apellidos         =   `${data.apellido_paterno} ${data.apellido_materno}`;
-        //const nombre_completo   =   `${data.nombres} ${data.apellido_paterno} ${data.apellido_materno}`;
 
         document.querySelector('#nombre').value         =   nombres;
         document.querySelector('#apellido').value       =   apellidos;
 
+    }
+
+    function setDatosRuc(data){
+        const nombre_o_razon_social     =   `${data.nombre_o_razon_social}`;
+        const direccion_completa        =   data.direccion_completa;
+        const ubigeo                    =   data.ubigeo;
+
+        document.querySelector('#nombre').value     =   nombre_o_razon_social;
+        document.querySelector('#direccion').value  =   direccion_completa;
+
+        //======= COLOCANDO UBIGEO =======
+        let departamento_ubigeo = parseInt(ubigeo[0]);
+        let provincia_ubigeo    = parseInt(ubigeo[1]);
+        let distrito_ubigeo     = parseInt(ubigeo[2]);
+
+
+        if(!isNaN(departamento_ubigeo)){
+            $('#departamento').val(departamento_ubigeo).trigger('change');
+        }
+
+        if(!isNaN(provincia_ubigeo)){
+            $('#provincia').val(provincia_ubigeo).trigger('change');
+        }
+
+        if(!isNaN(distrito_ubigeo)){
+            $('#distrito').val(distrito_ubigeo).trigger('change');
+        }
+
+    }
+
+    function changeModalidadTransporte(modalidad_transporte){
+
+        if(modalidad_transporte === 'PUBLICO'){
+            const formRegistrarConductor       =   document.querySelector('#formRegistrarContenido');
+            formRegistrarConductor.innerHTML   =   '';
+
+            formRegistrarConductor.innerHTML    =   `
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
+                        <label class="required_field" for="tipo_documento" style="font-weight: bold;">TIPO DOCUMENTO</label>
+                        <select required name="tipo_documento" required class="form-select select2_form" id="tipo_documento" data-placeholder="Seleccionar" onchange="changeTipoDoc()">
+                            <option></option>
+                            @foreach ($tipos_documento as $tipo_documento)
+                                <option value="{{$tipo_documento->id}}">{{$tipo_documento->descripcion}}</option>
+                            @endforeach
+                        </select>
+                        <span class="tipo_documento_error msgError"  style="color:red;"></span>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
+                        <label for="nro_documento" style="font-weight: bold;" class="required_field">Nro Doc</label>
+                        <div class="input-group mb-3">
+                            <button id="btn_consultar_documento" disabled class="btn btn-primary" type="button" id="button-addon1">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <input required readonly id="nro_documento" name="nro_documento" type="text" class="form-control" placeholder="Nro de Documento" aria-label="Example text with button addon" aria-describedby="button-addon1">
+                        </div>                 
+                        <span class="nro_documento_error msgError"  style="color:red;"></span>
+                    </div>    
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
+                        <label for="nombre" style="font-weight: bold;" class="required_field">Nombres</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="basic-addon1">
+                                <i class="fas fa-user-check"></i>                  
+                            </span>
+                            <input required id="nombre" maxlength="150"  name="nombre" type="text" class="form-control" placeholder="Nombre" aria-label="Username" aria-describedby="basic-addon1">
+                        </div>       
+                        <span style="color:rgb(0, 89, 255); font-style: italic;">(150 LONGITUD MÁXIMA)</span>                 
+                        <span class="nombre_error msgError"  style="color:red;"></span>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
+                        <label for="registro_mtc" style="font-weight: bold;" class="required_field">Registro MTC</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="basic-addon1">
+                                <i class="fas fa-user-check"></i>                  
+                            </span>
+                            <input required id="registro_mtc" maxlength="160"  name="registro_mtc" type="text" class="form-control" placeholder="MTC" aria-label="Username" aria-describedby="basic-addon1">
+                        </div>       
+                        <span style="color:rgb(0, 89, 255); font-style: italic;">(160 LONGITUD MÁXIMA)</span>                 
+                        <span class="registro_mtc_error msgError"  style="color:red;"></span>
+                    </div>
+            `;  
+
+            iniciarSelect2();
+        }
+
+        if(modalidad_transporte === 'PRIVADO'){
+            const formRegistrarConductor       =   document.querySelector('#formRegistrarContenido');
+            formRegistrarConductor.innerHTML   =   '';
+
+            formRegistrarConductor.innerHTML    =   `
+                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
+                        <label class="required_field" for="tipo_documento" style="font-weight: bold;">TIPO DOCUMENTO</label>
+                        <select required name="tipo_documento" required class="form-select select2_form" id="tipo_documento" data-placeholder="Seleccionar" onchange="changeTipoDoc()">
+                            <option></option>
+                            @foreach ($tipos_documento as $tipo_documento)
+                                <option value="{{$tipo_documento->id}}">{{$tipo_documento->descripcion}}</option>
+                            @endforeach
+                        </select>
+                        <span class="tipo_documento_error msgError"  style="color:red;"></span>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
+                        <label for="nro_documento" style="font-weight: bold;" class="required_field">Nro Doc</label>
+                        <div class="input-group mb-3">
+                            <button id="btn_consultar_documento" disabled class="btn btn-primary" type="button" id="button-addon1">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <input required readonly id="nro_documento" name="nro_documento" type="text" class="form-control" placeholder="Nro de Documento" aria-label="Example text with button addon" aria-describedby="button-addon1">
+                        </div>                 
+                        <span class="nro_documento_error msgError"  style="color:red;"></span>
+                    </div>    
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
+                        <label for="nombre" style="font-weight: bold;" class="required_field">Nombres</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="basic-addon1">
+                                <i class="fas fa-user-check"></i>                  
+                            </span>
+                            <input required id="nombre" maxlength="150"  name="nombre" type="text" class="form-control" placeholder="Nombre" aria-label="Username" aria-describedby="basic-addon1">
+                        </div>       
+                        <span style="color:rgb(0, 89, 255); font-style: italic;">(150 LONGITUD MÁXIMA)</span>                 
+                        <span class="nombre_error msgError"  style="color:red;"></span>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2" id="divApellido">
+                        <label for="apellido" style="font-weight: bold;" class="required_field">Apellidos</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="basic-addon1">
+                                <i class="fas fa-user-check"></i>                   
+                            </span>
+                            <input required id="apellido" maxlength="150"  name="apellido" type="text" class="form-control" placeholder="Apellidos" aria-label="Username" aria-describedby="basic-addon1">
+                        </div>       
+                        <span style="color:rgb(0, 89, 255); font-style: italic;display:block;">(150 LONGITUD MÁXIMA)</span>                 
+                        <span class="apellido_error msgError"  style="color:red;"></span>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2" id="divLicencia">
+                        <label class="required_field" for="licencia" style="font-weight: bold;">LICENCIA</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="basic-addon1">
+                                <i class="fas fa-id-card"></i>                                        
+                            </span>
+                            <input minlength="9" maxlength="10" required id="licencia" name="licencia" type="text" class="form-control" placeholder="Licencia" aria-label="Username" aria-describedby="basic-addon1">
+                        </div>            
+                        <span style="color:rgb(0, 89, 255); font-style: italic;display:block;">(9 - 10 CARACTERES ALFANUMÉRICOS)</span>      
+                        <span class="licencia_error msgError"  style="color:red;"></span>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
+                        <label for="telefono" style="font-weight: bold;">Teléfono</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="basic-addon1">
+                                <i class="fas fa-phone"></i>                                      
+                            </span>
+                            <input maxlength="20"  id="telefono" name="telefono" type="text" class="form-control" placeholder="Teléfono" aria-label="Username" aria-describedby="basic-addon1">
+                        </div> 
+                        <span style="color:rgb(0, 89, 255); font-style: italic;display:block;">(20 LONGITUD MÁXIMA)</span>                                 
+                        <span class="telefono_error msgError"  style="color:red;"></span>
+                    </div>
+            `;  
+
+            iniciarSelect2();
+        }
     }
 
 </script>

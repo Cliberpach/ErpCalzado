@@ -1128,5 +1128,5 @@ Route::get('ruta', function () {
 Route::post('/liberar_colaborador','Pos\CajaController@retirarColaborades')->name('Caja.liberarColaborades');
 Route::get('/get-colaborades/{id}','Pos\CajaController@getColaborades')->name('Caja.getColaborades');
 Route::get('/get-producto-by-modelo/{modelo_id}', 'Almacenes\ProductoController@getProductosByModelo'); //VENTAS-NOTA SALIDA
-Route::get('/get-stocklogico/{producto_id}/{color_id}/{talla_id}', 'Almacenes\ProductoController@getStockLogico');
+Route::get('/get-stocklogico/{almacen_id}/{producto_id}/{color_id}/{talla_id}', 'Almacenes\ProductoController@getStockLogico');
 

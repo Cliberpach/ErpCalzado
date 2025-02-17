@@ -314,21 +314,27 @@ class DocumentoController extends Controller
                                     order by p.id,c.id,t.id',
                                     [$producto_id,$almacen_id]);
 
-            $producto_colores = DB::select('select p.id as producto_id,p.nombre as producto_nombre,
-                                            c.id as color_id, c.descripcion as color_nombre,
-                                            p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
-                                            from producto_colores as pc
-                                            inner join productos as p on p.id = pc.producto_id
-                                            inner join colores as c on c.id = pc.color_id
-                                            where 
-                                            p.id = ? 
-                                            AND pc.almacen_id = ?
-                                            AND c.estado="ACTIVO" 
-                                            AND p.estado="ACTIVO"
-                                            group by p.id,p.nombre,c.id,c.descripcion,
-                                            p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
-                                            order by p.id,c.id',
-                                            [$producto_id,$almacen_id]);
+            $producto_colores   =   DB::select('select 
+                                    pc.almacen_id,
+                                    p.id as producto_id,
+                                    p.nombre as producto_nombre,
+                                    c.id as color_id, 
+                                    c.descripcion as color_nombre,
+                                    p.precio_venta_1,
+                                    p.precio_venta_2,
+                                    p.precio_venta_3
+                                    from producto_colores as pc
+                                    inner join productos as p on p.id = pc.producto_id
+                                    inner join colores as c on c.id = pc.color_id
+                                    where 
+                                    p.id = ? 
+                                    AND pc.almacen_id = ?
+                                    AND c.estado = "ACTIVO" 
+                                    AND p.estado = "ACTIVO"
+                                    group by pc.almacen_id,p.id,p.nombre,c.id,c.descripcion,
+                                    p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
+                                    order by p.id,c.id',
+                                    [$producto_id,$almacen_id]);
 
             $precios_venta  =   DB::select('SELECT 
                                 p.precio_venta_1,
