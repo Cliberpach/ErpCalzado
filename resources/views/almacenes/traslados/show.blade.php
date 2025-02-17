@@ -202,28 +202,44 @@ function cargarSelect2(){
     });
 }
 
-function pintarDetalleTraslado(){
-    const detalles          =   @json($detalle);
-    const tallas            =   @json($tallas);
-    const bodyTablaDetalles =   document.querySelector('#tbl_traslado_show tbody');
-    let fila              =   ``;
- 
-    detalles.forEach((d)=>{
-        fila    +=  `<tr>
+function pintarDetalleTraslado() {
+    const detalles                  = @json($detalle);
+    const tallas                    = @json($tallas);
+    const bodyTablaDetalles         = document.querySelector('#tbl_traslado_show tbody');
+    let fila                        = ``;
+    const producto_color_procesado  = [];
+
+    detalles.forEach((d) => {
+        if (!producto_color_procesado.includes(`${d.producto_id}-${d.color_id}`)) {
+            let htmlTallas = ``;
+            
+            fila += `<tr>   
                         <td style="font-weight:bold;">${d.producto_nombre} - ${d.color_nombre}</td>`;
 
-        tallas.forEach((t)=>{
-            if(t.id == d.talla_id ){
-                fila    +=  `<td style="font-weight:bold;">${d.cantidad}</td>`;
-            }else{
-                fila    +=  `<td></td>`;
-            }
-        })
+            tallas.forEach((t) => {
 
-        fila    +=      `</tr>`;  
-    })
-    bodyTablaDetalles.innerHTML      =   fila;
+                let cantidad = detalles.filter((det) => {
+                    return det.producto_id == d.producto_id && 
+                           det.color_id == d.color_id && 
+                           t.id == det.talla_id;
+                });
+
+                cantidad.length != 0 ? cantidad = cantidad[0].cantidad : cantidad = 0;
+                
+                htmlTallas += `<td>${cantidad}</td>`;
+            });
+
+            fila += htmlTallas;
+            fila += `</tr>`;
+
+            producto_color_procesado.push(`${d.producto_id}-${d.color_id}`);
+        }
+    });
+
+    bodyTablaDetalles.innerHTML = fila;
 }
+
+
 
 </script>
 @endpush
