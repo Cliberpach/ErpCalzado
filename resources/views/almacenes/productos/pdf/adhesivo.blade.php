@@ -124,7 +124,11 @@
                        
                         <div style="padding:5px;vertical-align: top;text-align:center;height:32px;">
                             <div style="border: .5px dashed black; border-radius: 4px; width:90%;margin:0 auto;padding:1.7px;" >
-                                <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class="img_cod_barras">
+                                @if ($producto->ruta_cod_barras)
+                                    <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class="img_cod_barras">
+                                @else
+                                    <img src="#" alt="SIN CÓDIGO DE BARRAS">
+                                @endif
                                 <p style="font-size: 10px;margin:0;padding:0;">{{'775'.$producto->modelo_id.$producto->producto_id.$producto->color_id.$producto->talla_id}}</p>    
                             </div>
                         </div>
