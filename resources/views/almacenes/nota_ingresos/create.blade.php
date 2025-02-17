@@ -254,17 +254,20 @@
                     cancelButtonText: "No",
                 }).then((result) => {
 
+                    let generarAdhesivos    =   'NO';
+
                     if (result.isConfirmed) {
-                        document.querySelector('#generarAdhesivos').value   =   'SI';            
+                        generarAdhesivos   =   'SI';            
                     }else if (result.dismiss === Swal.DismissReason.cancel) {
-                        document.querySelector('#generarAdhesivos').value   =   'NO';            
+                        generarAdhesivos   =   'NO';            
                     }
                     
                     const formData  =   new FormData(e.target);
                     formData.append('lstNi',JSON.stringify(carrito))
                     formData.append('registrador_id',@json($registrador->id));
                     formData.append('sede_id',@json($sede_id));
-                    registrarNotaIngreso(formData);
+                    formData.append('generarAdhesivos',generarAdhesivos);
+                    registrarNotaIngreso(formData,generarAdhesivos);
                 })
             }else{
                 toastr.error('El detalle de la nota de ingreso está vacío!!!')
@@ -281,7 +284,7 @@
         })
     }
 
-    async function registrarNotaIngreso(formData){
+    async function registrarNotaIngreso(formData,generarAdhesivos){
 
         const swalWithBootstrapButtons = Swal.mixin({
         customClass: {
@@ -318,6 +321,11 @@
                 const res   =   await axios.post(route('almacenes.nota_ingreso.store'),formData);
                 console.log(res);
                 if(res.data.success){
+
+                    if(generarAdhesivos === 'SI'){
+                        window.open(route('almacenes.nota_ingreso.generarEtiquetas', {nota_id: res.data.nota_id}), '_blank');
+                    }
+
                     window.location =  route('almacenes.nota_ingreso.index');
                     toastr.success(res.data.message,'OPERCIÓN COMPLETADA');
                 }else{

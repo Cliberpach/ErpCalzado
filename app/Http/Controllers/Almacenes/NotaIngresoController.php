@@ -150,14 +150,13 @@ array:7 [
   "lstNi"               => "[{"producto_id":"1","producto_nombre":"PRODUCTO TEST","color_id":"2","color_nombre":"AZUL","talla_id":"1","talla_nombre":"34","cantidad":"10"},{"producto_id":"1","producto_nombre":"PRODUCTO TEST","color_id":"3","color_nombre":"CELESTE","talla_id":"1","talla_nombre":"34","cantidad":"20"}]"
   "registrador_id"      => "1"
   "sede_id"             => "1"
+  "generarAdhesivos"    => "SI"
 ]
 */ 
     public function store(Request $request)
     {
         $this->authorize('haveaccess','nota_ingreso.index');
-       
-        $data = $request->all();
-      
+             
         DB::beginTransaction();
 
         try {
@@ -329,13 +328,14 @@ array:7 [
 
             Session::flash('message_success', 'NOTA INGRESO REGISTRADA CON ÉXITO');
 
-            /*if($request->get('generarAdhesivos') === "SI"){
+            if($request->get('generarAdhesivos') === "SI"){
                 Session::flash('generarAdhesivos', 'GENERANDO ADHESIVOS');
                 Session::flash('nota_id',$notaingreso->id);
-            }*/
+            }
 
             DB::commit();
-            return response()->json(['success'=>true,'message'=>'NOTA INGRESO REGISTRADA CON ÉXITO']);
+            return response()->json(['success'=>true,
+            'message'=>'NOTA INGRESO REGISTRADA CON ÉXITO','nota_id'=>$notaingreso->id]);
       
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -750,17 +750,26 @@ array:7 [
     public function generarEtiquetas($nota_id){
 
         try {
-            $nota_detalle   =   DB::select('select p.nombre as producto_nombre,c.descripcion as color_nombre,
-                                t.descripcion as talla_nombre,m.descripcion as modelo_nombre,pct.ruta_cod_barras,dni.cantidad,
-                                p.id as producto_id,c.id as color_id,t.id as talla_id,m.id as modelo_id,
+        
+            $nota_detalle   =   DB::select('select 
+                                p.nombre as producto_nombre,
+                                c.descripcion as color_nombre,
+                                t.descripcion as talla_nombre,
+                                m.descripcion as modelo_nombre,
+                                cb.ruta_cod_barras,
+                                dni.cantidad,
+                                p.id as producto_id,
+                                c.id as color_id,
+                                t.id as talla_id,
+                                m.id as modelo_id,
                                 ca.descripcion as categoria_nombre
                                 from detalle_nota_ingreso as dni
-                                inner join productos as p on p.id=dni.producto_id
-                                inner join colores as c on c.id=dni.color_id
-                                inner join tallas as t on t.id=dni.talla_id
-                                inner join modelos as m on m.id=p.modelo_id
-                                inner join categorias as ca on ca.id=p.categoria_id
-                                inner join producto_color_tallas as pct on (pct.producto_id=p.id and pct.color_id=c.id and pct.talla_id=t.id)
+                                inner join productos as p on p.id = dni.producto_id
+                                inner join colores as c on c.id = dni.color_id
+                                inner join tallas as t on t.id = dni.talla_id
+                                inner join modelos as m on m.id = p.modelo_id
+                                inner join categorias as ca on ca.id = p.categoria_id
+                                left join codigos_barra as cb on (cb.producto_id = p.id and cb.color_id = c.id and cb.talla_id = t.id)
                                 where dni.nota_ingreso_id=?',[$nota_id]);
             
             $empresa        =   Empresa::first();
@@ -780,6 +789,7 @@ array:7 [
                              
             return $pdf->stream('etiquetas.pdf');
         } catch (\Throwable $th) {
+            dd($th->getMessage());
             Session::flash('nota_ingreso_error_message','ERROR AL GENERAR LAS ETIQUETAS ADHESIVAS');
             Session::flash('nota_ingreso_error_exception',$th->getMessage());
 
@@ -825,14 +835,14 @@ array:7 [
             file_put_contents($pathToFile, $code);
 
             //======== GUARDAR KEY Y RUTA IMG ========
-            CodigoBarra::where('producto_id', $item->producto_id)
-            ->where('color_id', $item->color_id)
-            ->where('talla_id', $item->talla_id)
-            ->update([
-                'codigo_barras'         =>  $key,
-                'ruta_cod_barras'       =>  'public/productos/'.$name  
-            ]);
-            
+            $codigoBarra                    = new CodigoBarra;
+            $codigoBarra->producto_id       = $item->producto_id;
+            $codigoBarra->color_id          = $item->color_id;
+            $codigoBarra->talla_id          = $item->talla_id;
+            $codigoBarra->codigo_barras     = $key;
+            $codigoBarra->ruta_cod_barras   = 'public/productos/' . $name;
+            $codigoBarra->save();
+
         }
     }
 

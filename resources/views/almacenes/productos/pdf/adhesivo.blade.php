@@ -94,11 +94,11 @@
         @endphp
     @endforeach
 
-    {{-- @if ($cantidad >100)
+    @if ($cantidad >100)
         @php
             $tipo_impresion = "LIMITADA"
         @endphp
-    @endif --}}
+    @endif 
 
     @if ($tipo_impresion == "LIBRE")
         @foreach ($nota_detalle as $producto)
@@ -119,34 +119,6 @@
                                 <span class="descripcion_span">COLOR: </span>
                                 <p class="producto" >{{$producto->color_nombre}}</p>
                             </div>
-                       
-                        
-                        {{-- <table>
-                            <tr>
-                                <td style="padding-left: 5px;padding-bottom:7px;padding-top:7px;">
-                                    @if($empresa->ruta_logo)
-                                        <img src="{{ base_path() . '/storage/app/'.$empresa->ruta_logo }}"  class="img-fluid" style="height: 20px;object-fit:cover;"> 
-                                    @else
-                                        <img src="{{ public_path() . '/img/default.png' }}" class="img-fluid">
-                                    @endif
-                                </td>
-                                <td style="padding-left: 8px;">
-                                    <p class="datos-empresa">
-                                        <span style="font-weight:bold;">RUC: </span>{{$empresa->ruc}}
-                                    </p>
-                                    <p class="empresa_nombre">{{$empresa->razon_social}}</p>
-                                    <p class="datos-empresa">{{$empresa->direccion_fiscal}}</p>
-                                    <p class="datos-empresa">{{$empresa->correo}}</p>
-                                </td>
-                            </tr>
-                            <tr style="border-top:solid 1px black;">
-                                <td colspan="2" style="padding-left:5px;">
-                                    <p class="producto" ><span class="descripcion_span">TIPO: </span>{{$producto->categoria_nombre}}</p>
-                                    <p class="producto" ><span class="descripcion_span">MODELO: </span>{{$producto->modelo_nombre}}</p>
-                                    <p class="producto" ><span class="descripcion_span">COLOR: </span>{{$producto->color_nombre}}</p>
-                                </td>
-                            </tr>
-                        </table> --}}
                     </td>
                     <td width="45%" style="border-left:solid 1px black;height:100%;" >
                        
@@ -168,7 +140,7 @@
         @endforeach
     @endif
 
-    {{-- @if ($tipo_impresion == "LIMITADA")
+    @if ($tipo_impresion == "LIMITADA")
         @foreach ($nota_detalle as $producto)
             @for ($i = 0; $i < 1; $i++)
             <table>
@@ -187,36 +159,6 @@
                                 <span class="descripcion_span">COLOR: </span>
                                 <p class="producto" >{{$producto->color_nombre}}</p>
                             </div>
-                       
-                        PARTE COMENTADA INICIO
-                        <table>
-                            <tr>
-                                <td style="padding-left: 5px;padding-bottom:7px;padding-top:7px;">
-                                    @if($empresa->ruta_logo)
-                                        <img src="{{ base_path() . '/storage/app/'.$empresa->ruta_logo }}"  class="img-fluid" style="height: 20px;object-fit:cover;"> 
-                                    @else
-                                        <img src="{{ public_path() . '/img/default.png' }}" class="img-fluid">
-                                    @endif
-                                </td>
-                                <td style="padding-left: 8px;">
-                                    <p class="datos-empresa">
-                                        <span style="font-weight:bold;">RUC: </span>{{$empresa->ruc}}
-                                    </p>
-                                    <p class="empresa_nombre">{{$empresa->razon_social}}</p>
-                                    <p class="datos-empresa">{{$empresa->direccion_fiscal}}</p>
-                                    <p class="datos-empresa">{{$empresa->correo}}</p>
-                                </td>
-                            </tr>
-                            <tr style="border-top:solid 1px black;">
-                                <td colspan="2" style="padding-left:5px;">
-                                    <p class="producto" ><span class="descripcion_span">TIPO: </span>{{$producto->categoria_nombre}}</p>
-                                    <p class="producto" ><span class="descripcion_span">MODELO: </span>{{$producto->modelo_nombre}}</p>
-                                    <p class="producto" ><span class="descripcion_span">COLOR: </span>{{$producto->color_nombre}}</p>
-                                </td>
-                            </tr>
-                        </table> 
-                        PARTE COMENTADA FIN
-
                     </td>
                     <td width="45%" style="border-left:solid 1px black;height:100%;" >
                        
@@ -236,7 +178,7 @@
             </table>
             @endfor
         @endforeach
-    @endif --}}
+    @endif 
    
 </body>
 </html>
