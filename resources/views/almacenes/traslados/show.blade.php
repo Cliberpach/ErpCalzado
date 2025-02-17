@@ -57,7 +57,7 @@
                                     <i class="fas fa-user-alt"></i>
                                 </span>
                                 </div>
-                                <input value="{{$traslado->aprobador_nombre}}" readonly name="aprobador_nombre" id="aprobador_nombre" type="text" class="form-control" placeholder="Registrador" aria-label="Username" aria-describedby="basic-addon1">
+                                <input value="{{$traslado->aprobador_nombre}}" readonly name="aprobador_nombre" id="aprobador_nombre" type="text" class="form-control" placeholder="" aria-label="Username" aria-describedby="basic-addon1">
                             </div>
                         </div>
 
