@@ -1,5 +1,5 @@
 <div class="table-responsive overflow-x-auto">
-    <table class="table table-hover"  class="display" style="width:100%" id="tbl_traslado_show">
+    <table class="table table-hover table-bordered"  class="display" style="width:100%" id="tbl_traslado_show">
         <thead>
           <tr>
 
@@ -18,5 +18,5 @@
          
         </tbody>
     </table>
-  </div>
+</div>
   
