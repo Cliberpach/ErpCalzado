@@ -75,7 +75,7 @@ $(".select2_form").select2({
     let dtNsProductos           =   null;
 
     document.addEventListener('DOMContentLoaded', ()=>{
-        events();
+        events(); 
         dtNsDetalle     =   iniciarDataTable('tabla_ns_detalle');
         dtNsProductos   =   iniciarDataTable('tabla_ns_productos');
     })

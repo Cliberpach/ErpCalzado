@@ -16,11 +16,7 @@
             </li>
         </ol>
     </div>
-    <div class="col-lg-2 col-md-2">
-        <a class="btn btn-block btn-w-m btn-primary m-t-md" href="{{route('almacenes.traslados.create')}}">
-            <i class="fa fa-plus-square"></i> Añadir nuevo
-        </a>
-    </div>
+  
 </div>
 
 <div class="wrapper wrapper-content animated fadeInRight">
@@ -103,21 +99,24 @@ function iniciarDTSolicitudesTraslado(){
                     let urlConfirmShow   =   `{{ route('almacenes.solicitud_traslado.confirmarShow', ['id' => ':id']) }}`;
                     urlConfirmShow       =   urlConfirmShow.replace(':id', data.id); 
 
-                    return `
-                            <div class='btn-group' style='text-transform:capitalize;'>
-                                <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
-                                <i class='fa fa-bars'></i>
-                                </button>
-                                <ul class='dropdown-menu'>
-                                    <li>
+                    let acciones    =   `<div class='btn-group' style='text-transform:capitalize;'>
+                                            <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
+                                            <i class='fa fa-bars'></i>
+                                            </button>
+                                            <ul class='dropdown-menu'>`;
+
+                    if(data.estado === 'PENDIENTE'){
+                       acciones += `<li>
                                         <a class='dropdown-item' href='${urlConfirmShow}' title='Confirmar'>
                                         <b><i class="fas fa-check"></i> Confirmar</b>
                                         </a>
-                                    </li>
+                                    </li>`; 
+                    }
+
+                    acciones    +=  `</ul>
+                                    </div>`;
                                     
-                                </ul>
-                            </div>
-                            `;
+                    return acciones;
                 },
                 name: 'actions', 
                 orderable: false, 

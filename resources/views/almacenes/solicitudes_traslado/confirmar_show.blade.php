@@ -1,7 +1,8 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('almacenes-active', 'active')
-@section('nota_salidad-active', 'active')
+@section('solicitud_traslado-active', 'active')
 
 <div class="row wrapper border-bottom white-bg page-heading">
 
@@ -153,7 +154,7 @@ function pintarDetalleTraslado(){
         });
         swalWithBootstrapButtons.fire({
         title: "Desea confirmar el traslado?",
-        text: "Se cambiará el estado a RECIBIDO y se actualizarán los stocks en los almacenes que indica el traslado!",
+        text: "Se cambiará el estado a RECIBIDO y se ingresará stock en el almacén destino!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "Sí!",
@@ -175,6 +176,12 @@ function pintarDetalleTraslado(){
                 const formData  =   new FormData();
                 formData.append('traslado_id',@json($traslado->id));
                 const res       = await axios.post(route('almacenes.solicitud_traslado.confirmarStore'),formData);
+                if(res.data.success){
+                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                    window.location =  route('almacenes.solicitud_traslado.index');
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR!!!');
+                }
             } catch (error) {
                 toastr.error(error,'ERROR EN LA PETICIÓN CONFIRMAR TRASLADO');
             }

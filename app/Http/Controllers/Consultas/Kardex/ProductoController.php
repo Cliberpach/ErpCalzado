@@ -13,6 +13,7 @@ use App\Ventas\Documento\Detalle;
 use App\Ventas\Documento\Documento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
@@ -34,7 +35,7 @@ class ProductoController extends Controller
 
     public function getTable(Request $request)
     {
-        $consulta = Kardex::where('estado','!=','ANULADO');
+        $consulta = Kardex::where('estado','!=','ANULADO')->where('sede_id',Auth::user()->sede_id);
         if($request->fecha_desde && $request->fecha_hasta)
         {
             $consulta->whereBetween('fecha', [$request->fecha_desde, $request->fecha_hasta]);

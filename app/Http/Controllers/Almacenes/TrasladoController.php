@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Almacenes;
 
 use App\Almacenes\Almacen;
 use App\Almacenes\DetalleNotaSalidad;
+use App\Almacenes\Kardex;
 use App\Almacenes\Modelo;
 use App\Almacenes\MovimientoNota;
 use App\Almacenes\NotaIngreso;
@@ -30,6 +31,8 @@ class TrasladoController extends Controller
 
     public function getTraslados(Request $request){
 
+        $sede_id    =   Auth::user()->sede_id;
+
         $traslados  =   DB::table('traslados as t')
                         ->join('almacenes as ao', 'ao.id', '=', 't.almacen_origen_id')
                         ->join('almacenes as ad', 'ad.id', '=', 't.almacen_destino_id')
@@ -47,7 +50,9 @@ class TrasladoController extends Controller
                             't.fecha_traslado',
                             't.registrador_nombre',
                             't.estado'
-                        )->get();
+                        )
+                        ->where('t.sede_origen_id',$sede_id)
+                        ->get();
 
         return DataTables::of($traslados)->make(true);
 
@@ -274,8 +279,28 @@ array:12 [
                 $stock          =   UtilidadesController::getStockItem($item_bd_origen);
 
                 //=======> GUARDAR EN KARDEX ======
-                $kardex_datos   =   $this->getKardexData($traslado,$item_bd_origen,$request,$item->cantidad,$stock); 
-                UtilidadesController::guardarItemKardex($kardex_datos);
+                $kardex                     =   new Kardex();
+                $kardex->sede_id            =   $request->get('sede_id');
+                $kardex->almacen_id         =   $request->get('almacen_origen');
+                $kardex->producto_id        =   $item_bd_origen->producto_id;
+                $kardex->color_id           =   $item_bd_origen->color_id;
+                $kardex->talla_id           =   $item_bd_origen->talla_id;
+                $kardex->almacen_nombre     =   $almacen_origen_bd->descripcion;
+                $kardex->producto_nombre    =   $item_bd_origen->producto_nombre;
+                $kardex->color_nombre       =   $item_bd_origen->color_nombre;
+                $kardex->talla_nombre       =   $item_bd_origen->talla_nombre;
+                $kardex->cantidad           =   $item->cantidad;
+                $kardex->precio             =   null;
+                $kardex->importe            =   null;
+                $kardex->accion             =   'TRASLADO SALIDA';
+                $kardex->stock              =   $stock;
+                $kardex->numero_doc         =   'TR-'.$traslado->id;
+                $kardex->documento_id       =   $traslado->id;
+                $kardex->registrador_id     =   Auth::user()->id;
+                $kardex->registrador_nombre =   Auth::user()->usuario;
+                $kardex->fecha              =   Carbon::today()->toDateString();
+                $kardex->descripcion        =   mb_strtoupper("TRASLADO SALIDA", 'UTF-8');
+                $kardex->save();
 
             }
 
