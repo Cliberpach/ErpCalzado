@@ -24,6 +24,9 @@ class CreateTrasladosTable extends Migration
             $table->date('fecha_traslado');
             $table->unsignedInteger('registrador_id');
             $table->string('registrador_nombre',160);
+            $table->unsignedInteger('aprobador_id');
+            $table->string('aprobador_nombre',160);
+
             $table->timestamps();
 
             $table->enum('estado', ['PENDIENTE', 'RECIBIDO'])->default('PENDIENTE');
@@ -34,6 +37,7 @@ class CreateTrasladosTable extends Migration
             $table->foreign('sede_origen_id')->references('id')->on('empresa_sedes');
             $table->foreign('sede_destino_id')->references('id')->on('empresa_sedes');
             $table->foreign('registrador_id')->references('id')->on('users');
+            $table->foreign('aprobador_id')->references('id')->on('users');
         });
     }
 

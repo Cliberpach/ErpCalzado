@@ -208,8 +208,8 @@ array:14 [
                                 WHERE 
                                     td.tabla_id = 21
                                     AND td.estado = "ACTIVO"
-                                    AND td.id <> 132 
-                                    AND td.id <> 134
+                                    AND td.simbolo <> "08" 
+                                    AND td.simbolo <> "NOTADEVOLUCION"
                                     AND td.id NOT IN (
                                         SELECT enf.tipo_comprobante
                                         FROM empresa_numeracion_facturaciones AS enf
