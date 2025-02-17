@@ -2,18 +2,18 @@
  @section('content')
 
 @section('almacenes-active', 'active')
-@section('traslados-active', 'active')
+@section('solicitudes_traslado-active', 'active')
 
 <div class="row wrapper border-bottom white-bg page-heading">
 
     <div class="col-lg-12">
-       <h2  style="text-transform:uppercase"><b>VER TRASLADO</b></h2>
+       <h2  style="text-transform:uppercase"><b>VER SOLICITUD DE TRASLADO</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{route('home')}}">Panel de Control</a>
             </li>
             <li class="breadcrumb-item">
-                <a href="{{route('almacenes.traslados.index')}}">Traslados</a>
+                <a href="{{route('almacenes.solicitud_traslado.index')}}">Solicitudes Traslado</a>
             </li>
             <li class="breadcrumb-item active">
                 <strong>Vizualizar</strong>

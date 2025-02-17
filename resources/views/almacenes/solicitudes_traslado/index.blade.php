@@ -96,8 +96,11 @@ function iniciarDTSolicitudesTraslado(){
                 data: null, 
                 render: function(data, type, row) {
 
-                    let urlConfirmShow   =   `{{ route('almacenes.solicitud_traslado.confirmarShow', ['id' => ':id']) }}`;
-                    urlConfirmShow       =   urlConfirmShow.replace(':id', data.id); 
+                    let urlConfirmar   =   `{{ route('almacenes.solicitud_traslado.confirmarShow', ['id' => ':id']) }}`;
+                    urlConfirmar       =   urlConfirmar.replace(':id', data.id); 
+
+                    let urlVer   =   `{{ route('almacenes.solicitud_traslado.show', ['id' => ':id']) }}`;
+                    urlVer       =   urlVer.replace(':id', data.id); 
 
                     let acciones    =   `<div class='btn-group' style='text-transform:capitalize;'>
                                             <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
@@ -107,13 +110,19 @@ function iniciarDTSolicitudesTraslado(){
 
                     if(data.estado === 'PENDIENTE'){
                        acciones += `<li>
-                                        <a class='dropdown-item' href='${urlConfirmShow}' title='Confirmar'>
+                                        <a class='dropdown-item' href='${urlConfirmar}' title='Confirmar'>
                                         <b><i class="fas fa-check"></i> Confirmar</b>
                                         </a>
                                     </li>`; 
                     }
 
-                    acciones    +=  `</ul>
+                    acciones    +=  `
+                                    <li>
+                                        <a class='dropdown-item' href='${urlVer}' title='Ver'>
+                                        <b><i class="fas fa-eye"></i> Ver</b>
+                                        </a>
+                                    </li>
+                                    </ul>
                                     </div>`;
                                     
                     return acciones;

@@ -344,6 +344,7 @@ function(){
         Route::get('getSolicitudesTraslado', 'Almacenes\SolicitudTrasladoController@getSolicitudesTraslado')->name('almacenes.solicitud_traslado.getSolicitudesTraslado');
         Route::get('confirmar/show/{id}', 'Almacenes\SolicitudTrasladoController@confirmarShow')->name('almacenes.solicitud_traslado.confirmarShow');
         Route::post('/confirmar/store', 'Almacenes\SolicitudTrasladoController@confirmarStore')->name('almacenes.solicitud_traslado.confirmarStore');
+        Route::get('show/{id}', 'Almacenes\SolicitudTrasladoController@show')->name('almacenes.solicitud_traslado.show');
 
     
     });

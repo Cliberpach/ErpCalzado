@@ -214,4 +214,15 @@ array:1 [
          
     }
 
+    public function show($traslado_id){
+      
+        $detalle            =   TrasladoDetalle::where('traslado_id',$traslado_id)->get();
+        $traslado           =   Traslado::find($traslado_id);
+        $tallas             =   Talla::where('estado','ACTIVO')->get();
+        $almacen_origen     =   Almacen::find($traslado->almacen_origen_id);
+        $almacen_destino    =   Almacen::find($traslado->almacen_destino_id);
+
+        return view('almacenes.solicitudes_traslado.show',compact('detalle','traslado','tallas','almacen_origen','almacen_destino'));
+    }
+
 }
