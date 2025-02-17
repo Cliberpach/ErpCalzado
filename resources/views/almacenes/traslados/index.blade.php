@@ -121,7 +121,7 @@ $(document).ready(function() {
                     var url_editar = '{{ route("almacenes.nota_salidad.edit", ":id")}}';
                     url_editar = url_editar.replace(':id', data.id);
 
-                    var url_detalles = '{{ route("almacenes.nota_salidad.show", ":id")}}';
+                    var url_detalles = '{{ route("almacenes.traslados.show", ":id")}}';
                     url_detalles = url_detalles.replace(':id', data.id);
 
                     return `

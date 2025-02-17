@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Almacenes;
 
 use App\Almacenes\Almacen;
+use App\Almacenes\CodigoBarra;
 use App\Almacenes\Color; 
 use App\Almacenes\Talla; 
 use App\Almacenes\Modelo; 
@@ -318,10 +319,8 @@ array:7 [
                 $kardex->descripcion        =   mb_strtoupper($request->get('observacion'), 'UTF-8');
                 $kardex->save();
 
-                //$this->generarCodigoBarras($item);
+                $this->generarCodigoBarras($item);
             }
-
-            
 
             //========== REGISTRO DE ACTIVIDAD =======
             $descripcion    = "SE AGREGÓ LA NOTA DE INGRESO ";
@@ -790,45 +789,50 @@ array:7 [
     }
 
     public function generarCodigoBarras($item){
-        $producto   =   DB::select('select 
-                        pct.* 
-                        from producto_color_tallas as pct
-                        where 
-                        pct.producto_id = ? 
-                        and pct.color_id = ? 
-                        and pct.talla_id = ?',
-                        [$item->producto_id,
-                        $item->color_id,$item->talla_id]);
-        
-        //======== SI EL PRODUCTO YA EXISTE ========
-        if(count($producto)>0){
-            //========== REVIZAR QUE NO TENGA COD BARRAS GENERADO =======
-            if(!$producto[0]->codigo_barras && !$producto[0]->ruta_cod_barras){
-                //========= GENERAR IDENTIFICADOR ÚNICO PARA EL COD BARRAS ========
-                $key            =   generarCodigo(8);
-                //======== GENERAR IMG DEL COD BARRAS ========
-                $generatorPNG   =   new \Picqer\Barcode\BarcodeGeneratorPNG();
-                $code           =   $generatorPNG->getBarcode($key, $generatorPNG::TYPE_CODE_128);
-                //$data_code      =   base64_decode($code);
-                $name           =   $key.'.png';
-        
-                if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
-                    mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
-                }
-        
-                $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'.DIRECTORY_SEPARATOR.$name);
-        
-                file_put_contents($pathToFile, $code);
 
-                //======== GUARDAR KEY Y RUTA IMG ========
-                ProductoColorTalla::where('producto_id', $item->producto_id)
-                ->where('color_id', $item->color_id)
-                ->where('talla_id', $item->talla_id)
-                ->update([
-                    'codigo_barras'         =>  $key,
-                    'ruta_cod_barras'       =>  'public/productos/'.$name  
-                ]);
+        //======= BUSCAR SI YA TIENE UN CÓDIGO GENERADO =======
+
+        $codigo_barra   =   DB::select('select 
+                            cb.* 
+                            from codigos_barra as cb
+                            where 
+                            cb.producto_id = ? 
+                            and cb.color_id = ? 
+                            and cb.talla_id = ?',
+                            [$item->producto_id,
+                            $item->color_id,
+                            $item->talla_id]);
+        
+        //======== SI EL PRODUCTO COLOR TALLA NO TIENE CÓDIGO DE BARRA ========
+        if(count($codigo_barra) === 0 ){
+
+        
+            //========= GENERAR IDENTIFICADOR ÚNICO PARA EL COD BARRAS ========
+            $key            =   generarCodigo(8);
+
+            //======== GENERAR IMG DEL COD BARRAS ========
+            $generatorPNG   =   new \Picqer\Barcode\BarcodeGeneratorPNG();
+            $code           =   $generatorPNG->getBarcode($key, $generatorPNG::TYPE_CODE_128);
+              
+            $name           =   $key.'.png';
+        
+            if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
+                mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
             }
+        
+            $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'.DIRECTORY_SEPARATOR.$name);
+        
+            file_put_contents($pathToFile, $code);
+
+            //======== GUARDAR KEY Y RUTA IMG ========
+            CodigoBarra::where('producto_id', $item->producto_id)
+            ->where('color_id', $item->color_id)
+            ->where('talla_id', $item->talla_id)
+            ->update([
+                'codigo_barras'         =>  $key,
+                'ruta_cod_barras'       =>  'public/productos/'.$name  
+            ]);
+            
         }
     }
 

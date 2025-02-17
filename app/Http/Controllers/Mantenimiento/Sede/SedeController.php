@@ -197,6 +197,7 @@ array:14 [
                                 from empresa_sedes as es
                                 where es.id = ?',[$sede_id])[0];
 
+        //====== OMITIR NOTA DÉBITO Y DEVOLUCIÓN ====
         $tipos_comprobantes = DB::select('
                                 SELECT 
                                     td.id,
@@ -217,8 +218,6 @@ array:14 [
                                     )
                             ', [$sede_id]);
                             
-                            
-
         return view('mantenimiento.sedes.numeracion',compact('sede_id','tipos_comprobantes','sede'));
 
     }

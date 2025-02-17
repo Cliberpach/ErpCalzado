@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout')
+ @section('content')
 
 @section('almacenes-active', 'active')
 @section('nota_salidad-active', 'active')

@@ -2009,12 +2009,13 @@ if (!function_exists('generarCodigo')) {
     {
         $existe     =   true;
         while ($existe) {
-            $key = '';
-            $pattern = '1234567890abcdefghijklmnopqrstuvwxyz0987654321ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            $max = strlen($pattern)-1;
+            
+            $key        = '';
+            $pattern    = '1234567890abcdefghijklmnopqrstuvwxyz0987654321ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            $max        = strlen($pattern)-1;
             for($i=0;$i < $longitud;$i++) $key .= $pattern[mt_rand(0,$max)];
     
-            $existe =  DB::table('producto_color_tallas')->where('codigo_barras', $key)->first();
+            $existe =  DB::table('codigos_barra')->where('codigo_barras', $key)->first();
         }
 
         return $key;
