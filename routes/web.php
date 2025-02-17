@@ -345,6 +345,7 @@ function(){
         Route::get('confirmar/show/{id}', 'Almacenes\SolicitudTrasladoController@confirmarShow')->name('almacenes.solicitud_traslado.confirmarShow');
         Route::post('/confirmar/store', 'Almacenes\SolicitudTrasladoController@confirmarStore')->name('almacenes.solicitud_traslado.confirmarStore');
         Route::get('show/{id}', 'Almacenes\SolicitudTrasladoController@show')->name('almacenes.solicitud_traslado.show');
+        Route::get('/generarEtiquetas/{id}', 'Almacenes\SolicitudTrasladoController@generarEtiquetas')->name('almacenes.solicitud_traslado.generarEtiquetas');
 
     
     });

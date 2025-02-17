@@ -1,16 +1,22 @@
-<table class="table table-sm table-striped table-bordered table-hover" style="text-transform:uppercase" id="tbl_traslado_detalle">
-    <thead>
-        <tr>
+<div class="table-responsive overflow-x-auto">
+    <table class="table table-hover table-bordered"  class="display" style="width:100%" id="tbl_traslado_show">
+        <thead>
+          <tr>
 
-            <th class="text-center">PRODUCTO</th>
+            <th scope="col" class="product_name">
+              PRODUCTO
+            </th>
+            
             @foreach ($tallas as $talla)
-                <th class="text-center">{{$talla->descripcion}}</th>
+                <th scope="col">{{$talla->descripcion}}</th>
             @endforeach
-                
-        </tr>
-    </thead>
-
-    <tbody>
-
-    </tbody>
-</table> 
+             
+          </tr>
+        </thead>
+        <tbody>
+           
+         
+        </tbody>
+    </table>
+</div>
+  

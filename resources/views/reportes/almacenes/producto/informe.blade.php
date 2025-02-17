@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout')
+@section('content')
 @include('reportes.almacenes.producto.modal_cod_barras')
 
     <div class="row wrapper border-bottom white-bg page-heading">
@@ -449,6 +450,9 @@
             document.addEventListener('click',async (e)=>{
                 if(e.target.classList.contains('btn-ver-cod-barras')){
                     
+                    mostrarAnimacion();
+                    toastr.clear();
+                    
                     const producto_id   =   e.target.getAttribute('data-producto');
                     const color_id      =   e.target.getAttribute('data-color');
                     const talla_id      =   e.target.getAttribute('data-talla');
@@ -486,6 +490,7 @@
                     }else{
                         toastr.error(res_generarBarCode.message,res_generarBarCode.exception,{timeOut:0});
                     }
+                    ocultarAnimacion();
 
                 }
             })
@@ -494,6 +499,7 @@
 
         async function generarBarCode(producto_id,color_id,talla_id){    
             try {
+                
                 const res       =   await axios.post(route('reporte.producto.obtenerBarCode'),{
                     producto_id,color_id,talla_id
                 });

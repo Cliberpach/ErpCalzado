@@ -11,12 +11,14 @@ use App\Almacenes\Traslado;
 use App\Almacenes\TrasladoDetalle;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UtilidadesController;
+use App\Mantenimiento\Empresa\Empresa;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use Barryvdh\DomPDF\Facade as PDF;
 
 class SolicitudTrasladoController extends Controller
 {
@@ -226,6 +228,58 @@ array:1 [
         $almacen_destino    =   Almacen::find($traslado->almacen_destino_id);
 
         return view('almacenes.solicitudes_traslado.show',compact('detalle','traslado','tallas','almacen_origen','almacen_destino'));
+    }
+
+    public function generarEtiquetas($id){
+
+        try {
+          
+            $traslado_detalle   =   DB::select('select 
+                                    p.nombre as producto_nombre,
+                                    c.descripcion as color_nombre,
+                                    t.descripcion as talla_nombre,
+                                    m.descripcion as modelo_nombre,
+                                    cb.ruta_cod_barras,
+                                    td.cantidad,
+                                    p.id as producto_id,
+                                    c.id as color_id,
+                                    t.id as talla_id,
+                                    m.id as modelo_id,
+                                    ca.descripcion as categoria_nombre
+                                    from traslados_detalle as td
+                                    inner join productos as p on p.id = td.producto_id
+                                    inner join colores as c on c.id = td.color_id
+                                    inner join tallas as t on t.id = td.talla_id
+                                    inner join modelos as m on m.id = p.modelo_id
+                                    inner join categorias as ca on ca.id = p.categoria_id
+                                    left join codigos_barra as cb on (cb.producto_id = p.id and cb.color_id = c.id and cb.talla_id = t.id)
+                                    where td.traslado_id = ?',
+                                    [$id]);
+
+            
+            $empresa        =   Empresa::first();
+          
+            
+            $width_in_points    = 300 * 72 / 25.4;  // Ancho en puntos 5cm = 50 mm
+            $height_in_points   = 170 * 72 / 25.4; // Alto en puntos
+                                
+            // Establecer el tamaño del papel
+            $custom_paper = array(0, 0, $width_in_points, $height_in_points);
+            $pdf = PDF::loadview('almacenes.productos.pdf.adhesivo', [
+                                    'nota_id'       =>  $id,
+                                    'nota_detalle'  =>  $traslado_detalle,
+                                    'empresa'       =>  $empresa
+                                    ])->setPaper($custom_paper)
+                                    ->setWarnings(false);
+                             
+            return $pdf->stream('etiquetas.pdf');
+        } catch (\Throwable $th) {
+            dd($th->getMessage());
+         
+
+            return redirect()->route('almacenes.traslados.index');
+        }
+       
     }
 
 }

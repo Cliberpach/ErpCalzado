@@ -801,7 +801,6 @@ array:7 [
     public function generarCodigoBarras($item){
 
         //======= BUSCAR SI YA TIENE UN CÓDIGO GENERADO =======
-
         $codigo_barra   =   DB::select('select 
                             cb.* 
                             from codigos_barra as cb

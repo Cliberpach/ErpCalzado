@@ -102,6 +102,9 @@ function iniciarDTSolicitudesTraslado(){
                     let urlVer   =   `{{ route('almacenes.solicitud_traslado.show', ['id' => ':id']) }}`;
                     urlVer       =   urlVer.replace(':id', data.id); 
 
+                    let url_etiquetas   =   '{{ route("almacenes.solicitud_traslado.generarEtiquetas", ":id")}}';   
+                    url_etiquetas       =   url_etiquetas.replace(':id',data.id);
+
                     let acciones    =   `<div class='btn-group' style='text-transform:capitalize;'>
                                             <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
                                             <i class='fa fa-bars'></i>
@@ -120,6 +123,11 @@ function iniciarDTSolicitudesTraslado(){
                                     <li>
                                         <a class='dropdown-item' href='${urlVer}' title='Ver'>
                                         <b><i class="fas fa-eye"></i> Ver</b>
+                                        </a>
+                                    </li>
+                                    <li>
+                                         <a class="dropdown-item" href="${url_etiquetas}" target="_blank" id="adhesivo_${data.id}">
+                                            <i class="fas fa-barcode"></i> GENERAR ETIQUETAS
                                         </a>
                                     </li>
                                     </ul>

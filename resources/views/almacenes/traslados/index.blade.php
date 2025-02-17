@@ -115,13 +115,11 @@ $(document).ready(function() {
                 data: null,
                 className: "text-center",
                 render: function(data) {
-                    //Ruta Detalle
 
                     //Ruta Modificar
-                    var url_editar = '{{ route("almacenes.nota_salidad.edit", ":id")}}';
-                    url_editar = url_editar.replace(':id', data.id);
+               
 
-                    var url_detalles = '{{ route("almacenes.traslados.show", ":id")}}';
+                    let url_detalles = '{{ route("almacenes.traslados.show", ":id")}}';
                     url_detalles = url_detalles.replace(':id', data.id);
 
                     return `

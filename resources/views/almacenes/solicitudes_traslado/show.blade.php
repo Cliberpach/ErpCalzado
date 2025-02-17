@@ -138,7 +138,7 @@
                                     <div class="panel-body">
                                         <hr>
                                         <div class="table-responsive">
-                                            @include('almacenes.traslados.tables.tbl_traslado_show')
+                                            @include('almacenes.solicitudes_traslado.tables.tbl_traslado_detalle')
                                         </div>
                                     </div>
                                 </div>
@@ -153,7 +153,7 @@
                                     (<label class="required"></label>) son obligatorios.</small>
                             </div>
                             <div class="col-md-6 text-right">
-                                <a href="{{route('almacenes.traslados.index')}}" id="btn_cancelar"
+                                <a href="{{route('almacenes.solicitud_traslado.index')}}" id="btn_cancelar"
                                     class="btn btn-w-m btn-default">
                                     <i class="fa fa-arrow-left"></i> Regresar
                                 </a>

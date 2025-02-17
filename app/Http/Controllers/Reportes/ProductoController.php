@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Reportes;
 
+use App\Almacenes\CodigoBarra;
 use App\Almacenes\DetalleNotaIngreso;
 use App\Almacenes\DetalleNotaSalidad;
 use App\Almacenes\NotaIngreso;
@@ -350,16 +351,33 @@ class ProductoController extends Controller
             $color_id           =   $request->get('color_id');
             $talla_id           =   $request->get('talla_id');
 
-            $producto           =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,
-                                    p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre,
-                                    m.descripcion as modelo_nombre,pct.ruta_cod_barras,pct.codigo_barras,pct.stock,pct.stock_logico
+            $producto           =   DB::select('select 
+                                    pct.producto_id,
+                                    pct.color_id,
+                                    pct.talla_id,
+                                    p.nombre as producto_nombre,
+                                    c.descripcion as color_nombre,
+                                    t.descripcion as talla_nombre,
+                                    m.descripcion as modelo_nombre,
+                                    cb.ruta_cod_barras,
+                                    cb.codigo_barras,
+                                    pct.stock,
+                                    pct.stock_logico
                                     from producto_color_tallas as pct
-                                    inner join productos as p on p.id=pct.producto_id
-                                    inner join colores as c on c.id=pct.color_id
-                                    inner join tallas as t on t.id=pct.talla_id
-                                    inner join modelos as m on m.id=p.modelo_id
-                                    where pct.producto_id=? and pct.color_id=?  and pct.talla_id=?',
-                                    [$producto_id,$color_id,$talla_id])[0];
+                                    inner join productos as p on p.id = pct.producto_id
+                                    inner join colores as c on c.id = pct.color_id
+                                    inner join tallas as t on t.id = pct.talla_id
+                                    inner join modelos as m on m.id = p.modelo_id
+                                    left join codigos_barra as cb on (cb.producto_id = p.id AND cb.color_id = c.id AND cb.talla_id = t.id)
+                                    WHERE 
+                                    pct.producto_id = ? 
+                                    AND pct.color_id = ?  
+                                    AND pct.talla_id = ?',
+                                    [$producto_id,
+                                    $color_id,
+                                    $talla_id])[0];
+
+            
             
             $message    =   'VISUALIZANDO CÓDIGO DE BARRAS';
             if(!$producto->codigo_barras && !$producto->ruta_cod_barras){
@@ -375,6 +393,7 @@ class ProductoController extends Controller
                 $message                    =   $res_generarBarCode['message'];
             }
 
+
             return response()->json(['success'=>true,'producto'=>$producto,'message'=>$message]);
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>'ERROR EN EL SERVIDOR AL OBTENER EL CÓDIGO DE BARRAS',
@@ -385,23 +404,38 @@ class ProductoController extends Controller
 
     public function getAdhesivos($producto_id,$color_id,$talla_id){
         try {
-            $producto           =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,m.id as modelo_id,
-                                    p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre,
-                                    m.descripcion as modelo_nombre,pct.ruta_cod_barras,pct.codigo_barras,pct.stock as cantidad,
+            $producto           =   DB::select('select 
+                                    pct.producto_id,
+                                    pct.color_id,
+                                    pct.talla_id,
+                                    m.id as modelo_id,
+                                    p.nombre as producto_nombre,
+                                    c.descripcion as color_nombre,
+                                    t.descripcion as talla_nombre,
+                                    m.descripcion as modelo_nombre,
+                                    cb.ruta_cod_barras,
+                                    cb.codigo_barras,
+                                    pct.stock as cantidad,
                                     ca.descripcion as categoria_nombre
                                     from producto_color_tallas as pct
-                                    inner join productos as p on p.id=pct.producto_id
-                                    inner join colores as c on c.id=pct.color_id
-                                    inner join tallas as t on t.id=pct.talla_id
-                                    inner join modelos as m on m.id=p.modelo_id
-                                    inner join categorias as ca on ca.id=p.categoria_id
-                                    where pct.producto_id=? and pct.color_id=?  and pct.talla_id=?',
-                                    [$producto_id,$color_id,$talla_id])[0];
+                                    inner join productos as p on p.id = pct.producto_id
+                                    inner join colores as c on c.id = pct.color_id
+                                    inner join tallas as t on t.id = pct.talla_id
+                                    inner join modelos as m on m.id = p.modelo_id
+                                    inner join categorias as ca on ca.id = p.categoria_id
+                                    left join codigos_barra as cb on (cb.producto_id = p.id and cb.color_id = c.id and cb.talla_id = t.id)
+                                    WHERE 
+                                    pct.producto_id = ? 
+                                    AND pct.color_id = ?  
+                                    AND pct.talla_id = ?',
+                                    [$producto_id,
+                                    $color_id,
+                                    $talla_id])[0];
 
-            $empresa        =   Empresa::first();
+            $empresa            =   Empresa::first();
           
-            $width_in_points    = 300 * 72 / 25.4;  // 5 cm = 50 mm
-            $height_in_points   = 170 * 72 / 25.4; 
+            $width_in_points    =   300 * 72 / 25.4;  // 5 cm = 50 mm
+            $height_in_points   =   170 * 72 / 25.4; 
                                 
             // Establecer el tamaño del papel
             $custom_paper = array(0, 0, $width_in_points, $height_in_points);
@@ -437,17 +471,20 @@ class ProductoController extends Controller
             file_put_contents($pathToFile, $code);
 
             //======== GUARDAR KEY Y RUTA IMG ========
-            ProductoColorTalla::where('producto_id', $producto->producto_id)
-            ->where('color_id', $producto->color_id)
-            ->where('talla_id', $producto->talla_id)
-            ->update([
-                'codigo_barras'         =>  $key,
-                'ruta_cod_barras'       =>  'public/productos/'.$name  
-            ]);
+            $codigoBarra                    = new CodigoBarra();
+            $codigoBarra->producto_id       = $producto->producto_id;
+            $codigoBarra->color_id          = $producto->color_id;
+            $codigoBarra->talla_id          = $producto->talla_id;
+            $codigoBarra->codigo_barras     = $key;
+            $codigoBarra->ruta_cod_barras   = 'public/productos/' . $name;
+            $codigoBarra->save();
 
 
             DB::commit();
-            return ['success'=>true,'message'=>"CÓDIGO DE BARRAS GENERADO, EL PRODUCTO NO CONTABA CON UNO",'codigo_barras'=>$key,'ruta_cod_barras'=>'public/productos/'.$name];
+            return ['success'=>true,
+            'message'=>"CÓDIGO DE BARRAS GENERADO, EL PRODUCTO NO CONTABA CON UNO",
+            'codigo_barras'=>$key,
+            'ruta_cod_barras'=>'public/productos/'.$name];
             
         } catch (\Throwable $th) {
             DB::rollback();
