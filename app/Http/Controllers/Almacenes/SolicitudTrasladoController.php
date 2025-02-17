@@ -60,7 +60,7 @@ class SolicitudTrasladoController extends Controller
         $detalle    =   TrasladoDetalle::where('traslado_id',$id)->get();
         $tallas     =   Talla::where('estado','ACTIVO')->get();
 
-        return view('almacenes.solicitudes_traslado.confirmar_show',compact('tallas','detalle','traslado'));
+        return view('almacenes.solicitudes_traslado.confirmar',compact('tallas','detalle','traslado'));
     }
 
 /*
