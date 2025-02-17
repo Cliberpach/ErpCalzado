@@ -389,7 +389,8 @@ array:12 [
         $almacen_origen     =   Almacen::find($traslado->almacen_origen_id);
         $almacen_destino    =   Almacen::find($traslado->almacen_destino_id);
 
-        return view('almacenes.traslados.show',compact('detalle','traslado','tallas','almacen_origen','almacen_destino'));
+        return view('almacenes.traslados.show',
+        compact('detalle','traslado','tallas','almacen_origen','almacen_destino'));
     }
 
     
