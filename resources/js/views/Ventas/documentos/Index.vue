@@ -13,6 +13,7 @@
                         </div>
                         <div class="ibox-content tables_wrapper">
                             <div class="row">
+                                
                                 <div class="col-md-3 form-group">
                                     <label for="">Desde:</label>
                                     <input type="date" id="fechaInicial" class="form-control form-control-sm"
@@ -304,7 +305,6 @@
     </div>
 </template>
 <script>
-
 import Vue from 'vue';
 import BootstrapVue from 'bootstrap-vue';
 Vue.use(BootstrapVue);
@@ -401,7 +401,6 @@ export default {
     },
     async created() {
         await this.Lista();
-        
     },
     methods: {
         cambiarTallas(documento_id){
@@ -820,9 +819,9 @@ export default {
         }
     },
     mounted() {
-
+        
     },
-};
+    };
 </script>
 <style>
     .tables_wrapper table.table-index tbody td{

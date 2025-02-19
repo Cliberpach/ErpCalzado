@@ -86,7 +86,7 @@
             columns: [
                 { data: 'id', name: 'id' },
                 { data: 'nombre', name: 'nombre' },
-                { data: 'tipo_documento', name: 'tipo_documento' },
+                { data: 'tipo_documento_nombre', name: 'tipo_documento_nombre' },
                 { data: 'nro_documento', name: 'nro_documento' },
                 { data: 'telefono', name: 'telefono' },
                 { data: 'licencia', name: 'licencia' },

@@ -160,13 +160,16 @@
 
                         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
                             <label class="required" style="font-weight: bold;">CATEGORÍA</label>
+
                             <v-select
                                 v-model="categoriaSeleccionada"
                                 :options="categorias"
                                 :reduce="categoria => categoria.id"
                                 label="descripcion"
-                                placeholder="Seleccionar">
+                                placeholder="Seleccionar"
+                            >
                             </v-select>
+
                         </div>
 
                         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
@@ -192,13 +195,18 @@
                             </v-select>
                         </div>
 
-                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
-                            <label class="required" style="font-weight: bold;">PRODUCTO</label>
+                        <div class="col-12"></div>
+                        <div class="col-lg-12 col-md-3 col-sm-12 col-xs-12 mt-3" >
+                            <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
+                            
                             <v-select
                                 v-model="productoSeleccionado"
                                 :options="productos"
-                                label="nombre"
-                                placeholder="Seleccionar">
+                                label="producto_completo"
+                                placeholder="Seleccionar"
+                                @search="buscarProducto"
+                                :loading="loadingProductos"
+                                >
                             </v-select>
                         </div>
 
@@ -436,6 +444,8 @@
 </template>
 <script>
 
+
+
 import ModalEnvioVue from "./ModalEnvio.vue";
 import { Empresa } from "../../interfaces/Empresa.js";
 import ModalCodigoPrecioMenorVue from './ModalCodigoPrecioMenor.vue';
@@ -447,11 +457,11 @@ import axios from "axios";
 export default {
     name: "TablaProductos",
     components: {
-    ModalEnvioVue,
-    ModalCodigoPrecioMenorVue,
-    ModalEditaDetalleVue,
-    TablaProductos
-},
+        ModalEnvioVue,
+        ModalCodigoPrecioMenorVue,
+        ModalEditaDetalleVue,
+        TablaProductos,
+    },
     props: [
     "fullaccessTable", 
     "btnDisabled", 
@@ -522,10 +532,17 @@ export default {
                 igv: 0
             },
             Igv: 18,
-            modalLote: false
+            modalLote: false,
+
+            //======== SELECT PRODUCTOS ========
+            loadingProductos: false,          
+            paginaActual: 1,      
+            perPage: 10,              
+            buscando: false          
         }
     },
     watch: {
+
         monto_envio: {
             handler(value) {
                 let valor = value;
@@ -686,18 +703,39 @@ export default {
         }
     },
     created() {
-    //    console.log(this.asegurarCierre);
-    //     //============= EN CASO LA VENTANA SE CIERRE ===============
-    //     window.addEventListener('beforeunload', async () => {
-    //         if (this.asegurarCierre == 1) {
-    //              await this.devolverCantidades();
-    //              this.asegurarCierre = 10;
-    //         } else {
-    //              console.log("beforeunload", this.asegurarCierre);
-    //         }
-    //     });
+
     },
     methods: {
+        async buscarProducto(query) {
+           
+            if (query.length > 2) { 
+                this.loadingProductos = true;
+                this.buscando = true;
+
+            try {
+                const url = route('ventas.documento.getProductosVenta');
+
+                const response = await axios.get(url, {
+                params: {
+                    search: query,
+                    page: this.paginaActual,
+                    perPage: this.perPage,
+                    almacen_id: 1,                  
+                }
+                });
+
+                console.log(response);
+
+                this.productos          = response.data.data.data;  
+                this.loadingProductos   = false;
+                this.buscando           = false;
+            } catch (error) {
+                console.error("Error al buscar productos:", error);
+                this.loadingProductos = false;
+                this.buscando = false;
+            }
+            }
+        },
         openModal(producto) {
            this.$parent.openModal(producto);
         },

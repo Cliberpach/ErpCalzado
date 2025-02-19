@@ -101,6 +101,7 @@
             },
             columns: [
                 { data: 'id'},
+                { data: 'nombre' },
                 { data: 'direccion' },
                 { data: 'ubigeo' },
                 { data: 'codigo_local'},
@@ -111,6 +112,7 @@
                         
                         let acciones            =   ``;
                         const ruta_numeracion   =   `{{ route('mantenimiento.sedes.numeracionCreate', ':sede_id') }}`.replace(':sede_id', row.id);
+                        const ruta_editar       =   `{{ route('mantenimiento.sedes.edit', ':id') }}`.replace(':id', row.id);
 
                         if(data.tipo_sede == 'SECUNDARIA'){
                             acciones  =   `
@@ -119,7 +121,7 @@
                                                     <i class="fas fa-th-large"></i>
                                                 </button>
                                                 <div class="dropdown-menu">
-                                                    <a class="dropdown-item" href="#">Editar</a>
+                                                    <a class="dropdown-item" href="${ruta_editar}">Editar</a>
                                                     <a class="dropdown-item" href="${ruta_numeracion}">Numeración</a>
                                                 </div>
                                             </div>

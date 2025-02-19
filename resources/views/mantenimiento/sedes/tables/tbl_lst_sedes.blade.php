@@ -2,6 +2,7 @@
     <thead>
       <tr>
         <th scope="col">#</th>
+        <th scope="col">NOMBRE</th>
         <th scope="col">DIRECCIÓN</th>
         <th scope="col">UBIGEO</th>
         <th scope="col">CÓDIGO</th>

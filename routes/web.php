@@ -200,7 +200,9 @@ function(){
 
         Route::get('/', 'Mantenimiento\Sede\SedeController@index')->name('mantenimiento.sedes.index');
         Route::get('/create', 'Mantenimiento\Sede\SedeController@create')->name('mantenimiento.sedes.create');
+        Route::get('/edit/{id}', 'Mantenimiento\Sede\SedeController@edit')->name('mantenimiento.sedes.edit');
         Route::post('/store', 'Mantenimiento\Sede\SedeController@store')->name('mantenimiento.sedes.store');
+        Route::put('/update/{id}', 'Mantenimiento\Sede\SedeController@update')->name('mantenimiento.sedes.update');
         Route::get('/getSedes', 'Mantenimiento\Sede\SedeController@getSedes')->name('mantenimiento.sedes.getSedes');
         
         Route::get('/numeracion/create/{sede_id}', 'Mantenimiento\Sede\SedeController@numeracionCreate')->name('mantenimiento.sedes.numeracionCreate');
@@ -529,6 +531,9 @@ function(){
         Route::post('/actualizarStockAdd', 'Ventas\DocumentoController@actualizarStockAdd')->name('ventas.documento.actualizarStockAdd');
         Route::post('/actualizarStockDelete', 'Ventas\DocumentoController@actualizarStockDelete')->name('ventas.documento.actualizarStockDelete');
         Route::post('/actualizarStockEdit', 'Ventas\DocumentoController@actualizarStockEdit')->name('ventas.documento.actualizarStockEdit');
+       
+        Route::get('/getProductosVenta/', 'Ventas\DocumentoController@getProductosVenta')->name('ventas.documento.getProductosVenta');
+
 
         Route::post('getDocumentClient','Ventas\DocumentoController@getDocumentClient')->name('ventas.getDocumentClient');
         Route::post('/storePago', 'Ventas\DocumentoController@storePago')->name('ventas.documento.storePago');

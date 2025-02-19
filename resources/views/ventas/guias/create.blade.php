@@ -55,8 +55,29 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-12">
+                        <div class="col-lg-3 col-xs-12 mb-3">
+                            <label class="required">Modelo</label>
+                            <select id="modelo"
+                                class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
+                                onchange="getProductosByModelo(this.value)" >
+                                <option></option>
+                                @foreach ($modelos as $modelo)
+                                    <option value="{{ $modelo->id }}"
+                                        {{ old('modelo') == $modelo->id ? 'selected' : '' }}>
+                                        {{ $modelo->descripcion }}</option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback"><b><span
+                                        id="error-producto"></span></b></div>
+                        </div>
+                        <div class="col-12 mb-5">
                             @include('ventas.guias.table-stocks')
+                        </div>           
+                        <div class="col-lg-2 col-xs-12">
+                            <button  type="button" id="btn_agregar_detalle"
+                                class="btn btn-warning btn-block">
+                                    <i class="fa fa-plus"></i> AGREGAR
+                                </button>
                         </div>
                     </div>
                 </div>

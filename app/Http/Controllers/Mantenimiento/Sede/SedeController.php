@@ -11,6 +11,7 @@ use App\Mantenimiento\Sedes\Sede;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -33,6 +34,7 @@ class SedeController extends Controller
 
         $sedes  =   DB::select('select 
                     es.id,
+                    es.nombre,
                     es.direccion,
                     CONCAT(es.departamento_nombre, " - ", es.provincia_nombre, " - ", es.distrito_nombre) AS ubigeo,
                     es.codigo_local, 
@@ -61,6 +63,7 @@ array:14 [
   "distrito"        => "010101"
   "codigo_local"    => "0001"
   "serie"           =>  "0002"
+  "urbanizacion"    =>  "urbanizacion"
     "img_empresa" => Illuminate\Http\UploadedFile {#2039
         -test: false
         -originalName: "certificate_test.pem"
@@ -131,6 +134,7 @@ array:14 [
             $sede->codigo_local             =   $request->get('codigo_local');
             $sede->tipo_sede                =   'SECUNDARIA';
             $sede->serie                    =   $request->get('serie');
+            $sede->urbanizacion             =   $request->get('urbanizacion');
             $sede->save();
 
 
@@ -304,6 +308,99 @@ array:4 [
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
 
+    }
+
+    public function edit($id){
+        $sede           =   Sede::find($id);
+        $departamentos  =   DB::select('select * from departamentos');
+        $provincias     =   DB::select('select * from provincias');
+        $distritos      =   DB::select('select * from distritos');
+
+        $rutaRelativa   = 'storage/' . ltrim($sede->logo_ruta, '/');
+        $ruta           = public_path(str_replace('/', DIRECTORY_SEPARATOR, $rutaRelativa));
+
+        return view('mantenimiento.sedes.edit',compact('sede','departamentos','provincias','distritos'));
+    }
+
+
+/*
+array:10 [
+  "_token" => "JOyNM7PhCTjKURJp3IlRSZAkxqLZl6lX1xKseSbB"
+  "nombre" => "SEDE CHICLAYO"
+  "direccion" => "AV U123"
+  "telefono" => null
+  "correo" => null
+  "departamento" => "14"
+  "provincia" => "1401"
+  "distrito" => "140108"
+  "urbanizacion" => null
+  "codigo_local" => "0002"
+]
+*/ 
+    public function update($id,Request $request){
+        DB::beginTransaction();
+        try {
+            $empresa            =   Empresa::find(1);
+
+            $sede               =   Sede::find($id);
+            $sede->nombre       =   $request->get('nombre');
+            $sede->empresa_id   =   1;
+            $sede->ruc          =   $empresa->ruc;
+            $sede->razon_social =   $empresa->razon_social;
+            $sede->direccion    =   $request->get('direccion');
+            $sede->telefono     =   $request->get('telefono');
+            $sede->correo       =   $request->get('correo');
+
+            $departamento_id    =   $request->get('departamento');
+            $provincia_id       =   $request->get('provincia');
+            $distrito_id        =   $request->get('distrito');
+    
+            $departamento_id    = str_pad($departamento_id, 2, '0', STR_PAD_LEFT);
+            $provincia_id       = str_pad($provincia_id, 4, '0', STR_PAD_LEFT);
+            $distrito_id        = str_pad($distrito_id, 6, '0', STR_PAD_LEFT);
+    
+            $sede->departamento_id   =   $departamento_id;
+            $sede->provincia_id      =   $provincia_id;
+            $sede->distrito_id       =   $distrito_id;
+    
+            $departamento               =   DB::select('select d.nombre from departamentos as d where d.id=?',[$departamento_id])[0]->nombre;
+            $provincia                  =   DB::select('select p.nombre from provincias as p where p.id=?',[$provincia_id])[0]->nombre;
+            $distrito                   =   DB::select('select d.nombre from distritos as d where d.id=?',[$distrito_id])[0]->nombre;
+    
+            $sede->departamento_nombre      =   $departamento;
+            $sede->provincia_nombre         =   $provincia;
+            $sede->distrito_nombre          =   $distrito;
+
+            $sede->codigo_local             =   $request->get('codigo_local');
+            $sede->urbanizacion             =   $request->get('urbanizacion');
+            $sede->update();
+
+
+            //======= GUARDANDO LOGO SEDE =======
+            if ($request->hasFile('img_empresa')) {
+
+                $imagen             =   $request->file('img_empresa');
+                $nombre_imagen      =   'LOGO' . $sede->carpeta_nombre . '.' . $imagen->getClientOriginalExtension();
+                $ruta               =   $sede->carpeta_nombre.'/logo/';
+            
+                $ruta_completa      =   $imagen->storeAs($ruta, $nombre_imagen, 'public');
+            
+                $ruta_imagen        =   $sede->carpeta_nombre.'/logo/'.$nombre_imagen;
+
+                $sede->logo_ruta    =   $ruta_imagen;
+                $sede->logo_nombre  =   $nombre_imagen;
+                $sede->update();
+            
+            }
+            
+            DB::commit();
+
+            return response()->json(['success'=>true,'message'=>'SEDE ACTUALIZADA CON ÉXITO']);
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
     }
 
 }

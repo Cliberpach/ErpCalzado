@@ -11,7 +11,7 @@
             <option></option>
             @foreach ($conductores as $conductor)
                 
-                <option value="{{$conductor->id}}">{{$conductor->nombre}}</option>
+                <option value="{{$conductor->id}}">{{$conductor->tipo_documento_nombre.':'.$conductor->nro_documento.'-'.$conductor->nombre_completo}}</option>
              
             @endforeach
         </select>

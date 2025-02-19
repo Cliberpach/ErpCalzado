@@ -35,6 +35,7 @@ class SedeStoreRequest extends FormRequest
             'provincia'         =>  'required|max:10',
             'distrito'          =>  'required|max:10',
             'codigo_local'      =>  'required|max:10',
+            'urbanizacion'      =>  'required|max:200',
         ];
     }
 
@@ -68,6 +69,9 @@ class SedeStoreRequest extends FormRequest
 
             'codigo_local.required'     => 'El código local es obligatorio.',
             'codigo_local.max'          => 'El código local no puede exceder los 10 caracteres.',
+
+            'urbanizacion.required'     => 'La urbanización es requerida',
+            'urbanizacion.max'          => 'La urbanización no puede exceder los 200 caracteres'
         ];
     }
 

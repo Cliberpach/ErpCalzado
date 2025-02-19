@@ -44,10 +44,14 @@
         </template>
     </div>
 </template>
+
 <script>
+
 export default {
     name: "AppVue",
     props: ["imginicial","lst_departamentos_base","lst_provincias_base","lst_distritos_base"],
+    components:{
+    },
     data() {
         return {
             ruta: "index",
@@ -110,7 +114,10 @@ export default {
         }
     },
     mounted() {
-
+        
     }
+    
 }
+
+
 </script>

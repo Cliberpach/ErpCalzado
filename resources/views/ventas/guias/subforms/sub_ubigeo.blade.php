@@ -9,9 +9,10 @@
 
     <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
         <label class="required font-weight-bold">SEDE PARTIDA</label>
-        <select class="form-control select2_form">
-            <option value="KGM">KILOGRAMOS</option>
-            <option value="TNE">TONELADAS</option>
+        <select class="form-control select2_form" name="sede_origen" id="sede_origen">
+            @foreach ($sedes as $sede)
+                <option value="{{$sede->id}}">{{$sede->nombre}}</option>
+            @endforeach
         </select>
     </div>
 
@@ -46,9 +47,11 @@
 
     <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
         <label class="required font-weight-bold">SEDE DESTINO</label>
-        <select class="form-control select2_form">
-            <option value="KGM">KILOGRAMOS</option>
-            <option value="TNE">TONELADAS</option>
+        <select class="form-control select2_form" name="sede_destino" id="sede_destino">
+            <option value=""></option>
+            @foreach ($sedes as $sede)
+                <option value="{{$sede->id}}">{{$sede->nombre}}</option>
+            @endforeach
         </select>
     </div>
     <div class="col-12"></div>

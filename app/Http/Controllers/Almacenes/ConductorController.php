@@ -24,7 +24,7 @@ class ConductorController extends Controller
                     ->select(
                         'co.id',
                         'co.nombre_completo as nombre',
-                        'co.tipo_documento',
+                        'co.tipo_documento_nombre',
                         'co.nro_documento',
                         'co.telefono',
                         'co.licencia'
