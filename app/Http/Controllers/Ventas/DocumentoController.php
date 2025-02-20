@@ -4819,16 +4819,21 @@ array:5 [
 
 
         try {
+        
             $search         = $request->query('search'); // Palabra clave para la búsqueda
             $almacenId      = $request->query('almacen_id'); // ID del almacén
             $page           = $request->query('page', 1); // Página actual (default es 1)
             $perPage        = $request->query('perPage', 10); // Número de elementos por página (default es 10)
+
+            if(!$almacenId){
+                throw new Exception("FALTA SELECCIONAR UN ALMACÉN!!!");
+            }
         
-            $productos  =   DB::table('producto_color_tallas as pct')
-                            ->join('productos as p','p.id','pct.producto_id')
+            $productos  =   DB::table('productos as p')
                             ->join('categorias as c','c.id','p.categoria_id')
                             ->join('marcas as ma','ma.id','p.marca_id')
                             ->join('modelos as mo','mo.id','p.modelo_id')
+                            ->leftJoin('producto_color_tallas as pct','p.id','pct.producto_id')
                             ->select(
                             DB::raw("CONCAT(c.descripcion, ' - ', ma.marca, ' - ', mo.descripcion, ' - ', p.nombre) as producto_completo"),
                             'c.descripcion as categoria_nombre',
@@ -4836,10 +4841,12 @@ array:5 [
                             'mo.descripcion as modelo_nombre',
                             'p.id as producto_id',
                             'p.nombre as producto_nombre',
-                            'pct.stock')
+                            )
                             ->where(DB::raw("CONCAT(c.descripcion, ' - ', ma.marca, ' - ', mo.descripcion, ' - ', p.nombre)"), 'LIKE', "%$search%") 
                             ->where('pct.almacen_id',$almacenId)
-                            //->where('pct.stock','>',0)
+                            ->where('pct.stock','>',0)
+                            ->where('p.estado','ACTIVO')
+                            ->groupBy('p.id', 'c.descripcion', 'ma.marca', 'mo.descripcion', 'p.nombre')
                             ->paginate($perPage, ['*'], 'page', $page); 
 
 

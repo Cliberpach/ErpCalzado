@@ -158,7 +158,7 @@
                             <button class="btn btn-danger" @click="eliminarCarrito"> ELIMINAR TODO </button>
                         </div>
 
-                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
+                        <!-- <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
                             <label class="required" style="font-weight: bold;">CATEGORÍA</label>
 
                             <v-select
@@ -193,9 +193,8 @@
                                 label="descripcion"
                                 placeholder="Seleccionar">
                             </v-select>
-                        </div>
+                        </div> -->
 
-                        <div class="col-12"></div>
                         <div class="col-lg-12 col-md-3 col-sm-12 col-xs-12 mt-3" >
                             <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
                             
@@ -668,8 +667,13 @@ export default {
         },
         productoSeleccionado: {
             handler(value) {
-                //====== OBTENER COLORES Y TALLAS DEL PRODUCTO ======
-                this.getColoresTallas();
+                const producto_id   =   value.producto_id;
+
+                if(producto_id){
+                    //====== OBTENER COLORES Y TALLAS DEL PRODUCTO ======
+                    this.getColoresTallas();
+                }
+            
             },
             deep: true,
         },
@@ -709,10 +713,11 @@ export default {
         async buscarProducto(query) {
            
             if (query.length > 2) { 
-                this.loadingProductos = true;
-                this.buscando = true;
+                this.loadingProductos   = true;
+                this.buscando           = true;
 
             try {
+                toastr.clear();
                 const url = route('ventas.documento.getProductosVenta');
 
                 const response = await axios.get(url, {
@@ -720,15 +725,21 @@ export default {
                     search: query,
                     page: this.paginaActual,
                     perPage: this.perPage,
-                    almacen_id: 1,                  
+                    almacen_id: this.almacenSeleccionado,                  
                 }
                 });
 
                 console.log(response);
 
-                this.productos          = response.data.data.data;  
-                this.loadingProductos   = false;
-                this.buscando           = false;
+                if(response.data.success){
+                    this.productos          = response.data.data.data;  
+                    this.loadingProductos   = false;
+                    this.buscando           = false;
+                }else{
+                    console.log(response.data.message)
+                    toastr.error(response.data.message,'ERROR EN EL SERVIDOR');
+                }
+           
             } catch (error) {
                 console.error("Error al buscar productos:", error);
                 this.loadingProductos = false;
@@ -1229,7 +1240,7 @@ export default {
             
             //======= MOSTRAR ANIMACIÓN =======
             this.$parent.mostrarAnimacionVenta();                     
-            const producto_id   =   this.productoSeleccionado;
+            const producto_id   =   this.productoSeleccionado.producto_id;
             const almacen_id    =   this.almacenSeleccionado;
 
             if(!producto_id){
