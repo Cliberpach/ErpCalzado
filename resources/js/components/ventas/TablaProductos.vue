@@ -668,7 +668,7 @@ export default {
         productoSeleccionado: {
             handler(value) {
                 const producto_id   =   value.producto_id;
-
+                console.log('producto seleccionado');
                 if(producto_id){
                     //====== OBTENER COLORES Y TALLAS DEL PRODUCTO ======
                     this.getColoresTallas();
@@ -711,41 +711,51 @@ export default {
     },
     methods: {
         async buscarProducto(query) {
-           
+            console.log('OLA');
+            if(!this.almacenSeleccionado){
+                toastr.clear();
+                toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
+                //======= FOCUS AL VSELECT ALMACÉN ========
+                //this.$parent.$refs.selectAlmacen.$el.querySelector("input").focus();
+                return;
+            }
+
             if (query.length > 2) { 
+
                 this.loadingProductos   = true;
                 this.buscando           = true;
 
-            try {
-                toastr.clear();
-                const url = route('ventas.documento.getProductosVenta');
+                try {
+                    toastr.clear();
+                    const url = route('ventas.documento.getProductosVenta');
 
-                const response = await axios.get(url, {
-                params: {
-                    search: query,
-                    page: this.paginaActual,
-                    perPage: this.perPage,
-                    almacen_id: this.almacenSeleccionado,                  
+                    const response = await axios.get(url, {
+                    params: {
+                        search: query,
+                        page: this.paginaActual,
+                        perPage: this.perPage,
+                        almacen_id: this.almacenSeleccionado,                  
+                    }
+                    });
+
+                    console.log(response);
+
+                    if(response.data.success){
+                        this.productos          = response.data.data.data;  
+                        this.loadingProductos   = false;
+                        this.buscando           = false;
+                    }else{
+                        console.log(response.data.message)
+                        toastr.error(response.data.message,'ERROR EN EL SERVIDOR');
+                    }
+
+                } catch (error) {
+                    console.error("Error al buscar productos:", error);
+                    this.loadingProductos = false;
+                    this.buscando = false;
                 }
-                });
-
-                console.log(response);
-
-                if(response.data.success){
-                    this.productos          = response.data.data.data;  
-                    this.loadingProductos   = false;
-                    this.buscando           = false;
-                }else{
-                    console.log(response.data.message)
-                    toastr.error(response.data.message,'ERROR EN EL SERVIDOR');
-                }
+            }
            
-            } catch (error) {
-                console.error("Error al buscar productos:", error);
-                this.loadingProductos = false;
-                this.buscando = false;
-            }
-            }
         },
         openModal(producto) {
            this.$parent.openModal(producto);

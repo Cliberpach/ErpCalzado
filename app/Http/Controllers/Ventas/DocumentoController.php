@@ -79,9 +79,13 @@ class DocumentoController extends Controller
         $this->authorize('haveaccess', 'documento_venta.index');
         $dato = "Message";
 
+        $departamentos  =   Departamento::all();
+        $provincias     =   Provincia::all();
+        $distritos      =   Distrito::all();
+
         //broadcast(new NotifySunatEvent($dato));
        
-        return view('ventas.documentos.index');
+        return view('ventas.documentos.index',compact('departamentos','provincias','distritos'));
     }
 
     public function indexAntiguo()
@@ -663,7 +667,6 @@ class DocumentoController extends Controller
         $condiciones    = Condicion::where('estado', 'ACTIVO')->get();
 
         $almacenes          =   Almacen::where('estado','ACTIVO')->where('tipo_almacen','PRINCIPAL')->get();
-
 
         $departamentos  =   Departamento::all();
         $provincias     =   Provincia::all();

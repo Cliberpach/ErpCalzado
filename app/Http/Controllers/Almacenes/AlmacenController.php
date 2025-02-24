@@ -60,7 +60,7 @@ array:7 [▼
 ]
 */
     public function store(Request $request){
-        
+        dd($request->all());
         $this->authorize('haveaccess','almacen.index'); 
         $data = $request->all();
     
