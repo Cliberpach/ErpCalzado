@@ -60,7 +60,7 @@ array:7 [▼
 ]
 */
     public function store(Request $request){
-        dd($request->all());
+     
         $this->authorize('haveaccess','almacen.index'); 
         $data = $request->all();
     
@@ -87,7 +87,7 @@ array:7 [▼
         $almacen->descripcion   =   $request->get('descripcion_guardar');
         $almacen->ubicacion     =   $request->get('ubicacion_guardar');
         $almacen->sede_id       =   $request->get('sede_id');
-        $alamcen->tipo_almacen  =   $request->get('tipo_almacen');
+        $almacen->tipo_almacen  =   $request->get('tipo_almacen');
         $almacen->save();
 
         
