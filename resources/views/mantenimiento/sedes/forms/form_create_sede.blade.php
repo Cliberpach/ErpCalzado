@@ -96,7 +96,7 @@
                         <span class="input-group-text" id="basic-addon1">
                             <i class="fas fa-road"></i>
                         </span>
-                        <input maxlength="100" value="" name="urbanizacion" id="urbanizacion" type="email" class="form-control" placeholder="URBANIZACIÓN" aria-label="Username" aria-describedby="basic-addon1">
+                        <input maxlength="100" value="" name="urbanizacion" id="urbanizacion" type="text" class="form-control" placeholder="URBANIZACIÓN" aria-label="Username" aria-describedby="basic-addon1">
                     </div>
                     <span class="urbanizacion_error msgError"  style="color:red;"></span>
                 </div>

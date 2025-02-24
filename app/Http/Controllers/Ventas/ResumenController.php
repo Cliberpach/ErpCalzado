@@ -440,7 +440,7 @@ class ResumenController extends Controller
 
     public function getXml($resumen_id){
         $resumen        =   Resumen::find($resumen_id);
-        $nombreArchivo  = basename($resumen->ruta_xml);
+        $nombreArchivo  =   basename($resumen->ruta_xml);
         
 
         $headers = [
