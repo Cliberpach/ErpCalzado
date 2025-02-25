@@ -52,6 +52,8 @@ class NumeracionStoreRequest extends FormRequest
                                             from tabladetalles as td
                                             where td.id = ?',[$comprobanteId])[0];
 
+                    dd($tipo_comprobante);
+
                     $length         = in_array($tipo_comprobante->parametro, ['FF', 'BB']) ? 2 : 3;
                     if (strlen($value) !== $length) {
                         $fail("La serie debe tener exactamente $length caracteres.");
