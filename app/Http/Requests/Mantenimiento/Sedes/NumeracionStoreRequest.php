@@ -44,9 +44,15 @@ class NumeracionStoreRequest extends FormRequest
                 'required',
                 'regex:/^[A-Za-z0-9]+$/',
                 function ($attribute, $value, $fail) {
+                                    
+                    $comprobanteId      = request()->get('comprobante_id');
 
-                    $comprobanteId  = request()->get('comprobante_id');
-                    $length         = in_array($comprobanteId, [131, 133]) ? 2 : 3;
+                    $tipo_comprobante   =   DB::select('select 
+                                            td.parametro
+                                            from tabladetalles as td
+                                            where td.id = ?',[$comprobanteId])[0];
+
+                    $length         = in_array($tipo_comprobante->parametro, ['FF', 'BB']) ? 2 : 3;
                     if (strlen($value) !== $length) {
                         $fail("La serie debe tener exactamente $length caracteres.");
                     }
