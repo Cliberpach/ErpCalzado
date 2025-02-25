@@ -15,12 +15,16 @@ class CreatePedidosTable extends Migration
     {
         Schema::create('pedidos', function (Blueprint $table) {
             $table->id();
+
             $table->unsignedInteger('cliente_id');
             $table->string('cliente_nombre');
+
             $table->unsignedInteger('empresa_id');
             $table->string('empresa_nombre');
+
             $table->unsignedInteger('user_id');
             $table->string('user_nombre');
+
             $table->unsignedBigInteger('condicion_id');
 
             $table->string('moneda');
@@ -46,6 +50,11 @@ class CreatePedidosTable extends Migration
             $table->unsignedDecimal('monto_facturado',15,2)->nullable();
             $table->unsignedDecimal('saldo_facturado',15,2)->nullable();
 
+            $table->unsignedInteger('documento_venta_facturacion_id ');
+            $table->foreign('documento_venta_facturacion_id ')->references('id')->on('cotizacion_documento');
+            
+            $table->string('documento_venta_facturacion_serie',100)->nullable();
+            $table->string('documento_venta_facturacion_correlativo',100)->nullable();
             
             $table->enum('estado', ['PENDIENTE', 'ATENDIENDO','FINALIZADO','ANULADO'])->default('PENDIENTE');
             $table->timestamps();

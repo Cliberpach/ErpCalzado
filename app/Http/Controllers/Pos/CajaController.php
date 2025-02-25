@@ -358,10 +358,9 @@ public function aperturaCaja(MovimientoCajaAperturaRequest $request){
         //========= DETALLE DEL MOVIMIENTO =====
         $detallesMovimiento                 =   new DetallesMovimientoCaja();
         $detallesMovimiento->movimiento_id  =   $movimiento->id;
-        $detallesMovimiento->colaborador_id =   $request->get('colaborador_id');
+        $detallesMovimiento->colaborador_id =   $request->get('cajero_id');
         $detallesMovimiento->fecha_entrada  =   date('Y-m-d h:i:s');
         $detallesMovimiento->sede_id        =   $request->get('sede_id');
-
         $detallesMovimiento->save();
 
         $caja               =   Caja::findOrFail($request->caja);

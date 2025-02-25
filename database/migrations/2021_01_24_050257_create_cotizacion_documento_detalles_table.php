@@ -15,6 +15,7 @@ class CreateCotizacionDocumentoDetallesTable extends Migration
     {
         Schema::create('cotizacion_documento_detalles', function (Blueprint $table) {
             $table->Increments('id');
+            
             $table->unsignedInteger('documento_id');
             $table->foreign('documento_id')->references('id')->on('cotizacion_documento')->onDelete('cascade');
             
