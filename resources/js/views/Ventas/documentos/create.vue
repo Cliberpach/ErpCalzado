@@ -129,7 +129,8 @@
                                                     
                                                 <v-select v-model="almacenSeleccionado" :options="initData.almacenes"
                                                     :reduce="a => a.id" label="descripcion"
-                                                    placeholder="Seleccionar"  ref="selectAlmacen">
+                                                    placeholder="Seleccionar"
+                                                    ref="selectAlmacen">
                                                 </v-select>
                                                     
                                             </div>
@@ -217,7 +218,7 @@
                             </form>
                             <hr>
 
-                            <TablaProductos @addProductoDetalle="AddProductoDetalles" @addDataEnvio="addDataEnvio"
+                            <TablaProductos @addProductoDetalle="addProductoDetalle" @addDataEnvio="addDataEnvio"
                                 :fullaccessTable="FullaccessTable" 
                                 :idcotizacion="idcotizacion" 
                                 :btnDisabled="disabledBtnProducto"
@@ -385,6 +386,17 @@ export default {
         }
     },
     watch: {
+        almacenSeleccionado:{
+            handler(value){
+
+                //===== LIMPIAR FORMULARIO DETALLE ======
+                this.$refs.tablaProductos.limpiarFormularioDetalle();
+               
+             
+             
+
+            }
+        },
         productos_tabla:{
            handler(value){
                 this.formCreate.productos_tabla = JSON.stringify(value);
@@ -483,6 +495,9 @@ export default {
         
     },
     methods: {
+        cambiarAlmacen(){
+            alert('ola');
+        },
         handleBeforeUnload(event) {
             this.$refs.tablaProductos?.devolverCantidades();
         },
@@ -547,8 +562,8 @@ export default {
             this.initData.clientes.push(clienteNuevo);
             this.cliente_id = clienteNuevo;
         },
-        //======= obteniendo carrito del componente hijo TablaProductos.vue ==========
-        AddProductoDetalles(value) {
+        //======= OBTENIENDO CARRITO DEL COMPONENTE HIJO TablaProductos.vue ==========
+        addProductoDetalle(value) {
             const { detalles, totales } =   value;
             //this.productos_tabla      =   this.formatearDetalle(detalles);
             this.productos_tabla        =   detalles;

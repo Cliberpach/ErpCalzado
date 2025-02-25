@@ -616,9 +616,12 @@ export default {
         },
         carrito:{
             handler(value){
+
+                console.log('WATCH CARRITO');
+
                 //======== si aún quedan items en el carrito , asegurar cierre será 1 =========
-                 if(this.carrito.length>0){
-                     this.asegurarCierre=1;
+                 if(this.carrito.length > 0){
+                    this.asegurarCierre = 1;
                 }
                 const montos = {
                     monto_sub_total: parseFloat(this.monto_subtotal),
@@ -629,10 +632,12 @@ export default {
                     monto_total_pagar: parseFloat(this.monto_total_pagar),
                     monto_descuento:parseFloat(this.monto_descuento)
                 };
+
                 this.$emit('addProductoDetalle', {
                     detalles:   this.carrito,
                     totales :   montos
                 });
+
             },
             deep: true,
         },
@@ -1014,6 +1019,8 @@ export default {
                 this.carrito.forEach((c)=>{
                     this.calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
                 })
+
+                console.log('CARRITO',this.carrito);
                
 
             } catch (error) {
@@ -1051,6 +1058,7 @@ export default {
                 if (indiceExiste == -1) {
 
                     const objProduct = {
+                        almacen_id:  producto.almacen_id,
                         producto_id: producto.producto_id,
                         color_id: producto.color_id,
                         producto_nombre: producto.producto_nombre,
@@ -1108,23 +1116,25 @@ export default {
                 if (ic.value) {
                     const producto = this.formarProducto(ic);
 
-                    // Verificar si el producto ya existe en el carrito
+                    //========= VERIFICAR SI EL COLOR YA EXISTE EN EL CARRITO =====
                     const indiceProductoColor = this.carrito.findIndex((c) => {
                         return c.producto_id == producto.producto_id && c.color_id == producto.color_id;
                     });
 
                     if (indiceProductoColor !== -1) {
-                        // Verificar si la talla ya existe
+                        //======== VERIFICAR SI LA TALLA YA EXISTE EN EL CARRITO ====
                         const indiceTalla = this.carrito[indiceProductoColor].tallas.findIndex((t) => {
                             return t.talla_id == producto.talla_id;
                         });
 
                         if (indiceTalla !== -1) {
+
+                            //======== ROMPER EL BUCLE EN CASO EXISTA LA TALLA EN EL CARRITO ======
                             toastr.error(
                                 `YA FUE AGREGADO!! ${this.carrito[indiceProductoColor].producto_nombre}-${this.carrito[indiceProductoColor].color_nombre}-${this.carrito[indiceProductoColor].tallas[indiceTalla].talla_nombre}`
                             );
                             validacion = false;
-                            break; // Rompe el bucle
+                            break; 
                         }
                     }
 
@@ -1157,6 +1167,7 @@ export default {
             }
         },
         formarProducto(ic){
+            const almacen_id        = ic.getAttribute('data-almacen-id');
             const producto_id       = ic.getAttribute('data-producto-id');
             const producto_nombre   = ic.getAttribute('data-producto-nombre');
             const color_id          = ic.getAttribute('data-color-id');
@@ -1171,7 +1182,7 @@ export default {
             const precio_venta_nuevo        =   0.0;
             const subtotal_nuevo            =   0.0;
 
-            const producto = {producto_id,producto_nombre,color_id,color_nombre,
+            const producto  =   {almacen_id,producto_id,producto_nombre,color_id,color_nombre,
                                 talla_id,talla_nombre,cantidad,precio_venta,
                                 monto_descuento,porcentaje_descuento,precio_venta_nuevo,subtotal_nuevo};
             return producto;
@@ -1257,6 +1268,7 @@ export default {
                 this.$parent.ocultarAnimacionVenta();
                 return;
             }
+
            //======= DEBE SELECCIONARSE UN ALMACÉN =======
            if(!this.almacenSeleccionado){
                 toastr.clear();
@@ -1291,11 +1303,11 @@ export default {
             return stock ? stock.stock_logico : 0;
         },
         async devolverCantidades() {
-
+            console.log('ASEGURAR CIERRE',this.asegurarCierre);
             if(this.asegurarCierre == 1){
+                console.log('DEVOLVIENDO STOCK');
                 await this.axios.post(route('ventas.documento.devolverCantidades'), {
                     carrito: JSON.stringify(this.carrito),
-                    almacen_id:this.almacenSeleccionado
                 }); 
                 this.ChangeAsegurarCierre();
             }
@@ -1308,54 +1320,6 @@ export default {
                 this.dataEmpresa = data;
             } catch (ex) {
 
-            }
-        },
-        evaluarPrecioigv(producto) {
-            if (producto.precio_compra == null) {
-                let cambio = convertFloat(producto.dolar_ingreso);
-                let precio = 0;
-                var precio_ = producto.precio_ingreso;
-                let porcentaje_ = producto.porcentaje;
-                let precio_nuevo = 0;
-                if (producto.moneda_ingreso == 'DOLARES') {
-                    precio = precio_ * cambio;
-                    precio_nuevo = precio * (1 + (porcentaje_ / 100))
-                }
-                else {
-                    precio = precio_;
-                    precio_nuevo = precio * (1 + (porcentaje_ / 100))
-                }
-                return convertFloat(precio_nuevo).toFixed(2);
-            } else {
-                let cambio = convertFloat(producto.dolar_compra);
-                let precio = 0;
-                let precio_ = producto.precio_compra;
-                let porcentaje_ = producto.porcentaje;
-                let precio_nuevo = 0;
-                let totalCostoFlote = Number(producto.costo_flete) / Number(producto.cantidad_comprada);
-                let costo_flete = convertFloat(totalCostoFlote * (1 + porcentaje_ / 100)).toFixed(2);
-
-                if (producto.moneda_compra == 'DOLARES') {
-                    if (producto.igv_compra == 1) {
-                        precio = precio_ * cambio;
-                        precio_nuevo = precio * (1 + porcentaje_ / 100) + Number(costo_flete)
-                    }
-                    else {
-                        precio = (precio_ * cambio * 1.18)
-                        precio_nuevo = precio * (1 + porcentaje_ / 100) + Number(costo_flete)
-                    }
-                }
-                else {
-                    if (producto.igv_compra == 1) {
-                        precio = precio_;
-                        precio_nuevo = precio * (1 + porcentaje_ / 100) + Number(costo_flete)
-                    }
-                    else {
-                        precio = (precio_ * 1.18)
-                        precio_nuevo = precio * (1 + porcentaje_ / 100) + Number(costo_flete)
-                    }
-                }
-                return convertFloat(precio_nuevo).toFixed(2);
             }
         },
         AgregarDatos(item) {
@@ -1492,6 +1456,15 @@ export default {
             }finally{
                 this.$parent.ocultarAnimacionVenta();            
             }
+        },
+        async limpiarFormularioDetalle(){
+            this.$parent.mostrarAnimacionVenta();            
+            await this.devolverCantidades();
+            this.carrito                    =   [];
+            this.productosPorModelo         =   [];
+            this.productoSeleccionado       =   '';
+            this.precioVentaSeleccionado    =   '';
+            this.$parent.ocultarAnimacionVenta();            
         }
 
     }

@@ -32,45 +32,49 @@ class DespachoController extends Controller
         $cliente_id     =   $request->get('cliente_id');
 
     
-        $query  =   DB::table('envios_ventas')
+        $query  =   DB::table('envios_ventas as ev')
                     ->select(
-                        'id',
-                        'documento_nro',
-                        'cliente_nombre',
-                        'cliente_celular',
-                        'user_vendedor_nombre',
-                        'almacen_nombre',
-                        'user_despachador_nombre',
-                        'fecha_envio_propuesta',
-                        DB::raw("IFNULL(fecha_envio, '-') AS fecha_envio"),
-                        DB::raw("DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS fecha_registro"),
-                        'tipo_envio',
-                        'empresa_envio_nombre',
-                        'sede_envio_nombre',
-                        DB::raw("CONCAT(departamento, ' - ', provincia, ' - ', distrito) AS ubigeo"),
-                        'tipo_pago_envio',
-                        'destinatario_nombre',
-                        DB::raw("CONCAT(destinatario_tipo_doc, ': ', destinatario_nro_doc) AS destinatario_nro_doc"),
-                        'monto_envio',
-                        'entrega_domicilio',
-                        'direccion_entrega',
-                        'estado',
-                        'documento_id',
-                        'obs_despacho'
+                        'eso.nombre as sede_origen_nombre',
+                        'es.nombre as sede_despachadora_nombre',
+                        'ev.id',
+                        'ev.documento_nro',
+                        'ev.cliente_nombre',
+                        'ev.cliente_celular',
+                        'ev.user_vendedor_nombre',
+                        'ev.almacen_nombre',
+                        'ev.user_despachador_nombre',
+                        'ev.fecha_envio_propuesta',
+                        DB::raw("IFNULL(ev.fecha_envio, '-') AS fecha_envio"),
+                        DB::raw("DATE_FORMAT(ev.created_at, '%Y-%m-%d %H:%i:%s') AS fecha_registro"),
+                        'ev.tipo_envio',
+                        'ev.empresa_envio_nombre',
+                        'ev.sede_envio_nombre',
+                        DB::raw("CONCAT(ev.departamento, ' - ', ev.provincia, ' - ', ev.distrito) AS ubigeo"),
+                        'ev.tipo_pago_envio',
+                        'ev.destinatario_nombre',
+                        DB::raw("CONCAT(ev.destinatario_tipo_doc, ': ', ev.destinatario_nro_doc) AS destinatario_nro_doc"),
+                        'ev.monto_envio',
+                        'ev.entrega_domicilio',
+                        'ev.direccion_entrega',
+                        'ev.estado',
+                        'ev.documento_id',
+                        'ev.obs_despacho'
                     )
+                    ->join('empresa_sedes as es','es.id','ev.sede_despachadora_id')
+                    ->join('empresa_sedes as eso','eso.id','ev.sede_id')
                     ->orderByDesc('id');
     
         if ($fecha_inicio) {
-            $query->whereDate('created_at', '>=', $fecha_inicio);
+            $query->whereDate('ev.created_at', '>=', $fecha_inicio);
         }
         if ($fecha_fin) {
-            $query->whereDate('created_at', '<=', $fecha_fin);
+            $query->whereDate('ev.created_at', '<=', $fecha_fin);
         }
         if ($estado) {
-            $query->where('estado', '=', $estado);
+            $query->where('ev.estado', '=', $estado);
         }
         if ($cliente_id) {
-            $query->where('cliente_id', '=', $cliente_id);
+            $query->where('ev.cliente_id', '=', $cliente_id);
         }
 
         //========= FILTRO POR ROLES ======
@@ -82,12 +86,12 @@ class DespachoController extends Controller
 
         //======== ADMIN PUEDE VER TODOS LOS DESPACHOS DE SU SEDE =====
         if (in_array('ADMIN', $roles)) {
-            $query->where('sede_id', Auth::user()->sede_id);
+            $query->where('ev.sede_despachadora_id', Auth::user()->sede_id);
         } else {
             
             //====== USUARIOS PUEDEN VER SUS PROPIOS DESPACHOS ======
-            $query->where('sede_id', Auth::user()->sede_id)
-            ->where('user_vendedor_id', Auth::user()->id);
+            $query->where('ev.sede_despachadora_id', Auth::user()->sede_id);
+
         }
     
         return DataTables::of($query->get())->toJson();

@@ -305,7 +305,8 @@ class DocumentoController extends Controller
                                     p.precio_venta_1,p.precio_venta_2,p.precio_venta_3,
                                     pct.color_id,c.descripcion as color_name,
                                     pct.talla_id,t.descripcion as talla_name,pct.stock,
-                                    pct.stock_logico
+                                    pct.stock_logico,
+                                    pct.almacen_id
                                     from producto_color_tallas as pct
                                     inner join productos as p on p.id = pct.producto_id
                                     inner join colores as c on c.id = pct.color_id
@@ -1663,6 +1664,7 @@ array:27 [
 
             $data_envio     =   json_decode($request->get('data_envio'));
            
+            //========= HAY DATOS DE DESPACHO ======
             if (!empty((array)$data_envio)) {
 
                 $envio_venta                        =   new EnvioVenta();
@@ -1695,9 +1697,10 @@ array:27 [
                 $envio_venta->almacen_id            =   $documento->almacen_id;
                 $envio_venta->almacen_nombre        =   $documento->almacen_nombre;
                 $envio_venta->sede_id               =   $documento->sede_id;
+                $envio_venta->sede_despachadora_id  =   $datos_validados->almacen->sede_id;
                 $envio_venta->save();
              
-            }else{
+            }else{  //======= SIN DESPACHO ======
                    
                     
                 //======== OBTENER EMPRESA ENVÍO =======
@@ -1741,6 +1744,7 @@ array:27 [
                 $envio_venta->almacen_id            =   $documento->almacen_id;
                 $envio_venta->almacen_nombre        =   $documento->almacen_nombre;
                 $envio_venta->sede_id               =   $documento->sede_id;
+                $envio_venta->sede_despachadora_id  =   $datos_validados->almacen->sede_id;
                 $envio_venta->save();
             }
 
@@ -1759,6 +1763,7 @@ array:27 [
 
        
             DB::commit();
+            
             return response()->json(['success'=>true,
             'message'=>'DOCUMENTO VENTA REGISTRADO CON ÉXITO',
             'documento_id'=>$documento->id]);
@@ -4026,7 +4031,7 @@ array:27 [
         $mensaje        =   false;
 
         if($request->has('carrito')){
-            $almacen_id     =   $request->get('almacen_id');
+
             $carrito        =   $request->get('carrito');
             $productosJSON  =   json_decode($carrito);
 
@@ -4034,7 +4039,7 @@ array:27 [
                 $mensaje=true;
                 foreach ($producto->tallas as $talla) {
                     DB::table('producto_color_tallas')
-                    ->where('almacen_id', $almacen_id)
+                    ->where('almacen_id', $producto->almacen_id)
                     ->where('producto_id', $producto->producto_id)
                     ->where('color_id', $producto->color_id)
                     ->where('talla_id', $talla->talla_id) 
@@ -4844,12 +4849,13 @@ array:5 [
                             'mo.descripcion as modelo_nombre',
                             'p.id as producto_id',
                             'p.nombre as producto_nombre',
+                            'pct.almacen_id'
                             )
                             ->where(DB::raw("CONCAT(c.descripcion, ' - ', ma.marca, ' - ', mo.descripcion, ' - ', p.nombre)"), 'LIKE', "%$search%") 
                             ->where('pct.almacen_id',$almacenId)
                             ->where('pct.stock','>',0)
                             ->where('p.estado','ACTIVO')
-                            ->groupBy('p.id', 'c.descripcion', 'ma.marca', 'mo.descripcion', 'p.nombre')
+                            ->groupBy('pct.almacen_id','p.id', 'c.descripcion', 'ma.marca', 'mo.descripcion', 'p.nombre')
                             ->paginate($perPage, ['*'], 'page', $page); 
 
 

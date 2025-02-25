@@ -216,6 +216,14 @@
                         className: "text-left letrapequeña"
                     },
                     {
+                        data: 'sede_origen_nombre',
+                        className: "text-left letrapequeña"
+                    },
+                    {
+                        data: 'sede_despachadora_nombre',
+                        className: "text-left letrapequeña"
+                    },
+                    {
                         data: 'user_despachador_nombre',
                         className: "text-left letrapequeña"
                     },

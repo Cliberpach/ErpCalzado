@@ -2,10 +2,14 @@
     <thead>
         <tr>
             <th class="text-center" colspan="5">DOC VENTA</th>
+
+            <th class="text-center" colspan="2">SEDES</th>
+
             <th class="text-center" rowspan="2">DESPACHADOR</th>
             <th class="text-center" rowspan="2">FEC PROPUESTA</th>
             <th class="text-center" rowspan="2">FEC ENVÍO</th>
             <th class="text-center" rowspan="2">FEC REGISTRO</th>
+
             <th class="text-center" colspan="3">EMPRESA DESPACHADORA</th>
             <th class="text-center" colspan="3">DESTINO</th>
 
@@ -26,6 +30,9 @@
             <th class="text-center">CLIENTE CELULAR</th>
             <th class="text-center">VENDEDOR</th>
             <th class="text-center">ALMACÉN</th>
+
+            <th class="text-center">SEDE ORIGEN</th>
+            <th class="text-center">SEDE DESPACHO</th>
 
             <th class="text-center">TIPO ENVÍO</th>
             <th class="text-center">EMPRESA</th>
