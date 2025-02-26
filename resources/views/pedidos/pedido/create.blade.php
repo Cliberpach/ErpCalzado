@@ -296,6 +296,11 @@
 
        //======== AGREGAR PRODUCTO AL DETALLE =====
        document.querySelector('#btn_agregar_detalle').addEventListener('click',()=>{
+
+            if(!$('#precio_venta').val()){
+                toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA','OPERACIÓN INCORRECTA');
+                return;
+            }
             
             mostrarAnimacion();
             toastr.clear();

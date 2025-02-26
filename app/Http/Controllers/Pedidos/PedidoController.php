@@ -1456,8 +1456,13 @@ public function generarDocumentoVenta(Request $request){
         return  Excel::download(new PedidosExport($fecha_inicio,$fecha_fin,$estado), 'REPORTE-PEDIDOS'.'.xlsx');
     }
 
+/*
+array:1 [
+  "pedido_id" => 3
+]
+*/ 
     public function facturar(Request $request){
-
+        dd($request->all());
         DB::beginTransaction();
         try {
 
@@ -1466,11 +1471,16 @@ public function generarDocumentoVenta(Request $request){
             $pedido         =   Pedido::find($pedido_id);
             
             if(!$pedido){
-                throw new \Exception('NO SE ENCONTRÓ EL PEDIDO EN LA BASE DE DATOS');
+                throw new Exception('NO SE ENCONTRÓ EL PEDIDO EN LA BASE DE DATOS');
+            }
+            if($pedido->estado !== 'PENDIENTE'){
+                throw new Exception("NO PUEDE FACTURARSE EL PEDIDO, SU ESTADO ES: ".$pedido->estado);
             }
 
             //===== OBTENIENDO EL TIPO DOC DEL CLIENTE =======
-            $cliente    =   DB::select('select c.tipo_documento from clientes as c
+            $cliente    =   DB::select('select 
+                            c.tipo_documento 
+                            from clientes as c
                             where c.id = ?',[$pedido->cliente_id]);
             
             if(count($cliente) === 0 || count($cliente) > 1){
@@ -1482,7 +1492,7 @@ public function generarDocumentoVenta(Request $request){
             if($cliente_tipo_documento === "RUC"){
                 $tipo_venta = 127;
             }
-            if($cliente_tipo_documento === "DNI" ){
+            if($cliente_tipo_documento === "DNI"){
                 $tipo_venta = 128;
             }
 
@@ -1596,7 +1606,9 @@ public function generarDocumentoVenta(Request $request){
         try {
             $pedido     =   Pedido::find($pedido_id);
 
-            $cliente    =   DB::select('select c.* from clientes as c
+            $cliente    =   DB::select('select 
+                            c.* 
+                            from clientes as c
                             where c.id = ?',[$pedido->cliente_id]);
             
             

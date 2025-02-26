@@ -813,11 +813,18 @@
             const res_cliente   =   await axios.get(route('pedidos.pedido.getCliente',{pedido_id}));
             
             if(res_cliente.data.success){
+
                 const cliente_pedido    =   res_cliente.data.cliente;
                 const tipo_comprobante  =   cliente_pedido.tipo_documento === 'RUC'?'FACTURA':'BOLETA';
 
+                let numero_documento    =   '99999999';
+                if(cliente_pedido.tipo_documento === 'RUC' || cliente_pedido.tipo_documento === 'DNI'){
+                    numero_documento    =   cliente_pedido.documento;
+                }
+              
+
                 Swal.fire({
-                title: `DESEA GENERAR UNA ${tipo_comprobante} PARA EL CLIENTE: ${cliente_pedido.nombre} CON DOCUMENTO ${cliente_pedido.tipo_documento}: ${cliente_pedido.documento}`,
+                title: `DESEA GENERAR UNA ${tipo_comprobante} PARA EL CLIENTE: ${cliente_pedido.nombre} CON DOCUMENTO ${cliente_pedido.tipo_documento}: ${numero_documento}`,
                 text: "Esta acción no genera despacho y es IRREVERSIBLE!",
                 icon: "warning",
                 showCancelButton: true,
@@ -842,6 +849,7 @@
 
                         Swal.close(); 
                         if(res.data.success){
+                            
                             pedidos_data_table.ajax.reload();
                             toastr.success(res.data.message, 'Exito');
                             window.location.href = '{{ route('ventas.documento.index') }}';
@@ -849,7 +857,9 @@
                             window.open(url_open_pdf, 'Comprobante MERRIS', 'location=1, status=1, scrollbars=1,width=900, height=600');
                         }else{
                             toastr.error(res.data.message,`ERROR AL GENERAR EL COMPROBANTE ${tipo_comprobante}`);
+                            Swal.close();
                         }
+
                     }
                 });
 

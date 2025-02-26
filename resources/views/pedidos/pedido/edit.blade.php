@@ -273,8 +273,8 @@
                     })
                 })
 
-                mostrarAnimacionPedido();
-                const cantProductosEliminados   =   eliminarProducto(lstProductosValidados);
+                mostrarAnimacion();
+                const cantProductosEliminados   =   eliminarProducto(lstProductos);
 
                 if(cantProductosEliminados > 0){
                     calcularSubTotal(carrito);
@@ -288,7 +288,7 @@
                     toastr.error('NO SE PUDO ELIMINAR NINGÚN PRODUCTO DE LA FILA');
                 }
 
-                ocultarAnimacionPedido();
+                ocultarAnimacion();
 
             }
         })
@@ -369,21 +369,14 @@
        //======== AGREGAR PRODUCTO AL DETALLE =====
        document.querySelector('#btn_agregar_detalle').addEventListener('click',async ()=>{
 
-            if(!$('#modelo').val()){
-                toastr.error('DEBE SELECCIONAR UN MODELO','OPERACIÓN INCORRECTA');
-                return;
-            }
-            if(!$('#producto').val()){
-                toastr.error('DEBE SELECCIONAR UN PRODUCTO','OPERACIÓN INCORRECTA');
-                return;
-            }
+           
+          
             if(!$('#precio_venta').val()){
                 toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA','OPERACIÓN INCORRECTA');
                 return;
             }
 
        
-            
             agregarProducto(lstProductosValidados);
             reordenarCarrito();
             calcularSubTotal(carrito);
@@ -601,7 +594,7 @@
         lstProductosValidados.forEach((producto_validado)=>{
 
             //======= SI EL PRODUCTO ES VÁLIDO =======
-            if(producto_validado.validacion){
+            //if(producto_validado.validacion){
 
                 //========== ELIMINAR =========
                 const indiceProducto    =   carrito.findIndex((producto)=>{
@@ -627,7 +620,7 @@
 
                     }
                 }
-            }
+            //}
 
         })
       
@@ -934,11 +927,12 @@
 
     //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
     async function getColoresTallas(){
-        mostrarAnimacionPedido();
+        mostrarAnimacion();
         const producto_id   =   $('#producto').val();
-        if(producto_id){
+        const almacen_id    =   $('#almacen').val();
+        if(producto_id && almacen_id){
             try {
-                const res   =   await   axios.get(route('pedidos.pedido.getColoresTallas',{producto_id}));
+                const res   =   await   axios.get(route('pedidos.pedido.getColoresTallas',{almacen_id,producto_id}));
                 if(res.data.success){
                     destruirDataTableStocks();
                     pintarTableStocks(res.data.producto_color_tallas);
@@ -952,14 +946,14 @@
             } catch (error) {
                 toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
             }finally{
-                ocultarAnimacionPedido();
+                ocultarAnimacion();
             }
         }else{
             destruirDataTableStocks();
             limpiarTableStocks();
             loadDataTableStocksPedido();
             limpiarSelectPreciosVenta();
-            ocultarAnimacionPedido();
+            ocultarAnimacion();
         }
     }
 
@@ -969,7 +963,7 @@
         $('#producto').empty();
     
         if(productos.length === 0){
-            ocultarAnimacionPedido();
+            ocultarAnimacion();
         }
         
         //====== LLENAR =======
@@ -985,7 +979,7 @@
 
     async function  getProductosByModelo(e){
         toastr.clear();
-        mostrarAnimacionPedido();
+        mostrarAnimacion();
         const bodyTableStocks   =   document.querySelector('#table-stocks-pedidos tbody');
         const btnAgregarDetalle =   document.querySelector('#btn_agregar_detalle');
         clearTabla(bodyTableStocks);
@@ -1000,16 +994,16 @@
                     pintarSelectProductos(res.data.productos);
                     toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
                 }else{
-                    ocultarAnimacionPedido();
+                    ocultarAnimacion();
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
-                ocultarAnimacionPedido();
+                ocultarAnimacion();
                 toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
             }
                
         }else{
-            ocultarAnimacionPedido();
+            ocultarAnimacion();
         }
     }
 
