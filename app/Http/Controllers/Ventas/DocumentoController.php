@@ -67,6 +67,7 @@ use App\Almacenes\Marca;
 use App\Almacenes\NotaSalidad;
 use App\Http\Controllers\UtilidadesController;
 use App\Http\Requests\Ventas\DocVenta\DocVentaStoreRequest;
+use App\Mantenimiento\Sedes\Sede;
 use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Provincia;
 use Illuminate\Support\Facades\Response; 
@@ -1464,11 +1465,12 @@ array:27 [
   "monto_total_pagar"       => 6
   "monto_descuento"         => 0
   "almacenSeleccionado"     => 2
-  "data_envio" => "{"departamento":{"id":13,"nombre":"LA LIBERTAD","zona":"NORTE"},"provincia":{"id":1301,"text":"TRUJILLO"},"distrito":{"id":130101,"text":"TRUJILLO"},"tipo_envio":{"id":188,"descripcion":"AGENCIA"},"empresa_envio":{"id":2,"empresa":"EMTRAFESA","tipo_envio":"AGENCIA","estado":"ACTIVO","created_at":"2025-02-12 17:43:16","updated_at":"2025-02-12 17:43:16"},"sede_envio":{"id":2,"empresa_envio_id":2,"direccion":"AV TUPAC AMARU 123","departamento":"LA LIBERTAD","provincia":"TRUJILLO","distrito":"TRUJILLO","estado":"ACTIVO","created_at":"2025-02-12 17:45:21","updated_at":"2025-02-12 17:45:21"},"destinatario":{"tipo_documento":"DNI","nro_documento":"75563122","nombres":"ALTRUCAZ"},"direccion_entrega":"AV UNION 342","entrega_domicilio":true,"origen_venta":{"descripcion":"FACEBOOK"},"fecha_envio_propuesta":"2025-02-12","obs_rotulo":"OBS ROTULADO","obs_despacho":"OBS DESPACHADO","tipo_pago_envio":{"descripcion":"PAGAR ENVÍO"}}"
+  "sede_id"                 => "1"
+  "data_envio"              => "{"departamento":{"id":13,"nombre":"LA LIBERTAD","zona":"NORTE"},"provincia":{"id":1301,"text":"TRUJILLO"},"distrito":{"id":130101,"text":"TRUJILLO"},"tipo_envio":{"id":188,"descripcion":"AGENCIA"},"empresa_envio":{"id":2,"empresa":"EMTRAFESA","tipo_envio":"AGENCIA","estado":"ACTIVO","created_at":"2025-02-12 17:43:16","updated_at":"2025-02-12 17:43:16"},"sede_envio":{"id":2,"empresa_envio_id":2,"direccion":"AV TUPAC AMARU 123","departamento":"LA LIBERTAD","provincia":"TRUJILLO","distrito":"TRUJILLO","estado":"ACTIVO","created_at":"2025-02-12 17:45:21","updated_at":"2025-02-12 17:45:21"},"destinatario":{"tipo_documento":"DNI","nro_documento":"75563122","nombres":"ALTRUCAZ"},"direccion_entrega":"AV UNION 342","entrega_domicilio":true,"origen_venta":{"descripcion":"FACEBOOK"},"fecha_envio_propuesta":"2025-02-12","obs_rotulo":"OBS ROTULADO","obs_despacho":"OBS DESPACHADO","tipo_pago_envio":{"descripcion":"PAGAR ENVÍO"}}"
 ]
 */
     public function store(DocVentaStoreRequest $request){
-
+       
         $this->authorize('haveaccess', 'documento_venta.index');
         ini_set("max_execution_time", 60000);
         
@@ -1482,7 +1484,7 @@ array:27 [
             
             //======== OBTENER CORRELATIVO Y SERIE ======
             $datos_correlativo  =   DocumentoController::getCorrelativo($datos_validados->tipo_venta,$datos_validados->sede_id);
-           
+                       
             //========== CALCULAR MONTOS ======
             $montos =   DocumentoController::calcularMontos($datos_validados->lstVenta,$datos_validados);
 
@@ -1748,6 +1750,16 @@ array:27 [
                 $envio_venta->save();
             }
 
+         
+            //======== ASOCIAR LA VENTA CON EL MOVIMIENTO CAJA DEL COLABORADOR ====
+            $movimiento_venta                   =   new DetalleMovimientoVentaCaja();
+            $movimiento_venta->cdocumento_id    =   $documento->id;
+            $movimiento_venta->mcaja_id         =   $datos_validados->caja_movimiento->movimiento_id;
+            if($request->has('facturado') && $request->get('facturado') === 'SI'){
+                $movimiento_venta->cobrar       =   'NO';
+                $movimiento_venta->estado_pago  =   'PAGADA';
+            }
+            $movimiento_venta->save();
             
             //========== ACTUALIZAR ESTADO FACTURACIÓN A INICIADA ======
             DB::table('empresa_numeracion_facturaciones')
@@ -1915,9 +1927,9 @@ public static function getCorrelativo($tipo_comprobante,$sede_id){
         }
 
         //========= VALIDANDO SI EL USUARIO ESTÁ EN UNA CAJA ABIERTA =======
-        $caja_usuario           =   movimientoUser();
+        $caja_movimiento           =   movimientoUser();
           
-        if(count($caja_usuario) == 0 ){
+        if(count($caja_movimiento) == 0 ){
             throw new Exception("DEBES FORMAR PARTE DE UNA CAJA ABIERTA!!!");
         }
 
@@ -1955,7 +1967,8 @@ public static function getCorrelativo($tipo_comprobante,$sede_id){
                                         'monto_envio'           =>  $request->get('monto_envio'),
                                         'empresa'               =>  Empresa::find(1),
                                         'observacion'           =>  $request->get('observacion'),
-                                        'usuario'               =>  Auth::user()
+                                        'usuario'               =>  Auth::user(),
+                                        'caja_movimiento'       =>  $caja_movimiento[0]
                                         ];  
 
         return  $datos_validados;
@@ -2789,7 +2802,7 @@ array:27 [
                 throw new Exception("NO EXISTE EL DOC VENTA EN LA BD!!!"); 
             }
 
-            $detalles = Detalle::where('documento_id', $documento_id)->where('eliminado', '0')->get();
+            $detalles           =   Detalle::where('documento_id', $documento_id)->where('eliminado', '0')->get();
 
 
             $mostrar_cuentas    =   DB::select('select 
@@ -2801,6 +2814,7 @@ array:27 [
             $qr                 =   self::qr_code($documento_id);
 
             $empresa            =   Empresa::find(1);
+            $sede               =   Sede::find($documento->sede_id);
 
 
             $pdf    =   PDF::loadview('ventas.documentos.impresion.comprobante_ticket', [
@@ -2809,7 +2823,8 @@ array:27 [
                             'moneda'            =>  $documento->simboloMoneda(),
                             'empresa'           =>  $empresa,
                             "legends"           =>  $documento->legenda,
-                            'mostrar_cuentas'   =>  $mostrar_cuentas
+                            'mostrar_cuentas'   =>  $mostrar_cuentas,
+                            'sede'              =>  $sede
                         ])->setPaper([0, 0, 226.772, 651.95]);
                 
             if($size == 80){

@@ -5,13 +5,34 @@
             <h4><b>Datos Generales</b></h4>
         </div>
 
-        <div class="col-12">
-            <div class="form-group row">
-                <div class="col-6">
-                    <div class="row">
-                        <div class="col-6">
+        
+                        <div class="col-12 col-lg-3 col-md-3 mb-3">
+                            <label for="registrador" style="font-weight: bold;">REGISTRADOR</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" id="basic-addon1">
+                                        <i class="fas fa-user-shield"></i>
+                                    </span>
+                                </div>
+                                <input value="{{$registrador->nombre}}" readonly name="registrador" id="registrador" type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-3 col-md-3 mb-3">
+                            <label for="almacen" style="font-weight: bold;">ALMACÉN</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" id="basic-addon1">
+                                        <i class="fas fa-warehouse"></i>
+                                    </span>
+                                </div>
+                                <input value="{{$almacen->descripcion}}" readonly name="almacen" id="almacen" type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-3 col-md-3 mb-3">
                             <div class="form-group">
-                                <label class="required">Fecha de Atención</label>
+                                <label class="required" style="font-weight: bold;">FECHA DE ATENCIÓN</label>
                                 <div class="input-group date">
                                     <span class="input-group-addon">
                                         <i class="fa fa-calendar"></i>
@@ -27,56 +48,10 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="required">Tipo de Comprobante</label>
-                                <select onchange="validarTipoComprobante(this.value)" name="tipo_venta" id="tipo_venta"
-                                    class="select2_form form-control {{ $errors->has('tipo_venta') ? ' is-invalid' : '' }}" required>
-                                    @foreach ($tipoVentas as $tipo_venta)
-                                        <option value="{{ $tipo_venta['id'] }}"
-                                            {{ old('tipo_venta') == $tipo_venta['id'] ? 'selected' : '' }}
-                                            {{ 129 == $tipo_venta['id'] ? 'selected' : '' }}>
-                                            {{ $tipo_venta['nombre'] }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @if ($errors->has('tipo_venta'))
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $errors->first('tipo_venta') }}</strong>
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="col-6" style="border-left: 2px solid #ccc;">
-                    <div class="row">
-                        <div class="col-6">
+                        <div class="col-12 col-lg-3 col-md-3 mb-3">
                             <div class="form-group">
-                                <label class="required">Condición</label>
-                                <select id="condicion_id" name="condicion_id" onchange="cambiarCondicion(this.value)"
-                                    class="select2_form form-control {{ $errors->has('condicion_id') ? ' is-invalid' : '' }}" required>
-                                    <option></option>
-                                    @foreach ($condiciones as $condicion)
-                                        <option value="{{ $condicion->id }}"
-                                            {{ old('condicion_id') == $condicion->id ? 'selected' : '' }}
-                                            {{ $pedido->condicion_id == $condicion->id ? 'selected' : '' }}>
-                                            {{ $condicion->descripcion }}
-                                            {{ $condicion->dias > 0 ? $condicion->dias.' días' : '' }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @if ($errors->has('condicion_id'))
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $errors->first('condicion_id') }}</strong>
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="required">Fecha de Vencimiento</label>
+                                <label class="required" style="font-weight: bold;">FECHA DE VENCIMIENTO</label>
                                 <div class="input-group date">
                                     <span class="input-group-addon">
                                         <i class="fa fa-calendar"></i>
@@ -92,9 +67,10 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-6">
+
+                        <div class="col-12 col-lg-3 col-md-3 mb-3">
                             <div class="form-group">
-                                <label class="required">Cliente</label>
+                                <label class="required" style="font-weight: bold;">CLIENTE</label>
                                 <select id="cliente" name="cliente"
                                     class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}"
                                     required disabled>
@@ -114,10 +90,57 @@
                                 @endif
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        
+                        <div class="col-12 col-lg-3 col-md-3 mb-3">
+                            <div class="form-group">
+                                <label class="required" style="font-weight: bold;">COMPROBANTE</label>
+                                <select onchange="validarTipoComprobante(this.value)" name="tipo_venta" id="tipo_venta"
+                                    class="select2_form form-control {{ $errors->has('tipo_venta') ? ' is-invalid' : '' }}" required>
+                                    @foreach ($tipoVentas as $tipo_venta)
+                                        <option value="{{ $tipo_venta['id'] }}"
+                                            {{ old('tipo_venta') == $tipo_venta['id'] ? 'selected' : '' }}
+                                            {{ 129 == $tipo_venta['id'] ? 'selected' : '' }}>
+                                            {{ $tipo_venta['nombre'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @if ($errors->has('tipo_venta'))
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $errors->first('tipo_venta') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+              
+
+                        <div class="col-12 col-lg-3 col-md-3 mb-3">
+                            <div class="form-group">
+                                <label class="required" style="font-weight: bold;">CONDICIÓN</label>
+                                <select id="condicion_id" name="condicion_id" onchange="cambiarCondicion(this.value)"
+                                    class="select2_form form-control {{ $errors->has('condicion_id') ? ' is-invalid' : '' }}" required>
+                                    <option></option>
+                                    @foreach ($condiciones as $condicion)
+                                        <option value="{{ $condicion->id }}"
+                                            {{ old('condicion_id') == $condicion->id ? 'selected' : '' }}
+                                            {{ $pedido->condicion_id == $condicion->id ? 'selected' : '' }}>
+                                            {{ $condicion->descripcion }}
+                                            {{ $condicion->dias > 0 ? $condicion->dias.' días' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @if ($errors->has('condicion_id'))
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $errors->first('condicion_id') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                      
+
+                       
+                
+         
 
         <!-- Campos ocultos -->
         <input type="hidden" name="cliente_id" id="cliente_id">
@@ -138,5 +161,6 @@
         <input type="hidden" name="monto_total" id="monto_total" value="{{ $pedido->total }}">
         <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ $pedido->total_pagar }}">
         <input type="hidden" name="data_envio" id="data_envio">
+
     </div>
 </form>

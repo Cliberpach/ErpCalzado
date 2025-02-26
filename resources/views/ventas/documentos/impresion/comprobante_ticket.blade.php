@@ -141,10 +141,11 @@
             <div class="empresa">
                 <p class="m-0 p-0 text-uppercase nombre-empresa">{{ DB::table('empresas')->count() == 0 ? 'SISCOM ' : DB::table('empresas')->first()->razon_social }}</p>
                 <p class="m-0 p-0 text-uppercase ruc-empresa">RUC {{ DB::table('empresas')->count() == 0 ? '- ' : DB::table('empresas')->first()->ruc }}</p>
-                <p class="m-0 p-0 text-uppercase direccion-empresa">{{ DB::table('empresas')->count() == 0 ? '- ' : DB::table('empresas')->first()->direccion_fiscal }}</p>
-
-                <p class="m-0 p-0 text-info-empresa">Central telefónica: {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->celular }}</p>
-                <p class="m-0 p-0 text-info-empresa">Teléfono: {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->telefono }}</p>
+                <p class="m-0 p-0 text-uppercase ruc-empresa"> {{ $empresa->direccion_fiscal }}</p>
+                <p class="m-0 p-0 text-uppercase ruc-empresa">-------------------------</p>
+                <p class="m-0 p-0 text-uppercase direccion-empresa">{{ $sede->nombre }}</p>
+                <p class="m-0 p-0 text-uppercase direccion-empresa">{{ $sede->direccion }}</p>
+                <p class="m-0 p-0 text-info-empresa">Teléfono: {{ $sede->telefono }}</p>
             </div><br>
             <div class="comprobante">
                 <div class="numero-documento">

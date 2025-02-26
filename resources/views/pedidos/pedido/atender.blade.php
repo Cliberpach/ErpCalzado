@@ -539,12 +539,19 @@
 
     async function generarDocumentoVenta(form){
         try {
-            //=== DESACTIVAR BTN GRABAR ======
-            document.querySelector('#btn_grabar').disabled  = true;
 
             //======== OVERLAY DE CARGA =======
-            const overlay = document.getElementById('overlay_esfera_1');
-            overlay.style.display = 'flex'; 
+            Swal.fire({
+                title: 'Generando documento de venta...',
+                text: 'Por favor, espera',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
 
             //======== VERIFICAR SI EXISTEN CAJAS ABIERTAS ==========
             const { data } = await this.axios.get(route('Caja.movimiento.verificarestado'));
@@ -555,9 +562,7 @@
                 const pedido    =   @json($pedido);
                 const formData  =   new FormData(form);
                 formData.append('pedido_id', pedido.id);
-                // for (const pair of formData.entries()) {
-                //     console.log(pair[0] + ', ' + pair[1]);
-                // }
+             
                 const res       =   await axios.post(route('pedidos.pedido.generarDocumentoVenta'),formData)
                 const success   =   res.data.success;
                 
@@ -566,9 +571,13 @@
                     const documento_id  =   res.data.documento_id;
 
                     toastr.success('¡Documento de venta creado!', 'Exito');
+
+                    let url_open_pdf = '{{ route("ventas.documento.comprobante", [":id1", ":size"]) }}'
+                                        .replace(':id1', documento_id)
+                                        .replace(':size', 80);
+
                     window.location.href = '{{ route('ventas.documento.index') }}';
                     
-                    var url_open_pdf = route("ventas.documento.comprobante", { id: documento_id +"-80"});
                     window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
                     //===> asegurar cierre ===
                    
@@ -580,19 +589,19 @@
                         timeOut: 0,
                         extendedTimeOut: 0 
                     });
+                    Swal.close();
                 }
 
             }else{
                 toastr.error('NO HAY CAJAS APERTURADAS','ERROR');
                 secureClosure = 1;
+                Swal.close();
             }
 
-            console.log(res);
         } catch (error) {
-            
+            toastr.error(error,'ERROR EN LA PETICIÓN GENERAR DOC VENTA');
+            Swal.close();
         }finally{
-            const overlay = document.getElementById('overlay_esfera_1');
-            overlay.style.display = 'none';
             document.querySelector('#btn_grabar').disabled  = false;
         }
     }
@@ -1051,7 +1060,7 @@
     }
 
     function formatearDetalle(detalles){
-        if(detalles.length>0){
+        /*if(detalles.length > 0){
             detalles.forEach((d)=>{
                 d.tallas.forEach((t)=>{
                     if(t.cantidad_atender != 0){
@@ -1067,7 +1076,31 @@
                     }
                 })
             })
+        }*/
+        if(detalles.length > 0){
+
+            let producto_valido     =   {};
+
+            carrito.forEach((producto)=>{
+
+                producto_valido =   producto;
+
+                const tallas_validas = producto.tallas.filter((t)=>{
+                    return t.cantidad_atender != 0;
+                })
+
+                tallas_validas.forEach((tv)=>{
+                    tv.cantidad =   tv.cantidad_atender;
+                })
+
+                producto_valido.tallas  =   tallas_validas;
+                if(producto_valido.tallas.length > 0){
+                    data_send.push(producto_valido);
+                }
+
+            })
         }
+
     }
 
     function mostrarAnimacionPedido(){

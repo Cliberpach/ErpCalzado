@@ -29,8 +29,11 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Pedido\PedidosExport;
 use App\Http\Requests\Pedidos\Pedido\PedidoStoreRequest;
 use App\Http\Requests\Pedidos\Pedido\PedidoUpdateRequest;
+use App\Http\Requests\Ventas\DocVenta\DocVentaStoreRequest;
+use App\Mantenimiento\Colaborador\Colaborador;
+use App\Mantenimiento\Sedes\Sede;
 use App\Pos\ReciboCaja;
-
+use App\User;
 
 class PedidoController extends Controller
 {
@@ -563,6 +566,7 @@ array:11 [
             //========= OBTENIENDO EL DETALLE DEL PEDIDO =====
             $pedido         =   Pedido::find($pedido_id);
             $pedido_detalle =   PedidoDetalle::where('pedido_id',$pedido_id)->get();
+
             
             $atencion_detalle = [];            
             foreach ($pedido_detalle as  $pedido_item) {
@@ -756,13 +760,18 @@ array:11 [
                 .$doc_venta[0]->serie.'-'.$doc_venta[0]->correlativo);
             }
 
-            $departamentos = departamentos();
+            $departamentos  =   departamentos();
+
+            $almacen        =   Almacen::find($pedido->almacen_id);
+            $sede           =   Sede::find($pedido->sede_id);
+            $registrador    =   Colaborador::find(Auth::user()->colaborador_id);
         
             DB::commit();
             return view('pedidos.pedido.atender',
             compact('atencion_detalle','empresas','clientes','pedido_detalle',
             'vendedor_actual','condiciones',
-            'modelos','tallas','pedido','tipoVentas','departamentos'));
+            'tallas','pedido','tipoVentas','departamentos',
+            'almacen','sede','registrador'));
 
         } catch (\Throwable $th) {
             DB::rollback();
@@ -1160,51 +1169,91 @@ array:6 [
         }
     }
 
+/*
+array:23 [
+  "_token" => "5MGXGnvyPqmaWivHZqfgugbvucN0v7DZj6Q0bkUX"
+  "registrador" => "ADMIN"
+  "almacen" => "CHACHAPOYAS PRINCIPAL"
+  "fecha_atencion_campo" => "2025-02-26"
+  "fecha_vencimiento_campo" => "2025-02-26"
+  "tipo_venta" => "129"
+  "condicion_id" => "1"
+  "cliente_id" => "1"
+  "productos_tabla" => "[{"producto_id":1,"color_id":3,"talla_id":1,"cantidad":1,"precio_unitario":"1.00","porcentaje_descuento":0,"precio_unitario_nuevo":0}]"
+  "igv" => "18"
+  "igv_check" => "on"
+  "efectivo" => "0"
+  "importe" => "0"
+  "empresa_id" => "1"
+  "monto_sub_total" => "1.00"
+  "monto_embalaje" => "21.00"
+  "monto_envio" => "10.00"
+  "monto_total_igv" => "4.88"
+  "monto_descuento" => "0.00"
+  "monto_total" => "27.12"
+  "monto_total_pagar" => "32.00"
+  "data_envio" => null
+  "pedido_id" => "2"
+]
+*/ 
 public function generarDocumentoVenta(Request $request){
-       
-    DB::beginTransaction();
+   
+    //========= GENERAR DOC VENTA ======
+    $pedido_id              =   $request->get('pedido_id');
+    $pedido                 =   Pedido::find($pedido_id);
 
+    //====== SI EL PEDIDO YA FUE FACTURADO, EVITAMOS QUE SE CONTABILIZE LA ATENCIÓN EN LA CAJA ========
+    if($pedido->facturado === 'SI'){
+        
+        $additionalData = [
+            'facturado'     =>  'SI',
+        ];
+
+        $request->merge($additionalData);
+    }
+
+    //====== DOC VENTA:  tipo_venta,almacenSeleccionado,condicion_id,cliente_id =====
+    $request->merge(
+        [   
+            'almacenSeleccionado'   =>  $pedido->almacen_id,
+            'sede_id'               =>  $pedido->sede_id
+        ]
+    );
+
+    $docVentaRequest        =   DocVentaStoreRequest::createFrom($request);
+    $documentoController    =   new DocumentoController();
+    $res                    =   $documentoController->store($docVentaRequest);
+    $jsonResponse           =   $res->getData(); 
+
+    if(!$jsonResponse->success){
+        return $res;
+    }
+
+    //======= DOC VENTA GENERADO CON ÉXITO =======
+    DB::beginTransaction();
     try {
 
-        $pedido_id              =   $request->get('pedido_id');
-        
-        $pedido                 =   Pedido::find($pedido_id);
-
-        if($pedido->facturado === 'SI'){
-            //====== SI EL PEDIDO YA FUE FACTURADO, EVITAMOS QUE SE CONTABILIZE LA ATENCIÓN EN LA CAJA ========
-            $additionalData = [
-                'facturado'     =>  'SI',
-            ];
-
-            $request->merge($additionalData);
-        }
-       
-        $documentoController    =   new DocumentoController();
-        $res                    =   $documentoController->store($request);
-        $jsonResponse           =   $res->getData(); 
-
-        //====== MANEJO DE RESPUESTA =========
-        $success_store_doc                =   $jsonResponse->success; 
-
-        //===== EN CASO SE HAYA GENERADO EL DOC DE VENTA EXITOSAMENTE ======
-        if($success_store_doc){
             $documento_id       =   $jsonResponse->documento_id;
-            
             
             //======= ACTUALIZANDO CANTIDAD ATENDIDA EN PEDIDO DETALLES ======
             $productosJSON  = $request->get('productos_tabla');
             $productos      = json_decode($productosJSON);
 
             foreach ($productos as $producto) {
-                DB::table('pedidos_detalles')
+                foreach ($producto->tallas as $talla) {
+
+                    DB::table('pedidos_detalles')
                     ->where('pedido_id', $pedido_id)
+                    ->where('almacen_id',$pedido->almacen_id)
                     ->where('producto_id', $producto->producto_id)
                     ->where('color_id', $producto->color_id)
-                    ->where('talla_id', $producto->talla_id)
+                    ->where('talla_id', $talla->talla_id)
                     ->update([
-                        'cantidad_pendiente'    => DB::raw('cantidad_pendiente  - ' . $producto->cantidad),
-                        'cantidad_atendida'     => DB::raw('cantidad_atendida   + ' . $producto->cantidad)
+                        'cantidad_pendiente'    => DB::raw('cantidad_pendiente  - ' . $talla->cantidad),
+                        'cantidad_atendida'     => DB::raw('cantidad_atendida   + ' . $talla->cantidad)
                     ]);
+
+                }
             }
 
             //======= GRABANDO ATENCIÓN =====
@@ -1213,18 +1262,10 @@ public function generarDocumentoVenta(Request $request){
             ->update([
                 'pedido_id'             =>  $pedido_id,
                 'tipo_doc_venta_pedido' =>  "ATENCION",
-                'updated_at' => Carbon::now()
+                'updated_at'            =>  Carbon::now()
             ]);
 
     
-            /*$pedido_atencion                    =   new PedidoAtencion();
-            $pedido_atencion->pedido_id         =   $pedido_id;
-            $pedido_atencion->documento_id      =   $documento_id;
-            $pedido_atencion->fecha_atencion    =   Carbon::now()->format('Y-m-d');
-            $pedido_atencion->save();*/
-
-
-
             //======= CAMBIANDO ESTADO DEL PEDIDO =====
             //===== CANTIDAD DE ITEMS QUE TIENE EL PEDIDO ======
             $cant_items_pedido                  =   PedidoDetalle::where('pedido_id',$pedido_id)->count('*');
@@ -1261,12 +1302,18 @@ public function generarDocumentoVenta(Request $request){
                     //===== SI EL SALDO FACTURADO ES MENOR AL MONTO DE LA ATENCIÓN ======
                 
                     //====== OBTENER EXCEDENTE =======
-                       $excedente  =   $request->get('monto_total_pagar') -    $pedido_actualizar->saldo_facturado;
+                    $excedente  =   $request->get('monto_total_pagar') -    $pedido_actualizar->saldo_facturado;
 
-                    //======= OBTENIENDO MOVIMIENTO ID DEL USUARIO ======
-                    $movimiento = DB::select("select dmc.movimiento_id from detalles_movimiento_caja as dmc
-                                        where dmc.usuario_id = ? and dmc.fecha_salida is null",
-                                        [$pedido_actualizar->user_id]);
+                    //======= OBTENIENDO MOVIMIENTO ID DEL COLABORADOR ======
+                    $usuario    =   User::find($pedido_actualizar->user_id);
+
+                    $movimiento =   DB::select("select 
+                                    dmc.movimiento_id 
+                                    from detalles_movimiento_caja as dmc
+                                    where 
+                                    dmc.usuario_id = ? 
+                                    and dmc.fecha_salida is null",
+                                    [$usuario->colaborador_id]);
 
                     if(count($movimiento) !== 1){
                         throw new Exception("ERROR AL OBTENER EL MOVIMIENTO DE CAJA DEL USUARIO DEL PEDIDO");
@@ -1288,7 +1335,7 @@ public function generarDocumentoVenta(Request $request){
                     $recibo_caja->saldo             =   0;
                     $recibo_caja->metodo_pago       =   "EFECTIVO";
                     $recibo_caja->estado_servicio   =   "CANJEADO";
-                     $recibo_caja->observacion   =   "CREADO A PARTIR DEL EXCEDENTE DE "."S/.".$excedente .
+                    $recibo_caja->observacion       =   "CREADO A PARTIR DEL EXCEDENTE DE "."S/.".$excedente .
                                                         " PRESENTE EN LA ATENCIÓN ".$documento_venta->serie.'-'.$documento_venta->correlativo.
                                                         " DEL PEDIDO PE-".$pedido_actualizar->pedido_nro;            
                     $recibo_caja->save();
@@ -1301,22 +1348,15 @@ public function generarDocumentoVenta(Request $request){
             $pedido_actualizar->save();
                
 
-            DB::commit();
-            return response()->json([
-                'success'       => true,
-                'documento_id'  => $documento_id,
-                'mensaje'       =>   'DOCUMENTO DE VENTA GENERADO - PEDIDO ACTUALIZADO'
-            ]);
+        DB::commit();
+        return response()->json([
+            'success'       => true,
+            'documento_id'  => $documento_id,
+            'mensaje'       =>   'DOCUMENTO DE VENTA GENERADO - PEDIDO ACTUALIZADO'
+        ]);
            
-        }else{
-            DB::rollBack();
-            return response()->json([
-                'success'       =>      false,
-                'mensaje'       =>      $jsonResponse->mensaje,
-                'excepcion'     =>      $jsonResponse->excepcion
-            ]);            
-        }  
     } catch (\Throwable $th) {
+
         //======== REVERTIR ACCIONES REALIZADAS EN PEDIDO CONTROLLER ======
         DB::rollBack();
 
@@ -1335,14 +1375,15 @@ public function generarDocumentoVenta(Request $request){
        
         //====== ELIMINAR DOC DE VENTA ====
         DB::table('cotizacion_documento')
-            ->where('id', $documento_id)
-            ->delete();
+        ->where('id', $documento_id)
+        ->delete();
 
-            return response()->json([
-                'success'   => false,
-                'mensaje'   => 'ERROR EN EL SERVIDOR, SI EL ERROR PERSISTE COMUNICARSE CON EL ADMINISTRADOR DEL SISTEMA', 
-                'excepcion' => $th->getMessage(),
-            ]);
+        return response()->json([
+            'success'   => false,
+            'mensaje'   => 'ERROR EN EL SERVIDOR, SI EL ERROR PERSISTE COMUNICARSE CON EL ADMINISTRADOR DEL SISTEMA', 
+            'excepcion' => $th->getMessage(),
+        ]);
+
     }
  }
 
