@@ -602,13 +602,16 @@ function(){
         Route::post('generar-doc-venta', 'Pedidos\PedidoController@generarDocumentoVenta')->name('pedidos.pedido.generarDocumentoVenta');
         Route::put('update/{id}', 'Pedidos\PedidoController@update')->name('pedidos.pedido.update');
 
+        Route::get('/getProductos/', 'Pedidos\PedidoController@getProductos')->name('pedidos.pedido.getProductos');
+
+
         Route::get('edit/{id}','Pedidos\PedidoController@edit')->name('pedidos.pedido.edit');
         //===== PARÁMETROS PARA VALIDAR CANTIDAD ATENDIDA: PEDIDOID,LISTADO DE PRODUCTOS(PRODUCTOID,COLORID,TALLAID,CANTIDAD) =======
         Route::post('validarCantidadAtendida','Pedidos\PedidoController@validarCantidadAtendida')->name('pedidos.pedido.validarCantidadAtendida');
 
         Route::delete('pedidos/{id}', 'Pedidos\PedidoController@destroy')->name('pedidos.pedido.destroy');
         Route::get('getProductosByModelo/{modelo_id}','Pedidos\PedidoController@getProductosByModelo')->name('pedidos.pedido.getProductosByModelo');
-        Route::get('/getColoresTallas/{producto_id}', 'Pedidos\PedidoController@getColoresTallas')->name('pedidos.pedido.getColoresTallas');
+        Route::get('/getColoresTallas/{almacen_id}/{producto_id}', 'Pedidos\PedidoController@getColoresTallas')->name('pedidos.pedido.getColoresTallas');
         Route::get('reporte/{id}','Pedidos\PedidoController@report')->name('pedidos.pedido.reporte');
         Route::get('validar-tipo-venta/{comprobante_id}','Pedidos\PedidoController@validarTipoVenta')->name('pedidos.pedido.validarTipoVenta');
         Route::get('get-atencion-detalles/{pedido_id}/{documento_id}','Pedidos\PedidoController@getAtencionDetalles')->name('pedidos.pedido.getAtencionDetalles');

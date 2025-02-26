@@ -1,86 +1,10 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 @include('ventas.cotizaciones.modal-cliente') 
 
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
-<style>
 
-    .overlay_pedido_create {
-      position: fixed; /* Fija el overlay para que cubra todo el viewport */
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
-      z-index: 999999999; /* Asegura que el overlay esté sobre todo */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 24px;
-      visibility:hidden;
-    }
-    
-    /*========== LOADER SPINNER =======*/
-    .loader_pedido_create{
-        position: relative;
-        width: 75px;
-        height: 100px;
-        background-repeat: no-repeat;
-        background-image: linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0);
-        background-size: 8px 100%;
-        background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px;
-        animation: pillerPushUp 4s linear infinite;
-      }
-    .loader_pedido_create:after {
-        content: '';
-        position: absolute;
-        bottom: 10px;
-        left: 0;
-        width: 10px;
-        height: 10px;
-        background: #de3500;
-        border-radius: 50%;
-        animation: ballStepUp 4s linear infinite;
-      }
-    
-    @keyframes pillerPushUp {
-      0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
-      50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
-    }
-    
-    @keyframes ballStepUp {
-      0% {transform: translate(0, 0)}
-      5% {transform: translate(8px, -14px)}
-      10% {transform: translate(15px, -10px)}
-      17% {transform: translate(23px, -24px)}
-      20% {transform: translate(30px, -20px)}
-      27% {transform: translate(38px, -34px)}
-      30% {transform: translate(45px, -30px)}
-      37% {transform: translate(53px, -44px)}
-      40% {transform: translate(60px, -40px)}
-      50% {transform: translate(60px, 0)}
-      57% {transform: translate(53px, -14px)}
-      60% {transform: translate(45px, -10px)}
-      67% {transform: translate(37px, -24px)}
-      70% {transform: translate(30px, -20px)}
-      77% {transform: translate(22px, -34px)}
-      80% {transform: translate(15px, -30px)}
-      87% {transform: translate(7px, -44px)}
-      90% {transform: translate(0, -40px)}
-      100% {transform: translate(0, 0);}
-    }
-        
-        
-</style>
-
-<div class="overlay_pedido_create">
-    <span class="loader_pedido_create"></span>
-</div>
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
@@ -104,217 +28,36 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form  method="POST" action="{{route('pedidos.pedido.store')}}"
-                                id="form-pedido">
-                                @csrf
-                                <div class="row">
-                                    <div class="col-12">
-                                        <h4><b>Datos Generales</b></h4>
-                                    </div>
-                                    <div class="col-12 d-none">
-                                        <div class="form-group row">
-                                            <div class="col-lg-6 col-xs-12">
-                                                <label class="required">Fecha de Documento</label>
-                                                <div class="input-group date">
-                                                    <span class="input-group-addon">
-                                                        <i class="fa fa-calendar"></i>
-                                                    </span>
-                                                    <input type="date" id="fecha_documento" name="fecha_documento"
-                                                    class="form-control input-required {{ $errors->has('fecha_documento') ? ' is-invalid' : '' }}"
-                                                    value="{{ old('fecha_documento', date('Y-m-d')) }}">
-                                                        autocomplete="off" required readonly>
-                                                    @if ($errors->has('fecha_documento'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('fecha_documento') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="___class_+?31___">Moneda</label>
-                                                <select id="moneda" name="moneda"
-                                                    class="select2_form form-control {{ $errors->has('moneda') ? ' is-invalid' : '' }}"
-                                                    disabled>
-                                                    <option selected>SOLES</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="required">Empresa</label>
-                                                <select id="empresa" name="empresa"
-                                                    class="select2_form form-control {{ $errors->has('empresa') ? ' is-invalid' : '' }}"
-                                                    required>
-                                                    <option></option>
-                                                    @foreach ($empresas as $empresa)
-                                                        <option value="{{ $empresa->id }}"
-                                                            {{ old('empresa') == $empresa->id || $empresa->id === 1 ? 'selected' : '' }}>
-                                                            {{ $empresa->razon_social }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @if ($errors->has('empresa'))
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $errors->first('empresa') }}</strong>
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="row">
-                                            <div class="col-12 col-md-4">
-                                                <div class="form-group">
-                                                    <label class="required">Fecha de Atención</label>
-                                                    <div class="input-group date">
-                                                        <span class="input-group-addon">
-                                                            <i class="fa fa-calendar"></i>
-                                                        </span>
-                                                        <input type="date" id="fecha_atencion" name="fecha_atencion"
-                                                            class="form-control {{ $errors->has('fecha_atencion') ? ' is-invalid' : '' }}"
-                                                            value="{{ old('fecha_atencion', date('Y-m-d')) }}"
-                                                            autocomplete="off" required readonly>
-                                                        @if ($errors->has('fecha_atencion'))
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $errors->first('fecha_atencion') }}</strong>
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-12 col-md-4">
-                                                <div class="form-group">
-                                                    <label class="">Vendedor</label>
-                                                    <select id="vendedor" name="vendedor" class="select2_form form-control" disabled>
-                                                        <option></option>
-                                                        @foreach (vendedores() as $vendedor)
-                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === $vendedor_actual ? 'selected' : '' }}>
-                                                                {{ $vendedor->persona->apellido_paterno . ' ' . $vendedor->persona->apellido_materno . ' ' . $vendedor->persona->nombres }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
+                           
+                            @include('pedidos.pedido.forms.form_pedido_create')
 
-                                            <input hidden type="text" name="vendedor" value="{{$vendedor_actual}}">
-
-                                        </div>
-                                       
-                                        <div class="row" style="align-items: flex-end;">
-                                            <div class="col-lg-5 col-md-6 col-sm-12 col-xs-12 select-required">
-                                                <div class="form-group">
-                                                    <label class="required">Cliente:
-                                                        <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
-                                                            Registrar
-                                                        </button>
-                                                    </label>
-                                                    <select id="cliente" name="cliente"
-                                                        class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}"
-                                                         required>
-                                                        <option></option>
-                                                        @foreach ($clientes as $cliente)
-                                                            <option @if ($cliente->id == 1)
-                                                                selected
-                                                            @endif value="{{ $cliente->id }}"
-                                                                {{ old('cliente') == $cliente->id ? 'selected' : '' }}>
-                                                                {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @if ($errors->has('cliente'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('cliente') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 select-required">
-                                                <div class="form-group">
-                                                    <label class="required">Condición</label>
-                                                    <select id="condicion_id" name="condicion_id"
-                                                        class="select2_form form-control {{ $errors->has('condicion_id') ? ' is-invalid' : '' }}"
-                                                        required>
-                                                        <option></option>
-                                                        @foreach ($condiciones as $condicion)
-                                                            <option value="{{ $condicion->id }}"
-                                                                {{ old('condicion_id') == $condicion->id ? 'selected' : '' }}
-                                                                {{ 1 == $condicion->id ? 'selected' : '' }}>
-                                                                {{ $condicion->descripcion }} {{ $condicion->dias > 0 ? $condicion->dias.' dias' : '' }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @if ($errors->has('condicion_id'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('condicion_id') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-4 col-md-3 col-sm-12 col-xs-12">
-                                                <div class="form-group">
-                                                    <label class="required">Fecha Propuesta</label>
-                                                    <input type="date" class="form-control" id="fecha_propuesta" name="fecha_propuesta">
-                                                    @if ($errors->has('fecha_propuesta'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('fecha_propuesta') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- OBTENER TIPO DE CLIENTE -->
-                                        <input type="hidden" name="" id="tipo_cliente">
-                                        <!-- OBTENER DATOS DEL PRODUCTO -->
-                                        <input type="hidden" name="" id="presentacion_producto">
-                                        <input type="hidden" name="" id="codigo_nombre_producto">
-                                        <!-- LLENAR DATOS EN UN ARRAY -->
-                                        <input type="hidden" id="productos_tabla" name="productos_tabla[]">
-
-                                    </div>
-                                </div>
-
-                                <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
-                                <input type="hidden" name="monto_embalaje" id="monto_embalaje" value="{{ old('monto_embalaje') }}">
-                                <input type="hidden" name="monto_envio" id="monto_envio" value="{{ old('monto_envio') }}">
-                                <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
-                                <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ old('monto_descuento') }}">
-                                <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}">
-                                <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ old('monto_total_pagar') }}">
-
-                            </form>
                         </div>
                     </div>
                     <hr>
+
                     <div class="row">
                         <div class="col-lg-12 col-xs-12">
                             <div class="panel panel-primary">
                                 <div class="panel-heading">
-                                    <h4><b>Seleccionar productos</b></h4>
+                                    <h4><b>SELECCIONAR PRODUCTOS</b></h4>
                                 </div>
                                 <div class="panel-body">
                                     <div class="row">
                                         <div class="col-lg-12">
+
                                             <div class="form-group row">
-                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                                                    <label class="required" style="font-weight: bold;">MODELO</label>
-                                                    <select id="modelo"
-                                                        class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
-                                                        onchange="getProductosByModelo(this)" >
-                                                        <option></option>
-                                                        @foreach ($modelos as $modelo)
-                                                            <option value="{{ $modelo->id }}"
-                                                                {{ old('modelo') == $modelo->id ? 'selected' : '' }}>{{$modelo->descripcion}}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                                                    <label class="required" style="font-weight: bold;">PRODUCTO</label>
-                                                    <select id="producto"
-                                                        class="select2_form form-control {{ $errors->has('producto') ? ' is-invalid' : '' }}"
+
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
+                                                    <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
+                                                    <select 
+                                                        id="producto"
+                                                        class=""
                                                         onchange="getColoresTallas()" >
                                                         <option value=""></option>
                                                     </select>
                                                 </div>
+
+                                                <div class="col-12"></div>
                                                 <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
                                                     <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
                                                     <select id="precio_venta" class="select2_form form-control">
@@ -381,6 +124,7 @@
                                     <button type="submit" id="btn_grabar" form="form-pedido" class="btn btn-w-m btn-primary">
                                         <i class="fa fa-save"></i> Grabar
                                     </button>
+
                                 </div>
                             </div>
                         </div>
@@ -442,13 +186,15 @@
     const tfootEmbalaje         =   document.querySelector('.embalaje');
     const tfootEnvio            =   document.querySelector('.envio');
     
-    const inputSubTotal         =   document.querySelector('#monto_sub_total');
-    const inputTotal            =   document.querySelector('#monto_total');
-    const inputIgv              =   document.querySelector('#monto_total_igv');
-    const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
-    const inputMontoDescuento   =   document.querySelector('#monto_descuento');
-    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
-    const inputEnvio            =   document.querySelector('#monto_envio');
+    const amountsPedido         =   {
+                                        subtotal:0,
+                                        embalaje:0,
+                                        envio:0,
+                                        total:0,
+                                        igv:0,
+                                        totalPagar:0,
+                                        monto_descuento:0
+                                    }
 
     let pedidos_data_table  = null;
     let carrito             =   [];
@@ -465,10 +211,10 @@
     function events(){
       
 
-         //====== ELIMINAR ITEM =========
-         document.addEventListener('click',(e)=>{
+        //====== ELIMINAR ITEM =========
+        document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('delete-product')){
-                mostrarAnimacionPedido();
+                mostrarAnimacion();
                 const productoId = e.target.getAttribute('data-producto');
                 const colorId = e.target.getAttribute('data-color');
                 eliminarProducto(productoId,colorId);
@@ -476,45 +222,16 @@
                 clearInputsCantidad();
                 loadCarrito();
                 calcularMontos();
-                ocultarAnimacionPedido();
+                ocultarAnimacion();
             }
         })
 
         //====== SUBMIT FORM PEDIDOS =======
         document.querySelector('#form-pedido').addEventListener('submit',(e)=>{
+            
             e.preventDefault();
-            //===== VALIDAR FECHA =====
-            const correcto =  validarFecha();
-
-            if (correcto) {
-                Swal.fire({
-                    title: 'Opción Guardar',
-                    text: "¿Seguro que desea guardar cambios?",
-                    icon: 'question',
-                showCancelButton: true,
-                    confirmButtonColor: "#1ab394",
-                    confirmButtonText: 'Si, Confirmar',
-                    cancelButtonText: "No, Cancelar",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        if(carrito.length>0){
-                            document.querySelector('#btn_grabar').disabled = true;
-                            setProductosForm();                            
-                            document.querySelector('#form-pedido').submit();
-                        }else{
-                            toastr.error('EL DETALLE DEL PEDIDO ESTÁ VACÍO','ERROR');
-                        }
-
-                    } else if (result.dismiss === Swal.DismissReason.cancel) {
-                        swalWithBootstrapButtons.fire(
-                        'Cancelado',
-                        'La Solicitud se ha cancelado.',
-                        'error'
-                        )
-                        document.querySelector('#btn_grabar').disabled = false;
-                    }
-                })
-            }
+            registrarPedido(e.target);
+            
         })
 
 
@@ -580,6 +297,9 @@
        //======== AGREGAR PRODUCTO AL DETALLE =====
        document.querySelector('#btn_agregar_detalle').addEventListener('click',()=>{
             
+            mostrarAnimacion();
+            toastr.clear();
+
             agregarProducto();
             reordenarCarrito();
             calcularSubTotal();
@@ -590,6 +310,9 @@
             })
             //===== RECALCULANDO MONTOS =====
             calcularMontos();
+
+            toastr.info('PRODUCTO AGREGADO');
+            ocultarAnimacion();
 
         })
     }
@@ -608,6 +331,65 @@
             allowClear: true,          
             width: '100%'        
         });
+
+        $('#producto').select2({
+            width:'100%',
+            placeholder: "Buscar producto...",
+            allowClear: true,
+            language: {
+                inputTooShort: function(args) {
+                    var min = args.minimum;
+                    return "Por favor, ingrese " + min + " o más caracteres";
+                },
+                searching: function() {
+                    return "BUSCANDO...";
+                },
+                noResults: function() {
+                    return "No se encontraron productos";
+                }
+            },
+            ajax: {
+                url: '{{route("pedidos.pedido.getProductos")}}', 
+                dataType: 'json',
+                delay: 250, 
+                data: function(params) {
+                    return {
+                        search: params.term,
+                        almacen_id: $('#almacen').val(),
+                        page: params.page || 1  
+                    };
+                },
+                processResults: function(data,params) {
+                    if(data.success){
+                        params.page     =   params.page || 1;
+                        const productos =   data.productos;
+                        return {
+                            results: productos.map(item => ({
+                                id: item.producto_id,
+                                text: item.producto_completo 
+                            })),
+                            pagination: {
+                                more: data.more 
+                            }
+                        };
+                    }else{
+                        toastr.error(data.message,'ERROR EN EL SERVIDOR');
+                        return {
+                            results:[]
+                        }
+                    }
+                    
+                },
+                cache: true
+            },
+            minimumInputLength: 2,
+            templateResult: function(data) {
+                if (data.loading) {
+                    return $('<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>');
+                }
+                return data.text;
+            },
+        });
     }
 
     //========= SWAL ======
@@ -625,25 +407,7 @@
             return !(p.producto_id == productoId && p.color_id == colorId);
         })
     }
-
-    //========= VALIDAR FECHAS =========
-    function validarFecha() {
-        var enviar = true;
-
-        if ($('#fecha_documento').val() == '') {
-            toastr.error('Ingrese Fecha de Documento.', 'Error');
-            $("#fecha_documento").focus();
-            enviar = false;
-        }
-
-        if ($('#fecha_atencion').val() == '') {
-            toastr.error('Ingrese Fecha de Atención.', 'Error');
-            $("#fecha_atencion").focus();
-            enviar = false;
-        }
-
-        return enviar
-    }
+   
 
     //===== LIMPIAR INPUTS DEL TABLERO PRODUCTOS ======
     function clearInputsCantidad(){
@@ -725,15 +489,12 @@
                 }
             }
         }
-    }
 
-    //======= CARGAR PRODUCTOS ========
-    function setProductosForm(){
-        document.querySelector('#productos_tabla').value    =   JSON.stringify(carrito);
     }
 
     //======= CALCULAR MONTOS =======
     const calcularMontos = ()=>{
+
         let subtotal    =   0;
         let embalaje    =   tfootEmbalaje.value?parseFloat(tfootEmbalaje.value):0;
         let envio       =   tfootEnvio.value?parseFloat(tfootEnvio.value):0;
@@ -762,13 +523,13 @@
         tfootSubtotal.textContent   =   'S/. ' + subtotal.toFixed(2);
         tfootDescuento.textContent  =   'S/. ' + descuento.toFixed(2);
         
-        inputTotalPagar.value       =   total_pagar.toFixed(2);
-        inputIgv.value              =   igv.toFixed(2);
-        inputEmbalaje.value         =   embalaje.toFixed(2);
-        inputEnvio.value            =   envio.toFixed(2);
-        inputTotal.value            =   total.toFixed(2);
-        inputSubTotal.value         =   subtotal.toFixed(2);
-        inputMontoDescuento.value   =   descuento.toFixed(2);
+        amountsPedido.totalPagar        =   total_pagar.toFixed(2);
+        amountsPedido.igv               =   igv.toFixed(2);
+        amountsPedido.total             =   total.toFixed(2);
+        amountsPedido.embalaje          =   embalaje.toFixed(2);
+        amountsPedido.envio             =   envio.toFixed(2);
+        amountsPedido.subtotal          =   subtotal.toFixed(2);
+        amountsPedido.monto_descuento   =   descuento.toFixed(2);
     }
 
 
@@ -923,7 +684,7 @@
     //========== OBTENER PRODUCTOS POR MODELO =========
     async function  getProductosByModelo(e){
         toastr.clear();
-        mostrarAnimacionPedido();
+        mostrarAnimacion();
         const bodyTableStocks   =   document.querySelector('#table-stocks-pedidos tbody');
         const btnAgregarDetalle =   document.querySelector('#btn_agregar_detalle');
         clearTabla(bodyTableStocks);
@@ -938,16 +699,16 @@
                     pintarSelectProductos(res.data.productos);
                     toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
                 }else{
-                    ocultarAnimacionPedido();
+                    ocultarAnimacion();
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
-                ocultarAnimacionPedido();
+                ocultarAnimacion();
                 toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
             }
                
         }else{
-            ocultarAnimacionPedido();
+            ocultarAnimacion();
         }
     }
 
@@ -960,11 +721,13 @@
 
     //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
     async function getColoresTallas(){
-        mostrarAnimacionPedido();
+        mostrarAnimacion();
         const producto_id   =   $('#producto').val();
-        if(producto_id){
+        const almacen_id    =   $('#almacen').val();
+
+        if(producto_id && almacen_id){
             try {
-                const res   =   await   axios.get(route('pedidos.pedido.getColoresTallas',{producto_id}));
+                const res   =   await   axios.get(route('pedidos.pedido.getColoresTallas',{almacen_id,producto_id}));
                 if(res.data.success){
                     destruirDataTableStocks();
                     pintarTableStocks(res.data.producto_color_tallas);
@@ -978,14 +741,14 @@
             } catch (error) {
                 toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
             }finally{
-                ocultarAnimacionPedido();
+                ocultarAnimacion();
             }
         }else{
             destruirDataTableStocks();
             limpiarTableStocks();
             loadDataTableStocksPedido();
             limpiarSelectPreciosVenta();
-            ocultarAnimacionPedido();
+            ocultarAnimacion();
         }
     }
 
@@ -1101,7 +864,7 @@
         $('#producto').empty();
     
         if(productos.length === 0){
-            ocultarAnimacionPedido();
+            ocultarAnimacion();
         }
         
         //====== LLENAR =======
@@ -1115,11 +878,11 @@
         $('#producto').trigger('change');
     }
 
-    function mostrarAnimacionPedido(){
+    function mostrarAnimacion(){
         document.querySelector('.overlay_pedido_create').style.visibility   =   'visible';
     }
 
-    function ocultarAnimacionPedido(){
+    function ocultarAnimacion(){
         document.querySelector('.overlay_pedido_create').style.visibility   =   'hidden';
     }
 
@@ -1194,6 +957,117 @@
                 }
             })
         }) 
+
+    }
+
+    function registrarPedido(formPedido){
+
+        toastr.clear();
+        if(carrito.length === 0){
+            toastr.error('EL DETALLE DEL PEDIDO ESTÁ VACÍO','ERROR');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Opción Guardar',
+            text: "¿Seguro que desea guardar cambios?",
+            icon: 'question',
+        showCancelButton: true,
+            confirmButtonColor: "#1ab394",
+            confirmButtonText: 'Si, Confirmar',
+            cancelButtonText: "No, Cancelar",
+        }).then(async (result) => {
+
+            if (result.isConfirmed) {
+
+                Swal.fire({
+                    title: "Registrando pedido...",
+                    text: "Por favor, espere",
+                    icon: "info",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                try {
+                    const formData      =   new FormData(formPedido);
+                    formData.append('lstPedido',JSON.stringify(carrito));
+                    formData.append('sede_id',@json($sede_id));
+                    formData.append('registrador_id',@json($registrador->id));
+                    formData.append('amountsPedido',JSON.stringify(amountsPedido));
+
+
+                    const res   =   await axios.post(route('pedidos.pedido.store'),formData);
+                    if(res.data.success){
+                        window.location =  route('pedidos.pedido.index');
+                        toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                    }else{
+                        Swal.close();
+                        toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    }
+                } catch (error) {
+                    if (error.response) {
+                        if (error.response.status === 422) {
+                            const errors = error.response.data.errors;
+                            pintarErroresValidacion(errors, 'error');
+                            Swal.close();
+                            toastr.error("ERRORES DE VALIDACIÓN!!!");
+                        } else {
+                            Swal.close();
+                            toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                        }
+                    } else if (error.request) {
+                        Swal.close();
+                        toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+                    } else {
+                        Swal.close();
+                        toastr.error(error.message, 'ERROR DESCONOCIDO');
+                    }    
+                }
+
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+     
+                swalWithBootstrapButtons.fire(
+                    'Cancelado',
+                    'La Solicitud se ha cancelado.',
+                    'error'
+                )
+
+            }
+        })
+    }
+
+    function cambiarAlmacen(almacen_id){
+        
+        toastr.clear();
+
+        mostrarAnimacion();
+
+        //======== LIMPIAR SELECTS ======
+        $('#producto').val(null).trigger('change');
+
+        //======= LIMPIAR TABLERO STOCKS ======
+        destruirDataTable(dataTableStocksPedido);
+        limpiarTabla('table-stocks-pedidos');
+        loadDataTableStocksPedido();
+
+     
+        //========== LIMPIAR DETALLE DEL PEDIDO ========
+        carrito.length  =   0;
+        destruirDataTableStocks();
+        limpiarTabla('table-detalle-pedido');
+        pintarDetallePedido(carrito);
+
+        carrito.forEach((c)=>{
+            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+         })
+        calcularMontos();
+
+        ocultarAnimacion();
+        toastr.info('SE HA LIMPIADO EL FORMULARIO');
 
     }
   

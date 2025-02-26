@@ -1,90 +1,17 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 @include('ventas.cotizaciones.modal-cliente') 
 
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
 
-<style>
 
-    .overlay_pedido_edit {
-      position: fixed; /* Fija el overlay para que cubra todo el viewport */
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
-      z-index: 999999999; /* Asegura que el overlay esté sobre todo */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 24px;
-      visibility:hidden;
-    }
-    
-    /*========== LOADER SPINNER =======*/
-    .loader_pedido_edit{
-        position: relative;
-        width: 75px;
-        height: 100px;
-        background-repeat: no-repeat;
-        background-image: linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0),
-                          linear-gradient(#DDD 50px, transparent 0);
-        background-size: 8px 100%;
-        background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px;
-        animation: pillerPushUp 4s linear infinite;
-      }
-    .loader_pedido_edit:after {
-        content: '';
-        position: absolute;
-        bottom: 10px;
-        left: 0;
-        width: 10px;
-        height: 10px;
-        background: #de3500;
-        border-radius: 50%;
-        animation: ballStepUp 4s linear infinite;
-      }
-    
-    @keyframes pillerPushUp {
-      0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
-      50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
-    }
-    
-    @keyframes ballStepUp {
-      0% {transform: translate(0, 0)}
-      5% {transform: translate(8px, -14px)}
-      10% {transform: translate(15px, -10px)}
-      17% {transform: translate(23px, -24px)}
-      20% {transform: translate(30px, -20px)}
-      27% {transform: translate(38px, -34px)}
-      30% {transform: translate(45px, -30px)}
-      37% {transform: translate(53px, -44px)}
-      40% {transform: translate(60px, -40px)}
-      50% {transform: translate(60px, 0)}
-      57% {transform: translate(53px, -14px)}
-      60% {transform: translate(45px, -10px)}
-      67% {transform: translate(37px, -24px)}
-      70% {transform: translate(30px, -20px)}
-      77% {transform: translate(22px, -34px)}
-      80% {transform: translate(15px, -30px)}
-      87% {transform: translate(7px, -44px)}
-      90% {transform: translate(0, -40px)}
-      100% {transform: translate(0, 0);}
-    }
-        
-        
-</style>
 
-<div class="overlay_pedido_edit">
-    <span class="loader_pedido_edit"></span>
-</div>
+
 
 <div class="row wrapper border-bottom white-bg page-heading">
-    <div class="col-lg-10 col-md-10">
+
+    <div class="col-lg-7 col-md-7">
         <h2 style="text-transform:uppercase"><b>Modificar Pedido #{{$pedido->id}}</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
@@ -94,6 +21,15 @@
                 <strong>Pedidos</strong>
             </li>
         </ol>
+    </div>
+
+    <div class="col-lg-5 col-md-5 col-sm-12 col-xs-12 mb-3 mt-3 d-flex align-items-center justify-content-center">
+        <div class="alert alert-warning alert-dismissible fade show m-0" role="alert">
+            <strong>Holy {{Auth::user()->usuario}}!</strong> Los pedidos ATENDIDOS no pueden cambiarse de almacén!!!
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     </div>
 </div>
 
@@ -105,193 +41,7 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form method="POST" action="{{ route('pedidos.pedido.update', $pedido->id) }}" id="form-pedido">
-                                @csrf
-                                @method('PUT')
-                                <div class="row">
-                                    <div class="col-12">
-                                        <h4><b>Datos Generales</b></h4>
-                                    </div>
-                                    <div class="col-12 d-none">
-                                        <div class="form-group row">
-                                            <div class="col-lg-6 col-xs-12">
-                                                <label class="required">Fecha de Documento</label>
-                                                <div class="input-group date">
-                                                    <span class="input-group-addon">
-                                                        <i class="fa fa-calendar"></i>
-                                                    </span>
-                                                    <input type="date" id="fecha_documento" name="fecha_documento"
-                                                    class="form-control input-required {{ $errors->has('fecha_documento') ? ' is-invalid' : '' }}"
-                                                    value="{{ old('fecha_registro', $pedido->fecha_registro) }}"
-                                                    autocomplete="off" required readonly>
-                                                    @if ($errors->has('fecha_documento'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('fecha_documento') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="___class_+?31___">Moneda</label>
-                                                <select id="moneda" name="moneda"
-                                                    class="select2_form form-control {{ $errors->has('moneda') ? ' is-invalid' : '' }}"
-                                                    disabled>
-                                                    <option selected>SOLES</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="required">Empresa</label>
-                                                <select id="empresa" name="empresa"
-                                                    class="select2_form form-control {{ $errors->has('empresa') ? ' is-invalid' : '' }}"
-                                                    required>
-                                                    <option></option>
-                                                    @foreach ($empresas as $empresa)
-                                                        <option value="{{ $empresa->id }}"
-                                                            {{ old('empresa') == $empresa->id || $empresa->id === 1 ? 'selected' : '' }}>
-                                                            {{ $empresa->razon_social }}
-                                                            @if ($empresa->id == $pedido->empresa_id)
-                                                                selected
-                                                            @endif
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @if ($errors->has('empresa'))
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $errors->first('empresa') }}</strong>
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="row">
-                                            <div class="col-12 col-md-4">
-                                                <div class="form-group">
-                                                    <label class="required">Fecha de Atención</label>
-                                                    <div class="input-group date">
-                                                        <span class="input-group-addon">
-                                                            <i class="fa fa-calendar"></i>
-                                                        </span>
-                                                        <input type="date" id="fecha_atencion" name="fecha_atencion"
-                                                            class="form-control {{ $errors->has('fecha_atencion') ? ' is-invalid' : '' }}"
-                                                            value="{{ old('fecha_registro', $pedido->fecha_registro) }}"
-                                                            autocomplete="off" required readonly>
-                                                        @if ($errors->has('fecha_atencion'))
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $errors->first('fecha_atencion') }}</strong>
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                           
-                                            <div class="col-12 col-md-4">
-                                                <div class="form-group">
-                                                    <label class="">Vendedor</label>
-                                                    <select id="vendedor" name="vendedor" class="select2_form form-control" disabled>
-                                                        <option></option>
-                                                        @foreach (vendedores() as $vendedor)
-                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === $vendedor_actual_id ? 'selected' : '' }}>
-                                                                {{ $vendedor->persona->apellido_paterno . ' ' . $vendedor->persona->apellido_materno . ' ' . $vendedor->persona->nombres }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <input hidden type="text" name="vendedor" value="{{$vendedor_actual_id}}">
-
-                                        </div>
-                                       
-                                        <div class="row" style="align-items: flex-end;">
-                                            <div class="col-lg-5 col-md-6 col-sm-12 col-xs-12 select-required">
-                                                <div class="form-group">
-                                                    <label class="required">Cliente:
-                                                        <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
-                                                            Registrar
-                                                        </button>
-                                                    </label>
-                                                    <select id="cliente" name="cliente" 
-                                                        @if ($pedido->estado === "ATENDIENDO")
-                                                            disabled
-                                                        @endif
-                                                        class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}"
-                                                         required>
-                                                        <option></option>
-                                                        @foreach ($clientes as $cliente)
-                                                            <option @if ($cliente->id == $pedido->cliente_id)
-                                                                selected
-                                                            @endif value="{{ $cliente->id }}"
-                                                                {{ old('cliente') == $cliente->id ? 'selected' : '' }}>
-                                                                {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @if ($errors->has('cliente'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('cliente') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 select-required">
-                                                <div class="form-group">
-                                                    <label class="required">Condición</label>
-                                                    <select id="condicion_id" name="condicion_id"
-                                                        class="select2_form form-control {{ $errors->has('condicion_id') ? ' is-invalid' : '' }}"
-                                                        required>
-                                                        <option></option>
-                                                        @foreach ($condiciones as $condicion)
-                                                            <option value="{{ $condicion->id }}"
-                                                                @if ($condicion->id == $pedido->condicion_id)
-                                                                    selected
-                                                                @endif
-                                                                {{ old('condicion_id') == $condicion->id ? 'selected' : '' }}>
-                                                                {{ $condicion->descripcion }} {{ $condicion->dias > 0 ? $condicion->dias.' dias' : '' }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @if ($errors->has('condicion_id'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('condicion_id') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-4 col-md-3 col-sm-12 col-xs-12">
-                                                <div class="form-group">
-                                                    <label class="required">Fecha Propuesta</label>
-                                                    <input type="date" class="form-control" id="fecha_propuesta" name="fecha_propuesta" value="{{$pedido->fecha_propuesta}}">
-                                                    @if ($errors->has('fecha_propuesta'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('fecha_propuesta') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- OBTENER TIPO DE CLIENTE -->
-                                        <input type="hidden" name="" id="tipo_cliente">
-                                        <!-- OBTENER DATOS DEL PRODUCTO -->
-                                        <input type="hidden" name="" id="presentacion_producto">
-                                        <input type="hidden" name="" id="codigo_nombre_producto">
-                                        <!-- LLENAR DATOS EN UN ARRAY -->
-                                        <input type="hidden" id="productos_tabla" name="productos_tabla[]">
-
-                                    </div>
-                                </div>
-
-                                <input type="hidden" name="monto_sub_total" id="monto_sub_total"    value="{{$pedido->sub_total}}">
-                                <input type="hidden" name="monto_embalaje" id="monto_embalaje"      value="{{$pedido->monto_embalaje}}">
-                                <input type="hidden" name="monto_envio" id="monto_envio"            value="{{$pedido->monto_envio}}">
-                                <input type="hidden" name="monto_total_igv" id="monto_total_igv"                value="{{$pedido->total_igv}}">
-                                <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ $pedido->monto_descuento }}">
-                                <input type="hidden" name="monto_total" id="monto_total"            value="{{$pedido->total}}">
-                                <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{$pedido->total_pagar}}">
-
-                            </form>
+                           @include('pedidos.pedido.forms.form_pedido_edit')
                         </div>
                     </div>
                     <hr>
@@ -306,26 +56,18 @@
                                         <div class="col-lg-12">
                                             <div class="form-group row">
 
-                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                                                    <label class="required" style="font-weight: bold;">MODELO</label>
-                                                    <select id="modelo"
-                                                        class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
-                                                        onchange="getProductosByModelo(this)" >
-                                                        <option></option>
-                                                        @foreach ($modelos as $modelo)
-                                                            <option value="{{ $modelo->id }}"
-                                                            {{ old('modelo') == $modelo->id ? 'selected' : '' }}>{{$modelo->descripcion}}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                                                    <label class="required" style="font-weight: bold;">PRODUCTO</label>
-                                                    <select id="producto"
-                                                        class="select2_form form-control {{ $errors->has('producto') ? ' is-invalid' : '' }}"
+                                              
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
+                                                    <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
+                                                    <select 
+                                                        id="producto"
+                                                        class=""
                                                         onchange="getColoresTallas()" >
                                                         <option value=""></option>
                                                     </select>
                                                 </div>
+
+
                                                 <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
                                                     <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
                                                     <select id="precio_venta" class="select2_form form-control">
@@ -412,7 +154,7 @@
                                         <i class="fa fa-arrow-left"></i> Regresar
                                     </a>
                                    
-                                    <button type="submit" id="btn_grabar" form="form-pedido" class="btn btn-w-m btn-primary">
+                                    <button type="submit" id="btn_grabar" form="formActualizarPedido" class="btn btn-w-m btn-primary">
                                         <i class="fa fa-save"></i> Grabar
                                     </button>
                                 </div>
@@ -476,13 +218,15 @@
     const tfootEmbalaje         =   document.querySelector('.embalaje');
     const tfootEnvio            =   document.querySelector('.envio');
     
-    const inputSubTotal         =   document.querySelector('#monto_sub_total');
-    const inputTotal            =   document.querySelector('#monto_total');
-    const inputIgv              =   document.querySelector('#monto_total_igv');
-    const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
-    const inputMontoDescuento   =   document.querySelector('#monto_descuento');
-    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
-    const inputEnvio            =   document.querySelector('#monto_envio');
+    const amountsPedido         =   {
+                                        subtotal:0,
+                                        embalaje:0,
+                                        envio:0,
+                                        total:0,
+                                        igv:0,
+                                        totalPagar:0,
+                                        monto_descuento:0
+                                    }
 
 
     let noEditTotal         =   0;
@@ -529,9 +273,6 @@
                     })
                 })
 
-
-                //======== VALIDAR CANTIDAD CON CANTIDAD ATENDIDA ======
-                const  lstProductosValidados   =  await validarProductos(lstProductos);
                 mostrarAnimacionPedido();
                 const cantProductosEliminados   =   eliminarProducto(lstProductosValidados);
 
@@ -553,74 +294,14 @@
         })
 
         //====== SUBMIT FORM PEDIDOS =======
-        document.querySelector('#form-pedido').addEventListener('submit',(e)=>{
+        document.querySelector('#formActualizarPedido').addEventListener('submit',(e)=>{
 
             e.preventDefault();
             //===== VALIDAR FECHA =====
             const correcto =  validarDatosPedido();
 
             if (correcto) {
-                Swal.fire({
-                    title: 'Opción Guardar',
-                    text: "¿Seguro que desea guardar cambios?",
-                    icon: 'question',
-                showCancelButton: true,
-                    confirmButtonColor: "#1ab394",
-                    confirmButtonText: 'Si, Confirmar',
-                    cancelButtonText: "No, Cancelar",
-                }).then(async (result) => {
-                    if (result.isConfirmed) {
-                        
-                        Swal.fire({
-                            title: 'Actualizando Pedido...',
-                            text: 'Por favor, espere.',
-                            icon: 'info',
-                            showConfirmButton: false,
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading(); 
-                            }
-                        });
-
-                        try {
-                            document.querySelector('#btn_grabar').disabled = true;
-                            const res   =   await axios.put(route('pedidos.pedido.update',{id:@json($pedido->id)}),
-                            {   
-                                lstProductos:   JSON.stringify(carrito),
-                                cliente:        document.querySelector('#cliente').value,
-                                condicion_id:   document.querySelector('#condicion_id').value,
-                                fecha_propuesta:document.querySelector('#fecha_propuesta').value,
-                                empresa:        document.querySelector('#empresa').value
-                            });
-
-                            if(res.data.success){
-                                const routeIndex        =   "{{ route('pedidos.pedido.index') }}";
-                                toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
-                                window.location.href    =   routeIndex;
-                            }else{
-                                if('lstErroresValidacion' in res.data){
-                                    pintarErroresValidacion(res.data.lstErroresValidacion);
-                                    return;
-                                }
-                                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
-                            }
-                        } catch (error) {
-                            toastr.error(error,'ERROR EN LA PETICIÓN ACTUALIZAR PEDIDO');
-                        }finally{
-                            document.querySelector('#btn_grabar').disabled = false;
-                            Swal.close();
-                        }
-
-                                                
-                    } else if (result.dismiss === Swal.DismissReason.cancel) {
-                        swalWithBootstrapButtons.fire(
-                        'Cancelado',
-                        'La Solicitud se ha cancelado.',
-                        'error'
-                        )
-                        document.querySelector('#btn_grabar').disabled = false;
-                    }
-                })
+                actualizarPedido(e.target);
             }
 
         })
@@ -701,24 +382,19 @@
                 return;
             }
 
-            despintarErrorInputsCantidad();
-            const lstProductos              =   obtenerProductos();
-            const lstProductosValidados     =   await validarProductos(lstProductos);
+       
             
-            if(lstProductosValidados){
-                agregarProducto(lstProductosValidados);
-                reordenarCarrito();
-                calcularSubTotal(carrito);
-                pintarDetallePedido(carrito);
-                //===== RECALCULANDO DESCUENTOS Y MONTOS =====
-                carrito.forEach((c)=>{
-                    calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
-                })
-                //===== RECALCULANDO MONTOS =====
-                calcularMontos();
-            }
-           
-
+            agregarProducto(lstProductosValidados);
+            reordenarCarrito();
+            calcularSubTotal(carrito);
+            pintarDetallePedido(carrito);
+            //===== RECALCULANDO DESCUENTOS Y MONTOS =====
+            carrito.forEach((c)=>{
+                calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+            })
+            //===== RECALCULANDO MONTOS =====
+            calcularMontos();
+            
         })
     }
 
@@ -735,6 +411,65 @@
             placeholder: "SELECCIONAR", 
             allowClear: true,          
             width: '100%'        
+        });
+
+        $('#producto').select2({
+            width:'100%',
+            placeholder: "Buscar producto...",
+            allowClear: true,
+            language: {
+                inputTooShort: function(args) {
+                    var min = args.minimum;
+                    return "Por favor, ingrese " + min + " o más caracteres";
+                },
+                searching: function() {
+                    return "BUSCANDO...";
+                },
+                noResults: function() {
+                    return "No se encontraron productos";
+                }
+            },
+            ajax: {
+                url: '{{route("pedidos.pedido.getProductos")}}', 
+                dataType: 'json',
+                delay: 250, 
+                data: function(params) {
+                    return {
+                        search: params.term,
+                        almacen_id: $('#almacen').val(),
+                        page: params.page || 1  
+                    };
+                },
+                processResults: function(data,params) {
+                    if(data.success){
+                        params.page     =   params.page || 1;
+                        const productos =   data.productos;
+                        return {
+                            results: productos.map(item => ({
+                                id: item.producto_id,
+                                text: item.producto_completo 
+                            })),
+                            pagination: {
+                                more: data.more 
+                            }
+                        };
+                    }else{
+                        toastr.error(data.message,'ERROR EN EL SERVIDOR');
+                        return {
+                            results:[]
+                        }
+                    }
+                    
+                },
+                cache: true
+            },
+            minimumInputLength: 2,
+            templateResult: function(data) {
+                if (data.loading) {
+                    return $('<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>');
+                }
+                return data.text;
+            },
         });
     }
 
@@ -858,73 +593,6 @@
      
     }
 
-    //======= VALIDAR LA CANTIDAD INGRESADA POR EL USUARIO CON LA CANTIDAD ATENDIDA DEL PRODUCTO ========
-    async function validarProductos(lstProductos){
-
-        //========= VALIDACIÓN EN BACKEND ========
-        try {
-            mostrarAnimacionPedido();
-            toastr.clear();
-            const res   =   await axios.post(route('pedidos.pedido.validarCantidadAtendida'),
-            {
-                pedido_id   :   @json($pedido->id),
-                lstProductos: JSON.stringify(lstProductos)
-            })
-
-            if(res.data.success){
-                pintarErroresValidacion(res.data.lstErroresValidacion);
-                toastr.info('VALIDACIÓN COMPLETADA');
-                return res.data.lstProductosValidados;
-            }else{
-                toastr.error(res.data.message,'ERROR EN EL SERVIDOR AL VALIDAR LOS PRODUCTOS');
-                return null;
-            }
-
-        } catch (error) {
-            toastr.error(error,'ERROR EN LA PETICIÓN VALIDAR PRODUCTOS');
-            return null;
-        }finally{
-            ocultarAnimacionPedido();
-        }
-
-
-    }
-
-    function despintarErrorInputsCantidad() {
-        const inputsCantidad = document.querySelectorAll('.inputCantidad');
-        
-        inputsCantidad.forEach(input => {
-            input.style.border = ''; 
-        });
-    }
-
-
-    function pintarErroresValidacion(lstErroresValidacion) {
-        lstErroresValidacion.forEach((producto)=>{
-           
-            toastr.error(producto.mensaje,'',{
-                closeButton: true,      
-                timeOut: 0,             
-                extendedTimeOut: 0,    
-                tapToDismiss: false     
-            });
-
-            const inputCantidad =   document.querySelector(`#inputCantidad_${producto.producto_id}_${producto.color_id}_${producto.talla_id}`);
-            if(inputCantidad){
-                inputCantidad.style.border = '1.6px solid #FF9999';
-            }   
-        })
-    }
-
-    function mostrarAnimacionPedido(){
-        document.querySelector('.overlay_pedido_edit').style.visibility   =   'visible';
-    }
-
-    function ocultarAnimacionPedido(){
-        
-        document.querySelector('.overlay_pedido_edit').style.visibility   =   'hidden';
-    }
-
     //======== ELIMINAR ITEM ========
     const eliminarProducto = (lstProductosValidados)=>{
         let productosEliminados =   0;
@@ -968,19 +636,7 @@
 
     //========= VALIDAR FECHAS =========
     function validarDatosPedido() {
-        var enviar = true;
-
-        if ($('#fecha_documento').val() == '') {
-            toastr.error('Ingrese Fecha de Documento.', 'Error');
-            $("#fecha_documento").focus();
-            enviar = false;
-        }
-
-        if ($('#fecha_atencion').val() == '') {
-            toastr.error('Ingrese Fecha de Atención.', 'Error');
-            $("#fecha_atencion").focus();
-            enviar = false;
-        }
+        let enviar = true;
 
         if(carrito.length === 0){
             toastr.error('El detalle del pedido está vacío.', 'Error');
@@ -1026,13 +682,13 @@
         tfootSubtotal.textContent   =   'S/. ' + subtotal.toFixed(2);
         tfootDescuento.textContent  =   'S/. ' + descuento.toFixed(2);
         
-        inputTotalPagar.value       =   total_pagar.toFixed(2);
-        inputIgv.value              =   igv.toFixed(2);
-        inputEmbalaje.value         =   embalaje.toFixed(2);
-        inputEnvio.value            =   envio.toFixed(2);
-        inputTotal.value            =   total.toFixed(2);
-        inputSubTotal.value         =   subtotal.toFixed(2);
-        inputMontoDescuento.value   =   descuento.toFixed(2);
+        amountsPedido.totalPagar        =   total_pagar.toFixed(2);
+        amountsPedido.igv               =   igv.toFixed(2);
+        amountsPedido.total             =   total.toFixed(2);
+        amountsPedido.embalaje          =   embalaje.toFixed(2);
+        amountsPedido.envio             =   envio.toFixed(2);
+        amountsPedido.subtotal          =   subtotal.toFixed(2);
+        amountsPedido.monto_descuento   =   descuento.toFixed(2);
     }
 
     //======== CALCULAR DESCUENTO ========
@@ -1518,12 +1174,11 @@
 
     //=========== CARGAR PRODUCTOS PREVIOS =======
     const cargarProductosPrevios=()=>{
+
         //====== CARGANDO EMBALAJE Y ENVÍO PREVIO =======
         tfootEmbalaje.value     =   @json($pedido->monto_embalaje);
         tfootEnvio.value        =   @json($pedido->monto_envio);
-        inputEmbalaje.value     =   @json($pedido->monto_embalaje);
-        inputEnvio.value        =   @json($pedido->monto_envio);
-
+       
         const productosPrevios  =   @json($pedido_detalles);
        
         //====== CARGANDO CARRITO ======
@@ -1661,6 +1316,89 @@
         })
 
         tbody.innerHTML =   filas;
+    }
+
+    function actualizarPedido(formPedido){
+
+        Swal.fire({
+            title: 'Desea actualizar el pedido?',
+            text: "Se realizarán cambios",
+            icon: 'question',
+        showCancelButton: true,
+            confirmButtonColor: "#1ab394",
+            confirmButtonText: 'Si, Confirmar',
+            cancelButtonText: "No, Cancelar",
+        }).then(async (result) => {
+
+            if (result.isConfirmed) {
+                        
+                Swal.fire({
+                    title: 'Actualizando Pedido...',
+                    text: 'Por favor, espere.',
+                    icon: 'info',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading(); 
+                    }
+                });
+
+                    try {
+                        const formData      =   new FormData(formPedido);
+                        formData.append('lstPedido',JSON.stringify(carrito));
+                        formData.append('sede_id',@json($sede_id));
+                        formData.append('registrador_id',@json($registrador->id));
+                        formData.append('amountsPedido',JSON.stringify(amountsPedido));
+
+                        const res   =   await axios.post(route('pedidos.pedido.update',{id:@json($pedido->id)}),
+                        formData,{
+                            headers: {
+                                "X-HTTP-Method-Override": "PUT"
+                            }
+                        });
+
+                            if(res.data.success){
+                                const routeIndex        =   "{{ route('pedidos.pedido.index') }}";
+                                toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                                window.location.href    =   routeIndex;
+                            }else{
+                                if('lstErroresValidacion' in res.data){
+                                    pintarErroresValidacion(res.data.lstErroresValidacion);
+                                    return;
+                                }
+                                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                            }
+                    } catch (error) {
+                        if (error.response) {
+                            if (error.response.status === 422) {
+                                const errors = error.response.data.errors;
+                                pintarErroresValidacion(errors, 'error');
+                                Swal.close();
+                                toastr.error("ERRORES DE VALIDACIÓN!!!");
+                            } else {
+                                Swal.close();
+                                toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                            }
+                        } else if (error.request) {
+                            Swal.close();
+                            toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+                        } else {
+                            Swal.close();
+                            toastr.error(error.message, 'ERROR DESCONOCIDO');
+                        }    
+                    }
+
+                                                
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+
+                swalWithBootstrapButtons.fire(
+                'Cancelado',
+                'La Solicitud se ha cancelado.',
+                'error'
+                )
+
+            }
+        })
     }
 
 </script>

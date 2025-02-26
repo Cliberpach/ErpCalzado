@@ -74,6 +74,7 @@
                                     <th class="text-center">ID</th>
                                     <th class="text-center">FACTURADO</th>
                                     <th class="text-center">COT</th>
+                                    <th class="text-center">ALMACEN</th>
                                     <th class="text-center">CLIENTE</th>
                                     <th class="text-center">FECHA</th>
                                     <th class="text-center">TOTAL</th>
@@ -222,6 +223,7 @@
                 { data: 'id' },
                 { data: 'documento_venta'},
                 { data: 'cotizacion_nro'},
+                { data: 'almacen_nombre' },
                 { data: 'cliente_nombre' },
                 {
             data: 'created_at',

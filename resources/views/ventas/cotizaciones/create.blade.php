@@ -188,7 +188,6 @@
 @stop
 
 @push('styles')
-
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/dist/toastr.min.css">
 @endpush
@@ -1209,7 +1208,6 @@
                     toastr.error(error.message, 'ERROR DESCONOCIDO');
                 }    
             }
-
 
         } else if (result.dismiss === Swal.DismissReason.cancel) {
             swalWithBootstrapButtons.fire({
