@@ -5,6 +5,38 @@
             <i class="fas fa-file-invoice"></i> <label for="" style="font-weight: bold;">DATOS DEL COMPROBANTE</label>
             <hr style="margin:0px 0 10px 0;">
         </div>
+
+        <div class="col-12 col-lg-3 col-md-3 mb-3">
+            <label for="registrador" style="font-weight: bold;">REGISTRADOR</label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon1">
+                        <i class="fas fa-user-shield"></i>
+                    </span>
+                </div>
+                <input value="{{$registrador->usuario}}" readonly name="registrador" id="registrador" type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
+            <div class="form-group">
+                <label style="font-weight: bold;" class="required" for="condicion_id">ALMACÉN</label>
+                <select onchange="cambiarAlmacen(this.value)"  id="almacen" name="almacen" class="select2_form form-control" required>
+                    <option></option>
+                    @foreach ($almacenes as $almacen)
+                        <option
+                        @if ($almacen->sede_id == $sede_id)
+                            selected
+                        @endif
+                        value="{{ $almacen->id }}">
+                            {{ $almacen->descripcion }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <span style="font-weight: bold;color:red;" class="almacen_error msgError"></span>
+        </div>
+    
         
         <div class="col-lg-4 col-md-6 col-sm-6 col-xs-12 mb-3">
             <label class="required" for="fecha_emision" style="font-weight: bold;">FECHA EMISIÓN</label>
@@ -25,27 +57,30 @@
 
     <div class="row mb-3">
         <div class="col-12">
-            <i class="fas fa-paper-plane"></i> <label for="" style="font-weight: bold;">DATOS ENVÍO</label>
-            <hr style="margin:0px 0 10px 0;">
+            <div class="p-2 bg-success text-white rounded shadow-sm">
+                <i class="fas fa-paper-plane"></i> <label for="" style="font-weight: bold;">DATOS ENVÍO</label>
+            </div>
+            <hr class="mt-2 mb-3">
         </div>
+
         <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
             <label class="required" for="motivo_traslado" style="font-weight: bold;">MOTIVO TRASLADO</label>
             <select name="motivo_traslado" id="motivo_traslado" class="select2_form">
                <option value="01">VENTA</option>
-               <option value="02">COMPRA</option>
-               <option value="04">TRASLADO ENTRE ESTABLECIMIENTOS DE LA MISMA EMPRESA</option>
-               <option value="08">IMPORTACIÓN</option>
+               {{-- <option value="02">COMPRA</option> --}}
+               <option selected value="04">TRASLADO ENTRE ESTABLECIMIENTOS DE LA MISMA EMPRESA</option>
+               {{-- <option value="08">IMPORTACIÓN</option>
                <option value="09">EXPORTACIÓN</option>
                <option value="13">OTROS</option>
                <option value="14">VENTA SUJETA A CONFIRMACIÓN DEL COMPRADOR</option>
                <option value="18">TRASLADO EMISOR ITINERANTE CP</option>
-               <option value="19">TRASLADO A ZONA PRIMARIA</option>
+               <option value="19">TRASLADO A ZONA PRIMARIA</option> --}}
             </select>
         </div>
 
         <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
             <label class="required" for="modalidad_traslado" style="font-weight: bold;">MODALIDAD DE TRASLADO</label>
-            <select name="modalidad_traslado" id="modalidad_traslado" class="select2_form">
+            <select onchange="cambiarModalidadTraslado(this.value)" name="modalidad_traslado" id="modalidad_traslado" class="select2_form">
                <option value="01">TRANSPORTE PÚBLICO</option>
                <option value="02">TRANSPORTE PRIVADO</option>
             </select>
@@ -78,12 +113,14 @@
                <option value="TNE">TONELADAS</option>
             </select>
         </div>
-        <div class="col-12 mb-3">
+
+        <div class="col-12 mb-3" id="divCategoriaML">
             <div class="form-group form-check">
-                <input id="tipo_vehiculo" name="tipo_vehiculo" type="checkbox" class="form-check-input" id="exampleCheck1">
+                <input id="tipo_vehiculo" name="tipo_vehiculo" type="checkbox" class="form-check-input chkTipoVehiculo" >
                 <label class="form-check-label" for="tipo_vehiculo">VEHÍCULOS CATEGORÍA M1 O L</label>
             </div>
         </div>
+
     </div>
 
     @include('ventas.guias.subforms.sub_transporte_publico')

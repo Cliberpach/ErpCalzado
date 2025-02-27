@@ -55,29 +55,24 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-lg-3 col-xs-12 mb-3">
-                            <label class="required">Modelo</label>
-                            <select id="modelo"
-                                class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
-                                onchange="getProductosByModelo(this.value)" >
-                                <option></option>
-                                @foreach ($modelos as $modelo)
-                                    <option value="{{ $modelo->id }}"
-                                        {{ old('modelo') == $modelo->id ? 'selected' : '' }}>
-                                        {{ $modelo->descripcion }}</option>
-                                @endforeach
+
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
+                            <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
+                            <select 
+                                id="producto"
+                                class=""
+                                onchange="getColoresTallas()" >
+                                <option value=""></option>
                             </select>
-                            <div class="invalid-feedback"><b><span
-                                        id="error-producto"></span></b></div>
                         </div>
+                       
                         <div class="col-12 mb-5">
                             @include('ventas.guias.table-stocks')
                         </div>           
                         <div class="col-lg-2 col-xs-12">
-                            <button  type="button" id="btn_agregar_detalle"
-                                class="btn btn-warning btn-block">
-                                    <i class="fa fa-plus"></i> AGREGAR
-                                </button>
+                            <button  type="button" id="btn_agregar_detalle" class="btn btn-warning btn-block">
+                                <i class="fa fa-plus"></i> AGREGAR
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -106,326 +101,214 @@
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
+let dtGuiaStocks    =   null
 
-        $('#cantidad').on('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
+document.addEventListener('DOMContentLoaded',()=>{
+    loadSelect2();
+    $('#modalidad_traslado').val('02').trigger('change');
+    dtGuiaStocks    =   iniciarDataTable('table-stocks');
+    events();
+})
 
-        $(document).ready(function() {
-            $(".select2_form").select2({
-                placeholder: "SELECCIONAR",
-                allowClear: true,
-                height: '200px',
-                width: '100%',
-            });
+function events(){
 
-            $("#departamento").on("change", cargarProvincias);
-
-            $('#provincia').on("change", cargarDistritos);
-        });
-
-        function cargarProvincias() {
-            var departamento_id = $("#departamento").val();
-            if (departamento_id !== "" || departamento_id.length > 0) {
-                $.ajax({
-                    type: 'post',
-                    dataType: 'json',
-                    data: {
-                        _token: $('input[name=_token]').val(),
-                        departamento_id: departamento_id
-                    },
-                    url: "{{ route('mantenimiento.ubigeo.provincias') }}",
-                    success: function(data) {
-                        // Limpiamos data
-                        $("#provincia").empty();
-                        $("#distrito").empty();
-
-                        if (!data.error) {
-                            // Mostramos la información
-                            if (data.provincias != null) {
-                                $("#provincia").empty().trigger("change");
-                                let codigoProvincia = $("#codigoProvincia").val();
-                                if(codigoProvincia == ""){
-                                    $("#provincia").select2({
-                                        placeholder: "SELECCIONAR",
-                                        allowClear: true,
-                                        height: '200px',
-                                        width: '100%',
-                                        data: data.provincias
-                                    }).val($("#provincia").find(':selected').val()).trigger('change');
-                                }else{
-                                    $("#provincia").select2({
-                                        placeholder: "SELECCIONAR",
-                                        allowClear: true,
-                                        height: '200px',
-                                        width: '100%',
-                                        data: data.provincias
-                                    });
-                                    $("#provincia").select2("val", codigoProvincia);
-                                    $("#codigoProvincia").val("");
-                                }
-                            }
-                        } else {
-                            toastr.error(data.message, 'Mensaje de Error', {
-                                "closeButton": true,
-                                positionClass: 'toast-bottom-right'
-                            });
-                        }
-                    }
-                });
+    document.addEventListener('click',(e)=>{
+        if (e.target.classList.contains('chkTipoVehiculo')) { 
+            const marcado   =   e.target.checked;
+            if(marcado){
+                document.querySelector('#divTransportista').style.display = 'none';
+            }else{
+                document.querySelector('#divTransportista').style.display   = 'flex';
             }
         }
+    })
+}
 
-        function cargarDistritos() {
-            var provincia_id = $("#provincia").val();
-            if (provincia_id !== null && provincia_id.length > 0) {
-                $.ajax({
-                    type: 'post',
-                    dataType: 'json',
-                    data: {
-                        _token: $('input[name=_token]').val(),
-                        provincia_id: provincia_id
-                    },
-                    url: "{{ route('mantenimiento.ubigeo.distritos') }}",
-                    success: function(data) {
-                        // Limpiamos data
-                        $("#ubigeo_llegada").empty();
+function loadSelect2(){
 
-                        if (!data.error) {
-                            // Mostramos la información
-                            if (data.distritos != null) {
-                                var selected = $('#ubigeo_llegada').find(':selected').val();
-                                // $("#ubigeo_llegada").select2({
-                                //     data: data.distritos
-                                // });
-
-                                let codigoDistrito = $("#codigoDistrito").val();
-                                if(codigoDistrito == ""){
-                                    $("#ubigeo_llegada").select2({
-                                        placeholder: "SELECCIONAR",
-                                        allowClear: true,
-                                        height: '200px',
-                                        width: '100%',
-                                        data: data.distritos
-                                    }).val($("#ubigeo_llegada").find(':selected').val()).trigger('change');
-                                }else{
-                                    $("#ubigeo_llegada").select2({
-                                        placeholder: "SELECCIONAR",
-                                        allowClear: true,
-                                        height: '200px',
-                                        width: '100%',
-                                        data: data.distritos
-                                    });
-                                    $("#ubigeo_llegada").select2("val", codigoDistrito);
-                                    $("#codigoDistrito").val("");
-                                }
-                            }
-                        } else {
-                            toastr.error(data.message, 'Mensaje de Error', {
-                                "closeButton": true,
-                                positionClass: 'toast-bottom-right'
-                            });
-                        }
-                    }
-                });
-            }
-        }
-
-        // Solo campos numericos
-        $('#ubigeo_partida, #dni_conductor').on('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-
-         $(document).ready(function() {
-
-
-             //DATATABLE - COTIZACION
-             table = $('.dataTables-detalle-documento').DataTable({
-                 "dom": 'lTfgitp',
-                 "bPaginate": true,
-                 "bLengthChange": true,
-                 "responsive": true,
-                 "bFilter": true,
-                 "bInfo": false,
-                 "columnDefs": [
-                    //  {
-                    //    "targets": 0,
-                    //      "visible": false,
-                    //      "searchable": false
-                    //  },
-                    {
-                        searchable: false,
-                         "targets": [0],
-                         "className": 'text-center'
-                     },
-                     {
-                         searchable: false,
-                         "targets": [1],
-                         "className": 'text-center'
-                     },
-                     {
-                         "targets": [2],
-                         "className": 'text-center'
-                     },
-                     {
-                         "targets": [3],
-                         "className": 'text-center'
-                     },
-                     {
-                         "targets": [4],
-                         "className": 'text-center'
-                     },
-                    //   {
-                    //       "targets": [5],
-                    //   },
-                    //   {
-                    //       "targets": [6],
-                    //       "className": 'text-center',
-                    //      "visible": false,
-                    //   },
-                    //  {
-                    //      "targets": [7],
-                    //      "className": 'text-center',
-                    //      "visible": false,
-                    //  },
-                    //  {
-                    //      "targets": [8],
-                    //      "visible": false,
-                    //      "className": 'text-center'
-                    //  },
-                 ],
-                 'bAutoWidth': false,
-                 "language": {
-                     url: "{{asset('Spanish.json')}}"
-                 },
-                 "order": [[ 0, "desc" ]],
-             });
-
-             //DIRECCION DE LA TIENDA OLD
-
-             //Controlar Error
-             $.fn.DataTable.ext.errMode = 'throw';
-         });
-
-        function limpiarErrores() {
-            $('#cantidad').removeClass("is-invalid")
-            $('#error-cantidad').text('')
-
-            $('#precio').removeClass("is-invalid")
-            $('#error-precio').text('')
-
-            $('#producto').removeClass("is-invalid")
-            $('#error-producto').text('')
-        }
-
-        function limpiarDetalle() {
-            $('#precio').val('')
-            $('#cantidad').val('')
-            $('#presentacion_producto').val('')
-            $('#codigo_nombre_producto').val('')
-            $('#producto').val($('#producto option:first-child').val()).trigger('change');
-
-        }
-
-        function obtenerMedida(id) {
-            var medida = ""
-            @foreach(unidad_medida() as $medida)
-                if ("{{$medida->id}}" == id) {
-                    medida = "{{$medida->simbolo.' - '.$medida->descripcion}}"
-                }
-            @endforeach
-            return medida
-        }
-
-        function registrosProductos() {
-            var table = $('.dataTables-detalle-documento').DataTable();
-            var registros = table.rows().data().length;
-            return registros
-        }
-
-        function validarFecha() {
-            var enviar = false
-            var productos = registrosProductos()
-            if ($('#fecha_documento_campo').val() == '') {
-                toastr.error('Ingrese Fecha de Documento.', 'Error');
-                $("#fecha_documento_campo").focus();
-                enviar = true;
-            }
-
-            if ($('#fecha_atencion_campo').val() == '') {
-                toastr.error('Ingrese Fecha de Atención.', 'Error');
-                $("#fecha_atencion_campo").focus();
-                enviar = true;
-            }
-
-            if (productos == 0) {
-                toastr.error('Ingrese al menos 1 Producto.', 'Error');
-                enviar = true;
-            }
-            return enviar
-        }
-
-        $('#enviar_documento').submit(function(e) {
-            e.preventDefault();
-                const swalWithBootstrapButtons = Swal.mixin({
-                    customClass: {
-                        confirmButton: 'btn btn-success',
-                        cancelButton: 'btn btn-danger',
-                    },
-                    buttonsStyling: false
-                })
-
-                Swal.fire({
-                    title: 'Opción Guardar',
-                    text: "¿Seguro que desea guardar cambios?",
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: "#1ab394",
-                    confirmButtonText: 'Si, Confirmar',
-                    cancelButtonText: "No, Cancelar",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-
-
-
-                            this.submit();
-
-
-                    } else if (
-                        /* Read more about handling dismissals below */
-                        result.dismiss === Swal.DismissReason.cancel
-                    ) {
-                        swalWithBootstrapButtons.fire(
-                            'Cancelado',
-                            'La Solicitud se ha cancelado.',
-                            'error'
-                        )
-                    }
-                })
-
-
-        })
-</script>
-
-<script>
-    $(function(){
-        let cliente_id = $("#cliente_id").val();
-        $.ajax({
-            type: 'post',
-            dataType: 'json',
-            data: {
-                _token: $('input[name=_token]').val(),
-                cliente_id
-            },
-            url: "{{ route('ventas.cliente.getcustomer') }}",
-            success: function(data) {
-                const { departamento_id, provincia_id, distrito_id,direccion } = data;
-                $("#codigoProvincia").val(provincia_id);
-                $("#codigoDistrito").val(distrito_id);
-                $("#departamento").select2("val", departamento_id);
-                $("#direccion_tienda").val(direccion)
-            }
-        });
+    $(".select2_form").select2({
+        placeholder: "SELECCIONAR", 
+        allowClear: true,          
+        width: '100%',            
     });
+
+    $('#producto').select2({
+        width:'100%',
+        placeholder: "Buscar producto...",
+        allowClear: true,
+        language: {
+            inputTooShort: function(args) {
+                var min = args.minimum;
+                return "Por favor, ingrese " + min + " o más caracteres";
+            },
+            searching: function() {
+                return "BUSCANDO...";
+            },
+            noResults: function() {
+                return "No se encontraron productos";
+            }
+        },
+        ajax: {
+            url: '{{route("ventas.guiasremision.getProductos")}}', 
+            dataType: 'json',
+            delay: 250, 
+            data: function(params) {
+                return {
+                    search: params.term,
+                    almacen_id: $('#almacen').val(),
+                    page: params.page || 1  
+                };
+            },
+            processResults: function(data,params) {
+                if(data.success){
+                    params.page     =   params.page || 1;
+                    const productos =   data.productos;
+                    return {
+                         results: productos.map(item => ({
+                            id: item.producto_id,
+                            text: item.producto_completo 
+                        })),
+                        pagination: {
+                            more: data.more 
+                        }
+                    };
+                }else{
+                    toastr.error(data.message,'ERROR EN EL SERVIDOR');
+                    return {
+                        results:[]
+                    }
+                }    
+            },
+            cache: true
+        },
+        minimumInputLength: 2,
+        templateResult: function(data) {
+            if (data.loading) {
+                return $('<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>');
+            }
+            return data.text;
+        },
+    });
+
+}
+
+function cambiarModalidadTraslado(modalidad){
+
+    const conductores       =   @json($conductores);
+    let   conductoresNew    =   [];
+    let   selectConductor   =   $('#conductor');
+
+
+    if(modalidad === '02'){
+        conductoresNew  =   conductores.filter((c)=>{
+            return c.modalidad_transporte   === 'PRIVADO';
+        })
+        document.querySelector('#divCategoriaML').style.display     =   'flex';
+        document.querySelector('.chkTipoVehiculo').checked          =   false;
+    }
+
+    if(modalidad === '01'){
+        conductoresNew  =   conductores.filter((c)=>{
+            return c.modalidad_transporte   === 'PUBLICO';
+        })
+        document.querySelector('#divTransportista').style.display   = 'flex';
+        document.querySelector('#divCategoriaML').style.display     = 'none';
+    }
+
+    selectConductor.val(null).trigger('change'); 
+    selectConductor.select2('destroy');
+    selectConductor.empty();
+
+    conductoresNew.forEach(opcion => {
+        const texto =   `${opcion.tipo_documento_nombre}:${opcion.nro_documento} - ${opcion.nombres}`;
+        let newOption = new Option(texto, opcion.id, false, false);
+        selectConductor.append(newOption);
+    });
+
+    selectConductor.select2({
+        placeholder: 'Seleccione un conductor',
+        allowClear: true,
+        width:'100%'
+    });
+
+}
+
+    //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
+    async function getColoresTallas(){
+        mostrarAnimacion();
+        const producto_id   =   $('#producto').val();
+        const almacen_id    =   $('#almacen').val();
+
+        if(producto_id && almacen_id){
+            try {
+                const res   =   await   axios.get(route('pedidos.pedido.getColoresTallas',{almacen_id,producto_id}));
+                if(res.data.success){
+
+                    destruirDataTable(dtGuiaStocks);
+                    limpiarTabla('table-stocks');
+                    pintarTableStocks(res.data.producto_color_tallas);
+                    dtGuiaStocks    =   iniciarDataTable('table-stocks');
+                    //pintarPreciosVenta(res.data.producto_color_tallas);
+                    //loadCarrito();
+                    //loadPrecioVentaProductoCarrito(producto_id);
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
+            }finally{
+                ocultarAnimacion();
+            }
+        }else{
+            // destruirDataTableStocks();
+            // limpiarTableStocks();
+            // loadDataTableStocksPedido();
+            // limpiarSelectPreciosVenta();
+            // ocultarAnimacion();
+        }
+    }
+
+
+    const pintarTableStocks = (producto)=>{
+
+        let filas = ``;
+        const   tableStocksBody     =   document.querySelector('#table-stocks tbody');
+        const   btnAgregarDetalle   =   document.querySelector('#btn_agregar_detalle')
+
+
+        producto.colores.forEach((color)=>{
+            filas   +=  `  <tr>
+                            <th scope="row" data-producto=${producto.id} data-color=${color.id} >
+                                <div style="width:200px;">${producto.nombre}</div>
+                            </th>
+                            <th scope="row">${color.nombre}</th>
+                        `;
+
+            color.tallas.forEach((talla)=>{
+                filas   +=  `<td style="background-color: rgb(210, 242, 242);">
+                                        <p style="margin:0;width:20px;text-align:center;${talla.stock != 0?'font-weight:bold':''};">${talla.stock}</p>
+                            </td>
+                            <td width="8%">
+                                <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
+                                id="inputCantidad_${producto.id}_${color.id}_${talla.id}" 
+                                data-producto-id="${producto.id}"
+                                data-producto-nombre="${producto.nombre}"
+                                data-color-nombre="${color.nombre}"
+                                data-talla-nombre="${talla.nombre}"
+                                data-color-id="${color.id}" data-talla-id="${talla.id}" 
+                                data-producto-codigo="${producto.codigo}"></input>    
+                            </td>`;
+            })
+
+            filas   +=  `</tr>`;
+           
+        })
+
+        tableStocksBody.innerHTML = filas;
+        btnAgregarDetalle.disabled = false;
+
+    }
+
+      
 </script>
 @endpush

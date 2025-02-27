@@ -166,14 +166,15 @@ class ConductorController extends Controller
     }
 
 
-    /*
-array:2 [ // app\Http\Controllers\Ventas\proveedorController.php:24
-  "tipo_documento"  => "1"
-  "nro_documento"   => "75563122"
+/*
+array:2 [
+  "tipo_documento" => "6"
+  "nro_documento" => "71114222"
 ]
 */ 
 public function consultarDocumento(Request $request){
     try {
+   
         //========= VALIDANDO QUE EL TIPO DOCUMENTO Y N° DOCUMENTO NO SEAN NULL =======
         $tipo_documento =   $request->get('tipo_documento',null);
         $nro_documento  =   $request->get('nro_documento',null);
@@ -194,9 +195,10 @@ public function consultarDocumento(Request $request){
         $exists_tipo_doc    =   DB::select('select 
                                 td.id,
                                 td.descripcion
-                                from tipos_documento as td
+                                from tabladetalles as td
                                 where 
                                 td.id = ?
+                                AND td.tabla_id = 3
                                 and td.estado = "ACTIVO"',[$tipo_documento]);
 
         if(count($exists_tipo_doc) === 0){
@@ -219,7 +221,7 @@ public function consultarDocumento(Request $request){
         //======= COMPROBAR QUE NO EXISTA EL DOCUMENTO EN LA TABLA conductores =======
         $existe_nro_documento   =   DB::select('select 
                                     c.id,
-                                    c.nombre
+                                    c.nombre_completo
                                     from conductores as c
                                     where 
                                     c.tipo_documento_id = ?

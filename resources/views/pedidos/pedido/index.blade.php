@@ -276,8 +276,8 @@
                                     
                                     
                             
-
-                            if(row.estado !== "FINALIZADO"){
+                            //========= SOLO PUEDEN ELIMINARSE O EDITARSE PEDIDOS NO FACTURADOS,NO FINALIZADOS =====
+                            if(row.estado !== "FINALIZADO" && !row.documento_venta_facturacion_id ){
                                 acciones+=`<li><a class='dropdown-item' onclick="modificarPedido(${row.id})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>`;
 
                                 acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='FINALIZAR'><b><i class='fa fa-trash'></i> Finalizar</a></b></li>`;
@@ -852,8 +852,13 @@
                             
                             pedidos_data_table.ajax.reload();
                             toastr.success(res.data.message, 'Exito');
+
+                            let url_open_pdf = '{{ route("ventas.documento.comprobante", [":id1", ":size"]) }}'
+                                                .replace(':id1', res.data.documento_id)
+                                                .replace(':size', 80);
+
                             window.location.href = '{{ route('ventas.documento.index') }}';
-                            const url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id +"-80"});
+
                             window.open(url_open_pdf, 'Comprobante MERRIS', 'location=1, status=1, scrollbars=1,width=900, height=600');
                         }else{
                             toastr.error(res.data.message,`ERROR AL GENERAR EL COMPROBANTE ${tipo_comprobante}`);

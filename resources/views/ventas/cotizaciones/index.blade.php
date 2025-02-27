@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
@@ -319,13 +320,11 @@
                         Swal.showLoading();
                     }
                 });
-                const body  =   JSON.stringify({cotizacion_id});
 
                 try {
-                    const res   =  await axios.post(route('ventas.cotizacion.pedido'),
-                        {body}
-                    );
-                    
+                    const res   =   await axios.post(route('ventas.cotizacion.pedido'),
+                                        {cotizacion_id}
+                                    );
 
                     if(res.data.success){
                         $('.dataTables-cotizacion').DataTable().ajax.reload();

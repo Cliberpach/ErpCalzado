@@ -1470,7 +1470,7 @@ array:27 [
 ]
 */
     public function store(DocVentaStoreRequest $request){
-       
+      
         $this->authorize('haveaccess', 'documento_venta.index');
         ini_set("max_execution_time", 60000);
         
@@ -1487,7 +1487,7 @@ array:27 [
                        
             //========== CALCULAR MONTOS ======
             $montos =   DocumentoController::calcularMontos($datos_validados->lstVenta,$datos_validados);
-
+          
             //======== OBTENIENDO LEYENDA ======
             $legenda                =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
 
@@ -1553,10 +1553,48 @@ array:27 [
             $documento->almacen_id      =   $datos_validados->almacen->id;
             $documento->almacen_nombre  =   $datos_validados->almacen->descripcion;
 
+            if($request->has('facturar') && $request->has('pedido_id')){
+                $documento->pedido_id   =   $request->get('pedido_id');
+            }
+
+            if($request->has('facturado') && $request->get('facturado') === 'SI'){
+                $documento->estado_pago  =   'PAGADA';
+            }
             $documento->save();
 
             foreach($datos_validados->lstVenta as $item){
                 foreach ($item->tallas as $talla) {
+
+                    /*======== EN CASO SEA UNA FACTURACIÓN DE PEDIDO Y EL PRODUCTO NO EXISTA ========
+                    ========= CREAMOS EL PRODUCTO COLOR TALLA CON STOCKS EN CERO ========*/
+                    if($request->has('facturar')){
+
+                        $item_pedido   =    DB::select('select 
+                                            pct.producto_id 
+                                            from producto_color_tallas as pct
+                                            where 
+                                            pct.almacen_id = ?
+                                            AND pct.producto_id = ?  
+                                            AND pct.color_id = ? 
+                                            AND pct.talla_id = ?',
+                                            [
+                                                $documento->almacen_id,
+                                                $item->producto_id,
+                                                $item->color_id,
+                                                $talla->talla_id
+                                            ]);
+                            
+                        if(count($item_pedido) === 0){
+                            $nuevo_producto                 =   new ProductoColorTalla();
+                            $nuevo_producto->almacen_id     =   $documento->almacen_id;
+                            $nuevo_producto->producto_id    =   $item->producto_id;
+                            $nuevo_producto->color_id       =   $item->color_id;
+                            $nuevo_producto->talla_id       =   $item->talla_id;
+                            $nuevo_producto->stock          =   0;
+                            $nuevo_producto->stock_logico   =   0;
+                            $nuevo_producto->save();
+                        }
+                    }
 
                     //====== COMPROBAR SI EXISTE EL PRODUCTO COLOR TALLA EN EL ALMACÉN =====
                     $existe =   DB::select('select 
@@ -1663,11 +1701,10 @@ array:27 [
             }
 
             //========== GUARDAR DATOS DE DESPACHO =======
-
             $data_envio     =   json_decode($request->get('data_envio'));
-           
+
             //========= HAY DATOS DE DESPACHO ======
-            if (!empty((array)$data_envio)) {
+            if (!empty((array)$data_envio) && !$request->has('facturar')) {
 
                 $envio_venta                        =   new EnvioVenta();
                 $envio_venta->documento_id          =   $documento->id;
@@ -1702,9 +1739,11 @@ array:27 [
                 $envio_venta->sede_despachadora_id  =   $datos_validados->almacen->sede_id;
                 $envio_venta->save();
              
-            }else{  //======= SIN DESPACHO ======
+            }
+            
+            //======= SIN DESPACHO ======
+            if (empty((array)$data_envio) && !$request->has('facturar')) {
                    
-                    
                 //======== OBTENER EMPRESA ENVÍO =======
                 $empresa_envio                      =   DB::select('select ee.id,ee.empresa,ee.tipo_envio
                                                             from empresas_envio as ee')[0];
@@ -1750,14 +1789,12 @@ array:27 [
                 $envio_venta->save();
             }
 
-         
             //======== ASOCIAR LA VENTA CON EL MOVIMIENTO CAJA DEL COLABORADOR ====
             $movimiento_venta                   =   new DetalleMovimientoVentaCaja();
             $movimiento_venta->cdocumento_id    =   $documento->id;
             $movimiento_venta->mcaja_id         =   $datos_validados->caja_movimiento->movimiento_id;
             if($request->has('facturado') && $request->get('facturado') === 'SI'){
                 $movimiento_venta->cobrar       =   'NO';
-                $movimiento_venta->estado_pago  =   'PAGADA';
             }
             $movimiento_venta->save();
             
@@ -1801,6 +1838,7 @@ array:27 [
         $monto_total_pagar  =   0.0;
         $monto_descuento    =   0;
 
+        
         foreach ($lstVenta as $producto) {
             foreach ($producto->tallas as $talla) {
                 $monto_descuento    +=  (float)$producto->monto_descuento;
@@ -2144,14 +2182,12 @@ array:27 [
             $productosJSON = $request->get('productos_tabla');
             $productotabla = json_decode($productosJSON);
 
-            
-       
             $producto_control    =   null;
            
             foreach ($productotabla as $producto) {
 
                 /*======== EN CASO SEA UNA FACTURACIÓN DE PEDIDO Y EL PRODUCTO NO EXISTA ========
-                 ========= CREAMOS EL PRODUCTO COLOR TALLA CON STOCKS EN CERO            ========*/
+                 ========= CREAMOS EL PRODUCTO COLOR TALLA CON STOCKS EN CERO ========*/
                 if($request->has('facturar')){
                     $item   =   DB::select('select pct.producto_id from producto_color_tallas as pct
                                 where pct.producto_id = ?  and pct.color_id = ? and pct.talla_id = ?',
@@ -2239,6 +2275,7 @@ array:27 [
                     }
 
                     if($request->has('convertir')){
+
                         $nuevo_stock = DB::table('producto_color_tallas')
                         ->where('producto_id', $producto->producto_id)
                         ->where('color_id', $producto->color_id)
@@ -2386,9 +2423,11 @@ array:27 [
             if($request->has('convertir')){
                 $gestion = "DOCUMENTO DE VENTA CONVERTIDO";
             }
+
             crearRegistro($documento, $descripcion, $gestion);
 
             if ((int) $documento->tipo_venta == 127 || (int) $documento->tipo_venta == 128) {
+
                 $dato = 'Actualizar';
                 broadcast(new VentasCajaEvent($dato));
                 DB::commit();

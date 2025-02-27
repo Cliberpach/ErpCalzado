@@ -389,7 +389,7 @@ function(){
         Route::get('edit/{id}', 'Almacenes\ConductorController@edit')->name('almacenes.conductores.edit');
         Route::put('update/{id}', 'Almacenes\ConductorController@update')->name('almacenes.conductores.update');
         Route::delete('destroy/{id}', 'Almacenes\ConductorController@destroy')->name('almacenes.conductores.destroy');
-        Route::get('/consultarDni/{dni}', [ConductorController::class, 'consultarDni'])->name('almacenes.conductores.consultarDni');
+        Route::get('/consultarDocumento', [ConductorController::class, 'consultarDocumento'])->name('almacenes.conductores.consultarDocumento');
 
     });
 
@@ -694,10 +694,9 @@ function(){
         Route::get('consulta_ticket/guia/{id}','Ventas\GuiaController@consulta_ticket')->name('ventas.guiasremision.consulta.ticket');
         Route::get('getXml/{guia_id}','Ventas\GuiaController@getXml')->name('ventas.guiasremision.getXml');
         Route::get('getCdr/{guia_id}','Ventas\GuiaController@getCdr')->name('ventas.guiasremision.getCdr');
+        Route::get('/getProductos/', 'Ventas\GuiaController@getProductos')->name('ventas.guiasremision.getProductos');
+        Route::get('/getColoresTallas/{almacen_id}/{producto_id}', 'Ventas\GuiaController@getColoresTallas')->name('ventas.guiasremision.getColoresTallas');
 
-        // Route::get('tipoPago/{id}','Ventas\GuiaController@TypePay')->name('ventas.documento.tipo_pago.existente');
-        // Route::get('comprobante/{id}','Ventas\GuiaController@voucher')->name('ventas.documento.comprobante');
-        // Route::get('sunat/comprobante/{id}','Ventas\GuiaController@sunat')->name('ventas.documento.sunat');
 
     });
 

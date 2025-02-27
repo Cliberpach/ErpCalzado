@@ -16,7 +16,7 @@
         </ol>
     </div>
     <div class="col-lg-2 col-md-2">
-        <button onclick="crearVehiculo()" id="btn_añadir_producto" class="btn btn-block btn-w-m btn-primary m-t-md">
+        <button onclick="goToCrearVehiculo()" id="btn_añadir_producto" class="btn btn-block btn-w-m btn-primary m-t-md">
             <i class="fa fa-plus-square"></i> Añadir nuevo
         </button>
     </div>
@@ -143,6 +143,9 @@
         });
     }
 
+    function goToCrearVehiculo(){
+        window.location.href = @json(route('almacenes.vehiculos.create'));
+    }
 
     function eliminarVehiculo(id){
         toastr.clear();

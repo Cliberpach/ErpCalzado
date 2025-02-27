@@ -249,6 +249,7 @@
         document.addEventListener('click',async (e)=>{
             if(e.target.classList.contains('delete-product')){
 
+                toastr.clear();
                 const productoId    =   e.target.getAttribute('data-producto');
                 const colorId       =   e.target.getAttribute('data-color');
 
@@ -274,6 +275,11 @@
                 })
 
                 mostrarAnimacion();
+                const resValidacion             =   await validarCantAtendProductos(lstProductos);
+                if(!resValidacion){
+                    return;
+                }
+
                 const cantProductosEliminados   =   eliminarProducto(lstProductos);
 
                 if(cantProductosEliminados > 0){
@@ -369,15 +375,20 @@
        //======== AGREGAR PRODUCTO AL DETALLE =====
        document.querySelector('#btn_agregar_detalle').addEventListener('click',async ()=>{
 
-           
-          
+            toastr.clear();
             if(!$('#precio_venta').val()){
                 toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA','OPERACIÓN INCORRECTA');
                 return;
             }
 
-       
-            agregarProducto(lstProductosValidados);
+            const inputProductos    =   obtenerProductos();
+            res_validacion          =   await validarCantAtendProductos(inputProductos);
+
+            if(!res_validacion){
+                return;
+            }
+
+            agregarProducto(inputProductos);
             reordenarCarrito();
             calcularSubTotal(carrito);
             pintarDetallePedido(carrito);
@@ -387,8 +398,32 @@
             })
             //===== RECALCULANDO MONTOS =====
             calcularMontos();
+
+            toastr.info("PRODUCTOS AGREGADOS");
             
         })
+    }
+
+    async function validarCantAtendProductos(inputProductos){
+        try {
+            mostrarAnimacion();
+            const res   =   await axios.post(route('pedidos.pedido.validarCantidadAtendida'),{
+                pedido_id:@json($pedido->id),
+                lstProductos:JSON.stringify(inputProductos)
+            })
+
+            if(res.data.success){
+                toastr.info(res.data.message,'OPERACIÓN COMPLETADA');
+            }else{
+                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+            }
+            return res.data.success;
+        } catch (error) {
+            toastr.error(error,'ERROR AL VALIDAR CANTIDADES DE PRODUCTOS');
+            return false;
+        }finally{
+            ocultarAnimacion();
+        }
     }
 
     //====== SELECT2 =======
@@ -488,102 +523,78 @@
 
     }
 
-    function agregarProducto(lstProductosValidados){
+    function agregarProducto(){
+        const inputsCantidad = document.querySelectorAll('.inputCantidad');
+            
+        for (const ic of inputsCantidad) {
 
-        //======== RECORRER TODOS LOS PRODUCTOS VALIDADOS ========
-        lstProductosValidados.forEach((producto_validado)=>{
+            const cantidad = ic.value ? ic.value : null;
+            if (cantidad) {
 
-            //======= PROCESAR EN CASO EL PRODUCTO SEA VÁLIDO =======
-            if(producto_validado.validacion){
+                const producto      = formarProducto(ic);
+                const indiceExiste  = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
 
-                //======== OBTENER CANTIDAD DEL PRODUCTO ======
-                const cantidad = producto_validado.cantidad ? producto_validado.cantidad : 0;
-
-                //======== EN CASO LA CANTIDAD SEA MAYOR A 0 =======
-                if(cantidad > 0){
-
-                    const producto      = producto_validado;
-                    const indiceExiste  = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
-
-                    //===== PRODUCTO NUEVO =====
-                    if (indiceExiste == -1) {
-
-                        const objProduct = {
-                            producto_id:            producto.producto_id,
-                            color_id:               producto.color_id,
-                            modelo_nombre:          producto.modelo_nombre,
-                            producto_nombre:        producto.producto_nombre,
-                            producto_codigo:        producto.producto_codigo,
-                            color_nombre:           producto.color_nombre,
-                            precio_venta:           producto.precio_venta,
-                            monto_descuento:        0,
-                            porcentaje_descuento:   0,
-                            precio_venta_nuevo:     0,
-                            subtotal_nuevo:         0,
-                            tallas: [{
+                //===== PRODUCTO NUEVO =====
+                if (indiceExiste == -1) {
+                                const objProduct = {
+                                    producto_id:            producto.producto_id,
+                                    color_id:               producto.color_id,
+                                    modelo_nombre:          producto.modelo_nombre,
+                                    producto_nombre:        producto.producto_nombre,
+                                    producto_codigo:        producto.producto_codigo,
+                                    color_nombre:           producto.color_nombre,
+                                    precio_venta:           producto.precio_venta,
+                                    monto_descuento:        0,
+                                    porcentaje_descuento:   0,
+                                    precio_venta_nuevo:     0,
+                                    subtotal_nuevo:         0,
+                                    tallas: [{
                                         talla_id:           producto.talla_id,
                                         talla_nombre:       producto.talla_nombre,
                                         cantidad:           producto.cantidad
                                     }]
-                        };
+                                };
 
-                        carrito.push(objProduct);
+                                carrito.push(objProduct);
+                } else {
+                    const productoModificar = carrito[indiceExiste];
+                    productoModificar.precio_venta = producto.precio_venta;
 
+                    const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                    if (indexTalla !== -1) {
+                        const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
+                        productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
+                        carrito[indiceExiste] = productoModificar;
                     } else {
-
-                        const productoModificar = carrito[indiceExiste];
-                        productoModificar.precio_venta = producto.precio_venta;
-
-                        const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
-
-                        if (indexTalla !== -1) {
-
-                            const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
-                            productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
-                            carrito[indiceExiste] = productoModificar;
-
-                        } else {
-
-                            const objTallaProduct = {
-                                talla_id: producto.talla_id,
-                                talla_nombre: producto.talla_nombre,
-                                cantidad: producto.cantidad
-                            };
-                            carrito[indiceExiste].tallas.push(objTallaProduct);
-
-                        }
+                        const objTallaProduct = {
+                            talla_id: producto.talla_id,
+                            talla_nombre: producto.talla_nombre,
+                            cantidad: producto.cantidad
+                        };
+                        carrito[indiceExiste].tallas.push(objTallaProduct);
                     }
-
                 }
+            } else {
+                const producto = formarProducto(ic);
+                const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
 
-                //========= EN CASO LA CANTIDAD SEA  0 =========
-                if(cantidad == 0){
+                if (indiceProductoColor !== -1) {
+                    const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
 
-                    const producto              =   producto_validado;
-                    const indiceProductoColor   =   carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+                    if (indiceTalla !== -1) {
+                        const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
+                        carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
+                            
+                        const cantidadTallas = carrito[indiceProductoColor].tallas.length;
 
-                    if (indiceProductoColor !== -1) {
-                        const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
-
-                        if (indiceTalla !== -1) {
-                            const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
-                            carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
-                                
-                            const cantidadTallas = carrito[indiceProductoColor].tallas.length;
-
-                            if (cantidadTallas == 0) {
-                                carrito.splice(indiceProductoColor, 1);
-                            }
+                        if (cantidadTallas == 0) {
+                            carrito.splice(indiceProductoColor, 1);
                         }
                     }
-
                 }
             }
-            
-
-        })
-            
-     
+        }
     }
 
     //======== ELIMINAR ITEM ========

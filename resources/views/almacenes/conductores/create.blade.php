@@ -69,39 +69,39 @@
         })
 
         document.addEventListener('click',(e)=>{
+
             if (e.target.closest('.btnVolver')) {
                 const rutaIndex         =   '{{route('almacenes.conductores.index')}}';
                 window.location.href    =   rutaIndex;
             }
+
+            if (e.target.closest('.btn_consultar_documento')) {
+
+                const nro_documento     =   document.querySelector('#nro_documento').value;
+                const tipo_documento    =   document.querySelector('#tipo_documento').value;
+                toastr.clear();
+
+                if(tipo_documento != 6 && tipo_documento != 8){
+                    toastr.error('SOLO SE PUEDE CONSULTAR DNI Y RUC');
+                    return;
+                }
+
+                if(tipo_documento == 6 && nro_documento.length != 8){
+                    toastr.error('NRO DE DNI DEBE CONTAR CON 8 DÍGITOS');
+                    return;
+                }
+
+                if(tipo_documento == 8 && nro_documento.length != 11){
+                    toastr.error('NRO DE RUC DEBE CONTAR CON 11 DÍGITOS');
+                    return;
+                }
+
+                consultarDocumento(tipo_documento,nro_documento);
+
+            }
+            
         })
 
-        //======= CONSULTAR API DOCUMENTO DNI ========
-        document.querySelector('#btn_consultar_documento').addEventListener('click',()=>{
-
-            const nro_documento     =   document.querySelector('#nro_documento').value;
-            const tipo_documento    =   document.querySelector('#tipo_documento').value;
-            toastr.clear();
-
-            if(tipo_documento != 6 && tipo_documento != 8){
-                toastr.error('SOLO SE PUEDE CONSULTAR DNI Y RUC');
-                return;
-            }
-
-            if(tipo_documento == 6 && nro_documento.length != 8){
-                toastr.error('NRO DE DNI DEBE CONTAR CON 8 DÍGITOS');
-                return;
-            }
-
-            if(tipo_documento == 8 && nro_documento.length != 11){
-                toastr.error('NRO DE RUC DEBE CONTAR CON 11 DÍGITOS');
-                return;
-            }
-
-            consultarDocumento(tipo_documento,nro_documento);
-
-        })
-
-      
         //========== PERMITIR SOLO FORMATO DE CELULAR O TELEFONO ======
         document.querySelector('#telefono').addEventListener('input',(e)=>{
             const input = e.target;
@@ -231,7 +231,7 @@
     function changeTipoDoc(params) {
         const tipo_documento        =   document.querySelector('#tipo_documento').value;
         const inputNroDoc           =   document.querySelector('#nro_documento');
-        const btnConsultarDocumento =   document.querySelector('#btn_consultar_documento');
+        const btnConsultarDocumento =   document.querySelector('.btn_consultar_documento');
         
         //======== DNI =======
         if(tipo_documento == 6){
@@ -258,14 +258,16 @@
         }
     }
 
+
+
     //======= CONSULTAR DOCUMENTO IDENTIDAD =====
-    async function consultarDocumento(dni){
+     async function consultarDocumento(tipo_documento,nro_documento){
         mostrarAnimacion();
         try {
-            const token     =   document.querySelector('input[name="_token"]').value;
-            const urlApiDni = `{{ route('almacenes.conductores.consultarDni', ':dni') }}`.replace(':dni', encodeURIComponent(dni));
-
-            const response  =   await fetch(urlApiDni, {
+            const token                     =   document.querySelector('input[name="_token"]').value;
+            const urlConsultarDocumento     =   `{{ route('almacenes.conductores.consultarDocumento') }}?tipo_documento=${encodeURIComponent(tipo_documento)}&nro_documento=${encodeURIComponent(nro_documento)}`;
+            
+            const response  =   await fetch(urlConsultarDocumento, {
                                     method: 'GET',
                                     headers: {
                                         'X-CSRF-TOKEN': token 
@@ -275,17 +277,19 @@
             const   res =   await response.json();
 
             if(res.success){
-                if(tipo_documento == 1){
+                if(tipo_documento == 6){
                     setDatosDni(res.data.data);
                 }
-                if(tipo_documento == 2){
+                if(tipo_documento == 8){
                     setDatosRuc(res.data.data);
                 }
+
+                toastr.info(res.message);
             }else{
-                toastr.error(res.message,'ERROR EN EL SERVIDOR AL CONSULTAR DNI');
+                toastr.error(res.message,'ERROR EN EL SERVIDOR AL CONSULTAR DOCUMENTO');
             }
         } catch (error) {
-            toastr.error(error,'ERROR EN LA PETICIÓN CONSULTAR DNI');
+            toastr.error(error,'ERROR EN LA PETICIÓN CONSULTAR DOCUMENTO');
         }finally{
             ocultarAnimacion();
         }
@@ -307,10 +311,10 @@
         const ubigeo                    =   data.ubigeo;
 
         document.querySelector('#nombre').value     =   nombre_o_razon_social;
-        document.querySelector('#direccion').value  =   direccion_completa;
+        //document.querySelector('#direccion').value  =   direccion_completa;
 
         //======= COLOCANDO UBIGEO =======
-        let departamento_ubigeo = parseInt(ubigeo[0]);
+        /*let departamento_ubigeo = parseInt(ubigeo[0]);
         let provincia_ubigeo    = parseInt(ubigeo[1]);
         let distrito_ubigeo     = parseInt(ubigeo[2]);
 
@@ -325,7 +329,7 @@
 
         if(!isNaN(distrito_ubigeo)){
             $('#distrito').val(distrito_ubigeo).trigger('change');
-        }
+        }*/
 
     }
 
@@ -349,14 +353,14 @@
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
                         <label for="nro_documento" style="font-weight: bold;" class="required_field">Nro Doc</label>
                         <div class="input-group mb-3">
-                            <button id="btn_consultar_documento" disabled class="btn btn-primary" type="button" id="button-addon1">
+                            <button disabled class="btn btn-primary btn_consultar_documento" type="button" id="button-addon1">
                                 <i class="fas fa-search"></i>
                             </button>
                             <input required readonly id="nro_documento" name="nro_documento" type="text" class="form-control" placeholder="Nro de Documento" aria-label="Example text with button addon" aria-describedby="button-addon1">
                         </div>                 
                         <span class="nro_documento_error msgError"  style="color:red;"></span>
                     </div>    
-                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
+                  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
                         <label for="nombre" style="font-weight: bold;" class="required_field">Nombres</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
@@ -366,6 +370,17 @@
                         </div>       
                         <span style="color:rgb(0, 89, 255); font-style: italic;">(150 LONGITUD MÁXIMA)</span>                 
                         <span class="nombre_error msgError"  style="color:red;"></span>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2" id="divApellido">
+                        <label for="apellido" style="font-weight: bold;" class="required_field">Apellidos</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="basic-addon1">
+                                <i class="fas fa-user-check"></i>                   
+                            </span>
+                            <input id="apellido" maxlength="150"  name="apellido" type="text" class="form-control" placeholder="Apellidos" aria-label="Username" aria-describedby="basic-addon1">
+                        </div>       
+                        <span style="color:rgb(0, 89, 255); font-style: italic;display:block;">(150 LONGITUD MÁXIMA)</span>                 
+                        <span class="apellido_error msgError"  style="color:red;"></span>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
                         <label for="registro_mtc" style="font-weight: bold;" class="required_field">Registro MTC</label>
@@ -401,7 +416,7 @@
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
                         <label for="nro_documento" style="font-weight: bold;" class="required_field">Nro Doc</label>
                         <div class="input-group mb-3">
-                            <button id="btn_consultar_documento" disabled class="btn btn-primary" type="button" id="button-addon1">
+                            <button disabled class="btn btn-primary btn_consultar_documento" type="button" id="button-addon1">
                                 <i class="fas fa-search"></i>
                             </button>
                             <input required readonly id="nro_documento" name="nro_documento" type="text" class="form-control" placeholder="Nro de Documento" aria-label="Example text with button addon" aria-describedby="button-addon1">

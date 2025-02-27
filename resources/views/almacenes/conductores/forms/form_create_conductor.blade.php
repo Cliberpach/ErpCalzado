@@ -27,7 +27,7 @@
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
                         <label for="nro_documento" style="font-weight: bold;" class="required_field">Nro Doc</label>
                         <div class="input-group mb-3">
-                            <button id="btn_consultar_documento" disabled class="btn btn-primary" type="button" id="button-addon1">
+                            <button disabled class="btn btn-primary btn_consultar_documento" type="button" id="button-addon1">
                                 <i class="fas fa-search"></i>
                             </button>
                             <input required readonly id="nro_documento" name="nro_documento" type="text" class="form-control" placeholder="Nro de Documento" aria-label="Example text with button addon" aria-describedby="button-addon1">

@@ -16,6 +16,7 @@ use App\Http\Requests\Ventas\Cotizacion\CotizacionADocVentaRequest;
 use App\Http\Requests\Ventas\Cotizacion\CotizacionStoreRequest;
 use App\Mantenimiento\Condicion;
 use App\Mantenimiento\Empresa\Empresa;
+use App\Mantenimiento\Sedes\Sede;
 use App\Ventas\Cliente;
 use App\Ventas\Cotizacion;
 use App\Ventas\CotizacionDetalle;
@@ -38,6 +39,7 @@ use App\Ventas\PedidoDetalle;
 use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Distrito;
 use App\Mantenimiento\Ubigeo\Provincia;
+use App\Pos\DetalleMovimientoVentaCaja;
 use App\User;
 use App\Ventas\EnvioVenta;
 use Exception;
@@ -544,35 +546,35 @@ array:11 [
 
     public function report($id)
     {
-        $cotizacion = Cotizacion::findOrFail($id);
-        $tallas = Talla::all();
-        $nombre_completo = $cotizacion->user->user->persona->apellido_paterno.' '.$cotizacion->user->user->persona->apellido_materno.' '.$cotizacion->user->user->persona->nombres;
+        $cotizacion         = Cotizacion::findOrFail($id);
+        $sede               = Sede::find($cotizacion->sede_id);
+        $tallas             = Talla::all();
+        $nombre_completo    = $cotizacion->registrador_nombre;
         $igv = '';
         $tipo_moneda = '';
-        $detalles = $cotizacion->detalles->where('estado', 'ACTIVO');
-        $empresa = Empresa::first();
-        $paper_size = array(0,0,360,360);
+        $detalles           = $cotizacion->detalles->where('estado', 'ACTIVO');
+        $empresa            = Empresa::first();
+        $paper_size         = array(0,0,360,360);
 
-        $mostrar_cuentas =   DB::select('select c.propiedad 
+        $mostrar_cuentas =   DB::select('select 
+                            c.propiedad 
                             from configuracion as c 
                             where c.slug = "MCB"')[0]->propiedad;
 
         $detalles = $this->formatearArrayDetalle($detalles);
 
-        $vendedor_nombre = DB::select('SELECT CONCAT(p.nombres, " ", p.apellido_paterno, " ", p.apellido_materno) AS nombre_completo
-        FROM user_persona AS up 
-        INNER JOIN personas AS p ON p.id = up.persona_id
-        WHERE up.user_id = ?', [$cotizacion->user_id])[0]->nombre_completo;
+        $vendedor_nombre =  $nombre_completo;
 
 
         $pdf = PDF::loadview('ventas.cotizaciones.reportes.detalle_nuevo',[
-            'cotizacion' => $cotizacion,
-            'nombre_completo' => $nombre_completo,
-            'detalles' => $detalles,
-            'empresa' => $empresa,
-            'tallas' => $tallas,
-            'vendedor_nombre' => $vendedor_nombre,
-            'mostrar_cuentas'   =>  $mostrar_cuentas
+            'cotizacion'        => $cotizacion,
+            'nombre_completo'   => $nombre_completo,
+            'detalles'          => $detalles,
+            'empresa'           => $empresa,
+            'tallas'            => $tallas,
+            'vendedor_nombre'   => $vendedor_nombre,
+            'mostrar_cuentas'   => $mostrar_cuentas,
+            'sede'              => $sede
             ])->setPaper('a4')->setWarnings(false);
         return $pdf->stream('CO-'.$cotizacion->id.'.pdf');
     }
@@ -649,7 +651,7 @@ array:10 [
   "tipo_cliente_documento"  => null
   "tipo_cliente_2"          => "1"
   "cot_doc"                 => "SI"
-  "data_envio" =>   "{"departamento":{"nombre":"LA LIBERTAD"},"provincia":{"text":"TRUJILLO"},"distrito":{"text":"TRUJILLO"},"empresa_envio":{"id":"2","empresa":"EMTRAFESA"},"sede_envio":{"id":"2","direccion":"AV TUPAC AMARU 123"},"tipo_envio":{"descripcion":"AGENCIA"},"destinatario":{"nro_documento":"75608753","nombres":"LUIS DANIEL ALVA LUJAN","tipo_documento":"DNI"},"tipo_pago_envio":{"descripcion":"PAGAR ENVÍO"},"entrega_domicilio":true,"direccion_entrega":"av rotulos 111","fecha_envio_propuesta":"2025-02-13","origen_venta":{"descripcion":"WATHSAPP"},"obs_rotulo":"obs rotulado","obs_despacho":"obs despacho"}"
+  "data_envio"              => "{"departamento":{"nombre":"LA LIBERTAD"},"provincia":{"text":"TRUJILLO"},"distrito":{"text":"TRUJILLO"},"empresa_envio":{"id":"2","empresa":"EMTRAFESA"},"sede_envio":{"id":"2","direccion":"AV TUPAC AMARU 123"},"tipo_envio":{"descripcion":"AGENCIA"},"destinatario":{"nro_documento":"75608753","nombres":"LUIS DANIEL ALVA LUJAN","tipo_documento":"DNI"},"tipo_pago_envio":{"descripcion":"PAGAR ENVÍO"},"entrega_domicilio":true,"direccion_entrega":"av rotulos 111","fecha_envio_propuesta":"2025-02-13","origen_venta":{"descripcion":"WATHSAPP"},"obs_rotulo":"obs rotulado","obs_despacho":"obs despacho"}"
  
 ]
 */ 
@@ -681,7 +683,16 @@ array:10 [
                 throw new Exception("SOLO EL USUARIO QUE CREÓ LA COTIZACIÓN PUEDE CONVERTIRLA A DOC VENTA!!!");
             }
 
-            $tipo_venta         =   DB::select('select td.* from tabladetalles as td
+            //========= VALIDAR QUE EL COLABORADOR ESTÉ EN UNA CAJA ABIERTA ======
+            $caja_movimiento           =   movimientoUser();
+          
+            if(count($caja_movimiento) == 0 ){
+                throw new Exception("DEBES FORMAR PARTE DE UNA CAJA ABIERTA!!!");
+            }
+
+            $tipo_venta         =   DB::select('select 
+                                    td.* 
+                                    from tabladetalles as td
                                     where td.id = ?',[$request->get('tipo_venta')])[0];
 
             //======= VALIDAR QUE EL DOCUMENTO VENTA ESTÉ ACTIVO =======
@@ -695,6 +706,7 @@ array:10 [
 
             $datos_correlativo  =   DocumentoController::getCorrelativo($tipo_venta,$cotizacion->sede_id);
             $condicion          =   Condicion::find($cotizacion->condicion_id);
+            $almacen            =   Almacen::find($cotizacion->almacen_id);
 
             //====== GRABAR MAESTRO VENTA =====
             $documento                      = new Documento();
@@ -762,6 +774,10 @@ array:10 [
             $documento->almacen_nombre  =   $cotizacion->almacen_nombre;
 
             $documento->cotizacion_venta    =   $cotizacion->id;
+
+            if($request->has('facturado') && $request->get('facturado') === 'SI'){
+                $documento->estado_pago  =   'PAGADA';
+            }
   
             $documento->save();
 
@@ -899,6 +915,7 @@ array:10 [
                 $envio_venta->almacen_id            =   $documento->almacen_id;
                 $envio_venta->almacen_nombre        =   $documento->almacen_nombre;
                 $envio_venta->sede_id               =   $documento->sede_id;
+                $envio_venta->sede_despachadora_id  =   $almacen->sede_id;
                 $envio_venta->save();
              
             }else{
@@ -947,8 +964,18 @@ array:10 [
                 $envio_venta->almacen_id            =   $documento->almacen_id;
                 $envio_venta->almacen_nombre        =   $documento->almacen_nombre;
                 $envio_venta->sede_id               =   $documento->sede_id;
+                $envio_venta->sede_despachadora_id  =   $almacen->sede_id;
                 $envio_venta->save();
             }
+
+            //======== ASOCIAR LA VENTA CON EL MOVIMIENTO CAJA DEL COLABORADOR ====
+            $movimiento_venta                   =   new DetalleMovimientoVentaCaja();
+            $movimiento_venta->cdocumento_id    =   $documento->id;
+            $movimiento_venta->mcaja_id         =   $caja_movimiento[0]->movimiento_id;
+            if($request->has('facturado') && $request->get('facturado') === 'SI'){
+                $movimiento_venta->cobrar       =   'NO';
+            }
+            $movimiento_venta->save();
 
             //========== ACTUALIZAR ESTADO FACTURACIÓN A INICIADA ======
             DB::table('empresa_numeracion_facturaciones')
@@ -961,6 +988,7 @@ array:10 [
                 'emision_iniciada'       => '1',
                 'updated_at'             => Carbon::now()
             ]);
+
 
             DB::commit();
             return response()->json(['success'=>true,
@@ -999,24 +1027,44 @@ array:10 [
 
     }
 
-
+/*
+array:1 [
+  "cotizacion_id" => 18
+]
+*/ 
     public function generarPedido(Request $request){
+     
         DB::beginTransaction();
         
         try {
-            $data   =   $request->get('body');
-            $data   =   json_decode($data);
            
-            $cotizacion_id  =   $data->cotizacion_id;
+            $cotizacion_id  =   $request->get('cotizacion_id');
 
+            if(!$cotizacion_id){
+                throw new Exception("FALTA EL PARÁMETRO COTIZACIÓN ID EN LA PETICIÓN");
+            }
+
+            $pedido =   Pedido::find($cotizacion_id);
+            if($pedido){
+                throw new Exception("LA COTIZACIÓN YA FUE CONVERTIDA A PEDIDO");
+            }
 
             //===== OBTENIENDO DETALLE DE LA COTIZACIÓN ===========
-            $cotizacion =   DB::select('select * from cotizaciones as c
-                            where c.id = ? and c.estado != "ANULADO" and c.estado != "VENCIDA"'
+            $cotizacion =   DB::select('select 
+                            c.* 
+                            from cotizaciones as c
+                            where 
+                            c.id = ? 
+                            AND c.estado != "ANULADO" 
+                            AND c.estado != "VENCIDA"'
                             ,[$cotizacion_id]);
 
-            $detalle_cotizacion =   DB::select('select * from cotizacion_detalles as cd 
-                                    where cd.cotizacion_id = ? and cd.estado = "ACTIVO"',
+            $detalle_cotizacion =   DB::select('select 
+                                    cd.* 
+                                    from cotizacion_detalles as cd 
+                                    where 
+                                    cd.cotizacion_id = ? 
+                                    and cd.estado = "ACTIVO"',
                                     [$cotizacion_id]);
 
             //======== CREAR PEDIDO =========
@@ -1024,73 +1072,107 @@ array:10 [
             $pedido->cliente_id = $cotizacion[0]->cliente_id;
 
             //======= OBTENIENDO NOMBRE DEL CLIENTE =======
-            $cliente = DB::select('select c.nombre from clientes as c 
-                        where c.estado="ACTIVO" and c.id=?',[$cotizacion[0]->cliente_id]);
+            $cliente    =   DB::select('select 
+                            c.nombre 
+                            from clientes as c 
+                            where 
+                            c.estado="ACTIVO" 
+                            and c.id=?',[$cotizacion[0]->cliente_id]);
             
             $pedido->cliente_nombre =   $cliente[0]->nombre;   
             $pedido->empresa_id     =   $cotizacion[0]->empresa_id;
             
             //======== OBTENIENDO NOMBRE DE LA EMPRESA ========
-            $empresa    =   DB::select('select e.razon_social from empresas as e
-                            where e.estado="ACTIVO" and e.id = ?',[$cotizacion[0]->empresa_id]);
+            $empresa    =   DB::select('select 
+                            e.razon_social 
+                            from empresas as e
+                            where 
+                            e.estado="ACTIVO" 
+                            and e.id = ?',
+                            [$cotizacion[0]->empresa_id]);
+
             $pedido->empresa_nombre =   $empresa[0]->razon_social;
-            $pedido->user_id        =   $cotizacion[0]->user_id;
+            $pedido->user_id        =   $cotizacion[0]->registrador_id;
 
             //====== OBTENIENDO NOMBRE DEL USUARIO =====
-            $usuario    =   DB::select('select u.usuario from users as u 
-                            where u.estado = "ACTIVO" and u.id=?',
-                            [$cotizacion[0]->user_id]);
+            $usuario    =   DB::select('select 
+                            u.usuario 
+                            from users as u 
+                            where 
+                            u.estado = "ACTIVO" 
+                            and u.id=?',
+                            [$cotizacion[0]->registrador_id]);
+
             $pedido->user_nombre    =   $usuario[0]->usuario;
             $pedido->condicion_id   =   $cotizacion[0]->condicion_id;
             $pedido->moneda         =   $cotizacion[0]->moneda;
+
             //======= OBTENIENDO NRO DEL PEDIDO =======
             $cantidad_pedidos   =   Pedido::count();
             $pedido->pedido_nro =   $cantidad_pedidos+1;
 
-            $pedido->sub_total      =   $cotizacion[0]->sub_total;
-            $pedido->total          =   $cotizacion[0]->total;
-            $pedido->total_igv      =   $cotizacion[0]->total_igv;
-            $pedido->total_pagar    =   $cotizacion[0]->total_pagar;
-            $pedido->monto_embalaje =   $cotizacion[0]->monto_embalaje;
-            $pedido->monto_envio    =   $cotizacion[0]->monto_envio;
+            $pedido->sub_total              =   $cotizacion[0]->sub_total;
+            $pedido->total                  =   $cotizacion[0]->total;
+            $pedido->total_igv              =   $cotizacion[0]->total_igv;
+            $pedido->total_pagar            =   $cotizacion[0]->total_pagar;
+            $pedido->monto_embalaje         =   $cotizacion[0]->monto_embalaje;
+            $pedido->monto_envio            =   $cotizacion[0]->monto_envio;
             $pedido->porcentaje_descuento   =   $cotizacion[0]->porcentaje_descuento;
             $pedido->monto_descuento        =   $cotizacion[0]->monto_descuento;
             $pedido->fecha_registro         =   Carbon::now()->format('Y-m-d');
             $pedido->cotizacion_id          =   $cotizacion[0]->id;
+            $pedido->sede_id                =   $cotizacion[0]->sede_id;
+            $pedido->almacen_id             =   $cotizacion[0]->almacen_id;
             $pedido->save();
 
             //=========== CREAR DETALLE DEL PEDIDO ========
             foreach ($detalle_cotizacion as $item) {
-                $detalle_pedido =               new PedidoDetalle();
+                $detalle_pedido                 =   new PedidoDetalle();
                 $detalle_pedido->pedido_id      =   $pedido->id;
+                $detalle_pedido->almacen_id     =   $cotizacion[0]->almacen_id;
                 $detalle_pedido->producto_id    =   $item->producto_id;
                 $detalle_pedido->color_id       =   $item->color_id;
                 $detalle_pedido->talla_id       =   $item->talla_id;
 
                 //====== OBTENIENDO DATOS DEL PRODUCTO ======
-                $producto   =   DB::select('select p.codigo,p.nombre,p.modelo_id 
+                $producto   =   DB::select('select 
+                                p.codigo,
+                                p.nombre,
+                                p.modelo_id 
                                 from productos as p
-                                where p.id = ?',[$item->producto_id]);
+                                where 
+                                p.id = ?',
+                                [$item->producto_id]);
                 
                 $detalle_pedido->producto_codigo = $producto[0]->codigo;
                 $detalle_pedido->unidad          = 'NIU';
                 $detalle_pedido->producto_nombre = $producto[0]->nombre;
 
                 //====== OBTENIENDO DATOS DEL COLOR =========
-                $color      =   DB::select('select c.descripcion from colores as c
-                                where c.id = ?',[$item->color_id]);
+                $color      =   DB::select('select 
+                                c.descripcion 
+                                from colores as c
+                                where c.id = ?',
+                                [$item->color_id]);
 
                 $detalle_pedido->color_nombre   =  $color[0]->descripcion;
 
                 //======= OBTENIENDO DATOS DE LA TALLA =======
-                $talla      =   DB::select('select t.descripcion from tallas as t
-                                where t.id = ?',[$item->talla_id]);
+                $talla      =   DB::select('select 
+                                t.descripcion 
+                                from tallas as t
+                                where t.id = ?',
+                                [$item->talla_id]);
 
                 $detalle_pedido->talla_nombre   =   $talla[0]->descripcion;
 
                 //===== OBTENIENDO DATOS DEL MODELO ======
-                $modelo     =   DB::select('select m.descripcion from modelos as m 
-                                where m.id = ?',[$producto[0]->modelo_id]);
+                $modelo     =   DB::select('select 
+                                m.descripcion 
+                                from modelos as m 
+                                where m.id = ?',
+                                [$producto[0]->modelo_id]);
+
                 $detalle_pedido->modelo_nombre = $modelo[0]->descripcion;
                 
                 $detalle_pedido->cantidad               =   $item->cantidad;
@@ -1113,8 +1195,8 @@ array:10 [
 
 
         } catch (\Throwable $th) {
-            dd($th->getMessage());
-            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+            
+            return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
         }
     
     }
