@@ -1882,17 +1882,16 @@ public static function getCorrelativo($tipo_comprobante,$sede_id){
     $serie              =   null;
 
     //======= CONTABILIZANDO SI HAY DOCUMENTOS DE VENTA EMITIDOS PARA EL TYPE SALE ======
-    $ventas    =    DB::select('select 
-                    count(*) as cant
-                    from cotizacion_documento as cd
-                    where
-                    cd.sede_id = ? 
-                    AND cd.tipo_venta_id = ?
-                    ',
-                    [
-                        $sede_id,
-                        $tipo_comprobante->id
-                    ])[0];
+    $ultima_venta =   DB::select('SELECT cd.correlativo 
+                        FROM cotizacion_documento AS cd
+                        WHERE cd.sede_id = ? 
+                        AND cd.tipo_venta_id = ?
+                        ORDER BY cd.id DESC 
+                        LIMIT 1',
+                        [
+                            $sede_id,
+                            $tipo_comprobante->id
+                        ]);
 
 
     $serializacion     =   DB::select('select 
@@ -1907,17 +1906,19 @@ public static function getCorrelativo($tipo_comprobante,$sede_id){
                                     $sede_id])[0];
 
 
-    //==== SI LA CANT ES 0 =====
-    if($ventas->cant === 0){
+    //==== NO EXISTE UNA ÚLTIMA VENTA DE ESE TIPO DE COMPROBANTE =====
+    if(count($ultima_venta) === 0){
         
         //====== INICIAR DESDE EL STARTING NUMBER =======
         $correlativo        =   $serializacion->numero_iniciar;
         $serie              =   $serializacion->serie;
         
     }else{
+
         //======= EN CASO YA EXISTAN DOCUMENTOS DE VENTA DEL TYPE SALE ======
-        $correlativo        =   $ventas->cant  +   1;
+        $correlativo        =   $ultima_venta[0]->correlativo  +   1;
         $serie              =   $serializacion->serie;
+
     }
 
     return (object)['correlativo'=>$correlativo,'serie'=>$serie];
