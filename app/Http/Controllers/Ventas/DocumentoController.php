@@ -83,10 +83,13 @@ class DocumentoController extends Controller
         $departamentos  =   Departamento::all();
         $provincias     =   Provincia::all();
         $distritos      =   Distrito::all();
+        $almacenes      =   Almacen::where('estado','ACTIVO')->where('tipo_almacen','PRINCIPAL')->get();
+        $registrador    =   Auth::user();
 
         //broadcast(new NotifySunatEvent($dato));
        
-        return view('ventas.documentos.index',compact('departamentos','provincias','distritos'));
+        return view('ventas.documentos.index',
+        compact('departamentos','provincias','distritos','almacenes','registrador'));
     }
 
     public function indexAntiguo()
@@ -668,11 +671,14 @@ class DocumentoController extends Controller
         $fecha_hoy      = Carbon::now()->toDateString();
         $condiciones    = Condicion::where('estado', 'ACTIVO')->get();
 
-        $almacenes          =   Almacen::where('estado','ACTIVO')->where('tipo_almacen','PRINCIPAL')->get();
+        $almacenes      =   Almacen::where('estado','ACTIVO')->where('tipo_almacen','PRINCIPAL')->get();
 
         $departamentos  =   Departamento::all();
         $provincias     =   Provincia::all();
         $distritos      =   Distrito::all();
+
+        $registrador    =   Auth::user();
+
 
         $dolar = 0;
 
@@ -773,7 +779,7 @@ class DocumentoController extends Controller
                 'detalle'       =>  $detalleValidado,
                 'tallas'        =>  $tallas,
                 'cantidadErrores'   =>  $cantidadErrores,
-                'departamentos'     =>  departamentos()
+                'departamentos'     =>  departamentos(),
             ]);
            
         }
@@ -783,6 +789,8 @@ class DocumentoController extends Controller
                 'departamentos' =>  $departamentos,
                 'provincias'    =>  $provincias,
                 'distritos'     =>  $distritos,
+                'almacenes'     =>  $almacenes,
+                'registrador'       =>  $registrador
             ]);
         }
     }
@@ -850,7 +858,7 @@ class DocumentoController extends Controller
                     "marcas"        =>  Marca::where('estado','ACTIVO')->get(),
                     "categorias"    =>  Categoria::where('estado','ACTIVO')->get(),
                     "tallas"        =>  Talla::where('estado', 'ACTIVO')->get(),
-                    'almacenes'     =>  $almacenes,
+                    'almacenes'     =>  [],
                     'sede_id'       =>  $sede_id,
                     'departamentos' =>  $departamentos,
                     'provincias'    =>  $provincias,

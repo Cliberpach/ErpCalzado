@@ -36,7 +36,10 @@
             <venta-lista :imginicial="imginicial" />
         </template>
         <template v-if="ruta == 'create'">
-            <venta-create :ruta.sync="ruta" :idcotizacion="idcotizacion" 
+            <venta-create :ruta.sync="ruta" 
+            :registrador="this.registrador"
+            :idcotizacion="idcotizacion" 
+            :lst_almacenes="this.lst_almacenes"
             :lst_departamentos_base="this.lst_departamentos_base"
             :lst_provincias_base="this.lst_provincias_base"
             :lst_distritos_base="this.lst_distritos_base" 
@@ -49,7 +52,13 @@
 
 export default {
     name: "AppVue",
-    props: ["imginicial","lst_departamentos_base","lst_provincias_base","lst_distritos_base"],
+    props: [
+        "imginicial",
+        "registrador",
+        "lst_almacenes",
+        "lst_departamentos_base",
+        "lst_provincias_base",
+        "lst_distritos_base"],
     components:{
     },
     data() {

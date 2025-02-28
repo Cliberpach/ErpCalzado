@@ -1462,6 +1462,7 @@ export default {
             await this.devolverCantidades();
             this.carrito                    =   [];
             this.productosPorModelo         =   [];
+            this.productos                  =   [];
             this.productoSeleccionado       =   '';
             this.precioVentaSeleccionado    =   '';
             this.$parent.ocultarAnimacionVenta();            

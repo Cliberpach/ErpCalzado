@@ -5,9 +5,11 @@
 @section('documento-active', 'active')
 
 <ventas-app 
+:lst_almacenes="{{ json_encode($almacenes) }}" 
 :lst_departamentos_base="{{ json_encode($departamentos) }}" 
 :lst_provincias_base="{{ json_encode($provincias) }}" 
 :lst_distritos_base="{{ json_encode($distritos) }}" 
+:registrador = "{{json_encode($registrador)}}"
 :imginicial="'{{ asset('img/default.png') }}'">
 </ventas-app>
 

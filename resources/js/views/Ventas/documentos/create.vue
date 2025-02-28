@@ -127,7 +127,7 @@
 
                                                 <label style="font-weight: bold;">ALMACÉN</label>
                                                     
-                                                <v-select v-model="almacenSeleccionado" :options="initData.almacenes"
+                                                <v-select v-model="almacenSeleccionado" :options="lst_almacenes"
                                                     :reduce="a => a.id" label="descripcion"
                                                     placeholder="Seleccionar"
                                                     ref="selectAlmacen">
@@ -273,6 +273,7 @@
 import ModalClienteVue from '../../../components/ventas/ModalCliente.vue';
 import TablaProductos from '../../../components/ventas/TablaProductos.vue';
 import EditarItemVue from '../../../components/ventas/EditarItem.vue';
+import { faAslInterpreting } from '@fortawesome/free-solid-svg-icons';
 
 export default {
     name: "VentaCreate",
@@ -300,6 +301,14 @@ export default {
         },
         lst_distritos_base:{
             type:Array,
+            default:[]
+        },
+        lst_almacenes:{
+            type:Array,
+            default:[]
+        },
+        registrador:{
+            type:Object,
             default:[]
         },
     },
@@ -392,9 +401,6 @@ export default {
                 //===== LIMPIAR FORMULARIO DETALLE ======
                 this.$refs.tablaProductos.limpiarFormularioDetalle();
                
-             
-             
-
             }
         },
         productos_tabla:{
@@ -480,6 +486,13 @@ export default {
         }
     },
     created() {
+        
+        console.log(this.registrador);
+        this.lst_almacenes.forEach((a)=>{
+            if(a.sede_id == this.registrador.sede_id){
+                this.almacenSeleccionado    =   a.id;
+            }
+        })
 
         window.addEventListener("beforeunload", this.handleBeforeUnload);
 
