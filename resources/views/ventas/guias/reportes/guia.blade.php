@@ -175,11 +175,12 @@
             </div>
             <div class="empresa">
                 <div class="empresa-info">
-                    <p class="m-0 p-0 text-uppercase nombre-empresa">DE: {{ DB::table('empresas')->count() == 0 ? 'SISCOM ' : DB::table('empresas')->first()->razon_social }}</p>
-                    <p class="m-0 p-0 text-uppercase direccion-empresa">{{ DB::table('empresas')->count() == 0 ? '- ' : DB::table('empresas')->first()->direccion_fiscal }}</p>
-
-                    <p class="m-0 p-0 text-info-empresa">Tlfn: {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->telefono.' / '.DB::table('empresas')->first()->celular }}</p>
-                    <p class="m-0 p-0 text-info-empresa">Email: {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->correo }}</p>
+                    <p class="m-0 p-0 text-uppercase nombre-empresa">{{ DB::table('empresas')->count() == 0 ? 'SISCOM ' : DB::table('empresas')->first()->razon_social }}</p>
+                    <p class="m-0 p-0 text-uppercase ruc-empresa">RUC {{ DB::table('empresas')->count() == 0 ? '- ' : DB::table('empresas')->first()->ruc }}</p>
+                    <p class="m-0 p-0 text-uppercase ruc-empresa"> {{ $empresa->direccion_fiscal }}</p>
+                    <p class="m-0 p-0 text-uppercase direccion-empresa">{{ $sede->nombre }}</p>
+                    <p class="m-0 p-0 text-uppercase direccion-empresa">{{ $sede->direccion }}</p>
+                    <p class="m-0 p-0 text-info-empresa">Teléfono: {{ $sede->telefono }}</p>
                 </div>
             </div>
             <div class="comprobante">
@@ -194,75 +195,191 @@
                 </div>
             </div>
         </div><br>
-        <div class="destinatario">
-            <table class="tbl" cellpadding="2" cellspacing="0">
+
+        <div style="text-align: left; margin: 15px 0;">
+            <table cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
                 <thead>
                     <tr>
-                        <th>DESTINATARIO</th>
+                        <th style="background-color: #f4f4f4; padding: 6px; text-align: left; font-size: 10px; font-weight: bold; border-bottom: 2px solid #ddd; border-left: 1px solid #ddd; border-right: 1px solid #ddd;" colspan="2">DATOS ENVÍO</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>
-                            <p class="m-0 p-0">{{ $guia->tipo_documento_cliente == 'RUC' ? 'Razón Social' : 'Nombre' }}: {{ $guia->clienteEntidad->nombre }}</p>
-                            <p class="m-0 p-0">{{ $guia->tipo_documento_cliente }}: {{ $guia->clienteEntidad->documento }}</p>
-                            <p class="m-0 p-0">Dirección: {{ $guia->direccion_llegada }}</p>
-                            <p class="m-0 p-0">Vendedor: {{ $guia->user->usuario }}</p>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-weight: bold; font-size: 11px; color: #333;">Motivo Traslado:</div>
+                        </td>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 11px; color: #555;">{{$guia->motivo_traslado_nombre}}</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-weight: bold; font-size: 11px; color: #333;">Modalidad Traslado:</div>
+                        </td>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 11px; color: #555;">{{ $guia->modalidad_traslado_nombre }}</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-weight: bold; font-size: 11px; color: #333;">Fecha Traslado:</div>
+                        </td>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 11px; color: #555;">{{ $guia->fecha_traslado }}</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-weight: bold; font-size: 11px; color: #333;">N° Bultos:</div>
+                        </td>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 11px; color: #555;">{{ $guia->cantidad_productos }}</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-weight: bold; font-size: 11px; color: #333;">Punto partida:</div>
+                        </td>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 11px; color: #555;">{{ $partida->nombre }}</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;"></td>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 11px; color: #555;">{{ $partida->direccion }}</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;"></td>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 11px; color: #555;">{{ $partida->distrito_id }}</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;"></td>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 11px; color: #555;">{{ $partida->departamento_nombre.'-'.$partida->provincia_nombre.'-'.$partida->distrito_nombre }}</div>
                         </td>
                     </tr>
                 </tbody>
             </table>
-        </div><br>
-        <div class="envio">
-            <table class="tbl" cellpadding="2" cellspacing="0">
+        </div>
+        
+        
+        <div style="text-align: left; margin: 15px 0;">
+            <table cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
                 <thead>
                     <tr>
-                        <th colspan="2">ENVÍO</th>
+                        <th style="background-color: #f4f4f4; padding: 6px; text-align: left; font-size: 10px; font-weight: bold; border-bottom: 2px solid #ddd; border-left: 1px solid #ddd; border-right: 1px solid #ddd;" colspan="2">DESTINATARIO</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="border-right: 0px !important; border-bottom: 0px !important;">
-                            <p class="m-0 p-0">Fecha Emisión: {{ getFechaFormato($guia->created_at,'d/m/Y') }}</p>
-                            <p class="m-0 p-0">Motivo Translado: {{ $guia->desTraslado() }}</p>
-                            <p class="m-0 p-0">Peso Bruto Total(KGM): {{ $guia->peso_productos }}</p>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-weight: bold; font-size: 11px; color: #333;">NOMBRE:</div>
                         </td>
-                        <td style="border-left: 0px !important; border-bottom: 0px !important;">
-                            <p class="m-0 p-0">Fecha Inicio de Translado: {{ getFechaFormato($guia->created_at,'d/m/Y') }}</p>
-                            <p class="m-0 p-0">Modalidad de Transporte: Transporte publico</p>
-                            <p class="m-0 p-0">Numero de Bultos: {{ $guia->cantidad_productos }}</p>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 11px; color: #555;">{{$destinatario->nombre}}</div>
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="2" style="border-top: 0px !important;">
-                            <p class="m-0 p-0">P. Partida: {{ $empresa->direccion_fiscal }}</p>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-weight: bold; font-size: 11px; color: #333;">DIRECCIÓN:</div>
+                        </td>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 11px; color: #555;">{{ $destinatario->direccion }}</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-weight: bold; font-size: 11px; color: #333;">UBIGEO:</div>
+                        </td>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 11px; color: #555;">{{ $destinatario->distrito_id }}</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-weight: bold; font-size: 11px; color: #333;"></div>
+                        </td>
+                        <td style="padding: 4px 12px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 11px; color: #555;">{{ $destinatario->departamento_nombre.'-'.$destinatario->provincia_nombre.'-'.$destinatario->distrito_nombre }}</div>
                         </td>
                     </tr>
                 </tbody>
             </table>
-        </div><br>
-        <div class="transporte">
-            <table class="tbl" cellpadding="2" cellspacing="0">
+        </div>
+        
+        
+        <div style="text-align: left; margin: 10px 0;">
+            <table cellpadding="3" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
                 <thead>
                     <tr>
-                        <th colspan="2">TRANSPORTE</th>
+                        <th style="background-color: #f4f4f4; padding: 5px; text-align: left; font-size: 10px; font-weight: bold; border-bottom: 1px solid #ddd; border-left: 1px solid #ddd; border-right: 1px solid #ddd;" colspan="2">TRANSPORTE</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="border-right: 0px !important;">
-                            <p class="m-0 p-0">Nombre y/o razón social: {{ $guia->nombre_transporte_domicilio }}</p>
-                            <p class="m-0 p-0">Número de Placa del Vehículo: {{ $guia->placa_vehiculo }}</p>
-                            <p class="m-0 p-0">Licencia del conductor: -</p>
+                        <td style="padding: 3px 10px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-weight: bold; font-size: 10px; color: #333;">Vehículos categoría M1 o L:</div>
                         </td>
-                        <td style="border-left: 0px !important;">
-                            <p class="m-0 p-0">DNI: {{ $guia->dni_conductor }}</p>
-                            <p class="m-0 p-0">Conductor: {{ '-' }}</p>
+                        <td style="padding: 3px 10px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                            <div style="font-size: 10px; color: #555;">{{ $guia->categoria_M1L ? 'SI' : 'NO' }}</div>
                         </td>
                     </tr>
+        
+                    @if ($vehiculo)
+                        <tr>
+                            <td style="padding: 3px 10px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                                <div style="font-weight: bold; font-size: 10px; color: #333;">PLACA DEL VEHÍCULO:</div>
+                            </td>
+                            <td style="padding: 3px 10px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                                <div style="font-size: 10px; color: #555;">{{ $vehiculo->placa }}</div>
+                            </td>
+                        </tr>
+                    @endif
+        
+                    @if ($conductor)
+                        <tr>
+                            <td style="padding: 3px 10px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                                <div style="font-weight: bold; font-size: 10px; color: #333;">CONDUCTOR:</div>
+                            </td>
+                            <td style="padding: 3px 10px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                                <div style="font-size: 10px; color: #555;">{{ $conductor->nombres }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px 10px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                                <div style="font-weight: bold; font-size: 10px; color: #333;">{{ $conductor->tipo_documento_nombre }}:</div>
+                            </td>
+                            <td style="padding: 3px 10px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                                <div style="font-size: 10px; color: #555;">{{ $conductor->nro_documento }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px 10px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                                <div style="font-weight: bold; font-size: 10px; color: #333;">LICENCIA:</div>
+                            </td>
+                            <td style="padding: 3px 10px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                                <div style="font-size: 10px; color: #555;">{{ $conductor->licencia }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px 10px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                                <div style="font-weight: bold; font-size: 10px; color: #333;">REGISTRO MTC:</div>
+                            </td>
+                            <td style="padding: 3px 10px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; vertical-align: top;">
+                                <div style="font-size: 10px; color: #555;">{{ $conductor->registro_mtc }}</div>
+                            </td>
+                        </tr>
+                    @endif
                 </tbody>
             </table>
-        </div><br>
+        </div>
+        
+
+        <br>
         <div class="detalles">
             <table class="tbl-detalles" cellpadding="2" cellspacing="0">
                 <thead>

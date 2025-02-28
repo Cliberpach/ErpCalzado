@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('ventas-active', 'active')
 @section('guias-remision-active', 'active')
@@ -29,37 +30,9 @@
             <div class="ibox ">
                 <div class="ibox-content">
                     <div class="table-responsive">
-                        <table class="table dataTables-gui table-striped table-bordered table-hover"
-                        style="text-transform:uppercase">
-                            <thead>
-                                <tr>
 
-
-                                    <th colspan="4" class="text-center">DOCUMENTO DE VENTA</th>
-
-                                    <th colspan="7" class="text-center">GUIA DE REMISION</th>
-
-                                </tr>
-                                <tr>
-                                    <th class="text-center">Doc Afec.</th>
-                                    <th class="text-center">FEC.DOCUMENTO</th>
-                                    <th class="text-center">TIPO</th>
-                                    <th class="text-center">CLIENTE</th>
-
-                                    <th class="text-center">N°</th>
-                                    <th class="text-center">CANTIDAD</th>
-                                    <th class="text-center">PESO</th>
-                                    <th class="text-center">TICKET</th>
-                                    <th class="text-center">ESTADO</th>
-                                    <th class="text-center">DESCARGAS</th>
-
-                                    <th class="text-center">ACCIONES</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                            </tbody>
-                        </table>
+                        @include('ventas.guias.tables.tbl_guia_list')
+                      
                     </div>
                 </div>
             </div>
@@ -80,7 +53,6 @@
 <script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4"></script>
-
 
 
 <script>
@@ -120,22 +92,13 @@ $(document).ready(function() {
         "columns": [
             //Guias de remision
             {
-                data: 'numero',
+                data: 'documento_afectado',
                 className: "text-center"
             },
             {
-                data: 'fecha_documento',
+                data: 'documento_fecha',
                 className: "text-center"
             },
-            {
-                data: 'tipo_venta',
-                className: "text-center",
-            },
-            {
-                data: 'cliente',
-                className: "text-left"
-            },
-
             {
                 data: 'serie_guia',
                 className: "text-center"

@@ -91,6 +91,7 @@ $(document).ready(function() {
                             </div>`; 
                 }
             },
+            { data: 'guia',className: "text-center"},
             { data: 'almacen_origen_nombre',className: "text-center"},
             { data: 'almacen_destino_nombre',className: "text-center"},
             { data: 'sede_origen_direccion',className: "text-center"},
@@ -116,31 +117,31 @@ $(document).ready(function() {
                 className: "text-center",
                 render: function(data) {
 
-                    //Ruta Modificar
-               
+                    let url_detalles    = '{{ route("almacenes.traslados.show", ":id")}}';
+                    url_detalles        = url_detalles.replace(':id', data.id);
 
-                    let url_detalles = '{{ route("almacenes.traslados.show", ":id")}}';
-                    url_detalles = url_detalles.replace(':id', data.id);
+                    let acciones    =   `<div class='btn-group' style='text-transform:capitalize;'>
+                                        <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
+                                        <i class='fa fa-bars'></i>
+                                        </button>
+                                        <ul class='dropdown-menu'>
+                                            <li>
+                                                <a class='dropdown-item' href='${url_detalles}' title='Detalles'>
+                                                <b><i class='fa fa-eye'></i> Detalles</b>
+                                                </a>
+                                            </li>`;
 
-                    return `
-                            <div class='btn-group' style='text-transform:capitalize;'>
-                                <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
-                                <i class='fa fa-bars'></i>
-                                </button>
-                                <ul class='dropdown-menu'>
-                                    <li>
-                                        <a class='dropdown-item' href='${url_detalles}' title='Detalles'>
-                                        <b><i class='fa fa-eye'></i> Detalles</b>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class='dropdown-item' href='javascript:void(0);' title='Guía Remisión' onclick='generarGuia(${data.id})'>
-                                            <b><i class='fa fa-file-pdf-o'></i> Guía Remisión</b>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                            `;
+                    if(!data.guia_id){
+                        acciones        +=  ` <li>
+                                                <a class='dropdown-item' href='javascript:void(0);' title='Guía Remisión' onclick='generarGuia(${data.id})'>
+                                                    <b><i class='fa fa-file-pdf-o'></i> Guía Remisión</b>
+                                                </a>
+                                            </li>`;
+                    }
+
+                    acciones    +=  `</ul></div>`;
+
+                    return acciones;
                 }
             }
 

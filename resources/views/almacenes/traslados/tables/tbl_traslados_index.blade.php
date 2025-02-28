@@ -2,6 +2,7 @@
     <thead>
         <tr>
             <th class="text-center">#</th>
+            <th class="text-center">Guía</th>
             <th class="text-center">Almacén Origen</th>
             <th class="text-center">Almacén Destino</th>
             <th class="text-center">Sede Origen</th>

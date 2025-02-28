@@ -7,7 +7,7 @@
 <div class="row wrapper border-bottom white-bg page-heading">
 
     <div class="col-lg-12">
-       <h2  style="text-transform:uppercase"><b>REGISTRAR NUEVA GUIA DE REMISION</b></h2>
+       <h2  style="text-transform:uppercase"><b> GENERAR GUÍA DE TRASLADO</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{route('home')}}">Panel de Control</a>
@@ -32,7 +32,7 @@
         <div class="col-lg-12">
             <div class="ibox">
                 <div class="ibox-content">
-                    @include('ventas.guias.forms.form_guia_create')
+                    @include('almacenes.traslados.guia.forms.form_guia_create')
                 </div>
             </div>
         </div>
@@ -41,12 +41,12 @@
 
 
 <div class="wrapper wrapper-content animated fadeInRight" style="padding-top:0px;">
-
     <div class="row">
         <div class="col-12">
             <div class="ibox">
                 <div class="ibox-content">
-                    <div class="row mb-3">
+                    
+                    <div class="row">
                         <div class="col-12">
                             <h3 class="font-weight-bold text-primary">
                                 <i class="fas fa-box-open"></i> PRODUCTOS
@@ -57,7 +57,7 @@
 
                     <div class="row mb-3">
 
-                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
+                        {{-- <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
                             <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
                             <select 
                                 id="producto"
@@ -65,16 +65,16 @@
                                 onchange="getColoresTallas()" >
                                 <option value=""></option>
                             </select>
-                        </div>
+                        </div> --}}
                        
-                        <div class="col-12 mb-3">
+                        {{-- <div class="col-12 mb-3">
                             @include('ventas.guias.table-stocks')
-                        </div>           
-                        <div class="col-lg-2 col-xs-12">
+                        </div>            --}}
+                        {{-- <div class="col-lg-2 col-xs-12">
                             <button  type="button" id="btn_agregar_detalle" class="btn btn-warning btn-block">
                                 <i class="fa fa-plus"></i> AGREGAR
                             </button>
-                        </div>
+                        </div> --}}
                     </div>
 
                     <div class="row">
@@ -86,7 +86,7 @@
                                 <div class="panel-body ibox-content">
                                     <div class="row">
                                         <div class="col-12">
-                                            @include('ventas.guias.table-detalle')
+                                            @include('almacenes.traslados.guia.tables.tbl_guia_detalle')
                                         </div>
                                         <div class="col-12 d-flex justify-content-end">
                                             <button class="btn btn-primary" type="submit" form="formRegistrarGuia">
@@ -103,7 +103,6 @@
             </div>
         </div>
     </div>
-
 </div>
 
 
@@ -127,16 +126,16 @@
 <script>
 
 let dtGuiaStocks            =   null
-const carrito               =   [];
 
-const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
 const tableDetalleBody      =   document.querySelector('#table-detalle-guia tbody');      
 const tfoot_cantidadTotal   =   document.querySelector('#tfoot_cantidadTotal');   
 
 document.addEventListener('DOMContentLoaded',()=>{
+
     loadSelect2();
     $('#modalidad_traslado').val('02').trigger('change');
-    dtGuiaStocks    =   iniciarDataTable('table-stocks');
+    pintarDetalle(@json($traslado_detalle));
+    
     events();
 })
 
@@ -175,26 +174,10 @@ function events(){
 
     })
 
-    btnAgregarDetalle.addEventListener('click',()=>{ 
-
-        toastr.clear();
-        mostrarAnimacion();
-        agregarProducto();
-        reordenarCarrito();
-        pintarDetalle();
-        toastr.info('PRODUCTOS AGREGADOS');
-        ocultarAnimacion();
-        
-    })
-
+ 
     document.querySelector('#formRegistrarGuia').addEventListener('submit',(e)=>{
         e.preventDefault();
         toastr.clear();
-
-        if(carrito.length === 0){
-            toastr.error('EL DETALLE DE LA GUÍA ESTÁ VACÍO');
-            return;
-        }
 
         registrarGuia(e.target);
 
@@ -269,6 +252,8 @@ function loadSelect2(){
 
 }
 
+
+
     function formarProducto(ic){
         const producto_id           =   ic.getAttribute('data-producto-id');
         const producto_nombre       =   ic.getAttribute('data-producto-nombre');
@@ -325,7 +310,7 @@ function loadSelect2(){
         });
     }
 
-    function pintarDetalle(){
+    function pintarDetalle(carrito){
         let fila            =   ``;
         let cantidadTotal   =   calcularCantidad(carrito);
         
@@ -337,10 +322,6 @@ function loadSelect2(){
             const cantidadColor =   calcularCantidad(carritoFiltrado);
             fila += `   
                         <tr>
-                            <th scope="row"> 
-                                <i class="fas fa-trash-alt btn btn-primary delete-product"
-                                data-producto="${p.producto_id}" data-color="${p.color_id}"></i>
-                            </th>
                             <td>${cantidadColor}</td>
                             <td>${p.producto_nombre} - ${p.color_nombre}</td> 
                     `;
@@ -589,11 +570,13 @@ function cambiarModalidadTraslado(modalidad){
 
             try {
                 const formData  =   new FormData(formRegistrarGuia);
-                formData.append('lstGuia',JSON.stringify(carrito));
                 formData.append('sede_id',@json($sede_id));
                 formData.append('registrador_id',@json($registrador->id));
+                formData.append('traslado_id',@json($traslado->id));
+                formData.append('almacen',@json($traslado->almacen_origen_id));
+                formData.append('motivo_traslado',"04");
 
-                const res       =   await axios.post(route('ventas.guiasremision.store'),formData);
+                const res       =   await axios.post(route('almacenes.traslados.generarGuiaStore'),formData);
                 if(res.data.success){
                     window.location =  route('ventas.guiasremision.index');
                     toastr.success(res.data.message,'OPERACIÓN COMPLETADA');

@@ -363,6 +363,7 @@ function(){
         Route::post('store','Almacenes\TrasladoController@store')->name('almacenes.traslados.store');
         Route::get('generarGuiaCreate/{traslado_id}', 'Almacenes\TrasladoController@generarGuiaCreate')->name('almacenes.traslados.generarGuiaCreate');
         Route::get('show/{id}', 'Almacenes\TrasladoController@show')->name('almacenes.traslados.show');
+        Route::post('generarGuiaStore', 'Almacenes\TrasladoController@generarGuiaStore')->name('almacenes.traslados.generarGuiaStore');
 
     });
 

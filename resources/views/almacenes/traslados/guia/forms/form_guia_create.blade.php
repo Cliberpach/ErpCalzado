@@ -6,6 +6,37 @@
             <hr style="margin:0px 0 10px 0;">
         </div>
 
+        <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+            <label for="traslado" style="font-weight:bold;" class="required">TRASLADO</label>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="basic-addon1">
+                    <i class="fas fa-truck-loading"></i>
+                </span>
+                </div>
+                <input value="{{'TR-'.$traslado->id}}" readonly name="traslado" id="traslado" type="text" class="form-control" placeholder="Registrador" aria-label="Username" aria-describedby="basic-addon1">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
+            <div class="form-group">
+                <label style="font-weight: bold;" class="required" for="condicion_id">ALMACÉN</label>
+                <select disabled required onchange="cambiarAlmacen(this.value)"  id="almacen" name="almacen" class="select2_form form-control" required>
+                    <option></option>
+                    @foreach ($almacenes as $almacen)
+                        <option
+                        @if ($almacen_traslado->id == $almacen->id)
+                            selected
+                        @endif
+                        value="{{ $almacen->id }}">
+                            {{ $almacen->descripcion }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <span style="font-weight: bold;color:red;" class="almacen_error msgError"></span>
+        </div>
+
         <div class="col-12 col-lg-3 col-md-3 mb-3">
             <label for="registrador" style="font-weight: bold;">REGISTRADOR</label>
             <div class="input-group">
@@ -18,7 +49,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
+        {{-- <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
             <div class="form-group">
                 <label style="font-weight: bold;" class="required" for="condicion_id">ALMACÉN</label>
                 <select required onchange="cambiarAlmacen(this.value)"  id="almacen" name="almacen" class="select2_form form-control" required>
@@ -35,7 +66,7 @@
                 </select>
             </div>
             <span style="font-weight: bold;color:red;" class="almacen_error msgError"></span>
-        </div>
+        </div> --}}
     
         
         <div class="col-lg-4 col-md-6 col-sm-6 col-xs-12 mb-3">
@@ -58,7 +89,8 @@
 
         <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
             <label class="required" for="motivo_traslado" style="font-weight: bold;">MOTIVO TRASLADO</label>
-            <select onchange="cambiarMotivoTraslado(this.value)" required name="motivo_traslado" id="motivo_traslado" class="select2_form">
+            
+            <select disabled onchange="cambiarMotivoTraslado(this.value)" required name="motivo_traslado" id="motivo_traslado" class="select2_form">
                
                @foreach ($motivos_traslado as $motivo_traslado)
                    <option 
@@ -130,8 +162,8 @@
 
     </div>
 
-    @include('ventas.guias.subforms.sub_transporte_publico')
-    @include('ventas.guias.subforms.sub_ubigeo')
+    @include('almacenes.traslados.guia.subforms.sub_transporte')
+    @include('almacenes.traslados.guia.subforms.sub_ubigeo')
 
 
 

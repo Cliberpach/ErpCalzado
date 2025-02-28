@@ -18,16 +18,7 @@
             </div>
             <input value="{{$sede_origen->nombre}}" readonly name="sede_origen" id="sede_origen" type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
         </div>
-        
-        {{-- <select required class="form-control select2_form" name="sede_origen" id="sede_origen">
-            @foreach ($sedes as $sede)
-                <option
-                @if ($sede_id == $sede->id)
-                    selected
-                @endif
-                value="{{$sede->id}}">{{$sede->nombre}}</option>
-            @endforeach
-        </select> --}}
+    
         <span style="font-weight: bold;color:red;" class="sede_origen_error msgError"></span>
     </div>
 
@@ -44,12 +35,14 @@
 
     <div class="col-lg-4 col-md-4 col-sm-6 mb-3" id="divSedeDestino">
         <label class="required font-weight-bold">SEDE DESTINO</label>
-        <select required class="form-control select2_form" name="sede_destino" id="sede_destino">
-            <option value=""></option>
-            @foreach ($sedes as $sede)
-                <option value="{{$sede->id}}">{{$sede->nombre}}</option>
-            @endforeach
-        </select>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">
+                    <i class="fas fa-building"></i>
+                </span>
+            </div>
+            <input value="{{$sede_destino->nombre}}" readonly name="sede_destino" id="sede_destino" type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+        </div>
         <span style="font-weight: bold;color:red;" class="sede_destino_error msgError"></span>
     </div>
 

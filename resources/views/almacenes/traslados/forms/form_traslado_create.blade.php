@@ -12,6 +12,7 @@
             </div>
             <div class="form-group row">
 
+            
                 <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                     <label for="registrador_nombre" style="font-weight:bold;" class="required">Registrador</label>
                     <div class="input-group mb-3">
@@ -23,6 +24,7 @@
                         <input value="{{Auth::user()->usuario}}" readonly name="registrador_nombre" id="registrador_nombre" type="text" class="form-control" placeholder="Registrador" aria-label="Username" aria-describedby="basic-addon1">
                     </div>
                 </div>
+
 
                 <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                     <label for="fecha_registro" style="font-weight:bold;" class="required">Fecha Registro</label>

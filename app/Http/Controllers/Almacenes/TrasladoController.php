@@ -3,20 +3,29 @@
 namespace App\Http\Controllers\Almacenes;
 
 use App\Almacenes\Almacen;
+use App\Almacenes\Conductor;
 use App\Almacenes\DetalleNotaSalidad;
 use App\Almacenes\Kardex;
 use App\Almacenes\Modelo;
 use App\Almacenes\MovimientoNota;
 use App\Almacenes\NotaIngreso;
 use App\Almacenes\NotaSalidad;
+use App\Almacenes\Producto;
 use Yajra\DataTables\Facades\DataTables;
 use App\Almacenes\ProductoColor;
 use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
 use App\Almacenes\Traslado;
 use App\Almacenes\TrasladoDetalle;
+use App\Almacenes\Vehiculo;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UtilidadesController;
+use App\Http\Controllers\Ventas\GuiaController;
+use App\Http\Requests\Ventas\Guias\GuiaStoreRequest;
+use App\Mantenimiento\Empresa\Empresa;
+use App\Mantenimiento\Sedes\Sede;
+use App\User;
+use App\Ventas\Cliente;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -38,7 +47,9 @@ class TrasladoController extends Controller
                         ->join('almacenes as ad', 'ad.id', '=', 't.almacen_destino_id')
                         ->join('empresa_sedes as eso', 'eso.id', '=', 't.sede_origen_id')
                         ->join('empresa_sedes as esd', 'esd.id', '=', 't.sede_destino_id')
+                        ->leftJoin('guias_remision as gr','gr.id','t.guia_id')
                         ->select(
+                            DB::raw('CONCAT(gr.serie,"-", gr.correlativo) as guia'),
                             DB::raw('CONCAT("TR-", t.id) as simbolo'),
                             't.id',
                             'ao.descripcion as almacen_origen_nombre',
@@ -49,7 +60,8 @@ class TrasladoController extends Controller
                             't.created_at as fecha_registro',
                             't.fecha_traslado',
                             't.registrador_nombre',
-                            't.estado'
+                            't.estado',
+                            't.guia_id'
                         )
                         ->where('t.sede_origen_id',$sede_id)
                         ->get();
@@ -272,7 +284,7 @@ array:12 [
                 ]);*/
 
             //======== EN ALMACÉN ORIGEN (BAJA EL STOCK) =========
-                //=======> RESTAR STOCK LÓGICO ======
+                //=======> RESTAR STOCK ======
                 UtilidadesController::restarStockItem($item_bd_origen,$item->cantidad);
 
                 //======> OBTENIENDO STOCK =======
@@ -395,7 +407,165 @@ array:12 [
 
     
     public function generarGuiaCreate($traslado_id){
-        dd($traslado_id);
+
+        $traslado           =   Traslado::find($traslado_id);   
+        $almacen_traslado   =   Almacen::find($traslado->almacen_origen_id);
+        $traslado_detalle   =   $this->formatearArrayDetalle(TrasladoDetalle::where('traslado_id',$traslado_id)->get());
+
+        $sede_id            =   Auth::user()->sede_id;
+        $sede_origen        =   Sede::find($traslado->sede_origen_id);
+        $sede_destino       =   Sede::find($traslado->sede_destino_id);
+
+        $almacenes          =   Almacen::where('estado','ACTIVO')
+                                ->where('tipo_almacen','PRINCIPAL')
+                                ->where('sede_id',$sede_id)
+                                ->get();
+
+
+        $registrador        =   User::find(Auth::user()->id);
+        $modelos            =   Modelo::where('estado','ACTIVO')->get();
+        $tallas             =   Talla::where('estado','ACTIVO')->get();
+        $empresas           =   Empresa::where('estado','ACTIVO')->get();
+        $conductores        =   Conductor::where('estado','ACTIVO')->get();
+        $vehiculos          =   Vehiculo::where('estado','ACTIVO')->get();
+      
+        $clientes           =   Cliente::where('estado', 'ACTIVO')->get();
+        $tipos_documento    =   DB::select('select 
+                                td.* 
+                                from tabladetalles as td 
+                                where td.tabla_id = 3');
+
+        $sedes              =   Sede::where('estado','ACTIVO')
+                                ->where('id','<>',$sede_id)
+                                ->get();
+
+        $motivos_traslado   =   DB::select('select 
+                                td.*
+                                from tabladetalles as td
+                                where 
+                                td.tabla_id = 34
+                                AND td.simbolo IN ("01","04")');
+                  
+
+        return view('almacenes.traslados.guia.create',[
+
+            'sede_origen'       =>  $sede_origen,
+            'sede_destino'      =>  $sede_destino,
+            'motivos_traslado'  =>  $motivos_traslado,
+            'sede_id'           =>  $sede_id,
+            'almacenes'         =>  $almacenes,
+            'registrador'       =>  $registrador,
+            'modelos'           =>  $modelos,
+            'tallas'            =>  $tallas,
+            'empresas'          =>  $empresas,
+            'conductores'       =>  $conductores,
+            'sedes'             =>  $sedes,
+            'vehiculos'         =>  $vehiculos,
+            'clientes'          =>  $clientes,
+            'tipos_documento'   =>  $tipos_documento,
+            'traslado'          =>  $traslado,
+            'almacen_traslado'  =>  $almacen_traslado,
+            'traslado_detalle'  =>  $traslado_detalle
+        ]);
+    }
+
+/*
+array:17 [
+  "traslado" => "TR-3"
+  "registrador" => "ADMINISTRADOR"
+  "fecha_emision" => "2025-02-27"
+  "modalidad_traslado" => "02"
+  "fecha_traslado" => "2025-02-27"
+  "peso" => "0.1"
+  "unidad" => "KGM"
+  "vehiculo" => "1"
+  "conductor" => "4"
+  "sede_origen" => "SEDE CENTRAL"
+  "sede_destino" => "SEDE CHACHAPOYAS"
+  "cliente" => "1"
+  "sede_id" => "1"
+  "registrador_id" => "1"
+  "traslado_id" => "3"
+  "almacen"         => "1"
+  "motivo_traslado" => "04"
+]
+*/ 
+    public function generarGuiaStore(GuiaStoreRequest $request){
+
+        $lstGuia    =   $this->formatearArrayDetalle(TrasladoDetalle::where('traslado_id',$request->get('traslado_id'))->get());
+        $traslado   =   Traslado::find($request->get('traslado_id'));
+
+        $request->merge([
+            'lstGuia'       =>  json_encode($lstGuia),  
+            'sede_origen'   =>  $traslado->sede_origen_id,
+            'sede_destino'  =>  $traslado->sede_destino_id,
+            'traslado'      =>  $traslado->id
+        ]);
+        
+        $guia_controller        =   new GuiaController();
+        $res                    =   $guia_controller->store($request);
+        $jsonResponse           =   $res->getData(); 
+
+        if(!$jsonResponse->success){
+            return $res;
+        }
+        
+        DB::beginTransaction();
+        try {
+
+            $traslado->guia_id  =   $jsonResponse->id;
+            $traslado->update();   
+
+            DB::commit();
+
+            return $res;
+            
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+       
+
+    }
+
+    public function formatearArrayDetalle($detalles){
+        $detalleFormateado=[];
+        $productosProcesados = [];
+        foreach ($detalles as $detalle) {
+            $cod   =   $detalle->producto_id.'-'.$detalle->color_id;
+            if (!in_array($cod, $productosProcesados)) {
+                $producto=[];
+                //======== obteniendo todas las detalle talla de ese producto_color =================
+                $producto_color_tallas = $detalles->filter(function ($detalleFiltro) use ($detalle) {
+                    return $detalleFiltro->producto_id == $detalle->producto_id && $detalleFiltro->color_id == $detalle->color_id;
+                });
+                
+                $producto['producto_id']        = $detalle->producto_id;
+                $producto['color_id']           = $detalle->color_id;
+                $producto['producto_nombre']    = $detalle->producto_nombre;
+                $producto['color_nombre']       = $detalle->color_nombre;
+                
+
+                $tallas=[];
+                $subtotal=0.0;
+                $cantidadTotal=0;
+                foreach ($producto_color_tallas as $producto_color_talla) {
+                    $talla=[];
+                    $talla['talla_id']      =   $producto_color_talla->talla_id;
+                    $talla['cantidad']      =   $producto_color_talla->cantidad;
+                    $talla['talla_nombre']  =   $producto_color_talla->talla_nombre;
+                    $cantidadTotal          +=  $talla['cantidad'];
+                   array_push($tallas,$talla);
+                }
+                
+                $producto['tallas']=$tallas;
+                $producto['subtotal']=$subtotal;
+                $producto['cantidad_total']=$cantidadTotal;
+                array_push($detalleFormateado,$producto);
+                $productosProcesados[] = $detalle->producto_id.'-'.$detalle->color_id;
+            }
+        }
+        return $detalleFormateado;
     }
    
 
