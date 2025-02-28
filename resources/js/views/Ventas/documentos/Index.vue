@@ -45,11 +45,13 @@
                                                     <th class="text-center letrapequeña bg-white">CV</th>
                                                     <th class="text-center letrapequeña bg-white">PE</th>
                                                     <th class="text-center letrapequeña bg-white">DOC</th>
-                                                    <th class="text-center letrapequeña bg-white">FECHA DOC.</th>
+                                                    <th class="text-center letrapequeña bg-white">FECHA</th>
+                                                    <th class="text-center letrapequeña bg-white">REGISTRADOR</th>
+                                                    <th class="text-center letrapequeña bg-white">SEDE</th>
+                                                    <th class="text-center letrapequeña bg-white">ALMACÉN</th>
                                                     <th class="text-center letrapequeña bg-white">CLIENTE</th>
                                                     <th class="text-center letrapequeña bg-white">MONTO</th>
-                                                    <th class="text-center letrapequeña bg-white">TIEMPO</th>
-                                                    <th class="text-center letrapequeña bg-white">MODO</th>
+                                                    <th class="text-center letrapequeña bg-white">CONDICION</th>
                                                     <th class="text-center letrapequeña bg-white">ESTADO</th>
                                                     <th class="text-center letrapequeña bg-white">SUNAT</th>
                                                     <th class="text-center letrapequeña bg-white">DESCARGAS</th>
@@ -80,6 +82,21 @@
                                                         <td class="letrapequeña text-center">
                                                             {{ item.fecha_documento }}
                                                         </td>
+                                                        <td class="letrapequeña text-center">
+                                                            {{ item.registrador_nombre }}
+                                                        </td>
+
+                                                        <td class="letrapequeña">
+                                                            <div class="text-truncate">
+                                                                {{ item.sede_nombre }}
+                                                            </div>
+                                                        </td>
+
+                                                        <td class="letrapequeña">
+                                                            <div class="text-truncate">
+                                                                {{ item.almacen_nombre }}
+                                                            </div>
+                                                        </td>
 
                                                         <td class="letrapequeña">
                                                             <div style="width:300px" class="text-truncate">
@@ -87,9 +104,9 @@
                                                             </div>
                                                         </td>
                                                         <td class="letrapequeña text-center">{{ item.total_pagar }}</td>
-                                                        <td class="letrapequeña text-center">
+                                                        <!-- <td class="letrapequeña text-center">
                                                             {{ item.dias > 4 ? 0 : 4 - item.dias }}
-                                                        </td>
+                                                        </td> -->
                                                         <td class="letrapequeña text-center">
                                                             {{ item.condicion }}
                                                         </td>

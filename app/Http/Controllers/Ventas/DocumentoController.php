@@ -104,6 +104,9 @@ class DocumentoController extends Controller
     {
         $documentos = DB::table('cotizacion_documento')
             ->select([
+                'u.usuario as registrador_nombre',
+                'es.nombre as sede_nombre',
+                'cotizacion_documento.almacen_nombre',
                 'cotizacion_documento.id',
                 'cotizacion_documento.tipo_venta_id as tipo_venta',
                 DB::raw('CONCAT(cotizacion_documento.serie, "-", cotizacion_documento.correlativo) as numero_doc'),
@@ -143,6 +146,8 @@ class DocumentoController extends Controller
             ->leftJoin('envios_ventas', 'cotizacion_documento.id', '=', 'envios_ventas.documento_id')
             ->leftJoin('condicions', 'cotizacion_documento.condicion_id', '=', 'condicions.id')
             ->leftJoin('clientes', 'cotizacion_documento.cliente_id', '=', 'clientes.id')
+            ->leftJoin('empresa_sedes as es','es.id','cotizacion_documento.sede_id')
+            ->leftJoin('users as u','u.id','cotizacion_documento.user_id')
             ->where('cotizacion_documento.estado', '<>', 'ANULADO');
     
         /*if (!PuntoVenta() && !FullAccess()) {
@@ -164,7 +169,7 @@ class DocumentoController extends Controller
     
         if ($request->has('numero_doc')) {
             $numero_doc = $request->get('numero_doc');
-            $documentos->where(DB::raw('CONCAT(serie, "-", correlativo)'), 'LIKE', "%{$numero_doc}%");
+            $documentos->where(DB::raw('CONCAT(cotizacion_documento.serie, "-", cotizacion_documento.correlativo)'), 'LIKE', "%{$numero_doc}%");
         }
 
         //========= FILTRO POR ROLES ======
