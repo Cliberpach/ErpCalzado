@@ -2,6 +2,7 @@
 
 namespace App\Greenter\Data;
 
+use App\Mantenimiento\Sedes\Sede;
 use Illuminate\Http\Request;
 use Greenter\Model\Company\Company;
 use Greenter\Model\Client\Client;
@@ -10,26 +11,26 @@ use Illuminate\Support\Facades\DB;
 
 class SharedStore
 {
-    public function getCompany(): Company
+    public function getCompany($sede_id): Company
     {
         //======= OBTENIENDO DATA DE EMPRESA =========
-        $empresa    =   DB::select('select * from empresas as e where e.id=1')[0];
+        $sede   =   Sede::find($sede_id);
         //====== NOTA COD LOCAL POR DEFECTO 0000 DE LA CENTRAL ======= //
 
         return (new Company())
-            ->setRuc($empresa->ruc)
-            ->setNombreComercial($empresa->razon_social_abreviada)
-            ->setRazonSocial($empresa->razon_social)
+            ->setRuc($sede->ruc)
+            ->setNombreComercial($sede->razon_social)
+            ->setRazonSocial($sede->razon_social)
             ->setAddress((new Address())
-                ->setUbigueo($empresa->ubigeo)
-                ->setDistrito($empresa->distrito)
-                ->setProvincia($empresa->provincia)
-                ->setDepartamento($empresa->departamento)
-                ->setUrbanizacion($empresa->urbanizacion)
-                ->setCodLocal($empresa->cod_local)
-                ->setDireccion($empresa->direccion_fiscal))
-            ->setEmail($empresa->correo)
-            ->setTelephone($empresa->celular);
+                ->setUbigueo($sede->distrito_id)
+                ->setDistrito($sede->distrito_nombre)
+                ->setProvincia($sede->provincia_nombre)
+                ->setDepartamento($sede->departamento_nombre)
+                ->setUrbanizacion($sede->urbanizacion)
+                ->setCodLocal($sede->codigo_local)
+                ->setDireccion($sede->direccion))
+            ->setEmail($sede->correo)
+            ->setTelephone($sede->telefono);
     }
 
     public function getClientPerson(): Client
