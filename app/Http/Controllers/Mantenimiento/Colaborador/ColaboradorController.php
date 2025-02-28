@@ -151,6 +151,8 @@ array:10 [
         $this->authorize('haveaccess','colaborador.index');
         DB::beginTransaction();
         try {
+
+            
             $colaborador                    =   Colaborador::find($id);
             $colaborador->tipo_documento_id =   $request->get('tipo_documento');
             $colaborador->nombre            =   Str::upper($request->get('nombre'));
@@ -164,6 +166,14 @@ array:10 [
             $colaborador->pago_dia          =   $request->get('pago_mensual')/30;
             $colaborador->sede_id           =   $request->get('sede');
             $colaborador->update();
+
+            //======== ACTUALIZAR USUARIO EN CASO TENGA =======
+            DB::table('users')
+            ->where('colaborador_id', '=', $colaborador->id)
+            ->update([
+                'sede_id'       =>  $request->get('sede'),
+                'updated_at'    =>  now()
+            ]);  
 
             DB::commit();
             return response()->json(['success'=>true,'message'=>'COLABORADOR ACTUALIZADO']);
