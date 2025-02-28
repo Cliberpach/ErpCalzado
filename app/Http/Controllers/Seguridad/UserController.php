@@ -38,10 +38,15 @@ class UserController extends Controller
         $auxs   =   Persona::where('estado','ACTIVO')->get();
 
         $sede_id            =   Auth::user()->sede_id;
+
         $colaboradores      =   DB::table('colaboradores as c')
                                 ->join('empresa_sedes as es','es.id','c.sede_id')
                                 ->select('c.*','es.nombre as sede_nombre')
                                 ->where('c.estado','ACTIVO')
+                                ->whereNotIn('c.id', function($query) {
+                                    $query->select('colaborador_id')
+                                        ->from('users');
+                                })
                                 ->get();
 
         $role_user = [];
@@ -202,11 +207,17 @@ array:8 [▼
         $auxs = Persona::where('estado','ACTIVO')->get();
 
         $sede_id            =   Auth::user()->sede_id;
-        $colaboradores      =   DB::table('colaboradores as c')
-                                ->join('empresa_sedes as es','es.id','c.sede_id')
-                                ->select('c.*','es.nombre as sede_nombre')
-                                ->where('c.estado','ACTIVO')
-                                ->get();
+
+        $colaboradores  =   DB::table('colaboradores as c')
+                            ->join('empresa_sedes as es', 'es.id', '=', 'c.sede_id')
+                            ->select('c.*','es.nombre as sede_nombre')
+                            ->where('c.estado', 'ACTIVO')
+                            ->whereNotIn('c.id', function($query) use ($id) {
+                                $query->select('colaborador_id')
+                                    ->from('users')
+                                    ->where('id', '!=', $id); 
+                            })
+                            ->get();
 
         $role_user = [];
 
