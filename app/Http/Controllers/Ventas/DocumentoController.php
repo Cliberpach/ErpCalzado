@@ -1589,7 +1589,7 @@ array:27 [
                             $nuevo_producto->almacen_id     =   $documento->almacen_id;
                             $nuevo_producto->producto_id    =   $item->producto_id;
                             $nuevo_producto->color_id       =   $item->color_id;
-                            $nuevo_producto->talla_id       =   $item->talla_id;
+                            $nuevo_producto->talla_id       =   $talla->talla_id;
                             $nuevo_producto->stock          =   0;
                             $nuevo_producto->stock_logico   =   0;
                             $nuevo_producto->save();

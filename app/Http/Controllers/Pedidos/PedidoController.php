@@ -821,6 +821,60 @@ array:11 [
         return  response()->json(['type'=>'success','atencion_detalles'=>$atencion_detalles]);
     }
 
+    public function formatearArrayDetalleObjetos($detalles){
+        $detalleFormateado=[];
+        $productosProcesados = [];
+        foreach ($detalles as $detalle) {
+            $cod   =   $detalle->producto_id.'-'.$detalle->color_id;
+            if (!in_array($cod, $productosProcesados)) {
+                $producto=[];
+                //======== obteniendo todas las detalle talla de ese producto_color =================
+                $producto_color_tallas = $detalles->filter(function ($detalleFiltro) use ($detalle) {
+                    return $detalleFiltro->producto_id == $detalle->producto_id && $detalleFiltro->color_id == $detalle->color_id;
+                });
+                
+                $producto['producto_codigo']        =   $detalle->producto_codigo;
+                $producto['producto_id']            =   $detalle->producto_id;
+                $producto['color_id']               =   $detalle->color_id;
+                $producto['producto_nombre']        =   $detalle->producto_nombre;
+                $producto['color_nombre']           =   $detalle->color_nombre;
+                $producto['modelo_nombre']          =   $detalle->modelo_nombre;
+                $producto['precio_unitario']        =   $detalle->precio_unitario;
+                $producto['porcentaje_descuento']   =   $detalle->porcentaje_descuento;
+                $producto['precio_unitario_nuevo']  =   $detalle->precio_unitario_nuevo;
+                $producto['monto_descuento']        =   $detalle->monto_descuento;
+                $producto['precio_venta']           =   $detalle->precio_unitario;
+                $producto['precio_venta_nuevo']     =   $detalle->precio_unitario_nuevo;
+
+                $tallas             =   [];
+                $subtotal           =   0.0;
+                $subtotal_with_desc =   0.0;
+                $cantidadTotal=0;
+                foreach ($producto_color_tallas as $producto_color_talla) {
+                    $talla=[];
+                    $talla['talla_id']              =   $producto_color_talla->talla_id;
+
+                    
+                    $talla['cantidad']              =   $producto_color_talla->cantidad;
+                    $subtotal                       +=  $talla['cantidad']*$producto['precio_unitario_nuevo'];
+                    $cantidadTotal                  +=  $talla['cantidad'];
+                   
+
+                    $talla['talla_nombre']          =   $producto_color_talla->talla_nombre;
+                    
+                   array_push($tallas,(object)$talla);
+                }
+                
+                $producto['tallas']                 =   $tallas;
+                $producto['subtotal']               =   $subtotal;
+                $producto['cantidad_total']         =   $cantidadTotal;
+                array_push($detalleFormateado,(object)$producto);
+                $productosProcesados[] = $detalle->producto_id.'-'.$detalle->color_id;
+            }
+        }
+        return $detalleFormateado;
+    }
+
     public function formatearArrayDetalle($detalles){
         $detalleFormateado=[];
         $productosProcesados = [];
@@ -1519,8 +1573,8 @@ array:1 [
             
             //======= OBTENIENDO DETALLE DEL PEDIDO ===========
             $detalle_pedido     = PedidoDetalle::where('pedido_id',$pedido_id)->get();
-            $detalle_formateado = $this->formatearArrayDetalle($detalle_pedido);
-            $productos          = json_encode($detalle_formateado);
+            $detalle_formateado = $this->formatearArrayDetalleObjetos($detalle_pedido);
+            $productos          = json_encode($detalle_formateado);          
            
             //======= AGREGANDO DATOS AL REQUEST =====
             $additionalData = [
@@ -1591,19 +1645,19 @@ array:1 [
                 DB::commit();
 
                 return response()->json(
-                [   'success'=>true,
-                    'message'=>'SE HA GENERADO EL DOCUMENTO DE VENTA '.$doc_venta->serie.'-'.$doc_venta->correlativo,
-                    'documento_id'  => $jsonResponse->documento_id]);
+                [   'success'       =>  true,
+                    'message'       =>  'SE HA GENERADO EL DOCUMENTO DE VENTA '.$doc_venta->serie.'-'.$doc_venta->correlativo,
+                    'documento_id'  =>  $jsonResponse->documento_id]);
             }else{
                 
                 DB::rollBack();
-                return response()->json(['success'=>false,'message'=>$jsonResponse->mensaje]);
+                return response()->json(['success'=>false,'message'=>$jsonResponse->message,'line'=>$jsonResponse->line]);
 
             }
 
         } catch (\Throwable $th) {
             DB::rollback();
-            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+            return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
         }
     }
 
