@@ -44,8 +44,9 @@ class UserController extends Controller
                                 ->select('c.*','es.nombre as sede_nombre')
                                 ->where('c.estado','ACTIVO')
                                 ->whereNotIn('c.id', function($query) {
-                                    $query->select('colaborador_id')
-                                        ->from('users');
+                                    $query->select('u.colaborador_id')
+                                        ->from('users as u')
+                                        ->where('u.estado','ACTIVO');
                                 })
                                 ->get();
 
@@ -213,9 +214,10 @@ array:8 [▼
                             ->select('c.*','es.nombre as sede_nombre')
                             ->where('c.estado', 'ACTIVO')
                             ->whereNotIn('c.id', function($query) use ($id) {
-                                $query->select('colaborador_id')
-                                    ->from('users')
-                                    ->where('id', '!=', $id); 
+                                $query->select('u.colaborador_id')
+                                    ->from('users as u')
+                                    ->where('u.id', '!=', $id)
+                                    ->where('u.estado','ACTIVO');
                             })
                             ->get();
 
