@@ -136,7 +136,7 @@
         })
 
         function events(){
-
+            eventsModalBultos();
         }
 
         function iniciarSelect2(){
