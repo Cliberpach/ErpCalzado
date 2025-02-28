@@ -160,7 +160,7 @@
                 (<label class="required"></label>) son obligatorios.</small>
         </div>
         <div class="col-md-6 text-right">
-            <a href="{{route('almacenes.nota_salidad.index')}}" id="btn_cancelar"
+            <a href="{{route('almacenes.traslados.index')}}" id="btn_cancelar"
                 class="btn btn-w-m btn-default">
                 <i class="fa fa-arrow-left"></i> Regresar
             </a>
