@@ -66,13 +66,14 @@
     function iniciarDataTableCotizaciones(){
         const urlGetCotizaciones = '{{ route('ventas.cotizacion.getCotizaciones') }}';
 
-        dtColaboradores  =   new DataTable('#tbl_list_cotizaciones',{
+        dtCotizaciones  =   new DataTable('#tbl_list_cotizaciones',{
             serverSide: true,
             processing: true,
             ajax: {
                 url: urlGetCotizaciones,
                 type: 'GET',
             },
+            order: [[0, 'desc']], 
             columns: [
                 { data: 'id', name: 'id' ,visible:false},
                 { data: 'simbolo', name: 'simbolo' },
