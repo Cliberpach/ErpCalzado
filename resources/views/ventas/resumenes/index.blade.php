@@ -286,10 +286,7 @@
 
             console.log(response);
 
-            if(response.data.res.type == 'error'){
-                toastr.error(`${response.data.res.message} | ${response.data.res.exception}`,'ERROR EN LA CONSULTA');
-                 return;
-            }
+           
             if(res.data.success){
                 tableResumenes.ajax.reload(null, false);
                 toastr.success(res.data.message,'CONSULTA COMPLETADA',{timeOut:0});
