@@ -396,6 +396,8 @@
                     $("#modal_cerrar_caja").modal("show");
                 }).catch((value) => {})
                 .finally((r)=>{ ocultarAnimacion();});
+            }else{
+                ocultarAnimacion();
             }
         }
     }
