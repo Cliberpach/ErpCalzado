@@ -120,7 +120,7 @@ array:3 [
 
             //====== RECEPCIONANDO COMPROBANTES Y FECHA ======
             $comprobantes       =   json_decode($request->get('comprobantes'));
-            $fecha_comprobantes =   json_decode($request->get('fecha_comprobantes'));
+            $fecha_comprobantes =   $request->get('fecha_comprobantes');
 
             //===== BUSCANDO CORRELATIVO DEL COMPROBANTE =====
             $datos_correlativo    =   $this->getCorrelativo($request->get('sede_id'));
