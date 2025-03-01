@@ -327,7 +327,7 @@ array:11 [
 
                 //====== CREANDO NOTA DE INGRESO EN ALMACÉN DESTINO ========
                 $detalle                     =   new   DetalleNotaIngreso();
-                $detalle->nota_ingreso_id    =   $notaingreso->id;
+                $detalle->nota_ingreso_id    =   $nota_ingreso->id;
                 $detalle->almacen_id         =   $almacen_destino->id;
                 $detalle->producto_id        =   $item->producto_id;
                 $detalle->color_id           =   $item->color_id;
@@ -431,8 +431,8 @@ array:11 [
                 $kardex->importe            =   null;
                 $kardex->accion             =   'INGRESO';
                 $kardex->stock              =   $producto[0]->stock;
-                $kardex->numero_doc         =   'NI-'.$notaingreso->id;
-                $kardex->documento_id       =   $notaingreso->id;
+                $kardex->numero_doc         =   'NI-'.$nota_ingreso->id;
+                $kardex->documento_id       =   $nota_ingreso->id;
                 $kardex->registrador_id     =   $registrador->id;
                 $kardex->registrador_nombre =   $registrador->usuario;
                 $kardex->fecha              =   Carbon::today()->toDateString();

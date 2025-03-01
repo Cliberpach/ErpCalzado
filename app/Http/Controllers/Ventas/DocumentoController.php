@@ -4504,45 +4504,75 @@ array:2 [
                 throw new Exception('NO SE ENCONTRÓ EL DOCUMENTO DE VENTA EN LA BASE DE DATOS');
             }
 
-            $detalles   =   $documento->detalles;
+            $detalles                               =   $documento->detalles;
             
             //======= GRABANDO CAMBIOS ======
-            $cambios    =   json_decode($request->get('cambios'));
+            $cambios                                =   json_decode($request->get('cambios'));
 
-            //======= CREANDO NOTA DE INGRESO PARA PRODUCTOS CAMBIADOS =======
-            $notaingreso    = new NotaIngreso();
-            $fecha_hoy      = Carbon::now()->toDateString();
-            $fecha          = Carbon::createFromFormat('Y-m-d', $fecha_hoy);
-            
-            $fecha          = str_replace("-", "", $fecha);
-            $fecha          = str_replace(" ", "", $fecha);
-            $fecha          = str_replace(":", "", $fecha);
-            
-            $notaingreso->numero    =   $fecha . (DB::table('nota_ingreso')->count() + 1);
-            $notaingreso->fecha     =   $fecha_hoy;
-            $notaingreso->destino   =   'ALMACÉN';
-            $notaingreso->origen    =   'IMPORT EXCEL';
-            $notaingreso->usuario       = Auth()->user()->usuario;
-            $notaingreso->observacion   =   'CAMBIO DE TALLAS EN EL DOCUMENTO '.$documento->serie.'-'.$documento->correlativo;
+            //======= CREANDO NOTA DE INGRESO PARA PRODUCTOS CAMBIADOS EN SEDE DEL ALMACEN =======
+            $almacen_destino                        =   Almacen::find($documento->almacen_id);
+
+            $notaingreso                            =   new NotaIngreso();
+            $notaingreso->almacen_destino_id        =   $documento->almacen_id;
+            $notaingreso->almacen_destino_nombre    =   $documento->almacen_nombre;
+            $notaingreso->sede_id                   =   $almacen_destino->sede_id;
+            $notaingreso->registrador_nombre        =   Auth::user()->usuario;
+            $notaingreso->registrador_id            =   Auth::user()->id;
+            $notaingreso->observacion               =   'CAMBIO DE TALLAS EN EL DOCUMENTO '.$documento->serie.'-'.$documento->correlativo;
             $notaingreso->save();
 
+
             //======== CREANDO NOTA DE SALIDA PARA PRODUCTOS REEMPLAZANTES =======
-            $notasalidad            =   new NotaSalidad();
-            $notasalidad->numero    =   $fecha.(DB::table('nota_salidad')->count()+1);
-            $notasalidad->fecha     =   $fecha_hoy;
-            $notasalidad->destino   =   "CENTRAL";
-            $notasalidad->origen    =   "CAMBIOS";
-            $notasalidad->observacion   =   "CAMBIO DE TALLAS EN EL DOCUMENTO " .$documento->serie.'-'.$documento->correlativo;
-            $notasalidad->usuario       =   Auth()->user()->usuario;
-            $notasalidad->save();
+            //====== VERIFICAR SI EXISTE EL ALMACÉN CAMBIOS ======
+            $almacen_cambios    =   Almacen::where('descripcion','CAMBIOS')
+                                    ->where('sede_id',$almacen_destino->sede_id)
+                                    ->get();
+            $almacen_salida =   null;
+            if(count($almacen_cambios) === 0){
+                $nuevo_almacen                  =   new Almacen();
+                $nuevo_almacen->descripcion     =   'CAMBIOS';
+                $nuevo_almacen->descripcion     =   'CAMBIOS';
+                $nuevo_almacen->tipo_almacen    =   'SECUNDARIO';
+                $nuevo_almacen->sede_id         =   $almacen_destino->sede_id;
+                $nuevo_almacen->save();
 
+                $almacen_salida =   $nuevo_almacen;
+            }else {
+                $almacen_salida =   $almacen_cambios[0];
+            }
 
+            $nota_salida                            =   new NotaSalidad();
+            $nota_salida->sede_id                   =   $notaingreso->sede_id;
+            $nota_salida->almacen_origen_id         =   $documento->almacen_id;
+            $nota_salida->almacen_destino_id        =   $almacen_salida->id;
+            $nota_salida->registrador_nombre        =   Auth::user()->usuario;
+            $nota_salida->registrador_id            =   Auth::user()->id;
+            $nota_salida->almacen_origen_nombre     =   $documento->almacen_nombre;
+            $nota_salida->almacen_destino_nombre    =   $almacen_salida->descripcion;
+            $nota_salida->observacion               =   "CAMBIO DE TALLAS EN EL DOCUMENTO " .$documento->serie.'-'.$documento->correlativo;   
+            $nota_salida->save();
+
+           
             foreach ($cambios as $cambio) {
+
                 $producto_cambiado      =   $cambio->producto_cambiado;
                 $producto_reemplazante  =   $cambio->producto_reemplazante;
                 $cantidad               =   $cambio->cantidad;
 
                 //======== GENERANDO DETALLE DE LA NOTA DE INGRESO ========
+                $detalle                     =   new   DetalleNotaIngreso();
+                $detalle->nota_ingreso_id    =   $notaingreso->id;
+                $detalle->almacen_id         =   $almacen_destino->id;
+                $detalle->producto_id        =   $item->producto_id;
+                $detalle->color_id           =   $item->color_id;
+                $detalle->talla_id           =   $item->talla_id;
+                $detalle->cantidad           =   $item->cantidad;
+                $detalle->almacen_nombre     =   $almacen_destino->descripcion;
+                $detalle->producto_nombre    =   $producto_existe[0]->producto_nombre;
+                $detalle->color_nombre       =   $color_existe[0]->color_nombre;  
+                $detalle->talla_nombre       =   $talla_existe[0]->talla_nombre;  
+                $detalle->save();
+
                 $detalleNotaIngreso                     =   new   DetalleNotaIngreso();
                 $detalleNotaIngreso->nota_ingreso_id    =   $notaingreso->id;
                 $detalleNotaIngreso->producto_id        =   $producto_cambiado->producto_id;
