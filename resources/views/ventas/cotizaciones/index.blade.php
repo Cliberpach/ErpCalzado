@@ -85,34 +85,67 @@
                 { data: 'total_pagar', name: 'total_pagar' },
                 { data: 'estado', name: 'estado' },
                 {
-                    data: null, 
-                    render: function(data, type, row) {
-                        const baseUrlEdit   =   `{{ route('mantenimiento.colaborador.edit', ['id' => ':id']) }}`;
-                        urlEdit             =   baseUrlEdit.replace(':id', data.id); 
+                    data: null,
+                    className: "text-center",
+                    render: function(data) {
+                        //Ruta Detalle
+                        var url_detalle = '{{ route('ventas.cotizacion.show', ':id') }}';
+                        url_detalle = url_detalle.replace(':id', data.id);
 
-                        const urlDelete = `{{ route('mantenimiento.colaborador.destroy', ':id') }}`.replace(':id', data.id);
+                        //Ruta Modificar
+                        var url_editar = '{{ route('ventas.cotizacion.edit', ':id') }}';
+                        url_editar = url_editar.replace(':id', data.id);
 
-                        return `
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="fas fa-th"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-right" style="max-height: 150px; overflow-y: auto;">
-                                            <a class="dropdown-item" href="${urlEdit}">
-                                                <i class="fas fa-user-edit"></i> Editar
-                                            </a>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="javascript:void(0);" onclick="eliminarColaborador(${data.id})">
-                                                <i class="fas fa-trash-alt"></i> Eliminar
-                                            </a>
-                                        </div>
-                                    </div>
+                        var url_imprimir = '{{route("ventas.cotizacion.reporte", ":id")}}';
+                        url_imprimir = url_imprimir.replace(':id', data.id);
+
+                        let options =   "";
+                        options +=`
+                            <div class='btn-group' style='text-transform:capitalize;'>
+                                <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
+                                <i class='fa fa-bars'></i>
+                                </button>
+                                <ul class='dropdown-menu'>
+                                <li>
+                                    <a class='dropdown-item' target='_blank' href='${url_imprimir}' title='Detalle'>
+                                    <b><i class='fa fa-file-pdf-o'></i> Pdf</b>
+                                    </a>
+                                </li>
                                 `;
 
-                    },
-                    name: 'actions', 
-                    orderable: false, 
-                    searchable: false 
+                        if(data.pedido_id === '-' && data.documento === '-'){
+                            options +=  `<li>
+                                            <a class='dropdown-item' onclick='documento(${data.id})' title='Documento'>
+                                            <b><i class='fa fa-file'></i> Documento</b>
+                                            </a>
+                                        </li>
+                                <div class="dropdown-divider"></div>
+                                <li>
+                                    <a class='dropdown-item' onclick='pedido(${data.id})' title='Pedido'>
+                                    <b><i class="fas fa-concierge-bell"></i> Pedido</b>
+                                    </a>
+                                </li>
+                                <div class="dropdown-divider"></div>`;        
+                        }
+
+                       if(data.pedido_id === '-' && data.documento === '-'){
+                        options +=  `<li>
+                                        <a class='dropdown-item' href='${url_editar}' title='Modificar'>
+                                        <b><i class='fa fa-edit'></i> Modificar</b>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class='dropdown-item' onclick='eliminar(${data.id})' title='Eliminar'>
+                                        <b><i class='fa fa-trash'></i> Eliminar</b>
+                                        </a>
+                                    </li>
+                                    </ul>
+                                    </div>`;
+                       }
+                                
+                        return options;
+
+                    }
                 }
             ],
             language: {
