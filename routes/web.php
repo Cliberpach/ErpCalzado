@@ -554,8 +554,8 @@ function(){
         
         Route::post('regularizar-venta','Ventas\DocumentoController@regularizarVenta')->name('ventas.regularizarVenta');
         Route::get('cambiarTallas/create/{id}','Ventas\DocumentoController@cambiarTallasCreate')->name('venta.cambiarTallas.create');
-        Route::get('getTallas/{producto_id}/{color_id}','Ventas\DocumentoController@getTallas')->name('venta.cambiarTallas.getTallas');
-        Route::get('getStock/{producto_id}/{color_id}/{talla_id}','Ventas\DocumentoController@getStock')->name('venta.cambiarTallas.getStock');
+        Route::get('getTallas/{almacen_id}/{producto_id}/{color_id}','Ventas\DocumentoController@getTallas')->name('venta.cambiarTallas.getTallas');
+        Route::get('getStock/{almacen_id}/{producto_id}/{color_id}/{talla_id}','Ventas\DocumentoController@getStock')->name('venta.cambiarTallas.getStock');
         Route::post('validarStock','Ventas\DocumentoController@validarStock')->name('venta.cambiarTallas.validarStock');
         Route::get('validarCantCambiar/{documento_id}/{detalle_id}/{cantidad}','Ventas\DocumentoController@validarCantCambiar')->name('venta.cambiarTallas.validarCantCambiar');
 
@@ -580,9 +580,10 @@ function(){
 
         Route::get('index', 'Ventas\ResumenController@index')->name('ventas.resumenes.index');
         Route::get('getComprobantes/{fecha}','Ventas\ResumenController@getComprobantes')->name('ventas.resumenes.getComprobantes');
-        Route::get('getStatus','Ventas\ResumenController@isActive')->name('ventas.resumenes.getStatus');
+        Route::get('getStatus/{sede_id}','Ventas\ResumenController@isActive')->name('ventas.resumenes.getStatus');
         Route::get('getXml/{resumen_id}','Ventas\ResumenController@getXml')->name('ventas.resumenes.getXml');
         Route::get('getCdr/{resumen_id}','Ventas\ResumenController@getCdr')->name('ventas.resumenes.getCdr');
+        Route::post('enviarSunat','Ventas\ResumenController@sendSunat')->name('ventas.resumenes.enviarSunat');
 
         Route::post('/store', 'Ventas\ResumenController@store')->name('ventas.resumenes.store');
         Route::post('/consultar', 'Ventas\ResumenController@consultarTicket')->name('ventas.resumenes.consultar');

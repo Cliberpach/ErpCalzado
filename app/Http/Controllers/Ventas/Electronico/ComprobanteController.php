@@ -232,16 +232,10 @@ class ComprobanteController extends Controller
     {
         
         try {
-            //====== VERIFICAR SI EL COMPROBANTE ESTÁ ACTIVO EN LA EMPRESA =========
-            $documento  =   Documento::findOrFail($id);
-            $existe     =   DB::select('select 
-                            enf.* 
-                            from empresa_numeracion_facturaciones as enf
-                            where 
-                            enf.tipo_comprobante = ?
-                            AND enf.estado="ACTIVO"',[$documento->tipo_venta_id]);
 
-            if(count($existe) === 1){
+            //====== OBTENER EL DOCUMENTO DE VENTA =========
+            $documento  =   Documento::findOrFail($id);
+        
 
                 $tipo_documento_cliente =   null;
                 $tipo_doc_facturacion   =   null;
@@ -440,18 +434,6 @@ class ComprobanteController extends Controller
 
                 }
 
-
-            }else{
-                if ($documento->tipo_venta_id == 127) {
-                    throw new Exception("NO SE ENCUENTRA ACTIVA LA EMISIÓN DE FACTURAS EN LA EMPRESA");
-                }
-                if ($documento->tipo_venta_id == 128) {
-                    throw new Exception("NO SE ENCUENTRA ACTIVA LA EMISIÓN DE BOLETAS EN LA EMPRESA");
-                }
-            }
-
-
-            
         } catch (\Throwable $th) {
             
             return response()->json(['success'=>false,
@@ -468,13 +450,22 @@ class ComprobanteController extends Controller
   
     public function controlConfiguracionGreenter($util){
         //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
-        $greenter_config    =   DB::select('select gc.ruta_certificado,gc.id_api_guia_remision,gc.modo,
-          gc.clave_api_guia_remision,e.ruc,e.razon_social,e.direccion_fiscal,e.ubigeo,
-          e.direccion_llegada,gc.sol_user,gc.sol_pass
-          from greenter_config as gc
-          inner join empresas as e on e.id=gc.empresa_id
-          inner join configuracion as c on c.propiedad = gc.modo
-          where gc.empresa_id=1 and c.slug="AG"');
+        $greenter_config    =   DB::select('select 
+                                gc.ruta_certificado,
+                                gc.id_api_guia_remision,
+                                gc.modo,
+                                gc.clave_api_guia_remision,
+                                e.ruc,
+                                e.razon_social,
+                                e.direccion_fiscal,
+                                e.ubigeo,
+                                e.direccion_llegada,
+                                gc.sol_user,
+                                gc.sol_pass
+                                from greenter_config as gc
+                                inner join empresas as e on e.id=gc.empresa_id
+                                inner join configuracion as c on c.propiedad = gc.modo
+                                where gc.empresa_id=1 and c.slug="AG"');
 
 
         if(count($greenter_config) === 0){

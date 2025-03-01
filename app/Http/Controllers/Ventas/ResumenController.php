@@ -19,59 +19,103 @@ use DateTime;
 use Illuminate\Support\Facades\Response; 
 use Yajra\DataTables\Facades\DataTables;
 use Exception;
-
+use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 require __DIR__ . '/../../../../vendor/autoload.php';
 
 class ResumenController extends Controller
 {
     public function index(){
-        //$resumenes = Resumen::orderByDesc('id')->get();
 
-        return view('ventas.resumenes.index');
+        $sede_id    =   Auth::user()->sede_id;
+        return view('ventas.resumenes.index',compact('sede_id'));
     }
 
     public function getResumenes(Request $request){
-        $resumenes  =   DB::select('select * from resumenes as r');
+
+        $resumenes  =   DB::table('resumenes as r')
+                        ->select('r.*');
+
+           //========= FILTRO POR ROLES ======
+        $roles = DB::table('role_user as rl')
+         ->join('roles as r', 'r.id', '=', 'rl.role_id')
+         ->where('rl.user_id', Auth::user()->id)
+         ->pluck('r.name')
+         ->toArray(); 
+
+        //======== MOSTRAR SOLO RESÚMENES DE SU SEDE =====
+        $resumenes->where('r.sede_id', Auth::user()->sede_id);
+
 
         return DataTables::of($resumenes)->toJson();
     }
 
     public function getComprobantes($fechaComprobantes){
+
+        $sede_id    =   Auth::user()->sede_id;
+
+        $enf        =   DB::select('select 
+                        enf.* 
+                        from empresa_numeracion_facturaciones as enf
+                        inner join tabladetalles as td on td.id = enf.tipo_comprobante
+                        where 
+                        enf.sede_id = ?
+                        AND td.parametro = "B"
+                        AND td.tabla_id = 21
+                        AND enf.estado = "ACTIVO"',
+                        [$sede_id])[0];
+        
         //======= SELECCIONAMOS LOS COMPROBANTES DE LA FECHA RESPECTIVA ======
         //===== QUE NO SE ENCUENTREN REGISTRADOS EN NINGÚN DETALLE DE RESUMEN ========
-        $comprobantes   =   DB::select('select cd.id as documento_id, cd.serie as documento_serie,
-                            cd.correlativo as documento_correlativo, td.parametro as documento_moneda,
-                            cd.total_pagar as documento_total,cd.total_igv as documento_igv,
-                            cd.total as documento_subtotal,cd.documento_cliente as documento_doc_cliente
+        $comprobantes   =   DB::select('select 
+                            cd.id as documento_id, 
+                            cd.serie as documento_serie,
+                            cd.correlativo as documento_correlativo, 
+                            td.parametro as documento_moneda,
+                            cd.total_pagar as documento_total,
+                            cd.total_igv as documento_igv,
+                            cd.total as documento_subtotal,
+                            cd.documento_cliente as documento_doc_cliente
                             from cotizacion_documento as cd
-                            inner join tabladetalles as td on td.id=cd.moneda
-                            where cd.fecha_documento=? and cd.serie="B001" and sunat="0" 
-                            and td.tabla_id=1
+                            inner join tabladetalles as td on td.id = cd.moneda
+                            where 
+                            cd.fecha_documento = ? 
+                            and cd.serie = ? 
+                            and sunat = "0" 
+                            and td.tabla_id = 1
                             and cd.id NOT IN (
                                 SELECT
                                     rd.documento_id
                                 FROM
                                     resumenes_detalles AS rd
-                            )',[$fechaComprobantes]);   
+                            )',[$fechaComprobantes,$enf->serie]);   
 
-        return response()->json(['success'=>$comprobantes , 'fecha' => $fechaComprobantes]);
+        return response()->json(['success'=>$comprobantes ,
+        'fecha' => $fechaComprobantes]);
+
     }
 
+/*
+array:3 [
+  "comprobantes"        => "[{"documento_id":8143,"documento_serie":"B001","documento_correlativo":4988,"documento_moneda":"PEN","documento_total":"70.00","documento_igv":"10.68","documento_subtotal":"59.32","documento_doc_cliente":71535599},{"documento_id":8144,"documento_serie":"B001","documento_correlativo":4989,"documento_moneda":"PEN","documento_total":"55.00","documento_igv":"8.39","documento_subtotal":"46.61","documento_doc_cliente":3373564},{"documento_id":8145,"documento_serie":"B001","documento_correlativo":4990,"documento_moneda":"PEN","documento_total":"178.00","documento_igv":"27.15","documento_subtotal":"150.85","documento_doc_cliente":41508474},{"documento_id":8149,"documento_serie":"B001","documento_correlativo":4991,"documento_moneda":"PEN","documento_total":"71.00","documento_igv":"10.83","documento_subtotal":"60.17","documento_doc_cliente":72794677},{"documento_id":8157,"documento_serie":"B001","documento_correlativo":4993,"documento_moneda":"PEN","documento_total":"175.00","documento_igv":"26.69","documento_subtotal":"148.31","documento_doc_cliente":43819263}]"
+  "fecha_comprobantes"  => "2025-02-28"
+  "sede_id"             => 1
+]
+*/ 
     public function store(Request $request){
         try {
+
             //===== INICIAR TRANSACCIÓN =====
             DB::beginTransaction();
 
             //======= VERIFICANDO SI RESUMENES ESTAN ACTIVOS ======
 
-            $resumenIsActive =    $this->isActive()->getData(true)['resumenActive'];
+            $resumenIsActive =    ResumenController::isActive($request->get('sede_id'))->getData();
+           
 
-            if(!$resumenIsActive){
-                return response()
-                ->json([
-                    'res_store'=> ['type'=>'error','message'=>'RÉSUMENES NO SE ENCUENTRA ACTIVO EN LA EMPRESA','exception'=>"ERROR EN EL SERVIDOR"]
-                ]);
+            if(!$resumenIsActive->success){
+               return $resumenIsActive;
             }
 
             //====== RECEPCIONANDO COMPROBANTES Y FECHA ======
@@ -79,13 +123,22 @@ class ResumenController extends Controller
             $fecha_comprobantes =   json_decode($request->get('fecha_comprobantes'));
 
             //===== BUSCANDO CORRELATIVO DEL COMPROBANTE =====
-            $correlativo    =   $this->getCorrelativo();
+            $datos_correlativo    =   $this->getCorrelativo($request->get('sede_id'));
+
 
             //==== GUARDANDO RESUMEN EN LA BD ====
-            $resumen                    =   new Resumen();
-            $resumen->serie             =   'R001';
-            $resumen->correlativo       =   $correlativo;
-            $resumen->fecha_comprobantes  =   $fecha_comprobantes;
+            $resumen                        =   new Resumen();
+            $resumen->serie                 =   $datos_correlativo->serie;
+            $resumen->correlativo           =   $datos_correlativo->correlativo;
+            $resumen->fecha_comprobantes    =   $fecha_comprobantes;
+            $resumen->sede_id               =   $request->get('sede_id');
+            if(!$request->has("command")){
+                $resumen->registrador_id        =   Auth::user()->colaborador_id;
+                $resumen->registrador_nombre    =   Auth::user()->usuario;
+            }else{
+                $resumen->registrador_id        =   1;
+                $resumen->registrador_nombre    =   "ENVÍO AUTOMÁTICO";
+            }
             $resumen->save();
 
 
@@ -102,72 +155,156 @@ class ResumenController extends Controller
                 $detalle_resumen->documento_doc_cliente =   $comprobante->documento_doc_cliente;
                 $detalle_resumen->save();
             }
+
+            //========= ACTUALIZANDO A INICIADO =======
+            DB::table('empresa_numeracion_facturaciones')
+            ->where('serie', $resumenIsActive->serie) 
+            ->where('sede_id', Auth::user()->sede_id) 
+            ->where('emision_iniciada', '0') 
+            ->update([
+                'emision_iniciada'  =>  '1',  
+                'updated_at'        =>  now()
+            ]);
             
             DB::commit();
 
-            //===== ENVIANDO A SUNAT ======
-            $res    =   $this->sendSunat($comprobantes,$fecha_comprobantes,$resumen);
-
-            $nuevo_resumen      =   DB::select('select * from resumenes as r
-                                    where r.id=?',[$resumen->id])[0];
-            return response()
-            ->json(
-            [   'res_store'    => ['type'=> 'success','message'=>'RESUMEN REGISTRADO','nuevo_resumen'=>$nuevo_resumen],
-                'fecha'         =>  $fecha_comprobantes,
-                'res_send'      =>  $res
-            ]);
-
-        } catch (\Exception $e) {
+           
+        } catch (Throwable $th) {
             DB::rollback();
-            return response()
-            ->json([
-                'res_store'=> ['type'=>'error','message'=>'ERROR AL REGISTRAR EL RESUMEN','exception'=>$e->getMessage()]
-            ]);
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
+
+        //===== ENVIANDO A SUNAT ======
+        $request_send   =   new Request();
+        $request_send->merge([
+            'resumen_id' => $resumen->id
+        ]);
+
+        $res            =   $this->sendSunat($request_send);
+
+        $res_decode     =   $res->getData();
+
+        if(!$res_decode->success){
+            return response()->json([
+            'success'   =>  true,
+            'message'   =>'RESÚMEN DE BOLETAS REGISTRADO, PERO NO PUDO ENVIARSE A SUNAT',
+            'error'     =>  $res_decode->message,  
+            'id'        =>  $resumen->id]);
+        }
+
+        return $res;
+
     }
 
-    public function isActive(){
-        //===== 186 EN PRODUCCION - 190 EN LOCALHOST =====
-        $resumenActive = DB::table('empresa_numeracion_facturaciones')
-        ->join('tabladetalles', 'tabladetalles.id', '=', 'empresa_numeracion_facturaciones.tipo_comprobante')
-        ->where('tabladetalles.parametro', 'R')
-        ->where('tabladetalles.tabla_id', 21)
-        ->where('empresa_numeracion_facturaciones.estado','ACTIVO')
-        ->exists();
+    public static function isActive($sede_id){
+
+        try {
+
+        
+            //===== 186 EN PRODUCCION - 190 EN LOCALHOST =====
+            $resumenActive  =   DB::table('empresa_numeracion_facturaciones as enf')
+                                ->select('enf.serie')
+                                ->join('tabladetalles as td', 'td.id', '=', 'enf.tipo_comprobante')
+                                ->where('td.parametro', "R")
+                                ->where('td.tabla_id', 21)
+                                ->where('enf.sede_id',$sede_id)
+                                ->where('enf.estado','ACTIVO')
+                                ->get();
+    
+            if(count($resumenActive) === 0){
+                throw new Exception("RESÚMENES NO ESTÁ ACTIVO EN LA SEDE!!!");
+            }
+
+            return response()->json([
+            'success'   =>  true,
+            'message'   =>  "RESÚMENES ACTIVO EN LA SEDE COMO: ".$resumenActive[0]->serie,
+            'serie'     =>  $resumenActive[0]->serie]);
+
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
        
-        return response()->json(['resumenActive'=>$resumenActive]);
+       
     }
 
-    public function getCorrelativo(){
-        //===== OBTENIENDO EL ÚLTIMO RESUMEN DE LA TABLA RESÚMENES =======
-        $ultimoResumen    =  DB::table('resumenes')->latest()->first();
+    public function getCorrelativo($sede_id){
+
+
+        //===== OBTENIENDO EL ÚLTIMO RESUMEN DE LA SEDE EN LA TABLA RESÚMENES =======
+        $ultimoResumen  =   DB::table('resumenes')
+                            ->where('sede_id',$sede_id)
+                            ->latest()
+                            ->first();
 
         //======== EN CASO YA EXISTAN RESÚMENES GENERADOS =====
         if($ultimoResumen){
-            $correlativo    =   $ultimoResumen->correlativo+1;
-            return $correlativo;
+            $correlativo    =   $ultimoResumen->correlativo + 1;
+            return (object)['serie'=>$ultimoResumen->serie,'correlativo'=>$correlativo];
         }
 
         //===== BUSCAMOS EL REGISTRO DEL COMPROBANTE RESÚMENES =======
         //===== 186 EN PRODUCCION - 190 EN LOCALHOST =====
-        $correlativo   =   DB::select('select enf.numero_iniciar 
-                                    from empresa_numeracion_facturaciones as enf
-                                    inner join tabladetalles as td on td.id=enf.tipo_comprobante
-                                    where td.parametro="R" and td.tabla_id=21 and enf.estado="ACTIVO"')[0]->numero_iniciar;
+        $enf    =    DB::select('select 
+                            enf.numero_iniciar,
+                            enf.serie 
+                            from empresa_numeracion_facturaciones as enf
+                            inner join tabladetalles as td on td.id = enf.tipo_comprobante
+                            where 
+                            td.parametro = "R" 
+                            AND td.tabla_id = 21 
+                            AND enf.estado = "ACTIVO"
+                            AND enf.sede_id = ?',
+                            [$sede_id])[0];
 
-        return $correlativo;
+        return (object)['serie'=>$enf->serie,'correlativo'=>$enf->numero_iniciar];
     }
 
 
-    public function sendSunat($comprobantes,$fecha_comprobantes,$resumen){
-        $respuesta  =   ['type'=>'','message'=>'','exception'=>''];
+/*
+array:1 [
+  "resumen_id" => 6
+]
+*/
+
+//========= SUMMARY RESULT =====
+/*
+Greenter\Model\Response\SummaryResult {#3127 // app\Http\Controllers\Market\Ventas\ResumenController.php:306
+  #success: true
+  #error: null
+  #ticket: "1740176422672"
+}
+*/ 
+    public function sendSunat(Request $request){
 
         try {
           
-          
-            //$this->controlConfiguracionGreenter($greenter_config);
+            if(!$request->get('resumen_id')){
+                throw new Exception("NO EXISTE EL RESUMEN ID EN LA PETICIÓN ENVIAR A SUNAT!!!");
+            }
+    
+            //====== COMPROBANDO SI EXISTE EL RESUMEN ======
+            $resumen   =   Resumen::find($request->get('resumen_id'));   
+            if(!$resumen){
+                throw new Exception("EL RESUMEN NO EXISTE EN LA BD!!!");
+            }
+    
+            //======= COMPROBANDO QUE NO SE HAYA ENVIADO ANTES =======
+            if($resumen->send_sunat == '1'){
+                throw new Exception("ESTE RESUMEN YA FUE ENVIADO A SUNAT!!!");
+            }
 
+            //===== OBTENIENDO COMPROBANTES ======
+            $comprobantes   =   DB::select('select 
+                                rd.*
+                                from resumenes_detalles as rd
+                                where rd.resumen_id = ?',
+                                [$request->get('resumen_id')]);
 
+            if(count($comprobantes) === 0){
+                throw new Exception("EL DETALLE DEL RESUMEN ESTÁ VACÍO!!!");
+            }
+
+    
             $util = Util::getInstance();
 
             //====== CONSTRUYENDO DETALLES =====
@@ -196,11 +333,11 @@ class ResumenController extends Controller
             //====== CONSTRUYENDO RESUMEN ====
             $sum = new Summary();
             // FECHA GENERACIÓN MENOR QUE FECHA RESUMEN
-            $sum->setFecGeneracion(new DateTime($fecha_comprobantes))
-                ->setFecResumen(new DateTime($fecha_comprobantes))
-                ->setCorrelativo($resumen->correlativo)
-                ->setCompany($util->shared->getCompany())
-                ->setDetails($detalles_send);
+            $sum->setFecGeneracion(new DateTime($resumen->fecha_comprobantes))
+                    ->setFecResumen(new DateTime($resumen->fecha_comprobantes))
+                    ->setCorrelativo($resumen->correlativo)
+                    ->setCompany($util->shared->getCompany($resumen->sede_id))
+                    ->setDetails($detalles_send);
     
             //====== GUARDANDO NAME DEL SUMMARY =======
             $resumen->summary_name  =   $sum->getName();
@@ -230,18 +367,21 @@ class ResumenController extends Controller
                 $resumen->regularize    =   0;
     
                 //======= ACTUALIZANDO DOCUMENTOS DE VENTA COMO ENVIADOS A SUNAT =========
-                $detalles   =   DB::select('select * from resumenes_detalles as rd
-                                where rd.resumen_id=?',[$resumen->id]);
+                $detalles   =   DB::select('select 
+                                rd.* 
+                                from resumenes_detalles as rd
+                                where rd.resumen_id = ?',[$resumen->id]);
     
                 foreach ($detalles as $detalle) {
-                    DB::table('cotizacion_documento')->where('id',$detalle->documento_id)
-                    ->update(['sunat' => '1']);
+                    DB::table('cotizacion_documento')
+                    ->where('id',$detalle->documento_id)
+                    ->update([
+                        'resumen_id'    =>  $resumen->id,
+                        'sunat'         =>  '1'
+                    ]);
                 }
         
-                $respuesta['type']      =   'success';
-                $respuesta['message']   =   'ENVÍO CORRECTO A SUNAT';
-                $respuesta['exception'] =   ''; 
-                $respuesta['estado']    =   "ENVIADO";  
+            
                 
             }else{
                 $message_envio          =   "OCURRIO UN ERROR EN EL ENVÍO A SUNAT";
@@ -256,37 +396,45 @@ class ResumenController extends Controller
                     $exception              =   $error;
                 }
                    
-                $respuesta['type']      =   'error';
-                $respuesta['message']   =   'OCURRIO UN ERROR EN EL ENVÍO A SUNAT';  
-                $respuesta['exception'] =   $exception; 
-                $respuesta['estado']    =   "ERROR EN EL ENVÍO"; 
+                throw new Exception($exception);
+
 
             }
 
             $resumen->update();
-            
-            return $respuesta;
-        } catch (\Throwable $e) {
-            $resumen->response_error    =   $e->getMessage();
-            $resumen->update();
 
-            return ['type'  =>'error',
-            'message'       =>'ERROR AL ENVIAR A SUNAT',
-            'exception'     =>$e->getMessage(),
-            'estado'        =>"ERROR EN EL ENVÍO"];
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>'ENVIADO A SUNAT CON ÉXITO!!!',
+            'id'=>$request->get('resumen_id')]);
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'success'   =>  false,
+                'message'   =>  $th->getMessage(),
+                'id'        =>  $request->get('resumen_id'),
+                'line'      =>  $th->getLine(),
+                'th'        =>  $th->getFile()]);
         }   
     }
 
 
     public function controlConfiguracionGreenter($util){
         //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
-        $greenter_config    =   DB::select('select gc.ruta_certificado,gc.id_api_guia_remision,gc.modo,
-          gc.clave_api_guia_remision,e.ruc,e.razon_social,e.direccion_fiscal,e.ubigeo,
-          e.direccion_llegada,gc.sol_user,gc.sol_pass
-          from greenter_config as gc
-          inner join empresas as e on e.id=gc.empresa_id
-          inner join configuracion as c on c.propiedad = gc.modo
-          where gc.empresa_id=1 and c.slug="AG"');
+        $greenter_config    =   DB::select('select 
+                                gc.ruta_certificado,
+                                gc.id_api_guia_remision,
+                                gc.modo,
+                                gc.clave_api_guia_remision,
+                                e.ruc,e.razon_social,
+                                e.direccion_fiscal,
+                                e.ubigeo,
+                                e.direccion_llegada,
+                                gc.sol_user,gc.sol_pass
+                                from greenter_config as gc
+                                inner join empresas as e on e.id = gc.empresa_id
+                                inner join configuracion as c on c.propiedad = gc.modo
+                                where gc.empresa_id=1 and c.slug="AG"');
 
 
         if(count($greenter_config) === 0){
@@ -322,10 +470,18 @@ class ResumenController extends Controller
     }
 
 
+/*
+array:1 [
+  "resumen_id" => "340"
+]
+*/ 
     public function consultarTicket(Request $request){
         try {
+            DB::beginTransaction();
+
             $message        =   "";
-            $resumen_id     =   json_decode($request->get('resumen_id'));
+
+            $resumen_id     =   $request->get('resumen_id');
 
             $resumen        =   Resumen::findOrFail($resumen_id);
             $ticket         =   $resumen->ticket;
@@ -337,7 +493,7 @@ class ResumenController extends Controller
             //$see = $util->getSee(SunatEndpoints::FE_BETA);
             //$see = $util->getSee(SunatEndpoints::FE_PRODUCCION);
 
-            $see    =   $this->controlConfiguracionGreenter($util);
+            $see            =   $this->controlConfiguracionGreenter($util);
 
             $res_ticket     =   $see->getStatus($ticket);
 
@@ -425,16 +581,12 @@ class ResumenController extends Controller
                 $resumen->update();
             }
 
-            $respuesta  =   ['type'  =>'success',
-            'message'           =>$message,
-            'code_estado'       =>$code_estado,
-            'resumen'           =>$resumen];   
-            
-            return response()->json([ 'res'=>$respuesta  ]);
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>$message]);
 
-        } catch (\Throwable $e) {
-            $respuesta  = ['type'=>'error','message'=>'Error al consultar el ticket','exception'=>$e->getMessage()]; 
-            return response()->json([ 'res'=>$respuesta  ]);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
         }
     }
 
@@ -461,27 +613,7 @@ class ResumenController extends Controller
         return Response::download($resumen->ruta_cdr, $nombreArchivo, $headers);
     }
 
-    public function reenviarSunat(Request $request){
-        $resumen_id     =   json_decode($request->get('resumen_id'));
-
-        $resumen        =   Resumen::findOrFail($resumen_id);
-        $ticket         =   $resumen->ticket;
-        $summary_name   =   $resumen->summary_name;
-        $comprobantes   =   DB::select('select * from resumenes_detalles as rd 
-                            where rd.resumen_id=?',[$resumen->id]);
-
-        $resumen->update();
-        $res    =   $this->sendSunat($comprobantes,$resumen->fecha_comprobantes,$resumen);
-
-        return response()
-        ->json(
-        [   
-            'res_send'      =>  $res,
-            'resumen'       =>  $resumen
-        ]);
-    }
-
-
+   
     public function getDetallesResumen($resumen_id){
         try {
             $resumen_detalle    =   DB::select('select rd.resumen_id, rd.documento_serie,rd.documento_correlativo,

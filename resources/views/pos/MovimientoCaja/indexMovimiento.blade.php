@@ -290,7 +290,7 @@
         });
 
         $(document).on("click", "#reload", function() {
-            table.draw();
+            dtMovimientoCajas.draw();
         });
     }
 

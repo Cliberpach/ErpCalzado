@@ -161,7 +161,7 @@
             if(e.target.classList.contains('btn-reenviar-resumen')){
                 const resumen_id    =   e.target.getAttribute('data-resumen-id');
 
-                reenviarResumen(resumen_id);
+                enviarResumen(resumen_id);
             }
             if(e.target.classList.contains('btn-detalle-resumen')){
                 const resumen_id    =   e.target.getAttribute('data-resumen-id');
@@ -191,7 +191,18 @@
                     reverseButtons: true
                     }).then((result) => {
                         if (result.isConfirmed) {
+
+                            Swal.fire({
+                                title: 'REGISTRANDO RESUMEN Y ENVIANDO A SUNAT...',
+                                text: 'Por favor, espere mientras se procesa la solicitud.',
+                                allowOutsideClick: false,  
+                                didOpen: () => {
+                                    Swal.showLoading();  
+                                }
+                            });
+
                             saveSendResumen();
+
                         } else if (
                             /* Read more about handling dismissals below */
                             result.dismiss === Swal.DismissReason.cancel
@@ -232,83 +243,67 @@
     }
 
     //====== REENVIAR RESUMEN ========
-    async function reenviarResumen(resumen_id){
-        document.querySelector('.loader-container').style.display = 'flex'; 
+     //====== REENVIAR RESUMEN ========
+     async function enviarResumen(resumen_id){
+        
         try {
-            const url       =   `/ventas/resumenes/reenviar`;
-            const response  =   await axios.post(url,{
-                'resumen_id': JSON.stringify(resumen_id)
-            });
+            mostrarAnimacion();
 
-            console.log(response);
-            if(response.status == 200){
-                if(response.data.res_send.type == 'error'){
-                    toastr.error(response.data.res_send.exception,response.data.res_send.message,{timeOut:0});
-                    return;
-                }
-                if(response.data.res_send.type == 'success'){
-                    actualizarDataTable(resumen_id,response.data.resumen);
-                    toastr.success(response.data.res_send.message,'RESUMEN ENVIADO A SUNAT');
-                }  
+            const url       =   '{{route('ventas.resumenes.enviarSunat')}}';
+            const res  =    await axios.post(url,{
+                                'resumen_id': resumen_id
+                            });
+
+            console.log(res);
+            if(res.data.success){
+                tableResumenes.ajax.reload();
+                toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+            }else{
+                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
             }
-          
+           
         } catch (error) {
-            console.log(error);
-            console.error('Error al reenviar el resumen:', error);
-            toastr.error(error.response.data, 'ERROR EN EL SERVIDOR', {
+            
+            toastr.error(error.response.data, 'ERROR EN LA PETICIÓN ENVIAR RESUMEN A SUNAT', {
                 timeOut: 0 
             });
         }finally{
-            document.querySelector('.loader-container').style.display = 'none'; 
+            ocultarAnimacion();
         }
     }
 
+
     //======== CONSULTAR RESUMEN ======
     async function consultarResumen(resumen_id){
-        document.querySelector('.loader-container').style.display = 'flex'; 
+        
         try {
+            mostrarAnimacion();
+
             const url       =   `/ventas/resumenes/consultar`;
             const response  =   await axios.post(url,{
-                'resumen_id': JSON.stringify(resumen_id)
+                resumen_id
             });
 
             console.log(response);
-            if(response.status == 200){
-                if(response.data.res.type == 'error'){
-                    toastr.error(`${response.data.res.message} | ${response.data.res.exception}`,'ERROR EN LA CONSULTA');
-                    return;
-                }
-                if(response.data.res.type == 'success'){
-                    if(response.data.res.code_estado == "0125"){
-                        toastr.error('NO SE PUDO OBTENER LA CONSTANCIA','ERROR AL CONSULTAR EL RESUMEN');
-                        return;
-                    }
-                    if(response.data.res.code_estado == "0126"){
-                        toastr.error('EL TICKET NO LE PERTENECE AL USUARIO','ERROR AL CONSULTAR EL RESUMEN');
-                        return;
-                    }
-                    if(response.data.res.code_estado == "0127"){
-                        toastr.error('EL TICKET NO EXISTE','ERROR AL CONSULTAR EL RESUMEN');
-                        return;
-                    }
-                    if(response.data.res.code_estado == "0130"){
-                        toastr.error('El sistema no puede responder su solicitud. (No se pudo obtener el ticket de proceso)','ERROR AL CONSULTAR EL RESUMEN');
-                        return;
-                    }
 
-                    actualizarDataTable(resumen_id,response.data.res.resumen);
-                    
-                    toastr.success(response.data.res.message,'CONSULTA COMPLETADA');
-                }
-                
+            if(response.data.res.type == 'error'){
+                toastr.error(`${response.data.res.message} | ${response.data.res.exception}`,'ERROR EN LA CONSULTA');
+                 return;
             }
+            if(res.data.success){
+                tableResumenes.ajax.reload(null, false);
+                toastr.success(res.data.message,'CONSULTA COMPLETADA',{timeOut:0});
+            }else{
+                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+            }
+            
           
         } catch (error) {
             console.error('Error al consultar el estado del ticket:', error);
             toastr.error(error,'CONSULTA INCORRECTA');
 
         }finally{
-            document.querySelector('.loader-container').style.display = 'none'; 
+            ocultarAnimacion();
         }
     }
 
@@ -460,59 +455,36 @@
         });
     }
 
-    //========= GUARDAR RESUMEN Y ENVIAR A SUNAT A LA VEZ ==========
-    async function saveSendResumen(){
-        document.querySelector('.loader-container').style.display = 'flex'; 
-        try {
-            const url       =   `/ventas/resumenes/store`;
-            const response  =   await axios.post(url,{
-                'comprobantes': JSON.stringify(listComprobantes),
-                'fecha_comprobantes': JSON.stringify(fecha_comprobantes)
-            });
-           // console.log(response);
 
-            if(response.status  ==  200){
-                const nuevo_resumen =   response.data.res_store.nuevo_resumen;
-                const type_store    =   response.data.res_store.type;
+     //========= GUARDAR RESUMEN Y ENVIAR A SUNAT A LA VEZ ==========
+     async function saveSendResumen(){
+         
+         try {
+    
+            const url   =   '{{route('ventas.resumenes.store')}}';
+            const res   =   await axios.post(url,{
+                                'comprobantes': JSON.stringify(listComprobantes),
+                                'fecha_comprobantes': fecha_comprobantes,
+                                'sede_id':@json($sede_id)
+                             });
+ 
+             if(res.data.success){
+                 tableResumenes.ajax.reload(null, false);
+                 $('#modal_resumenes').modal('hide');
+                 toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+             }else{
+                 toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+             }
+ 
+         } catch (error) {
+             toastr.error(error.message, 'ERROR EN LA PETICIÓN GUARDAR Y ENVIAR RESÚMEN', { timeOut: 0 });
 
-                if(type_store   ==  'success'){
-                    addNewResumen(nuevo_resumen);
-                    toastr.info('RESUMEN REGISTRADO','OPERACIÓN EXITOSA', { timeOut: 0 });
-                }
-                if(type_store   ==  'error'){
-                    const message   =   response.data.res_store.message;
-                    const exception =   response.data.res_store.exception;
-
-                    toastr.error(`${message} | ${exception}`, 'ERROR AL REGISTRAR EL RESUMEN', { timeOut: 0 });
-                }
-
-                if('res_send' in response.data){
-                    const type_send     =   response.data.res_send.type;
-
-                    if(type_send   ==  'success'){
-                        const message   =   response.data.res_send.message;
-
-                        toastr.info(message,'ENVÍO EXITOSO', { timeOut: 0 });
-                    }
-                    if(type_send   ==  'error'){
-                        const message   =   response.data.res_send.message;
-                        const exception =   response.data.res_send.exception;
-
-                        toastr.error(`${message} | ${exception}`, 'ERROR AL ENVIAR EL RESUMEN', { timeOut: 0 });
-                    }
-                }
-                
-
-            }
-        } catch (error) {
-            console.error('Error al enviar y guardar resumen:', error);
-            toastr.error(error, 'ERROR', { timeOut: 0 });
-
-        }finally{
+         }finally{
+            Swal.close();
             $("#modal_resumenes").modal("hide");
-            document.querySelector('.loader-container').style.display = 'none'; 
-        }
-    }
+         }
+     }
+   
 
     //====== PINTAR NUEVO RESUMEN =====
     function addNewResumen(resumen){
@@ -549,27 +521,29 @@
 
     //====== VERIFICAR SI ESTAN ACTIVOS LOS RESÚMENES =======
     async function isActive(){
+
         try {
-            const url       =   `/ventas/resumenes/getStatus`;
+            mostrarAnimacion();
+            toastr.clear();
+
+            const url       =   route('ventas.resumenes.getStatus',@json($sede_id));
             const response  =   await axios.get(url);
             
-            if(response.status  === 200){
-                const resumenActive =   response.data.resumenActive;
-                //====== VERIFICANDO SI LOS RESUMENES ESTÁN ACTIVOS =====
-                if(!resumenActive){
-                    toastr.error('DEBE ACTIVAR LOS RESÚMENES','RESUMEN INACTIVO');
-                    return false;
-                }
-                if(resumenActive){
-                    toastr.success('RESÚMENES REGISTRADOS EN LA EMPRESA','RESUMEN ACTIVO');
-                    return true;
-                }
+            const resumenActive =   response.data.resumenActive;
+            //====== VERIFICANDO SI LOS RESUMENES ESTÁN ACTIVOS =====
+            if(response.data.success){
+                toastr.info(response.data.message,'OPERACIÓN COMPLETADA',{timeOut:0});
+                return true;
             }else{
-                toastr.error(response.statusText,'ERROR EN LA SOLICITUD');
+                toastr.error(response.data.message,'ERROR EN EL SERVIDOR');
+                return false;
             }
 
+
         } catch (error) {
-            console.error('Error al verificar estado: ', error);
+            toastr.error(error,'ERROR EN LA PETICIÓN VERIFICAR RESÚMENES EN LA SEDE');
+        }finally{
+            ocultarAnimacion();
         }
     }
 

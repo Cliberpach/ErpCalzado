@@ -199,6 +199,7 @@
     }
 
     async function setStock(selectTalla){
+        const almacen_id    =   selectTalla.getAttribute('data-almacen-id');
         const producto_id   =   selectTalla.getAttribute('data-producto-id');
         const color_id      =   selectTalla.getAttribute('data-color-id');
         const talla_id      =   selectTalla.value;
@@ -208,12 +209,12 @@
             toastr.error('NO HAY TALLAS DISPONIBLES, NO SE MOSTRARÁ LA TALLA ELEGIDA','ADVERTENCIA');
             return;
         }
-        const stock =   await getStock(producto_id,color_id,talla_id)
+        const stock =   await getStock(almacen_id,producto_id,color_id,talla_id)
     }
 
-    async function getStock(producto_id,color_id,talla_id){
+    async function getStock(almacen_id,producto_id,color_id,talla_id){
         try {
-            const res   =   await axios.get(route('venta.cambiarTallas.getStock',{producto_id,color_id,talla_id}));
+            const res   =   await axios.get(route('venta.cambiarTallas.getStock',{almacen_id,producto_id,color_id,talla_id}));
             if(res.data.success){
                 document.querySelector('#stock').value  =   res.data.stock[0].stock;
             }else{
@@ -305,8 +306,8 @@
     async function devolverStockLogico(cambios_devolver){
 
         try {
-            const listCambios =   JSON.stringify(cambios_devolver);
-            const res   =   await axios.post(route('venta.cambiarTallas.devolverStockLogico'),{
+            const listCambios   =   JSON.stringify(cambios_devolver);
+            const res           =   await axios.post(route('venta.cambiarTallas.devolverStockLogico'),{
                 cambios_devolver:   listCambios,
                 almacen_id      :   @json($documento->almacen_id)
             });

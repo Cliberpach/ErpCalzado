@@ -4272,17 +4272,30 @@ array:27 [
     }
 
 
-    public function getTallas($producto_id,$color_id){
+    public function getTallas($almacen_id,$producto_id,$color_id){
         try {
-            $tallas     =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,
-                            t.descripcion as talla_nombre,p.nombre as producto_nombre,c.descripcion as color_nombre,
-                            pct.stock,pct.stock_logico
+            $tallas     =   DB::select('select 
+                            pct.almacen_id,
+                            pct.producto_id,
+                            pct.color_id,
+                            pct.talla_id,
+                            t.descripcion as talla_nombre,
+                            p.nombre as producto_nombre,
+                            c.descripcion as color_nombre,
+                            pct.stock,
+                            pct.stock_logico
                             from producto_color_tallas as pct 
-                            inner join productos as p on p.id=pct.producto_id
-                            inner join colores as c on c.id=pct.color_id
-                            inner join tallas as t on t.id=pct.talla_id
-                            where pct.producto_id=? and pct.color_id=? and pct.estado="ACTIVO" and 
-                            pct.stock_logico>0 and pct.stock>0',[$producto_id,$color_id]);
+                            inner join productos as p on p.id = pct.producto_id
+                            inner join colores as c on c.id = pct.color_id
+                            inner join tallas as t on t.id = pct.talla_id
+                            where 
+                            pct.almacen_id = ?
+                            AND pct.producto_id = ? 
+                            AND pct.color_id = ? 
+                            AND pct.estado = "ACTIVO" 
+                            AND pct.stock_logico > 0 
+                            and pct.stock > 0',
+                            [$almacen_id,$producto_id,$color_id]);
             
             return response()->json(['success'=>true,'tallas'=>$tallas]);
         } catch (\Throwable $th) {
@@ -4291,12 +4304,19 @@ array:27 [
         }
     }
 
-    public function getStock($producto_id,$color_id,$talla_id){
+    public function getStock($almacen_id,$producto_id,$color_id,$talla_id){
         try {
-            $stock     =   DB::select('select pct.stock
-                            from producto_color_tallas as pct 
-                            where pct.producto_id=? and pct.color_id=? and pct.talla_id=?
-                            and pct.estado="ACTIVO"',[$producto_id,$color_id,$talla_id]);
+       
+            $stock  =   DB::select('select 
+                        pct.stock
+                        from producto_color_tallas as pct 
+                        where 
+                        pct.almacen_id = ?
+                        AND pct.producto_id = ? 
+                        AND pct.color_id = ? 
+                        AND pct.talla_id = ?
+                        AND pct.estado = "ACTIVO"',
+                        [$almacen_id,$producto_id,$color_id,$talla_id]);
         
             return response()->json(['success'=>true,'stock'=>$stock]);
         } catch (\Throwable $th) {
@@ -4308,9 +4328,14 @@ array:27 [
     public function validarCantCambiar($documento_id,$detalle_id,$cantidad){
         try {
             //====== OBTENER LA CANTIDAD DEL DETALLE ==========
-            $cantidad_item     =   DB::select('select cdd.cantidad from cotizacion_documento_detalles as cdd
-                                where cdd.documento_id=? and cdd.id=? and cdd.estado="ACTIVO"',
-                                [$documento_id,$detalle_id,$cantidad]);
+            $cantidad_item     =   DB::select('select 
+                                    cdd.cantidad 
+                                    from cotizacion_documento_detalles as cdd
+                                    where 
+                                    cdd.documento_id = ? 
+                                    and cdd.id = ? 
+                                    and cdd.estado = "ACTIVO"',
+                                    [$documento_id,$detalle_id]);
 
 
             if(count($cantidad_item) === 0){
@@ -4339,7 +4364,7 @@ array:27 [
             $nuevo_cambio       =   json_decode($request->get('nuevo_cambio'));
             
             //======= OBTENIENDO CONTENIDO =====
-            $producto_cambiado  =   $nuevo_cambio->producto_cambiado;
+            $producto_cambiado      =   $nuevo_cambio->producto_cambiado;
             $producto_reemplazante  =   $nuevo_cambio->producto_reemplazante;
             $documento_id           =   $nuevo_cambio->documento_id;
             $cantidad_cambiar       =   $nuevo_cambio->cantidad;
@@ -4349,15 +4374,27 @@ array:27 [
                 $producto_cambiado->talla_nombre.' NO TIENE UNA CANTIDAD ASIGNADA PARA CAMBIO');
             }
 
+            $documento  =   Documento::find($documento_id);
 
             //======= OBTENIENDO STOCKS DEL PRODUCTO REEMPLAZANTE ========
-            $stocks_producto_reemplazante    =   DB::select('select pct.stock,pct.stock_logico 
-                                                    from producto_color_tallas as pct
-                                                    inner join productos as p on p.id=pct.producto_id
-                                                    where p.estado="ACTIVO" and pct.estado="ACTIVO" and pct.producto_id=? 
-                                                    and pct.color_id=? and pct.talla_id=?',
-                                                    [$producto_reemplazante->producto_id,$producto_reemplazante->color_id,
-                                                    $producto_reemplazante->talla_id]);
+            $stocks_producto_reemplazante   =   DB::select('select 
+                                                pct.stock,
+                                                pct.stock_logico 
+                                                from producto_color_tallas as pct
+                                                inner join productos as p on p.id = pct.producto_id
+                                                where 
+                                                p.estado = "ACTIVO" 
+                                                AND pct.estado = "ACTIVO" 
+                                                AND pct.almacen_id = ?
+                                                AND pct.producto_id = ? 
+                                                AND pct.color_id = ? 
+                                                AND pct.talla_id = ?',
+                                                [
+                                                    $documento->almacen_id,
+                                                    $producto_reemplazante->producto_id,
+                                                    $producto_reemplazante->color_id,
+                                                    $producto_reemplazante->talla_id
+                                                ]);
 
             if(count($stocks_producto_reemplazante) === 0){
                 throw new Exception('EL PRODUCTO '.$producto_reemplazante->producto_nombre.'-'.$producto_reemplazante->color_nombre.'-'.
@@ -4368,10 +4405,20 @@ array:27 [
             if($stock_logico_producto_reemplazante >= $cantidad_cambiar){
 
                 //========== SEPARAMOS STOCK LÓGICO DEL PRODUCTO REEMPLAZANTE ======
-                DB::update('UPDATE producto_color_tallas SET stock_logico = stock_logico - ? 
-                WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
-                [$cantidad_cambiar, $producto_reemplazante->producto_id, $producto_reemplazante->color_id, 
-                $producto_reemplazante->talla_id]);
+                DB::update('UPDATE producto_color_tallas 
+                SET stock_logico = stock_logico - ? 
+                WHERE
+                almacen_id = ? 
+                AND producto_id = ? 
+                AND color_id = ? 
+                AND talla_id = ?', 
+                [
+                    $cantidad_cambiar, 
+                    $documento->almacen_id,
+                    $producto_reemplazante->producto_id, 
+                    $producto_reemplazante->color_id, 
+                    $producto_reemplazante->talla_id
+                ]);
 
                 return response()->json(['success'=>true,'message'  =>  'STOCK LÓGICO SEPARADO PRODUCTO: '.$producto_reemplazante->producto_nombre.
                 '-'.$producto_reemplazante->color_nombre.'-'.$producto_reemplazante->talla_nombre]);
@@ -4387,11 +4434,18 @@ array:27 [
         }
     }
 
+/*
+array:2 [
+  "cambios_devolver" => "[{"documento_id":8151,"producto_reemplazante":{"producto_id":"610","color_id":"5","talla_id":"2","producto_nombre":"SKYLA","color_nombre":"NEGRO CHAROL","talla_nombre":"36"},"producto_cambiado":{"detalle_id":"20823","producto_id":"610","color_id":"5","talla_id":"5","producto_nombre":"SKYLA","color_nombre":"NEGRO CHAROL","talla_nombre":"39","cantidad_detalle":"1.0000"},"cantidad":1}]"
+  "almacen_id" => 1
+]
+*/
     public function devolverStockLogico(Request $request){
         DB::beginTransaction();
-
+      
         try {
-            $cambios_devolver  =  json_decode($request->get('cambios_devolver'));
+            $cambios_devolver   =  json_decode($request->get('cambios_devolver'));
+            $almacen_id         =   $request->get('almacen_id');
         
             $productos_message  =   '';
     
@@ -4401,10 +4455,20 @@ array:27 [
                 $producto_reemplazante  =   $cambio->producto_reemplazante;
                 $cantidad               =   (int)$cambio->cantidad;
     
-                DB::update('UPDATE producto_color_tallas SET stock_logico = stock_logico + ? 
-                WHERE producto_id = ? AND color_id = ? AND talla_id = ?', 
-                [$cantidad, $producto_reemplazante->producto_id, $producto_reemplazante->color_id, 
-                $producto_reemplazante->talla_id]);
+                DB::update('UPDATE producto_color_tallas 
+                SET stock_logico = stock_logico + ? 
+                WHERE
+                almacen_id = ? 
+                AND producto_id = ? 
+                AND color_id = ? 
+                AND talla_id = ?', 
+                [
+                    $cantidad, 
+                    $almacen_id,
+                    $producto_reemplazante->producto_id, 
+                    $producto_reemplazante->color_id, 
+                    $producto_reemplazante->talla_id
+                ]);
     
                 $productos_message .= ' '.$producto_reemplazante->producto_nombre.'-'.
                                         $producto_reemplazante->color_nombre.'-'.$producto_reemplazante->talla_nombre;
@@ -4423,8 +4487,14 @@ array:27 [
 
     }
 
-
+/*
+array:2 [
+  "cambios"         => "[{"documento_id":8151,"producto_reemplazante":{"producto_id":"610","color_id":"5","talla_id":"1","producto_nombre":"SKYLA","color_nombre":"NEGRO CHAROL","talla_nombre":"35"},"producto_cambiado":{"detalle_id":"20823","producto_id":"610","color_id":"5","talla_id":"5","producto_nombre":"SKYLA","color_nombre":"NEGRO CHAROL","talla_nombre":"39","cantidad_detalle":"1.0000"},"cantidad":1}]"
+  "documento_id"    => 8151
+]
+*/ 
     public function cambiarTallasStore(Request $request){
+   
         DB::beginTransaction();
         try {
             $documento_id   =   $request->get('documento_id');
