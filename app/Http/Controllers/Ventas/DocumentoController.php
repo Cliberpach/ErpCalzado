@@ -104,6 +104,7 @@ class DocumentoController extends Controller
     {
         $documentos = DB::table('cotizacion_documento')
             ->select([
+                'co.id as cotizacion_id',
                 'u.usuario as registrador_nombre',
                 'es.nombre as sede_nombre',
                 'cotizacion_documento.almacen_nombre',
@@ -148,6 +149,7 @@ class DocumentoController extends Controller
             ->leftJoin('clientes', 'cotizacion_documento.cliente_id', '=', 'clientes.id')
             ->leftJoin('empresa_sedes as es','es.id','cotizacion_documento.sede_id')
             ->leftJoin('users as u','u.id','cotizacion_documento.user_id')
+            ->leftJoin('cotizaciones as co','co.id','cotizacion_documento.cotizacion_venta')
             ->where('cotizacion_documento.estado', '<>', 'ANULADO');
     
         /*if (!PuntoVenta() && !FullAccess()) {

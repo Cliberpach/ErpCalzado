@@ -61,11 +61,16 @@
                                             <tbody>
                                                 <template v-if="documentos.length > 0">
                                                     <tr v-for="(item, index) in documentos" :key="index" :style="PintarRowTable(item)">
-                                                        <td class="letrapequeña text-center">
+                                                        <!-- <td class="letrapequeña text-center">
                                                             <input v-if="item.cotizacion_venta" type="checkbox" disabled
                                                                 checked />
                                                             <input v-else type="checkbox" disabled />
+                                                        </td> -->
+                                                        
+                                                        <td class="letrapequeña text-center">
+                                                            <span v-if="item.cotizacion_id" v-html="`<strong>CO-${item.cotizacion_id}</strong>`"></span>
                                                         </td>
+
                                                         <td class="letrapequeña text-center">
                                                             {{ item.doc_convertido }}
                                                         </td>

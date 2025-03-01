@@ -486,7 +486,7 @@ function(){
     // Cotizaciones
     Route::prefix('ventas/cotizaciones')->group(function() {
         Route::get('/', 'Ventas\CotizacionController@index')->name('ventas.cotizacion.index');
-        Route::get('/getTable', 'Ventas\CotizacionController@getTable')->name('ventas.cotizacion.getTable');
+        Route::get('/getCotizaciones', 'Ventas\CotizacionController@getCotizaciones')->name('ventas.cotizacion.getCotizaciones');
         Route::get('/registrar', 'Ventas\CotizacionController@create')->name('ventas.cotizacion.create');
         Route::post('/registrar', 'Ventas\CotizacionController@store')->name('ventas.cotizacion.store');
         Route::get('/actualizar/{id}', 'Ventas\CotizacionController@edit')->name('ventas.cotizacion.edit');

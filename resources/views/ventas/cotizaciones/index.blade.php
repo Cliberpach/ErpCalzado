@@ -18,8 +18,8 @@
         </ol>
     </div>
     <div class="col-lg-2 col-md-2">
-        <button id="btn_añadir_cotizacion" class="btn btn-block btn-w-m btn-primary m-t-md">
-            <i class="fa fa-plus-square"></i> Añadir nuevo
+        <button onclick="crearCotizacion()" id="btn_añadir_cotizacion" class="btn btn-block btn-w-m btn-primary m-t-md">
+            <i class="fa fa-plus-square"></i> NUEVO
         </button>
     </div>
 </div>
@@ -29,8 +29,10 @@
         <div class="col-lg-12">
             <div class="ibox ">
                 <div class="ibox-content">
-                    <div class="table-responsive">
-                        @include('ventas.cotizaciones.tables.tbl_list_cotizacion')
+                    <div class="col-12">
+                        <div class="table-responsive">
+                            @include('ventas.cotizaciones.tables.tbl_list_cotizacion')
+                        </div>
                     </div>
                 </div>
             </div>
@@ -39,204 +41,105 @@
 </div>
 
 @stop
-@push('styles')
-    <!-- DataTable -->
-    <link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-@endpush
 
-@push('scripts')
-<!-- DataTable -->
-<script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
+
 
 @if(Session::has('error'))
     <script>    
         toastr.error('{{ Session::get('error') }}', 'Error');
     </script>
 @endif
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
-    $(document).ready(function() {
 
-        // DataTables
-        $('.dataTables-cotizacion').DataTable({
-            "dom": '<"html5buttons"B>lTfgitp',
-            "buttons": [{
-                    extend: 'excelHtml5',
-                    text: '<i class="fa fa-file-excel-o"></i> Excel',
-                    titleAttr: 'Excel',
-                    title: 'Tablas Generales'
-                },
-                {
-                    titleAttr: 'Imprimir',
-                    extend: 'print',
-                    text: '<i class="fa fa-print"></i> Imprimir',
-                    customize: function(win) {
-                        $(win.document.body).addClass('white-bg');
-                        $(win.document.body).css('font-size', '10px');
-                        $(win.document.body).find('table')
-                            .addClass('compact')
-                            .css('font-size', 'inherit');
-                    }
-                }
-            ],
-            "bPaginate": true,
-            "bLengthChange": true,
-            "bFilter": true,
-            "bInfo": true,
-            "bAutoWidth": false,
-            "processing": true,
-            "serverSide":true,
-            "ajax": "{{ route('ventas.cotizacion.getTable') }}",
-            "columns": [{
-                    data: 'id',
-                    className: "text-left"
-                },
-                {
-                    data: 'documento_cod',
-                    className: "text-center"
-                },
-                {
-                    data: 'pedido_id',
-                    className: "text-center"
-                },
-                {
-                    data: 'almacen_nombre',
-                    className: "text-left"
-                },
-                {
-                    data: 'cliente',
-                    className: "text-left"
-                },
-                {
-                    data: 'usuario',
-                    className: "text-left"
-                },
-                {
-                    data: 'created_at',
-                    className: "text-center"
-                },
-                {
-                    data: 'total_pagar',
-                    className: "text-center"
-                },
+    let dtCotizaciones =    null;
 
+    document.addEventListener('DOMContentLoaded',()=>{
+        iniciarDataTableCotizaciones();
+    })
+
+    function iniciarDataTableCotizaciones(){
+        const urlGetCotizaciones = '{{ route('ventas.cotizacion.getCotizaciones') }}';
+
+        dtColaboradores  =   new DataTable('#tbl_list_cotizaciones',{
+            serverSide: true,
+            processing: true,
+            ajax: {
+                url: urlGetCotizaciones,
+                type: 'GET',
+            },
+            columns: [
+                { data: 'id', name: 'id' ,visible:false},
+                { data: 'simbolo', name: 'simbolo' },
+                { data: 'documento', name: 'documento' },
+                { data: 'pedido_id', name: 'pedido_id' },
+                { data: 'almacen_nombre', name: 'almacen_nombre' },
+                { data: 'cliente', name: 'cliente' },
+                { data: 'registrador_nombre', name: 'registrador_nombre' },
+                { data: 'created_at', name: 'created_at' },
+                { data: 'total_pagar', name: 'total_pagar' },
+                { data: 'estado', name: 'estado' },
                 {
-                    data: null,
-                    className: "text-center",
-                    render: function(data) {
-                        switch (data.estado) {
-                            case "PENDIENTE":
-                                return "<span class='badge badge-warning' d-block>" + data
-                                    .estado +
-                                    "</span>";
-                                break;
-                            case "VENCIDA":
-                                return "<span class='badge badge-danger' d-block>" + data
-                                    .estado +
-                                    "</span>";
-                                break;
-                            case "ATENDIDA":
-                                return "<span class='badge badge-success' d-block>" + data
-                                    .estado +
-                                    "</span>";
-                                break;
-                            default:
-                                return "<span class='badge badge-success' d-block>" + data
-                                    .estado +
-                                    "</span>";
-                        }
-                    },
-                },
-                {
-                    data: null,
-                    className: "text-center",
-                    render: function(data) {
-                        //Ruta Detalle
-                        var url_detalle = '{{ route('ventas.cotizacion.show', ':id') }}';
-                        url_detalle = url_detalle.replace(':id', data.id);
+                    data: null, 
+                    render: function(data, type, row) {
+                        const baseUrlEdit   =   `{{ route('mantenimiento.colaborador.edit', ['id' => ':id']) }}`;
+                        urlEdit             =   baseUrlEdit.replace(':id', data.id); 
 
-                        //Ruta Modificar
-                        var url_editar = '{{ route('ventas.cotizacion.edit', ':id') }}';
-                        url_editar = url_editar.replace(':id', data.id);
+                        const urlDelete = `{{ route('mantenimiento.colaborador.destroy', ':id') }}`.replace(':id', data.id);
 
-                        var url_imprimir = '{{route("ventas.cotizacion.reporte", ":id")}}';
-                        url_imprimir = url_imprimir.replace(':id', data.id);
-
-                        let options =   "";
-                        options +=`
-                            <div class='btn-group' style='text-transform:capitalize;'>
-                                <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
-                                <i class='fa fa-bars'></i>
-                                </button>
-                                <ul class='dropdown-menu'>
-                                <li>
-                                    <a class='dropdown-item' target='_blank' href='${url_imprimir}' title='Detalle'>
-                                    <b><i class='fa fa-file-pdf-o'></i> Pdf</b>
-                                    </a>
-                                </li>
+                        return `
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fas fa-th"></i>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-right" style="max-height: 150px; overflow-y: auto;">
+                                            <a class="dropdown-item" href="${urlEdit}">
+                                                <i class="fas fa-user-edit"></i> Editar
+                                            </a>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="javascript:void(0);" onclick="eliminarColaborador(${data.id})">
+                                                <i class="fas fa-trash-alt"></i> Eliminar
+                                            </a>
+                                        </div>
+                                    </div>
                                 `;
 
-                        if(data.pedido_id === '-' && data.documento_cod === '-'){
-                            options +=  `<li>
-                                            <a class='dropdown-item' onclick='documento(${data.id})' title='Documento'>
-                                            <b><i class='fa fa-file'></i> Documento</b>
-                                            </a>
-                                        </li>
-                                <div class="dropdown-divider"></div>
-                                <li>
-                                    <a class='dropdown-item' onclick='pedido(${data.id})' title='Pedido'>
-                                    <b><i class="fas fa-concierge-bell"></i> Pedido</b>
-                                    </a>
-                                </li>
-                                <div class="dropdown-divider"></div>`;        
-                        }
-
-                       if(data.pedido_id === '-' && data.documento_cod === '-'){
-                        options +=  `<li>
-                                        <a class='dropdown-item' href='${url_editar}' title='Modificar'>
-                                        <b><i class='fa fa-edit'></i> Modificar</b>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class='dropdown-item' onclick='eliminar(${data.id})' title='Eliminar'>
-                                        <b><i class='fa fa-trash'></i> Eliminar</b>
-                                        </a>
-                                    </li>
-                                    </ul>
-                                    </div>`;
-                       }
-                                
-                        return options;
-
-                    }
+                    },
+                    name: 'actions', 
+                    orderable: false, 
+                    searchable: false 
                 }
-
             ],
-            "language": {
-                "url": "{{ asset('Spanish.json') }}"
-            },
-            "order": [],
+            language: {
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "Mostrando 0 a 0 de 0 registros",
+                "infoFiltered": "(filtrado de _MAX_ registros totales)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                },
+                "loadingRecords": "Cargando...",
+                "processing": "Procesando...",
+                "emptyTable": "No hay datos disponibles en la tabla",
+                "aria": {
+                    "sortAscending": ": activar para ordenar la columna de manera ascendente",
+                    "sortDescending": ": activar para ordenar la columna de manera descendente"
+                }
+            }
         });
+    }
 
-        // Eventos
-        $('#btn_añadir_cotizacion').on('click', añadirCotizacion);
-    });
-
-    //Controlar Error
-    $.fn.DataTable.ext.errMode = 'throw';
-
-    //Modal Eliminar
-    const swalWithBootstrapButtons = Swal.mixin({
-        customClass: {
-            confirmButton: 'btn btn-success',
-            cancelButton: 'btn btn-danger',
-        },
-        buttonsStyling: false
-    });
-
-    // Funciones de Eventos
-    function añadirCotizacion() {
+    function crearCotizacion() {
         window.location = "{{ route('ventas.cotizacion.create') }}";
     }
 
@@ -381,4 +284,4 @@
         })
     @endif
 </script>
-@endpush
+

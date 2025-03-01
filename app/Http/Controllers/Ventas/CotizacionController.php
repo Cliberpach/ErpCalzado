@@ -52,35 +52,33 @@ class CotizacionController extends Controller
         return view('ventas.cotizaciones.index');
     }
 
-    public function getTable()
+    public function getCotizaciones(Request $request)
     {
-    
-        $roles = DB::table('role_user as rl')
-            ->join('roles as r', 'r.id', '=', 'rl.role_id')
-            ->where('rl.user_id', Auth::user()->id)
-            ->pluck('r.name')
-            ->toArray(); 
-    
+       
         $query = DB::table('cotizaciones as co')
-            ->select([
-                'co.id',
-                'e.razon_social as empresa',
-                'co.almacen_nombre',
-                'cl.nombre as cliente',
-                'co.created_at',
-                'u.usuario',
-                'co.total_pagar',
-                'co.estado',
-                DB::raw('IF(cd.cotizacion_venta IS NULL, "0", "1") as documento'),
-                DB::raw('IF(p.id IS NULL, "-", CONCAT("PE-", p.id)) as pedido_id'),
-                DB::raw('IF(cd.cotizacion_venta IS NULL, "-", CONCAT(cd.serie, "-", cd.correlativo)) as documento_cod')
-            ])
-            ->leftJoin('cotizacion_documento as cd', 'cd.cotizacion_venta', '=', 'co.id')
-            ->leftJoin('pedidos as p', 'p.cotizacion_id', '=', 'co.id')
-            ->join('empresas as e', 'e.id', '=', 'co.empresa_id')
-            ->join('clientes as cl', 'cl.id', '=', 'co.cliente_id')
-            ->join('users as u', 'u.id', '=', 'co.registrador_id');
-    
+                ->select(
+                    DB::raw('CONCAT("CO-",co.id) as simbolo'),
+                    'co.id',
+                    'co.almacen_nombre',
+                    'cl.nombre as cliente',
+                    'co.created_at',
+                    'co.registrador_nombre',
+                    'co.total_pagar',
+                    'co.estado',
+                    'co.created_at',
+                    DB::raw('IF(cd.cotizacion_venta IS NULL, "-", CONCAT(cd.serie,"-",cd.correlativo)) as documento'),
+                    DB::raw('IF(p.id IS NULL, "-", CONCAT("PE-", p.id)) as pedido_id'),
+                )
+                ->join('clientes as cl', 'cl.id', '=', 'co.cliente_id')
+                ->leftJoin('cotizacion_documento as cd', 'cd.cotizacion_venta', '=', 'co.id')
+                ->leftJoin('pedidos as p', 'p.cotizacion_id', '=', 'co.id');
+
+        $roles = DB::table('role_user as rl')
+                ->join('roles as r', 'r.id', '=', 'rl.role_id')
+                ->where('rl.user_id', Auth::user()->id)
+                ->pluck('r.name')
+                ->toArray(); 
+
         //======== ADMIN PUEDE VER TODAS LAS COTIZACIONES DE SU SEDE =====
         if (in_array('ADMIN', $roles)) {
             $query->where('co.sede_id', Auth::user()->sede_id);
@@ -88,12 +86,12 @@ class CotizacionController extends Controller
             
             //====== USUARIOS PUEDEN VER SUS PROPIAS COTIZACIONES ======
             $query->where('co.sede_id', Auth::user()->sede_id)
-                  ->where('co.registrador_id', Auth::user()->id);
+            ->where('co.registrador_id', Auth::user()->id);
+            
         }
-    
-        $query->orderBy('co.id', 'desc');
-    
-        return DataTables::of($query)->toJson();
+        
+           
+        return DataTables::of($query->get())->make(true); 
     }
     
 
