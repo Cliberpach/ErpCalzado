@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
 use Barryvdh\DomPDF\Facade as PDF;
-
+use Throwable;
 
 class NotaSalidadController extends Controller
 {
@@ -935,21 +935,30 @@ array:11 [
     }
 
 
-    public function getStock($producto_id,$color_id,$talla_id){
+    public function getStock($almacen_id,$producto_id,$color_id,$talla_id){
 
         try {
 
-            $stock_logico = DB::select('
-                SELECT pct.stock 
-                FROM producto_color_tallas as pct
-                WHERE pct.producto_id = ? AND pct.color_id = ? AND pct.talla_id = ?',
-                [$producto_id, $color_id, $talla_id]
-            );
+            $stock_logico   = DB::select('
+                                SELECT 
+                                pct.stock_logico 
+                                FROM producto_color_tallas as pct
+                                WHERE 
+                                pct.almacen_id = ?
+                                AND pct.producto_id = ? 
+                                AND pct.color_id = ? 
+                                AND pct.talla_id = ?',
+                                [$almacen_id,$producto_id, $color_id, $talla_id]
+                            );
+
+            if(count($stock_logico) === 0){
+                throw new Exception("ESTA TALLA NO EXISTE AÚN PARA ESTE PRODUCTO!!!");    
+            }
 
 
-            return response()->json(["message" => "success", "data" => $stock_logico]);
-        } catch (\Exception $e) {
-            return response()->json(["message" => "Error al obtener el stock", "error" => $e->getMessage()], 500);
+            return response()->json([ "success"=>true,"message" => "STOCK OBTENIDO", "stock_logico" => $stock_logico[0]]);
+        } catch (Throwable $th) {
+            return response()->json([ "success"=>false,"message" => $th->getMessage()], 500);
         }                    
     }
 

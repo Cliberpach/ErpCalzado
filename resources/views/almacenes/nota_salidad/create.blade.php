@@ -281,11 +281,23 @@ $(".select2_form").select2({
    
     //======== VALIDAR CANTIDAD DE INPUTS AL ESCRIBIR =========   
     async function validarCantidadInstantanea(event) {
+
         btnAgregarDetalle.disabled  =   true;
         const cantidadSolicitada    =   event.target.value;
+
         try {
+
             if(cantidadSolicitada !== ''){
-                const stock_logico  =  await this.getStockLogico(event.target);
+
+                const almacen_id    =   document.querySelector('#almacen_origen').value;
+
+                if(!almacen_id){
+                    toastr.error('DEBES SELECCIONAR UN ALMACÉN DE ORIGEN!!!');
+                    return;
+                }
+
+                const stock_logico  =  await this.getStockLogico(event.target,almacen_id);
+
                 if(stock_logico < cantidadSolicitada){
                         event.target.classList.add('inputCantidadIncorrecto');
                         event.target.classList.remove('inputCantidadValido');
@@ -295,8 +307,8 @@ $(".select2_form").select2({
                         toastr.error(`Cantidad de salida: ${cantidadSolicitada}, debe ser menor o igual
                         al stock : ${stock_logico}`,"Error");
                 }else{
-                        event.target.classList.add('inputCantidadValido');
-                        event.target.classList.remove('inputCantidadIncorrecto');
+                    event.target.classList.add('inputCantidadValido');
+                    event.target.classList.remove('inputCantidadIncorrecto');
                 }                    
             }else{
                 event.target.classList.remove('inputCantidadIncorrecto');
@@ -328,23 +340,28 @@ $(".select2_form").select2({
     }
 
     //=========== OBTENER STOCK LOGICO DESDE LA BD =======
-    async function getStockLogico(inputCantidad){
+    async function getStockLogico(inputCantidad,almacen_id){
+
+
             const producto_id           =   inputCantidad.getAttribute('data-producto-id');
             const color_id              =   inputCantidad.getAttribute('data-color-id');
             const talla_id              =   inputCantidad.getAttribute('data-talla-id');
             
             try {  
-                const url = `/almacenes/nota_salidad/getStock/${producto_id}/${color_id}/${talla_id}`;
-                const response = await axios.get(url);
-                if(response.data.message=='success'){
-                    const stock  =   response.data.data[0].stock;
+                const url       = route('almacenes.nota_salidad.getStock',{almacen_id,producto_id,color_id,talla_id});
+                const response  = await axios.get(url);
+
+                if(response.data.success){
+                    const stock  =   response.data.stock_logico;
                     return stock;
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR AL OBTENER STOCK');
+                    return null;
                 }
                  
             } catch (error) {
-                toastr.error(`El producto no cuenta con registros en esa talla`,"Error");
+                toastr.error(error,"ERROR EN LA PETICIÓN OBTENER STOCK");
                 event.target.value='';
-                console.error('Error al obtener stock:', error);
                 return null;
             }
     }

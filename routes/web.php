@@ -328,7 +328,7 @@ function(){
         Route::post('productos', 'Almacenes\NotaSalidadController@getProductos')->name('almacenes.nota_salidad.productos');
         Route::get('getLot','Almacenes\NotaSalidadController@getLot')->name('almacenes.nota_salidad.getLot');
 
-        Route::get('getStock/{producto_id}/{color_id}/{talla_id}','Almacenes\NotaSalidadController@getStock')->name('almacenes.nota_salidad.getStock');
+        Route::get('getStock/{almacen_id}/{producto_id}/{color_id}/{talla_id}','Almacenes\NotaSalidadController@getStock')->name('almacenes.nota_salidad.getStock');
         Route::get('/getProductosAlmacen/{modelo_id}/{almacen_id}', 'Almacenes\NotaSalidadController@getProductosAlmacen')->name('almacenes.nota_salidad.getProductosAlmacen');
 
         Route::post('cantidad/', 'Almacenes\NotaSalidadController@quantity')->name('almacenes.nota_salidad.cantidad');
