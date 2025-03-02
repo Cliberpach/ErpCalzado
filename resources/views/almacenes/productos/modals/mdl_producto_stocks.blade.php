@@ -1,46 +1,45 @@
-<div class="modal fade" id="mdl_producto_stocks" tabindex="-1" aria-labelledby="mdl_producto_stocks" aria-hidden="true">
+<div class="modal fade" id="mdl_producto_stocks"  aria-labelledby="mdl_producto_stocks" aria-hidden="true">
     <div class="modal-dialog" style="max-width: 160vh;width:160vh;">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="mdl_producto_stocks"></h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          
-            <div class="row">
-                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 mb-3">
-                    <label for="almacen" style="font-weight: bold;">ALMACÉN</label>
-                    <select onchange="getColores();" name="almacen" id="almacen" class="select2_form">
-                        <option value=""></option>
-                        @foreach ($almacenes as $almacen)
-                            <option value="{{$almacen->id}}">{{$almacen->descripcion}}</option>    
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-12"></div>
-                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                    <h5 style="font-weight: bold;">COLORES</h5>
-                    <div class="table-responsive">
-                        @include('almacenes.productos.tables.tbl_producto_colores')
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 mb-3">
+                        <label for="almacen" style="font-weight: bold;">ALMACÉN</label>
+                        <select onchange="getColores();" name="almacen" id="almacen" class="select2_almacen">
+                            <option value=""></option>
+                            @foreach ($almacenes as $almacen)
+                                <option value="{{$almacen->id}}">{{$almacen->descripcion}}</option>
+                            @endforeach
+                        </select>
                     </div>
-                </div>
-                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                    <h5 style="font-weight: bold;">TALLAS</h5>
-                    <div class="table-responsive">
-                        @include('almacenes.productos.tables.tbl_producto_tallas')
+                    <div class="col-12"></div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                        <h5 style="font-weight: bold;">COLORES</h5>
+                        <div class="table-responsive">
+                            @include('almacenes.productos.tables.tbl_producto_colores')
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                        <h5 style="font-weight: bold;">TALLAS</h5>
+                        <div class="table-responsive">
+                            @include('almacenes.productos.tables.tbl_producto_tallas')
+                        </div>
                     </div>
                 </div>
             </div>
-
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Salir</button>
+            </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Salir</button>
-        </div>
-      </div>
     </div>
 </div>
+
 
 <script>
 

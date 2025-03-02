@@ -63,6 +63,9 @@
 @push('styles')
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+<style>
+    
+</style>
 @endpush
 
 @push('scripts')
@@ -78,9 +81,8 @@
     let dtProductoTallas        =   null;
 
     document.addEventListener('DOMContentLoaded',()=>{
-
-        cargarSelect2();
         iniciarDataTableProductos();
+        cargarSelect2();
         events();
 
         dtProductoColores   =   iniciarDataTable('tbl_producto_colores');
@@ -93,11 +95,11 @@
     }
 
     function cargarSelect2(){
-        $(".select2_form").select2({
+        $(".select2_almacen").select2({
             placeholder: "SELECCIONAR",
             allowClear: true,
             width: '100%',
-            dropdownParent: $("#mdl_producto_stocks")
+            appendTo: "#mdl_producto_stocks .modal-body"        
         });
     }
 
