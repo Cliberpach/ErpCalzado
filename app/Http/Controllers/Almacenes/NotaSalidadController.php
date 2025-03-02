@@ -956,7 +956,7 @@ array:11 [
             }
 
 
-            return response()->json([ "success"=>true,"message" => "STOCK OBTENIDO", "stock_logico" => $stock_logico[0]]);
+            return response()->json([ "success"=>true,"message" => "STOCK OBTENIDO", "stock_logico" => $stock_logico[0]->stock_logico]);
         } catch (Throwable $th) {
             return response()->json([ "success"=>false,"message" => $th->getMessage()], 500);
         }                    
