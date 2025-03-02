@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Reportes;
 
+use App\Almacenes\Almacen;
 use App\Almacenes\CodigoBarra;
 use App\Almacenes\DetalleNotaIngreso;
 use App\Almacenes\DetalleNotaSalidad;
@@ -22,12 +23,16 @@ use App\Ventas\NotaDetalle;
 use App\Mantenimiento\Empresa\Empresa;
 use Barryvdh\DomPDF\Facade as PDF;
 use App\Almacenes\ProductoColorTalla;
+use App\Mantenimiento\Sedes\Sede;
 
 class ProductoController extends Controller
 {
     public function informe()
-    {
-        return view('reportes.almacenes.producto.informe');
+    {   
+        $sedes          =   Sede::where('estado','ACTIVO')->get();
+        $almacenes      =   Almacen::where('estado','ACTIVO')->get();
+
+        return view('reportes.almacenes.producto.informe',compact('sedes','almacenes'));
     }
 
     public function getTable()
@@ -316,27 +321,43 @@ class ProductoController extends Controller
         return redirect()->route('reporte.producto.informe');
     }
 
-    public function getProductos(){
-        return datatables()->query(
-            DB::table('productos')
-                ->select('productos.id as producto_id', 'colores.id as color_id', 'tallas.id as talla_id', 'productos.codigo as producto_codigo',
-                         'productos.nombre as producto_nombre', 'colores.descripcion as color_nombre', 'tallas.descripcion as talla_nombre',
-                         'modelos.descripcion as modelo_nombre', 'categorias.descripcion as categoria_nombre', 'producto_color_tallas.stock',
-                         'producto_color_tallas.ruta_cod_barras','producto_color_tallas.codigo_barras')
-                ->join('producto_colores', 'productos.id', '=', 'producto_colores.producto_id')
-                ->join('producto_color_tallas', function ($join) {
-                    $join->on('producto_color_tallas.producto_id', '=', 'producto_colores.producto_id')
-                         ->on('producto_color_tallas.color_id', '=', 'producto_colores.color_id');
-                })
-                ->join('colores', 'colores.id', '=', 'producto_colores.color_id')
-                ->join('tallas', 'tallas.id', '=', 'producto_color_tallas.talla_id')
-                ->join('modelos', 'modelos.id', '=', 'productos.modelo_id')
-                ->join('categorias', 'categorias.id', '=', 'productos.categoria_id')
-                ->where('productos.estado', '=', 'ACTIVO')
-                // ->orderBy('productos.id', 'asc')
-                // ->orderBy('colores.id', 'asc')
-                // ->orderBy('tallas.id', 'asc')
-        )->toJson();
+    public function getProductos(Request $request){
+
+        $sede_id    =   $request->get('sede_id');
+        $almacen_id =   $request->get('almacen_id');
+
+        $productos  =    DB::table('productos as p')
+                        ->select(
+                            'p.id as producto_id',
+                            'co.id as color_id',
+                            't.id as talla_id',
+                            'p.codigo as producto_codigo',
+                            'p.nombre as producto_nombre',
+                            'co.descripcion as color_nombre',
+                            't.descripcion as talla_nombre',
+                            'm.descripcion as modelo_nombre',
+                            'ca.descripcion as categoria_nombre', 
+                            'pct.stock',
+                            'pct.ruta_cod_barras',
+                            'pct.codigo_barras',
+                            'a.descripcion as almacen_nombre'
+                        )
+                        ->join('producto_color_tallas as pct', 'p.id', '=', 'pct.producto_id')
+                        ->join('colores as co', 'co.id', '=', 'pct.color_id')
+                        ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+                        ->join('modelos as m', 'm.id', '=', 'p.modelo_id')
+                        ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
+                        ->join('almacenes as a','a.id','pct.almacen_id')
+                        ->where('p.estado', '=', 'ACTIVO');  
+
+        if($sede_id){
+            $productos->where('a.sede_id',$sede_id);
+        }
+        if($almacen_id){
+            $productos->where('pct.almacen_id',$almacen_id);
+        }
+
+        return datatables()->query($productos)->toJson();
     }
 
     public function excelProductos(){
@@ -347,6 +368,7 @@ class ProductoController extends Controller
 
         //======= REVIZANDO SI TIENE O NO CODIGO DE BARRAS ========
         try {
+            
             $producto_id        =   $request->get('producto_id');
             $color_id           =   $request->get('color_id');
             $talla_id           =   $request->get('talla_id');

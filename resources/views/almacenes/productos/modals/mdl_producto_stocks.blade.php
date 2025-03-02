@@ -58,12 +58,15 @@
             const color_id = clickedRow.getAttribute('data-color-id');
 
             if (color_id) {
-
                 getTallas(color_id);
-              
             }
 
         });
+
+        $('#mdl_producto_stocks').on('hidden.bs.modal', function () {
+           limpiarMdlProductoStocks();
+        });
+
     }
 
     async function openMdlStocks(producto_id){
@@ -75,11 +78,21 @@
 
     async function getColores(){
         try {
+            mostrarAnimacion();
             toastr.clear();
             const almacen_id    =   document.querySelector('#almacen').value;
             const producto_id   =   parametrosMdlStocks.producto_id;
 
             if(!almacen_id || !producto_id){
+                destruirDataTable(dtProductoColores);
+                limpiarTabla('tbl_producto_colores');
+                dtProductoColores = iniciarDataTable('tbl_producto_colores');
+
+                destruirDataTable(dtProductoTallas);
+                limpiarTabla('tbl_producto_tallas');
+                dtProductoTallas = iniciarDataTable('tbl_producto_tallas');
+
+                ocultarAnimacion();
                 return;
             }
 
@@ -97,16 +110,20 @@
             console.log(res);
         } catch (error) {
             toastr.error(error.message,'ERROR EN LA PETICIÓN OBTENER COLORES');
+        }finally{
+            ocultarAnimacion();
         }
     }
 
     async function getTallas(color_id){
         try {
             toastr.clear();
+            mostrarAnimacion();
             const almacen_id    =   document.querySelector('#almacen').value;
             const producto_id   =   parametrosMdlStocks.producto_id;
 
             if(!almacen_id || !producto_id || !color_id){
+                ocultarAnimacion();
                 return;
             }
 
@@ -124,6 +141,8 @@
             console.log(res);
         } catch (error) {
             toastr.error(error.message,'ERROR EN LA PETICIÓN OBTENER TALLAS');
+        }finally{
+            ocultarAnimacion();
         }
     }
 
@@ -151,6 +170,18 @@
         })
 
         tbody.innerHTML =   filas;
+    }
+
+    function limpiarMdlProductoStocks(){
+        $('#almacen').val(null).trigger('change');
+
+        destruirDataTable(dtProductoColores);
+        limpiarTabla('tbl_producto_colores');
+        dtProductoColores = iniciarDataTable('tbl_producto_colores');
+
+        destruirDataTable(dtProductoTallas);
+        limpiarTabla('tbl_producto_tallas');
+        dtProductoTallas = iniciarDataTable('tbl_producto_tallas');
     }
 
 </script>

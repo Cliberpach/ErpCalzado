@@ -59,18 +59,14 @@
 
 
 @stop
+
 @push('styles')
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<style>
-
-
-</style>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
 @endpush
 
 @push('scripts')
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
@@ -83,7 +79,7 @@
 
     document.addEventListener('DOMContentLoaded',()=>{
 
-        iniciarSelect2();
+        cargarSelect2();
         iniciarDataTableProductos();
         events();
 
@@ -96,11 +92,12 @@
         eventsMdlStocks();
     }
 
-    function iniciarSelect2(){
+    function cargarSelect2(){
         $(".select2_form").select2({
             placeholder: "SELECCIONAR",
             allowClear: true,
             width: '100%',
+            dropdownParent: $("#mdl_producto_stocks")
         });
     }
 
@@ -196,11 +193,7 @@
 
                             "<li><a class='dropdown-item' href='" + url_detalle +"' title='Detalle'><i class='fa fa-eye'></i> Ver</a></b></li>" +
                             "<li><a class='dropdown-item modificarDetalle' href='" + url_editar + "' title='Modificar'><i class='fa fa-edit'></i> Editar</a></b></li>" +
-                            "<li><a class='dropdown-item' href='#' onclick='eliminar(" + data.id + ")' title='Eliminar'><i class='fa fa-trash'></i> Eliminar</a></b></li>" +
-                            "<li class='dropdown-divider'></li>" +
-
-                            "<li><a class='dropdown-item nuevo-ingreso' href='#' title='Ingreso'><i class='fa fa-save'></i> Ingreso</a></b></li>" +
-
+                            "<li><a class='dropdown-item' href='#' onclick='eliminar(" + data.id + ")' title='Eliminar'><i class='fa fa-trash'></i> Eliminar</a></b></li>" 
                         "</ul></div>";
                     }
                 }

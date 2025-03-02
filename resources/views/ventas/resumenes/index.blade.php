@@ -280,11 +280,11 @@
             mostrarAnimacion();
 
             const url       =   `/ventas/resumenes/consultar`;
-            const response  =   await axios.post(url,{
+            const res       =   await axios.post(url,{
                 resumen_id
             });
 
-            console.log(response);
+            console.log(res);
 
            
             if(res.data.success){

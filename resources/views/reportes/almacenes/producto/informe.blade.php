@@ -32,25 +32,24 @@
                         </div>
                     </div>
                     <div class="ibox-content">
+                        <div class="row mb-3">
+                            <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+                                <label for="sede" style="font-weight: bold;">SEDE</label>
+                                <select onchange="cambiarSede(this.value)" name="sede" id="sede" class="select2_form">
+                                    @foreach ($sedes as $sede)
+                                        <option value="{{$sede->id}}">{{$sede->nombre}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+                                <label for="almacen" style="font-weight: bold;">ALMACÉN</label>
+                                <select onchange="cambiarAlmacen();" 
+                                name="almacen" id="almacen" class="select2_form">
+                                </select>
+                            </div>
+                        </div>
                         <div class="table-responsive">
-                            <table class="table dataTables-producto table-striped table-bordered table-hover"
-                                style="text-transform:uppercase" id="table_productos">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">CÓDIGO</th>
-                                        <th class="text-center">PRODUCTO</th>
-                                        <th class="text-center">COLOR</th>
-                                        <th class="text-center">TALLA</th>
-                                        <th class="text-center">MODELO</th>
-                                        <th class="text-center">CATEGORÍA</th>
-                                        <th class="text-center">STOCK</th>
-                                        <th class="text-center">ADHESIVOS</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                </tbody>
-                            </table>
+                            @include('reportes.almacenes.producto.tables.tbl_pi_productos')
                         </div>
                     </div>
                 </div>
@@ -240,9 +239,10 @@
             </div>
         </div>
     </div>
-    @include('reportes.almacenes.producto.modalEditCosto')
+   
 @stop
 @push('styles')
+    <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
     <!-- DataTable -->
     <link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
     <style>
@@ -276,12 +276,57 @@
 @endpush
 
 @push('scripts')
+    <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
     <!-- DataTable -->
     <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
 
     <script>
+
+    function cargarSelect2(){
+        $(".select2_form").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            width: '100%'
+        });
+    }
+
+    function cambiarAlmacen(){
+        $('.dataTables-producto').DataTable().ajax.reload();
+    }
+
+    function cambiarSede(sede_id){
+
+        if(sede_id){
+
+            const almacenesBD       =   @json($almacenes);
+            console.log(almacenesBD);
+            const almacenesSede     =   almacenesBD.filter((a)=>{
+                return a.sede_id    ==  sede_id;
+            })      
+
+            let selectAlmacen = $('#almacen');
+            selectAlmacen.select2('destroy');
+            selectAlmacen.empty();
+
+            almacenesSede.forEach((as)=>{
+                selectAlmacen.append(new Option(as.descripcion, as.id));
+            })
+
+            $("#almacen").select2({
+                placeholder: "SELECCIONAR",
+                allowClear: true,
+                width: '100%'
+            });
+
+        }
+
+        $('.dataTables-producto').DataTable().ajax.reload();
+
+    }
+
         $(document).ready(function() {
+
             // DataTables
             var productos = [];
             $('.dataTables-compras').dataTable({
@@ -426,6 +471,9 @@
             });
 
             loadTable();
+
+            cargarSelect2();
+            $('#sede').val(1).trigger('change');
 
             $('buttons-html5').removeClass('.btn-default');
 
@@ -934,9 +982,10 @@
 
         function loadTable() {
             $('.dataTables-producto').DataTable({
+               "processing": true,
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [
-                        {
+                    {
                             text: '<i class="fa fa-file-excel-o"></i> Excel',
                             titleAttr: 'Excel',
                             title: 'CONSULTA PRODUCTOS',
@@ -951,25 +1000,7 @@
                                 window.open($(this).attr('href'), '_blank');
                             });
                         }
-                        }
-                    // {
-                    //     extend: 'excelHtml5',
-                    //     text: '<i class="fa fa-file-excel-o"></i> Excel',
-                    //     titleAttr: 'Excel',
-                    //     title: 'CONSULTA PRODUCTOS'
-                    // },
-                    // {
-                    //     titleAttr: 'Imprimir',
-                    //     extend: 'print',
-                    //     text: '<i class="fa fa-print"></i> Imprimir',
-                    //     customize: function(win) {
-                    //         $(win.document.body).addClass('white-bg');
-                    //         $(win.document.body).css('font-size', '10px');
-                    //         $(win.document.body).find('table')
-                    //             .addClass('compact')
-                    //             .css('font-size', 'inherit');
-                    //     }
-                    // }
+                    }
                 ],
                 "bPaginate": true,
                 "serverSide": true,
@@ -982,11 +1013,18 @@
                 "ordering": true,
                 "bInfo": true,
                 'bAutoWidth': false,
-                "ajax": "{{ route('reporte.producto.getProductos') }}",
+                "ajax": {
+                    "url": "{{ route('reporte.producto.getProductos') }}",
+                    "type": "GET",  
+                    "data": function(d) {
+                        d.sede_id       = $('#sede').val(); 
+                        d.almacen_id    = $('#almacen').val(); 
+                    }
+                },
                 "columns": [{
-                        data: 'producto_codigo',
+                        data: 'almacen_nombre',
                         className: "text-left",
-                        name: "codigo"
+                        name: "almacen_nombre"
                     },
                     {
                         data: 'producto_nombre',
