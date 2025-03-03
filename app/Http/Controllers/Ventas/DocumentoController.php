@@ -4527,6 +4527,7 @@ array:2 [
             $almacen_cambios    =   Almacen::where('descripcion','CAMBIOS')
                                     ->where('sede_id',$almacen_destino->sede_id)
                                     ->get();
+
             $almacen_salida =   null;
             if(count($almacen_cambios) === 0){
                 $nuevo_almacen                  =   new Almacen();
@@ -4559,72 +4560,122 @@ array:2 [
                 $producto_reemplazante  =   $cambio->producto_reemplazante;
                 $cantidad               =   $cambio->cantidad;
 
-                //======== GENERANDO DETALLE DE LA NOTA DE INGRESO ========
+                //====== COMPROBAR SI EXISTE EL PRODUCTO REEMPLAZANTE EN EL ALMACÉN DEL DOC VENTA =====
+                $existe =   DB::select('select 
+                            pct.stock,
+                            pct.stock_logico,
+                            p.nombre as producto_nombre,
+                            c.descripcion as color_nombre,
+                            t.descripcion as talla_nombre,
+                            m.descripcion as modelo_nombre
+                            from producto_color_tallas as pct
+                            inner join productos as p on p.id = pct.producto_id
+                            inner join colores as c on c.id = pct.color_id
+                            inner join tallas as t on t.id = pct.talla_id
+                            inner join modelos as m on m.id = p.modelo_id
+                            where 
+                            pct.almacen_id = ?
+                            AND pct.producto_id = ?
+                            AND pct.color_id = ?
+                            AND pct.talla_id = ?',
+                            [
+                                $documento->almacen_id,
+                                $producto_reemplazante->producto_id,
+                                $producto_reemplazante->color_id,
+                                $producto_reemplazante->talla_id
+                            ]);
+
+                if(count($existe) === 0){
+                    throw new Exception("NO EXISTE EL PRODUCTO: ".
+                    $producto_reemplazante->producto_nombre.'-'.$producto_reemplazante->color_nombre.'-'.$producto_reemplazante->talla_nombre.
+                    ', EN EL ALMACÉN: '.$documento->almacen_nombre);
+                }
+
+                //======= VALIDAR CANTIDAD =====
+                if($cantidad > $existe[0]->stock){
+                    throw new Exception("STOCK INSUFICIENTE (".$existe[0]->stock."), ".
+                    $producto_reemplazante->producto_nombre.'-'.$producto_reemplazante->color_nombre.'-'.$producto_reemplazante->talla_nombre.
+                    ', EN EL ALMACÉN: '.$documento->almacen_nombre);
+                }
+
+
+            
+                //======== GENERANDO DETALLE DE LA NOTA DE INGRESO PARA EL PRODUCTO CAMBIADO ========
                 $detalle                     =   new   DetalleNotaIngreso();
                 $detalle->nota_ingreso_id    =   $notaingreso->id;
                 $detalle->almacen_id         =   $almacen_destino->id;
-                $detalle->producto_id        =   $item->producto_id;
-                $detalle->color_id           =   $item->color_id;
-                $detalle->talla_id           =   $item->talla_id;
-                $detalle->cantidad           =   $item->cantidad;
+                $detalle->producto_id        =   $producto_cambiado->producto_id;
+                $detalle->color_id           =   $producto_cambiado->color_id;
+                $detalle->talla_id           =   $producto_cambiado->talla_id;
+                $detalle->cantidad           =   $cantidad;
                 $detalle->almacen_nombre     =   $almacen_destino->descripcion;
-                $detalle->producto_nombre    =   $producto_existe[0]->producto_nombre;
-                $detalle->color_nombre       =   $color_existe[0]->color_nombre;  
-                $detalle->talla_nombre       =   $talla_existe[0]->talla_nombre;  
+                $detalle->producto_nombre    =   $producto_cambiado->producto_nombre;
+                $detalle->color_nombre       =   $producto_cambiado->color_nombre;  
+                $detalle->talla_nombre       =   $producto_cambiado->talla_nombre;  
                 $detalle->save();
 
-                $detalleNotaIngreso                     =   new   DetalleNotaIngreso();
-                $detalleNotaIngreso->nota_ingreso_id    =   $notaingreso->id;
-                $detalleNotaIngreso->producto_id        =   $producto_cambiado->producto_id;
-                $detalleNotaIngreso->color_id           =   $producto_cambiado->color_id;
-                $detalleNotaIngreso->talla_id           =   $producto_cambiado->talla_id;
-                $detalleNotaIngreso->cantidad           =   $cantidad;
-                $detalleNotaIngreso->save();
+                //========= GENERANDO DETALLE DE LA NOTA DE SALIDA PARA EL PRODUCTO REEMPLAZANTE =======
+                $detalle                        =   new   DetalleNotaSalidad();
+                $detalle->nota_salida_id        =   $nota_salida->id;
+                $detalle->almacen_id            =   $documento->almacen_id;
+                $detalle->producto_id           =   $producto_reemplazante->producto_id;
+                $detalle->color_id              =   $producto_reemplazante->color_id;
+                $detalle->talla_id              =   $producto_reemplazante->talla_id;
+                $detalle->cantidad              =   $cantidad;
+                $detalle->almacen_nombre        =   $documento->almacen_nombre;
+                $detalle->producto_nombre       =   $producto_reemplazante->producto_nombre;
+                $detalle->color_nombre          =   $producto_reemplazante->color_nombre;  
+                $detalle->talla_nombre          =   $producto_reemplazante->talla_nombre; 
+                $detalle->save();
+
+                //========= RESTAR STOCK DEL PRODUCTO REEMPLAZANTE EN EL ALMACÉN DEL DOCUMENTO ======
+                ProductoColorTalla::where('producto_id', $producto_reemplazante->producto_id)
+                ->where('color_id', $producto_reemplazante->color_id)
+                ->where('talla_id', $producto_reemplazante->talla_id)
+                ->where('almacen_id', $documento->almacen_id)
+                ->update([
+                    'stock'         =>  DB::raw("stock - $cantidad")
+                ]);
 
 
-                //========= GENERANDO DETALLE DE LA NOTA DE SALIDA =======
-                $detalleNotaSalida                     =   new   DetalleNotaSalidad();
-                $detalleNotaSalida->nota_salidad_id    =   $notasalidad->id;
-                $detalleNotaSalida->producto_id        =   $producto_reemplazante->producto_id;
-                $detalleNotaSalida->color_id           =   $producto_reemplazante->color_id;
-                $detalleNotaSalida->talla_id           =   $producto_reemplazante->talla_id;
-                $detalleNotaSalida->cantidad           =   $cantidad;
-                $detalleNotaSalida->disableDecrementarStockLogico();
-                $detalleNotaSalida->save();
+             
 
-                 //===== GRABANDO CAMBIO ======
-                 $cambio_talla                           =   new CambioTalla();
-                 $cambio_talla->documento_id             =   $documento_id;
-                 $cambio_talla->detalle_id               =   $producto_cambiado->detalle_id;
-                 $cambio_talla->producto_reemplazado_id  =   $producto_cambiado->producto_id;
-                 $cambio_talla->color_reemplazado_id     =   $producto_cambiado->color_id;
-                 $cambio_talla->talla_reemplazado_id     =   $producto_cambiado->talla_id;
-                 $cambio_talla->producto_reemplazado_nombre  =   $producto_cambiado->producto_nombre;
-                 $cambio_talla->color_reemplazado_nombre     =   $producto_cambiado->color_nombre;
-                 $cambio_talla->talla_reemplazado_nombre     =   $producto_cambiado->talla_nombre;
-                 $cambio_talla->cantidad_detalle         =   $producto_cambiado->cantidad_detalle;
-                 $cambio_talla->producto_reemplazante_id =   $producto_reemplazante->producto_id;
-                 $cambio_talla->color_reemplazante_id    =   $producto_reemplazante->color_id;
-                 $cambio_talla->talla_reemplazante_id    =   $producto_reemplazante->talla_id;
-                 $cambio_talla->producto_reemplazante_nombre     =   $producto_reemplazante->producto_nombre;
-                 $cambio_talla->color_reemplazante_nombre        =   $producto_reemplazante->color_nombre;
-                 $cambio_talla->talla_reemplazante_nombre        =   $producto_reemplazante->talla_nombre;
-                 $cambio_talla->cantidad_cambiada        =   $cantidad;
-                 $cambio_talla->cantidad_sin_cambio      =   $producto_cambiado->cantidad_detalle - $cantidad;
-                 $cambio_talla->user_id                  =   Auth::user()->id;
-                 $cambio_talla->user_nombre              =   Auth::user()->usuario;
-                 $cambio_talla->save();
+                //===== GRABANDO CAMBIO ======
+                $cambio_talla                           =   new CambioTalla();
+                $cambio_talla->documento_id             =   $documento_id;
+                $cambio_talla->detalle_id               =   $producto_cambiado->detalle_id;
+                $cambio_talla->producto_reemplazado_id  =   $producto_cambiado->producto_id;
+                $cambio_talla->color_reemplazado_id     =   $producto_cambiado->color_id;
+                $cambio_talla->talla_reemplazado_id         =   $producto_cambiado->talla_id;
+                $cambio_talla->producto_reemplazado_nombre  =   $producto_cambiado->producto_nombre;
+                $cambio_talla->color_reemplazado_nombre     =   $producto_cambiado->color_nombre;
+                $cambio_talla->talla_reemplazado_nombre     =   $producto_cambiado->talla_nombre;
+                $cambio_talla->cantidad_detalle         =   $producto_cambiado->cantidad_detalle;
+                $cambio_talla->producto_reemplazante_id =   $producto_reemplazante->producto_id;
+                $cambio_talla->color_reemplazante_id    =   $producto_reemplazante->color_id;
+                $cambio_talla->talla_reemplazante_id    =   $producto_reemplazante->talla_id;
+                $cambio_talla->producto_reemplazante_nombre     =   $producto_reemplazante->producto_nombre;
+                $cambio_talla->color_reemplazante_nombre        =   $producto_reemplazante->color_nombre;
+                $cambio_talla->talla_reemplazante_nombre        =   $producto_reemplazante->talla_nombre;
+                $cambio_talla->cantidad_cambiada        =   $cantidad;
+                $cambio_talla->cantidad_sin_cambio      =   $producto_cambiado->cantidad_detalle - $cantidad;
+                $cambio_talla->user_id                  =   Auth::user()->id;
+                $cambio_talla->user_nombre              =   Auth::user()->usuario;
+                $cambio_talla->save();
  
-                 //====== ACTUALIZANDO ESTADO DEL DETALLE DEL DOCUMENTO =======
-                 DB::table('cotizacion_documento_detalles')
-                 ->where('documento_id', $documento->id)
-                 ->where('id', $producto_cambiado->detalle_id)
-                 ->where('producto_id', $producto_cambiado->producto_id)
-                 ->where('color_id', $producto_cambiado->color_id)
-                 ->where('talla_id', $producto_cambiado->talla_id)
-                 ->update(['estado_cambio_talla' => "CON CAMBIOS",
-                 'cantidad_cambiada'     => $cantidad,
-                 'cantidad_sin_cambio'   => $producto_cambiado->cantidad_detalle - $cantidad]);
+                //====== ACTUALIZANDO ESTADO DEL DETALLE DEL DOCUMENTO =======
+                DB::table('cotizacion_documento_detalles')
+                ->where('documento_id', $documento->id)
+                ->where('id', $producto_cambiado->detalle_id)
+                ->where('almacen_id',$documento->almacen_id)
+                ->where('producto_id', $producto_cambiado->producto_id)
+                ->where('color_id', $producto_cambiado->color_id)
+                ->where('talla_id', $producto_cambiado->talla_id)
+                ->update([
+                    'estado_cambio_talla' => "CON CAMBIOS",
+                    'cantidad_cambiada'     => $cantidad,
+                    'cantidad_sin_cambio'   => $producto_cambiado->cantidad_detalle - $cantidad
+                ]);
  
             }
 

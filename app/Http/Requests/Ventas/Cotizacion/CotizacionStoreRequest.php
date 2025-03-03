@@ -31,8 +31,7 @@ class CotizacionStoreRequest extends FormRequest
                 'required',
                 'exists:almacenes,id', 
                 Rule::exists('almacenes', 'id')->where(function ($query) {
-                    $query->where('sede_id', $this->sede_id) 
-                        ->where('estado', 'ACTIVO'); 
+                    $query->where('estado', 'ACTIVO'); 
                 }),
             ],
             'cliente' => [

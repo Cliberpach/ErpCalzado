@@ -339,7 +339,7 @@ array:11 [
                 $detalle->talla_nombre       =   $talla_existe[0]->talla_nombre;  
                 $detalle->save();     
                 
-                  //======== INGRESANDO STOCK EN ALMACÉN DESTINO =======
+                //======== INGRESANDO STOCK EN ALMACÉN DESTINO =======
                 //=>COMPROBANDO SI EXISTE EL PRODUCTO COLOR TALLA
                 $producto_destino   =   DB::select('select 
                                         pct.* 
