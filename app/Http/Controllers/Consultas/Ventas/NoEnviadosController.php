@@ -40,9 +40,9 @@ class NoEnviadosController extends Controller
     {
         $documento = [];
         if ($request->fecha_desde && $request->fecha_hasta) {
-            $documentos = Documento::where('estado', '!=', 'ANULADO')->where('sunat', '0')->where('contingencia','0')->where('tipo_venta', '!=', 129)->whereBetween('fecha_documento', [$request->fecha_desde, $request->fecha_hasta])->orderBy('id', 'desc')->get();
+            $documentos = Documento::where('estado', '!=', 'ANULADO')->where('sunat', '0')->where('contingencia','0')->where('tipo_venta_id', '!=', 129)->whereBetween('fecha_documento', [$request->fecha_desde, $request->fecha_hasta])->orderBy('id', 'desc')->get();
         } else {
-            $documentos = Documento::where('estado', '!=', 'ANULADO')->where('sunat', '0')->where('contingencia','0')->where('tipo_venta', '!=', 129)->orderBy('id', 'desc')->get();
+            $documentos = Documento::where('estado', '!=', 'ANULADO')->where('sunat', '0')->where('contingencia','0')->where('tipo_venta_id', '!=', 129)->orderBy('id', 'desc')->get();
         }
 
         $hoy = Carbon::now();

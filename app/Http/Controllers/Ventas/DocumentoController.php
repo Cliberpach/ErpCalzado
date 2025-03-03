@@ -65,11 +65,13 @@ use App\Almacenes\NotaIngreso;
 use App\Almacenes\DetalleNotaSalidad;
 use App\Almacenes\Marca;
 use App\Almacenes\NotaSalidad;
+use App\Almacenes\ProductoColor;
 use App\Http\Controllers\UtilidadesController;
 use App\Http\Requests\Ventas\DocVenta\DocVentaStoreRequest;
 use App\Mantenimiento\Sedes\Sede;
 use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Provincia;
+use App\User;
 use Illuminate\Support\Facades\Response; 
 use App\Ventas\CambioTalla;
 
@@ -102,76 +104,79 @@ class DocumentoController extends Controller
     
     public function getDocument(Request $request)
     {
-        $documentos = DB::table('cotizacion_documento')
-            ->select([
+        $documentos = DB::table('cotizacion_documento as cd')
+            ->select(
+                'cd.convert_de_serie',
+                'cd.convert_en_id',
+                'cd.convert_de_id',
                 'co.id as cotizacion_id',
                 'u.usuario as registrador_nombre',
                 'es.nombre as sede_nombre',
-                'cotizacion_documento.almacen_nombre',
-                'cotizacion_documento.id',
-                'cotizacion_documento.tipo_venta_id as tipo_venta',
-                DB::raw('CONCAT(cotizacion_documento.serie, "-", cotizacion_documento.correlativo) as numero_doc'),
-                'cotizacion_documento.serie',
-                'cotizacion_documento.correlativo',
-                'cotizacion_documento.pedido_id',
-                'cotizacion_documento.tipo_doc_venta_pedido',
-                'cotizacion_documento.cliente',
-                'cotizacion_documento.empresa',
-                'cotizacion_documento.importe',
-                'cotizacion_documento.efectivo',
-                'cotizacion_documento.tipo_pago_id',
-                'cotizacion_documento.ruta_pago',
-                'cotizacion_documento.cliente_id',
-                'cotizacion_documento.convertir',
-                'cotizacion_documento.empresa_id',
-                'cotizacion_documento.cotizacion_venta',
-                'cotizacion_documento.fecha_documento',
-                'cotizacion_documento.estado_pago',
-                'cotizacion_documento.condicion_id',
-                'cotizacion_documento.sunat',
-                'cotizacion_documento.regularize',
-                'cotizacion_documento.contingencia',
-                'cotizacion_documento.sunat_contingencia',
-                'cotizacion_documento.documento_cliente',
-                'cotizacion_documento.estado',
-                'cotizacion_documento.cambio_talla',
-                'cotizacion_documento.total',
-                'cotizacion_documento.total_pagar',
-                DB::raw('DATEDIFF(NOW(), cotizacion_documento.fecha_documento) as dias'),
-                DB::raw('(SELECT COUNT(nota_electronica.id) FROM nota_electronica WHERE nota_electronica.documento_id = cotizacion_documento.id) as notas'),
+                'cd.almacen_nombre',
+                'cd.id',
+                'cd.tipo_venta_id as tipo_venta',
+                DB::raw('CONCAT(cd.serie, "-", cd.correlativo) as numero_doc'),
+                'cd.serie',
+                'cd.correlativo',
+                'cd.pedido_id',
+                'cd.tipo_doc_venta_pedido',
+                'cd.cliente',
+                'cd.empresa',
+                'cd.importe',
+                'cd.efectivo',
+                'cd.tipo_pago_id',
+                'cd.ruta_pago',
+                'cd.cliente_id',
+                'cd.convertir',
+                'cd.empresa_id',
+                'cd.cotizacion_venta',
+                'cd.fecha_documento',
+                'cd.estado_pago',
+                'cd.condicion_id',
+                'cd.sunat',
+                'cd.regularize',
+                'cd.contingencia',
+                'cd.sunat_contingencia',
+                'cd.documento_cliente',
+                'cd.estado',
+                'cd.cambio_talla',
+                'cd.total',
+                'cd.total_pagar',
+                DB::raw('DATEDIFF(NOW(), cd.fecha_documento) as dias'),
+                DB::raw('(SELECT COUNT(nota_electronica.id) FROM nota_electronica WHERE nota_electronica.documento_id = cd.id) as notas'),
                 'envios_ventas.estado AS estado_despacho',
                 'condicions.descripcion as condicion',
                 'clientes.correo_electronico as correo',
                 'clientes.telefono_movil as telefonoMovil'
-            ])
-            ->leftJoin('envios_ventas', 'cotizacion_documento.id', '=', 'envios_ventas.documento_id')
-            ->leftJoin('condicions', 'cotizacion_documento.condicion_id', '=', 'condicions.id')
-            ->leftJoin('clientes', 'cotizacion_documento.cliente_id', '=', 'clientes.id')
-            ->leftJoin('empresa_sedes as es','es.id','cotizacion_documento.sede_id')
-            ->leftJoin('users as u','u.id','cotizacion_documento.user_id')
-            ->leftJoin('cotizaciones as co','co.id','cotizacion_documento.cotizacion_venta')
-            ->where('cotizacion_documento.estado', '<>', 'ANULADO');
+            )
+            ->leftJoin('envios_ventas', 'cd.id', '=', 'envios_ventas.documento_id')
+            ->leftJoin('condicions', 'cd.condicion_id', '=', 'condicions.id')
+            ->leftJoin('clientes', 'cd.cliente_id', '=', 'clientes.id')
+            ->leftJoin('empresa_sedes as es','es.id','cd.sede_id')
+            ->leftJoin('users as u','u.id','cd.user_id')
+            ->leftJoin('cotizaciones as co','co.id','cd.cotizacion_venta')
+            ->where('cd.estado', '<>', 'ANULADO');
     
         /*if (!PuntoVenta() && !FullAccess()) {
             $documentos->where('cotizacion_documento.user_id', Auth::user()->id);
         }*/
     
         if ($request->has('fechaInicial')) {
-            $documentos->where('cotizacion_documento.fecha_documento', '>=', $request->get('fechaInicial'));
+            $documentos->where('cd.fecha_documento', '>=', $request->get('fechaInicial'));
         }
     
         if ($request->has('cliente')) {
             $cliente = $request->get('cliente');
             if (is_numeric($cliente)) {
-                $documentos->where('cotizacion_documento.documento_cliente', 'LIKE', "%{$cliente}%");
+                $documentos->where('cd.documento_cliente', 'LIKE', "%{$cliente}%");
             } else {
-                $documentos->where('cotizacion_documento.cliente', 'LIKE', "%{$cliente}%");
+                $documentos->where('cd.cliente', 'LIKE', "%{$cliente}%");
             }
         }
     
         if ($request->has('numero_doc')) {
             $numero_doc = $request->get('numero_doc');
-            $documentos->where(DB::raw('CONCAT(cotizacion_documento.serie, "-", cotizacion_documento.correlativo)'), 'LIKE', "%{$numero_doc}%");
+            $documentos->where(DB::raw('CONCAT(cd.serie, "-", cd.correlativo)'), 'LIKE', "%{$numero_doc}%");
         }
 
         //========= FILTRO POR ROLES ======
@@ -183,15 +188,15 @@ class DocumentoController extends Controller
 
         //======== ADMIN PUEDE VER TODAS LAS VENTAS DE SU SEDE =====
         if (in_array('ADMIN', $roles)) {
-            $documentos->where('cotizacion_documento.sede_id', Auth::user()->sede_id);
+            $documentos->where('cd.sede_id', Auth::user()->sede_id);
         } else {
             
             //====== USUARIOS PUEDEN VER SUS PROPIAS VENTAS ======
-            $documentos->where('cotizacion_documento.sede_id', Auth::user()->sede_id)
-            ->where('cotizacion_documento.user_id', Auth::user()->id);
+            $documentos->where('cd.sede_id', Auth::user()->sede_id)
+            ->where('cd.user_id', Auth::user()->id);
         }
     
-        $documentos = $documentos->orderBy('cotizacion_documento.id', 'desc')->paginate($request->tamanio);
+        $documentos = $documentos->orderBy('cd.id', 'desc')->paginate($request->tamanio);
     
         return response()->json([
             'pagination' => [
@@ -1482,12 +1487,14 @@ array:27 [
   "almacenSeleccionado"     => 2
   "sede_id"                 => "1"
   "data_envio"              => "{"departamento":{"id":13,"nombre":"LA LIBERTAD","zona":"NORTE"},"provincia":{"id":1301,"text":"TRUJILLO"},"distrito":{"id":130101,"text":"TRUJILLO"},"tipo_envio":{"id":188,"descripcion":"AGENCIA"},"empresa_envio":{"id":2,"empresa":"EMTRAFESA","tipo_envio":"AGENCIA","estado":"ACTIVO","created_at":"2025-02-12 17:43:16","updated_at":"2025-02-12 17:43:16"},"sede_envio":{"id":2,"empresa_envio_id":2,"direccion":"AV TUPAC AMARU 123","departamento":"LA LIBERTAD","provincia":"TRUJILLO","distrito":"TRUJILLO","estado":"ACTIVO","created_at":"2025-02-12 17:45:21","updated_at":"2025-02-12 17:45:21"},"destinatario":{"tipo_documento":"DNI","nro_documento":"75563122","nombres":"ALTRUCAZ"},"direccion_entrega":"AV UNION 342","entrega_domicilio":true,"origen_venta":{"descripcion":"FACEBOOK"},"fecha_envio_propuesta":"2025-02-12","obs_rotulo":"OBS ROTULADO","obs_despacho":"OBS DESPACHADO","tipo_pago_envio":{"descripcion":"PAGAR ENVÍO"}}"
+  "documento_convertido"    => 8150   //====== PRESENTE SOLO EN CONVERSIÓN =====
 ]
 */
     public function store(DocVentaStoreRequest $request){
       
         $this->authorize('haveaccess', 'documento_venta.index');
         ini_set("max_execution_time", 60000);
+
         
         DB::beginTransaction();
         try {
@@ -1575,8 +1582,16 @@ array:27 [
             if($request->has('facturado') && $request->get('facturado') === 'SI'){
                 $documento->estado_pago  =   'PAGADA';
             }
+
+            //======== EN CASO DE CONVERSIÓN DE DOCUMENTO =====
+            if($request->has('documento_convertido')){
+                $documento_convertido           =   Documento::find($request->get('documento_convertido'));
+                $documento->convert_de_id       =   $request->get('documento_convertido');
+                $documento->convert_de_serie    =   $documento_convertido->serie.'-'.$documento_convertido->correlativo;   
+            }
             $documento->save();
 
+          
             foreach($datos_validados->lstVenta as $item){
                 foreach ($item->tallas as $talla) {
 
@@ -1665,7 +1680,7 @@ array:27 [
                     $detalle->save();
 
                     //====== RESTAR STOCK SI NO ES CONVERSIÓN NI REGULARIZACIÓN =======
-                    if(!$request->has('convertir') && !$request->has('regularizar') && !$request->has('facturar')){
+                    if(!$request->has('documento_convertido') && !$request->has('regularizar') && !$request->has('facturar')){
                         
                         //===== ACTUALIZANDO STOCK ===========
                         DB::update('UPDATE producto_color_tallas 
@@ -1719,7 +1734,7 @@ array:27 [
             $data_envio     =   json_decode($request->get('data_envio'));
 
             //========= HAY DATOS DE DESPACHO ======
-            if (!empty((array)$data_envio) && !$request->has('facturar')) {
+            if (!empty((array)$data_envio) && !$request->has('facturar') && !$request->has('documento_convertido')) {
 
                 $envio_venta                        =   new EnvioVenta();
                 $envio_venta->documento_id          =   $documento->id;
@@ -1757,7 +1772,7 @@ array:27 [
             }
             
             //======= SIN DESPACHO ======
-            if (empty((array)$data_envio) && !$request->has('facturar')) {
+            if (empty((array)$data_envio) && !$request->has('facturar') && !$request->has('documento_convertido')) {
                    
                 //======== OBTENER EMPRESA ENVÍO =======
                 $empresa_envio                      =   DB::select('select ee.id,ee.empresa,ee.tipo_envio
@@ -1812,6 +1827,14 @@ array:27 [
                 $movimiento_venta->cobrar       =   'NO';
             }
             $movimiento_venta->save();
+
+            //======== EN CASO DE CONVERSIÓN DE DOCUMENTO =====
+            if($request->has('documento_convertido')){
+                $documento_convertido                       =   Documento::find($request->get('documento_convertido'));
+                $documento_convertido->convert_en_id        =   $documento->id;
+                $documento_convertido->convert_en_serie     =   $documento->serie.'-'.$documento->correlativo;
+                $documento_convertido->update();
+            }
             
             //========== ACTUALIZAR ESTADO FACTURACIÓN A INICIADA ======
             DB::table('empresa_numeracion_facturaciones')
@@ -1825,7 +1848,6 @@ array:27 [
                'updated_at'             => Carbon::now()
            ]);
 
-       
             DB::commit();
             
             return response()->json(['success'=>true,
@@ -4294,7 +4316,7 @@ array:27 [
                             AND pct.color_id = ? 
                             AND pct.estado = "ACTIVO" 
                             AND pct.stock_logico > 0 
-                            and pct.stock > 0',
+                            AND pct.stock > 0',
                             [$almacen_id,$producto_id,$color_id]);
             
             return response()->json(['success'=>true,'tallas'=>$tallas]);
@@ -4318,7 +4340,7 @@ array:27 [
                         AND pct.estado = "ACTIVO"',
                         [$almacen_id,$producto_id,$color_id,$talla_id]);
         
-            return response()->json(['success'=>true,'stock'=>$stock]);
+            return response()->json(['success'=>true,'stock'=>$stock,'message'=>"STOCK OBTENIDO"]);
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>"ERROR AL OBTENER STOCK ACTUAL DE LA TALLA",
             'exception'=>$th->getMessage()]);
@@ -4503,10 +4525,8 @@ array:2 [
             if(!$documento){
                 throw new Exception('NO SE ENCONTRÓ EL DOCUMENTO DE VENTA EN LA BASE DE DATOS');
             }
-
-            $detalles                               =   $documento->detalles;
             
-            //======= GRABANDO CAMBIOS ======
+            //======= OBTENIENDO CAMBIOS ======
             $cambios                                =   json_decode($request->get('cambios'));
 
             //======= CREANDO NOTA DE INGRESO PARA PRODUCTOS CAMBIADOS EN SEDE DEL ALMACEN =======
@@ -4528,7 +4548,6 @@ array:2 [
                                     ->where('sede_id',$almacen_destino->sede_id)
                                     ->get();
 
-            $almacen_salida =   null;
             if(count($almacen_cambios) === 0){
                 $nuevo_almacen                  =   new Almacen();
                 $nuevo_almacen->descripcion     =   'CAMBIOS';
@@ -4537,21 +4556,32 @@ array:2 [
                 $nuevo_almacen->sede_id         =   $almacen_destino->sede_id;
                 $nuevo_almacen->save();
 
-                $almacen_salida =   $nuevo_almacen;
+                $almacen_cambios =   $nuevo_almacen;
             }else {
-                $almacen_salida =   $almacen_cambios[0];
+                $almacen_cambios =   $almacen_cambios[0];
             }
 
             $nota_salida                            =   new NotaSalidad();
             $nota_salida->sede_id                   =   $notaingreso->sede_id;
             $nota_salida->almacen_origen_id         =   $documento->almacen_id;
-            $nota_salida->almacen_destino_id        =   $almacen_salida->id;
+            $nota_salida->almacen_destino_id        =   $almacen_cambios->id;
             $nota_salida->registrador_nombre        =   Auth::user()->usuario;
             $nota_salida->registrador_id            =   Auth::user()->id;
             $nota_salida->almacen_origen_nombre     =   $documento->almacen_nombre;
-            $nota_salida->almacen_destino_nombre    =   $almacen_salida->descripcion;
+            $nota_salida->almacen_destino_nombre    =   $almacen_cambios->descripcion;
             $nota_salida->observacion               =   "CAMBIO DE TALLAS EN EL DOCUMENTO " .$documento->serie.'-'.$documento->correlativo;   
             $nota_salida->save();
+
+            //====== CREAR NOTA DE INGRESO AL ALMACÉN CAMBIOS DE LA SEDE DEL ALMACÉN DEL DOCUMENTO ====
+            $notaingreso_cambios                            =   new NotaIngreso();
+            $notaingreso_cambios->almacen_destino_id        =   $almacen_cambios->id;
+            $notaingreso_cambios->almacen_destino_nombre    =   $almacen_cambios->descripcion;
+            $notaingreso_cambios->sede_id                   =   $almacen_cambios->sede_id;
+            $notaingreso_cambios->registrador_nombre        =   Auth::user()->usuario;
+            $notaingreso_cambios->registrador_id            =   Auth::user()->id;
+            $notaingreso_cambios->observacion               =   'CAMBIO DE TALLAS EN EL DOCUMENTO '.$documento->serie.'-'.$documento->correlativo;
+            $notaingreso_cambios->nota_salida_id            =   $nota_salida->id;
+            $notaingreso_cambios->save();
 
            
             foreach ($cambios as $cambio) {
@@ -4598,35 +4628,44 @@ array:2 [
                     ', EN EL ALMACÉN: '.$documento->almacen_nombre);
                 }
 
-
-            
                 //======== GENERANDO DETALLE DE LA NOTA DE INGRESO PARA EL PRODUCTO CAMBIADO ========
-                $detalle                     =   new   DetalleNotaIngreso();
-                $detalle->nota_ingreso_id    =   $notaingreso->id;
-                $detalle->almacen_id         =   $almacen_destino->id;
-                $detalle->producto_id        =   $producto_cambiado->producto_id;
-                $detalle->color_id           =   $producto_cambiado->color_id;
-                $detalle->talla_id           =   $producto_cambiado->talla_id;
-                $detalle->cantidad           =   $cantidad;
-                $detalle->almacen_nombre     =   $almacen_destino->descripcion;
-                $detalle->producto_nombre    =   $producto_cambiado->producto_nombre;
-                $detalle->color_nombre       =   $producto_cambiado->color_nombre;  
-                $detalle->talla_nombre       =   $producto_cambiado->talla_nombre;  
-                $detalle->save();
+                $detalle_ni                     =   new   DetalleNotaIngreso();
+                $detalle_ni->nota_ingreso_id    =   $notaingreso->id;
+                $detalle_ni->almacen_id         =   $almacen_destino->id;
+                $detalle_ni->producto_id        =   $producto_cambiado->producto_id;
+                $detalle_ni->color_id           =   $producto_cambiado->color_id;
+                $detalle_ni->talla_id           =   $producto_cambiado->talla_id;
+                $detalle_ni->cantidad           =   $cantidad;
+                $detalle_ni->almacen_nombre     =   $almacen_destino->descripcion;
+                $detalle_ni->producto_nombre    =   $producto_cambiado->producto_nombre;
+                $detalle_ni->color_nombre       =   $producto_cambiado->color_nombre;  
+                $detalle_ni->talla_nombre       =   $producto_cambiado->talla_nombre;  
+                $detalle_ni->save();
 
                 //========= GENERANDO DETALLE DE LA NOTA DE SALIDA PARA EL PRODUCTO REEMPLAZANTE =======
-                $detalle                        =   new   DetalleNotaSalidad();
-                $detalle->nota_salida_id        =   $nota_salida->id;
-                $detalle->almacen_id            =   $documento->almacen_id;
-                $detalle->producto_id           =   $producto_reemplazante->producto_id;
-                $detalle->color_id              =   $producto_reemplazante->color_id;
-                $detalle->talla_id              =   $producto_reemplazante->talla_id;
-                $detalle->cantidad              =   $cantidad;
-                $detalle->almacen_nombre        =   $documento->almacen_nombre;
-                $detalle->producto_nombre       =   $producto_reemplazante->producto_nombre;
-                $detalle->color_nombre          =   $producto_reemplazante->color_nombre;  
-                $detalle->talla_nombre          =   $producto_reemplazante->talla_nombre; 
-                $detalle->save();
+                $detalle_ns                        =   new   DetalleNotaSalidad();
+                $detalle_ns->nota_salida_id        =   $nota_salida->id;
+                $detalle_ns->almacen_id            =   $documento->almacen_id;
+                $detalle_ns->producto_id           =   $producto_reemplazante->producto_id;
+                $detalle_ns->color_id              =   $producto_reemplazante->color_id;
+                $detalle_ns->talla_id              =   $producto_reemplazante->talla_id;
+                $detalle_ns->cantidad              =   $cantidad;
+                $detalle_ns->almacen_nombre        =   $documento->almacen_nombre;
+                $detalle_ns->producto_nombre       =   $producto_reemplazante->producto_nombre;
+                $detalle_ns->color_nombre          =   $producto_reemplazante->color_nombre;  
+                $detalle_ns->talla_nombre          =   $producto_reemplazante->talla_nombre; 
+                $detalle_ns->save();
+
+                //======== INGRESAR STOCK DEL PRODUCTO CAMBIADO EN EL ALMCÉN DEL DOCUMENTO ===
+                ProductoColorTalla::where('producto_id', $producto_cambiado->producto_id)
+                ->where('color_id', $producto_cambiado->color_id)
+                ->where('talla_id', $producto_cambiado->talla_id)
+                ->where('almacen_id', $documento->almacen_id)
+                ->update([
+                    'stock'         =>  DB::raw("stock + $cantidad"),
+                    'stock_logico'  =>  DB::raw("stock_logico + $cantidad"),
+                    'updated_at'    =>  now()
+                ]);
 
                 //========= RESTAR STOCK DEL PRODUCTO REEMPLAZANTE EN EL ALMACÉN DEL DOCUMENTO ======
                 ProductoColorTalla::where('producto_id', $producto_reemplazante->producto_id)
@@ -4634,33 +4673,108 @@ array:2 [
                 ->where('talla_id', $producto_reemplazante->talla_id)
                 ->where('almacen_id', $documento->almacen_id)
                 ->update([
-                    'stock'         =>  DB::raw("stock - $cantidad")
+                    'stock'         =>  DB::raw("stock - $cantidad"),
+                    'updated_at'    =>  now()
                 ]);
 
+                //========== INGRESAR STOCK DEL PRODUCTO REEMPLAZANTE AL ALMACÉN CAMBIOS ======
+                $detalle_nic                     =   new   DetalleNotaIngreso();
+                $detalle_nic->nota_ingreso_id    =   $notaingreso_cambios->id;
+                $detalle_nic->almacen_id         =   $almacen_cambios->id;
+                $detalle_nic->producto_id        =   $producto_reemplazante->producto_id;
+                $detalle_nic->color_id           =   $producto_reemplazante->color_id;
+                $detalle_nic->talla_id           =   $producto_reemplazante->talla_id;
+                $detalle_nic->cantidad           =   $cantidad;
+                $detalle_nic->almacen_nombre     =   $almacen_cambios->descripcion;
+                $detalle_nic->producto_nombre    =   $producto_reemplazante->producto_nombre;
+                $detalle_nic->color_nombre       =   $producto_reemplazante->color_nombre;  
+                $detalle_nic->talla_nombre       =   $producto_reemplazante->talla_nombre;  
+                $detalle_nic->save();  
 
-             
+                //=>COMPROBANDO SI EXISTE EL PRODUCTO COLOR TALLA
+                $producto_destino   =   DB::select('select 
+                                        pct.stock 
+                                        from producto_color_tallas as pct
+                                        where 
+                                        pct.almacen_id  = ?
+                                        and pct.producto_id = ? 
+                                        and pct.color_id = ? 
+                                        and pct.talla_id = ?',
+                                        [
+                                            $almacen_cambios->id,
+                                            $producto_reemplazante->producto_id,
+                                            $producto_reemplazante->color_id,
+                                            $producto_reemplazante->talla_id
+                                        ]);
+
+                 //======== TALLA EXISTE, INCREMENTAR STOCK =========
+                if (count($producto_destino) > 0) {
+
+                    ProductoColorTalla::where('producto_id', $producto_reemplazante->producto_id)
+                    ->where('color_id', $producto_reemplazante->color_id)
+                    ->where('talla_id', $producto_reemplazante->talla_id)
+                    ->where('almacen_id', $almacen_cambios->id)
+                    ->update([
+                        'stock'         =>  DB::raw("stock + $cantidad"),
+                        'stock_logico'  =>  DB::raw("stock_logico + $cantidad"),
+                        'updated_at'    =>  now()
+                    ]);
+
+                } else {
+
+                    //========= TALLA NO EXISTE =============
+                    //======= VERIFICANDO EXISTENCIA DEL COLOR ======
+                    $existeColor    =   ProductoColor::where('producto_id', $producto_reemplazante->producto_id)
+                                            ->where('color_id', $producto_reemplazante->color_id)
+                                            ->where('almacen_id', $almacen_cambios->id)
+                                            ->exists();
+                
+                    //======== COLOR NO EXISTE, REGISTRAR COLOR =======
+                    if(!$existeColor){
+                        $producto_color                 =   new ProductoColor();
+                        $producto_color->producto_id    =   $producto_reemplazante->producto_id;
+                        $producto_color->color_id       =   $producto_reemplazante->color_id;
+                        $producto_color->almacen_id     =   $almacen_cambios->id;
+                        $producto_color->save(); 
+                    }  
+
+                    //====== REGISTRAR TALLA ============
+                    $producto                   =   new ProductoColorTalla();
+                    $producto->producto_id      =   $producto_reemplazante->producto_id;
+                    $producto->color_id         =   $producto_reemplazante->color_id;
+                    $producto->talla_id         =   $producto_reemplazante->talla_id;
+                    $producto->stock            =   $cantidad;
+                    $producto->stock_logico     =   $cantidad;
+                    $producto->almacen_id       =   $almacen_cambios->id;
+                    $producto->save();
+
+                }  
+
 
                 //===== GRABANDO CAMBIO ======
-                $cambio_talla                           =   new CambioTalla();
-                $cambio_talla->documento_id             =   $documento_id;
-                $cambio_talla->detalle_id               =   $producto_cambiado->detalle_id;
-                $cambio_talla->producto_reemplazado_id  =   $producto_cambiado->producto_id;
-                $cambio_talla->color_reemplazado_id     =   $producto_cambiado->color_id;
+                $cambio_talla                               =   new CambioTalla();
+                $cambio_talla->documento_id                 =   $documento_id;
+                $cambio_talla->detalle_id                   =   $producto_cambiado->detalle_id;
+                $cambio_talla->producto_reemplazado_id      =   $producto_cambiado->producto_id;
+                $cambio_talla->color_reemplazado_id         =   $producto_cambiado->color_id;
                 $cambio_talla->talla_reemplazado_id         =   $producto_cambiado->talla_id;
                 $cambio_talla->producto_reemplazado_nombre  =   $producto_cambiado->producto_nombre;
                 $cambio_talla->color_reemplazado_nombre     =   $producto_cambiado->color_nombre;
                 $cambio_talla->talla_reemplazado_nombre     =   $producto_cambiado->talla_nombre;
-                $cambio_talla->cantidad_detalle         =   $producto_cambiado->cantidad_detalle;
-                $cambio_talla->producto_reemplazante_id =   $producto_reemplazante->producto_id;
-                $cambio_talla->color_reemplazante_id    =   $producto_reemplazante->color_id;
-                $cambio_talla->talla_reemplazante_id    =   $producto_reemplazante->talla_id;
+                $cambio_talla->cantidad_detalle             =   $producto_cambiado->cantidad_detalle;
+                $cambio_talla->producto_reemplazante_id     =   $producto_reemplazante->producto_id;
+                $cambio_talla->color_reemplazante_id        =   $producto_reemplazante->color_id;
+                $cambio_talla->talla_reemplazante_id        =   $producto_reemplazante->talla_id;
                 $cambio_talla->producto_reemplazante_nombre     =   $producto_reemplazante->producto_nombre;
                 $cambio_talla->color_reemplazante_nombre        =   $producto_reemplazante->color_nombre;
                 $cambio_talla->talla_reemplazante_nombre        =   $producto_reemplazante->talla_nombre;
-                $cambio_talla->cantidad_cambiada        =   $cantidad;
-                $cambio_talla->cantidad_sin_cambio      =   $producto_cambiado->cantidad_detalle - $cantidad;
-                $cambio_talla->user_id                  =   Auth::user()->id;
-                $cambio_talla->user_nombre              =   Auth::user()->usuario;
+                $cambio_talla->cantidad_cambiada            =   $cantidad;
+                $cambio_talla->cantidad_sin_cambio          =   $producto_cambiado->cantidad_detalle - $cantidad;
+                $cambio_talla->user_id                      =   Auth::user()->id;
+                $cambio_talla->user_nombre                  =   Auth::user()->usuario;
+                $cambio_talla->sede_id                      =   Auth::user()->sede_id;
+                $cambio_talla->almacen_id                   =   $documento->almacen_id;
+                $cambio_talla->almacen_nombre               =   $documento->almacen_nombre;
                 $cambio_talla->save();
  
                 //====== ACTUALIZANDO ESTADO DEL DETALLE DEL DOCUMENTO =======
@@ -4672,7 +4786,7 @@ array:2 [
                 ->where('color_id', $producto_cambiado->color_id)
                 ->where('talla_id', $producto_cambiado->talla_id)
                 ->update([
-                    'estado_cambio_talla' => "CON CAMBIOS",
+                    'estado_cambio_talla'   => "CON CAMBIOS",
                     'cantidad_cambiada'     => $cantidad,
                     'cantidad_sin_cambio'   => $producto_cambiado->cantidad_detalle - $cantidad
                 ]);
@@ -4682,6 +4796,7 @@ array:2 [
             //======== MARCANDO DOC VENTA CON CAMBIO DE TALLA ========
             $documento->cambio_talla = '1';
             $documento->update();
+
 
             DB::commit();
             return response()->json(['success'=>true,'message'=>'ÉXITO, SE CAMBIARON LAS TALLAS DEL DOC N° '.$documento->serie.'-'.$documento->correlativo]);
@@ -5085,6 +5200,108 @@ array:5 [
             return response()->json(['success'=>false,'message'=> $th->getMessage()]);
         }
        
+    }
+
+    public function convertirCreate($id){
+
+        $this->authorize('haveaccess','documento_venta.index');
+
+        $productos          =   Producto::where('estado', 'ACTIVO')->get();
+        $documento          =   Documento::findOrFail($id);
+        $detalles           =   Detalle::where('documento_id',$id)->where('estado','ACTIVO')->get();
+        $tallas             =   Talla::where('estado','ACTIVO')->get();
+        $registrador        =   User::find($documento->user_id);
+        $almacen            =   Almacen::find($documento->almacen_id);
+        $cliente            =   Cliente::find($documento->cliente_id);
+        $sede               =   Sede::find($documento->sede_id);
+
+        $tipo_comprobante   =   DB::table('tabladetalles as td')
+                                ->select('td.*')
+                                ->where('td.tabla_id',21);
+
+        if($cliente->tipo_documento === 'DNI'){
+            $tipo_comprobante   =    $tipo_comprobante->where('td.parametro',"B")->get();
+        }
+        if($cliente->tipo_documento === 'RUC'){
+            $tipo_comprobante   =    $tipo_comprobante->where('td.parametro',"F")->get();
+        }
+
+                                
+        return view('ventas.documentos.convertir.index',[
+            'documento'         =>  $documento,
+            'detalles'          =>  $detalles,
+            'productos'         =>  $productos,
+            'tallas'            =>  $tallas,
+            'registrador'       =>  $registrador,
+            'almacen'           =>  $almacen,
+            'cliente'           =>  $cliente,
+            'tipo_comprobante'  =>  $tipo_comprobante[0],
+            'sede'              =>  $sede
+        ]);
+
+    }
+
+/*
+array:2 [
+  "documento_id"    => "8150"
+  "lstVenta"        => "[{"producto_id":565,"color_id":6,"producto_nombre":"KUSY","color_nombre":"NUDE CUERO","modelo_nombre":"KUSY","precio_venta":"45.00","porcentaje_descuento":"0.00","precio_venta_nuevo":"45.00","tallas":[{"talla_id":3,"cantidad":1,"talla_nombre":"37"}],"subtotal":45,"monto_descuento":0,"subtotal_nuevo":"45.00"},{"producto_id":610,"color_id":1,"producto_nombre":"SKYLA","color_nombre":"BLANCO CUERO","modelo_nombre":"SKYLA","precio_venta":"55.00","porcentaje_descuento":"0.00","precio_venta_nuevo":"55.00","tallas":[{"talla_id":3,"cantidad":1,"talla_nombre":"37"}],"subtotal":55,"monto_descuento":0,"subtotal_nuevo":"55.00"},{"producto_id":610,"color_id":6,"producto_nombre":"SKYLA","color_nombre":"NUDE CUERO","modelo_nombre":"SKYLA","precio_venta":"55.00","porcentaje_descuento":"0.00","precio_venta_nuevo":"55.00","tallas":[{"talla_id":3,"cantidad":1,"talla_nombre":"37"}],"subtotal":55,"monto_descuento":0,"subtotal_nuevo":"55.00"},{"producto_id":610,"color_id":45,"producto_nombre":"SKYLA","color_nombre":"BLANCO REPTIL","modelo_nombre":"SKYLA","precio_venta":"55.00","porcentaje_descuento":"0.00","precio_venta_nuevo":"55.00","tallas":[{"talla_id":1,"cantidad":1,"talla_nombre":"35"}],"subtotal":55,"monto_descuento":0,"subtotal_nuevo":"55.00"}]"
+]
+*/ 
+    public function convertirStore(Request $request){
+
+        try {
+
+            $documento_id   =   $request->get('documento_id');
+            if(!$documento_id){
+                throw new Exception("FALTA EL PARÁMETRO DOCUMENTO ID EN LA PETICIÓN");
+            }
+
+            $documento  =   Documento::find($documento_id);
+            if(!$documento){
+                throw new Exception("NO EXISTE EL DOCUMENTO DE VENTA EN LA BD");  
+            }
+
+            if($documento->convert_en_id){
+                throw new Exception("ESTE DOCUMENTO YA FUE CONVERTIDO");
+            }
+
+            $cliente    =   Cliente::find($documento->cliente_id);
+            if($cliente->tipo_documento !== 'DNI' && $cliente->tipo_documento !== 'RUC'){
+                throw new Exception("EL CLIENTE DEBE TENER DNI O RUC PARA GENERAR UN COMPROBANTE DE VENTA");
+            }
+
+            $tipo_venta =   null;
+            if($cliente->tipo_documento === 'DNI'){
+                $tipo_venta =   128;
+            }
+            if($cliente->tipo_documento === 'RUC'){
+                $tipo_venta =   127;
+            }
+
+            $request->merge(
+                [   
+                    'almacenSeleccionado'   =>  $documento->almacen_id,
+                    'sede_id'               =>  $documento->sede_id,
+                    'cliente_id'            =>  $documento->cliente_id,
+                    'condicion_id'          =>  $documento->condicion_id,
+                    'productos_tabla'       =>  $request->get('lstVenta'),
+                    'tipo_venta'            =>  $tipo_venta,
+                    'documento_convertido'  =>  $documento->id  
+                ]
+            );
+        
+        
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+
+        $docVentaRequest        =   DocVentaStoreRequest::createFrom($request);
+        $documentoController    =   new DocumentoController();
+        $res                    =   $documentoController->store($docVentaRequest);
+        $jsonResponse           =   $res->getData(); 
+
+        return $res;
+
     }
 
 }

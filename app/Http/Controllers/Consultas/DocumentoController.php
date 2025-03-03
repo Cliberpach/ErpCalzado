@@ -48,16 +48,16 @@ class DocumentoController extends Controller
     public function getTable(Request $request){
        
         try{
-            $tipo = $request->tipo;
-            $user = $request->user;
-            $fecha_desde = $request->fecha_desde;
-            $fecha_hasta = $request->fecha_hasta;
+            $tipo           = $request->tipo;
+            $user           = $request->user;
+            $fecha_desde    = $request->fecha_desde;
+            $fecha_hasta    = $request->fecha_hasta;
 
 
             if($tipo == 127 || $tipo == 128 || $tipo == 129)
             {
 
-                $consulta = Documento::where('estado','!=','ANULADO')->where('tipo_venta', $tipo);
+                $consulta = Documento::where('estado','!=','ANULADO')->where('tipo_venta_id', $tipo);
                 if($fecha_desde && $fecha_hasta)
                 {
                     $consulta = $consulta->whereBetween('fecha_documento', [$fecha_desde, $fecha_hasta]);
@@ -82,7 +82,7 @@ class DocumentoController extends Controller
                         'fecha' => Carbon::parse($doc->fecha_documento)->format( 'd/m/Y'),
                         'estado' => $doc->estado_pago,
                         'convertir' => $doc->convertir,
-                        'tipo' => $tipo
+                        'tipo' => $tipo,
                     ]);
                 }
 
@@ -93,7 +93,7 @@ class DocumentoController extends Controller
             }
             else if($tipo == 125)
             {
-                $consulta = Documento::where('estado','!=','ANULADO')->where('tipo_venta','!=',129);
+                $consulta = Documento::where('estado','!=','ANULADO')->where('tipo_venta_id','!=',129);
                 if($fecha_desde && $fecha_hasta)
                 {
                     $consulta = $consulta->whereBetween('fecha_documento', [$fecha_desde, $fecha_hasta]);
@@ -272,14 +272,15 @@ class DocumentoController extends Controller
     public function convertir($id)
     {
         $this->authorize('haveaccess','documento_venta.index');
-        $empresas = Empresa::where('estado', 'ACTIVO')->get();
-        $clientes = Cliente::where('estado', 'ACTIVO')->get();
-        $productos = Producto::where('estado', 'ACTIVO')->get();
-        $documento = Documento::findOrFail($id);
-        $detalles = Detalle::where('documento_id',$id)->where('estado','ACTIVO')->with(['lote','lote.producto'])->get();
-        $condiciones = Condicion::where('estado','ACTIVO')->get();
-        $fecha_hoy = Carbon::now()->toDateString();
-        $tallas     =   Talla::where('estado','ACTIVO')->get();
+
+        $empresas       =   Empresa::where('estado', 'ACTIVO')->get();
+        $clientes       =   Cliente::where('estado', 'ACTIVO')->get();
+        $productos      =   Producto::where('estado', 'ACTIVO')->get();
+        $documento      =   Documento::findOrFail($id);
+        $detalles       =   Detalle::where('documento_id',$id)->where('estado','ACTIVO')->with(['lote','lote.producto'])->get();
+        $condiciones    =   Condicion::where('estado','ACTIVO')->get();
+        $fecha_hoy      =   Carbon::now()->toDateString();
+        $tallas         =   Talla::where('estado','ACTIVO')->get();
 
         $fullaccess = false;
 
@@ -296,6 +297,7 @@ class DocumentoController extends Controller
                 $cont = $cont + 1;
             }
         }
+        
         return view('consultas.documentos.convertir',[
             'documento' => $documento,
             'detalles' => $detalles,
@@ -307,6 +309,7 @@ class DocumentoController extends Controller
             'condiciones' => $condiciones,
             'tallas'    => $tallas
         ]);
+
     }
 
     public function getDownload(Request $request)

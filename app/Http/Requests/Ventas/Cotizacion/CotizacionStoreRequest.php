@@ -58,7 +58,7 @@ class CotizacionStoreRequest extends FormRequest
     {
         return [
             'almacen.required'  => 'El campo almacén es obligatorio.',
-            'almacen.exists'    => 'El almacén seleccionado no existe o no está activo en la sede correspondiente.',
+            'almacen.exists'    => 'El almacén seleccionado no existe o está ANULADO.',
             
             'cliente.required'  => 'El campo cliente es obligatorio.',
             'cliente.exists'    => 'El cliente seleccionado no existe o no está activo.',

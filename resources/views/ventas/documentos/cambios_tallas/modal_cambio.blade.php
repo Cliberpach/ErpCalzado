@@ -214,15 +214,20 @@
 
     async function getStock(almacen_id,producto_id,color_id,talla_id){
         try {
+            toastr.clear();
+            mostrarAnimacion();
             const res   =   await axios.get(route('venta.cambiarTallas.getStock',{almacen_id,producto_id,color_id,talla_id}));
             if(res.data.success){
                 document.querySelector('#stock').value  =   res.data.stock[0].stock;
+                toastr.info(res.data.message,'OPERACIÓN COMPLETADA');
             }else{
                 toastr.error(res.data.exception,res.data.message);
             }
         } catch (error) {
             console.log(error);
             toastr.error(error.data.message,'ERROR AL OBTENER STOCK DE LA TALLA');
+        }finally{
+            ocultarAnimacion();
         }
     }
 

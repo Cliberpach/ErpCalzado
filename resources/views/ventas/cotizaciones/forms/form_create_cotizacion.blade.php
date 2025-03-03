@@ -1,5 +1,6 @@
 <form action="" method="POST" id="form-cotizacion">
     @csrf
+    
     <div class="row">
         <div class="col-12">
             <h4><b>Datos Generales</b></h4>

@@ -6,10 +6,9 @@
                     <div class="ibox">
                         <div class="ibox-title">
                             <h5>
-                                <a style="color: #FDEBD0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a> Documento con NOTAS DE CREDITO 
-                                <a style="color: #EBDEF0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>Documento de CONTINGENCIA
-                                <a style="color:#E3E9FE" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>Documento con cambio de Talla</h5>
-
+                            <a style="color: #FDEBD0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a> DOC CON NOTA DE CRÉDITO 
+                            <a style="color: #EBDEF0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CONVERTIDO
+                            <a style="color:#E3E9FE" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CON CAMBIO DE TALLA</h5>
                         </div>
                         <div class="ibox-content tables_wrapper">
                             <div class="row">
@@ -72,7 +71,7 @@
                                                         </td>
 
                                                         <td class="letrapequeña text-center">
-                                                            {{ item.doc_convertido }}
+                                                            {{ item.convert_de_serie }}
                                                         </td>
                                                         <td class="letrapequeña text-center">
 
@@ -142,7 +141,7 @@
                                                                     </template>
 
                                                                     <template v-if="item.sunat == '0' &&
-                                                                        item.tipo_venta_id != 129 &&
+                                                                        item.tipo_venta != 129 &&
                                                                         // dias(item) > 0 &&
                                                                         item.contingencia == '0'">
 
@@ -154,7 +153,7 @@
 
                                                                     <template v-if="
                                                                         item.sunat_contingencia == '0' &&
-                                                                        item.tipo_venta_id != 129 &&
+                                                                        item.tipo_venta != 129 &&
                                                                         item.contingencia == '1'">
 
                                                                         <b-dropdown-item @click="enviarSunat(item.id, item.contingencia)">
@@ -165,7 +164,7 @@
                                                                     
                                                                     <template v-if="(item.sunat == '1' ||
                                                                         item.notas > 0 ||item.sunat_contingencia == '1') &&
-                                                                        item.tipo_venta_id != 129">
+                                                                        item.tipo_venta != 129">
                                                                         <b-dropdown-item :href="routes(item.id, 'NOTAS')">
                                                                             <i class="fa fa-file-o" style="color: #77600e;"></i> Notas
                                                                         </b-dropdown-item>
@@ -178,9 +177,9 @@
                                                                         </b-dropdown-item>
                                                                     </template>
 
-                                                                    <template v-if="(item.tipo_venta_id == 129 && item.condicion == 'CONTADO' 
+                                                                    <template v-if="(item.tipo_venta == 129 && item.condicion == 'CONTADO' 
                                                                         && item.estado_pago == 'PAGADA') ||
-                                                                        (item.tipo_venta_id == 129 &&
+                                                                        (item.tipo_venta == 129 &&
                                                                         (item.condicion == 'CREDITO' ||
                                                                         item.condicion == 'CRÉDITO'))">
 
@@ -190,7 +189,7 @@
 
                                                                     </template>
 
-                                                                    <template v-if="item.tipo_venta_id == 129 &&
+                                                                    <template v-if="item.tipo_venta == 129 &&
                                                                         item.estado_pago == 'PENDIENTE'">
                                                                         <b-dropdown-item title="Guía Remisión" :href="routes(item.id, 'EDITAR')">
                                                                             <i class="fa fa-pencil"></i> Editar
@@ -201,9 +200,15 @@
                                                                         <i class="fas fa-exchange-alt" style="color: #3307ab;"></i> Cambio de Talla
                                                                     </b-dropdown-item>
 
+                                                                    <template v-if="item.tipo_venta == 129 && !item.convert_en_id">
+                                                                        <b-dropdown-item title="Convertir" :href="routes(item.id, 'CONVERTIR')">
+                                                                            <i class="fas fa-file-invoice" style="color: blue;"></i> Convertir
+                                                                        </b-dropdown-item>
+                                                                    </template>
+
                                                                     <template v-if="item.condicion == 'CONTADO' &&
                                                                         item.estado_pago == 'PENDIENTE' &&
-                                                                        item.tipo_venta_id == '129'">
+                                                                        item.tipo_venta == '129'">
                                                                         <b-dropdown-item title="Eliminar"  @click="Pagar(item)">
                                                                             <i class="fa fa-money" style="color: #007502;"></i> Pagar
                                                                         </b-dropdown-item>
@@ -211,9 +216,9 @@
 
                                                                     <template v-if="item.condicion == 'CONTADO' &&
                                                                         item.estado_pago == 'PENDIENTE' &&
-                                                                        item.tipo_venta_id != 129 &&
-                                                                        (item.convertir == '' || item.convertir == null)">
-                                                                        <b-dropdown-item title="Eliminar"  @click="Pagar(item)">
+                                                                        item.tipo_venta != 129 &&
+                                                                        (item.convert_de_id == '' || item.convert_de_id == null)">
+                                                                        <b-dropdown-item title="Pagar"  @click="Pagar(item)">
                                                                             <i class="fa fa-money" style="color: #007502;"></i> Pagar
                                                                         </b-dropdown-item>
                                                                     </template>
@@ -228,7 +233,7 @@
                                                                     </template>
 
                                                                     <template v-if="dias(item) <= 0 && item.estado == 'ACTIVO' &&
-                                                                        item.tipo_venta_id != '129' && item.sunat == '0'">
+                                                                        item.tipo_venta != '129' && item.sunat == '0'">
                                                                         <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="regularizarVenta(item.id)">
                                                                             <i class="fa fa-exchange"></i> ANULAR
                                                                         </b-dropdown-item>
@@ -706,6 +711,9 @@ export default {
                 case "CREATE": {
                     return route('ventas.documento.create');
                 }
+                case "CONVERTIR": {
+                    return route('ventas.documento.convertirCreate',{id});
+                }
             }
         },
         xmlElectronico(id) {
@@ -753,7 +761,7 @@ export default {
                 return {'background-color':"#FDEBD0"};
             }
 
-            if (aData.contingencia == '1') {
+            if (aData.convert_en_id) {
                 return {'background-color':"#EBDEF0"}
             }
 

@@ -460,14 +460,12 @@ function modificar(cotizacion,id) {
 }
 
 function comprobanteElectronico(id) {
-    var url = '{{ route("ventas.documento.comprobante", ":id")}}';
-    url = url.replace(':id',id+'-100');
+    const url = route("ventas.documento.comprobante", { id: id,size:100});
     window.open(url, "Comprobante SISCOM", "width=900, height=600")
 }
 
 function comprobanteElectronicoTicket(id) {
-    var url = '{{ route("ventas.documento.comprobante", ":id")}}';
-    url = url.replace(':id',id+'-80');
+    const url = route("ventas.documento.comprobante", { id: id,size:80});
     window.open(url, "Comprobante SISCOM", "width=900, height=600");
 }
 

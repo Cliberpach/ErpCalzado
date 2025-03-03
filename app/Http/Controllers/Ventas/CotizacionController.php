@@ -71,7 +71,8 @@ class CotizacionController extends Controller
                 )
                 ->join('clientes as cl', 'cl.id', '=', 'co.cliente_id')
                 ->leftJoin('cotizacion_documento as cd', 'cd.cotizacion_venta', '=', 'co.id')
-                ->leftJoin('pedidos as p', 'p.cotizacion_id', '=', 'co.id');
+                ->leftJoin('pedidos as p', 'p.cotizacion_id', '=', 'co.id')
+                ->where('co.estado','<>','ANULADO');
 
         $roles = DB::table('role_user as rl')
                 ->join('roles as r', 'r.id', '=', 'rl.role_id')
@@ -84,12 +85,11 @@ class CotizacionController extends Controller
             $query->where('co.sede_id', Auth::user()->sede_id);
         } else {
             
-            //====== USUARIOS PUEDEN VER SUS PROPIAS COTIZACIONES ======
+            //====== USUARIOS PUEDEN VER SOLO SUS PROPIAS COTIZACIONES ======
             $query->where('co.sede_id', Auth::user()->sede_id)
             ->where('co.registrador_id', Auth::user()->id);
             
         }
-        
            
         return DataTables::of($query->get())->make(true); 
     }

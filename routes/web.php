@@ -533,6 +533,10 @@ function(){
         Route::post('/actualizarStockDelete', 'Ventas\DocumentoController@actualizarStockDelete')->name('ventas.documento.actualizarStockDelete');
         Route::post('/actualizarStockEdit', 'Ventas\DocumentoController@actualizarStockEdit')->name('ventas.documento.actualizarStockEdit');
        
+        Route::get('convertir/create/{id}','Ventas\DocumentoController@convertirCreate')->name('ventas.documento.convertirCreate');
+        Route::post('convertir/store','Ventas\DocumentoController@convertirStore')->name('ventas.documento.convertirStore');
+
+
         Route::get('/getProductosVenta/', 'Ventas\DocumentoController@getProductosVenta')->name('ventas.documento.getProductosVenta');
 
 

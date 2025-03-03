@@ -374,7 +374,7 @@ div.content-animacion.sk__loading::after {
                             //======= ALERTA DE CONFIRMACIÓN ======
                             Swal.fire({
                                 title: res.data.message,
-                                text: 'Se generó una nota de ingreso y salida',
+                                text: 'Se generó una nota de ingreso y salida para el almacén del documento, además una nota de ingreso para el almacén cambios',
                                 icon: 'success',
                                 confirmButtonText: 'Aceptar'
                             });
