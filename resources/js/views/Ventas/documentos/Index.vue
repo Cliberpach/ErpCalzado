@@ -248,7 +248,7 @@
 
                                                 <template v-if="!loading && documentos.length == 0">
                                                     <tr>
-                                                        <td colspan="13" class="text-center">
+                                                        <td colspan="15" class="text-center">
                                                             <strong class="font-bold">No hay datos</strong>
                                                         </td>
                                                     </tr>
