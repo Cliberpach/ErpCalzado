@@ -2640,7 +2640,7 @@ array:27 [
                 $cont = $cont + 1;
             }
         }
-        return view('ventas.documentos.edit', [
+        return view('ventas.documentos.editar.edit', [
             'documento'     =>  $documento,
             'detalles'      =>  $detalles,
             'empresas'      =>  $empresas,

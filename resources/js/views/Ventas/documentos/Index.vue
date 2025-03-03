@@ -191,7 +191,7 @@
 
                                                                     <template v-if="item.tipo_venta == 129 &&
                                                                         item.estado_pago == 'PENDIENTE'">
-                                                                        <b-dropdown-item title="Guía Remisión" :href="routes(item.id, 'EDITAR')">
+                                                                        <b-dropdown-item title="Editar" :href="routes(item.id, 'EDITAR')">
                                                                             <i class="fa fa-pencil"></i> Editar
                                                                         </b-dropdown-item>
                                                                     </template>

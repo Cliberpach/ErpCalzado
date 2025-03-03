@@ -2088,19 +2088,26 @@ if (!function_exists('ifNoConvertido')) {
     function ifNoConvertido($id)
     {
         $doc = DocumentoDocumento::find($id);
-        if($doc->tipo_venta_id == '129')
-        {
+        
+        if($doc->convert_de_id){
+            return false;
+        }else{
             return true;
         }
-        else
-        {
-            if($doc->convertir)
-            {
-                return false;
-            }else{
-                return true;
-            }
-        }
+
+        // if($doc->tipo_venta_id == '129')
+        // {
+        //     return true;
+        // }
+        // else
+        // {
+        //     if($doc->convertir)
+        //     {
+        //         return false;
+        //     }else{
+        //         return true;
+        //     }
+        // }
     }
 }
 
