@@ -1015,11 +1015,7 @@
         }) 
     }
 
-    //============= ABRIR MODAL CLIENTE =============
-    function openModalCliente(){
-        $("#modal_cliente").modal("show");
-    }
-
+   
     function cargarDataTables(){
         table = new DataTable('#table-productos',
         {

@@ -198,6 +198,14 @@
                     className: "text-center"
                 },
                 {
+                    data: 'colaborador_nombre',
+                    className: "text-center"
+                },
+                {
+                    data: 'sede_nombre',
+                    className: "text-center"
+                },
+                {
                     data: null,
                     className: "text-center",
                     render: function(data) {

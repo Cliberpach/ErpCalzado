@@ -265,7 +265,7 @@
                     marcados con asterisco (*) son obligatorios.</small>
             </div>
             <div class="col-md-6 text-right">
-                <button disabled id="btnGuardarCliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente" style="color:white;"><i
+                <button id="btnGuardarCliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente" style="color:white;"><i
                         class="fa fa-save"></i> Guardar</button>
                 <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" @click.prevent="Cerrar"><i
                         class="fa fa-times"></i> Cancelar</button>
@@ -287,6 +287,9 @@
     const departamentos     =   @json($departamentos);
     const formCliente       =   document.querySelector('#frmCliente');
 
+    function openModalCliente(){
+        $("#modal_cliente").modal("show");
+    }
 
     function controlNroDoc(e){
         const tipoDocSimbolo    =   e.value;

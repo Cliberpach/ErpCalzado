@@ -4,6 +4,8 @@ style="text-transform:uppercase">
     <tr>
         <th></th>
         <th class="text-center">CAJA</th>
+        <th class="text-center">COLABORADOR</th>
+        <th class="text-center">SEDE</th>
         <th class="text-center">CANTIDAD INICIAL</th>
         <th class="text-center">FECHA APERTURA</th>
         <th class="text-center">FECHA CIERRE</th>

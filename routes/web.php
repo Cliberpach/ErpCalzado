@@ -1143,3 +1143,6 @@ Route::get('/get-colaborades/{id}','Pos\CajaController@getColaborades')->name('C
 Route::get('/get-producto-by-modelo/{modelo_id}', 'Almacenes\ProductoController@getProductosByModelo'); //VENTAS-NOTA SALIDA
 Route::get('/get-stocklogico/{almacen_id}/{producto_id}/{color_id}/{talla_id}', 'Almacenes\ProductoController@getStockLogico');
 
+Route::prefix('utilidades')->group(function(){
+    Route::get('getClientes', 'Ventas\ClienteController@getClientes')->name('utilidades.getClientes');
+});

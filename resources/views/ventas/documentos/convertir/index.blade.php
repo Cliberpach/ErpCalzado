@@ -1,8 +1,8 @@
 @extends('layout')
  @section('content')
 
-@section('consulta-active', 'active')
-@section('consulta-comprobantes-active', 'active')
+ @section('ventas-active', 'active')
+ @section('documento-active', 'active')
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">

@@ -2619,16 +2619,35 @@ array:27 [
     public function edit($id)
     {
         $this->authorize('haveaccess', 'documento_venta.index');
+
         $empresas       =   Empresa::where('estado', 'ACTIVO')->get();
-        $clientes       =   Cliente::where('estado', 'ACTIVO')->get();
         $productos      =   Producto::where('estado', 'ACTIVO')->get();
         $tallas         =   Talla::where('estado','ACTIVO')->get();
         $modelos        =   Modelo::where('estado','ACTIVO')->get();
         $documento      =   Documento::findOrFail($id);
         $detalles       =   Detalle::where('documento_id', $id)->where('estado', 'ACTIVO')->with(['lote', 'lote.producto'])->get();
         $condiciones    =   Condicion::where('estado', 'ACTIVO')->get();
+        $tipos_venta    = tipos_venta()->whereIn('parametro', ['F', 'B', 'N']);
+
         $fullaccess     =   false;
-        $fecha_hoy      =   Carbon::now()->toDateString();
+        
+        $registrador    =   User::find($documento->user_id);
+        $sede           =   Sede::find($documento->sede_id);
+        $almacenes      =   Almacen::where('estado','ACTIVO')
+                            ->where('tipo_almacen','PRINCIPAL')
+                            ->get();
+
+        $cliente        =   DB::table('clientes as c')
+                            ->select(
+                                'c.id',
+                                DB::raw('CONCAT(c.tipo_documento,":",c.documento,"-",c.nombre) as descripcion'),
+                            )
+                            ->where('c.id',$documento->cliente_id)
+                            ->where('c.estado','ACTIVO')
+                            ->get()[0]; 
+   
+
+        $departamentos  =   Departamento::all();
 
         if (count(Auth::user()->roles) > 0) {
             $cont = 0;
@@ -2640,18 +2659,26 @@ array:27 [
                 $cont = $cont + 1;
             }
         }
+
+
+
         return view('ventas.documentos.editar.edit', [
-            'documento'     =>  $documento,
-            'detalles'      =>  $detalles,
-            'empresas'      =>  $empresas,
-            'clientes'      =>  $clientes,
-            'productos'     =>  $productos,
-            'condiciones'   =>  $condiciones,
-            'fullaccess'    =>  $fullaccess,
-            'fecha_hoy'     =>  $fecha_hoy,
-            'tallas'        =>  $tallas,
-            'modelos'       =>  $modelos,
-            'departamentos'     =>  departamentos()
+            'documento'         =>  $documento,
+            'detalles'          =>  $detalles,
+            'empresas'          =>  $empresas,
+            'productos'         =>  $productos,
+            'condiciones'       =>  $condiciones,
+            'fullaccess'        =>  $fullaccess,
+            'tallas'            =>  $tallas,
+            'modelos'           =>  $modelos,
+            'departamentos'     =>  $departamentos,
+            'registrador'       =>  $registrador,
+            'almacenes'         =>  $almacenes,
+            'sede'              =>  $sede,
+            'cliente'           =>  $cliente,
+            'tipos_documento'   =>  tipos_documento(),
+            'tipo_clientes'     =>  tipo_clientes(),
+            'tipos_venta'       =>  $tipos_venta
         ]);
     }
 

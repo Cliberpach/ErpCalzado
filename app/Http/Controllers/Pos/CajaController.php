@@ -9,6 +9,7 @@ use App\Http\Requests\Pos\MovimientoCaja\MovimientoCajaAperturaRequest;
 use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Mantenimiento\Persona\Persona;
+use App\Mantenimiento\Sedes\Sede;
 use App\Pos\Caja;
 use App\Pos\MovimientoCaja;
 use App\User;
@@ -268,6 +269,7 @@ array:3 [▼
                 'id',
                 'caja_id',
                 'colaborador_id',
+                'sede_id',
                 'monto_inicial',
                 'monto_final',
                 'fecha_apertura',
@@ -277,7 +279,12 @@ array:3 [▼
                 'estado',
             ]);
         foreach ($movimientos as $key => $movimiento) {
+            $colaborador    =   Colaborador::find($movimiento->colaborador_id);
+            $sede           =   Sede::find($movimiento->sede_id);
+
             array_push($datos, [
+                'colaborador_nombre'    =>  $colaborador->nombre, 
+                'sede_nombre'           =>  $sede->nombre,
                 'id' => $movimiento->id,
                 'caja' => $movimiento->caja->nombre,
                 'cantidad_inicial' => $movimiento->monto_inicial,
