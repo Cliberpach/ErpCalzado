@@ -86,7 +86,9 @@ class DespachoController extends Controller
 
         //======== ADMIN PUEDE VER TODOS LOS DESPACHOS DE SU SEDE =====
         if (in_array('ADMIN', $roles)) {
+
             $query->where('ev.sede_despachadora_id', Auth::user()->sede_id);
+            
         } else {
             
             //====== USUARIOS PUEDEN VER SUS PROPIOS DESPACHOS ======

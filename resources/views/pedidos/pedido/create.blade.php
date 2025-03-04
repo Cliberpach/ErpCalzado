@@ -178,6 +178,7 @@
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 <script src="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.5/b-3.0.2/b-html5-3.0.2/b-print-3.0.2/date-1.5.2/r-3.0.2/sp-2.3.1/datatables.min.js"></script>
 <script>
+
     const tfootSubtotal         =   document.querySelector('.subtotal');
     const tfootTotal            =   document.querySelector('.total');
     const tfootIgv              =   document.querySelector('.igv');
@@ -196,8 +197,8 @@
                                         monto_descuento:0
                                     }
 
-    let pedidos_data_table  = null;
-    let carrito             =   [];
+    let pedidos_data_table      = null;
+    let carrito                 =   [];
     let dataTableStocksPedido   =   null;
 
 
@@ -537,7 +538,6 @@
     }
 
 
-
     //======== CALCULAR DESCUENTO ========
     const calcularDescuento = (producto_id,color_id,porcentaje_descuento)=>{
         const indiceExiste = carrito.findIndex((c)=>{
@@ -785,6 +785,7 @@
     }
 
     const pintarTableStocks = (producto)=>{
+
         let filas = ``;
         const   tableStocksBody     =   document.querySelector('#table-stocks-pedidos tbody');
         const   btnAgregarDetalle   =   document.querySelector('#btn_agregar_detalle')
@@ -859,8 +860,6 @@
         // Refrescar Select2
         $('#precio_venta').trigger('change');
     }
-
-
 
     //======== PINTAR SELECT PRODUCTOS =======
     function pintarSelectProductos(productos){

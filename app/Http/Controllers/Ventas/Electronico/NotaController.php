@@ -35,6 +35,7 @@ use Greenter\Model\Company\Company;
 use Greenter\Model\Company\Address;
 use App\Greenter\Utils\Util;
 use DateTime;
+use Illuminate\Support\Facades\Auth;
 
 class NotaController extends Controller
 {
@@ -106,12 +107,13 @@ class NotaController extends Controller
         $documento = Documento::findOrFail($request->documento_id);
         $fecha_hoy = Carbon::now()->toDateString();
         $productos = Producto::where('estado', 'ACTIVO')->get();
+
         //NOTAS
         //CREDITO -> 0
         //DEBITO -> 1
 
         //======= VALIDANDO QUE LA EMPRESA TENGA ACTIVA EL TIPO DE NOTA DE CRÉDITO A EMITIR =======
-        $validacion =   $this->isActive($documento);
+        $validacion =   $this->isActive($documento,Auth::user()->sede_id);
 
         if(count($validacion->existe) === 0){
             Session::flash('nota_credito_error', 'LA EMPRESA NO TIENE ACTIVA LA EMISIÓN DE '.$validacion->message.' ,Debe configurar en Mantenimiento\Empresas');
@@ -167,9 +169,10 @@ class NotaController extends Controller
 
     }
 
-    private function isActive($documento){
+    private function isActive($documento,$sede_id){
+
         //====== VERIFICANDO SI NOTAS DE CRÉDITO DEL TIPO DE DOCUMENTO ESTÁ ACTIVO EN LA EMPRESA =========
-        $tipo_venta     =   $documento->tipo_venta;
+        $tipo_venta     =   $documento->tipo_venta_id;
         $parametro      =   null; 
         $message        =   "";
 
@@ -185,15 +188,18 @@ class NotaController extends Controller
         if($tipo_venta == 129){
             $parametro  =   "NN";   //===== NOTA DEVOLUCIÓN =======
             $message    =   "NOTAS DE DEVOLUCIÓN DE NOTAS DE VENTA";
-
         }
 
-        $existe     =       DB::select('select td.descripcion,td.parametro,enf.estado 
-                            from empresa_numeracion_facturaciones as enf
-                            inner join tabladetalles as td on td.id=enf.tipo_comprobante
-                            where td.tabla_id=21 and td.parametro=? and enf.estado="ACTIVO"',
-                            [$parametro]);
+        $existe =   DB::table('empresa_numeracion_facturaciones as enf')
+                    ->select('enf.serie')
+                    ->join('tabladetalles as td', 'td.id', '=', 'enf.tipo_comprobante')
+                    ->where('td.parametro', $parametro)
+                    ->where('td.tabla_id', 21)
+                    ->where('enf.sede_id',$sede_id)
+                    ->where('enf.estado','ACTIVO')
+                    ->get();
 
+       
         return (object)["existe"=>$existe,"message"=>$message];
     }
 
@@ -342,20 +348,23 @@ class NotaController extends Controller
             $productosJSON = $request->get('productos_tabla');
             $productotabla = json_decode($productosJSON);
 
-       
 
             //========== PRODUCTOS PRESENTES EN LA NOTA DE CRÉDITO O DEVOLUCIÓN ===========
             foreach ($productotabla as $producto) {
                 
 
-                $detalle =  DB::select('select cdd.id 
+                $detalle =  DB::select('select 
+                            cdd.id 
                             from cotizacion_documento_detalles as cdd
-                            where cdd.documento_id=? and cdd.producto_id=?  and cdd.color_id=?
-                            and cdd.talla_id=?',[
-                                    $request->get('documento_id'),
-                                    $producto->producto_id,
-                                    $producto->color_id,
-                                    $producto->talla_id
+                            where 
+                            cdd.documento_id = ? 
+                            and cdd.producto_id = ?  
+                            and cdd.color_id = ?
+                            and cdd.talla_id = ?',[
+                                $request->get('documento_id'),
+                                $producto->producto_id,
+                                $producto->color_id,
+                                $producto->talla_id
                             ]);
 
                 NotaDetalle::create([
@@ -572,6 +581,7 @@ class NotaController extends Controller
             }
             
             DB::commit();
+
             if(!isset($request->nota_venta))
             {
                 // $envio_post = self::sunat_post($nota->id);
@@ -1841,4 +1851,73 @@ class NotaController extends Controller
             return array('success' => false, 'mensaje' => $e->getMessage());
         }
     }
+
+
+    public function getCorrelativo($sede_id,$tipo_venta_id){
+
+        $parametro      =   null;
+        $tipDocAfectado =   null;
+
+        //===== 127:FACTURA | 128:BOLETA | 129:NOTA DE VENTA ======
+        if($tipo_venta_id == 127){
+            $tipDocAfectado =   '01';
+            $parametro      =   "FF";   //====== NOTA CRÉDITO FACTURA =======
+            $message        =   "NOTAS DE CRÉDITO DE FACTURAS ELECTRÓNICAS";
+        }
+        if($tipo_venta_id == 128){
+            $tipDocAfectado =   '03';
+            $parametro      =   "BB";   //======= NOTA CRÉDITO BOLETA =====
+            $message        =   "NOTAS DE CRÉDITO DE BOLETAS ELECTRÓNICAS";
+        }
+        if($tipo_venta_id == 129){
+            $tipDocAfectado =   '04';
+            $parametro      =   "NN";   //===== NOTA DEVOLUCIÓN =======
+            $message        =   "NOTAS DE DEVOLUCIÓN DE NOTAS DE VENTA";
+        }
+
+        $existe =   DB::table('empresa_numeracion_facturaciones as enf')
+                    ->select('enf.serie')
+                    ->join('tabladetalles as td', 'td.id', '=', 'enf.tipo_comprobante')
+                    ->where('td.parametro', $parametro)
+                    ->where('td.tabla_id', 21)
+                    ->where('enf.sede_id',$sede_id)
+                    ->where('enf.estado','ACTIVO')
+                    ->get();
+
+
+        //===== OBTENIENDO LA ÚLTIMA NOTA ELECTRÓNICA DE LA SEDE =======
+        $ultima_nota =     DB::select('SELECT n.correlativo 
+                            FROM nota_electronica AS n
+                            WHERE n.sede_id = ? 
+                            AND n.tipDocAfectado = ?
+                            ORDER BY n.id DESC 
+                            LIMIT 1',
+                            [
+                                $sede_id,
+                                $tipDocAfectado
+                            ]);
+
+        //======== EN CASO YA EXISTAN NOTAS GENERADAS =====
+        if(count($ultima_nota) > 0){
+            $correlativo    =   $ultima_nota[0]->correlativo + 1;
+            return (object)['serie'=>$ultima_nota[0]->serie,'correlativo'=>$correlativo];
+        }
+
+        //===== BUSCAMOS EL REGISTRO DEL COMPROBANTE RESÚMENES =======
+        //===== 186 EN PRODUCCION - 190 EN LOCALHOST =====
+        $enf    =    DB::select('select 
+                            enf.numero_iniciar,
+                            enf.serie 
+                            from empresa_numeracion_facturaciones as enf
+                            inner join tabladetalles as td on td.id = enf.tipo_comprobante
+                            where 
+                            td.parametro = "R" 
+                            AND td.tabla_id = 21 
+                            AND enf.estado = "ACTIVO"
+                            AND enf.sede_id = ?',
+                            [$sede_id])[0];
+
+        return (object)['serie'=>$enf->serie,'correlativo'=>$enf->numero_iniciar];
+    }
+
 }

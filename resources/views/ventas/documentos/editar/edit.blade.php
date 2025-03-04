@@ -1,10 +1,11 @@
 @extends('layout') 
 @section('content')
 
-@include('ventas.documentos.modal-envio')
 
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
+
+@include('ventas.documentos.modal-envio')
 
 @include('ventas.cotizaciones.modal-cliente') 
 
@@ -186,6 +187,7 @@
                                     <h4 class=""><b>Seleccione productos</b></h4>
                                 </div>
                                 <div class="panel-body ibox-content">
+
                                     <div class="sk-spinner sk-spinner-wave">
                                         <div class="sk-rect1"></div>
                                         <div class="sk-rect2"></div>
@@ -194,28 +196,34 @@
                                         <div class="sk-rect5"></div>
                                     </div>
 
-                                    <div class="col-lg-3 col-xs-12 mb-3">
-                                        <label class="required">Modelo</label>
-                                        <select id="modelo"
-                                            class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
-                                            onchange="getProductosByModelo(this.value)" >
-                                            <option></option>
-                                            @foreach ($modelos as $modelo)
-                                                <option value="{{ $modelo->id }}"
-                                                    {{ old('modelo') == $modelo->id ? 'selected' : '' }}>
-                                                    {{ $modelo->descripcion }}</option>
-                                            @endforeach
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
+                                        <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
+                                        <select 
+                                            id="producto"
+                                            class=""
+                                            onchange="getColoresTallas()" >
+                                            <option value=""></option>
                                         </select>
-                                        <div class="invalid-feedback"><b><span
-                                                    id="error-producto"></span></b></div>
                                     </div>
 
-                                    @include('ventas.documentos.table-stocks') 
+                                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mb-3">
+                                        <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
+                                        <select id="precio_venta" class="select2_form form-control">
+                                        </select>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="table-responsive">
+                                            @include('ventas.documentos.editar.tables.tbl_stock') 
+                                        </div>
+                                    </div>
+                                    
+
                                     <div class="col-lg-2 col-xs-12">
                                         <div class="form-group">
                                             <label class="col-form-label" for="amount">&nbsp;</label>
                                             <button type=button class="btn btn-block btn-warning" style='color:white;'
-                                                id="btn_agregar_detalle" disabled> <i class="fa fa-plus"></i>
+                                                id="btn_agregar_detalle"> <i class="fa fa-plus"></i>
                                                 AGREGAR</button>
                                         </div>
                                     </div> 
@@ -231,7 +239,16 @@
                                     <h4 class=""><b>Detalle del Documento de Venta</b></h4>
                                 </div>
                                 <div class="panel-body ibox-content">
-                                    @include('ventas.documentos.table-detalle-en')
+                                    <div class="col-12">
+                                        <div class="table-responsive">
+                                            @include('ventas.documentos.editar.tables.tbl_detalle')
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="table-responsive">
+                                            @include('ventas.documentos.editar.tables.tbl_montos')
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -249,13 +266,11 @@
 
                         <div class="col-md-6 text-right">
 
-                            {{-- <a href="{{ route('ventas.documento.index') }}" id="btn_cancelar" class="btn btn-w-m btn-default">
-                                <i class="fa fa-arrow-left"></i> Regresar
-                            </a> --}}
+                      
                             <a onclick="regresarClick(event)" href="javascript:void(0)" id="btn_cancelar" class="btn btn-w-m btn-default">
                                 <i class="fa fa-arrow-left"></i> Regresar
                             </a>
-                            <button type="button" id="btn_grabar" class="btn btn-w-m btn-primary">
+                            <button type="submit" form="formActualizarVenta"  class="btn btn-w-m btn-primary">
                                 <i class="fa fa-save"></i> Grabar
                             </button>
                         </div>
@@ -266,20 +281,13 @@
     </div>
 </div>
 
-@include('consultas.ventas.documentos_no.modal')
-@include('consultas.ventas.documentos_no.modalLote')
-@include('consultas.ventas.documentos_no.modalPago')
-@include('consultas.ventas.documentos_no.modalLoteRecientes')
+
 @stop
 
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css') }}"
-    rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/datapicker/datepicker3.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/daterangepicker/daterangepicker-bs3.css') }}" rel="stylesheet">
+
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<!-- DataTable -->
-<link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
 
 <style>
     .my-swal {
@@ -291,26 +299,17 @@
 @endpush
 
 @push('scripts')
-<!-- Data picker -->
-<script src="{{ asset('Inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
-<!-- Date range use moment.js same as full calendar plugin -->
-<script src="{{ asset('Inspinia/js/plugins/fullcalendar/moment.min.js') }}"></script>
-<!-- Date range picker -->
-<script src="{{ asset('Inspinia/js/plugins/daterangepicker/daterangepicker.js') }}"></script>
 <!-- Select2 -->
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
-<!-- DataTable -->
-<script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
 
 
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 <script>
-    var clientes_global = [];
 
     const tableDetalleBody      =   document.querySelector('#table-detalle tbody');   
     const tableStocksBody       =   document.querySelector('#table-stocks tbody');   
@@ -318,7 +317,6 @@
     const tallasBD              =   @json($tallas);
     const documento             =   @json($documento);
     const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
-    const btnGrabar             =   document.querySelector('#btn_grabar');
 
     const tfootSubtotal         =   document.querySelector('.subtotal');
     const tfootEmbalaje         =   document.querySelector('.embalaje');
@@ -329,30 +327,34 @@
     const tfootDescuento        =   document.querySelector('.descuento');
 
 
-    const inputSubTotal         =   document.querySelector('#monto_sub_total');
-    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
-    const inputEnvio            =   document.querySelector('#monto_envio');
-    const inputTotal            =   document.querySelector('#monto_total');
-    const inputIgv              =   document.querySelector('#monto_total_igv');
-    const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
-    const inputMontoDescuento   =   document.querySelector('#monto_descuento');
+    const amounts       =   {
+                                    subtotal:0,
+                                    embalaje:0,
+                                    envio:0,
+                                    total:0,
+                                    igv:0,
+                                    totalPagar:0,
+                                    monto_descuento:0
+                                }
 
-
-    let igv=0;
-    let subtotal=0;
-    let total=0;
+    let dtDetalleVenta      =   null;
+    let dtStocksVenta       =   null;
 
     let carrito = [];
     let modelo_id;
     let asegurarCierre=5;
 
     document.addEventListener('DOMContentLoaded',async ()=>{
-        obtenerClientes();
+
+        dtStocksVenta       =    iniciarDataTable('table-stocks');
+        dtDetalleVenta      =    iniciarDataTable('table-detalle');
+
+        events();
+
         loadSelect2();
         cargarProductosPrevios();     //======== FORMATEAR DETALLE ==============
         asegurarCierre=1;
        
-        //cargarClientes();       //===== CARGADO DE CLIENTES ========
         await getTipoEnvios();
         await getTiposPagoEnvio();
         await getOrigenesVentas();
@@ -360,7 +362,6 @@
         const tipo_envio    =   $("#tipo_envio").select2('data')[0].text;
         await getEmpresasEnvio(tipo_envio);
         setUbicacionDepartamento(13,'first');
-        events();
         eventsModalEnvio();
        
     })
@@ -369,8 +370,54 @@
 
         eventsCliente();
 
-        btnAgregarDetalle.addEventListener('click',()=>{
-            this.agregarProducto();
+
+        btnAgregarDetalle.addEventListener('click',async ()=>{
+
+            //========= VALIDAR SELECCIÓN DE PRECIO DE VENTA ======
+            if(!$('#precio_venta').val()){
+                toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA','OPERACIÓN INCORRECTA');
+                return;
+            }
+            
+            //======== ANIMACIÓN ======
+            mostrarAnimacion();
+            //======= LIMPIAR ALERTAS PREVIAS ======
+            toastr.clear();
+
+            //const inputsCantidad        = document.querySelectorAll('.inputCantidad');
+
+            //========= AGREGAR PRODUCTO ========
+            agregarProducto();
+
+            //======== REORDENAR CARRITO =======
+            reordenarCarrito();
+
+            //========= CALCULAR SUBTOTAL =====
+            calcularSubTotal();
+
+            //========= DESTRUIR DATATABLE DETALLE VENTA ======
+            destruirDataTable(dtDetalleVenta);
+
+            //======== LIMPIAR TABLA DETALLE VENTA ======
+            limpiarTabla('table-detalle');
+
+            //========= PINTAR TABLA DETALLE VENTA =======
+            pintarDetalle();
+            
+            //===== RECALCULANDO DESCUENTOS, ESTO EDITA LA TABLA DETALLE VENTA TMB =====
+            carrito.forEach((c)=>{
+                calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+            })
+
+            //======= INICIAR DATATABLE DETALLE VENTA =======
+            dtDetalleVenta  =   iniciarDataTable('table-detalle');
+
+            //======= CALCULAR MONTOS ======
+            calcularMontos();
+
+            toastr.info('PRODUCTO AGREGADO');
+            ocultarAnimacion();
+
         })
 
 
@@ -435,6 +482,7 @@
                 //===== CALCULAR Y PINTAR MONTOS =======
                 calcularMontos();
             }
+
         })
 
         //===== ELIMINAR PRODUCTO-COLOR DEL CARRITO =========
@@ -446,45 +494,25 @@
         })
 
         //======= GRABAR =======
-        btnGrabar.addEventListener('click',(e)=>{
+        document.querySelector('#formActualizarVenta').addEventListener('submit',(e)=>{
             e.preventDefault();
-            cargarProductos();
-            let correcto = validarCampos();
 
-            // $('#monto_sub_total').val($('.subtotal').text())
-            // $('#monto_total_igv').val($('.igv').text())
-            // $('#monto_total').val($('.total').text())
-            //======== RECALCULANDO MONTOS =======
-            calcularMontos();
-
-
-            if (correcto) {
-                let total = $('#monto_total').val();
-                $('#monto_venta').val(total);
-                $('#importe_venta').val(total);
-                let condicion_id = $('#condicion_id').val();
-                let cadena = condicion_id.split('-');
-                if(cadena[1] != 'CONTADO')
-                {
-                    $('#importe_form').val(0.00);
-                    $('#efectivo_form').val(0.00);
-                    $('#tipo_pago_id').val('');
-                    enviarVenta();
-                }
-                else
-                {
-                    $('#importe_form').val(0.00);
-                    $('#efectivo_form').val(0.00);
-                    $('#tipo_pago_id').val('');
-                    enviarVenta();
-                }
+            toastr.clear();
+            if(carrito.length === 0){
+                toastr.error('EL DETALLE DE VENTA ESTÁ VACÍO!!!');
+                return;
             }
+
+            actualizarVenta(e.target);
+       
         })
 
         //=========== MODAL DESPACHO =========
         document.querySelector('.btn-envio').addEventListener('click',()=>{
+
             //======= COLCANDO EN MODAL ENVIO EL NOMBRE DEL CLIENTE =======
-            const cliente_nombre            =   $("#cliente_id").find('option:selected').text();
+            const cliente_nombre            =   $("#cliente").find('option:selected').text();
+            console.log(cliente_nombre);
 
             const nroDocumento              =   cliente_nombre.split(':')[1].split('-')[0].trim();
             const cliente_nombre_recortado  =   cliente_nombre.split('-')[1].trim()
@@ -591,43 +619,97 @@
             },
         });
 
+        $('#producto').select2({
+            width:'100%',
+            placeholder: "Buscar producto...",
+            allowClear: true,
+            language: {
+                inputTooShort: function(args) {
+                    var min = args.minimum;
+                    return "Por favor, ingrese " + min + " o más caracteres";
+                },
+                searching: function() {
+                    return "BUSCANDO...";
+                },
+                noResults: function() {
+                    return "No se encontraron productos";
+                }
+            },
+            ajax: {
+                url: '{{route('utilidades.getProductosTodos')}}', 
+                dataType: 'json',
+                delay: 250, 
+                data: function(params) {
+                    return {
+                        search: params.term,
+                        almacen_id: $('#almacen').val(),
+                        page: params.page || 1  
+                    };
+                },
+                processResults: function(data,params) {
+                    if(data.success){
+                        params.page     =   params.page || 1;
+                        const productos =   data.productos;
+                        return {
+                            results: productos.map(item => ({
+                                id: item.producto_id,
+                                text: item.producto_completo 
+                            })),
+                            pagination: {
+                                more: data.more 
+                            }
+                        };
+                    }else{
+                        toastr.error(data.message,'ERROR EN EL SERVIDOR');
+                        return {
+                            results:[]
+                        }
+                    }
+                    
+                },
+                cache: true
+            },
+            minimumInputLength: 2,
+            templateResult: function(data) {
+                if (data.loading) {
+                    return $('<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>');
+                }
+                return data.text;
+            },
+        });
+
     }
 
-    //======== OBTENER CLIENTES =========
-    function obtenerClientes() {
-        clientes_global = [];
-        $("#cliente_id").empty().trigger('change');
-        $("#cliente_id").removeAttr('onchange', 'obtenerTipocliente(this.value)');
-        $('#panel_detalle').children('.ibox-content').toggleClass('sk-loading');
-        axios.post('{{ route('ventas.customers_all') }}',{'_token': $('input[name=_token]').val(), 'tipo_id': $('#tipo_venta').val()}).then(response => {
+    function cambiarCondicion(condicion_id) {
 
-            let data = response.data;
-            clientes_global = data.clientes;
-            if (data.clientes.length > 0) {
-                $('#cliente_id').append('<option></option>').trigger('change');
-                for(var i = 0;i < data.clientes.length; i++)
-                {
-                    var newOption = '';
-                    if(data.clientes[i].id == '{{$documento->cliente_id}}')
-                    {
-                        newOption = '<option value="'+data.clientes[i].id+'" selected tabladetalle="'+data.clientes[i].tabladetalles_id+'">'+data.clientes[i].tipo_documento + ': ' + data.clientes[i].documento + ' - ' + data.clientes[i].nombre+'</option>'
-                    }
-                    else
-                    {
-                        newOption = '<option value="'+data.clientes[i].id+'" tabladetalle="'+data.clientes[i].tabladetalles_id+'">'+data.clientes[i].tipo_documento + ': ' + data.clientes[i].documento + ' - ' + data.clientes[i].nombre+'</option>'
-                    }
-                    $('#cliente_id').append(newOption).trigger('change');
+        if (condicion_id) {
+            const condiciones           = @json($condiciones);
+            const condicion_filtrada    = condiciones.find((c) => c.id == condicion_id);
+            const dias                  = condicion_filtrada.dias;
+
+            const fecha_registro = @json($documento->fecha_documento);
+
+            if (fecha_registro) {
+
+                const fecha = new Date(fecha_registro);
+
+                if (isNaN(fecha.getTime())) {
+                    console.error("Fecha de vencimiento inválida");
+                    return;
                 }
 
-            } else {
-                toastr.error('Clientes no encontrados.', 'Error');
-            }
-            $('#tipo_cliente_documento').val(data.tipo);
-            $("#cliente_id").attr('onchange', 'obtenerTipocliente(this.value)');
-            obtenerTipocliente(1)
-            $('#panel_detalle').children('.ibox-content').toggleClass('sk-loading');
-        })
+                fecha.setDate(fecha.getDate() + dias);
+
+                const nueva_fecha_vencimiento = fecha.toISOString().split('T')[0]; 
+
+                document.querySelector('#fecha_vencimiento').value = nueva_fecha_vencimiento;
+            } 
+        }
     }
+
+
+
+  
 
    
     function regresarClick(event){
@@ -640,35 +722,38 @@
 
     //===== ELIMINAR PRODUCTO COLOR ====
     function eliminarProductoColor(pc){
+
        //========== obteniendo producto_id color_id ======
        const producto_id    =   pc.getAttribute('data-producto');
        const color_id       =   pc.getAttribute('data-color');
     
 
-       //===== obteniendo el item del carrito ========
+       //===== OBTENIENDO ITEM DEL CARRITO ========
         const item = carrito.filter((c)=>{
             return c.producto_id == producto_id && c.color_id == color_id;
         })
 
     
-        //=== formando objeto ====
+        //=== FORMANDO OBJETO ====
          const producto = {
             producto_id    : producto_id,
             color_id       : color_id,
             tallas         :   item[0].tallas
         }
 
-         //===== eliminando del carrito ===
-         carrito = carrito.filter((c)=>{
+        //===== ELIMINANDO DEL CARRITO ===
+        carrito = carrito.filter((c)=>{
               return !(c.producto_id == producto_id && c.color_id == color_id);
-         })
+        })
 
+        //this.actualizarStockLogico(producto,'eliminar')
 
-        this.actualizarStockLogico(producto,'eliminar')
-
-        this.getProductosByModelo(modelo_id);
+        destruirDataTable(dtDetalleVenta);
+        limpiarTabla('table-detalle')
         pintarDetalle();
+        dtDetalleVenta  =   iniciarDataTable('table-detalle');
         calcularMontos();
+
         toastr.success(`${item[0].producto_nombre} - ${item[0].color_nombre}`,'ELIMINADO DEL DETALLE');
        
     }
@@ -692,6 +777,101 @@
         tfootTotal.textContent      =   cotizacion.total;
         tfootIgv.textContent        =   cotizacion.total_igv;
         tfootTotalPagar.textContent =   cotizacion.total_pagar;
+    }
+
+    function actualizarVenta(formActualizarVenta){
+
+        const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: false
+        });
+        swalWithBootstrapButtons.fire({
+        title: "Desea actualizar el documento de venta?",
+        text: "Se realizarán cambios",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, actualizar!",
+        cancelButtonText: "No!",
+        reverseButtons: true
+        }).then(async (result) => {
+        if (result.isConfirmed) {
+           
+            try {
+
+                Swal.fire({
+                    title: 'Actualizando documento de venta...',
+                    text: 'Por favor, espera',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                
+                const documento_id  =   @json($documento->id);
+                const formData      =   new FormData(formActualizarVenta);
+                formData.append('lstVenta',JSON.stringify(carrito));
+                formData.append('amounts',JSON.stringify(amounts));
+                formData.append('tipo_venta',@json($documento->tipo_venta_id));
+
+                const res           =   await axios.post(route('ventas.documento.update',{id:documento_id}),formData,{
+                    headers: {
+                        "X-HTTP-Method-Override": "PUT"
+                    }
+                });
+
+                if(res.data.success){
+
+                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+
+                    let url_open_pdf = '{{ route("ventas.documento.comprobante", [":id", ":size"]) }}'
+                    .replace(':id', res.data.documento_id)
+                    .replace(':size', 80);
+
+                    window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
+                    location    = "{{ route('ventas.documento.index') }}";
+
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    Swal.close();
+                }
+
+            } catch (error) {
+                if (error.response) {
+                    if (error.response.status === 422) {
+                        const errors = error.response.data.errors;
+                        pintarErroresValidacion(errors, 'error');
+                        Swal.close();
+                        toastr.error("ERRORES DE VALIDACIÓN!!!");
+                    } else {
+                        Swal.close();
+                        toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                    }
+                } else if (error.request) {
+                    Swal.close();
+                    toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+                } else {
+                    toastr.error(error,'ERROR EN LA PETICIÓN ACTUALIZAR VENTA');
+                    Swal.close();
+                }    
+            }
+
+        } else if (
+            /* Read more about handling dismissals below */
+            result.dismiss === Swal.DismissReason.cancel
+        ) {
+            swalWithBootstrapButtons.fire({
+            title: "Operación cancelada",
+            text: "No se realizaron acciones",
+            icon: "error"
+            });
+        }
+        });
     }
 
 
@@ -844,218 +1024,87 @@
         $('#productos_tabla').val(JSON.stringify(carrito));
     }
 
+    function obtenerInputsLlenos(){
 
-    //===== VALIDAR CAMPOS ======
-    function validarCampos() {
-        let correcto = true;
-        let moneda = $('#moneda').val();
-        let observacion = $('#observacion').val();
-        let condicion_id = $('#condicion_id').val();
-        let fecha_documento_campo = $('#fecha_documento_campo').val();
-        let fecha_atencion_campo = $('#fecha_atencion_campo').val();
-        let fecha_vencimiento_campo = $('#fecha_vencimiento_campo').val();
-        let empresa_id = $('#empresa_id').val();
-        let cliente_id = $('#cliente_id').val();
-        let tipo_venta = $('#tipo_venta').val();
-
-
-        let detalles = $('#productos_tabla').val();
-        let detalles_convertido = JSON.parse(detalles);
-        if (detalles_convertido.length < 1) {
-            correcto = false;
-            toastr.error('El documento de venta debe tener almenos un producto vendido.');
-        }
-        if (moneda == null || moneda == '') {
-            correcto = false;
-            toastr.error('El campo moneda es requerido.');
-        }
-        if (condicion_id == null || condicion_id == '') {
-            correcto = false;
-            toastr.error('El campo condición es requerido.');
-        }
-        if (fecha_documento_campo == null || fecha_documento_campo == '') {
-            correcto = false;
-            toastr.error('El campo fecha de documento es requerido.');
-        }
-        if (fecha_atencion_campo == null || fecha_atencion_campo == '') {
-            correcto = false;
-            toastr.error('El campo fecha de atención es requerido.');
-        }
-        if (fecha_vencimiento_campo == null || fecha_vencimiento_campo == '') {
-            correcto = false;
-            toastr.error('El campo fecha de vencimiento es requerido.');
-        }
-        if(clientes_global.length > 0)
-        {
-            let index = clientes_global.findIndex(cliente => cliente.id == cliente_id);
-            if(index != undefined)
-            {
-                let cliente = clientes_global[index];
-                if(cliente != undefined)
-                {
-                    if(convertFloat(tipo_venta) === 127 && cliente.tipo_documento != 'RUC')
-                    {
-                        correcto = false;
-                        toastr.error('El tipo de comprobante seleccionado requiere que el cliente tenga RUC.');
-                    }
-
-                    if(convertFloat(tipo_venta) === 128 && cliente.tipo_documento != 'DNI')
-                    {
-                        correcto = false;
-                        toastr.error('El tipo de comprobante seleccionado requiere que el cliente tenga DNI.');
-                    }
-                }
-                else{
-                    correcto = false;
-                    toastr.error('Ocurrió un error porfavor seleccionar nuevamente un cliente.');
-                }
-            }
-            else{
-                correcto = false;
-                toastr.error('Ocurrió un error porfavor seleccionar nuevamente un cliente.');
-            }
-        }
-        else{
-            correcto = false;
-            toastr.error('Ocurrió un error porfavor recargar la pagina.');
-        }
-
-        if (fecha_documento_campo > fecha_vencimiento_campo) {
-            correcto = false;
-            toastr.error('El campo fecha de vencimiento debe ser mayor a la fecha de atención.');
-        }
-        if (empresa_id == null || empresa_id == '') {
-            correcto = false;
-            toastr.error('El campo empresa es requerido.');
-        }
-        if (cliente_id == null || cliente_id == '') {
-            correcto = false;
-            toastr.error('El campo cliente es requerido.');
-        }
-        if (tipo_venta == null || tipo_venta == '') {
-            correcto = false;
-            toastr.error('El campo tipo de venta es requerido.');
-        }
-
-        return correcto;
     }
 
+   
     //=========== AGREGAR PRODUCTOS AL CARRITO =============
     async function agregarProducto() {
-        document.getElementById('overlay').style.display = 'flex';
 
-        const inputsCantidad = document.querySelectorAll('.inputCantidad:not([disabled])');
-
+        const inputsCantidad = document.querySelectorAll('.inputCantidad');
+            
         for (const ic of inputsCantidad) {
-                ic.classList.remove('inputCantidadIncorrecto');
-                const cantidad = ic.value ? ic.value : null;
 
-                if (cantidad) {
-                    try {
-                        console.log('Validando cantidad del producto...');
-                        const cantidadValida = await validarCantidadCarrito(ic);
-                        console.log('Cantidad válida:', cantidadValida);
+            const cantidad = ic.value ? ic.value : null;
+            if (cantidad) {
 
-                        if (cantidadValida) {
-                            const producto = this.formarProducto(ic);
-                            const indiceExiste = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
-                            
-                            if (indiceExiste == -1) {
-                                console.log('Producto no encontrado en el carrito. Agregando nuevo producto...');
+                const producto      = formarProducto(ic);
+                const indiceExiste  = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+                //===== PRODUCTO NUEVO =====
+                if (indiceExiste == -1) {
                                 const objProduct = {
-                                    producto_id: producto.producto_id,
-                                    color_id: producto.color_id,
-                                    producto_nombre: producto.producto_nombre,
-                                    color_nombre: producto.color_nombre,
-                                    precio_venta: producto.precio_venta,
-                                    monto_descuento:0,
-                                    porcentaje_descuento:0,
-                                    precio_venta_nuevo:0,
-                                    subtotal_nuevo:0,
+                                    producto_id:            producto.producto_id,
+                                    color_id:               producto.color_id,
+                                    modelo_nombre:          producto.modelo_nombre,
+                                    producto_nombre:        producto.producto_nombre,
+                                    producto_codigo:        producto.producto_codigo,
+                                    color_nombre:           producto.color_nombre,
+                                    precio_venta:           producto.precio_venta,
+                                    monto_descuento:        0,
+                                    porcentaje_descuento:   0,
+                                    precio_venta_nuevo:     0,
+                                    subtotal_nuevo:         0,
                                     tallas: [{
-                                        talla_id: producto.talla_id,
-                                        talla_nombre: producto.talla_nombre,
-                                        cantidad: producto.cantidad
+                                        talla_id:           producto.talla_id,
+                                        talla_nombre:       producto.talla_nombre,
+                                        cantidad:           producto.cantidad
                                     }]
                                 };
 
                                 carrito.push(objProduct);
-                                asegurarCierre = 1;
-                                await this.actualizarStockLogico(producto, "nuevo");
-                                console.log('Producto agregado al carrito:', objProduct);
-                            } else {
-                                console.log('Producto encontrado en el carrito. Modificando existente...');
-                                const productoModificar = carrito[indiceExiste];
-                                const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
-                                
-                                productoModificar.precio_venta = producto.precio_venta;
-
-                                if (indexTalla !== -1) {
-                                    const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
-                                    productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
-                                    carrito[indiceExiste] = productoModificar;
-                                    asegurarCierre = 1;
-                                    await actualizarStockLogico(producto, "editar", cantidadAnterior);
-                                    console.log('Producto modificado:', productoModificar);
-                                } else {
-                                    console.log('Talla del producto no encontrada. Agregando nueva talla...');
-                                    const objTallaProduct = {
-                                        talla_id: producto.talla_id,
-                                        talla_nombre: producto.talla_nombre,
-                                        cantidad: producto.cantidad
-                                    };
-                                    productoModificar.tallas.push(objTallaProduct);
-                                    carrito[indiceExiste] = productoModificar;
-                                    asegurarCierre = 1;
-                                    await actualizarStockLogico(producto, "nuevo");
-                                    console.log('Nueva talla agregada:', objTallaProduct);
-                                }
-                            }
-                        } else {
-                            ic.classList.add('inputCantidadIncorrecto');
-                            console.log('Cantidad no válida. Marcando como incorrecto.');
-                        }
-                    } catch (error) {
-                        console.error("Error:", error);
-                    }
                 } else {
-                    const producto = this.formarProducto(ic);
-                    const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+                    const productoModificar = carrito[indiceExiste];
+                    productoModificar.precio_venta = producto.precio_venta;
 
-                    if (indiceProductoColor !== -1) {
-                        const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
+                    const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
 
-                        if (indiceTalla !== -1) {
-                            const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
-                            carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
-                            asegurarCierre = 1;
-                            await actualizarStockLogico(producto, "editar", cantidadAnterior);
-                            console.log('Talla del producto eliminada:', producto);
+                    if (indexTalla !== -1) {
+                        const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
+                        productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
+                        carrito[indiceExiste] = productoModificar;
+                    } else {
+                        const objTallaProduct = {
+                            talla_id: producto.talla_id,
+                            talla_nombre: producto.talla_nombre,
+                            cantidad: producto.cantidad
+                        };
+                        carrito[indiceExiste].tallas.push(objTallaProduct);
+                    }
+                }
+            } else {
+                const producto = formarProducto(ic);
+                const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+                if (indiceProductoColor !== -1) {
+                    const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                    if (indiceTalla !== -1) {
+                        const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
+                        carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
                             
-                            const cantidadTallas = carrito[indiceProductoColor].tallas.length;
+                        const cantidadTallas = carrito[indiceProductoColor].tallas.length;
 
-                            if (cantidadTallas == 0) {
-                                carrito.splice(indiceProductoColor, 1);
-                                console.log('Producto eliminado del carrito:', producto);
-                            }
+                        if (cantidadTallas == 0) {
+                            carrito.splice(indiceProductoColor, 1);
                         }
                     }
+                }
             }
         }
-
-        await this.getProductosByModelo(modelo_id);
-        console.log('Proceso de agregar producto completado.');
-        document.getElementById('overlay').style.display = 'none';
-
-        reordenarCarrito();
-        calcularSubTotal();
-        pintarDetalle();
-        //===== RECALCULANDO DESCUENTOS =====
-        carrito.forEach((c)=>{
-            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
-        })
-
-        calcularMontos();
+    
+       
     }
 
     //====== REORDENAR CARRITO =======
@@ -1100,13 +1149,14 @@
 
     //============== formar objeto producto ================
     function formarProducto(ic){
+
         const producto_id       = ic.getAttribute('data-producto-id');
         const producto_nombre   = ic.getAttribute('data-producto-nombre');
         const color_id          = ic.getAttribute('data-color-id');
         const color_nombre      = ic.getAttribute('data-color-nombre');
         const talla_id          = ic.getAttribute('data-talla-id');
         const talla_nombre      = ic.getAttribute('data-talla-nombre');
-        const precio_venta      =  parseFloat(document.querySelector(`#precio-venta-${producto_id}`).value).toFixed(2);
+        const precio_venta      = $('#precio_venta').find('option:selected').text();
         const cantidad          = parseFloat(ic.value?ic.value:0);
 
         const monto_descuento           =   0.0;
@@ -1143,6 +1193,40 @@
         }
     }
 
+     //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
+     async function getColoresTallas(){
+        mostrarAnimacion();
+        const producto_id   =   $('#producto').val();
+        const almacen_id    =   $('#almacen').val();
+
+        if(producto_id && almacen_id){
+            try {
+                const res   =   await   axios.get(route('utilidades.getColoresTalla',{almacen_id,producto_id}));
+                if(res.data.success){
+                    destruirDataTable(dtStocksVenta);
+                    pintarTableStocks(res.data.producto_color_tallas);
+                    dtStocksVenta   =   iniciarDataTable('table-stocks');
+                    pintarPreciosVenta(res.data.producto_color_tallas);
+                    //loadCarrito();
+                    //loadPrecioVentaProductoCarrito(producto_id);
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
+            }finally{
+                ocultarAnimacion();
+            }
+        }else{
+            destruirDataTableStocks();
+            limpiarTableStocks();
+            loadDataTableStocksPedido();
+            limpiarSelectPreciosVenta();
+            ocultarAnimacion();
+        }
+    }
+
+
     //======= CARGAR STOCKS LOGICOS DE PRODUCTOS POR MODELO =======
     async function getProductosByModelo(idModelo){
         mostrarAnimacion();
@@ -1176,7 +1260,7 @@
         let igv         =   0;
         let total_pagar =   0;
         let descuento   =   0;
-        
+
         //====== subtotal es la suma de todos los productos ======
         carrito.forEach((c)=>{
             if(c.porcentaje_descuento === 0){
@@ -1187,23 +1271,23 @@
             descuento += parseFloat(c.monto_descuento);
         })
 
-        total_pagar =   subtotal + embalaje + envio;
+        total_pagar =   subtotal + embalaje + envio;        
         total       =   total_pagar/1.18;
         igv         =   total_pagar - total;
-       
-        tfootTotalPagar.textContent = 'S/. ' + total_pagar.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        tfootIgv.textContent        = 'S/. ' + igv.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        tfootTotal.textContent      = 'S/. ' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        tfootSubtotal.textContent   = 'S/. ' + subtotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        tfootDescuento.textContent  = 'S/. ' + descuento.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        
-        inputTotalPagar.value       =   total_pagar.toFixed(2);
-        inputIgv.value              =   igv.toFixed(2);
-        inputTotal.value            =   total.toFixed(2);
-        inputEmbalaje.value         =   embalaje.toFixed(2);
-        inputEnvio.value            =   envio.toFixed(2);
-        inputSubTotal.value         =   subtotal.toFixed(2);
-        inputMontoDescuento.value   =   descuento.toFixed(2);
+
+        tfootTotalPagar.textContent =   'S/. ' + total_pagar.toFixed(2);
+        tfootIgv.textContent        =   'S/. ' + igv.toFixed(2);
+        tfootTotal.textContent      =   'S/. ' + total.toFixed(2);
+        tfootSubtotal.textContent   =   'S/. ' + subtotal.toFixed(2);
+        tfootDescuento.textContent  =   'S/. ' + descuento.toFixed(2);
+
+        amounts.totalPagar        =   total_pagar.toFixed(2);
+        amounts.igv               =   igv.toFixed(2);
+        amounts.total             =   total.toFixed(2);
+        amounts.embalaje          =   embalaje.toFixed(2);
+        amounts.envio             =   envio.toFixed(2);
+        amounts.subtotal          =   subtotal.toFixed(2);
+        amounts.monto_descuento   =   descuento.toFixed(2);
     }
 
     const cargarProductosPrevios=()=>{
@@ -1253,12 +1337,15 @@
       
         //===== CALCULAR SUBTOTAL POR FILA DEL DETALLE ======
         calcularSubTotal();
+
         //===== PINTANDO DETALLE ======
         pintarDetalle();
+
         //========= PINTAR DESCUENTOS Y CALCULARLOS ============
         carrito.forEach((c)=>{
             calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
         })
+
         
         //===== CALCULAR MONTOS Y PINTARLOS ======
         calcularMontos();
@@ -1308,132 +1395,94 @@
         })
     }
 
-    //========== CARGAR CLIENTES ==========
-    function cargarClientes(){
-        $(".select2_form").select2({
-            placeholder: "SELECCIONAR",
-            allowClear: true,
-            width: '100%',
-        });
-        obtenerClientes();
-    }
+    //======= PINTAR PRECIOS VENTA =======
+    function pintarPreciosVenta(producto_color_tallas){
+        //======= LIMPIAR SELECT2 DE PRODUCTOS ======
+        $('#precio_venta').empty();
 
-    //============= OBTENER CLIENTES ===========
-    function obtenerClientes() {
-        clientes_global = [];
-        $("#cliente_id").empty().trigger('change');
-        $("#cliente_id").removeAttr('onchange', 'obtenerTipocliente(this.value)');
-        $('#panel_detalle').children('.ibox-content').toggleClass('sk-loading');
-        axios.post('{{ route('ventas.customers_all') }}',{'_token': $('input[name=_token]').val(), 'tipo_id': $('#tipo_venta').val()}).then(response => {
+        //====== LLENAR =======
 
-            let data = response.data;
-            clientes_global = data.clientes;
-            if (data.clientes.length > 0) {
-                $('#cliente_id').append('<option></option>').trigger('change');
-                for(var i = 0;i < data.clientes.length; i++)
-                {
-                    var newOption = '';
-                    if(data.clientes[i].id == '{{$documento->cliente_id}}')
-                    {
-                        newOption = '<option value="'+data.clientes[i].id+'" selected tabladetalle="'+data.clientes[i].tabladetalles_id+'">'+data.clientes[i].tipo_documento + ': ' + data.clientes[i].documento + ' - ' + data.clientes[i].nombre+'</option>'
-                    }
-                    else
-                    {
-                        newOption = '<option value="'+data.clientes[i].id+'" tabladetalle="'+data.clientes[i].tabladetalles_id+'">'+data.clientes[i].tipo_documento + ': ' + data.clientes[i].documento + ' - ' + data.clientes[i].nombre+'</option>'
-                    }
-                    $('#cliente_id').append(newOption).trigger('change');
-                }
-
-            } else {
-                toastr.error('Clientes no encontrados.', 'Error');
+        if(producto_color_tallas){
+            if(producto_color_tallas.precio_venta_1 != null){
+                const option_1 = new Option(producto_color_tallas.precio_venta_1, 'precio_venta_1', false, false);
+                $('#precio_venta').append(option_1);
             }
-            $('#tipo_cliente_documento').val(data.tipo);
-            $("#cliente_id").attr('onchange', 'obtenerTipocliente(this.value)');
-            obtenerTipocliente(1)
-            $('#panel_detalle').children('.ibox-content').toggleClass('sk-loading');
-        })
-    }
 
-
-  
-
-    //============== OBTENER TIPO CLIENTE ==========
-    function obtenerTipocliente(cliente_id) {
-        if (cliente_id != '') {
-            $('#buscarLotes').prop("disabled", false)
+            if(producto_color_tallas.precio_venta_2 != null){
+                const option_2 = new Option(producto_color_tallas.precio_venta_2, 'precio_venta_2', false, false);
+                $('#precio_venta').append(option_2);
+            }
+           
+            if(producto_color_tallas.precio_venta_3 != null){
+                const option_3 = new Option(producto_color_tallas.precio_venta_3, 'precio_venta_3', false, false);
+                $('#precio_venta').append(option_3);
+            }
         }
-        else{
-            $('#buscarLotes').prop("disabled", true)
-        }
+       
+        // Refrescar Select2
+        $('#precio_venta').trigger('change');
     }
-
-
-
 
     //========= PINTAR TABLA STOCKS ==========
-    const pintarTableStocks = (stocks,tallas,producto_colores)=>{
-        let options =``;
+    const pintarTableStocks = (producto) => {
+        let filas = ``;
+        const tableStocksBody = document.querySelector('#table-stocks tbody');
 
-        producto_colores.forEach((pc)=>{
-            options+=`  <tr>
-                            <th scope="row" data-producto=${pc.producto_id} data-color=${pc.color_id} >
-                                ${pc.producto_nombre} - ${pc.color_nombre}
-                            </th>
-                        `;
+        producto.colores.forEach((color) => {
+            filas += `  
+                <tr>
+                    <th scope="row" data-producto=${producto.id} data-color=${color.id}>
+                        <div style="width:200px;">${producto.nombre}</div>
+                    </th>
+                    <th scope="row">${color.nombre}</th>
+            `;
 
-            let htmlTallas = ``;
+            color.tallas.forEach((talla) => {
+                if (talla.stock_logico == 0) {
+                    filas += `
+                        <td style="background-color: rgb(210, 242, 242);">
+                            <p style="margin:0;width:20px;text-align:center;">${talla.stock_logico}</p>
+                        </td>
+                          <td width="8%">
+                            <input style="width:50px;text-align:center;border: 2px solid #207ebc;" type="text" class="form-control inputCantidad"
+                                id="inputCantidad_${producto.id}_${color.id}_${talla.id}"
+                                data-producto-id="${producto.id}"
+                                data-producto-nombre="${producto.nombre}"
+                                data-color-nombre="${color.nombre}"
+                                data-talla-nombre="${talla.nombre}"
+                                data-color-id="${color.id}" data-talla-id="${talla.id}"
+                                data-producto-codigo="${producto.codigo}">
+                        </td>
+                    `;
+                } else {
+                    filas += `
+                        <td style="background-color: rgb(210, 242, 242);">
+                            <p style="margin:0;width:20px;text-align:center;font-weight:bold;">${talla.stock_logico}</p>
+                        </td>
+                        <td width="8%">
+                            <input style="width:50px;text-align:center;border: 2px solid #207ebc;" type="text" class="form-control inputCantidad"
+                                id="inputCantidad_${producto.id}_${color.id}_${talla.id}"
+                                data-producto-id="${producto.id}"
+                                data-producto-nombre="${producto.nombre}"
+                                data-color-nombre="${color.nombre}"
+                                data-talla-nombre="${talla.nombre}"
+                                data-color-id="${color.id}" data-talla-id="${talla.id}"
+                                data-producto-codigo="${producto.codigo}">
+                        </td>
+                    `;
+                }
+            });
 
-            tallas.forEach((t)=>{
-                const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id == pc.color_id && st.talla_id == t.id)[0]?.stock_logico || 0;
-                
-                htmlTallas +=   `
-                                    <td style="background-color: rgb(210, 242, 242);">${stock}</td>
-                                    <td width="8%">
-                                        ${stock > 0 ? `
-                                            <input type="text" class="form-control inputCantidad"
-                                            id="inputCantidad_${pc.producto_id}_${pc.color_id}_${t.id}" 
-                                            data-producto-id="${pc.producto_id}"
-                                            data-producto-nombre="${pc.producto_nombre}"
-                                            data-color-nombre="${pc.color_nombre}"
-                                            data-talla-nombre="${t.descripcion}"
-                                            data-color-id="${pc.color_id}" data-talla-id="${t.id}"></input>    
-                                        ` : ''}
-                                    </td>
-                                `;   
-            })
+            filas += `</tr>`;
+        });
 
-            if(pc.printPreciosVenta){
-                htmlTallas+=`
-                    <td>
-                        <select class="select2_form form-control" id="precio-venta-${pc.producto_id}">
-                            <option>${pc.precio_venta_1}</option>    
-                            <option>${pc.precio_venta_2}</option>    
-                            <option>${pc.precio_venta_3}</option>    
-                        </select>
-                    </td>`;
-            }else{
-                htmlTallas+=`<td></td>`;
-            }
-
-            htmlTallas += `</tr>`;
-            options += htmlTallas;
-        })
-
-        tableStocksBody.innerHTML = options;
-        btnAgregarDetalle.disabled = false;
-    }
-
-    function clearDetalle(){
-        while (tableDetalleBody.firstChild) {
-            tableDetalleBody.removeChild(tableDetalleBody.firstChild);
-        }
+        tableStocksBody.innerHTML = filas;
     }
 
     //============== PINTAR DETALLE ===========
     function pintarDetalle(){
-        let fila= ``;
-        let htmlTallas= ``;
-        clearDetalle();
+        let fila        = ``;
+        let htmlTallas  = ``;
 
         carrito.forEach((c)=>{
             htmlTallas=``;
@@ -1443,7 +1492,9 @@
                                 data-producto="${c.producto_id}" data-color="${c.color_id}">
                                 </i>                            
                             </td>
-                            <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
+                            <th>${c.producto_nombre}</th>
+                            <th>${c.color_nombre}</th>    
+                        `;
 
                 //tallas
                 tallasBD.forEach((t)=>{
@@ -1451,7 +1502,13 @@
                         return t.id==ct.talla_id;
                     });
                     cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
-                    htmlTallas += `<td>${cantidad}</td>`; 
+
+                    if(cantidad == 0){
+                        htmlTallas += `<td></td>`; 
+                    }else{
+                        htmlTallas += `<td style="font-weight:bold;">${cantidad}</td>`; 
+                    }
+
                 })
 
 
@@ -1477,7 +1534,7 @@
         })
     }
 
-    //======== llenar cantidades previas tablero de inpusCantidad =====
+    //======== LLENAR CANTIDADES PREVIAS AL TABLERO DE STOCKS =====
     function loadCantPrevias(){
         
         carrito.forEach((p)=>{
@@ -1499,21 +1556,24 @@
 
 
     //========= evento al cerrar la ventana ========
-    window.onbeforeunload = () => {
+    /*window.onbeforeunload = () => {
         if (asegurarCierre == 1) {
             devolverCantidades()
         }
     }
+        */
 
     //======== devolver cantidades =========
-    async function devolverCantidades(){
+    /*async function devolverCantidades(){
 
         await this.axios.post(route('consultas.ventas.documento.no.devolver.cantidades'), {
             detalles: JSON.stringify(detalles),
             carrito: JSON.stringify(carrito)
         });  
         
-    }
+    }*/
+
+
 </script>
 
 @endpush

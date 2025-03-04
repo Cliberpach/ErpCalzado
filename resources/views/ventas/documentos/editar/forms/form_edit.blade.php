@@ -1,4 +1,4 @@
-<form action="" method="POST" id="enviar_documento">
+<form action="" method="POST" id="formActualizarVenta">
 
     {{ csrf_field() }}
 
@@ -42,20 +42,45 @@
         </div>
 
         <div class="col-12 col-lg-3 col-md-3 mb-3">
-            <label for="fecha_registro" style="font-weight: bold;">FECHA REGISTRO</label>
+            <label for="fecha_vencimiento" style="font-weight: bold;">FECHA VENCIMIENTO</label>
             <div class="input-group">
                 <div class="input-group-prepend">
                     <span class="input-group-text" id="basic-addon1">
                         <i class="fas fa-calendar-alt"></i>
                     </span>
                 </div>
-                <input value="{{ $documento->created_at}}" readonly name="fecha_registro" id="fecha_registro" type="text" class="form-control">
+                <input value="{{ $documento->fecha_vencimiento}}" readonly name="fecha_vencimiento" id="fecha_vencimiento" type="date" class="form-control">
             </div>
         </div>
 
+        <div class="col-12 col-lg-3 col-md-3 mb-3">
+            <label for="documento" style="font-weight: bold;">DOCUMENTO</label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon1">
+                        <i class="fas fa-file-signature"></i>
+                    </span>
+                </div>
+                <input value="{{ $documento->serie.'-'.$documento->correlativo}}" readonly name="documento" id="documento" type="text" class="form-control">
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-3 col-md-3 mb-3">
+            <label for="sede" style="font-weight: bold;">SEDE DEL DOCUMENTO</label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon1">
+                        <i class="fas fa-building"></i>
+                    </span>
+                </div>
+                <input value="{{ $sede->nombre}}" readonly name="sede" id="sede" type="text" class="form-control">
+            </div>
+        </div>
+
+
         <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
             <div class="form-group">
-                <label style="font-weight: bold;" class="required" for="condicion_id">ALMACÉN</label>
+                <label style="font-weight: bold;" class="required" for="almacen">ALMACÉN</label>
                 <select onchange="cambiarAlmacen(this.value)" id="almacen" name="almacen" class="select2_form form-control" required>
                     <option></option>
                     @foreach ($almacenes as $almacen)
@@ -74,7 +99,7 @@
 
         <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
             <label style="font-weight: bold;" class="required" for="condicion_id">CONDICIÓN</label>
-            <select id="condicion_id" name="condicion_id" class="select2_form form-control" required>
+            <select onchange="cambiarCondicion(this.value);" id="condicion_id" name="condicion_id" class="select2_form form-control" required>
                 <option></option>
                 @foreach ($condiciones as $condicion)
                     <option value="{{ $condicion->id }}"
@@ -99,39 +124,29 @@
             <span style="font-weight: bold;color:red;" class="cliente_error msgError"></span>                       
         </div>
 
-    <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
-        <label style="font-weight: bold;" class="required" for="tipo_venta">COMPROBANTE</label>
-        <select id="tipo_venta" name="tipo_venta" class="select2_form form-control" required>
-            <option></option>
-            @foreach ($tipos_venta as $tipo_venta)
-                <option value="{{ $tipo_venta->id }}"
-                @if ($tipo_venta->id == $documento->tipo_venta_id)
-                    selected
-                @endif    
-                >
-                    {{ $tipo_venta->descripcion }}
-                </option>
-            @endforeach
-        </select>
-        <span style="font-weight: bold;color:red;" class="condicion_id_error msgError"></span>
+        <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
+            <label style="font-weight: bold;" class="required" for="tipo_venta">COMPROBANTE</label>
+            <select disabled id="tipo_venta" name="tipo_venta" class="select2_form form-control" required>
+                <option></option>
+                @foreach ($tipos_venta as $tipo_venta)
+                    <option value="{{ $tipo_venta->id }}"
+                    @if ($tipo_venta->id == $documento->tipo_venta_id)
+                        selected
+                    @endif    
+                    >
+                        {{ $tipo_venta->descripcion }}
+                    </option>
+                @endforeach
+            </select>
+            <span style="font-weight: bold;color:red;" class="tipo_venta_error msgError"></span>
+        </div>
+
+        <div class="col-12 col-lg-3 col-md-3">
+            <label for="observacion" style="font-weight: bold;">OBSERVACIÓN</label>
+            <textarea maxlength="200" class="form-control" name="observacion" id="observacion" cols="30" rows="3"></textarea>
+            <span style="font-weight: bold;color:red;" class="observacion_error msgError"></span>
+        </div>
+
     </div>
-
-        
-    </div>
-
-   
-
-   
-    <input type="hidden" name="igv" id="igv" value="{{ $documento->igv ? $documento->igv : 18}}">
-
-  
-    <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
-    <input type="hidden" name="monto_embalaje" id="monto_embalaje" value="{{ old('monto_embalaje') }}">
-    <input type="hidden" name="monto_envio" id="monto_envio" value="{{ old('monto_envio') }}">
-    <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
-    <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}">
-    <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ old('monto_total_pagar') }}">
-    <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ 'monto_descuento' }}">
-
 
 </form>

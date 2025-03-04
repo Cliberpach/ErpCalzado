@@ -167,12 +167,15 @@ array:3 [▼
 
     public function getDatosAperturaCaja(Request $request){
         try {
-            $sede_id    =   $request->get('sede_id');
+
+            $colaborador_id_actual  =   Auth::user()->colaborador_id;
+            $sede_id                =   $request->get('sede_id');
 
             //======= 1 MOVIMIENTO DE CAJA => 1 CAJERO Y VENDEDORES =====
             $cajas_desocupadas  =   Caja::where('estado_caja','CERRADA')
                                     ->where('estado','ACTIVO')
-                                    ->where('sede_id',$sede_id)->get();
+                                    ->where('sede_id',$sede_id)
+                                    ->get();
 
             //======== CAJEROS DESOCUPADOS DE LA SEDE ======
             $cajeros_desocupados =   DB::select('select 
@@ -193,8 +196,14 @@ array:3 [▼
                                         mc.estado_movimiento = "APERTURA"
                                         AND mc.sede_id = ?  
                                     ) 
-                                    AND (r.name LIKE "%CAJER%")',
-                                [$sede_id,$sede_id]);
+                                    AND (r.name LIKE "%CAJER%")
+                                    AND co.id = ?',
+                                [
+                                    $colaborador_id_actual,
+                                    $sede_id,
+                                    $sede_id
+                                ]
+                                );
 
 
 

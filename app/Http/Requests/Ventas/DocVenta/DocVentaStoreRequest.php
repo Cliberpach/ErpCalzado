@@ -7,7 +7,6 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Illuminate\Contracts\Validation\Validator;
 
-
 class DocVentaStoreRequest extends FormRequest
 {
     /**

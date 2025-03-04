@@ -189,10 +189,15 @@
 
                                                                     </template>
 
-                                                                    <template v-if="item.tipo_venta == 129 &&
-                                                                        item.estado_pago == 'PENDIENTE'">
+                                                                    
+                                                                    <template v-if="
+                                                                        item.estado_pago == 'PENDIENTE' 
+                                                                        && item.sunat == '0'
+                                                                        && !item.convert_en_id
+                                                                        && !item.convert_de_id
+                                                                        && !item.pedido_id">
                                                                         <b-dropdown-item title="Editar" :href="routes(item.id, 'EDITAR')">
-                                                                            <i class="fa fa-pencil"></i> Editar
+                                                                            <i class="fas fa-edit" style="color:chocolate;"></i> Editar
                                                                         </b-dropdown-item>
                                                                     </template>
 

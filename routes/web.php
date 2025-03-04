@@ -1145,4 +1145,9 @@ Route::get('/get-stocklogico/{almacen_id}/{producto_id}/{color_id}/{talla_id}', 
 
 Route::prefix('utilidades')->group(function(){
     Route::get('getClientes', 'Ventas\ClienteController@getClientes')->name('utilidades.getClientes');
+    Route::get('getProductosTodos', 'Almacenes\ProductoController@getProductosTodos')->name('utilidades.getProductosTodos');
+    Route::get('getProductosConStock', 'Almacenes\ProductoController@getProductosConStock')->name('utilidades.getProductosConStock');
+    Route::get('getColoresTalla/{almacen_id}/{producto_id}', 'Almacenes\ProductoController@getColoresTalla')->name('utilidades.getColoresTalla');
+    Route::get('validarCantidad', 'UtilidadesController@validarCantidad')->name('utilidades.validarCantidad');
+
 });
