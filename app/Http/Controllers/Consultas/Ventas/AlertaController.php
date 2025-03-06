@@ -50,7 +50,7 @@ class AlertaController extends Controller
     {
         $fecha_hoy = Carbon::now()->toDateString();
         $consulta =  DB::table('cotizacion_documento')
-            ->join('tabladetalles', 'tabladetalles.id', '=', 'cotizacion_documento.tipo_venta')
+            ->join('tabladetalles', 'tabladetalles.id', '=', 'cotizacion_documento.tipo_venta_id')
             ->join('clientes', 'clientes.id', '=', 'cotizacion_documento.cliente_id')
             ->select(
                 DB::raw('(CONCAT(cotizacion_documento.serie, "-" , cotizacion_documento.correlativo)) as numero_doc'),
@@ -70,7 +70,7 @@ class AlertaController extends Controller
                 DB::raw('ifnull((json_unquote(json_extract(cotizacion_documento.getCdrResponse, "$.description"))),"-") as description')
             )
             ->orderBy('cotizacion_documento.id', 'DESC')
-            ->whereIn('cotizacion_documento.tipo_venta', ['127', '128'])
+            ->whereIn('cotizacion_documento.tipo_venta_id', ['127', '128'])
             ->where('cotizacion_documento.estado', '!=', 'ANULADO')
             ->where('cotizacion_documento.sunat', '0')
             ->where('cotizacion_documento.contingencia', '0')
@@ -94,7 +94,7 @@ class AlertaController extends Controller
     {
         $fecha_hoy = Carbon::now()->toDateString();
         $consulta =  DB::table('cotizacion_documento')
-            ->join('tabladetalles', 'tabladetalles.id', '=', 'cotizacion_documento.tipo_venta')
+            ->join('tabladetalles', 'tabladetalles.id', '=', 'cotizacion_documento.tipo_venta_id')
             ->join('clientes', 'clientes.id', '=', 'cotizacion_documento.cliente_id')
             ->select(
                 DB::raw('(CONCAT(cotizacion_documento.serie, "-" , cotizacion_documento.correlativo)) as numero_doc'),
@@ -113,7 +113,7 @@ class AlertaController extends Controller
                 DB::raw('json_unquote(json_extract(cotizacion_documento.getRegularizeResponse, "$.description")) as description')
             )
             ->orderBy('cotizacion_documento.id', 'DESC')
-            ->whereIn('cotizacion_documento.tipo_venta', ['127', '128'])
+            ->whereIn('cotizacion_documento.tipo_venta_id', ['127', '128'])
             ->where('cotizacion_documento.estado', '!=', 'ANULADO')
             ->where('cotizacion_documento.sunat', '!=', '2')
             ->where('cotizacion_documento.contingencia', '0')

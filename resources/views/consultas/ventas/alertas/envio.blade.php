@@ -420,7 +420,7 @@ function anularVenta(id) {
 
 }
 
-function enviarSunat(id , sunat) {
+function enviarSunat(id) {
     const swalWithBootstrapButtons = Swal.mixin({
     customClass: {
         confirmButton: 'btn btn-success',
