@@ -15,6 +15,7 @@ use Greenter\Report\Resolver\DefaultTemplateResolver;
 use Greenter\Report\XmlUtils;
 use Greenter\See;
 use App\Greenter\data\SharedStore;
+use App\Mantenimiento\Sedes\Sede;
 use Exception;
 
 final class Util
@@ -88,6 +89,7 @@ final class Util
     public function getSeeApi($greenter_config)
     {
         $ruc    =   $greenter_config->ruc;
+        $api    =   null;
 
         if($greenter_config->modo === "BETA"){
             $api = new \Greenter\Api([
@@ -95,11 +97,11 @@ final class Util
                 'cpe' => 'https://gre-test.nubefact.com/v1',
             ]);
 
-            $ruc    =   "20161515648";   
+            //$ruc    =   "20161515648";   
         }
 
         if($greenter_config->modo === "PRODUCCION"){
-            $see = new \Greenter\Api([
+            $api = new \Greenter\Api([
                 'auth' => 'https://api-seguridad.sunat.gob.pe/v1',
                 'cpe' => 'https://api-cpe.sunat.gob.pe/v1',
             ]);
@@ -143,9 +145,16 @@ final class Util
 
     public function getGRECompany(): \Greenter\Model\Company\Company
     {
+        $sede   =   Sede::find(1);
+
+        return (new \Greenter\Model\Company\Company())
+            ->setRuc($sede->ruc)
+            ->setRazonSocial($sede->razon_social);
+        /*
         return (new \Greenter\Model\Company\Company())
             ->setRuc('20161515648')
             ->setRazonSocial('GREENTER S.A.C.');
+        */
     }
 
     public function showResponse(DocumentInterface $document, CdrResponse $cdr): void

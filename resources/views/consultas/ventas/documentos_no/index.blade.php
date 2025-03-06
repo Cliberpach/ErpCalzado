@@ -365,10 +365,11 @@ function loadTable()
 
                     let cadena = "";
 
-                    if(data.sunat != '2' && data.dias > 0)
+                    /*if(data.sunat != '2' && data.dias > 0)
                     {
                         cadena = cadena + "<a href='"+url_edit+"'  class='btn btn-sm btn-secondary m-1 btn-rounded'  title='Editar'><i class='fa fa-pencil'></i> Editar</a>"
                     }
+                    */
 
                     if(data.sunat == '0' && data.dias > 0 && data.tipo_venta_id != 129)
                     {

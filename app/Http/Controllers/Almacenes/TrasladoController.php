@@ -497,6 +497,8 @@ array:17 [
 
         $request->merge([
             'lstGuia'       =>  json_encode($lstGuia),  
+            'sede_genera_guia'  =>  $request->get('sede_id'),
+            'sede_usa_guia'     =>  $request->get('sede_id'),
             'sede_origen'   =>  $traslado->sede_origen_id,
             'sede_destino'  =>  $traslado->sede_destino_id,
             'traslado'      =>  $traslado->id
@@ -525,7 +527,6 @@ array:17 [
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
        
-
     }
 
     public function formatearArrayDetalle($detalles){

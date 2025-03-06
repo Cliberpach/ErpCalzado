@@ -217,13 +217,16 @@ $(document).ready(function() {
                                     </li>`;
                     }
 
-                    acciones += `<li>
-                                    <a class='dropdown-item' onclick='consultarSunat(${data.id})'  title='Consultar Sunat'>
-                                        <b><i class='fa fa-file'></i> Consultar Sunat </b>
-                                    </a>
-                                </li>`;
+                    if (data.ticket && data.cdr_response_code != '0') {
+                        acciones    +=  `<li>
+                                            <a class='dropdown-item' onclick='consultarSunat(${data.id})'  title='Consultar Sunat'>
+                                                <b><i class='fa fa-file'></i> Consultar Sunat </b>
+                                            </a>
+                                        </li>`;
+                    }
+                   
 
-                    if(data.sunat != '1' && data.regularize != '1'){
+                    /*if(data.sunat != '1' && data.regularize != '1'){
                         acciones += `<li>
                                 <form hidden method="POST" id="frm-delete-guia" action="${route_delete_guia}">
                                     @csrf
@@ -233,7 +236,7 @@ $(document).ready(function() {
                                     <b><i class='fa fa-trash'></i> Eliminar </b>
                                 </a>
                             </li>`;
-                    }
+                    }*/
 
                     return acciones;
                             
@@ -298,53 +301,29 @@ function detalle(id) {
 
     window.open(url, "Comprobante SISCOM", "width=900, height=600")
 }
-function consultarSunat(id , sunat) {
-    const url= `consulta_ticket/guia/${id}`;
-    const tokenValue = document.querySelector('input[name="_token"]').value;
-    toastr.info('Consultando envío...',"CONSULTANDO");
-    fetch(url, {
-        method: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': tokenValue,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        },
-        })
-        .then(response => response.json())
-        .then(data => {
-            toastr.remove()
-            const type      =   data.type;
-            const message   =   data.message;
-            if(type === 'success'){
-                const guia_actualizada = data.message.guia_actualizada;
-                //====== ACTUALIZAR DATATABLE =======
-                $('.dataTables-gui').DataTable().rows().every(function() {
-                    var item_datatable = this.data();
-                    if (item_datatable.id == guia_actualizada.id) {
-                        item_datatable.ruta_cdr   =   guia_actualizada.ruta_cdr;
-                        item_datatable.sunat      =   guia_actualizada.sunat;
-                        item_datatable.regularize =   guia_actualizada.regularize;
-                        item_datatable.cdr_response_code    =   guia_actualizada.cdr_response_code;
-                        this.data(item_datatable); 
-                        return false; 
-                    }
-                });
 
-                toastr.options.closeDuration = 400;
-                toastr.options.progressBar = true;
-                toastr.success(`GUIA: ${id} | ESTADO: ${message.descripcion}`, 'Consulta completa');
-            }
-            if(type === 'error'){
-                toastr.options.closeDuration = 400;
-                toastr.options.progressBar = true;
-                toastr.error(`GUIA: ${id} | ESTADO: ${message}`, 'Error');
-            }
-        })
-        .catch(error => console.error('Error:', error));
 
+async function consultarSunat(id) {
+
+    try {
+        mostrarAnimacion();
+        const res   =   await axios.post(route('ventas.guiasremision.consultar'),{id});
+
+        if(res.data.success){
+            toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+        }else{
+            toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+        }
+
+    } catch (error) {
+        toastr.error(error,'ERROR EN LA PETICIÓN CONSULTAR GUÍA EN SUNAT');
+    }finally{
+        $('.dataTables-gui').DataTable().ajax.reload(null, false);
+        ocultarAnimacion();
+    }
 }
 
-function enviarSunat(id , sunat) {
+function enviarSunat(id) {
     const swalWithBootstrapButtons = Swal.mixin({
         customClass: {
             confirmButton: 'btn btn-success',
@@ -362,23 +341,37 @@ function enviarSunat(id , sunat) {
         confirmButtonText: 'Si, Confirmar',
         cancelButtonText: "No, Cancelar",
         // showLoaderOnConfirm: true,
-    }).then((result) => {
+    }).then(async (result) => {
         if (result.value) {
 
-            var url = '{{ route("ventas.guiasremision.sunat", ":id")}}';
-            url = url.replace(':id',id);
-
-            window.location.href = url
-
+          
             Swal.fire({
                 title: '¡Cargando!',
-                type: 'info',
-                text: 'Enviando Guia de Remision a Sunat',
+                icon: 'info', 
+                text: 'Enviando Guía de Remisión a Sunat',
                 showConfirmButton: false,
-                onBeforeOpen: () => {
-                    Swal.showLoading()
+                allowOutsideClick: false, 
+                didOpen: () => { 
+                    Swal.showLoading();
                 }
-            })
+            });
+
+
+            try {
+                const res   =   await axios.post(route("ventas.guiasremision.sunat"),{guia_id:id});
+
+                if(res.data.success){
+                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+
+            } catch (error) {
+                toastr.error(error,'ERROR EN LA PETICIÓN ENVIAR GUÍA A SUNAT');
+            }finally{
+                Swal.close();
+                $('.dataTables-gui').DataTable().ajax.reload(null, false);
+            }
 
         } else if (
             /* Read more about handling dismissals below */

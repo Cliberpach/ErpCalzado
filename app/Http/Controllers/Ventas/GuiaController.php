@@ -60,8 +60,7 @@ use App\User;
 use Greenter\Model\Despatch\Driver;
 use Greenter\Model\Despatch\Vehicle;
 use Illuminate\Support\Facades\Cache;
-
-
+use Throwable;
 
 require __DIR__ . '/../../../../vendor/autoload.php';
 
@@ -285,19 +284,49 @@ class GuiaController extends Controller
     public static function validacionStore($request){
 
         //========= VALIDAR LA SEDE ========
-        if(!$request->get('sede_id')){
-            throw new Exception("FALTA EL PARÁMETRO SEDE EN LA PETICIÓN!!!");
+        if(!$request->get('sede_genera_guia')){
+            throw new Exception("FALTA LA SEDE QUE GENERA LA GUÍA!!!");
         }
-        $sede   =   DB::select('select 
-                    es.* 
-                    from empresa_sedes as es
-                    where
-                    es.id = ? 
-                    and es.estado = "ACTIVO"',
-                    [$request->get('sede_id')]);
+        if(!$request->get('sede_usa_guia')){
+            throw new Exception("FALTA LA SEDE QUE USA LA GUÍA!!!");
+        }
 
-        if (count($sede) === 0) {
-            throw new Exception("NO EXISTE LA SEDE EN LA BD!!!");
+        $sede_genera_guia   =   DB::select('select 
+                                es.* 
+                                from empresa_sedes as es
+                                where
+                                es.id = ? 
+                                and es.estado = "ACTIVO"',
+                                [$request->get('sede_genera_guia')]);
+
+        if (count($sede_genera_guia) === 0) {
+            throw new Exception("NO EXISTE LA SEDE GENERADORA DE GUÍA EN LA BD!!!");
+        }
+
+        $sede_usa_guia  =   DB::select('select 
+                            es.* 
+                            from empresa_sedes as es
+                            where
+                            es.id = ? 
+                            and es.estado = "ACTIVO"',
+                            [$request->get('sede_usa_guia')]);
+
+        if (count($sede_usa_guia) === 0) {
+            throw new Exception("NO EXISTE LA SEDE QUE USARÁ LA GUÍA EN LA BD!!!");
+        }
+
+        //========== SI EL MOTIVO TRASLADO ES VENTA, LA MODALIDAD TRASLADO ES PÚBLICO
+        // Y EL INDICAR DE M1L ESTÁ APAGADO,  EL DOCUMENTO DEL TRANSPORTISTA DEBE SER RUC =======
+        if($request->get('motivo_traslado') === '01' 
+        && $request->get('modalidad_traslado') === '01'
+        && !$request->has('categoria_M1L'))
+        {
+            $conductor  =   Conductor::find($request->get('conductor'));
+            if($conductor->tipo_documento_nombre === 'DNI'){
+                throw new Exception("EL DOCUMENTO DEL TRANSPORTISTA DEBE SER RUC 
+                SI EL MOTIVO TRASLADO ES VENTA, LA MODALIDAD TRASLADO ES PÚBLICO
+                Y EL INDICADOR DE M1L ESTÁ APAGADO");
+            }
         }
 
         //======== VALIDAR DETALLE VENTA ======
@@ -322,7 +351,8 @@ class GuiaController extends Controller
         $almacen    =   Almacen::find($request->get('almacen'));
 
         $datos_validados    =   (object)[
-                                        'sede_id'               =>  $request->get('sede_id'),
+                                        'sede_genera_guia'      =>  $request->get('sede_genera_guia'),
+                                        'sede_usa_guia'         =>  $request->get('sede_usa_guia'),
                                         'tipo_comprobante'      =>  $tipo_comprobante,
                                         'porcentaje_igv'        =>  Empresa::find(1)->igv,
                                         'almacen'               =>  $almacen,
@@ -331,7 +361,7 @@ class GuiaController extends Controller
                                         'monto_envio'           =>  $request->get('monto_envio'),
                                         'empresa'               =>  Empresa::find(1),
                                         'observacion'           =>  $request->get('observacion'),
-                                        ];  
+                                    ];  
 
         return  $datos_validados;
     }
@@ -389,6 +419,8 @@ public static function getCorrelativo($tipo_comprobante,$sede_id){
 
 /*
 array:14 [
+  "sede_genera_guia"
+  "sede_usa_guia"
   "registrador_id"      => 1
   "sede_id"             => 1
   "categoria_M1L"       => "on"  --OPCIONAL
@@ -407,6 +439,10 @@ array:14 [
   "sede_destino"        => "2"
   "lstGuia"             => "[{"producto_id":"1","color_id":"1","producto_nombre":"PRODUCTO TEST","color_nombre":"BLANCO","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0,"tallas":[{"talla_id":"1","talla_nombre":"34","cantidad":"1"}]},{"producto_id":"1","color_id":"2","producto_nombre":"PRODUCTO TEST","color_nombre":"AZUL","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0,"tallas":[{"talla_id":"1","talla_nombre":"34","cantidad":"2"}]},{"producto_id":"1","color_id":"3","producto_nombre":"PRODUCTO TEST","color_nombre":"CELESTE","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0,"tallas":[{"talla_id":"1","talla_nombre":"34","cantidad":"3"}]},{"producto_id":"1","color_id":"4","producto_nombre":"PRODUCTO TEST","color_nombre":"PLOMO","monto_descuento":0,"porcentaje_descuento":0,"precio_venta_nuevo":0,"subtotal_nuevo":0,"tallas":[{"talla_id":"1","talla_nombre":"34","cantidad":"4"}]}]"
 ]
+*/
+/*
+    //======= SI EL MOTIVO DE TRASLADO ES VENTA Y LA MODALIDAD DE TRASLADO ES TRANSPORTE PÚBLICO ,
+    EL CONDUCTOR DEBE TENER SOLO RUC =======
 */ 
     public function store(GuiaStoreRequest $request){
        
@@ -414,10 +450,12 @@ array:14 [
         try {
 
             $datos_validados    =   GuiaController::validacionStore($request);
-            GuiaController::comprobanteActivo($datos_validados->sede_id,$datos_validados->tipo_comprobante);
+
+            //========== CORRELATIVO DE LA GUÍA DEBE SER EL DE LA SEDE QUE USARÁ LA GUÍA ========
+            GuiaController::comprobanteActivo($datos_validados->sede_usa_guia,$datos_validados->tipo_comprobante);
             
             //======== OBTENER CORRELATIVO Y SERIE ======
-            $datos_correlativo  =   GuiaController::getCorrelativo($datos_validados->tipo_comprobante,$datos_validados->sede_id);
+            $datos_correlativo  =   GuiaController::getCorrelativo($datos_validados->tipo_comprobante,$datos_validados->sede_usa_guia);
 
             $motivo_traslado    =   DB::select('select 
                                     td.*
@@ -460,16 +498,16 @@ array:14 [
             }
 
             //======= PUNTO PARTIDA =====
-            $sede_partida                           =   Sede::find($request->get('sede_id'));
-            $guia->punto_partida_id                 =   $request->get('sede_id');
+            $sede_partida                           =   Sede::find($request->get('sede_usa_guia'));
+            $guia->punto_partida_id                 =   $request->get('sede_usa_guia');
             $guia->ubigeo_partida                   =   $sede_partida->distrito_id;
             $guia->direccion_partida                =   $sede_partida->direccion;
 
             //======== PUNTO LLEGADA ======
             //======= TRASLADO ENTRE ESTABLECIMIENTOS ======
             if($request->get('motivo_traslado') === '04'){
-                $sede_llegada                           =   Sede::find($request->get('sede_destino'));
-                $guia->punto_llegada_id                 =   $request->get('sede_destino');
+                $sede_llegada                           =   Sede::find($request->get('sede_genera_guia'));
+                $guia->punto_llegada_id                 =   $request->get('sede_genera_guia');
                 $guia->ubigeo_llegada                   =   $sede_llegada->distrito_id;
                 $guia->direccion_llegada                =   $sede_llegada->direccion;
             }
@@ -490,7 +528,8 @@ array:14 [
                 $guia->direccion_llegada                =   $cliente->direccion;
             }
 
-            $guia->sede_id              =   $request->get('sede_id');
+            $guia->sede_genera_guia     =   $request->get('sede_genera_guia');
+            $guia->sede_usa_guia        =   $request->get('sede_usa_guia');
 
             $registrador                =   User::find($request->get('registrador_id'));
             $guia->registrador_id       =   $request->get('registrador_id');
@@ -503,6 +542,11 @@ array:14 [
             //========= EN CASO SEA TRASLADO =======
             if($request->has('traslado')){
                 $guia->traslado_id  =   $request->get('traslado');
+            }
+
+            //====== EN CASO DE VENTA =====
+            if($request->has('venta')){
+                $guia->documento_id  =   $request->get('venta');
             }
 
             $guia->save();
@@ -539,7 +583,7 @@ array:14 [
                     }
 
                     //======= VALIDAR STOCKS EN CASO NO SEA TRASLADO ====== 
-                    if(!$request->has('traslado')){
+                    if(!$request->has('traslado') && !$request->has('venta')){
                         if( ($talla->cantidad > $existe[0]->stock) || ($talla->cantidad > $existe[0]->stock_logico) ){
                             throw new Exception($producto->producto_nombre.'-'.$producto->color_nombre.'-'.$talla->talla_nombre.', STOCK INSUFICIENTE!!!');
                         }
@@ -560,8 +604,8 @@ array:14 [
                     $guia_detalle->unidad           =   'NIU';
                     $guia_detalle->save();
 
-                    //===== ACTUALIZANDO STOCK EN CASO NO SEA TRASLADO ===========
-                    if(!$request->has('traslado')){
+                    //===== ACTUALIZANDO STOCK SOLO SI LA GUÍA NO DEPENDE DE OTRO DOCUMENTO ===========
+                    if(!$request->has('traslado') && !$request->has('venta')){
                         DB::update('UPDATE producto_color_tallas 
                         SET stock = stock - ?, stock_logico = stock_logico - ?
                         WHERE 
@@ -578,6 +622,7 @@ array:14 [
                             $talla->talla_id
                         ]);
                     }
+
                 }
             }
 
@@ -585,7 +630,7 @@ array:14 [
             //========== ACTUALIZAR ESTADO FACTURACIÓN A INICIADA ======
             DB::table('empresa_numeracion_facturaciones')
             ->where('empresa_id', 1) 
-            ->where('sede_id', $datos_validados->sede_id) 
+            ->where('sede_id', $datos_validados->sede_usa_guia) 
             ->where('tipo_comprobante', $datos_validados->tipo_comprobante->id) 
             ->where('emision_iniciada', '0') 
             ->where('estado','ACTIVO')
@@ -593,6 +638,7 @@ array:14 [
                 'emision_iniciada'       => '1',
                 'updated_at'             => Carbon::now()
             ]);
+
 
             DB::commit();
             return response()->json([
@@ -957,10 +1003,10 @@ array:14 [
                                     p.nombre as provincia_nombre,
                                     di.nombre as distrito_nombre
                                     from clientes as c
-                                    where c.id = ?
                                     inner join departamentos as d on d.id = c.departamento_id
                                     inner join provincias as p on p.id = c.provincia_id
-                                    inner join distritos as di on d.id = c.distrito_id')[0];
+                                    inner join distritos as di on di.id = c.distrito_id
+                                    where c.id = ?',[$guia->cliente_id])[0];
             } 
             if($guia->motivo_traslado_simbolo === '04'){//===== TRASLADO INTERNO ====
                 $destinatario   =   Sede::find($guia->punto_llegada_id);
@@ -971,7 +1017,7 @@ array:14 [
             $conductor  =   Conductor::find($guia->conductor_id);
 
             $empresa    =   Empresa::first();
-            $sede       =   Sede::find($guia->sede_id);
+            $sede       =   Sede::find($guia->sede_usa_guia);
 
 
             $pdf    =   PDF::loadview('ventas.guias.reportes.guia', [
@@ -1010,14 +1056,24 @@ array:14 [
     }
 
     public function controlConfiguracionGreenter($util){
+
         //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
-        $greenter_config    =   DB::select('select gc.ruta_certificado,gc.id_api_guia_remision,gc.modo,
-          gc.clave_api_guia_remision,e.ruc,e.razon_social,e.direccion_fiscal,e.ubigeo,
-          e.direccion_llegada,gc.sol_user,gc.sol_pass
-          from greenter_config as gc
-          inner join empresas as e on e.id=gc.empresa_id
-          inner join configuracion as c on c.propiedad = gc.modo
-          where gc.empresa_id=1 and c.slug="AG"');
+        $greenter_config    =   DB::select('select 
+                                gc.ruta_certificado,
+                                gc.id_api_guia_remision,
+                                gc.modo,
+                                gc.clave_api_guia_remision,
+                                e.ruc,e.razon_social,
+                                e.direccion_fiscal,
+                                e.ubigeo,
+                                e.direccion_llegada,
+                                gc.sol_user,
+                                gc.sol_pass
+                                from greenter_config as gc
+                                inner join empresas as e on e.id=gc.empresa_id
+                                inner join configuracion as c on c.propiedad = gc.modo
+                                where gc.empresa_id=1 and c.slug="AG"');
+
 
 
         if(count($greenter_config) === 0){
@@ -1041,10 +1097,9 @@ array:14 [
         }
 
         $see    =   null;
-        if($greenter_config[0]->modo === "BETA"){
     
-            $see = $util->getSeeApi($greenter_config[0]);
-        }
+        $see = $util->getSeeApi($greenter_config[0]);
+        
 
        
         if(!$see){
@@ -1109,9 +1164,24 @@ array:14 [
                     // );
     }
 
-    public function sunat($id)
+
+/*
+Greenter\Model\Response\SummaryResult {#4268 ▼
+  #ticket: "test-ca01da22-b685-483d-8929-b4e84bc0c95d"
+  #success: true
+  #error: null
+}
+  guia_id:1
+*/
+
+/*
+    //======= SI EL MOTIVO DE TRASLADO ES VENTA Y LA MODALIDAD DE TRASLADO ES TRANSPORTE PÚBLICO ,
+    EL CONDUCTOR DEBE TENER SOLO RUC =======
+*/ 
+    public function sunat(Request $request)
     {
-        $guia = Guia::findOrFail($id);
+        $id     =   $request->get('guia_id');
+        $guia   =   Guia::findOrFail($id);
         
         try {
 
@@ -1124,6 +1194,7 @@ array:14 [
             $sede_partida   =   Sede::find($guia->punto_partida_id);
             $destinatario   =   null;
             if($guia->motivo_traslado_simbolo === '01'){//===== VENTA ====
+             
                 $destinatario   =   DB::select('select
                                     c.nombre,
                                     c.direccion,
@@ -1132,10 +1203,11 @@ array:14 [
                                     p.nombre as provincia_nombre,
                                     di.nombre as distrito_nombre
                                     from clientes as c
-                                    where c.id = ?
                                     inner join departamentos as d on d.id = c.departamento_id
                                     inner join provincias as p on p.id = c.provincia_id
-                                    inner join distritos as di on d.id = c.distrito_id')[0];
+                                    inner join distritos as di on di.id = c.distrito_id
+                                    where c.id = ?',
+                                    [$guia->cliente_id])[0];
             } 
             if($guia->motivo_traslado_simbolo === '04'){//===== TRASLADO INTERNO ====
                 $destinatario   =   Sede::find($guia->punto_llegada_id);
@@ -1152,12 +1224,12 @@ array:14 [
                     ->setRuc($sede_partida->ruc)
                     ->setCodLocal($sede_partida->codigo_local));
 
-            if($guia->motivo_traslado_codigo === '04'){
+            if($guia->motivo_traslado_simbolo === '04'){
                 $envio->setLlegada((new Direction($destinatario->distrito_id, $destinatario->direccion))
                 ->setRuc($destinatario->ruc)
                 ->setCodLocal($destinatario->codigo_local)); // Código de establecimiento anexo
             }
-            if($guia->motivo_traslado_codigo === '01'){
+            if($guia->motivo_traslado_simbolo === '01'){
                 $envio->setLlegada((new Direction($destinatario->distrito_id, $destinatario->direccion))); // DATOS DE CLIENTE
             }
 
@@ -1176,7 +1248,7 @@ array:14 [
                     if($conductor->tipo_documento_nombre === 'DNI'){
                         $tipo_doc   =   '1';
                     }
-                    if($conductor->tipo_documento_nombre === 'DNI'){
+                    if($conductor->tipo_documento_nombre === 'RUC'){
                         $tipo_doc   =   '6';
                     }
 
@@ -1189,7 +1261,7 @@ array:14 [
                     $envio->setTransportista($transp);
                 }
 
-                //======== PRIVADO
+                //======== PRIVADO ========
                 if($guia->modalidad_traslado_simbolo === '02'){
                     $conductor  =   Conductor::find($guia->conductor_id);
                     $vehiculo   =   Vehiculo::find($guia->vehiculo_id);
@@ -1198,7 +1270,7 @@ array:14 [
                     if($conductor->tipo_documento_nombre === 'DNI'){
                         $tipo_doc   =   '1';
                     }
-                    if($conductor->tipo_documento_nombre === 'DNI'){
+                    if($conductor->tipo_documento_nombre === 'RUC'){
                         $tipo_doc   =   '6';
                     }
 
@@ -1219,15 +1291,36 @@ array:14 [
 
                 }
             }
+
+            $cliente_despatch   =   new Client();
+
+            //======== TRASLADO INTERNO =====
+            if($guia->motivo_traslado_simbolo === '04'){
+                $cliente_despatch->setTipoDoc('6')
+                ->setNumDoc($sede_partida->ruc)
+                ->setRznSocial($sede_partida->razon_social);
+            }
+
+            //======== VENTA ======
+            if($guia->motivo_traslado_simbolo === '01'){
+
+                $cliente_venta  =   Cliente::find($guia->cliente_id);
+                $tipo_documento =   null;
+
+                if($cliente_venta->tipo_documento === 'DNI'){
+                    $tipo_documento =   '1';
+                }
+                if($cliente_venta->tipo_documento === 'RUC'){
+                    $tipo_documento =   '6';
+                }
+
+                $cliente_despatch->setTipoDoc($tipo_documento)
+                ->setNumDoc($cliente_venta->documento)
+                ->setRznSocial($cliente_venta->nombre);
+            }
             
-            dd($envio);
 
-          
-
-                      
-
-
-            //===== despacho =======
+            //===== DESPACHO =======
             $despatch = new Despatch();
             $despatch->setVersion('2022')
             ->setTipoDoc('09')
@@ -1235,76 +1328,89 @@ array:14 [
             ->setCorrelativo($guia->correlativo)
             ->setFechaEmision(new \DateTime($guia->fecha_emision))
             ->setCompany($util->getGRECompany())
-            ->setDestinatario((new Client())
-                                    ->setTipoDoc('6')
-                                    ->setNumDoc('20000000002')
-                                    ->setRznSocial('EMPRESA DEST 1'))
-                                ->setEnvio($envio);
+            ->setDestinatario($cliente_despatch)
+            ->setEnvio($envio);
+
                             
-                        //===== LLENANDO DETALLE =======
-                        $productos= self::obtenerProductos($guia);
-                        $detalles   =   [];
-                        foreach ($productos as $producto) {
-                            $detail = new DespatchDetail();
-                            $detail->setCantidad($producto['cantidad'])
-                                ->setUnidad($producto['unidad'])
-                                ->setDescripcion($producto['descripcion'])
-                                ->setCodigo($producto['codigo']);
-                            $detalles[] =   $detail;
-                        }
-                        $despatch->setDetails($detalles);
+            //===== LLENANDO DETALLE =======
+            $productos  =   self::obtenerProductos($guia);
+            $detalles   =   [];
 
-                        //===== obteniendo configuración de envío ==========
-                        $api = $this->controlConfiguracionGreenter($util); 
+            foreach ($productos as $producto) {
+                $detail = new DespatchDetail();
+                $detail->setCantidad($producto['cantidad'])
+                        ->setUnidad($producto['unidad'])
+                        ->setDescripcion($producto['descripcion'])
+                        ->setCodigo($producto['codigo']);
+                $detalles[] =   $detail;
+            }
 
-                        //======== CONSTRUYENDO XML Y ENVIANDO A SUNAT ==========
-                        $res = $api->send($despatch);
-                    
-                        //======== RESPONSE ESTRUCTURA ========
-                        // ticket(string) | success(boolean) | error
-                        //==== GUARDANDO XML ====
-                        $util->writeXml($despatch, $api->getLastXml(),"GUIA REMISION",null);
-                        $guia->ruta_xml      =   'storage/greenter/guías_remisión/xml/'.$despatch->getName().'.xml';
+            $despatch->setDetails($detalles);
+
+            //===== obteniendo configuración de envío ==========
+            $api = $this->controlConfiguracionGreenter($util); 
+
+
+            //======== CONSTRUYENDO XML Y ENVIANDO A SUNAT ==========
+            $res = $api->send($despatch);
+
+   
+            //======== RESPONSE ESTRUCTURA ========
+            // ticket(string) | success(boolean) | error
+            //==== GUARDANDO XML ====
+            $util->writeXml($despatch, $api->getLastXml(),"GUIA REMISION",null);
+            $guia->ruta_xml      =   'storage/greenter/guías_remisión/xml/'.$despatch->getName().'.xml';
 
                         
-                        //===== VERIFICANDO CONEXIÓN CON SUNAT =======
-                        if($res->isSuccess()){
+            //===== VERIFICANDO CONEXIÓN CON SUNAT =======
+            if($res->isSuccess()){
                             
-                            //==== OBTENER Y GUARDAR TICKET ====
-                            $ticket         =   $res->getTicket();
-                            $guia->ticket   =   $ticket;
-                            $guia->sunat    =   '1';
-                            $guia->regularize   =   '0';
-                            $guia->despatch_name    =   $despatch->getName();
-                            $guia->update();
+                //==== OBTENER Y GUARDAR TICKET ====
+                $ticket         =   $res->getTicket();
+                $guia->ticket   =   $ticket;
+                $guia->sunat    =   '1';
+                $guia->regularize   =   '0';
+                $guia->despatch_name    =   $despatch->getName();
+                $guia->update();
                             
-                            Session::flash('guia_exito', 'Guia de remisión enviada a Sunat.');            
-                                
-                            return redirect()->route('ventas.guiasremision.index');
-                        } else{
+                return response()->json(['success'=>true,'message'=>'GUÍA DE REMISIÓN ENVIADA A SUNAT']);
 
-                            //COMO SUNAT NO LO ADMITE VUELVE A SER 0
-                            $guia->sunat        = '0';
-                            $guia->regularize   = '1';
-                            $guia->despatch_name    =   $despatch->getName();
-                            $guia->update();
+            } else{
 
-                            Session::flash('error_guia_remision', 'Guia de remision sin exito en el envio a sunat.');                     
-                            return redirect()->route('ventas.guiasremision.index');
-                        }
+                //COMO SUNAT NO LO ADMITE VUELVE A SER 0
+                $guia->sunat        = '0';
+                $guia->regularize   = '1';
+                $guia->despatch_name    =   $despatch->getName();
+                $guia->update();
+
+               throw new Exception("ERROR AL ENVIAR GUÍA A SUNAT");
+               
+            }
+
         } catch (\Throwable $th) {
-            Session::flash('error_guia_remision', $th->getMessage());                     
-            return redirect()->route('ventas.guiasremision.index');
+           return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
         }
                
 
     }
 
-    public function consulta_ticket($id){
+
+/*
+array:1 [
+  "id" => 4
+]
+*/ 
+    public function consulta_ticket(Request $request){
         try {
-            //==== obtener la guía por su id =====
+
+            //==== OBTENER LA GUÍA POR SU ID =====
+            $id     =   $request->get('id');
             $guia   =   Guia::findOrFail($id);
             $ticket =   $guia->ticket;
+
+            if(!$ticket){
+                throw new Exception("LA GUÍA NO TIENE UN TICKET");
+            }
 
             if($ticket){
                
@@ -1313,6 +1419,8 @@ array:14 [
                 $api = $this->controlConfiguracionGreenter($util); 
                 //======== CONSULTANDO ESTADO DE LA GUÍA =====
                 $res = $api->getStatus($ticket);
+
+                dd($res);
 
             
                 //======== response estructura =======
@@ -1433,15 +1541,12 @@ array:14 [
                                 'descripcion'       =>  $descripcion,
                                 'guia_actualizada'  =>  $guia];
 
-                return response()->json([  'type' => 'success','message' => $response ], 200);
-            }else{
-                return response()->json(['type' => 'error',
-                'message' => "La guía no contiene un ticket,debe enviar a sunat previamente" ], 333);
+                return response()->json([  'success' => true,'message'=>$descripcion ]);
             }
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (Throwable $th) {
            
-            return response()->json(['type' => 'error','message' => 'Guía no encontrada'], 404);
+           return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
         
     }

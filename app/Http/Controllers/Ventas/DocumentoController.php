@@ -56,6 +56,7 @@ use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
 use App\Almacenes\Modelo;
 use App\Almacenes\Color;
+use App\Almacenes\Conductor;
 use Illuminate\Support\Facades\Cache;
 use App\Classes\ValidatedDetail;
 
@@ -66,9 +67,11 @@ use App\Almacenes\DetalleNotaSalidad;
 use App\Almacenes\Marca;
 use App\Almacenes\NotaSalidad;
 use App\Almacenes\ProductoColor;
+use App\Almacenes\Vehiculo;
 use App\Http\Controllers\UtilidadesController;
 use App\Http\Requests\Ventas\DocVenta\DocVentaStoreRequest;
 use App\Http\Requests\Ventas\DocVenta\DocVentaUpdateRequest;
+use App\Http\Requests\Ventas\Guias\GuiaStoreRequest;
 use App\Mantenimiento\Sedes\Sede;
 use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Provincia;
@@ -5211,6 +5214,144 @@ array:12 [
             'almacen'           =>  $almacen
         ];
 
+    }
+
+
+    public function guiaCreate($venta_id){
+
+        $venta              =   Documento::find($venta_id);   
+        $almacen_origen     =   Almacen::find($venta->almacen_id);
+        $venta_detalle      =   UtilidadesController::formatearArrayDetalle(Detalle::where('documento_id',$venta_id)->get());
+
+        $sede_id            =   Auth::user()->sede_id;
+
+        $sede_origen        =   Sede::find($almacen_origen->sede_id);
+        $sede_documento     =   Sede::find($venta->sede_id);
+
+        $cliente            =   DB::select('select 
+                                c.direccion,
+                                c.tipo_documento,
+                                c.documento,
+                                c.nombre,
+                                d.nombre as departamento_nombre,
+                                pr.nombre as provincia_nombre,
+                                di.nombre as distrito_nombre,
+                                c.distrito_id
+                                from clientes as c
+                                inner join departamentos as d on d.id = c.departamento_id
+                                inner join provincias as pr on pr.id = c.provincia_id
+                                inner join distritos as di on di.id = c.distrito_id
+                                where c.id = ?',[$venta->cliente_id])[0];
+
+        $almacenes          =   Almacen::where('estado','ACTIVO')
+                                ->where('tipo_almacen','PRINCIPAL')
+                                ->where('sede_id',$sede_id)
+                                ->get();
+
+
+        $registrador        =   User::find(Auth::user()->id);
+        $tallas             =   Talla::where('estado','ACTIVO')->get();
+        $empresas           =   Empresa::where('estado','ACTIVO')->get();
+        $conductores        =   Conductor::where('estado','ACTIVO')->get();
+        $vehiculos          =   Vehiculo::where('estado','ACTIVO')->get();
+      
+        
+        $tipos_documento    =   DB::select('select 
+                                td.* 
+                                from tabladetalles as td 
+                                where td.tabla_id = 3');
+
+        $sedes              =   Sede::where('estado','ACTIVO')
+                                ->where('id','<>',$sede_id)
+                                ->get();
+
+        $motivos_traslado   =   DB::select('select 
+                                td.*
+                                from tabladetalles as td
+                                where 
+                                td.tabla_id = 34
+                                AND td.simbolo IN ("01","04")');                  
+
+        return view('ventas.guia_venta.create',[
+
+            'sede_origen'       =>  $sede_origen,
+            'motivos_traslado'  =>  $motivos_traslado,
+            'sede_id'           =>  $sede_id,
+            'almacenes'         =>  $almacenes,
+            'registrador'       =>  $registrador,
+            'tallas'            =>  $tallas,
+            'empresas'          =>  $empresas,
+            'conductores'       =>  $conductores,
+            'sedes'             =>  $sedes,
+            'vehiculos'         =>  $vehiculos,
+            'tipos_documento'   =>  $tipos_documento,
+            'venta'             =>  $venta,
+            'almacen_origen'    =>  $almacen_origen,
+            'venta_detalle'     =>  $venta_detalle,
+            'cliente'           =>  $cliente
+        ]);
+    }
+
+/*
+array:18 [
+  "registrador" => "ADMINISTRADOR"
+  "fecha_emision" => "2025-03-06"
+  "modalidad_traslado" => "01"
+  "fecha_traslado" => "2025-03-06"
+  "peso" => "0.1"
+  "unidad" => "KGM"
+  "vehiculo" => "1"
+  "conductor" => "2"
+  "sede_origen" => "SEDE CENTRAL"
+  "cliente" => "DNI:63035047-YOSELYN HILARION ROQUE"
+  "cliente_ubigeo" => "LIMA-LIMA-LIMA"
+  "cliente_codigo_ubigeo" => "150101"
+  "cliente_direccion" => "CAMPOy"
+  "sede_id" => "1"
+  "registrador_id" => "1"
+  "venta_id" => "8151"
+  "almacen" => "1"
+  "motivo_traslado" => "01"
+]
+*/ 
+    public function guiaStore(GuiaStoreRequest $request){
+
+        $lstGuia    =   UtilidadesController::formatearArrayDetalle(Detalle::where('documento_id',$request->get('venta_id'))->get());
+        $venta      =   Documento::find($request->get('venta_id'));
+
+        $almacen_origen =   Almacen::find($venta->almacen_id);
+
+        $request->merge([
+            'lstGuia'           =>  json_encode($lstGuia),  
+            'sede_genera_guia'  =>  $request->get('sede_id'),
+            'sede_usa_guia'     =>  $almacen_origen->sede_id,
+            'cliente_destino'   =>  $venta->cliente_id,
+            'venta'             =>  $venta->id
+        ]);
+
+        
+        $guia_controller        =   new GuiaController();
+        $res                    =   $guia_controller->store($request);
+        $jsonResponse           =   $res->getData(); 
+
+        if(!$jsonResponse->success){
+            return $res;
+        }
+        
+        DB::beginTransaction();
+        try {
+
+            $venta->guia_id  =   $jsonResponse->id;
+            $venta->update();   
+
+            DB::commit();
+
+            return $res;
+            
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
     }
 
 

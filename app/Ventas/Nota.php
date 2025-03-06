@@ -14,58 +14,8 @@ use App\Ventas\Documento\Documento;
 
 class Nota extends Model
 {
-    protected $table = 'nota_electronica';
-    protected $fillable = [
-        'documento_id',
-        'tipDocAfectado',
-        'numDocfectado',
-        'codMotivo',
-        'desMotivo',
-
-        'tipoDoc',
-        'fechaEmision',
-        'tipoMoneda',
-
-        //DATOS DE LA EMPRESA
-        'ruc_empresa',
-        'empresa',
-        'direccion_fiscal_empresa',
-        'empresa_id',
-        //CLIENTE
-        'cod_tipo_documento_cliente',
-        'tipo_documento_cliente',
-        'documento_cliente',
-        'direccion_cliente',
-        'cliente',
-
-        'sunat',
-        'tipo_nota',
-
-        'correlativo',
-        'serie',
-
-        'ruta_comprobante_archivo',
-        'nombre_comprobante_archivo',
-
-        'mtoOperGravadas',
-        'mtoIGV',
-        'totalImpuestos',
-        'mtoImpVenta',
-        'ublVersion',
-
-
-        'guia_tipoDoc',
-        'guia_nroDoc',
-        'code',
-        'value',
-        'estado',
-
-        'user_id',
-
-        'getCdrResponse',
-        'regularize',
-        'getRegularizeResponse',
-    ];
+    protected $table    = 'nota_electronica';
+    protected $guarded  = [''];
 
     public function documento()
     {
@@ -114,8 +64,8 @@ class Nota extends Model
                 }
             }
 
-            $documento = Documento::find($nota->documento->id);
-            $detalles = Detalle::where('documento_id', $nota->documento->id)->get();
+            $documento  = Documento::find($nota->documento->id);
+            $detalles   = Detalle::where('documento_id', $nota->documento->id)->get();
             $cont = 0;
 
             foreach($detalles as $detalle)

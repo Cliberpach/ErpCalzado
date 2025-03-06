@@ -11,28 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 class NotaDetalle extends Model
 {
-    protected $table = 'nota_electronica_detalle';
-    protected $fillable = [
-        'nota_id',
-        'detalle_id',
-        'codProducto',
-        'unidad',
-        'descripcion',
-        'cantidad',
-
-        'mtoBaseIgv',
-        'porcentajeIgv',
-        'igv',
-        'tipAfeIgv',
-
-        'totalImpuestos',
-        'mtoValorVenta',
-        'mtoValorUnitario',
-        'mtoPrecioUnitario',
-        'producto_id',
-        'color_id',
-        'talla_id'
-    ];
+    protected $table    = 'nota_electronica_detalle';
+    protected $guarded  = [ '' ];
 
     public function detalle()
     {
@@ -47,11 +27,11 @@ class NotaDetalle extends Model
     {
         static::created(function(NotaDetalle $detalle){
             
-            $producto_color_talla = DB::table('producto_color_tallas')
-            ->where('producto_id', $detalle->producto_id)
-            ->where('color_id', $detalle->color_id)
-            ->where('talla_id', $detalle->talla_id)
-            ->first();
+            /*$producto_color_talla = DB::table('producto_color_tallas')
+                                    ->where('producto_id', $detalle->producto_id)
+                                    ->where('color_id', $detalle->color_id)
+                                    ->where('talla_id', $detalle->talla_id)
+                                    ->first();
 
 
             //KARDEX
@@ -69,7 +49,6 @@ class NotaDetalle extends Model
             $kardex->importe        =   $detalle->mtoPrecioUnitario * $detalle->cantidad;
             //$kardex->stock        =   $detalle->detalle->lote->producto->stock;
             $kardex->stock          =   $producto_color_talla->stock;
-
             $kardex->save();
 
             $sumatoria           = NotaDetalle::where('detalle_id',$detalle->detalle_id)->sum('cantidad');
@@ -78,7 +57,7 @@ class NotaDetalle extends Model
             {
                  $detalle_venta->estado = 'ANULADO';
                  $detalle_venta->update();
-            }
+            }*/
 
             
         });

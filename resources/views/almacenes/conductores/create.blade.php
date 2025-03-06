@@ -188,7 +188,7 @@
                 
                 if(response.status === 422){
                     if('errors' in res){
-                        pintarErroresValidacion(res.errors);
+                        pintarErroresValidacion(res.errors,'error');
                     }
                     Swal.close();
                     return;

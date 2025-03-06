@@ -342,7 +342,9 @@
                                 <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($nota->mtoOperGravadas, 2) }}</p></td>
                             </tr>
                             <tr>
-                                <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">IGV {{$nota->documento->igv }}%: S/.</p></td>
+                                <td style="text-align:left; padding: 5px;">
+                                    <p class="p-0 m-0">IGV {{ number_format($nota->documento->igv, 2) }}%: S/.</p>
+                                </td>
                                 <td style="text-align:right; padding: 5px;"><p class="p-0 m-0">{{ number_format($nota->mtoIGV, 2) }}</p></td>
                             </tr>
                             @endif

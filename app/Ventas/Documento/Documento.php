@@ -96,7 +96,7 @@ class Documento extends Model
     }
     public function tablaDetalles()
     {
-        return $this->belongsTo('App\Mantenimiento\Tabla\Detalle', 'tipo_venta');
+        return $this->belongsTo('App\Mantenimiento\Tabla\Detalle', 'tipo_venta_id');
     }
 
     public function bancoPagado()
@@ -127,7 +127,7 @@ class Documento extends Model
 
     public function nombreTipo(): string
     {
-        $venta = tipos_venta()->where('id', $this->tipo_venta)->first();
+        $venta = tipos_venta()->where('id', $this->tipo_venta_id)->first();
         if (is_null($venta))
             return "-";
         else
@@ -164,7 +164,7 @@ class Documento extends Model
 
     public function descripcionTipo(): string
     {
-        $venta = tipos_venta()->where('id', $this->tipo_venta)->first();
+        $venta = tipos_venta()->where('id', $this->tipo_venta_id)->first();
         if (is_null($venta))
             return "-";
         else
@@ -173,7 +173,7 @@ class Documento extends Model
 
     public function tipoOperacion(): string
     {
-        $venta = tipos_venta()->where('id', $this->tipo_venta)->first();
+        $venta = tipos_venta()->where('id', $this->tipo_venta_id)->first();
         if (is_null($venta))
             return "-";
         else
@@ -182,7 +182,7 @@ class Documento extends Model
 
     public function tipoDocumento(): string
     {
-        $venta = tipos_venta()->where('id', $this->tipo_venta)->first();
+        $venta = tipos_venta()->where('id', $this->tipo_venta_id)->first();
         if (is_null($venta))
             return "-";
         else
@@ -191,7 +191,7 @@ class Documento extends Model
 
     public function nombreDocumento(): string
     {
-        $venta = tipos_venta()->where('id', $this->tipo_venta)->first();
+        $venta = tipos_venta()->where('id', $this->tipo_venta_id)->first();
         if (is_null($venta))
             return "-";
         else
@@ -299,7 +299,7 @@ class Documento extends Model
                 }
             }
 
-            if ($documento->convertir && $documento->tipo_venta == 129) {
+            if ($documento->convertir && $documento->tipo_venta_id == 129) {
                 $doc_convertido = Documento::find($documento->convertir);
 
                 $condicion = Condicion::find($documento->condicion_id);

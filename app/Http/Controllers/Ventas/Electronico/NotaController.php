@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers\Ventas\Electronico;
 
+use App\Almacenes\Almacen;
+use App\Almacenes\Color;
+use App\Almacenes\Kardex;
 use App\Almacenes\LoteProducto;
 use App\Almacenes\Producto;
+use App\Almacenes\Talla;
 use App\Events\NotifySunatEvent;
 use App\Http\Controllers\Controller;
 use App\Mantenimiento\Empresa\Empresa;
@@ -86,7 +90,7 @@ class NotaController extends Controller
 
             $coleccion->push([
                 'id'                => $nota->id,
-                'tipo_venta'        => $nota->documento->tipo_venta,
+                'tipo_venta_id'     => $nota->documento->tipo_venta_id,
                 'documento_afectado'=> $nota->numDocfectado,
                 'fecha_emision'     =>  $nota->fechaEmision,
                 'numero-sunat'      =>  $nota->serie.'-'.$nota->correlativo,
@@ -303,9 +307,15 @@ class NotaController extends Controller
             }
 
             
-            $documento = Documento::find($request->get('documento_id'));
+            $documento                  =   Documento::find($request->get('documento_id'));
 
-            $igv = $documento->igv ? $documento->igv : 18;
+            $igv                        =   $documento->igv ? $documento->igv : 18;
+
+            //============ CALCULAR CORRELATIVO =======
+            $sede_id                    =   Auth::user()->sede_id;
+            $datos_correlativo          =   NotaController::getCorrelativo($sede_id,$documento->tipo_venta_id);
+            $almacen                    =   Almacen::find($documento->almacen_id);
+
 
             $nota                       =   new Nota();
             $nota->documento_id         =   $documento->id;
@@ -341,6 +351,13 @@ class NotaController extends Controller
             $nota->value        =   self::convertirTotal($request->get('total_nuevo'));
             $nota->code         =   '1000';
             $nota->user_id      =   auth()->user()->id;
+
+            $nota->serie        =   $datos_correlativo->serie;
+            $nota->correlativo  =   $datos_correlativo->correlativo;
+
+            $nota->sede_id          =   $sede_id;
+            $nota->almacen_id       =   $almacen->id;
+            $nota->almacen_nombre   =   $almacen->descripcion;
             $nota->save();
 
      
@@ -352,42 +369,69 @@ class NotaController extends Controller
             //========== PRODUCTOS PRESENTES EN LA NOTA DE CRÉDITO O DEVOLUCIÓN ===========
             foreach ($productotabla as $producto) {
                 
-
                 $detalle =  DB::select('select 
                             cdd.id 
                             from cotizacion_documento_detalles as cdd
                             where 
                             cdd.documento_id = ? 
-                            and cdd.producto_id = ?  
-                            and cdd.color_id = ?
-                            and cdd.talla_id = ?',[
+                            AND cdd.almacen_id = ?
+                            AND cdd.producto_id = ?  
+                            AND cdd.color_id = ?
+                            AND cdd.talla_id = ?',
+                            [
                                 $request->get('documento_id'),
+                                $documento->almacen_id,
                                 $producto->producto_id,
                                 $producto->color_id,
                                 $producto->talla_id
                             ]);
 
-                NotaDetalle::create([
-                    'nota_id' => $nota->id,
-                    'detalle_id' => $detalle[0]->id,
-                    'codProducto' => $producto->codigo_producto,
-                    'unidad' => 'NIU',
-                    'descripcion' => $producto->modelo_nombre.'-'.$producto->producto_nombre.'-'.$producto->color_nombre.'-'.$producto->talla_nombre,
-                    'cantidad' => $producto->cantidad_devolver,
-                    'mtoBaseIgv' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver,
-                    'porcentajeIgv' => 18,
-                    'igv' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad_devolver,
-                    'tipAfeIgv' => 10,
-                    'totalImpuestos' => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad_devolver,
-                    'mtoValorVenta' => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver,
-                    'mtoValorUnitario'=>  $producto->precio_unitario / (1 + ($documento->igv/100)),
-                    'mtoPrecioUnitario' => $producto->precio_unitario,
-                    'producto_id'   =>  $producto->producto_id,
-                    'color_id'      =>  $producto->color_id,
-                    'talla_id'      =>  $producto->talla_id
-                ]);
+                $nota_detalle                    = new NotaDetalle();
+                $nota_detalle->nota_id           = $nota->id;
+                $nota_detalle->detalle_id        = $detalle[0]->id;
+                $nota_detalle->codProducto       = $producto->codigo_producto;
+                $nota_detalle->unidad            = 'NIU';
+                $nota_detalle->descripcion       = $producto->modelo_nombre.'-'.$producto->producto_nombre.'-'.$producto->color_nombre.'-'.$producto->talla_nombre;
+                $nota_detalle->cantidad          = $producto->cantidad_devolver;
+                $nota_detalle->mtoBaseIgv        = ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver;
+                $nota_detalle->porcentajeIgv     = 18;
+                $nota_detalle->igv               = ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)))) * $producto->cantidad_devolver;
+                $nota_detalle->tipAfeIgv         = 10;
+                $nota_detalle->totalImpuestos    = ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)))) * $producto->cantidad_devolver;
+                $nota_detalle->mtoValorVenta     = ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver;
+                $nota_detalle->mtoValorUnitario  = $producto->precio_unitario / (1 + ($documento->igv/100));
+                $nota_detalle->mtoPrecioUnitario = $producto->precio_unitario;
+                $nota_detalle->almacen_id        = $almacen->id;
+                $nota_detalle->almacen_nombre    = $almacen->descripcion;
+                $nota_detalle->producto_id       = $producto->producto_id;
+                $nota_detalle->color_id          = $producto->color_id;
+                $nota_detalle->talla_id          = $producto->talla_id;
+                $nota_detalle->save();
+                            
 
+                /*NotaDetalle::create([
+                    'nota_id'           => $nota->id,
+                    'detalle_id'        => $detalle[0]->id,
+                    'codProducto'       => $producto->codigo_producto,
+                    'unidad'            => 'NIU',
+                    'descripcion'       => $producto->modelo_nombre.'-'.$producto->producto_nombre.'-'.$producto->color_nombre.'-'.$producto->talla_nombre,
+                    'cantidad'          => $producto->cantidad_devolver,
+                    'mtoBaseIgv'        => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver,
+                    'porcentajeIgv'     => 18,
+                    'igv'               => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad_devolver,
+                    'tipAfeIgv'         => 10,
+                    'totalImpuestos'    => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad_devolver,
+                    'mtoValorVenta'     => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver,
+                    'mtoValorUnitario'  =>  $producto->precio_unitario / (1 + ($documento->igv/100)),
+                    'mtoPrecioUnitario' =>  $producto->precio_unitario,
+                    'almacen_id'        =>  $almacen->id,
+                    'almacen_nombre'    =>  $almacen->descripcion,
+                    'producto_id'       =>  $producto->producto_id,
+                    'color_id'          =>  $producto->color_id,
+                    'talla_id'          =>  $producto->talla_id
+                ]);*/
 
+              
                 //========= 01:FACTURA 03:BOLETA =======
                 //======= PREGUNTAR SI EL DOC DE VENTA ESTÁ ASOCIADO A UN PEDIDO =====
                 if( $documento->pedido_id ){
@@ -396,14 +440,27 @@ class NotaController extends Controller
                     if($documento->tipo_doc_venta_pedido === "FACTURACION"){
 
                         //======== OBTENER EL PRODUCTO DE LA NOTA ELECTRÓNICA EN EL DETALLE DEL PEDIDO ======
-                        $producto_en_pedido =   DB::select('select pd.producto_id,pd.color_id,pd.talla_id,
+                        $producto_en_pedido =   DB::select('select 
+                                                pd.almacen_id,
+                                                pd.producto_id,
+                                                pd.color_id,
+                                                pd.talla_id,
                                                 pd.cantidad_atendida,
                                                 pd.cantidad_pendiente
                                                 from pedidos_detalles as pd
-                                                where pd.pedido_id = ? and
-                                                pd.producto_id = ? and pd.color_id = ? and pd.talla_id = ?',
-                                                [$documento->pedido_id,
-                                                $producto->producto_id,$producto->color_id,$producto->talla_id]);
+                                                where 
+                                                pd.pedido_id = ? 
+                                                AND pd.almacen_id = ?
+                                                AND pd.producto_id = ? 
+                                                AND pd.color_id = ? 
+                                                AND pd.talla_id = ?',
+                                                [
+                                                    $documento->pedido_id,
+                                                    $documento->almacen_id,
+                                                    $producto->producto_id,
+                                                    $producto->color_id,
+                                                    $producto->talla_id
+                                                ]);
 
     
                         //====== COMPROBAR SI EL PRODUCTO ESTÁ PRESENTE EN EL DETALLE DEL PEDIDO =======
@@ -412,7 +469,7 @@ class NotaController extends Controller
                             $cantidad_reponer   =   0;   
 
                             //======= CASO I:  CANT DEVOLVER <= CANTIDAD PENDIENTE ======
-                            if($producto->cantidad_devolver <= $producto_en_pedido[0]->cantidad_pendiente   ){
+                            if($producto->cantidad_devolver <= $producto_en_pedido[0]->cantidad_pendiente ){
 
                                 //======== NO SE VA REPONER STOCK =======
                                 $cantidad_reponer   =   0;
@@ -421,6 +478,7 @@ class NotaController extends Controller
                                 //====== INCREMENTAR LA CANTIDAD DEVUELTA Y LA CANTIDAD PENDIENTE DEVUELTA =======
                                 DB::table('pedidos_detalles')
                                 ->where('pedido_id', $documento->pedido_id)
+                                ->where('almacen_id',$producto_en_pedido[0]->almacen_id)
                                 ->where('producto_id', $producto_en_pedido[0]->producto_id)
                                 ->where('color_id', $producto_en_pedido[0]->color_id)
                                 ->where('talla_id', $producto_en_pedido[0]->talla_id)
@@ -448,17 +506,19 @@ class NotaController extends Controller
 
                                 //======= REPONEMOS STOCK ======
                                 DB::table('producto_color_tallas')
+                                ->where('almacen_id',$producto_en_pedido[0]->almacen_id)
                                 ->where('producto_id', $producto_en_pedido[0]->producto_id)
                                 ->where('color_id', $producto_en_pedido[0]->color_id)
                                 ->where('talla_id', $producto_en_pedido[0]->talla_id)
                                 ->update([
-                                    'stock_logico' => DB::raw('stock_logico + ' . $cantidad_reponer),
-                                    'stock' => DB::raw('stock + ' . $cantidad_reponer)
+                                    'stock_logico'  => DB::raw('stock_logico + ' . $cantidad_reponer),
+                                    'stock'         => DB::raw('stock + ' . $cantidad_reponer)
                                 ]);
 
                                 //======== ACTUALIZAMOS DETALLE DEL PEDIDO ======
                                 DB::table('pedidos_detalles')
                                 ->where('pedido_id', $documento->pedido_id)
+                                ->where('almacen_id', $producto_en_pedido[0]->almacen_id)
                                 ->where('producto_id', $producto_en_pedido[0]->producto_id)
                                 ->where('color_id', $producto_en_pedido[0]->color_id)
                                 ->where('talla_id', $producto_en_pedido[0]->talla_id)
@@ -485,14 +545,27 @@ class NotaController extends Controller
                         //======= DEBIDO A QUE EL PEDIDO PUEDE MODIFICARSE EN CASO SE REQUIERA BAJAR LAS CANTIDADES PENDIENTES ======
                         
                         //======== OBTENER EL PRODUCTO DE LA NOTA ELECTRÓNICA EN EL DETALLE DEL PEDIDO ======
-                        $producto_en_pedido =   DB::select('select pd.producto_id,pd.color_id,pd.talla_id,
+                        $producto_en_pedido =   DB::select('select 
+                                                pd.almacen_id,
+                                                pd.producto_id,
+                                                pd.color_id,
+                                                pd.talla_id,
                                                 pd.cantidad_atendida,
                                                 pd.cantidad_pendiente
                                                 from pedidos_detalles as pd
-                                                where pd.pedido_id = ? and
-                                                pd.producto_id = ? and pd.color_id = ? and pd.talla_id = ?',
-                                                [$documento->pedido_id,
-                                                $producto->producto_id,$producto->color_id,$producto->talla_id]);
+                                                where 
+                                                pd.pedido_id = ? 
+                                                AND pd.almacen_id = ?
+                                                AND pd.producto_id = ? 
+                                                AND pd.color_id = ? 
+                                                AND pd.talla_id = ?',
+                                                [
+                                                    $documento->pedido_id,
+                                                    $documento->almacen_id,
+                                                    $producto->producto_id,
+                                                    $producto->color_id,
+                                                    $producto->talla_id
+                                                ]);
 
 
                         //====== COMPROBAR SI EL PRODUCTO ESTÁ PRESENTE EN EL DETALLE DEL PEDIDO =======
@@ -500,10 +573,11 @@ class NotaController extends Controller
 
                             //======= REPONEMOS STOCK ======
                             DB::table('producto_color_tallas')
-                             ->where('producto_id', $producto_en_pedido[0]->producto_id)
-                             ->where('color_id', $producto_en_pedido[0]->color_id)
-                             ->where('talla_id', $producto_en_pedido[0]->talla_id)
-                             ->update([
+                            ->where('almacen_id', $producto_en_pedido[0]->almacen_id)
+                            ->where('producto_id', $producto_en_pedido[0]->producto_id)
+                            ->where('color_id', $producto_en_pedido[0]->color_id)
+                            ->where('talla_id', $producto_en_pedido[0]->talla_id)
+                            ->update([
                                  'stock_logico' => DB::raw('stock_logico + ' . $producto->cantidad_devolver),
                                  'stock' => DB::raw('stock + ' . $producto->cantidad_devolver)
                              ]);
@@ -511,6 +585,7 @@ class NotaController extends Controller
                             //========== ACTUALIZANDO DETALLE DEL PEDIDO =======
                             DB::table('pedidos_detalles')
                             ->where('pedido_id', $documento->pedido_id)
+                            ->where('almacen_id', $producto_en_pedido[0]->almacen_id)
                             ->where('producto_id', $producto_en_pedido[0]->producto_id)
                             ->where('color_id', $producto_en_pedido[0]->color_id)
                             ->where('talla_id', $producto_en_pedido[0]->talla_id)
@@ -533,35 +608,95 @@ class NotaController extends Controller
 
                 //======== SI EL DOC DE VENTA NO ESTÁ ASOCIADO A UN PEDIDO ========
                 if(!$documento->pedido_id){
+
                     //===== AUMENTAR EL STOCK LOGICO Y FISICO ====
                     DB::table('producto_color_tallas')
-                      ->where('producto_id', $producto->producto_id)
-                      ->where('color_id', $producto->color_id)
-                      ->where('talla_id', $producto->talla_id)
-                      ->update([
-                              'stock_logico' => DB::raw('stock_logico + ' . $producto->cantidad_devolver),
-                              'stock' => DB::raw('stock + ' . $producto->cantidad_devolver)
-                      ]);
+                    ->where('almacen_id', $documento->almacen_id)
+                    ->where('producto_id', $producto->producto_id)
+                    ->where('color_id', $producto->color_id)
+                    ->where('talla_id', $producto->talla_id)
+                    ->update([
+                        'stock_logico'    => DB::raw('stock_logico + ' . $producto->cantidad_devolver),
+                        'stock'           => DB::raw('stock + ' . $producto->cantidad_devolver)
+                    ]);
+
                 }
 
                 if($request->cod_motivo == '01'){   //==== EN CASO DEVOLUCIÓN TOTAL ====
                     $documento->sunat = '2';
                     $documento->update();    
                 }
+
+                //======== KARDEX =======
+                $producto_color_talla   =   DB::table('producto_color_tallas')
+                                            ->where('almacen_id',$documento->almacen_id)
+                                            ->where('producto_id', $producto->producto_id)
+                                            ->where('color_id', $producto->color_id)
+                                            ->where('talla_id', $producto->talla_id)
+                                            ->first();
+
+
+                
+
+                $item_producto              =   Producto::find($producto->producto_id);
+                $item_color                 =   Color::find($producto->color_id);
+                $item_talla                 =   Talla::find($producto->talla_id);
+
+                $kardex                     =   new Kardex();
+                $kardex->sede_id            =   $sede_id;
+                $kardex->almacen_id         =   $almacen->id;
+                $kardex->producto_id        =   $producto->producto_id;
+                $kardex->color_id           =   $producto->color_id;
+                $kardex->talla_id           =   $producto->talla_id;
+                $kardex->almacen_nombre     =   $almacen->descripcion;
+                $kardex->producto_nombre    =   $item_producto->nombre;
+                $kardex->color_nombre       =   $item_color->descripcion;
+                $kardex->talla_nombre       =   $item_talla->descripcion;
+                $kardex->cantidad           =   $producto->cantidad_devolver;
+                $kardex->precio             =   $nota_detalle->mtoPrecioUnitario;
+                $kardex->importe            =   $nota_detalle->mtoPrecioUnitario * $producto->cantidad_devolver;
+                $kardex->accion             =   'INGRESO';
+                $kardex->stock              =   $producto_color_talla->stock;
+                $kardex->numero_doc         =   'NI-'.$nota->id;
+                $kardex->documento_id       =   $nota->id;
+                $kardex->registrador_id     =   Auth::user()->id;
+                $kardex->registrador_nombre =   Auth::user()->usuario;
+                $kardex->fecha              =   $nota->fechaEmision;
+                $kardex->descripcion        =   'DEVOLUCIÓN';
+                $kardex->save();
+
+                $sumatoria           = NotaDetalle::where('detalle_id',$nota_detalle->detalle_id)->sum('cantidad');
+                $detalle_venta       = Detalle::findOrFail($nota_detalle->detalle_id);
+                if($detalle_venta->cantidad == $sumatoria)
+                {
+                    $detalle_venta->estado = 'ANULADO';
+                    $detalle_venta->update();
+                }
           
             }
+
+            //========== ACTUALIZAR ESTADO FACTURACIÓN A INICIADA ======
+            DB::table('empresa_numeracion_facturaciones')
+            ->where('empresa_id', Empresa::find(1)->id) 
+            ->where('sede_id', $sede_id) 
+            ->where('tipo_comprobante', $datos_correlativo->tipo_comprobante->id) 
+            ->where('emision_iniciada', '0') 
+            ->where('estado','ACTIVO')
+            ->update([
+                  'emision_iniciada'       => '1',
+                  'updated_at'             => Carbon::now()
+            ]);
           
             //==== REGISTRO DE ACTIVIDAD ====
             $descripcion = "SE AGREGÓ UNA NOTA DE DEBITO CON LA FECHA: ". Carbon::parse($nota->fechaEmision)->format('d/m/y');
             $gestion = "NOTA DE DEBITO";
             crearRegistro($nota , $descripcion , $gestion);
 
-          
             //======== OBTENER CORRELATIVO ======
-            $envio_prev = self::sunat_prev($nota->id,$documento->tipo_venta);
+            //$envio_prev = self::sunat_prev($nota->id,$documento->tipo_venta);
             
            
-            if(!$envio_prev['success']){
+            /*if(!$envio_prev['success']){
                 DB::rollBack();
                 return response()->json([
                     'success' => false,
@@ -578,7 +713,7 @@ class NotaController extends Controller
                     ->where('id', $envio_prev['model_numeracion']->id)
                     ->update(['emision_iniciada' => '1']);
                 }
-            }
+            }*/
             
             DB::commit();
 
@@ -927,110 +1062,27 @@ class NotaController extends Controller
 
     public function show($id)
     {
-        $nota = Nota::with(['documento'])->findOrFail($id);
-        $empresa = Empresa::first();
-        $detalles = NotaDetalle::where('nota_id',$id)->get();
-        //ARREGLO COMPROBANTE
-        $arreglo_nota = array(
-            "tipDocAfectado" => $nota->tipDocAfectado,
-            "numDocfectado" => $nota->numDocfectado,
-            "codMotivo" => $nota->codMotivo,
-            "desMotivo" => $nota->desMotivo,
-            "tipoDoc" => $nota->tipoDoc,
-            "fechaEmision" => self::obtenerFecha($nota->fechaEmision),
-            "tipoMoneda" => $nota->tipoMoneda,
-            "serie" => $nota->sunat==1 ? $nota->serie : '000',
-            "correlativo" => $nota->sunat==1 ? $nota->correlativo : '000',
-            "company" => array(
-                "ruc" => $nota->ruc_empresa,
-                "razonSocial" => $nota->empresa,
-                "address" => array(
-                    "direccion" => $nota->direccion_fiscal_empresa,
-                )),
+        $nota       = Nota::with(['documento'])->findOrFail($id);
+        $empresa    = Empresa::first();
+        $detalles   = NotaDetalle::where('nota_id',$id)->get();
 
-            "client" => array(
-                "tipoDoc" =>  $nota->cod_tipo_documento_cliente,
-                "numDoc" => $nota->documento_cliente,
-                "rznSocial" => $nota->cliente,
-                "address" => array(
-                    "direccion" => $nota->direccion_cliente,
-                )
-            ),
+        
 
-            "mtoOperGravadas" =>  floatval($nota->mtoOperGravadas),
-            "mtoIGV" => floatval($nota->mtoIGV),
-            "totalImpuestos" => floatval($nota->totalImpuestos),
-            "mtoImpVenta" => floatval($nota->mtoImpVenta),
-            "ublVersion" =>  $nota->ublVersion,
-            "details" => self::obtenerProductos($detalles),
-            "legends" =>  self::obtenerLeyenda($nota),
-        );
-
-        $nota_json= json_encode($arreglo_nota);
-        //$data = pdfNotaapi($nota_json);
-
-        $name = $nota->serie.'-'.$nota->correlativo.'.pdf';
-
-        if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'comprobantessiscom'))) {
-            mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'comprobantessiscom'));
-        }
-
-        if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'comprobantessiscom'.DIRECTORY_SEPARATOR.'notas'))) {
-            mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'comprobantessiscom'.DIRECTORY_SEPARATOR.'notas'));
-        }
-
-        $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'comprobantessiscom'.DIRECTORY_SEPARATOR.'notas'.DIRECTORY_SEPARATOR.$name);
-
-        //file_put_contents($pathToFile, $data);
-
-        if($nota->ruta_qr === null)
-        {
-            /*************************************** */
-            $arreglo_qr = array(
-                "ruc" => $nota->ruc_empresa,
-                "tipo" => $nota->tipoDoc,
-                "serie" => $nota->serie,
-                "numero" => $nota->correlativo,
-                "emision" => self::obtenerFecha($nota->fechaEmision),
-                "igv" => 18,
-                "total" => floatval($nota->mtoImpVenta),
-                "clienteTipo" => $nota->cod_tipo_documento_cliente,
-                "clienteNumero" => $nota->documento_cliente
-            );
-
-            $data_qr = generarQrApi(json_encode($arreglo_qr), $nota->empresa_id);
-
-            $name_qr = $nota->serie."-".$nota->correlativo.'.svg';
-
-            if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'qrs_nota'))) {
-                mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'qrs_nota'));
-            }
-
-            $pathToFile_qr = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'qrs_nota'.DIRECTORY_SEPARATOR.$name_qr);
-
-            file_put_contents($pathToFile_qr, $data_qr);
-
-            $nota->ruta_qr = 'public/qrs_nota/'.$name_qr;
-            $nota->update();
-            /*************************************** */
-        }
-
-        //file_put_contents($pathToFile, $data);
-        //return response()->file($pathToFile);
+    
         $legends = self::obtenerLeyenda($nota);
         $legends = json_encode($legends,true);
         $legends = json_decode($legends,true);
 
         $pdf = PDF::loadview('ventas.notas.impresion.comprobante_normal_nuevo',[
-            'nota' => $nota,
-            'detalles' => $detalles,
-            'moneda' => $nota->tipoMoneda,
-            'empresa' => $empresa,
-            "legends" =>  $legends,
+            'nota'      =>  $nota,
+            'detalles'  =>  $detalles,
+            'moneda'    =>  $nota->tipoMoneda,
+            'empresa'   =>  $empresa,
+            "legends"   =>  $legends,
             ])->setPaper('a4')->setWarnings(false);
 
-        $pdf->save(storage_path().'/app/public/comprobantessiscom/notas/'.$name);
-        return $pdf->stream($name);
+        //$pdf->save(storage_path().'/app/public/comprobantessiscom/notas/'.$name);
+        return $pdf->stream($nota->serie.'-'.$nota->correlativo);
     }
 
     public function show_dev($id)
@@ -1288,7 +1340,7 @@ class NotaController extends Controller
                 ->setCodMotivo($nota->codMotivo) // Catalogo. 09    01:ANULACION DE LA OPERACION    07:DEVOLUCION POR ITEM
                 ->setDesMotivo($des_motivo)
                 ->setTipoMoneda('PEN')
-                ->setCompany($util->shared->getCompany())
+                ->setCompany($util->shared->getCompany($nota->sede_id))
                 ->setClient($client)
                 ->setMtoOperGravadas($nota->mtoOperGravadas)
                 ->setMtoIGV($nota->mtoIGV)
@@ -1391,13 +1443,20 @@ class NotaController extends Controller
 
     public function controlConfiguracionGreenter($util){
         //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
-        $greenter_config    =   DB::select('select gc.ruta_certificado,gc.id_api_guia_remision,gc.modo,
-          gc.clave_api_guia_remision,e.ruc,e.razon_social,e.direccion_fiscal,e.ubigeo,
-          e.direccion_llegada,gc.sol_user,gc.sol_pass
-          from greenter_config as gc
-          inner join empresas as e on e.id=gc.empresa_id
-          inner join configuracion as c on c.propiedad = gc.modo
-          where gc.empresa_id=1 and c.slug="AG"');
+        $greenter_config    =   DB::select('select 
+                                gc.ruta_certificado,
+                                gc.id_api_guia_remision,
+                                gc.modo,
+                                gc.clave_api_guia_remision,
+                                e.ruc,e.razon_social,
+                                e.direccion_fiscal,
+                                e.ubigeo,
+                                e.direccion_llegada,
+                                gc.sol_user,gc.sol_pass
+                                from greenter_config as gc
+                                inner join empresas as e on e.id=gc.empresa_id
+                                inner join configuracion as c on c.propiedad = gc.modo
+                                where gc.empresa_id=1 and c.slug="AG"');
 
 
         if(count($greenter_config) === 0){
@@ -1432,216 +1491,6 @@ class NotaController extends Controller
         return $see;
     }
 
-
-
-    // // public function sunat($id,$modo="http")
-    // // {
-    // //     try
-    // //     {
-    // //         $nota       = Nota::findOrFail($id);
-    // //         $documento  = Documento::find($nota->documento_id);
-    // //         $detalles   = NotaDetalle::where('nota_id',$id)->get();
-    // //         //OBTENER CORRELATIVO DE LA NOTA CREDITO / DEBITO
-    // //         $existe     = self::numeracion($nota,$documento->tipo_venta);
-    // //         $nota       = Nota::findOrFail($id);
-
-    // //         if($existe){
-    // //             if ($existe->get('existe') == true) {
-    // //                 if ($nota->sunat != '1') {
-    // //                     //ARREGLO COMPROBANTE
-    // //                     $arreglo_nota = array(
-    // //                         "tipDocAfectado"    => $nota->tipDocAfectado,
-    // //                         "numDocfectado"     => $nota->numDocfectado,
-    // //                         "codMotivo"         => $nota->codMotivo,
-    // //                         "desMotivo"         => $nota->desMotivo,
-    // //                         "tipoDoc"           => $nota->tipoDoc,
-    // //                         "fechaEmision"      => self::obtenerFecha($nota->fechaEmision),
-    // //                         "tipoMoneda"        => $nota->tipoMoneda,
-    // //                         "serie"             => $nota->serie,
-    // //                         // "serie" => $nota->tipDocAfectado === '03' ? 'BB01' : 'FF01',//$existe->get('numeracion')->serie,
-    // //                         "correlativo"       => $nota->correlativo,
-    // //                         "company" => array(
-    // //                             "ruc"           => $nota->ruc_empresa,
-    // //                             "razonSocial"   => $nota->empresa,
-    // //                             "address" => array(
-    // //                                 "direccion" => $nota->direccion_fiscal_empresa,
-    // //                             )),
-    // //                         "client" => array(
-    // //                             "tipoDoc" =>  $nota->cod_tipo_documento_cliente,
-    // //                             "numDoc" => $nota->documento_cliente,
-    // //                             "rznSocial" => $nota->cliente,
-    // //                             "address" => array(
-    // //                                 "direccion" => $nota->direccion_cliente,
-    // //                             )
-    // //                         ),
-
-    // //                         "mtoOperGravadas"   =>  floatval($nota->mtoOperGravadas),
-    // //                         "mtoIGV"            =>  floatval($nota->mtoIGV),
-    // //                         "totalImpuestos"    =>  floatval($nota->totalImpuestos),
-    // //                         "mtoImpVenta"       =>  floatval($nota->mtoImpVenta),
-    // //                         "ublVersion"        =>  $nota->ublVersion,
-    // //                         "details"           =>  self::obtenerProductos($detalles),
-    // //                         "legends"           =>  self::obtenerLeyenda($nota),
-    // //                     );
-
-    // //                     // return $arreglo_nota;
-    // //                     //OBTENER JSON DEL COMPROBANTE EL CUAL SE ENVIARA A SUNAT
-    // //                     $data = enviarNotaapi(json_encode($arreglo_nota));
-
-    // //                     //RESPUESTA DE LA SUNAT EN JSON
-    // //                     $json_sunat = json_decode($data);
-
-    // //                     if ($json_sunat->sunatResponse->success == true) {
-    // //                         if($json_sunat->sunatResponse->cdrResponse->code == "0")
-    // //                         {
-    // //                             $nota->sunat = '1';
-    // //                             $respuesta_cdr = json_encode($json_sunat->sunatResponse->cdrResponse, true);
-    // //                             $respuesta_cdr = json_decode($respuesta_cdr, true);
-    // //                             $nota->getCdrResponse = $respuesta_cdr;
-
-    // //                             $data_comprobante = pdfNotaapi(json_encode($arreglo_nota));
-    // //                             $name = $existe->get('numeracion')->serie . "-" . $nota->correlativo . '.pdf';
-
-    // //                             if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat'))) {
-    // //                                 mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat'));
-    // //                             }
-
-    // //                             if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'nota'))) {
-    // //                                 mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'nota'));
-    // //                             }
-
-    // //                             $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sunat' . DIRECTORY_SEPARATOR . 'nota' . DIRECTORY_SEPARATOR . $name);
-
-    // //                             /*************************************** */
-    // //                             $arreglo_qr = array(
-    // //                                 "ruc" => $nota->ruc_empresa,
-    // //                                 "tipo" => $nota->tipoDoc,
-    // //                                 "serie" => $nota->serie,
-    // //                                 "numero" => $nota->correlativo,
-    // //                                 "emision" => self::obtenerFecha($nota->fechaEmision),
-    // //                                 "igv" => 18,
-    // //                                 "total" => floatval($nota->mtoImpVenta),
-    // //                                 "clienteTipo" => $nota->cod_tipo_documento_cliente,
-    // //                                 "clienteNumero" => $nota->documento_cliente
-    // //                             );
-
-    // //                             $data_qr = generarQrApi(json_encode($arreglo_qr), $nota->empresa_id);
-
-    // //                             $name_qr = $nota->serie . "-" . $nota->correlativo . '.svg';
-
-    // //                             if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs_nota'))) {
-    // //                                 mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs_nota'));
-    // //                             }
-    // //                             $pathToFile_qr = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs_nota' . DIRECTORY_SEPARATOR . $name_qr);
-
-    // //                             file_put_contents($pathToFile_qr, $data_qr);
-    // //                             /*************************************** */
-
-    // //                             file_put_contents($pathToFile, $data_comprobante);
-    // //                             $nota->hash = $json_sunat->hash;
-    // //                             $nota->ruta_qr = 'public/qrs_nota/' . $name_qr;
-    // //                             $nota->nombre_comprobante_archivo = $name;
-    // //                             $nota->ruta_comprobante_archivo = 'public/sunat/nota/' . $name;
-    // //                             $nota->update();
-
-
-    // //                             //Registro de actividad
-    // //                             $descripcion = "SE AGREGÓ LA NOTA ELECTRONICA: " . $existe->get('numeracion')->serie . "-" . $nota->correlativo;
-    // //                             $gestion = "NOTAS ELECTRONICAS";
-    // //                             crearRegistro($nota, $descripcion, $gestion);
-
-    // //                             if($modo == "http"){
-    // //                                 Session::flash('success', 'Nota enviada a Sunat con exito.');
-    // //                                 Session::flash('sunat_exito', '1');
-    // //                                 Session::flash('id_sunat', $json_sunat->sunatResponse->cdrResponse->id);
-    // //                                 Session::flash('descripcion_sunat', $json_sunat->sunatResponse->cdrResponse->description);
-    
-    // //                                 return redirect()->route('ventas.notas', $documento->id)->with('sunat_exito', 'success');
-    // //                             }
-                             
-    // //                         }
-    // //                         else {
-    // //                             $nota->sunat = '0';
-    // //                             $id_sunat = $json_sunat->sunatResponse->cdrResponse->code;
-    // //                             $descripcion_sunat = $json_sunat->sunatResponse->cdrResponse->description;
-
-    // //                             $respuesta_error = json_encode($json_sunat->sunatResponse->cdrResponse, true);
-    // //                             $respuesta_error = json_decode($respuesta_error, true);
-    // //                             $nota->getCdrResponse = $respuesta_error;
-
-    // //                             $nota->update();
-                                
-    // //                             if($modo == "http"){
-    // //                                 Session::flash('error', 'Nota electronica sin exito en el envio a sunat.');
-    // //                                 Session::flash('sunat_error', '1');
-    // //                                 Session::flash('id_sunat', $id_sunat);
-    // //                                 Session::flash('descripcion_sunat', $descripcion_sunat);
-    
-    // //                                 return redirect()->route('ventas.notas', $documento->id)->with('sunat_error', 'error');
-    // //                             }
-                               
-    // //                         }
-    // //                     }else{
-
-    // //                         //COMO SUNAT NO LO ADMITE VUELVE A SER 0
-    // //                         $nota->sunat = '0';
-    // //                         $nota->regularize = '1';
-
-    // //                         if ($json_sunat->sunatResponse->error) {
-    // //                             $id_sunat = $json_sunat->sunatResponse->error->code;
-    // //                             $descripcion_sunat = $json_sunat->sunatResponse->error->message;
-    // //                             $obj_erro = new stdClass;
-    // //                             $obj_erro->code = $json_sunat->sunatResponse->error->code;
-    // //                             $obj_erro->description = $json_sunat->sunatResponse->error->message;
-    // //                             $respuesta_error = json_encode($obj_erro, true);
-    // //                             $respuesta_error = json_decode($respuesta_error, true);
-    // //                             $nota->getRegularizeResponse = $respuesta_error;
-    // //                         }else {
-    // //                             $id_sunat = $json_sunat->sunatResponse->cdrResponse->id;
-    // //                             $descripcion_sunat = $json_sunat->sunatResponse->cdrResponse->description;
-    // //                             $respuesta_error = json_encode($json_sunat->sunatResponse->cdrResponse, true);
-    // //                             $respuesta_error = json_decode($respuesta_error, true);
-    // //                             $nota->getCdrResponse = $respuesta_error;
-    // //                         };
-
-    // //                         $nota->update();
-    // //                         Session::flash('error', 'Nota electronica sin exito en el envio a sunat.');
-    // //                         Session::flash('sunat_error', '1');
-    // //                         Session::flash('id_sunat', $id_sunat);
-    // //                         Session::flash('descripcion_sunat', $descripcion_sunat);
-
-    // //                         return redirect()->route('ventas.notas', $documento->id)->with('sunat_error', 'error');
-    // //                     }
-    // //                 }else{
-    // //                     $nota->sunat = '1';
-    // //                     $nota->update();
-    // //                     Session::flash('error','Nota fue enviado a Sunat.');
-    // //                     return redirect()->route('ventas.notas',$documento->id)->with('sunat_existe', 'error');
-    // //                 }
-    // //             }else{
-    // //                 Session::flash('error','Nota no registrado en la empresa.');
-    // //                 return redirect()->route('ventas.notas',$documento->id)->with('sunat_existe', 'error');
-    // //             }
-    // //         }else{
-    // //             Session::flash('error','Empresa sin parametros para emitir comprobantes electronicos');
-    // //             return redirect()->route('ventas.notas',$documento->id);
-    // //         }
-
-    // //     }
-    // //     catch(\Throwable  $e)
-    // //     {   
-            
-    // //         if($modo    ==  "http"){
-    // //             Session::flash('error','Ocurrio un error, si el error persiste contactar al administrador del sistema.');
-    // //             return redirect()->route('ventas.notas',$documento->id);
-    // //         }
-
-    // //         if($modo    ==  "fetch"){
-    // //             return ['success'=>false,'message'=>"ERROR EN EL ENVÍO A SUNAT",'exception'=>$e->getMessage()];
-    // //         }
-            
-    // //     }
-    // // }
 
     public function sunat_prev($nota_id,$tipo_venta)
     {
@@ -1852,11 +1701,13 @@ class NotaController extends Controller
         }
     }
 
+    public static function getCorrelativo($sede_id,$tipo_venta_id){
 
-    public function getCorrelativo($sede_id,$tipo_venta_id){
+        $parametro          =   null;
+        $tipDocAfectado     =   null;
+        $correlativo        =   null;
+        $serie              =   null;
 
-        $parametro      =   null;
-        $tipDocAfectado =   null;
 
         //===== 127:FACTURA | 128:BOLETA | 129:NOTA DE VENTA ======
         if($tipo_venta_id == 127){
@@ -1875,18 +1726,10 @@ class NotaController extends Controller
             $message        =   "NOTAS DE DEVOLUCIÓN DE NOTAS DE VENTA";
         }
 
-        $existe =   DB::table('empresa_numeracion_facturaciones as enf')
-                    ->select('enf.serie')
-                    ->join('tabladetalles as td', 'td.id', '=', 'enf.tipo_comprobante')
-                    ->where('td.parametro', $parametro)
-                    ->where('td.tabla_id', 21)
-                    ->where('enf.sede_id',$sede_id)
-                    ->where('enf.estado','ACTIVO')
-                    ->get();
-
-
         //===== OBTENIENDO LA ÚLTIMA NOTA ELECTRÓNICA DE LA SEDE =======
-        $ultima_nota =     DB::select('SELECT n.correlativo 
+        $ultima_nota =      DB::select('SELECT
+                            n.serie, 
+                            n.correlativo 
                             FROM nota_electronica AS n
                             WHERE n.sede_id = ? 
                             AND n.tipDocAfectado = ?
@@ -1897,27 +1740,44 @@ class NotaController extends Controller
                                 $tipDocAfectado
                             ]);
 
-        //======== EN CASO YA EXISTAN NOTAS GENERADAS =====
-        if(count($ultima_nota) > 0){
+        $tipo_comprobante   =   DB::select('select 
+                                td.* 
+                                from tabladetalles as td
+                                where
+                                td.tabla_id = 21
+                                AND td.parametro = ?',[$parametro])[0];
+
+        $serializacion  =   DB::select('select 
+                            enf.*
+                            from empresa_numeracion_facturaciones as enf
+                            where 
+                            enf.empresa_id = ?
+                            and enf.tipo_comprobante = ?
+                            and enf.sede_id = ?',
+                            [Empresa::find(1)->id,
+                            $tipo_comprobante->id,
+                            $sede_id])[0];
+
+        //======== EN CASO NO EXISTAN NOTAS GENERADAS =====
+        if(count($ultima_nota) === 0){
+
+            $correlativo        =   $serializacion->numero_iniciar;
+            $serie              =   $serializacion->serie;
+
+        }else{
+
+            //======= EN CASO YA EXISTAN NOTAS DE CREDITO DEL TYPE SALE ======
             $correlativo    =   $ultima_nota[0]->correlativo + 1;
-            return (object)['serie'=>$ultima_nota[0]->serie,'correlativo'=>$correlativo];
+            $serie          =   $ultima_nota[0]->serie;
+    
         }
 
-        //===== BUSCAMOS EL REGISTRO DEL COMPROBANTE RESÚMENES =======
-        //===== 186 EN PRODUCCION - 190 EN LOCALHOST =====
-        $enf    =    DB::select('select 
-                            enf.numero_iniciar,
-                            enf.serie 
-                            from empresa_numeracion_facturaciones as enf
-                            inner join tabladetalles as td on td.id = enf.tipo_comprobante
-                            where 
-                            td.parametro = "R" 
-                            AND td.tabla_id = 21 
-                            AND enf.estado = "ACTIVO"
-                            AND enf.sede_id = ?',
-                            [$sede_id])[0];
 
-        return (object)['serie'=>$enf->serie,'correlativo'=>$enf->numero_iniciar];
+        return (object)[
+            'tipo_comprobante'  =>  $tipo_comprobante,
+            'serie'             =>  $serie,
+            'correlativo'       =>  $correlativo
+        ];
     }
 
 }

@@ -536,6 +536,8 @@ function(){
         Route::get('convertir/create/{id}','Ventas\DocumentoController@convertirCreate')->name('ventas.documento.convertirCreate');
         Route::post('convertir/store','Ventas\DocumentoController@convertirStore')->name('ventas.documento.convertirStore');
 
+        Route::get('guiaCreate/{id}','Ventas\DocumentoController@guiaCreate')->name('ventas.documento.guiaCreate');
+        Route::post('guiaStore','Ventas\DocumentoController@guiaStore')->name('ventas.documento.guiaStore');
 
         Route::get('/getProductosVenta/', 'Ventas\DocumentoController@getProductosVenta')->name('ventas.documento.getProductosVenta');
 
@@ -696,8 +698,8 @@ function(){
         Route::get('show/{id}','Ventas\GuiaController@show')->name('ventas.guiasremision.show');
         Route::get('reporte/{id}','Ventas\GuiaController@report')->name('ventas.guiasremision.reporte');
         Route::get('tiendaDireccion/{id}', 'Ventas\GuiaController@tiendaDireccion')->name('ventas.guiasremision.tienda_direccion');
-        Route::get('sunat/guia/{id}','Ventas\GuiaController@sunat')->name('ventas.guiasremision.sunat');
-        Route::get('consulta_ticket/guia/{id}','Ventas\GuiaController@consulta_ticket')->name('ventas.guiasremision.consulta.ticket');
+        Route::post('sunat/guia','Ventas\GuiaController@sunat')->name('ventas.guiasremision.sunat');
+        Route::post('consulta_ticket/guia/','Ventas\GuiaController@consulta_ticket')->name('ventas.guiasremision.consultar');
         Route::get('getXml/{guia_id}','Ventas\GuiaController@getXml')->name('ventas.guiasremision.getXml');
         Route::get('getCdr/{guia_id}','Ventas\GuiaController@getCdr')->name('ventas.guiasremision.getCdr');
         Route::get('/getProductos/', 'Ventas\GuiaController@getProductos')->name('ventas.guiasremision.getProductos');

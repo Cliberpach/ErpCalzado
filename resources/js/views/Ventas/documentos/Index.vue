@@ -171,7 +171,7 @@
                                                                        
                                                                     </template>
 
-                                                                    <template v-if="item.sunat == '1' || item.sunat_contingencia == '1'">
+                                                                    <template v-if="item.sunat == '1' && item.notas == 0">
                                                                         <b-dropdown-item title="Guía Remisión" @click.prevent="guia(item.id)">
                                                                             <i class="fa fa-file"></i> Guía
                                                                         </b-dropdown-item>
@@ -195,17 +195,20 @@
                                                                         && item.sunat == '0'
                                                                         && !item.convert_en_id
                                                                         && !item.convert_de_id
-                                                                        && !item.pedido_id">
+                                                                        && !item.pedido_id
+                                                                        && item.notas == 0">
                                                                         <b-dropdown-item title="Editar" :href="routes(item.id, 'EDITAR')">
                                                                             <i class="fas fa-edit" style="color:chocolate;"></i> Editar
                                                                         </b-dropdown-item>
                                                                     </template>
 
-                                                                    <b-dropdown-item title="Cambio de Talla" @click="cambiarTallas(item.id)">
-                                                                        <i class="fas fa-exchange-alt" style="color: #3307ab;"></i> Cambio de Talla
-                                                                    </b-dropdown-item>
+                                                                    <template v-if="item.notas == 0">
+                                                                        <b-dropdown-item title="Cambio de Talla" @click="cambiarTallas(item.id)">
+                                                                            <i class="fas fa-exchange-alt" style="color: #3307ab;"></i> Cambio de Talla
+                                                                        </b-dropdown-item>
+                                                                    </template>
 
-                                                                    <template v-if="item.tipo_venta == 129 && !item.convert_en_id">
+                                                                    <template v-if="item.tipo_venta == 129 && !item.convert_en_id && item.notas == 0">
                                                                         <b-dropdown-item title="Convertir" :href="routes(item.id, 'CONVERTIR')">
                                                                             <i class="fas fa-file-invoice" style="color: blue;"></i> Convertir
                                                                         </b-dropdown-item>
@@ -214,7 +217,7 @@
                                                                     <template v-if="item.condicion == 'CONTADO' &&
                                                                         item.estado_pago == 'PENDIENTE' &&
                                                                         item.tipo_venta == '129'">
-                                                                        <b-dropdown-item title="Eliminar"  @click="Pagar(item)">
+                                                                        <b-dropdown-item title="Pagar"  @click="Pagar(item)">
                                                                             <i class="fa fa-money" style="color: #007502;"></i> Pagar
                                                                         </b-dropdown-item>
                                                                     </template>
@@ -232,7 +235,7 @@
                                                                     <template v-if="item.code == '1033' && item.regularize == '1' &&
                                                                         item.sunat != '2' && item.contingencia == '0'">
 
-                                                                        <b-dropdown-item title="Eliminar"  @click.prevent="cdr(item.id)">
+                                                                        <b-dropdown-item title="CDR"  @click.prevent="cdr(item.id)">
                                                                             <i class="fa fa-money"></i> CDR
                                                                         </b-dropdown-item>
                                                                     </template>
@@ -245,7 +248,8 @@
                                                                     </template>
 
 
-                                                                    <template v-if="item.estado_despacho!=='DESPACHADO' && item.estado_despacho">
+                                                                    <template v-if="item.estado_despacho!=='DESPACHADO' && item.estado_despacho
+                                                                    && item.notas == 0">
                                                                         <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="setDataEnvio(item.id)">
                                                                             <i class="fas fa-truck"></i> DESPACHO
                                                                         </b-dropdown-item>
@@ -683,7 +687,7 @@ export default {
         }).then((result) => {
             if (result.isConfirmed) {
                 //Ruta Guia
-                var url = route('ventas.guiasremision.create', {id});
+                var url = route('ventas.documento.guiaCreate', {id});
                 $(location).attr('href', url);
 
             } else if (

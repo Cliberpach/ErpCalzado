@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Almacenes\Color;
 use App\Almacenes\Kardex;
+use App\Almacenes\Producto;
 use App\Almacenes\ProductoColorTalla;
+use App\Almacenes\Talla;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -173,5 +176,56 @@ class UtilidadesController extends Controller
         $legend             =   'SON ' . $formatter->toWords((int)$parteEntera) . ' CON ' . $decimales . '/100 SOLES';
         return $legend;
     }
+
+
+    public static function formatearArrayDetalle($detalles){
+
+        $detalleFormateado=[];
+        $productosProcesados = [];
+        foreach ($detalles as $detalle) {
+
+            $cod   =   $detalle->producto_id.'-'.$detalle->color_id;
+            if (!in_array($cod, $productosProcesados)) {
+                $producto=[];
+
+                //======== obteniendo todas las detalle talla de ese producto_color =================
+                $producto_color_tallas = $detalles->filter(function ($detalleFiltro) use ($detalle) {
+                    return $detalleFiltro->producto_id == $detalle->producto_id && $detalleFiltro->color_id == $detalle->color_id;
+                });
+
+                $productoBD   =   Producto::find($detalle->producto_id);
+                $colorBD      =   Color::find($detalle->color_id);
+                $tallaBD      =   Talla::find($detalle->talla_id);
+                
+                $producto['producto_id']        = $detalle->producto_id;
+                $producto['color_id']           = $detalle->color_id;
+                $producto['producto_nombre']    = $detalle->producto_nombre?$detalle->producto_nombre:$productoBD->nombre;
+                $producto['color_nombre']       = $detalle->color_nombre?$detalle->color_nombre:$colorBD->descripcion;
+                
+
+                $tallas=[];
+                $subtotal=0.0;
+                $cantidadTotal=0;
+                foreach ($producto_color_tallas as $producto_color_talla) {
+                    $talla=[];
+                    $talla['talla_id']      =   $producto_color_talla->talla_id;
+                    $talla['cantidad']      =   (int)$producto_color_talla->cantidad;
+                    $talla['talla_nombre']  =   $producto_color_talla->talla_nombre?$producto_color_talla->talla_nombre:$tallaBD->descripcion;
+                    $cantidadTotal          +=  $talla['cantidad'];
+                   array_push($tallas,$talla);
+                }
+                
+                $producto['tallas']=$tallas;
+                $producto['subtotal']=$subtotal;
+                $producto['cantidad_total']=$cantidadTotal;
+                array_push($detalleFormateado,$producto);
+                $productosProcesados[] = $detalle->producto_id.'-'.$detalle->color_id;
+            }
+        }
+        return $detalleFormateado;
+    }
+   
+
+
 
 }
