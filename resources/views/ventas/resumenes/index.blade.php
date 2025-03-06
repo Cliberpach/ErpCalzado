@@ -506,7 +506,7 @@
     //===== OBTENER COMPROBANTES =====
     async function getComprobantes(fechaComprobantes){
         try {
-            const url       =   `/ventas/resumenes/getComprobantes/${fechaComprobantes}`;
+            const url       =   route('ventas.resumenes.getComprobantes',{fechaComprobantes,sede_id:@json($sede_id)})
             const response  =   await axios.get(url);
             console.log(response);
             listComprobantes    =   response.data.success;

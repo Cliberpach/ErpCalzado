@@ -51,9 +51,9 @@ class ResumenController extends Controller
         return DataTables::of($resumenes)->toJson();
     }
 
-    public function getComprobantes($fechaComprobantes){
 
-        $sede_id    =   Auth::user()->sede_id;
+    public function getComprobantes($fechaComprobantes,$sede_id){
+
 
         $enf        =   DB::select('select 
                         enf.* 

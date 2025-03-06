@@ -585,7 +585,7 @@ function(){
         Route::prefix('ventas/resumenes')->group(function(){
 
         Route::get('index', 'Ventas\ResumenController@index')->name('ventas.resumenes.index');
-        Route::get('getComprobantes/{fecha}','Ventas\ResumenController@getComprobantes')->name('ventas.resumenes.getComprobantes');
+        Route::get('getComprobantes/{fecha}/{sede_id}','Ventas\ResumenController@getComprobantes')->name('ventas.resumenes.getComprobantes');
         Route::get('getStatus/{sede_id}','Ventas\ResumenController@isActive')->name('ventas.resumenes.getStatus');
         Route::get('getXml/{resumen_id}','Ventas\ResumenController@getXml')->name('ventas.resumenes.getXml');
         Route::get('getCdr/{resumen_id}','Ventas\ResumenController@getCdr')->name('ventas.resumenes.getCdr');
