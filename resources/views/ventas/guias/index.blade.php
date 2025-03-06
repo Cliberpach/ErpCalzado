@@ -17,11 +17,11 @@
             </li>
         </ol>
     </div>
-    <div class="col-lg-2 col-md-2">
+    {{-- <div class="col-lg-2 col-md-2">
         <a class="btn btn-block btn-w-m btn-primary m-t-md" href="{{route('ventas.guiasremision.create')}}">
             <i class="fa fa-plus-square"></i> Añadir nuevo
         </a>
-    </div>
+    </div> --}}
 </div>
 
 <div class="wrapper wrapper-content animated fadeInRight">
@@ -91,6 +91,18 @@ $(document).ready(function() {
         "ajax": "{{ route('ventas.getGuia')}}",
         "columns": [
             //Guias de remision
+            {
+                data: 'registrador_nombre',
+                className: "text-center"
+            },
+            {
+                data: 'sede_genera_guia',
+                className: "text-center"
+            },
+            {
+                data: 'sede_usa_guia',
+                className: "text-center"
+            },
             {
                 data: 'documento_afectado',
                 className: "text-center"

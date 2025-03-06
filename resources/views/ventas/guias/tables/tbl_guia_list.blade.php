@@ -3,6 +3,9 @@ style="text-transform:uppercase">
     <thead>
         <tr>
 
+            <th rowspan="2" class="text-center">REGISTRADOR</th>
+
+            <th colspan="2" class="text-center">SEDES</th>
 
             <th colspan="2" class="text-center">DOCUMENTO</th>
 
@@ -10,6 +13,10 @@ style="text-transform:uppercase">
 
         </tr>
         <tr>
+
+            <th class="text-center">Sede Genera</th>
+            <th class="text-center">Sede Usa</th>
+
             <th class="text-center">Doc Afec.</th>
             <th class="text-center">FEC.DOCUMENTO</th>
          

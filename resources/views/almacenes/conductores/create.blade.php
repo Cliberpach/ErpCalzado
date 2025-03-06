@@ -341,7 +341,7 @@
 
             formRegistrarConductor.innerHTML    =   `
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
-                        <label class="required_field" for="tipo_documento" style="font-weight: bold;">TIPO DOCUMENTO</label>
+                        <label class="required" for="tipo_documento" style="font-weight: bold;">TIPO DOCUMENTO</label>
                         <select required name="tipo_documento" required class="form-select select2_form" id="tipo_documento" data-placeholder="Seleccionar" onchange="changeTipoDoc()">
                             <option></option>
                             @foreach ($tipos_documento as $tipo_documento)
@@ -351,7 +351,7 @@
                         <span class="tipo_documento_error msgError"  style="color:red;"></span>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
-                        <label for="nro_documento" style="font-weight: bold;" class="required_field">Nro Doc</label>
+                        <label for="nro_documento" style="font-weight: bold;" class="required">Nro Doc</label>
                         <div class="input-group mb-3">
                             <button disabled class="btn btn-primary btn_consultar_documento" type="button" id="button-addon1">
                                 <i class="fas fa-search"></i>
@@ -361,7 +361,7 @@
                         <span class="nro_documento_error msgError"  style="color:red;"></span>
                     </div>    
                   <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
-                        <label for="nombre" style="font-weight: bold;" class="required_field">Nombres</label>
+                        <label for="nombre" style="font-weight: bold;" class="required">Nombres</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
                                 <i class="fas fa-user-check"></i>                  
@@ -372,7 +372,7 @@
                         <span class="nombre_error msgError"  style="color:red;"></span>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2" id="divApellido">
-                        <label for="apellido" style="font-weight: bold;" class="required_field">Apellidos</label>
+                        <label for="apellido" style="font-weight: bold;" class="required">Apellidos</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
                                 <i class="fas fa-user-check"></i>                   
@@ -383,14 +383,14 @@
                         <span class="apellido_error msgError"  style="color:red;"></span>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
-                        <label for="registro_mtc" style="font-weight: bold;" class="required_field">Registro MTC</label>
+                        <label for="registro_mtc" style="font-weight: bold;" class="required">Registro MTC</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
                                 <i class="fas fa-user-check"></i>                  
                             </span>
-                            <input required id="registro_mtc" maxlength="160"  name="registro_mtc" type="text" class="form-control" placeholder="MTC" aria-label="Username" aria-describedby="basic-addon1">
+                            <input required id="registro_mtc" maxlength="20"  name="registro_mtc" type="text" class="form-control" placeholder="MTC" aria-label="Username" aria-describedby="basic-addon1">
                         </div>       
-                        <span style="color:rgb(0, 89, 255); font-style: italic;">(160 LONGITUD MÁXIMA)</span>                 
+                        <span style="color:rgb(0, 89, 255); font-style: italic;">(SE PERMITE 20 CARACTERES COMO MÁXIMO, LETRAS MAYÚSCULAS Y NÚMEROS SIN ESPACIOS,SÍMBOLOS.)</span>                 
                         <span class="registro_mtc_error msgError"  style="color:red;"></span>
                     </div>
             `;  
@@ -404,7 +404,7 @@
 
             formRegistrarConductor.innerHTML    =   `
                      <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
-                        <label class="required_field" for="tipo_documento" style="font-weight: bold;">TIPO DOCUMENTO</label>
+                        <label class="required" for="tipo_documento" style="font-weight: bold;">TIPO DOCUMENTO</label>
                         <select required name="tipo_documento" required class="form-select select2_form" id="tipo_documento" data-placeholder="Seleccionar" onchange="changeTipoDoc()">
                             <option></option>
                             @foreach ($tipos_documento as $tipo_documento)
@@ -414,7 +414,7 @@
                         <span class="tipo_documento_error msgError"  style="color:red;"></span>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
-                        <label for="nro_documento" style="font-weight: bold;" class="required_field">Nro Doc</label>
+                        <label for="nro_documento" style="font-weight: bold;" class="required">Nro Doc</label>
                         <div class="input-group mb-3">
                             <button disabled class="btn btn-primary btn_consultar_documento" type="button" id="button-addon1">
                                 <i class="fas fa-search"></i>
@@ -424,7 +424,7 @@
                         <span class="nro_documento_error msgError"  style="color:red;"></span>
                     </div>    
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
-                        <label for="nombre" style="font-weight: bold;" class="required_field">Nombres</label>
+                        <label for="nombre" style="font-weight: bold;" class="required">Nombres</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
                                 <i class="fas fa-user-check"></i>                  
@@ -435,7 +435,7 @@
                         <span class="nombre_error msgError"  style="color:red;"></span>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2" id="divApellido">
-                        <label for="apellido" style="font-weight: bold;" class="required_field">Apellidos</label>
+                        <label for="apellido" style="font-weight: bold;" class="required">Apellidos</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
                                 <i class="fas fa-user-check"></i>                   
@@ -446,7 +446,7 @@
                         <span class="apellido_error msgError"  style="color:red;"></span>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2" id="divLicencia">
-                        <label class="required_field" for="licencia" style="font-weight: bold;">LICENCIA</label>
+                        <label class="required" for="licencia" style="font-weight: bold;">LICENCIA</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
                                 <i class="fas fa-id-card"></i>                                        

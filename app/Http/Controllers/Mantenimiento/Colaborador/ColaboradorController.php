@@ -152,8 +152,16 @@ array:10 [
         DB::beginTransaction();
         try {
 
-            
             $colaborador                    =   Colaborador::find($id);
+
+            //======= VERIFICAR QUE NO TENGA CAJAS ABIERTAS EN CASO QUIERA CAMBIARSE DE SEDE ======
+            if($colaborador->sede_id != $request->get('sede') &&  count(movimientoUser()) != 0 ){
+          
+                throw new Exception("PERTENECES A UNA CAJA ABIERTA EN LA SEDE ACTUAL, NO PUEDES CAMBIARTE DE SEDE HASTA QUE LA CIERRES");
+                
+            }
+
+
             $colaborador->tipo_documento_id =   $request->get('tipo_documento');
             $colaborador->nombre            =   Str::upper($request->get('nombre'));
             $colaborador->cargo_id          =   $request->get('cargo');

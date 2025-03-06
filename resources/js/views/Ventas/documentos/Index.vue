@@ -6,9 +6,11 @@
                     <div class="ibox">
                         <div class="ibox-title">
                             <h5>
-                            <a style="color: #FDEBD0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a> DOC CON NOTA DE CRÉDITO 
-                            <a style="color: #EBDEF0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CONVERTIDO
-                            <a style="color:#E3E9FE" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CON CAMBIO DE TALLA</h5>
+                                <a style="color: #FDEBD0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a> DOC CON NOTA DE CRÉDITO 
+                                <a style="color: #EBDEF0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CONVERTIDO
+                                <a style="color:#E3E9FE" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CON CAMBIO DE TALLA
+                                <a style="color:#caffcc" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CON GUIA
+                            </h5>
                         </div>
                         <div class="ibox-content tables_wrapper">
                             <div class="row">
@@ -171,7 +173,7 @@
                                                                        
                                                                     </template>
 
-                                                                    <template v-if="item.sunat == '1' && item.notas == 0">
+                                                                    <template v-if="item.sunat == '1' && item.notas == 0 && !item.guia_id" >
                                                                         <b-dropdown-item title="Guía Remisión" @click.prevent="guia(item.id)">
                                                                             <i class="fa fa-file"></i> Guía
                                                                         </b-dropdown-item>
@@ -777,6 +779,11 @@ export default {
             if(aData.cambio_talla == '1'){
                 return {'background-color':"#E3E9FE"} 
             }
+
+            if(aData.guia_id){
+                return {'background-color':"#caffcc"} 
+            }
+
         },
         async regularizarVenta(documento_id){
             Swal.fire({

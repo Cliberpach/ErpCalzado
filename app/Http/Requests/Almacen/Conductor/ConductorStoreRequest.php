@@ -27,7 +27,15 @@ class ConductorStoreRequest extends FormRequest
         $rules = [
             'modalidad_transporte' => 'required|in:PRIVADO,PUBLICO',  
 
-            'tipo_documento'    => 'required', 
+            'tipo_documento' => [
+                'required|in:1,3,6,8',
+                function ($attribute, $value, $fail) {
+                    if ($this->modalidad_transporte == 'PUBLICO' && $value != 8) {
+                        $fail('Si la modalidad de transporte es PUBLICO, el tipo de documento debe ser RUC.');
+                    }
+                }
+            ],
+
             'nro_documento'  => [
                 'required',
                 'string',
@@ -68,7 +76,7 @@ class ConductorStoreRequest extends FormRequest
             ]);
         } else {
             $rules = array_merge($rules, [
-                'registro_mtc' => 'nullable|string|max:100', // Puedes agregar validación si es necesario
+                'registro_mtc' => 'required|string|max:20|regex:/^[A-Z0-9]+$/|not_regex:/^0+$/',
             ]);
         }
     
@@ -83,7 +91,7 @@ class ConductorStoreRequest extends FormRequest
 
             
             'tipo_documento.required'       => 'El tipo de documento es obligatorio.',
-            'tipo_documento.in'             => 'El tipo de documento no es válido.',
+            'tipo_documento.in'             => 'El tipo de documento debe ser 1 (DNI), 3 (Carnet de extranjería), 6 o 8.',
             
             'nro_documento.required'        => 'El número de documento es obligatorio.',
             'nro_documento.max'             => 'El número de documento no puede exceder los 150 caracteres.',
@@ -102,6 +110,10 @@ class ConductorStoreRequest extends FormRequest
             'licencia.unique'               => 'La licencia ya está registrada y debe ser única.',
 
             'telefono.max'                  => 'El teléfono no puede exceder los 20 caracteres.',
+
+            'registro_mtc.max'          => 'El campo REGISTRO MTC no puede tener más de 20 caracteres.',
+            'registro_mtc.regex'        => 'El campo REGISTRO MTC solo puede contener letras mayúsculas y números, sin espacios ni símbolos.',
+            'registro_mtc.not_regex'    => 'El campo REGISTRO MTC no puede estar compuesto solo por ceros.',
         ];
     }
 

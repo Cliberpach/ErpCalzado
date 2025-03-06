@@ -231,10 +231,16 @@ class GuiaController extends Controller
         $guias  =   DB::table('guias_remision as gr')
                     ->leftJoin('cotizacion_documento as cd', 'gr.documento_id', '=', 'cd.id') 
                     ->leftJoin('traslados as t', 't.id', '=', 'gr.traslado_id')   
+                    ->leftJoin('empresa_sedes as esgg','esgg.id','gr.sede_genera_guia')
+                    ->leftJoin('empresa_sedes as esug','esug.id','gr.sede_usa_guia')
+                    ->join('users as u','u.id','gr.registrador_id')
                     ->where('gr.estado', '!=', 'NULO')
                     ->orderByDesc('gr.id')
                     ->select(
                         'gr.id',
+                        'u.usuario as registrador_nombre',
+                        'esgg.nombre as sede_genera_guia',
+                        'esug.nombre as sede_usa_guia',
                         DB::raw("CASE 
                             WHEN gr.documento_id IS NOT NULL THEN CONCAT(cd.serie, '-', cd.correlativo) 
                             WHEN gr.traslado_id IS NOT NULL THEN CONCAT('TR-', t.id) 
@@ -248,7 +254,7 @@ class GuiaController extends Controller
                         'gr.estado',
                         DB::raw("CONCAT(gr.serie, '-', gr.correlativo) AS serie_guia"),
                         DB::raw("CONCAT(gr.cantidad_productos, ' NIU') AS cantidad"),
-                        DB::raw("CONCAT(gr.peso,' ',gr.unidad) AS peso"),
+                        DB::raw("CONCAT(FORMAT(gr.peso, 2), ' ', gr.unidad) AS peso"),
                         'gr.ruta_comprobante_archivo',
                         'gr.nombre_comprobante_archivo',
                         'gr.sunat',
@@ -260,7 +266,14 @@ class GuiaController extends Controller
                         'gr.ticket'
                     )
                     ->get();
+
     
+  
+        //======== PUEDEN VER TODAS LAS GUÍAS DE SU SEDE =====
+     
+        //$guias->where('cd.sede_usa_guia', Auth::user()->sede_id);
+        
+              
         return DataTables::of($guias)->toJson();
     }
 
@@ -315,16 +328,15 @@ class GuiaController extends Controller
             throw new Exception("NO EXISTE LA SEDE QUE USARÁ LA GUÍA EN LA BD!!!");
         }
 
-        //========== SI EL MOTIVO TRASLADO ES VENTA, LA MODALIDAD TRASLADO ES PÚBLICO
+        //========== SI LA MODALIDAD TRASLADO ES PÚBLICO
         // Y EL INDICAR DE M1L ESTÁ APAGADO,  EL DOCUMENTO DEL TRANSPORTISTA DEBE SER RUC =======
-        if($request->get('motivo_traslado') === '01' 
-        && $request->get('modalidad_traslado') === '01'
+        if( $request->get('modalidad_traslado') === '01'
         && !$request->has('categoria_M1L'))
         {
             $conductor  =   Conductor::find($request->get('conductor'));
             if($conductor->tipo_documento_nombre === 'DNI'){
                 throw new Exception("EL DOCUMENTO DEL TRANSPORTISTA DEBE SER RUC 
-                SI EL MOTIVO TRASLADO ES VENTA, LA MODALIDAD TRASLADO ES PÚBLICO
+                SI LA MODALIDAD TRASLADO ES PÚBLICO
                 Y EL INDICADOR DE M1L ESTÁ APAGADO");
             }
         }
@@ -382,7 +394,7 @@ public static function getCorrelativo($tipo_comprobante,$sede_id){
                     count(*) as cant
                     from guias_remision as gr
                     where
-                    gr.sede_id = ? ',
+                    gr.sede_usa_guia = ? ',
                     [
                         $sede_id,
                     ])[0];
@@ -456,6 +468,7 @@ array:14 [
             
             //======== OBTENER CORRELATIVO Y SERIE ======
             $datos_correlativo  =   GuiaController::getCorrelativo($datos_validados->tipo_comprobante,$datos_validados->sede_usa_guia);
+
 
             $motivo_traslado    =   DB::select('select 
                                     td.*
@@ -1419,8 +1432,6 @@ array:1 [
                 $api = $this->controlConfiguracionGreenter($util); 
                 //======== CONSULTANDO ESTADO DE LA GUÍA =====
                 $res = $api->getStatus($ticket);
-
-                dd($res);
 
             
                 //======== response estructura =======

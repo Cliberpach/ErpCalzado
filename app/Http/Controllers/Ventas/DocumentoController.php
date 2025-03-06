@@ -111,6 +111,7 @@ class DocumentoController extends Controller
     {
         $documentos = DB::table('cotizacion_documento as cd')
             ->select(
+                'cd.guia_id',
                 'cd.convert_de_serie',
                 'cd.convert_en_id',
                 'cd.convert_de_id',
@@ -5244,8 +5245,6 @@ array:12 [
                                 where c.id = ?',[$venta->cliente_id])[0];
 
         $almacenes          =   Almacen::where('estado','ACTIVO')
-                                ->where('tipo_almacen','PRINCIPAL')
-                                ->where('sede_id',$sede_id)
                                 ->get();
 
 
