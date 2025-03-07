@@ -34,6 +34,7 @@ use Greenter\Ws\Services\SunatEndpoints;
 
 use DateTime;
 use App\Greenter\Utils\Util;
+use App\Ventas\Cliente;
 
 class ComprobanteController extends Controller
 {
@@ -249,6 +250,8 @@ class ComprobanteController extends Controller
                     $tipo_doc_facturacion   =   '03';
                 }
 
+                $clienteBD  =  Cliente::find($documento->cliente_id);
+
                 //======= INSTANCIAMOS LA CLASE UTIL ========
                 $util = Util::getInstance();
 
@@ -258,7 +261,7 @@ class ComprobanteController extends Controller
                 //====== CONSTRUIR CLIENTE =========
                 $client = new Client();
                 $client->setTipoDoc($tipo_documento_cliente)
-                    ->setNumDoc($documento->documento_cliente)
+                    ->setNumDoc($clienteBD->documento)
                     ->setRznSocial($documento->cliente)
                     ->setAddress((new Address())
                         ->setDireccion($documento->direccion_cliente))
