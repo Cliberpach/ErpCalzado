@@ -89,6 +89,7 @@ class ResumenController extends Controller
                                     rd.documento_id
                                 FROM
                                     resumenes_detalles AS rd
+                                WHERE rd.estado = "ACTIVO"
                             )',[$fechaComprobantes,$enf->serie]);   
 
         return response()->json(['success'=>$comprobantes ,
@@ -304,7 +305,7 @@ Greenter\Model\Response\SummaryResult {#3127 // app\Http\Controllers\Market\Vent
                 throw new Exception("EL DETALLE DEL RESUMEN ESTÁ VACÍO!!!");
             }
 
-    
+
             $util = Util::getInstance();
 
             //====== CONSTRUYENDO DETALLES =====
