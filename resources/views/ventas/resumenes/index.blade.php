@@ -346,9 +346,15 @@
                         //======= ENVIADO A SUNAT ======
                         if(data.send_sunat == 1){
                             //===== ACEPTADO POR SUNAT =====
-                            if(data.code_estado == '0'){
+                            if(data.code_estado == '0' && data.cdr_response_code == '0'){
                                 return `<span class="badge badge-success">ACEPTADO</span>`;
                             }
+
+                            //======= RECHAZADO =====
+                            if(data.code_estado == '0' && data.cdr_response_code != '0'){
+                                return `<span class="badge badge-danger">RECHAZADO</span>`;
+                            }
+
                             //====== RESPUESTA DE SUNAT "ERRORES EN EL ARCHIVO" ====
                             if(data.code_estado == 99){
                                 return `<span class="badge badge-danger">ENVIADO CON ERRORES</span>`;
