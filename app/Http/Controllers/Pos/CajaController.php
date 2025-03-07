@@ -199,9 +199,9 @@ array:3 [▼
                                     AND (r.name LIKE "%CAJER%")
                                     AND co.id = ?',
                                 [
-                                    $colaborador_id_actual,
                                     $sede_id,
-                                    $sede_id
+                                    $sede_id,
+                                    $colaborador_id_actual
                                 ]
                                 );
 
