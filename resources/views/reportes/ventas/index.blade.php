@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 @section('reporte-active', 'active')
 @section('ventas_reporte-active', 'active')
 
@@ -250,8 +251,8 @@
     }
 
     function reportePdf(id) {
-        var url = '{{ route("ventas.documento.comprobante", ":id")}}';
-        url = url.replace(':id',id+'-100');
+        const url = route("ventas.documento.comprobante", { id,size:100});
+
         window.open(url, "Comprobante SISCOM", "width=900, height=600")
     }
 
