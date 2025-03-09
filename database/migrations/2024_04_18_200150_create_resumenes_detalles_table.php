@@ -22,6 +22,8 @@ class CreateResumenesDetallesTable extends Migration
             $table->decimal('documento_igv', 10, 2)->nullable();
             $table->decimal('documento_total', 10, 2)->nullable();
             $table->string('documento_doc_cliente', 20)->nullable();
+
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
             
             $table->primary(['resumen_id', 'documento_id']);
             $table->foreign('resumen_id')->references('id')->on('resumenes')->onDelete('cascade');

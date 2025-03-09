@@ -54,6 +54,7 @@ class SendResumenes extends Command
 
             Log::channel('resumenes')->info('ENVÍO RESÚMENES AUTOMÁTICO ACTIVADO');
             $dias_menos =   $config->nro_dias;
+            $dias_menos =   0;  //======== ENVÍO DIARIO ====
 
             Log::channel('resumenes')->info('OBTENIENDO FECHA '.$dias_menos. ' DÍAS ANTERIORES');
 
@@ -67,9 +68,11 @@ class SendResumenes extends Command
             Log::channel('resumenes')->info('RECORRIENDO SEDES');
             $empresa_sedes  =   Sede::where('estado','ACTIVO')->get();
 
+            $lstResumenesNuevos =   [];
+            //======== GRABAR Y ENVIAR RESÚMENES POR SEDE =====
             foreach ($empresa_sedes as $sede) {
 
-                Log::channel('resumenes')->info('->SEDE: '.$sede->nombre);
+                Log::channel('resumenes')->info('=======>SEDE: '.$sede->nombre);
               
                 //===== OBTENER LAS BOLETAS DE N DÍAS ANTES ======
                 $resumenController  =   new ResumenController();
@@ -81,7 +84,7 @@ class SendResumenes extends Command
                 $data           =   $jsonData;
                 $listadoBoletas =   $data->success;
 
-                Log::channel('resumenes')->info('VERIFICANDO SI EXISTEN BOLETAS NO ENVIADAS EN ESA FECHA');
+                Log::channel('resumenes')->info('CANT BOLETAS: '.count($listadoBoletas));
 
                 //====== EN CASO EXISTAN BOLETAS NO ENVIADAS DE HACE N DÍAS =======
                 if(count($listadoBoletas) > 0){
@@ -90,7 +93,8 @@ class SendResumenes extends Command
                     $request = new Request([
                         'comprobantes'          =>  json_encode($listadoBoletas), 
                         'fecha_comprobantes'    =>  $fecha_comprobantes, 
-                        'sede_id'               =>  $sede->id
+                        'sede_id'               =>  $sede->id,
+                        'command'               =>  'command'
                     ]);
         
                     //======= GRABAR Y ENVIAR A SUNAT =====
@@ -102,50 +106,54 @@ class SendResumenes extends Command
                     $data_store         =   $jsonData;
         
                     Log::channel('resumenes')->info('RES_STORE');
-                    Log::channel('resumenes')->info($data_store);
+                    Log::channel('resumenes')->info(json_encode($data_store));
                  
         
                     //====== EN CASO DE GRABADO CORRECTO ======
                     if($data_store->success){
 
-                         Log::channel('resumenes')->info('GRABADO CORRECTO DEL RESUMEN');
+                        Log::channel('resumenes')->info('GRABADO CORRECTO DEL RESUMEN');
 
                         //====== EN CASO DE ENVÍO CORRECTO ======
-                       
-                        Log::info('ENVÍO CORRECTO A SUNAT');
-                        //======== CONSULTAR TICKET ====
-                        Log::info('CONSULTANDO TICKET');
-                        $resumen_id =   $res_store['nuevo_resumen']['id'];
-                        $request = new Request([
-                                'resumen_id'          => json_encode($resumen_id), 
-                                ]);
-                        $respuesta_consulta_ticket  =   $resumenController->consultarTicket($request);
-                        Log::info('RES_CONSULTA');
-                        $jsonData       =   $respuesta_consulta_ticket->getContent();
-                        $data           =   json_decode($jsonData, true);
-                        
-                        Log::info($data);
-                        if($data['res']['type']    ==  "success"){
-                            Log::info("CONSULTA CORRECTA");
+                        if($data_store->success_sunat){
+
+                            $lstResumenesNuevos[]   =   $data_store->id;
+
+                            Log::channel('resumenes')->info('ENVÍO CORRECTO A SUNAT');
+
                         }
-                        
+ 
                     }
     
                 }else{
                     Log::info('NO HAY BOLETAS NO ENVIADAS EN ESA FECHA');
                 }
     
-
             }
 
-         
-    
-            
-     
+            //======= CONSULTAR RESÚMENES NUEVOS ======
+            foreach ($lstResumenesNuevos as $resumen_id) {
+
+                //======== CONSULTAR TICKET ====
+                Log::channel('resumenes')->info('CONSULTANDO TICKET');
+
+
+                $request =  new Request([
+                                'resumen_id'    => $resumen_id, 
+                            ]);
+
+                $respuesta_consulta_ticket  =   $resumenController->consultarTicket($request);
+                Log::channel('resumenes')->info('RES_CONSULTA');
+
+                $resConsulta       =   $respuesta_consulta_ticket->getData();
+                Log::channel('resumenes')->info(json_encode($resConsulta));
+                
+            }
        
         }else{
             Log::info('ENVÍO RESÚMENES AUTOMÁTICO DESACTIVADO');
         }
+       
 
         // return 0;
     }

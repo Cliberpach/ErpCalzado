@@ -160,7 +160,7 @@ array:3 [
             //========= ACTUALIZANDO A INICIADO =======
             DB::table('empresa_numeracion_facturaciones')
             ->where('serie', $resumenIsActive->serie) 
-            ->where('sede_id', Auth::user()->sede_id) 
+            ->where('sede_id', $request->get('sede_id')) 
             ->where('emision_iniciada', '0') 
             ->update([
                 'emision_iniciada'  =>  '1',  
@@ -187,13 +187,21 @@ array:3 [
 
         if(!$res_decode->success){
             return response()->json([
-            'success'   =>  true,
-            'message'   =>'RESÚMEN DE BOLETAS REGISTRADO, PERO NO PUDO ENVIARSE A SUNAT',
-            'error'     =>  $res_decode->message,  
-            'id'        =>  $resumen->id]);
+                'success'       =>  true,
+                'success_sunat' =>  false,
+                'message'       =>  'RESÚMEN DE BOLETAS REGISTRADO, PERO NO PUDO ENVIARSE A SUNAT',
+                'error'         =>  $res_decode->message,  
+                'id'            =>  $resumen->id
+            ]);
+        }else{
+            return response()->json([
+                'success'       =>  true,
+                'success_sunat' =>  true,
+                'message'       =>  'RESÚMEN DE BOLETAS REGISTRADO, Y ENVIADO A SUNAT',
+                'error'         =>  '',  
+                'id'            =>  $resumen->id
+            ]);
         }
-
-        return $res;
 
     }
 
