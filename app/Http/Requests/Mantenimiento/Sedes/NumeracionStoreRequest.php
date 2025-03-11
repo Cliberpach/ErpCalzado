@@ -53,7 +53,7 @@ class NumeracionStoreRequest extends FormRequest
                                             where td.id = ?',[$comprobanteId])[0];
 
 
-                    $length         = in_array($tipo_comprobante->parametro, ['FF', 'BB']) ? 2 : 3;
+                    $length         = in_array($tipo_comprobante->parametro, ['FF', 'BB','NN']) ? 2 : 3;
                     if (strlen($value) !== $length) {
                         $fail("La serie debe tener exactamente $length caracteres.");
                     }

@@ -4106,6 +4106,7 @@ array:2 [
                 $nuevo_almacen->descripcion     =   'CAMBIOS';
                 $nuevo_almacen->tipo_almacen    =   'SECUNDARIO';
                 $nuevo_almacen->sede_id         =   $almacen_destino->sede_id;
+                $nuevo_almacen->ubicacion       =   'CAMBIOS';
                 $nuevo_almacen->save();
 
                 $almacen_cambios =   $nuevo_almacen;

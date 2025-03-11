@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Sedes\Sede;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -31,5 +32,10 @@ class User extends Authenticatable
     public function sede()
     {
         return $this->belongsTo(Sede::class, 'sede_id'); 
+    }
+
+    public function colaborador()
+    {
+        return $this->belongsTo(Colaborador::class, 'colaborador_id'); 
     }
 }

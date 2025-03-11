@@ -7,34 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Colaborador extends Model
 {
-    protected $table = 'colaboradores';
-    protected $fillable =[
-        'persona_id',
-        'area',
-        'profesion',
-        'cargo',
-        'telefono_referencia',
-        'contacto_referencia',
-        'grupo_sanguineo',
-        'alergias',
-        'numero_hijos',
-        'sueldo',
-        'sueldo_bruto',
-        'sueldo_neto',
-        'moneda_sueldo',
-        'tipo_banco',
-        'numero_cuenta',
-        'fecha_inicio_actividad',
-        'fecha_fin_actividad',
-        'fecha_inicio_planilla',
-        'fecha_fin_planilla',
-        'ruta_imagen',
-        'nombre_imagen',
-        'zona',
-        'comision',
-        'moneda_comision',
-        'estado'
-    ];
+    protected $table    =   'colaboradores';
+    protected $guarded =    [''];
+    
     public $timestamps=true;
         
     public function persona()

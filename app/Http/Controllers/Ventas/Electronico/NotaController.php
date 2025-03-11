@@ -316,7 +316,6 @@ class NotaController extends Controller
             $datos_correlativo          =   NotaController::getCorrelativo($sede_id,$documento->tipo_venta_id);
             $almacen                    =   Almacen::find($documento->almacen_id);
 
-
             $nota                       =   new Nota();
             $nota->documento_id         =   $documento->id;
             $nota->tipDocAfectado       =   $documento->tipoDocumento();
@@ -364,7 +363,6 @@ class NotaController extends Controller
             //Llenado de los articulos
             $productosJSON = $request->get('productos_tabla');
             $productotabla = json_decode($productosJSON);
-
 
             //========== PRODUCTOS PRESENTES EN LA NOTA DE CRÉDITO O DEVOLUCIÓN ===========
             foreach ($productotabla as $producto) {

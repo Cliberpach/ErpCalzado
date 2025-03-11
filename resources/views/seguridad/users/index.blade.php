@@ -48,7 +48,7 @@
                                         <td class="text-center">{{$user->sede->nombre}}</td>
                                         <td class="text-center">{{$user->usuario}}</td>
                                         <td class="text-center">{{$user->email}}</td>
-                                        <td class="text-center">@if(empty($user->colaborador)) NO ASIGNADO @else {{$user->colaborador->persona->getApellidosYNombres() }} @endif</td>
+                                        <td class="text-center">@if(empty($user->colaborador)) NO ASIGNADO @else {{$user->colaborador->nombre }} @endif</td>
                                         <td class="text-center">
                                             @foreach($user->roles as $role)
                                                 <span class="badge badge-info">{{$role->name}}</span>
