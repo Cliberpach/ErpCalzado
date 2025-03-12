@@ -180,12 +180,13 @@ function cargarSelect2(){
 function pintarDetalleNotaSalida(){
 
     let filas= ``;
-    let htmlTallas= ``;
-    const producto_color_procesado=[];
-    const bodyTablaDetalles =   document.querySelector('#tabla_ns_detalle tbody');
+    let htmlTallas                  =   ``;
+    const producto_color_procesado  =   [];
+    const bodyTablaDetalles         =   document.querySelector('#tabla_ns_detalle tbody');
+    const detalles          =   @json($detalle);
 
 
-    carrito.forEach((c)=>{
+    detalles.forEach((c)=>{
         htmlTallas=``;
         if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
                 
@@ -202,6 +203,8 @@ function pintarDetalleNotaSalida(){
                 htmlTallas += `<td>${cantidad}</td>`; 
             })
 
+
+            
             filas    +=  htmlTallas;
             filas    +=  `</tr>`;
             producto_color_procesado.push(`${c.producto_id}-${c.color_id}`)
@@ -209,7 +212,7 @@ function pintarDetalleNotaSalida(){
     })
 
     bodyTablaDetalle.innerHTML  =   filas;
-
+    
 }
 
 </script>
