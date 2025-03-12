@@ -196,7 +196,7 @@ function pintarDetalleNotaSalida(){
 
             //tallas
             tallas.forEach((t)=>{
-                let cantidad = carrito.filter((ct)=>{
+                let cantidad = detalles.filter((ct)=>{
                     return ct.producto_id==c.producto_id && ct.color_id==c.color_id && t.id==ct.talla_id;
                 });
                 cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
