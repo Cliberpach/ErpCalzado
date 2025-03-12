@@ -474,7 +474,7 @@ array:11 [
                                 inner join productos as p on p.id=dns.producto_id
                                 inner join colores as c on c.id=dns.color_id
                                 inner join tallas as t on t.id=dns.talla_id
-                                where dns.nota_salidad_id=?',[$id]);
+                                where dns.nota_salida_id=?',[$id]);
      
         $fullaccess = false;
 
