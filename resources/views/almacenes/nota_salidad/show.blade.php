@@ -101,7 +101,7 @@
                                     <div class="panel-body">
                                         <hr>
                                         <div class="table-responsive">
-                                            @include('almacenes.nota_salidad.table-detalles')
+                                            @include('almacenes.nota_salidad.tables.tbl_ns_detalle')
                                         </div>
                                     </div>
                                 </div>
@@ -163,10 +163,7 @@
 <script>
 
 
-
-
 document.addEventListener('DOMContentLoaded',()=>{
-
     cargarSelect2();
     pintarDetalleNotaSalida();
 })
@@ -183,7 +180,7 @@ function cargarSelect2(){
 function pintarDetalleNotaSalida(){
     const detalles          =   @json($detalle);
     const tallas            =   @json($tallas);
-    const bodyTablaDetalles =   document.querySelector('#table-detalle-notasalida tbody');
+    const bodyTablaDetalles =   document.querySelector('#tabla_ns_detalle tbody');
     let fila              =   ``;
  
     detalles.forEach((d)=>{
