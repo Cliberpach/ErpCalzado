@@ -184,7 +184,7 @@ function pintarDetalleNotaSalida(){
     const producto_color_procesado  =   [];
     const bodyTablaDetalles         =   document.querySelector('#tabla_ns_detalle tbody');
     const detalles                  =   @json($detalle);
-    const tallas            =   @json($tallas);
+    const tallas                    =   @json($tallas);
 
     detalles.forEach((c)=>{
         htmlTallas=``;
@@ -211,7 +211,7 @@ function pintarDetalleNotaSalida(){
         }
     })
 
-    bodyTablaDetalle.innerHTML  =   filas;
+    bodyTablaDetalles.innerHTML  =   filas;
 
 }
 
