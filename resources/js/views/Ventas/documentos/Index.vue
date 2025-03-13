@@ -45,6 +45,7 @@
                                                     <th class="text-center letrapequeña bg-white">COT</th>
                                                     <th class="text-center letrapequeña bg-white">CV</th>
                                                     <th class="text-center letrapequeña bg-white">PE</th>
+                                                    <th class="text-center letrapequeña bg-white">CDR</th>
                                                     <th class="text-center letrapequeña bg-white">DOC</th>
                                                     <th class="text-center letrapequeña bg-white">FECHA</th>
                                                     <th class="text-center letrapequeña bg-white">REGISTRADOR</th>
@@ -81,6 +82,9 @@
                                                             <p v-if="item.pedido_id" style="margin:0;padding:0;">{{ item.tipo_doc_venta_pedido }}</p>
                                                             <p v-if="!item.pedido_id" style="margin:0;padding:0;">{{ '-' }}</p>
 
+                                                        </td>
+                                                        <td class="letrapequeña text-center">
+                                                            {{ item.regularizado_de_serie }}
                                                         </td>
                                                         <td class="letrapequeña text-center">
                                                             {{ item.numero_doc }}
@@ -145,7 +149,7 @@
                                                                     <template v-if="item.sunat == '0' &&
                                                                         item.tipo_venta != 129 &&
                                                                         // dias(item) > 0 &&
-                                                                        item.contingencia == '0'">
+                                                                        item.estado == 'ACTIVO'">
 
                                                                         <b-dropdown-item @click="enviarSunat(item.id, item.contingencia)">
                                                                             <i class="fa fa-send"  style="color: #0065b3;"></i> Sunat
@@ -166,21 +170,21 @@
                                                                     
                                                                     <template v-if="(item.sunat == '1' ||
                                                                         item.notas > 0 ||item.sunat_contingencia == '1') &&
-                                                                        item.tipo_venta != 129">
+                                                                        item.tipo_venta != 129 && item.estado == 'ACTIVO'">
                                                                         <b-dropdown-item :href="routes(item.id, 'NOTAS')">
                                                                             <i class="fa fa-file-o" style="color: #77600e;"></i> Notas
                                                                         </b-dropdown-item>
                                                                        
                                                                     </template>
 
-                                                                    <template v-if="item.sunat == '1' && item.notas == 0 && !item.guia_id" >
+                                                                    <template v-if="item.sunat == '1' && item.notas == 0 && !item.guia_id && item.estado == 'ACTIVO'" >
                                                                         <b-dropdown-item title="Guía Remisión" @click.prevent="guia(item.id)">
                                                                             <i class="fa fa-file"></i> Guía
                                                                         </b-dropdown-item>
                                                                     </template>
 
                                                                     <template v-if="(item.tipo_venta == 129 && item.condicion == 'CONTADO' 
-                                                                        && item.estado_pago == 'PAGADA') ||
+                                                                        && item.estado_pago == 'PAGADA' && item.estado == 'ACTIVO') ||
                                                                         (item.tipo_venta == 129 &&
                                                                         (item.condicion == 'CREDITO' ||
                                                                         item.condicion == 'CRÉDITO'))">
@@ -198,19 +202,20 @@
                                                                         && !item.convert_en_id
                                                                         && !item.convert_de_id
                                                                         && !item.pedido_id
-                                                                        && item.notas == 0">
+                                                                        && item.notas == 0
+                                                                        && item.estado == 'ACTIVO'">
                                                                         <b-dropdown-item title="Editar" :href="routes(item.id, 'EDITAR')">
                                                                             <i class="fas fa-edit" style="color:chocolate;"></i> Editar
                                                                         </b-dropdown-item>
                                                                     </template>
 
-                                                                    <template v-if="item.notas == 0">
+                                                                    <template v-if="item.notas == 0 && item.estado == 'ACTIVO'">
                                                                         <b-dropdown-item title="Cambio de Talla" @click="cambiarTallas(item.id)">
                                                                             <i class="fas fa-exchange-alt" style="color: #3307ab;"></i> Cambio de Talla
                                                                         </b-dropdown-item>
                                                                     </template>
 
-                                                                    <template v-if="item.tipo_venta == 129 && !item.convert_en_id && item.notas == 0">
+                                                                    <template v-if="item.tipo_venta == 129 && !item.convert_en_id && item.notas == 0 && item.estado == 'ACTIVO'">
                                                                         <b-dropdown-item title="Convertir" :href="routes(item.id, 'CONVERTIR')">
                                                                             <i class="fas fa-file-invoice" style="color: blue;"></i> Convertir
                                                                         </b-dropdown-item>
@@ -218,7 +223,7 @@
 
                                                                     <template v-if="item.condicion == 'CONTADO' &&
                                                                         item.estado_pago == 'PENDIENTE' &&
-                                                                        item.tipo_venta == '129'">
+                                                                        item.tipo_venta == '129' && item.estado == 'ACTIVO'">
                                                                         <b-dropdown-item title="Pagar"  @click="Pagar(item)">
                                                                             <i class="fa fa-money" style="color: #007502;"></i> Pagar
                                                                         </b-dropdown-item>
@@ -227,31 +232,33 @@
                                                                     <template v-if="item.condicion == 'CONTADO' &&
                                                                         item.estado_pago == 'PENDIENTE' &&
                                                                         item.tipo_venta != 129 &&
-                                                                        (item.convert_de_id == '' || item.convert_de_id == null)">
+                                                                        (item.convert_de_id == '' || item.convert_de_id == null) 
+                                                                        && item.estado == 'ACTIVO'">
                                                                         <b-dropdown-item title="Pagar"  @click="Pagar(item)">
                                                                             <i class="fa fa-money" style="color: #007502;"></i> Pagar
                                                                         </b-dropdown-item>
                                                                     </template>
 
 
-                                                                    <template v-if="item.code == '1033' && item.regularize == '1' &&
-                                                                        item.sunat != '2' && item.contingencia == '0'">
-
-                                                                        <b-dropdown-item title="CDR"  @click.prevent="cdr(item.id)">
-                                                                            <i class="fa fa-money"></i> CDR
+                                                                    <template v-if="item.regularize == '1' && item.sunat != '2' 
+                                                                    && item.cdr_response_code != '0' && item.estado == 'ACTIVO'
+                                                                    && item.tipo_venta != '129'
+                                                                    && item.estado == 'ACTIVO'">
+                                                                         <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="regularizarVenta(item)">
+                                                                            <i class="far fa-copy"></i> ANULAR
                                                                         </b-dropdown-item>
                                                                     </template>
 
-                                                                    <template v-if="dias(item) <= 0 && item.estado == 'ACTIVO' &&
+                                                                    <!-- <template v-if="dias(item) <= 0 && item.estado == 'ACTIVO' &&
                                                                         item.tipo_venta != '129' && item.sunat == '0'">
                                                                         <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="regularizarVenta(item.id)">
                                                                             <i class="fa fa-exchange"></i> ANULAR
                                                                         </b-dropdown-item>
-                                                                    </template>
+                                                                    </template> -->
 
 
-                                                                    <template v-if="item.estado_despacho!=='DESPACHADO' && item.estado_despacho
-                                                                    && item.notas == 0">
+                                                                    <template v-if="item.estado_despacho !== 'DESPACHADO' && item.estado_despacho
+                                                                    && item.notas == 0 && item.estado == 'ACTIVO'">
                                                                         <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="setDataEnvio(item.id)">
                                                                             <i class="fas fa-truck"></i> DESPACHO
                                                                         </b-dropdown-item>
@@ -531,16 +538,26 @@ export default {
             }
         },
         estadoSunat(data) {
-            switch (data.sunat) {
-                case "1":
-                    return "<span class='badge badge-primary' d-block>ACEPTADO</span>";
-                    break;
-                case "2":
-                    return "<span class='badge badge-danger' d-block>NULA</span>";
-                    break;
-                default:
-                    return "<span class='badge badge-success' d-block>REGISTRADO</span>";
+            let estado  =   ``;
+
+            if(data.sunat == '1' && data.cdr_response_code == '0'){
+                estado  =   `<span class='badge badge-primary' d-block>ACEPTADO</span>`;
             }
+            if(data.sunat == '1' && data.cdr_response_code != '0'){
+                estado  =   `<span class='badge badge-danger' d-block>RECHAZADO</span>`;
+            }
+            if(data.sunat == '2'){
+                estado  =   `<span class='badge badge-danger' d-block>NULA</span>`;
+            }
+            if(data.sunat == '0'){
+                estado  =   `<span class='badge badge-success' d-block>REGISTRADO</span>`;
+            }
+            if(data.estado === 'ANULADO'){
+                estado  =   `<span class='badge badge-danger' d-block>ANULADO</span>`;
+            }
+           
+            return estado;
+          
         },
         enviarSunat(id, contingencia) {
             const swalWithBootstrapButtons = Swal.mixin({
@@ -785,9 +802,11 @@ export default {
             }
 
         },
-        async regularizarVenta(documento_id){
+        async regularizarVenta(documento){
+            toastr.clear();
+
             Swal.fire({
-            title: "DESEA ANULAR EL DOC DE VENTA?",
+            title: `ANULAR EL DOC ${documento.serie}-${documento.correlativo}`,
             text: "SE GENERARÁ UN NUEVO DOC DE VENTA COMO REEMPLAZO!",
             icon: "warning",
             showCancelButton: true,
@@ -796,18 +815,22 @@ export default {
             confirmButtonText: "SÍ!"
             }).then(async (result) => {
                 if (result.isConfirmed) {
-                    let alerta_procesando =   toastr.info('ANULANDO DOC DE VENTA', 'PROCESANDO', {
-                            closeButton: false,
-                            progressBar: true,
-                            positionClass: 'toast-top-right',
-                            timeOut: 0, 
-                            tapToDismiss: false 
+
+                    Swal.fire({
+                        title: 'PROCESANDO',
+                        text: 'ANULANDO DOC DE VENTA',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
                     });
+
 
                     try {
 
                         const res   =   await axios.post(route('ventas.regularizarVenta'),{
-                            documento_id
+                            documento_id:documento.id
                         });
                         console.log(res);
 
@@ -817,47 +840,26 @@ export default {
 
                             //======== ACTUALIZANDO LISTADO =====
                             this.Lista();
+
                             //========= RESPUESTA EXITOSA ======
                             toastr.success(message,'OPERACIÓN COMPLETADA',{
                                 timeOut: 0, 
                             });
+
+                            const url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id,size:80});
+                            window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
                         }else{
-                            const type  =   res.data.type;
 
                             //========== MANEJANDO ERRORES DE VALIDACIÓN DEL REQUEST =====
-                            if(type == "VALIDATION"){
-                            
-                                const messages  =   res.data.data.mensajes;
-                                console.log(messages);
-                                let message = ``;
-                                for (const key in messages) {
-                                    if (Object.hasOwnProperty.call(messages, key)) {
-                                        const element = messages[key];
-                                        message += `| ${element[0]} |`;
-                                    }
-                                }
-                                toastr.error(message,'ERROR DE VALIDACIÓN',{
-                                    timeOut: 0, 
-                                });
-                            }
-
-                            //======= MANEJANDO ERRORES EN ACCIONES SOBRE LA BD =====
-                            if(type == "DB"){
-                                const message       =   res.data.message;
-                                const exception  =   res.data.exception;
-
-                                toastr.error(exception,message,{
-                                    timeOut: 0, 
-                                });
-                            }
+                            toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
 
                         }
                     } catch (error) {
-                        toastr.error('ERROR EN EL SERVIDOR','ERROR',{
+                        toastr.error(error,'ERROR EN LA PETICIÓN REGULARIZAR VENTA',{
                                 timeOut: 0, 
                         });
                     }finally{
-                        toastr.clear(alerta_procesando);
+                        Swal.close();
                     }
 
                 }

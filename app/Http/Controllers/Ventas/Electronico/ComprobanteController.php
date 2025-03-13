@@ -392,6 +392,11 @@ class ComprobanteController extends Controller
                     }
 
                     $documento->sunat                       =   "1";
+
+                    if($cdr->getCode() != '0'){
+                        $documento->regularize              =   '1';
+                    }
+                    
                     $documento->update(); 
 
                     return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);

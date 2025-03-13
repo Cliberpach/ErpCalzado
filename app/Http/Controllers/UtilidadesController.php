@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Almacenes\Color;
 use App\Almacenes\Kardex;
+use App\Almacenes\Modelo;
 use App\Almacenes\Producto;
 use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
@@ -175,6 +176,64 @@ class UtilidadesController extends Controller
         $decimales          =   $partes[1] ?? '00'; 
         $legend             =   'SON ' . $formatter->toWords((int)$parteEntera) . ' CON ' . $decimales . '/100 SOLES';
         return $legend;
+    }
+
+    public static function formatearArrayDetalleObjetos($detalles){
+        $detalleFormateado=[];
+        $productosProcesados = [];
+        foreach ($detalles as $detalle) {
+            $cod   =   $detalle->producto_id.'-'.$detalle->color_id;
+            if (!in_array($cod, $productosProcesados)) {
+                $producto=[];
+                //======== obteniendo todas las detalle talla de ese producto_color =================
+                $producto_color_tallas = $detalles->filter(function ($detalleFiltro) use ($detalle) {
+                    return $detalleFiltro->producto_id == $detalle->producto_id && $detalleFiltro->color_id == $detalle->color_id;
+                });
+
+                $producto_nombre    =   $detalle->producto_nombre?$detalle->producto_nombre:Producto::find($detalle->producto_id)->nombre;
+                $color_nombre       =   $detalle->color_nombre?$detalle->color_nombre:Color::find($detalle->color_id)->descripcion;
+                $modelo_nombre      =   $detalle->color_nombre?$detalle->color_nombre:Modelo::find(Producto::find($detalle->producto_id)->modelo_id)->descripcion;
+
+                $producto['producto_codigo']        =   $detalle->producto_codigo;
+                $producto['producto_id']            =   $detalle->producto_id;
+                $producto['color_id']               =   $detalle->color_id;
+                $producto['producto_nombre']        =   $producto_nombre;
+                $producto['color_nombre']           =   $color_nombre;
+                $producto['modelo_nombre']          =   $modelo_nombre;
+                $producto['precio_unitario']        =   $detalle->precio_unitario;
+                $producto['porcentaje_descuento']   =   $detalle->porcentaje_descuento;
+                $producto['precio_unitario_nuevo']  =   $detalle->precio_unitario_nuevo;
+                $producto['monto_descuento']        =   $detalle->monto_descuento;
+                $producto['precio_venta']           =   $detalle->precio_unitario;
+                $producto['precio_venta_nuevo']     =   $detalle->precio_unitario_nuevo;
+
+                $tallas             =   [];
+                $subtotal           =   0.0;
+                $subtotal_with_desc =   0.0;
+                $cantidadTotal=0;
+                foreach ($producto_color_tallas as $producto_color_talla) {
+                    $talla=[];
+                    $talla['talla_id']              =   $producto_color_talla->talla_id;
+
+                    
+                    $talla['cantidad']              =   $producto_color_talla->cantidad;
+                    $subtotal                       +=  $talla['cantidad']*$producto['precio_unitario_nuevo'];
+                    $cantidadTotal                  +=  $talla['cantidad'];
+                   
+                    $talla_nombre                   =   $producto_color_talla->talla_nombre?$producto_color_talla->talla_nombre:Talla::find($producto_color_talla->talla_id)->descripcion;
+                    $talla['talla_nombre']          =   $talla_nombre;
+                    
+                   array_push($tallas,(object)$talla);
+                }
+                
+                $producto['tallas']                 =   $tallas;
+                $producto['subtotal']               =   $subtotal;
+                $producto['cantidad_total']         =   $cantidadTotal;
+                array_push($detalleFormateado,(object)$producto);
+                $productosProcesados[] = $detalle->producto_id.'-'.$detalle->color_id;
+            }
+        }
+        return $detalleFormateado;
     }
 
 

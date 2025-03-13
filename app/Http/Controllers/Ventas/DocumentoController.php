@@ -111,6 +111,8 @@ class DocumentoController extends Controller
     {
         $documentos = DB::table('cotizacion_documento as cd')
             ->select(
+                'cd.regularizado_de_serie',
+                'cd.cdr_response_code',
                 'cd.guia_id',
                 'cd.convert_de_serie',
                 'cd.convert_en_id',
@@ -160,8 +162,8 @@ class DocumentoController extends Controller
             ->leftJoin('clientes', 'cd.cliente_id', '=', 'clientes.id')
             ->leftJoin('empresa_sedes as es','es.id','cd.sede_id')
             ->leftJoin('users as u','u.id','cd.user_id')
-            ->leftJoin('cotizaciones as co','co.id','cd.cotizacion_venta')
-            ->where('cd.estado', '<>', 'ANULADO');
+            ->leftJoin('cotizaciones as co','co.id','cd.cotizacion_venta');
+            // ->where('cd.estado', '<>', 'ANULADO');
     
         /*if (!PuntoVenta() && !FullAccess()) {
             $documentos->where('cotizacion_documento.user_id', Auth::user()->id);
@@ -1001,6 +1003,9 @@ array:27 [
   "sede_id"                 => "1"
   "data_envio"              => "{"departamento":{"id":13,"nombre":"LA LIBERTAD","zona":"NORTE"},"provincia":{"id":1301,"text":"TRUJILLO"},"distrito":{"id":130101,"text":"TRUJILLO"},"tipo_envio":{"id":188,"descripcion":"AGENCIA"},"empresa_envio":{"id":2,"empresa":"EMTRAFESA","tipo_envio":"AGENCIA","estado":"ACTIVO","created_at":"2025-02-12 17:43:16","updated_at":"2025-02-12 17:43:16"},"sede_envio":{"id":2,"empresa_envio_id":2,"direccion":"AV TUPAC AMARU 123","departamento":"LA LIBERTAD","provincia":"TRUJILLO","distrito":"TRUJILLO","estado":"ACTIVO","created_at":"2025-02-12 17:45:21","updated_at":"2025-02-12 17:45:21"},"destinatario":{"tipo_documento":"DNI","nro_documento":"75563122","nombres":"ALTRUCAZ"},"direccion_entrega":"AV UNION 342","entrega_domicilio":true,"origen_venta":{"descripcion":"FACEBOOK"},"fecha_envio_propuesta":"2025-02-12","obs_rotulo":"OBS ROTULADO","obs_despacho":"OBS DESPACHADO","tipo_pago_envio":{"descripcion":"PAGAR ENVÍO"}}"
   "documento_convertido"    => 8150   //====== PRESENTE SOLO EN CONVERSIÓN =====
+
+  "regularizar"             => "SI" "NO"
+  "doc_regularizar_id"      => id
 ]
 */
     public function store(DocVentaStoreRequest $request){
@@ -1008,21 +1013,20 @@ array:27 [
         $this->authorize('haveaccess', 'documento_venta.index');
         ini_set("max_execution_time", 60000);
 
-        
         DB::beginTransaction();
         try {
 
             //========= VALIDACIONES COMPLEJAS ======
             $datos_validados    =   DocumentoController::validacionStore($request);
-            
+
             DocumentoController::comprobanteActivo($datos_validados->sede_id,$datos_validados->tipo_venta);
             
             //======== OBTENER CORRELATIVO Y SERIE ======
             $datos_correlativo  =   DocumentoController::getCorrelativo($datos_validados->tipo_venta,$datos_validados->sede_id);
-                       
+          
             //========== CALCULAR MONTOS ======
             $montos =   DocumentoController::calcularMontos($datos_validados->lstVenta,$datos_validados);
-          
+
             //======== OBTENIENDO LEYENDA ======
             $legenda                =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
 
@@ -1102,8 +1106,14 @@ array:27 [
                 $documento->convert_de_id       =   $request->get('documento_convertido');
                 $documento->convert_de_serie    =   $documento_convertido->serie.'-'.$documento_convertido->correlativo;   
             }
-            $documento->save();
 
+            //======= EN CASO DE REGULARIZACIÓN =====
+            if($request->has('doc_regularizar_id')){
+                $doc_regularizar                    =   Documento::find($request->get('doc_regularizar_id'));
+                $documento->regularizado_de_id      =   $doc_regularizar->id;
+                $documento->regularizado_de_serie   =   $doc_regularizar->serie.'-'.$doc_regularizar->correlativo;
+            }
+            $documento->save();
           
             foreach($datos_validados->lstVenta as $item){
                 foreach ($item->tallas as $talla) {
@@ -1194,7 +1204,7 @@ array:27 [
 
                     //====== RESTAR STOCK SI NO ES CONVERSIÓN NI REGULARIZACIÓN =======
                     if(!$request->has('documento_convertido') && !$request->has('regularizar') && !$request->has('facturar')){
-                        
+                      
                         //===== ACTUALIZANDO STOCK ===========
                         DB::update('UPDATE producto_color_tallas 
                         SET stock = stock - ? 
@@ -1240,6 +1250,7 @@ array:27 [
                         $kardex->descripcion        =   mb_strtoupper($request->get('observacion'), 'UTF-8');
                         $kardex->save();
                     }
+                    
                 }
             }
 
@@ -3710,61 +3721,52 @@ array:27 [
             if($documento_venta_antiguo->tipo_venta == "129"){
                 return response()->json(['success'=>false,'message'=>'SOLO SE PERMITE REGULARIZAR FACTURAS O BOLETAS']);
             }
+            if($documento_venta_antiguo->estado == "ANULADO"){
+                return response()->json(['success'=>false,'message'=>'EL DOCUMENTO DE VENTA YA FUE ANULADO PREVIAMENTE']);
+            }
 
             //====== BUSCANDO DETALLES DEL DOC VENTA ANTIGUO ======
-            $detalles_documento_venta_antiguo   =   Detalle::where('documento_id',$documento_id)->get();
+            $detalles_documento_venta_antiguo   =   UtilidadesController::formatearArrayDetalleObjetos(Detalle::where('documento_id',$documento_id)->get());
 
             //===== CREANDO REQUEST =====
-            $request_doc_nuevo = new Request();
+            $request_doc_nuevo = new DocVentaStoreRequest();
 
-            //====== OBTENIENDO FECHA ACTUAL ======
-            $fecha_documento_campo = Carbon::now();
-
-            $anio   = $fecha_documento_campo->year;
-            $mes    = $fecha_documento_campo->month;
-            $dia    = $fecha_documento_campo->day;
-    
-            $fecha_documento_campo = $fecha_documento_campo->format('Y-m-d');
-
+            $additionalData = [
+                'empresa'                   =>  $documento_venta_antiguo->empresa_id,
+                'tipo_venta'                =>  $documento_venta_antiguo->tipo_venta_id,
+                'condicion_id'              =>  $documento_venta_antiguo->condicion_id,
+                'fecha_vencimiento_campo'   =>  Carbon::now(),
+                'cliente_id'                =>  $documento_venta_antiguo->cliente_id,
+                'igv'                       =>  "18",
+                "igv_check"                 =>  "on",
+                "efectivo"                  =>  "0",
+                "importe"                   =>  "0",
+                "empresa_id"                =>  $documento_venta_antiguo->empresa_id,
+                "monto_sub_total"           =>  $documento_venta_antiguo->sub_total,
+                "monto_embalaje"            =>  $documento_venta_antiguo->monto_embalaje,
+                "monto_envio"               =>  $documento_venta_antiguo->monto_envio,
+                "monto_total_igv"           =>  $documento_venta_antiguo->total_igv,
+                "monto_descuento"           =>  $documento_venta_antiguo->monto_descuento,
+                "monto_total"               =>  $documento_venta_antiguo->total,
+                "monto_total_pagar"         =>  $documento_venta_antiguo->total_pagar,
+                "data_envio"                =>  null,
+                "productos_tabla"           =>  json_encode($detalles_documento_venta_antiguo),
+                "sede_id"                   =>  $documento_venta_antiguo->sede_id,
+                "almacenSeleccionado"       =>  $documento_venta_antiguo->almacen_id,
+                "regularizar"               =>  'SI',
+                'doc_regularizar_id'        =>  $documento_id
+            ];
             
-            $request_doc_nuevo->merge([
-                'fecha_documento_campo'     =>  $fecha_documento_campo,
-                'fecha_atencion_campo'      =>  $fecha_documento_campo,
-                'fecha_vencimiento_campo'   =>  $documento_venta_antiguo->fecha_vencimiento,
-                'tipo_venta'            =>  $documento_venta_antiguo->tipo_venta,
-                'tipo_pago_id'          =>  $documento_venta_antiguo->tipo_pago_id,
-                'efectivo'              =>  $documento_venta_antiguo->efectivo,
-                'importe'               =>  $documento_venta_antiguo->importe,
-                'empresa_id'            =>  $documento_venta_antiguo->empresa_id,
-                'condicion_id'          =>  $documento_venta_antiguo->condicion_id,
-                'cliente_id'            =>  $documento_venta_antiguo->cliente_id,
-                'observacion'           =>  $documento_venta_antiguo->observacion,
-                'observacion'           =>  $documento_venta_antiguo->observacion,
-                'igv'                   =>  intval($documento_venta_antiguo->igv),
-                'regularizar'           =>  'SI',
-                'productos_tabla'       =>  json_encode($detalles_documento_venta_antiguo),
-                'monto_sub_total'       =>  $documento_venta_antiguo->sub_total,
-                'monto_embalaje'        =>  $documento_venta_antiguo->monto_embalaje,
-                'monto_envio'           =>  $documento_venta_antiguo->monto_envio,
-                'monto_total'           =>  $documento_venta_antiguo->total,
-                'monto_total_igv'       =>  $documento_venta_antiguo->total_igv,
-                'monto_total_pagar'     =>  $documento_venta_antiguo->total_pagar
-            ]);
+            $request_doc_nuevo->merge($additionalData);
 
-        
             //====== GENERANDO NUEVO DOC DE VENTA ======
-            $res_store  =   $this->store($request_doc_nuevo);
+            $res_storeJson  =   $this->store($request_doc_nuevo);
             
-            $res_store  =   $res_store->getData();
+            $res_store      =   $res_storeJson->getData();
 
-            
-            
             //====== MANEJANDO RESPUESTA ======
             //====== CASO I - DOC VENTA NUEVO GENERADO CORRECTAMENTE =======
             if($res_store->success){
-               //===== ANULAR DOC VENTA ANTIGUO ======
-               $documento_venta_antiguo->estado =   'ANULADO';
-               $documento_venta_antiguo->save();
 
                 //===== BUSCAMOS EL NUEVO DOC PARA EXTRAER SU CORRELATIVO Y SERIE =====
                 $documento_venta_nuevo           =   Documento::find($res_store->documento_id);
@@ -3775,42 +3777,32 @@ array:27 [
                 $message    =   "SE CREO EL NUEVO DOCUMENTO DE VENTA: ".$serie_correlativo_doc_nuevo.", 
                                 Y SE ANULÓ EL DOCUMENTO DE VENTA: ".$serie_correlativo_doc_antiguo;
 
+                $documento_venta_antiguo->estado                =   'ANULADO';
+                $documento_venta_antiguo->regularizado_en_id    =   $documento_venta_nuevo->id;
+                $documento_venta_antiguo->regularizado_en_serie =   $documento_venta_nuevo->serie.'-'.$documento_venta_nuevo->correlativo;
+                $documento_venta_antiguo->update();   
                 //===== COMMITEAMOS =====
                 DB::commit();
 
-               return response()->json(['success'   =>true,
-                'documento_nuevo_id'     =>$res_store->documento_id,
-                'documento_antiguo_id'   =>$documento_id,
-                'message'=>$message]);
+                return response()->json(['success'   =>true,'message'=>$message,'documento_id'=>$res_store->documento_id]);
 
             }else{
-                
-                //====== ERROR AL GENERAR EL DOC VENTA NUEVO ======
-                //======= VERIFICAMOS SI EL ERROR ES DE VALIDACIÓN ======
-                if (property_exists($res_store, 'errors')) {
-                    return response()->json(['success'=>false,
-                    'errors'    =>  $res_store->errors,
-                    'message'   =>  'ERROR DE VALIDACIÓN',
-                    'data'      =>  $res_store->data,
-                    'type'      =>  'VALIDATION']);
-                }
-                
-                //======== ERROR EN LAS OPERACIONES SOBRE LA BD =======
-                return response()->json(['success'=>false,
-                'message'   =>$res_store->mensaje,
-                'exception' =>property_exists($res_store, 'excepcion')?$res_store->excepcion:'',
-                'type'      =>  "DB"]);
+
+                //======= EN CASO NO SE GENERE EL DOC VENTA, SOLO EMITIMOS LA RESPUESTA 
+                //===== EL ROLLBACK YA SE HIZO EN EL store()
+                return $res_storeJson;
+
             }
 
         } catch (\Throwable $th) {
             DB::rollback();
 
             //===== ELIMINANDO DOC DE VENTA NUEVO GENERADO ====
-            DB::table('cotizacion_documento')
+            /*DB::table('cotizacion_documento')
               ->where('id', $res_store->documento_id)
-              ->delete();
+              ->delete();*/
 
-            return response()->json(['res'=>$th->getMessage(),'errorrr']);
+            return response()->json(['message'=>$th->getMessage(),'success'=>false,'line'=>$th->getLine()]);
 
         }
 
