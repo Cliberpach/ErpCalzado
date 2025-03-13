@@ -1395,7 +1395,12 @@ if (!function_exists('cuadreMovimientoCajaIngresosVenta')) {
        
         //====== BUSCAR LOS DOCUMENTOS VENTA QUE NO SE ENCUENTREN PAGADOS CON RECIBOS =========
         foreach ($movimiento->detalleMovimientoVentas as $item) {
-            if ($item->cobrar === 'SI' && $item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA' && $item->documento->tipo_pago_id!='4') { // && $item->documento->sunat != '2'
+            if ($item->cobrar === 'SI' 
+            && $item->documento->condicion_id == 1 
+            && ifNoConvertido($item->documento->id) 
+            && $item->documento->estado_pago == 'PAGADA' 
+            && $item->documento->tipo_pago_id !='4'
+            && $item->documento->estado === 'ACTIVO') { // && $item->documento->sunat != '2'
                 $totalIngresos = $totalIngresos + ($item->documento->importe + $item->documento->efectivo);
             }
         }
@@ -1450,7 +1455,12 @@ if (!function_exists('cuadreMovimientoCajaIngresosVentaResum')) {
         if($tipo_pago == 5){
 
             foreach ($movimiento->detalleMovimientoVentas as $item) {
-                if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA') { // && $item->documento->sunat != '2'
+                if (
+                    $item->documento->condicion_id == 1 
+                    && ifNoConvertido($item->documento->id) 
+                    && $item->documento->estado_pago == 'PAGADA'
+                    && $item->documento->estado == 'ACTIVO'
+                ) { // && $item->documento->sunat != '2'
                     if ($item->documento->tipo_pago_id == 1 || $item->documento->tipo_pago_id == 2 || $item->documento->tipo_pago_id == 3 || $item->documento->tipo_pago_id !== 4) {
                         $totalIngresos = $totalIngresos + $item->documento->importe + $item->documento->efectivo;
                     }
@@ -1461,7 +1471,12 @@ if (!function_exists('cuadreMovimientoCajaIngresosVentaResum')) {
 
             //======= INGRESO POR TIPO DE PAGO ESPECÍFICO =======
             foreach ($movimiento->detalleMovimientoVentas as $item) {
-                if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA') { // && $item->documento->sunat != '2'
+                if (
+                    $item->documento->condicion_id == 1 
+                    && ifNoConvertido($item->documento->id) 
+                    && $item->documento->estado_pago == 'PAGADA'
+                    && $item->documento->estado == 'ACTIVO'
+                ) { // && $item->documento->sunat != '2'
                     if ($item->documento->tipo_pago_id == $tipo_pago) {
                         $totalIngresos = $totalIngresos + $item->documento->importe + $item->documento->efectivo;
                     }
@@ -1535,7 +1550,8 @@ if (!function_exists('obtenerTotalIngresosPorTipoPago')) {
 
             //======= CALCULAR TOTAL INGRESOS ======
             foreach ($docs_venta as $doc_venta) {
-                if($doc_venta->documento->tipo_pago_id == $tipo_pago->id){
+               
+                if($doc_venta->documento->tipo_pago_id == $tipo_pago->id && $doc_venta->documento->estado !== 'ANULADO'){
                     $resultado['monto_total_ingresos']  +=  $doc_venta->documento->importe;
                 }
             }

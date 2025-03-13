@@ -394,10 +394,10 @@ public function aperturaCaja(MovimientoCajaAperturaRequest $request){
     public function cerrarCaja(Request $request)
     {
         
-        $movimiento = MovimientoCaja::findOrFail($request->movimiento_id);
-        $movimiento->estado_movimiento = 'CIERRE';
-        $movimiento->fecha_cierre = date('Y-m-d h:i:s');
-        $movimiento->monto_final = (float) $request->saldo;
+        $movimiento                     = MovimientoCaja::findOrFail($request->movimiento_id);
+        $movimiento->estado_movimiento  = 'CIERRE';
+        $movimiento->fecha_cierre       = date('Y-m-d h:i:s');
+        $movimiento->monto_final        = (float) $request->saldo;
         $movimiento->save();
         $caja = $movimiento->caja;
         $caja->estado_caja = 'CERRADA';
@@ -420,11 +420,15 @@ public function aperturaCaja(MovimientoCajaAperturaRequest $request){
 
         try {
             //========= BUSCAMOS LOS DOCS DE VENTA NO PAGADOS, EXCEPTO LOS CONVERTIDOS ===========
-            $docs_no_pagados       =  DB::select('select cd.serie,cd.correlativo 
-                                        from detalle_movimiento_venta as dmv 
-                                        inner join cotizacion_documento as cd on cd.id=dmv.cdocumento_id
-                                        where cd.estado_pago="PENDIENTE" and mcaja_id=? and cd.convertir is null
-                                        group by cd.serie,cd.correlativo',[$movimiento_id]);
+            $docs_no_pagados    =   DB::select('select 
+                                    cd.serie,cd.correlativo 
+                                    from detalle_movimiento_venta as dmv 
+                                    inner join cotizacion_documento as cd on cd.id=dmv.cdocumento_id
+                                    where cd.estado_pago="PENDIENTE" 
+                                    and mcaja_id=? 
+                                    and cd.convertir is null
+                                    and cd.estado = "ACTIVO"
+                                    group by cd.serie,cd.correlativo',[$movimiento_id]);
 
             
 
@@ -535,8 +539,9 @@ public function aperturaCaja(MovimientoCajaAperturaRequest $request){
                                         where rc.movimiento_id=?',[$id]);
         
         $totalIngresosPorTipoPago   =   obtenerTotalIngresosPorTipoPago($movimiento);
-        $empresa = Empresa::first();
-        $fecha = Carbon::now()->toDateString();
+    
+        $empresa    = Empresa::first();
+        $fecha      = Carbon::now()->toDateString();
 
         $pdf = PDF::loadview('pos.MovimientoCaja.Reportes.movimientocaja', [
             'movimiento'                =>  $movimiento,
