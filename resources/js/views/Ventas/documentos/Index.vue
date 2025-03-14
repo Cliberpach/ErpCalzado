@@ -546,6 +546,9 @@ export default {
             if(data.sunat == '1' && data.cdr_response_code != '0'){
                 estado  =   `<span class='badge badge-danger' d-block>RECHAZADO</span>`;
             }
+            if(data.sunat == '1' && data.cdr_response_code == 'EN ESPERA'){
+                estado  =   `<span class='badge badge-warning' d-block>ENVIADO</span>`;
+            }
             if(data.sunat == '2'){
                 estado  =   `<span class='badge badge-danger' d-block>NULA</span>`;
             }

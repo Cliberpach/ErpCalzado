@@ -385,13 +385,12 @@ Greenter\Model\Response\SummaryResult {#3127 // app\Http\Controllers\Market\Vent
                     DB::table('cotizacion_documento')
                     ->where('id',$detalle->documento_id)
                     ->update([
-                        'resumen_id'    =>  $resumen->id,
-                        'sunat'         =>  '1'
+                        'resumen_id'        =>  $resumen->id,
+                        'sunat'             =>  '1',
+                        'cdr_response_code' =>  'EN ESPERA'
                     ]);
                 }
         
-            
-                
             }else{
                 $message_envio          =   "OCURRIO UN ERROR EN EL ENVÍO A SUNAT";
                 $resumen->send_sunat    =   0;
@@ -518,12 +517,17 @@ array:1 [
                 $resumen->ruta_cdr      =   'storage/greenter/resumenes/cdr/'.$summary_name.'.zip';
 
                 //==== GUARDANDO DATOS DEL CDR ====
-                if($res_ticket->getCdrResponse()){
-                    $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
-                    $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
-                    $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
-                }
-               
+                $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
+                $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
+                $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
+                
+                DB::table('cotizacion_documento')
+                ->where('resumen_id',$resumen_id)
+                ->update([
+                    'cdr_response_code'    =>  $res_ticket->getCdrResponse()->getCode()
+                ]);
+                    
+                
                 //====== GUARDANDO ESTADO DEL TICKET ====
                 $resumen->code_estado               =   $code_estado;  
                 $message    =   "ENVÍO CORRECTO Y CDR RECIBIDO";
@@ -531,6 +535,7 @@ array:1 [
     
             //===== ENVÍO CON ERRORES Y CDR RECIBIDO =====
             if($code_estado == 99 && $cdr){
+
                 //===== GUARDANDO CDR ======
                 $util->writeCdr(null, $res_ticket->getCdrZip(),"RESUMEN",$summary_name);
                 //$resumen->ruta_cdr  =   __DIR__.'/../../../Greenter/files/resumenes_cdr/'.$summary_name.'.zip';  
@@ -541,6 +546,12 @@ array:1 [
                 $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
                 $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
                 $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
+
+                DB::table('cotizacion_documento')
+                ->where('resumen_id',$resumen_id)
+                ->update([
+                    'cdr_response_code'    =>  $res_ticket->getCdrResponse()->getCode()
+                ]);
     
                 //====== GUARDANDO ESTADO DEL TICKET ====
                 $resumen->code_estado               =   $code_estado;
@@ -558,18 +569,27 @@ array:1 [
     
             //===== ENVÍO CON ERRORES Y SIN CDR =====
             if($code_estado == 99 && !$cdr){
+                
                 //======= SEÑALAR COMO RESUMEN CON ERRORES =======
                 $resumen->regularize    =   1;
     
                 //====== GUARDANDO ESTADO DEL TICKET ====
                 $resumen->code_estado               =   $code_estado;
     
-                 //===== GUARDANDO ERRORES =======
-                 if($res_ticket->getError()){
+                //===== GUARDANDO ERRORES =======
+                if($res_ticket->getError()){
                     $error                  =   'CODE: '.$res_ticket->getError()->getCode().' - '.'MESSAGE: '.$res_ticket->getError()->getMessage();
                     $resumen->response_error=   $error;
                 }
+
                 $message    =   "ENVÍO CON ERRORES,SIN CDR";
+
+                DB::table('cotizacion_documento')
+                ->where('resumen_id',$resumen_id)
+                ->update([
+                    'cdr_response_code'    =>  'SIN CDR'
+                ]);
+
             }
     
             //======= EN PROCESO =======
@@ -577,6 +597,12 @@ array:1 [
                 //====== GUARDANDO ESTADO DEL TICKET ====
                 $resumen->code_estado               =   $code_estado;
                 $message    =   "ENVÍO EN PROCESO";
+
+                DB::table('cotizacion_documento')
+                ->where('resumen_id',$resumen_id)
+                ->update([
+                    'cdr_response_code'    =>  'EN ESPERA'
+                ]);
             }
 
             $resumen->update();  
