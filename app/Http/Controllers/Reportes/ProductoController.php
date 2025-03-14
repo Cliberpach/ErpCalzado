@@ -24,6 +24,7 @@ use App\Mantenimiento\Empresa\Empresa;
 use Barryvdh\DomPDF\Facade as PDF;
 use App\Almacenes\ProductoColorTalla;
 use App\Mantenimiento\Sedes\Sede;
+use Carbon\Carbon;
 
 class ProductoController extends Controller
 {
@@ -360,8 +361,61 @@ class ProductoController extends Controller
         return datatables()->query($productos)->toJson();
     }
 
-    public function excelProductos(){
-        return Excel::download(new Producto_PI(), 'productos_pi.xlsx');
+    public static function queryProductosPI(Request $request){
+        $productos  =   DB::table('producto_color_tallas as pct')
+                        ->join('productos as p', 'p.id', '=', 'pct.producto_id')
+                        ->join('colores as c', 'c.id', '=', 'pct.color_id')
+                        ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+                        ->join('modelos as m', 'm.id', '=', 'p.modelo_id')
+                        ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
+                        ->join('almacenes as a','a.id','pct.almacen_id')
+                        ->join('empresa_sedes as es','es.id','a.sede_id')
+                        ->where('p.estado','ACTIVO')
+                        ->select(
+                            'es.nombre as sede',
+                            'a.descripcion as almacen',
+                            'p.nombre as producto',
+                            'c.descripcion as color',
+                            't.descripcion as talla',
+                            'm.descripcion as modelo',
+                            'ca.descripcion as categoria',
+                            'pct.stock'
+                        )
+                        ->orderBy('es.nombre')
+                        ->orderBy('a.descripcion')
+                        ->orderBy('p.nombre')
+                        ->orderBy('c.descripcion')
+                        ->orderBy('t.descripcion');
+
+        if($request->get('sedeId')){
+            $productos      =   $productos->where('a.sede_id',$request->get('sedeId'));
+        }
+
+        if($request->get('almacenId')){
+            $productos      =   $productos->where('pct.almacen_id',$request->get('almacenId'));
+        }
+                
+        return $productos->get();
+    }
+
+    public function excelProductos(Request $request){
+        
+        $productos      =  $this->queryProductosPI($request);
+
+        $sede_nombre    =   null;
+        $almacen_nombre =   null;
+        if($request->get('sedeId')){
+            $sede_nombre    =   Sede::find($request->get('sedeId'))->nombre;
+        }
+        if($request->get('almacenId')){
+            $almacen_nombre =   Almacen::find($request->get('almacenId'))->descripcion;
+        }
+
+        $empresa    =   Empresa::find(1);
+
+        $request->merge(['sede_nombre'=>$sede_nombre,'almacen_nombre'=>$almacen_nombre]);
+
+        return Excel::download(new Producto_PI($productos,$request,$empresa), 'productosPI_' . Carbon::now()->format('Y-m-d') . '.xlsx');
     }
 
     public function obtenerBarCode(Request $request){

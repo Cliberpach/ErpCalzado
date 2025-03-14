@@ -984,7 +984,8 @@
             $('.dataTables-producto').DataTable({
                "processing": true,
                 "dom": '<"html5buttons"B>lTfgitp',
-                "buttons": [
+                "buttons": 
+                [
                     {
                             text: '<i class="fa fa-file-excel-o"></i> Excel',
                             titleAttr: 'Excel',
@@ -993,13 +994,8 @@
                                 
                             },
                             init: function(api, node, config) {
-                            // Agregar un atributo href al botón para definir la ruta deseada
-                            $(node).attr('href', '{{ route('reporte.producto.excelProductos') }}');
-                            // Manejar el clic en el botón para abrir la URL en una nueva ventana
-                            $(node).on('click', function() {
-                                window.open($(this).attr('href'), '_blank');
-                            });
-                        }
+                                $(node).on('click', excelProductosPI);
+                            }
                     }
                 ],
                 "bPaginate": true,
@@ -1090,6 +1086,14 @@
             $('#modal_costo_update #total').val(data.total);
             $('#modal_costo_update').modal('show');
         });
+
+        function excelProductosPI(){
+            let sedeId      = document.querySelector('#sede').value;
+            let almacenId   = document.querySelector('#almacen').value;
+
+            let url = '{{ route('reporte.producto.excelProductos') }}' + '?sedeId=' + sedeId + '&almacenId=' + almacenId;
+            window.open(url, '_blank');
+        }
 
       
     </script>

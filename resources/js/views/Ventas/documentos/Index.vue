@@ -599,7 +599,8 @@ export default {
                         return  d.id == id;
                     });
                     if(documento_index !== -1){
-                        this.documentos[documento_index].sunat  =   '1';
+                        this.documentos[documento_index].sunat              =   '1';
+                        this.documentos[documento_index].cdr_response_code  =   '0';
                     }
 
                     toastr.success(result.value.message,'DOCUMENTO ENVIADO A SUNAT',{timeOut:5000});

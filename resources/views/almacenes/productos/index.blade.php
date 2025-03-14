@@ -20,9 +20,6 @@
         <button id="btn_añadir_producto" class="btn btn-block btn-w-m btn-primary m-t-md">
             <i class="fa fa-plus-square"></i> Añadir nuevo
         </button>
-        <a class="btn btn-block btn-w-m btn-primary m-t-md btn-modal-file" href="#">
-            <i class="fa fa-plus-square"></i> Importar Excel
-        </a>
     </div>
 </div>
 
@@ -229,10 +226,6 @@
         window.location = "{{ route('almacenes.producto.create') }}";
     }
 
-    function editarCliente(url) {
-        window.location = url;
-    }
-
     function eliminar(id) {
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
@@ -270,52 +263,6 @@
         $("#modal_file").modal("show");
     });
 
-
-    // $('#modal_show_stocks').on('show.bs.modal', function (event) {
-       
-    //     if(table){
-    //         table.destroy();
-    //     }
-    //     resetearTabla();
-
-    //     var button = $(event.relatedTarget) 
-    //     var product_id = button.data('whatever') 
-    //     const product_name = button.data('product-nombre');
-
-    //     let filas = ``;
-
-    //     const colores_producto = colores.filter((c)=>{
-    //         return c.producto_id==product_id;
-    //     })
-
-    //     colores_producto.forEach((color)=>{
-    //         filas +=    `
-    //                         <tr>
-    //                             <th scope="row">${color.color_nombre}</th>
-    //                     `;
-    //         tallas.forEach((t)=>{
-    //             let stock = stocks.filter((s) => {
-    //                 return s.producto_id == product_id && s.color_id == color.color_id && s.talla_id == t.id;
-    //             });
-
-    //             stock = stock.length > 0 ? stock[0].stock : 0;
-    //             filas +=    `
-    //                             <td><span style="font-weight: ${stock > 0 ? 'bold' : 'normal'}">${stock}</span></td>
-    //                         `;
-
-    //         })
-    //         filas+=`</tr>`;
-    //     })
-
-    //     bodyTableShowStocks.innerHTML= filas;
-       
-    //      var modal = $(this)
-    //      modal.find('.modal-title').text('Stocks: ' + product_name)
-    //      modal.find('.product_name').text(product_name);
-    //      cargarDataTables();
-    // })
-
-
     function resetearTabla(){
        bodyTableShowStocks.innerHTML = '';
     }
@@ -348,10 +295,6 @@
             }
         });
         
-        // const tableStocks   = document.querySelector('#table-productos');
-        // if(tableStocks.children[1]){
-        //     tableStocks.children[1].remove();
-        // }
     }
 </script>
 

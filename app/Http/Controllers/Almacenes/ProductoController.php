@@ -15,9 +15,13 @@ use App\Almacenes\ProductoDetalle;
 use App\Almacenes\TipoCliente;
 use App\Exports\Producto\CodigoBarra;
 use App\Exports\Producto\ProductosExport;
+use App\Exports\Reportes\PI\Producto_PI;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Reportes\ProductoController as ReportesProductoController;
 use App\Http\Requests\Almacen\Producto\ProductoStoreRequest;
 use App\Http\Requests\Almacen\Producto\ProductoUpdateRequest;
+use App\Mantenimiento\Empresa\Empresa;
+use App\Mantenimiento\Sedes\Sede;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
@@ -431,9 +435,14 @@ array:13 [
 
     public function getExcel()
     {
-        ob_end_clean(); // this
-        ob_start();
-        return  Excel::download(new ProductosExport, 'productos.xlsx');
+        $sede       =   Sede::find(Auth::user()->sede_id);
+
+        $request    =   new Request(['sedeId'=>$sede->id,'almacenId'=>null,'sede_nombre'=>$sede->nombre]);
+        $productos  =   ReportesProductoController::queryProductosPI($request);
+      
+        $empresa    =   Empresa::find(1);
+        
+        return Excel::download(new Producto_PI($productos,$request,$empresa), 'productos_' . Carbon::now()->format('Y-m-d') . '.xlsx');
     }
 
     public function getProductosByModelo($modelo_id){
