@@ -504,16 +504,16 @@ array:1 [
             $see            =   $this->controlConfiguracionGreenter($util);
 
             $res_ticket     =   $see->getStatus($ticket);
-
+            dd($res_ticket);
             $code_estado    =   $res_ticket->getCode();
             $cdr            =   $res_ticket->getCdrResponse();
            
-    
+            
             //====== ENVIO CORRECTO Y CDR RECIBIDO ======
             if($code_estado == 0){
                 //===== GUARDANDO CDR ======
                 $util->writeCdr(null, $res_ticket->getCdrZip(), "RESUMEN",$summary_name);
-                //$resumen->ruta_cdr  =   __DIR__.'/../../../Greenter/files/resumenes_cdr/'.$summary_name.'.zip';   
+                //$resumen->ruta_cdr    =   __DIR__.'/../../../Greenter/files/resumenes_cdr/'.$summary_name.'.zip';   
                 $resumen->ruta_cdr      =   'storage/greenter/resumenes/cdr/'.$summary_name.'.zip';
 
                 //==== GUARDANDO DATOS DEL CDR ====
