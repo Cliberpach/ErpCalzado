@@ -526,19 +526,19 @@ array:1 [
 
                 //==== GUARDANDO DATOS DEL CDR ====
                 if($res_ticket->getCdrResponse()){
+
                     $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
                     $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
                     $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
                     $resumen->cdr_response_notes        =   implode(" | ", $res_ticket->getCdrResponse()->getNotes());
-                }
 
-              
-                DB::table('cotizacion_documento')
-                ->where('resumen_id',$resumen_id)
-                ->update([
-                    'cdr_response_code'    =>  $res_ticket->getCdrResponse()->getCode()
-                ]);
-                    
+                    DB::table('cotizacion_documento')
+                    ->where('resumen_id',$resumen_id)
+                    ->update([
+                        'cdr_response_code'    =>  $res_ticket->getCdrResponse()->getCode()
+                    ]);
+                }
+  
                 //====== GUARDANDO ESTADO DEL TICKET ====
                 $message    =   "ENVÍO CORRECTO Y CDR RECIBIDO";
             }
@@ -559,7 +559,7 @@ array:1 [
                     $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
                     $resumen->cdr_response_notes        =   implode(" | ", $res_ticket->getCdrResponse()->getNotes());
                 }
-                
+
                 DB::table('cotizacion_documento')
                 ->where('resumen_id',$resumen_id)
                 ->update([
