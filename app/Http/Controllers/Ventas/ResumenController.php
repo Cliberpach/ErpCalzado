@@ -504,10 +504,18 @@ array:1 [
             $see            =   $this->controlConfiguracionGreenter($util);
 
             $res_ticket     =   $see->getStatus($ticket);
-            dd($res_ticket);
+          
             $code_estado    =   $res_ticket->getCode();
             $cdr            =   $res_ticket->getCdrResponse();
            
+            //========= GUARDANDO STATUS RESULT RES =====
+            $resumen->code_estado                   =   $res_ticket->getCode();
+            $resumen->status_result_success         =   $res_ticket->isSuccess();
+            if($res_ticket->getError()){
+                $resumen->status_result_error_code      =   $res_ticket->getError()->getCode();
+                $resumen->status_result_error_message   =   $res_ticket->getError()->getMessage();
+                $resumen->regularize                    =   1;
+            }
             
             //====== ENVIO CORRECTO Y CDR RECIBIDO ======
             if($code_estado == 0){
@@ -517,24 +525,26 @@ array:1 [
                 $resumen->ruta_cdr      =   'storage/greenter/resumenes/cdr/'.$summary_name.'.zip';
 
                 //==== GUARDANDO DATOS DEL CDR ====
-                $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
-                $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
-                $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
-                
+                if($res_ticket->getCdrResponse()){
+                    $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
+                    $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
+                    $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
+                    $resumen->cdr_response_notes        =   implode(" | ", $res_ticket->getCdrResponse()->getNotes());
+                }
+
+              
                 DB::table('cotizacion_documento')
                 ->where('resumen_id',$resumen_id)
                 ->update([
                     'cdr_response_code'    =>  $res_ticket->getCdrResponse()->getCode()
                 ]);
                     
-                
                 //====== GUARDANDO ESTADO DEL TICKET ====
-                $resumen->code_estado               =   $code_estado;  
                 $message    =   "ENVÍO CORRECTO Y CDR RECIBIDO";
             }
     
             //===== ENVÍO CON ERRORES Y CDR RECIBIDO =====
-            if($code_estado == 99 && $cdr){
+            if($code_estado == 99){
 
                 //===== GUARDANDO CDR ======
                 $util->writeCdr(null, $res_ticket->getCdrZip(),"RESUMEN",$summary_name);
@@ -543,45 +553,25 @@ array:1 [
  
     
                 //==== GUARDANDO DATOS DEL CDR ====
-                $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
-                $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
-                $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
-
+                if($res_ticket->getCdrResponse()){
+                    $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
+                    $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
+                    $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
+                    $resumen->cdr_response_notes        =   implode(" | ", $res_ticket->getCdrResponse()->getNotes());
+                }
+                
                 DB::table('cotizacion_documento')
                 ->where('resumen_id',$resumen_id)
                 ->update([
                     'cdr_response_code'    =>  $res_ticket->getCdrResponse()->getCode()
                 ]);
-    
-                //====== GUARDANDO ESTADO DEL TICKET ====
-                $resumen->code_estado               =   $code_estado;
-    
-                //======= SEÑALAR COMO RESUMEN CON ERRORES =======
-                $resumen->regularize    =   1;
-    
-                //===== GUARDANDO ERRORES =======
-                if($res_ticket->getError()){
-                    $error                  =   'CODE: '.$res_ticket->getError()->getCode().' - '.'MESSAGE: '.$res_ticket->getError()->getMessage();
-                    $resumen->response_error=   $error;
-                }
+        
                 $message    =   "ENVÍO CON ERRORES Y CDR RECIBIDO";
             }
     
             //===== ENVÍO CON ERRORES Y SIN CDR =====
             if($code_estado == 99 && !$cdr){
                 
-                //======= SEÑALAR COMO RESUMEN CON ERRORES =======
-                $resumen->regularize    =   1;
-    
-                //====== GUARDANDO ESTADO DEL TICKET ====
-                $resumen->code_estado               =   $code_estado;
-    
-                //===== GUARDANDO ERRORES =======
-                if($res_ticket->getError()){
-                    $error                  =   'CODE: '.$res_ticket->getError()->getCode().' - '.'MESSAGE: '.$res_ticket->getError()->getMessage();
-                    $resumen->response_error=   $error;
-                }
-
                 $message    =   "ENVÍO CON ERRORES,SIN CDR";
 
                 DB::table('cotizacion_documento')
@@ -594,8 +584,7 @@ array:1 [
     
             //======= EN PROCESO =======
             if($code_estado == 98){
-                //====== GUARDANDO ESTADO DEL TICKET ====
-                $resumen->code_estado               =   $code_estado;
+
                 $message    =   "ENVÍO EN PROCESO";
 
                 DB::table('cotizacion_documento')
@@ -603,6 +592,7 @@ array:1 [
                 ->update([
                     'cdr_response_code'    =>  'EN ESPERA'
                 ]);
+
             }
 
             $resumen->update();  
