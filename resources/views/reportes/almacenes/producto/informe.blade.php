@@ -1025,32 +1025,32 @@
                     {
                         data: 'producto_nombre',
                         className: "text-left",
-                        name: "nombre"
+                        name: "producto_nombre"
                     },
                     {
                         data: 'color_nombre',
                         className: "text-left",
-                        name: "colores.descripcion"
+                        name: "color_nombre"
                     },
                     {
                         data: 'talla_nombre',
                         className: "text-left",
-                        name: "tallas.descripcion"
+                        name: "talla_nombre"
                     },
                     {
                         data: 'modelo_nombre',
                         className: "text-left",
-                        name: "modelos.descripcion"
+                        name: "modelo_nombre"
                     },
                     {
                         data: 'categoria_nombre',
                         className: "text-left",
-                        name: "categorias.descripcion"
+                        name: "categoria_nombre"
                     },
                     {
                         data: 'stock',
                         className: "text-center",
-                        name: "producto_color_tallas.stock"
+                        name: "stock"
                     },
                     {
                         data: null,
