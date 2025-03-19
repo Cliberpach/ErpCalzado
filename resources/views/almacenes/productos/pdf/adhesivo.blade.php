@@ -94,7 +94,7 @@
         @endphp
     @endforeach
 
-    @if ($cantidad >100)
+    @if ($cantidad >= 300 )
         @php
             $tipo_impresion = "LIMITADA"
         @endphp
