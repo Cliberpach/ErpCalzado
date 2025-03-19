@@ -328,6 +328,12 @@ class ProductoController extends Controller
         $almacen_id =   $request->get('almacen_id');
 
         $productos  =    DB::table('productos as p')
+                        ->join('producto_color_tallas as pct', 'p.id', '=', 'pct.producto_id')
+                        ->join('colores as co', 'co.id', '=', 'pct.color_id')
+                        ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+                        ->join('modelos as m', 'm.id', '=', 'p.modelo_id')
+                        ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
+                        ->join('almacenes as a','a.id','pct.almacen_id')
                         ->select(
                             'p.id as producto_id',
                             'co.id as color_id',
@@ -343,12 +349,6 @@ class ProductoController extends Controller
                             'pct.codigo_barras',
                             'a.descripcion as almacen_nombre'
                         )
-                        ->join('producto_color_tallas as pct', 'p.id', '=', 'pct.producto_id')
-                        ->join('colores as co', 'co.id', '=', 'pct.color_id')
-                        ->join('tallas as t', 't.id', '=', 'pct.talla_id')
-                        ->join('modelos as m', 'm.id', '=', 'p.modelo_id')
-                        ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
-                        ->join('almacenes as a','a.id','pct.almacen_id')
                         ->where('p.estado', '=', 'ACTIVO');  
 
         if($sede_id){

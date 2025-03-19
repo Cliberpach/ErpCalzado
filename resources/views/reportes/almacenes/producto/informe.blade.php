@@ -1017,40 +1017,42 @@
                         d.almacen_id    = $('#almacen').val(); 
                     }
                 },
-                "columns": [{
+                "columns": [
+                    {
                         data: 'almacen_nombre',
                         className: "text-left",
-                        name: "almacen_nombre"
+                        name: "a.descripcion"
                     },
                     {
                         data: 'producto_nombre',
                         className: "text-left",
-                        name: "producto_nombre"
+                        name: "p.nombre"
                     },
                     {
                         data: 'color_nombre',
                         className: "text-left",
-                        name: "color_nombre"
+                        name: "co.descripcion"
                     },
                     {
                         data: 'talla_nombre',
                         className: "text-left",
-                        name: "talla_nombre"
+                        name: "t.descripcion"
                     },
                     {
                         data: 'modelo_nombre',
                         className: "text-left",
-                        name: "modelo_nombre"
+                        name: "m.descripcion"
                     },
                     {
                         data: 'categoria_nombre',
                         className: "text-left",
-                        name: "categoria_nombre"
+                        name: "ca.descripcion"
                     },
                     {
                         data: 'stock',
                         className: "text-center",
-                        name: "stock"
+                        name: "stock",
+                        searchable: false 
                     },
                     {
                         data: null,
