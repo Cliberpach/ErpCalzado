@@ -1554,6 +1554,38 @@
         })
     } 
 
+    function cambiarAlmacen(almacen_id){
+        
+        toastr.clear();
+
+        mostrarAnimacionCotizacion();
+
+        //======== LIMPIAR SELECTS ======
+        $('#producto').val(null).trigger('change');
+        $('#precio_venta').val(null).trigger('change');
+
+        //======= LIMPIAR TABLERO STOCKS ======
+        destruirDataTable(dtStocksVenta);
+        limpiarTabla('table-stocks');
+        dtStocksVenta       =    iniciarDataTable('table-stocks');
+
+        //========== LIMPIAR DETALLE DE LA VENTA ========
+        carrito.length  =   0;
+        destruirDataTable(dtDetalleVenta);
+        limpiarTabla('table-detalle');
+        pintarDetalle(carrito);
+        dtDetalleVenta       =    iniciarDataTable('table-detalle');
+
+        carrito.forEach((c)=>{
+            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+         })
+        calcularMontos();
+
+        ocultarAnimacionCotizacion();
+        toastr.info('SE HA LIMPIADO EL FORMULARIO');
+
+    }
+
 
     //========= evento al cerrar la ventana ========
     /*window.onbeforeunload = () => {
