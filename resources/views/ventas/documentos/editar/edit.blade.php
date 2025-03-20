@@ -1218,10 +1218,9 @@
                 ocultarAnimacion();
             }
         }else{
-            destruirDataTableStocks();
-            limpiarTableStocks();
-            loadDataTableStocksPedido();
-            limpiarSelectPreciosVenta();
+            destruirDataTable(dtStocksVenta);
+            limpiarTabla('table-stocks');
+            dtStocksVenta       =    iniciarDataTable('table-stocks');
             ocultarAnimacion();
         }
     }
