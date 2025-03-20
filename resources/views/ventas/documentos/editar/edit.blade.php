@@ -1558,7 +1558,7 @@
         
         toastr.clear();
 
-        mostrarAnimacionCotizacion();
+        mostrarAnimacion();
 
         //======== LIMPIAR SELECTS ======
         $('#producto').val(null).trigger('change');
@@ -1581,7 +1581,7 @@
          })
         calcularMontos();
 
-        ocultarAnimacionCotizacion();
+        ocultarAnimacion();
         toastr.info('SE HA LIMPIADO EL FORMULARIO');
 
     }
