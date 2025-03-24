@@ -75,33 +75,31 @@ class ProductoController extends Controller
         return DataTables::of($coleccion)->make(true);
     }
 
-    public function llenarVentas($producto_id,$color_id,$talla_id)
+    public function llenarVentas($almacen_id,$producto_id,$color_id,$talla_id)
     {
         ini_set('memory_limit', '1024M');
         try{
-            $ventas = DocumentoDetalle::orderBy('id', 'desc')
-            ->where('estado', 'ACTIVO')
-            ->where("producto_id",$producto_id)
-            ->where("color_id",$color_id)
-            ->where("talla_id",$talla_id)
-            ->get();
+            $ventas =   DB::table('cotizacion_documento_detalles as cdd')
+                        ->join('cotizacion_documento as cd','cd.id','cdd.documento_id')
+                        ->join('users as u','u.id','cd.user_id')
+                        ->select(
+                            DB::raw("CONCAT(cd.tipo_documento_cliente,':',cd.documento_cliente,'-',cd.cliente) as cliente"),
+                            'u.usuario as registrador_nombre',
+                            'cd.tipo_venta_nombre as documento',
+                            DB::raw("CONCAT(cd.serie,'-',cd.correlativo) as serie"),
+                            'cd.created_at as fecha',
+                            DB::raw("FLOOR(cdd.cantidad) as cantidad"),
+                            'cdd.precio_unitario_nuevo',
+                            'cd.convert_en_serie'
+                        )
+                        ->where('cdd.estado', 'ACTIVO')
+                        ->where("cdd.producto_id",$producto_id)
+                        ->where("cdd.color_id",$color_id)
+                        ->where("cdd.talla_id",$talla_id)
+                        ->get();
           
-            $coleccion = collect([]);
-            foreach ($ventas as $producto) {
-                $coleccion->push([
-                    'cliente'               =>  $producto->documento->clienteEntidad->nombre,
-                    'documento'             =>  $producto->documento->nombreTipo(),
-                    'numero'                =>  $producto->documento->serie . '-' . $producto->documento->correlativo,
-                    'fecha_emision'         =>  $producto->documento->fecha_atencion,
-                    'cantidad'              =>  $producto->cantidad,
-                    'precio_unitario_nuevo' =>  $producto->precio_unitario_nuevo,
-                    'convertir'             =>  $producto->documento->doc_convertido(),
-                    'usuario'               =>  $producto->documento->usuario()    
-                    // 'fecha_vencimiento' => $producto->documento->fecha_vencimiento,
-                    // 'medida' => $producto->producto->medidaCompleta(),
-                ]);
-            }
-            return DataTables::of($coleccion)->make(true);
+          
+            return DataTables::of($ventas)->make(true);
         }catch(\Exception $ex){
             dd($ex->getMessage());
             return response()->json([
@@ -113,38 +111,6 @@ class ProductoController extends Controller
                 "ex"=>$ex
             ]);
         }
-        // try{
-        //     $ventas = DocumentoDetalle::orderBy('id', 'desc')
-        //     ->where('estado', 'ACTIVO')
-        //     ->where("eliminado","0")
-        //     ->get();
-        //     $coleccion = collect([]);
-        //     foreach ($ventas as $producto) {
-        //         if ($producto->lote->producto_id == $id) {
-        //             $coleccion->push([
-        //                 'cliente' => $producto->documento->clienteEntidad->nombre,
-        //                 'documento' => $producto->documento->nombreTipo(),
-        //                 'numero' => $producto->documento->serie . '-' . $producto->documento->correlativo,
-        //                 'fecha_emision' => $producto->documento->fecha_atencion,
-        //                 'cantidad' => $producto->cantidad,
-        //                 'precio' => $producto->precio_nuevo,
-        //                 'lote' => $producto->lote->codigo_lote,
-        //                 'fecha_vencimiento' => $producto->documento->fecha_vencimiento,
-        //                 'medida' => $producto->lote->producto->medidaCompleta(),
-        //             ]);
-        //         }
-        //     }
-        //     return DataTables::of($coleccion)->make(true);
-        // }catch(\Exception $ex){
-        //     return response()->json([
-        //         "data"=> [],
-        //         "draw"=> 0,
-        //         "input"=>"1664832061783",
-        //         "recordsFiltered"=>0,
-        //         "recordsTotal"=> 0,
-        //         "ex"=>$ex
-        //     ]);
-        // }
     }
 
     public function llenarNotasCredito($producto_id,$color_id,$talla_id)
@@ -186,72 +152,50 @@ class ProductoController extends Controller
         }
     }
 
-    public function llenarSalidas($producto_id,$color_id,$talla_id)
+    public function llenarSalidas($almacen_id,$producto_id,$color_id,$talla_id)
     {
-        $salidas = DB::table('detalle_nota_salidad')
-        ->join('nota_salidad', 'nota_salidad.id', '=', 'detalle_nota_salidad.nota_salidad_id')
-        ->join('productos', 'productos.id','=', 'detalle_nota_salidad.producto_id')
-        ->join('tabladetalles', 'tabladetalles.id','=','productos.medida')
-        // ->join('lote_productos', 'lote_productos.id', '=', 'detalle_nota_salidad.lote_id')
-        ->select(
-            'detalle_nota_salidad.cantidad',
-            'nota_salidad.origen',
-            'nota_salidad.destino',
-            'nota_salidad.fecha',
-            'nota_salidad.usuario',
-            //'lote_productos.codigo_lote',
-            'tabladetalles.descripcion as unidad'
-        )
-        ->where('detalle_nota_salidad.producto_id', $producto_id)  
-        ->where('detalle_nota_salidad.color_id', $color_id)    
-        ->where('detalle_nota_salidad.talla_id', $talla_id)      
-        ->where('nota_salidad.estado', '!=', 'ANULADO')->get();
-
-        $coleccion = collect([]);
-        foreach ($salidas as $salida) {
-            $coleccion->push([
-                'origen'    =>  $salida->origen,
-                'destino'   =>  $salida->destino,
-                'cantidad'  =>  $salida->cantidad,
-                //'lote' => $salida->codigo_lote,
-                'fecha'     =>  $salida->fecha,
-                'medida'    =>  $salida->unidad,
-                'usuario'   =>  $salida->usuario
-            ]);
-        }
-        return DataTables::of($coleccion)->make(true);
-    }
-
-    public function llenarIngresos($producto_id,$color_id,$talla_id)
-    {
-        $ingresos = DetalleNotaIngreso::orderBy('id', 'desc')
-                    ->where('producto_id', $producto_id)
-                    ->where('color_id', $color_id)
-                    ->where('talla_id', $talla_id)
-                    ->join('nota_ingreso', 'detalle_nota_ingreso.nota_ingreso_id', '=', 'nota_ingreso.id')
-                    ->select('detalle_nota_ingreso.*', 'nota_ingreso.usuario','nota_ingreso.created_at')
+        $salidas =  DB::table('detalle_nota_salidad as dns')
+                    ->join('nota_salidad as ns', 'ns.id', '=', 'dns.nota_salida_id')
+                    ->select(
+                        DB::raw('CONCAT("NS-",ns.id) as codigo'),
+                        'ns.almacen_origen_nombre',
+                        'ns.almacen_destino_nombre',
+                        'dns.cantidad',
+                        'ns.registrador_nombre',
+                        'ns.created_at as fecha',
+                    )
+                    ->where('dns.almacen_id', $almacen_id)  
+                    ->where('dns.producto_id', $producto_id)  
+                    ->where('dns.color_id', $color_id)    
+                    ->where('dns.talla_id', $talla_id)      
+                    ->where('ns.estado', '!=', 'ANULADO')
                     ->get();
 
-        $coleccion = collect([]);
-        foreach ($ingresos as $ingreso) {
-            $coleccion->push([
-                'origen'            => $ingreso->nota_ingreso->origen,
-                'numero'            => $ingreso->nota_ingreso->numero,
-                'destino'           => $ingreso->nota_ingreso->destino,
-                'cantidad'          => $ingreso->cantidad,
-                'costo'             => $ingreso->costo_soles,
-                'nombre'            => $ingreso->producto->nombre,
-                'total'             => $ingreso->valor_ingreso,
-                'nota_ingreso_id'   => $ingreso->nota_ingreso->id,
-                'id'                => $ingreso->id,
-                'moneda'            => $ingreso->nota_ingreso->moneda,
-                'medida'            => $ingreso->producto->medidaCompleta(),
-                'usuario'           => $ingreso->usuario,
-                'fecha'             => $ingreso->created_at->format('Y-m-d H:i:s')
-                //'medida' => $ingreso->loteProducto->producto->medidaCompleta(),
-            ]);
-        }
-        return DataTables::of($coleccion)->make(true);
+       
+        return DataTables::of($salidas)->make(true);
+    }
+
+    public function llenarIngresos($almacen_id,$producto_id,$color_id,$talla_id)
+    {
+       
+        $ingresos   =   DB::table('detalle_nota_ingreso  as dni')
+                        ->join('nota_ingreso as ni', 'dni.nota_ingreso_id', '=', 'ni.id')
+                        ->where('almacen_id', $almacen_id)
+                        ->where('producto_id', $producto_id)
+                        ->where('color_id', $color_id)
+                        ->where('talla_id', $talla_id)
+                        ->select(
+                            'dni.*',
+                            DB::raw("CONCAT('NI-',ni.id) as codigo"),
+                            'ni.registrador_nombre as usuario',
+                            'ni.almacen_destino_nombre as destino',
+                            'ni.created_at as fecha'
+                        )
+                        ->orderByDesc('ni.id')
+                        ->get();
+
+     
+        return DataTables::of($ingresos)->make(true);
     }
 
     public function updateIngreso(Request $request)
@@ -335,6 +279,7 @@ class ProductoController extends Controller
                         ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
                         ->join('almacenes as a','a.id','pct.almacen_id')
                         ->select(
+                            'a.id as almacen_id',
                             'p.id as producto_id',
                             'co.id as color_id',
                             't.id as talla_id',

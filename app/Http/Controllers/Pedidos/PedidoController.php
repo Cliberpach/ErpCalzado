@@ -1436,6 +1436,7 @@ public function generarDocumentoVenta(Request $request){
 
         foreach ($detalles_documento_venta as $item) {
             DB::table('producto_color_tallas')
+                ->where('almacen_id', $pedido->almacen_id)
                 ->where('producto_id', $item->producto_id)
                 ->where('color_id', $item->color_id)
                 ->where('talla_id', $item->talla_id)

@@ -187,7 +187,7 @@
                                 style="text-transform:uppercase">
                                 <thead>
                                     <tr>
-                                        <th class="text-center">ORIGEN</th>
+                                        <th class="text-center">#</th>
                                         <th class="text-center">DESTINO</th>
                                         <th class="text-center">CANTIDAD</th>
                                         <th class="text-center">USUARIO</th>
@@ -483,15 +483,15 @@
             });
 
             //DOBLE CLICK EN LOTES
-            $('.dataTables-producto').on('dblclick', 'tbody td', function() {
+            $('.dataTables-producto').on('click', 'tbody td', function() {
                 var instancia   = $('.dataTables-producto').DataTable();
                 var producto    = instancia.row(this).data();
                 llenarCompras(producto.producto_id,producto.color_id,producto.talla_id);
-                llenarVentas(producto.producto_id,producto.color_id,producto.talla_id);
+                llenarVentas(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
                 llenarNotasCredito(producto.producto_id,producto.color_id,producto.talla_id);
-                llenarSalidas(producto.producto_id,producto.color_id,producto.talla_id);
+                llenarSalidas(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
                 
-                llenarIngresos(producto.producto_id,producto.color_id,producto.talla_id);
+                llenarIngresos(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
                 console.log(`${producto.producto_id}-${producto.color_id}-${producto.talla_id}`);
             });
 
@@ -648,9 +648,10 @@
             });
         }
 
-        function llenarVentas(producto_id,color_id,talla_id) {
+        function llenarVentas(almacen_id,producto_id,color_id,talla_id) {
             $('.dataTables-ventas').dataTable().fnDestroy();
-            let url = '{{ route('reporte.producto.llenarVentas', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            let url = '{{ route('reporte.producto.llenarVentas', ['almacen_id' => ':almacen_id','producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            url = url.replace(":almacen_id", almacen_id);
             url = url.replace(":producto_id", producto_id);
             url = url.replace(":color_id", color_id);
             url = url.replace(":talla_id", talla_id);
@@ -690,8 +691,8 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'usuario',
-                        name: 'usuario',
+                        data: 'registrador_nombre',
+                        name: 'registrador_nombre',
                         className: "letrapequeña"
                     },
                     {
@@ -700,13 +701,13 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'numero',
-                        name: 'numero',
+                        data: 'serie',
+                        name: 'serie',
                         className: "letrapequeña"
                     },
                     {
-                        data: 'fecha_emision',
-                        name: 'fecha_emision',
+                        data: 'fecha',
+                        name: 'fecha',
                         className: "letrapequeña"
                     },
                     {
@@ -720,8 +721,8 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'convertir',
-                        name: 'convertir',
+                        data: 'convert_en_serie',
+                        name: 'convert_en_serie',
                         className: "letrapequeña"
                     }
                 ],
@@ -732,7 +733,7 @@
                     [3, "desc"]
                 ],
                 "createdRow": function(row, data, dataIndex) {
-                    if (data.convertir !== '-') {
+                    if (data.convert_en_serie) {
                         $(row).addClass('azulito-leve');
                     }
                 }
@@ -835,9 +836,10 @@
             });
         }
 
-        function llenarSalidas(producto_id,color_id,talla_id) {
+        function llenarSalidas(almacen_id,producto_id,color_id,talla_id) {
             $('.dataTables-salidas').dataTable().fnDestroy();
-            let url = '{{ route('reporte.producto.llenarSalidas', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            let url = '{{ route('reporte.producto.llenarSalidas', ['almacen_id' => ':almacen_id','producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            url = url.replace(":almacen_id", almacen_id);
             url = url.replace(":producto_id", producto_id);
             url = url.replace(":color_id", color_id);
             url = url.replace(":talla_id", talla_id);
@@ -871,12 +873,17 @@
                 "columns": [
 
                     {
-                        data: 'origen',
-                        name: 'origen',
+                        data: 'codigo',
+                        name: 'codigo',
                         className: "letrapequeña"
                     },
                     {
-                        data: 'destino',
+                        data: 'almacen_origen_nombre',
+                        name: 'almacen_origen_nombre',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'almacen_destino_nombre',
                         name: 'destino',
                         className: "letrapequeña"
                     },
@@ -886,8 +893,8 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'usuario',
-                        name: 'usuario',
+                        data: 'registrador_nombre',
+                        name: 'registrador_nombre',
                         className: "letrapequeña"
                     },
                     {
@@ -907,9 +914,10 @@
             });
         }
 
-        function llenarIngresos(producto_id,color_id,talla_id) {
+        function llenarIngresos(almacen_id,producto_id,color_id,talla_id) {
             $('.dataTables-ingresos').dataTable().fnDestroy();
-            let url = '{{ route('reporte.producto.llenarIngresos', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            let url = '{{ route('reporte.producto.llenarIngresos', ['almacen_id' => ':almacen_id','producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            url = url.replace(":almacen_id", almacen_id);
             url = url.replace(":producto_id", producto_id);
             url = url.replace(":color_id", color_id);
             url = url.replace(":talla_id", talla_id);
@@ -944,8 +952,8 @@
                 "columns": [
 
                     {
-                        data: 'origen',
-                        name: 'origen',
+                        data: 'codigo',
+                        name: 'codigo',
                         className: "letrapequeña"
                     },
                     {
@@ -973,7 +981,7 @@
                     "url": "{{ asset('Spanish.json') }}"
                 },
                 "order": [
-                    [0, "desc"]
+                    [4, "desc"]
                 ],
 
 
