@@ -801,7 +801,7 @@
 
             color.tallas.forEach((talla)=>{
                 filas   +=  `<td style="background-color: rgb(210, 242, 242);">
-                                        <p style="margin:0;width:20px;text-align:center;${talla.stock != 0?'font-weight:bold':''};">${talla.stock}</p>
+                                        <p style="margin:0;width:20px;text-align:center;${talla.stock_logico != 0?'font-weight:bold':''};">${talla.stock_logico}</p>
                             </td>
                             <td width="8%">
                                 <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
