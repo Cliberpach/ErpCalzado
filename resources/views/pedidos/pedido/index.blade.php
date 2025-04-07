@@ -279,7 +279,9 @@
                             //========= SOLO PUEDEN ELIMINARSE O EDITARSE PEDIDOS NO FACTURADOS,NO FINALIZADOS =====
                             if(row.estado !== "FINALIZADO" && !row.documento_venta_facturacion_id ){
                                 acciones+=`<li><a class='dropdown-item' onclick="modificarPedido(${row.id})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>`;
+                            }
 
+                            if(row.estado !== 'FINALIZADO'){
                                 acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='FINALIZAR'><b><i class='fa fa-trash'></i> Finalizar</a></b></li>`;
                             }
 
