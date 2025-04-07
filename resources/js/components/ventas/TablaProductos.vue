@@ -643,6 +643,19 @@ export default {
         },
         buscarCodigoBarra:{
             handler(value){
+
+                //======= VALIDAR QUE HAYA SELECCIONADO UN ALMACÉN PREVIAMENTE =======
+                if(!this.almacenSeleccionado){
+                    toastr.clear();
+                    toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
+                    //======= FOCUS AL VSELECT ALMACÉN ========
+                    this.$nextTick(() => {
+                        this.$parent.$refs.selectAlmacen.$el.querySelector("input").focus();
+                    });
+                    this.$parent.ocultarAnimacionVenta();
+                    return;
+                }
+                
                 if(value.trim().length === 8){
                     this.getProductoBarCode(value);
                 }
@@ -1388,17 +1401,20 @@ export default {
         async getProductoBarCode(barcode){
             try {
                 toastr.clear();
-                this.$parent.mostrarAnimacionVenta();            
+                this.$parent.mostrarAnimacionVenta();        
+
                 const res   =   await axios.get(route('ventas.documento.getProductoBarCode',{barcode}));
                 
-                if(res.data.success){  //====== STOCK LÓGICO VALIDO Y PRODUCTO EXISTE ====
+                if(res.data.success){  //====== PRODUCTO EXISTE ====
 
-                    toastr.info('STOCK LÓGICO VÁLIDO');
+                    toastr.info('BUSCANDO PRODUCTO');
 
                     res.data.producto.cantidad  =   1;
-                    const lstInputProducts      =   [res.data.producto];
-                    let indiceProductoColor     =   -1;
-                    let indiceTalla             =   -1;
+
+                    res.data.producto.almacen_id    =   this.almacenSeleccionado;  //======= AGREGAR ALMACEN ID ====== 
+                    const lstInputProducts          =   [res.data.producto];
+                    let indiceProductoColor         =   -1;
+                    let indiceTalla                 =   -1;
 
                     //======= VALIDAR QUE EL PRODUCTO NO EXISTA EN EL DETALLE ======
                     indiceProductoColor = this.carrito.findIndex((c) => {
@@ -1417,13 +1433,14 @@ export default {
                     }
 
                     //======= RESTAR STOCK LÓGICO ======
-                    const res_actualizar_stock  =   await this.actualizarStockLogicoVentas(lstInputProducts);
+                    const res_actualizar_stock  =   await this.actualizarStockLogicoVentas(this.almacenSeleccionado,lstInputProducts);
 
                     if(!res_actualizar_stock.data.success){
                         toastr.error(res_actualizar_stock.data.message,'ERROR EN EL SERVIDOR');
                         return;
                     }
 
+                    //======== ACTIVAR LA DEVOLUCIÓN DE STOCK ======
                     this.asegurarCierre = 1;
 
                     //====== AGREGAR AL CARRITO =======

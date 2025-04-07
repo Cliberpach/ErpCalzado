@@ -96,6 +96,17 @@
                                                     <select id="precio_venta" class="select2_form form-control">
                                                     </select>
                                                 </div>
+                                                <div class="col-12 mt-3">
+                                                    <label style="font-weight: bold;">CÓDIGO BARRA</label>
+                                                    <div class="input-group mb-3">
+                                                        <div class="input-group-prepend">
+                                                          <span class="input-group-text" id="basic-addon1">
+                                                            <i class="fas fa-barcode"></i>
+                                                          </span>
+                                                        </div>
+                                                        <input class="inputBarCode form-control" maxlength="8" type="text" placeholder="Escriba el código de barra" aria-label="Username" aria-describedby="basic-addon1">
+                                                    </div> 
+                                                </div>
                                           
                                             </div>
 
@@ -288,6 +299,14 @@
                 //===== CALCULAR Y PINTAR MONTOS =======
                 calcularMontos();
             }
+
+            //======== INPUT BARCODE ======
+            if(e.target.classList.contains('inputBarCode')){
+                if(e.target.value.trim().length === 8){
+                    getProductoBarCode(e.target.value);
+                }
+            }
+
         })
 
         document.addEventListener('click',(e)=>{
@@ -1194,6 +1213,107 @@
         toastr.info('SE HA LIMPIADO EL FORMULARIO');
 
     }
+
+    async function getProductoBarCode(barcode){
+        try {
+            toastr.clear();
+            mostrarAnimacion();
+            const res   =   await axios.get(route('ventas.cotizacion.getProductoBarCode',{barcode}));
+            
+            if(res.data.success){
+
+                addProductoBarCode(res.data.producto);
+
+                toastr.info('AGREGADO AL DETALLE!!!',`${res.data.producto.nombre} - ${res.data.producto.color_nombre} - ${res.data.producto.talla_nombre}
+                            PRECIO: ${res.data.producto.precio_venta_1}`,{timeOut:0});
+            }else{
+                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+            }
+        } catch (error) {
+            toastr.error(error,'ERROR EN LA PETICIÓN OBTENER PRODUCTO POR CÓDIGO DE BARRA');
+        }finally{
+            ocultarAnimacion();
+        }
+    }
+
+    function addProductoBarCode(_producto){
+
+        const producto_id           = _producto.id;
+        const producto_nombre       = _producto.nombre;
+        const color_id              = _producto.color_id;
+        const color_nombre          = _producto.color_nombre;
+        const talla_id              = _producto.talla_id;
+        const talla_nombre          = _producto.talla_nombre;
+        const precio_venta          = _producto.precio_venta_1;
+        const cantidad              = 1;
+        const subtotal              = 0;
+        const subtotal_nuevo        = 0;
+        const porcentaje_descuento  = 0;
+        const monto_descuento       = 0;
+        const precio_venta_nuevo    = 0;
+
+        const producto  =   {   
+                                producto_id,producto_nombre,color_id,color_nombre,
+                                talla_id,talla_nombre,cantidad,precio_venta,
+                                subtotal,subtotal_nuevo,porcentaje_descuento,monto_descuento,precio_venta_nuevo
+                            };
+                    
+        const indiceExiste  = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+        //===== PRODUCTO NUEVO =====
+        if (indiceExiste == -1) {
+                    const objProduct = {
+                        producto_id: producto.producto_id,
+                        color_id: producto.color_id,
+                        producto_nombre: producto.producto_nombre,
+                        color_nombre: producto.color_nombre,
+                        precio_venta: producto.precio_venta,
+                        monto_descuento:0,
+                        porcentaje_descuento:0,
+                        precio_venta_nuevo:0,
+                        subtotal_nuevo:0,
+                        tallas: [{
+                            talla_id: producto.talla_id,
+                            talla_nombre: producto.talla_nombre,
+                            cantidad: producto.cantidad
+                        }]
+                    };
+
+                    carrito.push(objProduct);
+        } else {
+
+            const productoModificar         = carrito[indiceExiste];
+            productoModificar.precio_venta  = producto.precio_venta;
+
+            const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+            if (indexTalla !== -1) {
+                const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
+                productoModificar.tallas[indexTalla].cantidad++;
+                carrito[indiceExiste] = productoModificar;
+            } else {
+                const objTallaProduct   =   {
+                                                talla_id: producto.talla_id,
+                                                talla_nombre: producto.talla_nombre,
+                                                cantidad: producto.cantidad
+                                            };
+                carrito[indiceExiste].tallas.push(objTallaProduct);
+            }
+        }
+
+        reordenarCarrito();
+        calcularSubTotal();
+        clearDetalleCotizacion();
+        destruirDataTableDetalleCotizacion();
+        pintarDetalleCotizacion(carrito);
+        //===== RECALCULANDO DESCUENTOS Y MONTOS =====
+        carrito.forEach((c)=>{
+            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+        })
+        calcularMontos();
+        loadDataTableDetallesCotizacion();
+    }
+
 
 </script>
 @endpush

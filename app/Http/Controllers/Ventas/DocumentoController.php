@@ -4369,30 +4369,28 @@ array:2 [
     public function getProductoBarCode($barcode){
         try {
 
+            $barcode    =   mb_strtoupper($barcode, 'UTF-8');
+
             $producto   =   DB::select('select 
-                            pct.*,
                             c.descripcion as color_nombre,
                             t.descripcion as talla_nombre,
-                            p.id,
+                            cb.producto_id,
+                            cb.color_id,
+                            cb.talla_id,
                             p.nombre as producto_nombre,
                             p.categoria_id,
                             p.marca_id,
                             p.modelo_id,
                             p.precio_venta_1 as precio_venta
-                            from producto_color_tallas as pct
-                            inner join colores as c on c.id = pct.color_id
-                            inner join tallas as t on t.id = pct.talla_id
-                            inner join productos as p on p.id = pct.producto_id
-                            where pct.codigo_barras = ?',[$barcode]);
+                            from codigos_barra as cb
+                            inner join colores as c on c.id = cb.color_id
+                            inner join tallas as t on t.id = cb.talla_id
+                            inner join productos as p on p.id = cb.producto_id
+                            where UPPER(cb.codigo_barras) = ?',[$barcode]);
 
             if(count($producto) === 0){
                 throw new Exception("NO SE ENCONTRÓ NINGÚN PRODUCTO CON ESTE CÓDIGO DE BARRAS!!!");
             }
-
-            if($producto[0]->stock_logico <= 0){
-                throw new Exception("STOCK LÓGICO INSUFICIENTE: ".$producto[0]->stock_logico."!!!");
-            }
-
 
             return response()->json(['success'=>true,'producto'=> $producto[0] ]);
 
@@ -4476,6 +4474,7 @@ array:1 [
             $lstInputProducts   =   json_decode($request->get('lstInputProducts'));
             $almacen_id         =   $request->get('almacenId');
 
+        
             if(!$almacen_id){
                 throw new Exception("FALTA EL PARÁMETRO ALMACÉN ID!!!");
             }

@@ -1369,10 +1369,10 @@ array:1 [
     }
 
     public function getProductoBarCode($barcode){
-        try {
+        try{
 
             $producto   =   DB::select('select 
-                            pct.*,
+                            cb.*,
                             c.descripcion as color_nombre,
                             t.descripcion as talla_nombre,
                             p.id,
@@ -1381,11 +1381,11 @@ array:1 [
                             p.marca_id,
                             p.modelo_id,
                             p.precio_venta_1
-                            from producto_color_tallas as pct
-                            inner join colores as c on c.id = pct.color_id
-                            inner join tallas as t on t.id = pct.talla_id
-                            inner join productos as p on p.id = pct.producto_id
-                            where pct.codigo_barras = ?',[$barcode]);
+                            from codigos_barra as cb
+                            inner join colores as c on c.id = cb.color_id
+                            inner join tallas as t on t.id = cb.talla_id
+                            inner join productos as p on p.id = cb.producto_id
+                            where cb.codigo_barras = ?',[$barcode]);
 
             if(count($producto) === 0){
                 throw new Exception("NO SE ENCONTRÓ NINGÚN PRODUCTO CON ESTE CÓDIGO DE BARRAS!!!");
