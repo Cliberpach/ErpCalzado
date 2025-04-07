@@ -435,6 +435,7 @@ class NotaController extends Controller
                 if( $documento->pedido_id ){
 
                     //======== EN CASO SEA EL DOC VENTA DE LA FACTURACIÓN DE UN PEDIDO ========
+                    //========= DOCS DE VENTA DE TIPO FACTURACIÓN DE PEDIDO NO RESTAN STOCK !!=========
                     if($documento->tipo_doc_venta_pedido === "FACTURACION"){
 
                         //======== OBTENER EL PRODUCTO DE LA NOTA ELECTRÓNICA EN EL DETALLE DEL PEDIDO ======
