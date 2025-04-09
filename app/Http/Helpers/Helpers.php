@@ -2032,7 +2032,9 @@ if (!function_exists('generarCodigo')) {
             $max        = strlen($pattern)-1;
             for($i=0;$i < $longitud;$i++) $key .= $pattern[mt_rand(0,$max)];
     
-            $existe =  DB::table('codigos_barra')->where('UPPER(codigo_barras)', $key)->first();
+            $existe =   DB::table('codigos_barra')
+                        ->whereRaw('UPPER(codigo_barras) = ?', [strtoupper($key)])
+                        ->first();
         }
 
         return $key;
