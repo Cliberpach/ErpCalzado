@@ -1355,12 +1355,27 @@
                         formData.append('registrador_id',@json($registrador->id));
                         formData.append('amountsPedido',JSON.stringify(amountsPedido));
 
+                        const delay = new Promise(resolve => setTimeout(resolve, 10000)); 
+                        const request = axios.post(
+                            route('pedidos.pedido.update', { id: @json($pedido->id) }),
+                            formData,
+                            {
+                                headers: {
+                                    "X-HTTP-Method-Override": "PUT"
+                                }
+                            }
+                        );
+
+                        const [res] = await Promise.all([request, delay]);
+
+                        /*
                         const res   =   await axios.post(route('pedidos.pedido.update',{id:@json($pedido->id)}),
                         formData,{
                             headers: {
                                 "X-HTTP-Method-Override": "PUT"
                             }
                         });
+                        */
 
                             if(res.data.success){
                                 const routeIndex        =   "{{ route('pedidos.pedido.index') }}";

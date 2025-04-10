@@ -644,8 +644,11 @@ export default {
                 this.formCreate.almacenSeleccionado =   this.almacenSeleccionado;
                 this.formCreate.sede_id             =   this.initData.sede_id;
 
-                const res   =   await this.axios.post(route('ventas.documento.store'),this.formCreate);
-                
+                //const res     =   await this.axios.post(route('ventas.documento.store'),this.formCreate);
+                const delay     =   new Promise(resolve => setTimeout(resolve, 10000)); 
+                const request   =   this.axios.post(route('ventas.documento.store'), this.formCreate);
+                const [res]     =   await Promise.all([request, delay]);
+
                 if(res.data.success){
                     this.$refs.tablaProductos.ChangeAsegurarCierre();
                     toastr.success(res.data.message,'OPERACIÓN COMPLETADA');

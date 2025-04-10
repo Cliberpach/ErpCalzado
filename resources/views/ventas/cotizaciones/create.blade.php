@@ -1177,7 +1177,11 @@
             });
 
             try {
-                const res   =   await axios.post(route('ventas.cotizacion.store'),formData);
+                const delay = new Promise(resolve => setTimeout(resolve, 10000)); 
+                //const res   =   await axios.post(route('ventas.cotizacion.store'),formData);
+                const request   = axios.post(route('ventas.cotizacion.store'), formData);
+                const [res]     = await Promise.all([request, delay]);
+
                 if(res.data.success){
                     window.location =  route('ventas.cotizacion.index');
                     toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
