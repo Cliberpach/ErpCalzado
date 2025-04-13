@@ -1112,6 +1112,7 @@ array:27 [
                 $doc_regularizar                    =   Documento::find($request->get('doc_regularizar_id'));
                 $documento->regularizado_de_id      =   $doc_regularizar->id;
                 $documento->regularizado_de_serie   =   $doc_regularizar->serie.'-'.$doc_regularizar->correlativo;
+                $documento->estado_pago             =   'PAGADA';
             }
             $documento->save();
           
