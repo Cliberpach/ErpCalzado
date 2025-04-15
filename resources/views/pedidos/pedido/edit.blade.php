@@ -1355,6 +1355,7 @@
                         formData.append('registrador_id',@json($registrador->id));
                         formData.append('amountsPedido',JSON.stringify(amountsPedido));
 
+                        /*
                         const delay = new Promise(resolve => setTimeout(resolve, 10000)); 
                         const request = axios.post(
                             route('pedidos.pedido.update', { id: @json($pedido->id) }),
@@ -1365,29 +1366,31 @@
                                 }
                             }
                         );
-
                         const [res] = await Promise.all([request, delay]);
+                        */
 
-                        /*
+
+                        
                         const res   =   await axios.post(route('pedidos.pedido.update',{id:@json($pedido->id)}),
                         formData,{
                             headers: {
                                 "X-HTTP-Method-Override": "PUT"
                             }
                         });
-                        */
+                        
 
-                            if(res.data.success){
-                                const routeIndex        =   "{{ route('pedidos.pedido.index') }}";
-                                toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
-                                window.location.href    =   routeIndex;
-                            }else{
-                                if('lstErroresValidacion' in res.data){
-                                    pintarErroresValidacion(res.data.lstErroresValidacion);
-                                    return;
-                                }
-                                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                        if(res.data.success){
+                            const routeIndex        =   "{{ route('pedidos.pedido.index') }}";
+                            toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                            window.location.href    =   routeIndex;
+                        }else{
+                            if('lstErroresValidacion' in res.data){
+                                pintarErroresValidacion(res.data.lstErroresValidacion);
+                                return;
                             }
+                            toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                        }
+                        
                     } catch (error) {
                         if (error.response) {
                             if (error.response.status === 422) {

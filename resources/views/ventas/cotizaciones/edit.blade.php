@@ -1115,22 +1115,21 @@
             try {
                 const cotizacion_id =   @json($cotizacion->id);
                 
-                const delay     =   new Promise(resolve => setTimeout(resolve, 10000));
+                /*const delay     =   new Promise(resolve => setTimeout(resolve, 10000));
                 const request   =   axios.post(route("ventas.cotizacion.update", cotizacion_id), formData, {
                     headers: {
                         "X-HTTP-Method-Override": "PUT"
                     }
                 });
 
-                const [res]     =   await Promise.all([request, delay]);
+                const [res]     =   await Promise.all([request, delay]);*/
 
-                /*
+                
                 const res   =   await axios.post(route("ventas.cotizacion.update", cotizacion_id), formData, {
                     headers: {
                         "X-HTTP-Method-Override": "PUT"
                     }
                 });
-                */
 
                 if(res.data.success){
                     window.location =  route('ventas.cotizacion.index');

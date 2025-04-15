@@ -1003,11 +1003,12 @@
                     formData.append('amountsPedido',JSON.stringify(amountsPedido));
 
 
-                    //const res     =   await axios.post(route('pedidos.pedido.store'),formData);
+                    const res     =   await axios.post(route('pedidos.pedido.store'),formData);
+                    /*
                     const delay     =   new Promise(resolve => setTimeout(resolve, 10000)); 
                     const request   =   axios.post(route('pedidos.pedido.store'), formData);
-
                     const [res]     =   await Promise.all([request, delay]);
+                    */
                     
                     if(res.data.success){
                         window.location =  route('pedidos.pedido.index');
