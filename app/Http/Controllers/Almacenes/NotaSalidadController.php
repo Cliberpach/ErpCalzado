@@ -646,8 +646,8 @@ array:11 [
     }
 
     public function getPdf($id) {
-        $documento = NotaSalidad::find($id);
-        $detalles = DetalleNotaSalidad::where('nota_salidad_id', $id)->get();
+        $documento  = NotaSalidad::find($id);
+        $detalles   = DetalleNotaSalidad::where('nota_salida_id', $id)->get();
 
         $pdf = PDF::loadview('almacenes.nota_salidad.impresion.comprobante_normal', [
             'documento' => $documento,
