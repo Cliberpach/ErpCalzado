@@ -1306,14 +1306,16 @@ if (!function_exists('movimientoUser')) {
             ======
             */
 
-            return  DB::select('select 
-                    dmc.movimiento_id 
-                    from detalles_movimiento_caja as dmc
-                    where 
-                    dmc.colaborador_id = ? 
-                    and dmc.fecha_cierre is null
-                    and dmc.estado_movimiento = "APERTURA"',
-                    [Auth::user()->colaborador_id]);
+            $movimiento =   DB::select('select 
+                            dmc.movimiento_id 
+                            from detalles_movimiento_caja as dmc
+                            where 
+                            dmc.colaborador_id = ? 
+                            and dmc.fecha_cierre is null
+                            and dmc.estado_movimiento = "APERTURA"',
+                            [Auth::user()->colaborador_id]);
+
+            return  $movimiento;
 
 
             // if (FullAccess() || PuntoVenta()) {
