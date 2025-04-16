@@ -1311,7 +1311,8 @@ if (!function_exists('movimientoUser')) {
                     from detalles_movimiento_caja as dmc
                     where 
                     dmc.colaborador_id = ? 
-                    and dmc.fecha_salida is null',
+                    and dmc.fecha_cierre is null
+                    and dmc.estado_movimiento = "APERTURA"',
                     [Auth::user()->colaborador_id]);
 
 
