@@ -154,8 +154,14 @@ array:10 [
 
             $colaborador                    =   Colaborador::find($id);
 
-            //======= VERIFICAR QUE NO TENGA CAJAS ABIERTAS EN CASO QUIERA CAMBIARSE DE SEDE ======
-            $movimiento =   movimientoUser();
+            //======= VERIFICAR QUE EL COLABORADOR A CAMBIAR NO TENGA CAJAS ABIERTAS ======
+            $movimiento =   DB::select('select 
+                            dmc.movimiento_id 
+                            from detalles_movimiento_caja as dmc
+                            where 
+                            dmc.colaborador_id = ? 
+                            and dmc.fecha_salida is null',
+                            [$id]);
        
             if($colaborador->sede_id != $request->get('sede') &&  count($movimiento) != 0 ){
           
