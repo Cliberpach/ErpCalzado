@@ -156,7 +156,7 @@ array:10 [
 
             //======= VERIFICAR QUE NO TENGA CAJAS ABIERTAS EN CASO QUIERA CAMBIARSE DE SEDE ======
             $movimiento =   movimientoUser();
-            dd($colaborador->sede_id != $request->get('sede') &&  count($movimiento) != 0);
+       
             if($colaborador->sede_id != $request->get('sede') &&  count($movimiento) != 0 ){
           
                 throw new Exception("PERTENECES A UNA CAJA ABIERTA EN LA SEDE ACTUAL, NO PUEDES CAMBIARTE DE SEDE HASTA QUE LA CIERRES");
