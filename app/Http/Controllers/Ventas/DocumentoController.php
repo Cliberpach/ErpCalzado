@@ -4549,6 +4549,7 @@ array:1 [
 
 /*
 array:3 [
+  "almacen_id"  => "1"
   "producto_id" => "2"
   "color_id"    => "1"
   "tallas"      => "[{"talla_id":"1","talla_nombre":"35","cantidad":"1"},{"talla_id":"2","talla_nombre":"36","cantidad":"1"},{"talla_id":"3","talla_nombre":"37","cantidad":"1"},{"talla_id":"4","talla_nombre":"38","cantidad":"1"},{"talla_id":"5","talla_nombre":"39","cantidad":"1"}]"
@@ -4557,18 +4558,28 @@ array:3 [
     public function actualizarStockDelete(Request $request){
         DB::beginTransaction();
         try {
+            
+            $almacen_id     =   $request->get('almacen_id');
             $producto_id    =   $request->get('producto_id');
             $color_id       =   $request->get('color_id');
             $tallas         =   json_decode($request->get('tallas'));
 
             foreach ($tallas as $talla) {
                 
-                $producto   =   DB::select('select pct.stock_logico 
+                $producto   =   DB::select('select 
+                                pct.stock_logico 
                                 from producto_color_tallas as pct
-                                where pct.producto_id = ?
+                                where
+                                pct.almacen_id = ? 
+                                and pct.producto_id = ?
                                 and pct.color_id = ?
                                 and pct.talla_id = ?',
-                                [$producto_id,$color_id,$talla->talla_id]);
+                                [
+                                    $almacen_id,
+                                    $producto_id,
+                                    $color_id,
+                                    $talla->talla_id
+                                ]);
 
                 if(count($producto) === 0){
                     throw new Exception("NO EXISTE ESTE PRODUCTO EN LA BD!!!");
@@ -4577,13 +4588,15 @@ array:3 [
                 DB::update('UPDATE producto_color_tallas 
                 SET stock_logico = stock_logico + ?,updated_at = ?
                 WHERE 
-                producto_id = ? 
+                almacen_id = ?
+                and producto_id = ? 
                 and color_id = ?
                 and talla_id = ?
                 and estado = "ACTIVO"', 
                 [
                     $talla->cantidad,
                     Carbon::now(),
+                    $almacen_id,
                     $producto_id,
                     $color_id,
                     $talla->talla_id

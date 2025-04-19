@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('consulta-active', 'active')
 @section('consulta-alertas-active', 'active')
@@ -209,7 +210,7 @@ $(".dataTables-notas").on('click','.btn-pdf',function(){
     window.open(url, "Comprobante SISCOM", "width=900, height=600")
 });
 
-function enviarSunat(id , sunat) {
+function enviarSunat(id) {
     const swalWithBootstrapButtons = Swal.mixin({
         customClass: {
             confirmButton: 'btn btn-success',

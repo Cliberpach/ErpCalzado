@@ -1437,7 +1437,6 @@ class NotaController extends Controller
             return back();
         }
        
-      
     }
 
     public function controlConfiguracionGreenter($util){

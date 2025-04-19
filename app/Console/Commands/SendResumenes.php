@@ -25,7 +25,7 @@ class SendResumenes extends Command
      *
      * @var string
      */
-    protected $description = 'Creando un resumen de boletas';
+    protected $description = 'Enviar boletas en resumen a sunat';
 
     /**
      * Create a new command instance.

@@ -13,7 +13,9 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        'App\Console\Commands\SendResumenes'
+        'App\Console\Commands\SendResumenes',
+        'App\Console\Commands\StockCommand',
+        'App\Console\Commands\SendNotasCreditoCommand'
     ];
 
     /**
@@ -24,8 +26,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
-        // $schedule->command('test:create')->everyThreeHours();	
+        //$schedule->command('inspire')->hourly();
+        //$schedule->command('test:create')->everyThreeHours();	
+        $schedule->command('notas_credito:send')->dailyAt('23:00');	
+        $schedule->command('stock:send')->dailyAt('23:20');	
         $schedule->command('resumenes:send')->dailyAt('23:30');	
 
     }

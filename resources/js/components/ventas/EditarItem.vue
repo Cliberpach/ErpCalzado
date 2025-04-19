@@ -18,11 +18,11 @@
                             <tbody>
                                 <tr>
                                     <td v-for="cantidad_talla in cantidadPorTalla">
-                                        <input type="text" 
+                                        <input min="0" type="text" 
                                         style="width: 60px;" 
                                         class="form-control"
-                                        v-model="cantidad_talla.cantidad" 
-                                        >
+                                        v-model="cantidad_talla.cantidad"
+                                        @input="cantidad_talla.cantidad = (/^[0-9]+$/.test(cantidad_talla.cantidad)) ? parseInt(cantidad_talla.cantidad) : 0">
                                     </td>
                                 </tr>
                             </tbody>

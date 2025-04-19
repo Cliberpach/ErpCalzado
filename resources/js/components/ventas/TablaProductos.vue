@@ -154,9 +154,9 @@
 
                     <div class="row" v-if="idcotizacion == 0">
 
-                        <div class="col-12 mb-3 d-flex justify-content-end">
+                        <!-- <div class="col-12 mb-3 d-flex justify-content-end">
                             <button class="btn btn-danger" @click="eliminarCarrito"> ELIMINAR TODO </button>
-                        </div>
+                        </div> -->
 
                         <!-- <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
                             <label class="required" style="font-weight: bold;">CATEGORÍA</label>
@@ -1358,6 +1358,7 @@ export default {
         async actualizarStockDelete(producto){
             const res   =   await   axios.post(route('ventas.documento.actualizarStockDelete'),
                             {
+                                almacen_id:producto.almacen_id,
                                 producto_id:producto.producto_id,
                                 color_id:producto.color_id,
                                 tallas:JSON.stringify(producto.tallas)

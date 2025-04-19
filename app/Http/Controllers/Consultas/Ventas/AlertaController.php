@@ -723,27 +723,24 @@ class AlertaController extends Controller
         return $see;
     }
 
+
     public function sunat_notas(Request $request){
-        DB::beginTransaction();
         try {
-            $id         =   $request->get('id');
-            $util       =   Util::getInstance();
-            $nota       =   Nota::find($id);
-            $documento  =   Documento::find($nota->documento_id);
-            $detalles   =   NotaDetalle::where('nota_id',$id)->get();
+            $id         = $request->get('id');
+            $util       = Util::getInstance();
+            $nota       = Nota::find($id);
+            $documento  = Documento::find($nota->documento_id);
+            $detalles   = NotaDetalle::where('nota_id',$id)->get();
     
     
             if(!$nota){
-                Session::flash('nota_credito_error', 'NO SE ENCONTRÓ LA NOTA DE CRÉDITO EN LA BASE DE DATOS');
-                return back();
+                throw new Exception("NO SE ENCONTRÓ LA NOTA DE CRÉDITO EN LA BASE DE DATOS");
             }
             if(!$documento){
-                Session::flash('nota_credito_error', 'NO SE ENCONTRÓ EL DOC AFECTADO EN LA BASE DE DATOS');
-                return back();
+                throw new Exception("NO SE ENCONTRÓ EL DOC AFECTADO EN LA BASE DE DATOS");
             }
             if(count($detalles) === 0){
-                Session::flash('nota_credito_error', 'LA NOTA DE CRÉDITO NO TIENE DETALLES');
-                return back();
+                throw new Exception("LA NOTA DE CRÉDITO NO TIENE DETALLES");
             }
     
             $des_motivo =   '-';
@@ -775,7 +772,7 @@ class AlertaController extends Controller
                 ->setCodMotivo($nota->codMotivo) // Catalogo. 09    01:ANULACION DE LA OPERACION    07:DEVOLUCION POR ITEM
                 ->setDesMotivo($des_motivo)
                 ->setTipoMoneda('PEN')
-                ->setCompany($util->shared->getCompany())
+                ->setCompany($util->shared->getCompany($nota->sede_id))
                 ->setClient($client)
                 ->setMtoOperGravadas($nota->mtoOperGravadas)
                 ->setMtoIGV($nota->mtoIGV)
@@ -826,7 +823,6 @@ class AlertaController extends Controller
             }
             $nota->nota_name        =   $note->getName();
           
-            
            //======== ENVÍO CORRECTO Y ACEPTADO ==========
            if($res->isSuccess()){
                
@@ -837,9 +833,9 @@ class AlertaController extends Controller
                 $nota->cdr_response_description         =   $cdr->getDescription();
                 $nota->cdr_response_notes               =   implode(" | ", $cdr->getNotes());
                 $nota->cdr_response_reference           =   $cdr->getReference();
-                
 
                 $util->writeCdr($note, $res->getCdrZip(),$nota->tipoDoc.'-'.$nota->tipDocAfectado,null);
+
                 if($nota->tipDocAfectado == '03'){
                     $nota->ruta_cdr      =   'storage/greenter/notas_credito_boletas/cdr/'.$note->getName().'.zip';
                 }
@@ -850,13 +846,11 @@ class AlertaController extends Controller
                 $nota->sunat                        =   "1";
                 $nota->update(); 
 
-                DB::commit();
-                return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
+                return response()->json(['success'=>true,'message'=>$cdr->getDescription()]);
            }else{
                $nota->response_error_message  =   $res->getError()->getMessage();
                $nota->response_error_code     =   $res->getError()->getCode();
                $nota->regularize              =   '1';
-               $nota->sunat                   =   "0";
                $nota->update(); 
 
                 //if($res->getError()->getCode() == 2223){
@@ -864,12 +858,12 @@ class AlertaController extends Controller
                 //  return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
                 //}
 
-               throw new Exception("ERROR AL ENVIAR LA NOTA ELECTRÓNICA A SUNAT. "."CÓDIGO: ".$res->getError()->getCode()
+               throw new Exception("ERROR AL ENVIAR FACTURA A SUNAT. "."CÓDIGO: ".$res->getError()->getCode()
                .",DESCRIPCIÓN: ".$res->getError()->getMessage());
            }
            
         } catch (\Throwable $th) {
-            return response()->json(['success'=>false,"message"=>$th->getMessage()]);
+            return response()->json((['success'=>false,'message'=>$th->getMessage()]));
         }
     }
 
