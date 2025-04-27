@@ -114,16 +114,17 @@ class ProductoController extends Controller
         }
     }
 
-    public function llenarNotasCredito($producto_id,$color_id,$talla_id)
+    public function llenarNotasCredito($almacen_id,$producto_id,$color_id,$talla_id)
     {
         ini_set('memory_limit', '1024M');
         
         try{
-            $detalle_notas_credito = NotaDetalle::orderBy('id', 'desc')
-            ->where("producto_id",$producto_id)
-            ->where("color_id",$color_id)
-            ->where("talla_id",$talla_id)
-            ->get();
+            $detalle_notas_credito  =   NotaDetalle::orderBy('id', 'desc')
+                                        ->where('almacen_id',$almacen_id)
+                                        ->where("producto_id",$producto_id)
+                                        ->where("color_id",$color_id)
+                                        ->where("talla_id",$talla_id)
+                                        ->get();
           
             $coleccion = collect([]);
             foreach ($detalle_notas_credito as $producto) {

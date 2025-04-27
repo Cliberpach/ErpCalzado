@@ -633,7 +633,7 @@
                 var producto    = instancia.row(this).data();
                 llenarCompras(producto.producto_id,producto.color_id,producto.talla_id);
                 llenarVentas(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
-                llenarNotasCredito(producto.producto_id,producto.color_id,producto.talla_id);
+                llenarNotasCredito(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
                 llenarSalidas(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
                 
                 llenarIngresos(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
@@ -893,9 +893,10 @@
         }
 
 
-        function llenarNotasCredito(producto_id,color_id,talla_id) {
+        function llenarNotasCredito(almacen_id,producto_id,color_id,talla_id) {
             $('.dataTables-notas-credito').dataTable().fnDestroy();
-            let url = '{{ route('reporte.producto.llenarNotasCredito', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            let url = '{{ route('reporte.producto.llenarNotasCredito', ['almacen_id' => ':almacen_id','producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            url = url.replace(":almacen_id", almacen_id);
             url = url.replace(":producto_id", producto_id);
             url = url.replace(":color_id", color_id);
             url = url.replace(":talla_id", talla_id);

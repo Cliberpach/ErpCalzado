@@ -1015,7 +1015,7 @@ function(){
         Route::get('informe', 'Reportes\ProductoController@informe')->name('reporte.producto.informe');
         Route::get('llenarCompras/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarCompras')->name('reporte.producto.llenarCompras');
         Route::get('llenarVentas/{almacen_id}/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarVentas')->name('reporte.producto.llenarVentas');
-        Route::get('llenarNotasCredito/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarNotasCredito')->name('reporte.producto.llenarNotasCredito');
+        Route::get('llenarNotasCredito/{almacen_id}/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarNotasCredito')->name('reporte.producto.llenarNotasCredito');
         Route::get('llenarSalidas/{almacen_id}/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarSalidas')->name('reporte.producto.llenarSalidas');
         Route::get('llenarIngresos/{almacen_id}/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarIngresos')->name('reporte.producto.llenarIngresos');
         Route::get('llenarTrasladoSalida/{almacen_id}/{producto_id}/{color_id}/{talla_id}', 'Reportes\ProductoController@llenarTrasladoSalida')->name('reporte.producto.llenarTrasladoSalida');
