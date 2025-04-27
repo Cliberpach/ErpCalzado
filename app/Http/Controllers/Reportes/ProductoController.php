@@ -92,6 +92,7 @@ class ProductoController extends Controller
                             'cdd.precio_unitario_nuevo',
                             'cd.convert_en_serie'
                         )
+                        ->where('cd.almacen_id',$almacen_id)
                         ->where('cdd.estado', 'ACTIVO')
                         ->where("cdd.producto_id",$producto_id)
                         ->where("cdd.color_id",$color_id)
