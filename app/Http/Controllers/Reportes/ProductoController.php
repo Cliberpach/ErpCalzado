@@ -175,12 +175,37 @@ class ProductoController extends Controller
         return DataTables::of($salidas)->make(true);
     }
 
+    public function llenarTrasladoIngreso($almacen_id,$producto_id,$color_id,$talla_id)
+    {
+        $salidas =  DB::table('traslados_detalle as td')
+                    ->join('traslados as t', 't.id', '=', 'td.traslado_id')
+                    ->join('almacenes as a','a.id','t.almacen_origen_id')
+                    ->join('almacenes as ad','ad.id','t.almacen_destino_id')
+                    ->select(
+                        DB::raw('CONCAT("TR-",t.id) as codigo'),
+                        'a.descripcion as almacen_origen_nombre',
+                        'ad.descripcion as almacen_destino_nombre',
+                        'td.cantidad',
+                        't.registrador_nombre',
+                        't.created_at as fecha',
+                    )
+                    ->where('t.almacen_destino_id', $almacen_id)  
+                    ->where('td.producto_id', $producto_id)  
+                    ->where('td.color_id', $color_id)    
+                    ->where('td.talla_id', $talla_id)      
+                    ->where('t.estado', '!=', 'ANULADO')
+                    ->get();
+
+       
+        return DataTables::of($salidas)->make(true);
+    }
+
     public function llenarTrasladoSalida($almacen_id,$producto_id,$color_id,$talla_id)
     {
         $salidas =  DB::table('traslados_detalle as td')
                     ->join('traslados as t', 't.id', '=', 'td.traslado_id')
                     ->join('almacenes as a','a.id','t.almacen_origen_id')
-                    ->join('almacenes as ad','ad.id','t.almacen_origen_id')
+                    ->join('almacenes as ad','ad.id','t.almacen_destino_id')
                     ->select(
                         DB::raw('CONCAT("TR-",t.id) as codigo'),
                         'a.descripcion as almacen_origen_nombre',
