@@ -35,7 +35,7 @@
                         <div class="row mb-3">
                             <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
                                 <label for="sede" style="font-weight: bold;">SEDE</label>
-                                <select onchange="cambiarSede(this.value)" name="sede" id="sede" class="select2_form">
+                                <select onchange="cambiarSede(this.value)" name="sede" id="sede" class="select2_sede">
                                     @foreach ($sedes as $sede)
                                         <option value="{{$sede->id}}">{{$sede->nombre}}</option>
                                     @endforeach
@@ -44,7 +44,7 @@
                             <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
                                 <label for="almacen" style="font-weight: bold;">ALMACÉN</label>
                                 <select onchange="cambiarAlmacen();" 
-                                name="almacen" id="almacen" class="select2_form">
+                                name="almacen" id="almacen" class="select2_almacen">
                                 </select>
                             </div>
                         </div>
@@ -171,7 +171,7 @@
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-title">
-                        <h5>Ingresos</h5>
+                        <h5>Notas Ingreso</h5>
                         <div class="ibox-tools">
                             <a class="collapse-link">
                                 <i class="fa fa-chevron-up"></i>
@@ -206,7 +206,7 @@
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-title">
-                        <h5>Salidas</h5>
+                        <h5>Notas Salida</h5>
                         <div class="ibox-tools">
                             <a class="collapse-link">
                                 <i class="fa fa-chevron-up"></i>
@@ -359,7 +359,12 @@
     <script>
 
     function cargarSelect2(){
-        $(".select2_form").select2({
+        $(".select2_sede").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: false,
+            width: '100%'
+        });
+        $(".select2_almacen").select2({
             placeholder: "SELECCIONAR",
             allowClear: true,
             width: '100%'
