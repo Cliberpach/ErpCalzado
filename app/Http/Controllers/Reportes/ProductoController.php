@@ -194,7 +194,7 @@ class ProductoController extends Controller
                     ->where('td.producto_id', $producto_id)  
                     ->where('td.color_id', $color_id)    
                     ->where('td.talla_id', $talla_id)      
-                    ->where('t.estado', '!=', 'ANULADO')
+                    ->where('t.estado', '=', 'RECIBIDO')
                     ->get();
 
        

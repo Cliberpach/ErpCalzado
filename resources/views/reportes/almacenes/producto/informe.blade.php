@@ -222,6 +222,7 @@
                                 style="text-transform:uppercase">
                                 <thead>
                                     <tr>
+                                        
                                         <th class="text-center">ORIGEN</th>
                                         <th class="text-center">DESTINO</th>
                                         <th class="text-center">CANTIDAD</th>
@@ -257,6 +258,7 @@
                                 style="text-transform:uppercase">
                                 <thead>
                                     <tr>
+                                        <th class="text-center">#</th>
                                         <th class="text-center">ORIGEN</th>
                                         <th class="text-center">DESTINO</th>
                                         <th class="text-center">CANTIDAD</th>
@@ -293,6 +295,7 @@
                                 style="text-transform:uppercase">
                                 <thead>
                                     <tr>
+                                        <th class="text-center">#</th>
                                         <th class="text-center">ORIGEN</th>
                                         <th class="text-center">DESTINO</th>
                                         <th class="text-center">CANTIDAD</th>
