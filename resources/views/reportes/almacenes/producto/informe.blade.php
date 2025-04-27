@@ -237,6 +237,42 @@
                     </div>
                 </div>
             </div>
+
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5>Salidas por traslado</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link d-none">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table dataTables-trasladoSalida table-striped table-bordered table-hover"
+                                style="text-transform:uppercase">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">ORIGEN</th>
+                                        <th class="text-center">DESTINO</th>
+                                        <th class="text-center">CANTIDAD</th>
+                                        <th class="text-center">USUARIO</th>
+                                        <th class="text-center">FECHA</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
    
@@ -385,6 +421,7 @@
                     [0, "desc"]
                 ],
             });
+
             $('.dataTables-notas-credito').dataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
@@ -413,6 +450,7 @@
                     [0, "desc"]
                 ],
             });
+
             $('.dataTables-salidas').dataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
@@ -441,6 +479,7 @@
                     [0, "desc"]
                 ],
             });
+
             $('.dataTables-ingresos').dataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
@@ -470,6 +509,37 @@
                 ],
             });
 
+       
+            $('.dataTables-trasladoSalida').dataTable({
+                "dom": '<"html5buttons"B>lTfgitp',
+                "buttons": [{
+                        extend: 'excelHtml5',
+                        text: '<i class="fa fa-file-excel-o"></i> Excel',
+                        titleAttr: 'Excel',
+                        title: 'CONSULTA TRASLADO SALIDA'
+                    },
+                    {
+                        titleAttr: 'Imprimir',
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Imprimir',
+                        customize: function(win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ],
+                "language": {
+                    "url": "{{ asset('Spanish.json') }}"
+                },
+                "order": [
+                    [0, "desc"]
+                ],
+            });
+
+
             loadTable();
 
             cargarSelect2();
@@ -492,6 +562,8 @@
                 llenarSalidas(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
                 
                 llenarIngresos(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
+
+                llenarTrasladoSalida(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id)
                 console.log(`${producto.producto_id}-${producto.color_id}-${producto.talla_id}`);
             });
 
@@ -844,6 +916,82 @@
             url = url.replace(":color_id", color_id);
             url = url.replace(":talla_id", talla_id);
             $('.dataTables-salidas').DataTable({
+                "dom": '<"html5buttons"B>lTfgitp',
+                "buttons": [{
+                        extend: 'excelHtml5',
+                        text: '<i class="fa fa-file-excel-o"></i> Excel',
+                        titleAttr: 'Excel',
+                        title: 'CONSULTA SALIDAS'
+                    },
+                    {
+                        titleAttr: 'Imprimir',
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Imprimir',
+                        customize: function(win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ],
+                "bPaginate": true,
+                "bLengthChange": true,
+                "bFilter": true,
+                "bInfo": true,
+                "bAutoWidth": false,
+                "ajax": url,
+                "columns": [
+
+                    {
+                        data: 'codigo',
+                        name: 'codigo',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'almacen_origen_nombre',
+                        name: 'almacen_origen_nombre',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'almacen_destino_nombre',
+                        name: 'destino',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'cantidad',
+                        name: 'cantidad',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'registrador_nombre',
+                        name: 'registrador_nombre',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'fecha',
+                        name: 'fecha',
+                        className: "letrapequeña"
+                    },
+                ],
+                "language": {
+                    "url": "{{ asset('Spanish.json') }}"
+                },
+                "order": [
+                    [0, "desc"]
+                ],
+            });
+        }
+
+        function llenarTrasladoSalida(almacen_id,producto_id,color_id,talla_id) {
+            $('.dataTables-trasladoSalida').dataTable().fnDestroy();
+            let url = '{{ route('reporte.producto.llenarTrasladoSalida', ['almacen_id' => ':almacen_id','producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            url     = url.replace(":almacen_id", almacen_id);
+            url     = url.replace(":producto_id", producto_id);
+            url     = url.replace(":color_id", color_id);
+            url     = url.replace(":talla_id", talla_id);
+            $('.dataTables-trasladoSalida').DataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
                         extend: 'excelHtml5',
