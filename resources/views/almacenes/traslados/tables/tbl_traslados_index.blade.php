@@ -1,6 +1,7 @@
 <table class="table dataTables-traslados table-striped table-bordered table-hover" style="text-transform:uppercase">
     <thead>
         <tr>
+            <th class="text-center">ID</th>
             <th class="text-center">#</th>
             <th class="text-center">Guía</th>
             <th class="text-center">Almacén Origen</th>

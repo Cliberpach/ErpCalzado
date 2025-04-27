@@ -81,7 +81,9 @@ $(document).ready(function() {
         "bAutoWidth": false,
         "processing": true,
         "ajax": "{{ route('almacenes.traslados.getTraslados')}}",
+        "order": [[0, 'desc']],
         "columns": [
+            { data: 'id', className: "text-center", visible: false },
             { 
                 data: 'simbolo', 
                 className: "text-center", 
