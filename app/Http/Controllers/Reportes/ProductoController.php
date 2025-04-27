@@ -82,9 +82,14 @@ class ProductoController extends Controller
             $ventas =   DB::table('cotizacion_documento_detalles as cdd')
                         ->join('cotizacion_documento as cd','cd.id','cdd.documento_id')
                         ->join('users as u','u.id','cd.user_id')
+                        ->join('empresa_sedes as es','es.id','cd.sede_id')
+                        ->join('almacenes as a as a','a.id','cd.almacen_id')
+                        ->leftJoin('empresa_sedes as esd','esd.id','a.sede_id')
                         ->select(
                             DB::raw("CONCAT(cd.tipo_documento_cliente,':',cd.documento_cliente,'-',cd.cliente) as cliente"),
                             'u.usuario as registrador_nombre',
+                            'es.nombre as sede_nombre',
+                            'esd.nombre as sede_despacho_nombre',
                             'cd.tipo_venta_nombre as documento',
                             DB::raw("CONCAT(cd.serie,'-',cd.correlativo) as serie"),
                             'cd.created_at as fecha',

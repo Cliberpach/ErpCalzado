@@ -113,6 +113,8 @@
                                     <tr>
                                         <th class="text-center">CLIENTE</th>
                                         <th class="text-center">USUARIO</th>
+                                        <th class="text-center">SEDE VENTA</th>
+                                        <th class="text-center">SEDE DESPACHO</th>
                                         <th class="text-center">DOCUMENTO</th>
                                         <th class="text-center">NUMERO</th>
                                         <th class="text-center">FECHA</th>
@@ -843,6 +845,16 @@
                     {
                         data: 'registrador_nombre',
                         name: 'registrador_nombre',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'sede_nombre',
+                        name: 'sede_nombre',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'sede_despacho_nombre',
+                        name: 'sede_despacho_nombre',
                         className: "letrapequeña"
                     },
                     {
