@@ -220,7 +220,6 @@ array:18 [
             $gestion = "PEDIDO";
             crearRegistro($pedido, $descripcion , $gestion);
 
-            dd('store');
             DB::commit();
 
             Session::flash('success','Pedido creado.');
