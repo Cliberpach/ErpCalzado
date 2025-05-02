@@ -123,7 +123,7 @@ array:18 [
 ]
 */ 
     public function store(PedidoStoreRequest $request){
-      
+    
         DB::beginTransaction();
         try {
 
@@ -159,15 +159,8 @@ array:18 [
             $pedido->user_id            = $request->get('registrador_id');
 
             //======== OBTENIENDO EL NOMBRE COMPLETO DEL USUARIO ===========
-            $pedido->user_nombre    =   DB::select('select 
-                                        CONCAT(p.nombres, " ", p.apellido_paterno, " ", p.apellido_materno) AS user_nombre 
-                                        from users as u
-                                        inner join user_persona as up 
-                                        on u.id=up.user_id
-                                        inner join personas as p
-                                        on p.id=up.persona_id
-                                        where u.id = ?',
-                                        [$request->get('registrador_id')])[0]->user_nombre;
+            $pedido->user_nombre        = User::find($request->get('registrador_id'))->usuario;
+
             //=============================================================
             $pedido->moneda                 = 1;
             $pedido->fecha_registro         = now()->toDateString();
@@ -227,6 +220,7 @@ array:18 [
             $gestion = "PEDIDO";
             crearRegistro($pedido, $descripcion , $gestion);
 
+            dd('store');
             DB::commit();
 
             Session::flash('success','Pedido creado.');
