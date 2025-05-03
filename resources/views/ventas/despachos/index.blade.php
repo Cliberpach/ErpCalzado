@@ -33,22 +33,28 @@
                                     <option value="DESPACHADO">DESPACHADO</option>
                                 </select>
                             </div>
+                            
                             <div class="col-3">
                                 <label for="filtroCliente" style="font-weight: bold;">CLIENTE:</label>
-                                <select id="filtroCliente" class="form-control select2_form" onchange="dtDespachos.ajax.reload();">
+                                <select class="select2_form"
+                                    style="text-transform: uppercase; width:100%"  name="filtroCliente"
+                                    id="filtroCliente" required onchange="dtDespachos.ajax.reload();">
+                                    <option value="{{$cliente_varios[0]->id}}">{{$cliente_varios[0]->nombre}}</option>
+                                </select>
+                                {{-- <select id="filtroCliente" class="form-control select2_form" onchange="dtDespachos.ajax.reload();">
                                     @foreach ($clientes as $cliente)
                                         <option value="{{$cliente->id}}">{{$cliente->nombre}}</option>
                                     @endforeach
-                                </select>
+                                </select> --}}
                             </div>
                           
                             <div class="col-3">
                                 <label for="filtroFechaInicio" style="font-weight: bold;">FEC INICIO:</label>
-                                <input type="date" class="form form-control" id="filtroFechaInicio" onchange="filtrarDespachoFechaInic()">
+                                <input value="<?php echo date('Y-m-d'); ?>" type="date" class="form form-control" id="filtroFechaInicio" onchange="filtrarDespachoFechaInic()">
                             </div>
                             <div class="col-3">
                                 <label for="filtroFechaFin" style="font-weight: bold;">FEC FIN:</label>
-                                <input type="date" class="form form-control" id="filtroFechaFin" onchange="filtrarDespachoFechaFin()">
+                                <input value="<?php echo date('Y-m-d'); ?>" type="date" class="form form-control" id="filtroFechaFin" onchange="filtrarDespachoFechaFin()">
                             </div> 
                         </div>
                         <div class="row">
@@ -133,6 +139,7 @@
             iniciarDataTableDespachos();
             events();
             iniciarSelect2();
+            detallesDataTable   =   dataTableDetalles();   
         })
 
         function events(){
@@ -145,6 +152,64 @@
                 allowClear: true,
                 height: '200px',
                 width: '100%',
+            });
+
+            $('#filtroCliente').select2({
+                width:'100%',
+                placeholder: "Buscar Cliente...",
+                allowClear: true,
+                language: {
+                    inputTooShort: function(args) {
+                        var min = args.minimum;
+                        return "Por favor, ingrese " + min + " o más caracteres";
+                    },
+                    searching: function() {
+                        return "BUSCANDO...";
+                    },
+                    noResults: function() {
+                        return "No se encontraron clientes";
+                    }
+                },
+                ajax: {
+                    url: '{{route("utilidades.getClientes")}}', 
+                    dataType: 'json',
+                    delay: 250, 
+                    data: function(params) {
+                        return {
+                            search: params.term,
+                            page: params.page || 1  
+                        };
+                    },
+                    processResults: function(data,params) {
+                        if(data.success){
+                            params.page     =   params.page || 1;
+                            const clientes  =   data.clientes;
+                            return {
+                                results: clientes.map(item => ({
+                                    id: item.id,
+                                    text: item.descripcion 
+                                })),
+                                pagination: {
+                                    more: data.more 
+                                }
+                            };
+                        }else{
+                            toastr.error(data.message,'ERROR EN EL SERVIDOR');
+                            return {
+                                results:[]
+                            }
+                        }
+                        
+                    },
+                    cache: true
+                },
+                minimumInputLength: 2,
+                templateResult: function(data) {
+                    if (data.loading) {
+                        return $('<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>');
+                    }
+                    return data.text;
+                },
             });
         }
 
@@ -308,7 +373,7 @@
                         render: function(data) {
                             //Ruta Detalle
                             var url_detalle = '{{ route('ventas.despachos.showDetalles', ':id') }}';
-                            url_detalle = url_detalle.replace(':id', data.id);
+                            url_detalle     = url_detalle.replace(':id', data.id);
 
                            
                                 //======== ACCIONES ========
@@ -377,34 +442,50 @@
         
         async function verDetalles(documento_id){
             try {
+                mostrarAnimacion();
                 const res    =   await   axios.get(route('ventas.despachos.showDetalles',documento_id));
 
                 if(res.data.success){
                     const detalles_doc_venta    =   res.data.detalles_doc_venta;
-                    console.log(detalles_doc_venta);
+                  
                     $("#modal_detalles_doc").modal("show");
                     pintarDetallesDoc(detalles_doc_venta);
+                    pintarMaestroDoc(res.data.documento)
+
                 }else{
                     toastr.error(`${res.data.message} - ${res.data.exception}`,"ERROR");
                 }
             } catch (error) {
-                
+                toasr.error(error,'ERROR EN LA PETICIÓN MOSTRAR DETALLE')
+            }finally{
+                ocultarAnimacion();
             }
         }
 
+        function pintarMaestroDoc(documento){
+            document.querySelector('#info_documento').textContent           =   `${documento.serie}-${documento.correlativo}`;
+            document.querySelector('#info_almacen_despacho').textContent    =   `${documento.almacen_despacho}`;
+            document.querySelector('#info_sede_despacho').textContent       =   `${documento.sede_despacho}`;
+        }
+
         function pintarDetallesDoc(detalles_doc_venta){
+            
             detallesDataTable.clear();
 
             detalles_doc_venta.forEach((ddc) => {
                 detallesDataTable.row.add([
+                    ddc.nombre_modelo,
                     ddc.nombre_producto,
                     ddc.nombre_color,
                     ddc.nombre_talla,
-                    ddc.cantidad
+                    parseInt(ddc.cantidad),
+                    parseInt(ddc.cantidad_cambiada),
+                    parseInt(ddc.cantidad_sin_cambio)
                 ]);
             });
 
             detallesDataTable.draw();
+
         }
 
         function imprimirEnvio(documento_id,despacho_id){

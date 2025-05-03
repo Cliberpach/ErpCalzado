@@ -17,9 +17,9 @@ class DespachoController extends Controller
     public function index(){
         $this->authorize('haveaccess','despachos.index');
 
-        $clientes       =   DB::select('select c.id,c.nombre from clientes as c');
+        $cliente_varios       =   DB::select('select c.id,c.nombre from clientes as c where c.id = 1');
         
-        return view('ventas.despachos.index',compact('clientes'));
+        return view('ventas.despachos.index',compact('cliente_varios'));
     }
 
     
@@ -102,10 +102,31 @@ class DespachoController extends Controller
 
     public function showDetalles($documento_id){
         try {
-            $detalles_doc_venta     =   DB::select('select * from cotizacion_documento_detalles as cdd
+
+            $documento              =   DB::select('
+                                        SELECT 
+                                            cd.serie,
+                                            cd.correlativo,
+                                            cd.almacen_nombre as almacen_despacho,
+                                            es.nombre as sede_despacho
+                                        FROM cotizacion_documento as cd
+                                        JOIN almacenes as a on a.id = cd.almacen_id 
+                                        JOIN empresa_sedes as es on es.id = a.sede_id
+                                            WHERE cd.id = ?
+                                        ',[$documento_id])[0];
+
+            $detalles_doc_venta     =   DB::select('select 
+                                        cdd.nombre_producto,
+                                        cdd.nombre_color,
+                                        cdd.nombre_talla,
+                                        cdd.nombre_modelo,
+                                        cdd.cantidad,
+                                        IFNULL(cdd.cantidad_cambiada, 0) AS cantidad_cambiada,
+                                        cdd.cantidad_sin_cambio
+                                        from cotizacion_documento_detalles as cdd
                                         where cdd.documento_id=?',[$documento_id]);
-            
-            return response()->json(['success'=>true,'detalles_doc_venta'=>$detalles_doc_venta]);
+    
+            return response()->json(['success'=>true,'detalles_doc_venta'=>$detalles_doc_venta,'documento'=>$documento]);
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>"ERROR EN EL SERVIDOR",'exception'=>$th->getMessage()]);
         }
