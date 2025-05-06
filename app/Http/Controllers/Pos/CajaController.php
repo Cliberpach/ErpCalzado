@@ -179,31 +179,32 @@ array:3 [▼
 
             //======== CAJEROS DESOCUPADOS DE LA SEDE ======
             $cajeros_desocupados =   DB::select('select 
-                                    co.id,
-                                    co.nombre 
-                                    from colaboradores as co 
-                                    inner join users as u on u.colaborador_id = co.id
-                                    inner join role_user as ru on ru.user_id = u.id 
-                                    inner join roles as r on r.id = ru.role_id 
-                                    where 
-                                    co.sede_id = ?
-                                    AND co.id  NOT IN 
-                                    ( 
-                                        select 
-                                        mc.colaborador_id 
-                                        from movimiento_caja as mc 
+                                        co.id,
+                                        co.nombre 
+                                        from colaboradores as co 
+                                        inner join users as u on u.colaborador_id = co.id
+                                        inner join role_user as ru on ru.user_id = u.id 
+                                        inner join roles as r on r.id = ru.role_id 
                                         where 
-                                        mc.estado_movimiento = "APERTURA"
-                                        AND mc.sede_id = ?  
-                                    ) 
-                                    AND (r.name LIKE "%CAJER%")
-                                    AND co.id = ?',
-                                [
-                                    $sede_id,
-                                    $sede_id,
-                                    $colaborador_id_actual
-                                ]
-                                );
+                                        co.sede_id = ?
+                                        AND u.estado = "ACTIVO"
+                                        AND co.id  NOT IN 
+                                        ( 
+                                            select 
+                                            mc.colaborador_id 
+                                            from movimiento_caja as mc 
+                                            where 
+                                            mc.estado_movimiento = "APERTURA"
+                                            AND mc.sede_id = ?  
+                                        ) 
+                                        AND (r.name LIKE "%CAJER%")
+                                        AND co.id = ?',
+                                    [
+                                        $sede_id,
+                                        $sede_id,
+                                        $colaborador_id_actual
+                                    ]
+                                    );
 
 
 
