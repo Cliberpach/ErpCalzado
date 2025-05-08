@@ -1,7 +1,9 @@
-@extends('layout') @section('content')
-@include('pos.MovimientoCaja.create')
-    @include('pos.MovimientoCaja.cerrar')
-    @include('pos.MovimientoCaja.detallesMovimiento')
+@extends('layout') 
+@section('content')
+
+@include('pos.MovimientoCaja.modals.mdl_abrir_caja')
+@include('pos.MovimientoCaja.cerrar')
+@include('pos.MovimientoCaja.detallesMovimiento')
 
 @section('caja-movimiento-active', 'active')
 @section('caja-chica-active', 'active')
@@ -19,7 +21,7 @@
     </div>
     <div class="col-lg-2 col-md-2">
         @can('haveaccess', 'movimiento_caja.create')
-            <a class="btn btn-block btn-w-m btn-modal btn-primary m-t-md" href="#">
+            <a class="btn btn-block btn-w-m btn-modal btn-primary m-t-md" href="javascript:void(0);" onclick="openMdlAbrirCaja()">
                 <i class="fa fa-plus-square"></i> Añadir nuevo
             </a>
         @endcan
@@ -99,23 +101,7 @@
                         </div>
                         <div class="col-md-12">
                             <div class="table-responsive">
-                                <table class="table dataTables-cajas table-striped table-bordered table-hover"
-                                    style="text-transform:uppercase">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th class="text-center">CAJA</th>
-                                            <th class="text-center">CANTIDAD INICIAL</th>
-                                            <th class="text-center">FECHA APERTURA</th>
-                                            <th class="text-center">FECHA CIERRE</th>
-                                            <th class="text-center">CANTIDAD CIERRE</th>
-                                            <th class="text-center">VENTA DEL DIA</th>
-                                            <th class="text-center">ACCIONES</th>
-
-                                         </tr>
-                                    </thead>
-
-                                </table>
+                               @include('pos.MovimientoCaja.tables.tbl_list_movimientos_caja')
                             </div>
                         </div>
                     </div>
@@ -126,8 +112,8 @@
 </div>
 @stop
 @push('styles')
-<!-- DataTable -->
-<link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+
 <style>
     .my-swal {
         z-index: 3000 !important;
@@ -135,35 +121,196 @@
 </style>
 @endpush
 @push('scripts')
-<!-- DataTable -->
-<script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
-
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
-    var detalles_colaborades = document.getElementById("modal_detalles_colaboradores");
-    var cuerpo_colaborades = document.querySelector('#modal_detalles_colaboradores table tbody');
-    let btnEnviar = document.getElementById('btnEnviarAperturaCaja');
+    var detalles_colaborades    = document.getElementById("modal_detalles_colaboradores");
+    var cuerpo_colaborades      = document.querySelector('#modal_detalles_colaboradores table tbody');
+    let btnEnviar               = document.getElementById('btnEnviarAperturaCaja');
+
+    let dtMovimientoCajas   =   null;
 
     document.addEventListener('DOMContentLoaded',()=>{
         iniciarDataTableMovimientos();
-        eventsCerrarCaja();
+        iniciarSelect2();
+        events();
     })
 
 
-    // function verificarUsuariosVentas(event){
-    //     event.preventDefault();
-    //     let cant= document.querySelectorAll('input[name="usuarioVentas[]"]');
-    //     let form= document.getElementById('crear_caja_movimiento');
-    //     form.submit();
-    //     //if(cant.length>0){
-    //     //    form.submit();
-    //     //}else{
-    //     //    alert('Seleccione al menos un usuairo de ventas para la apertura de caja');
-    //     //}
+    function events(){
+        eventsMdlAbrirCaja();
+        eventsCerrarCaja();
+    }
 
-    // }
+
+    function iniciarDataTableMovimientos(){
+        dtMovimientoCajas = $('.dataTables-cajas').DataTable({
+            "dom": '<"html5buttons"B>lTfgitp',
+            "buttons": [{
+                    extend: 'excelHtml5',
+                    text: '<i class="fa fa-file-excel-o"></i> Excel',
+                    titleAttr: 'Excel',
+                    title: 'MOVIMIENTOS DE CAJAS'
+                },
+                {
+                    titleAttr: 'Imprimir',
+                    extend: 'print',
+                    text: '<i class="fa fa-print"></i> Imprimir',
+                    customize: function(win) {
+                        $(win.document.body).addClass('white-bg');
+                        $(win.document.body).css('font-size', '10px');
+                        $(win.document.body).find('table')
+                            .addClass('compact')
+                            .css('font-size', 'inherit');
+                    }
+                }
+            ],
+            "bPaginate": false,
+            "bLengthChange": false,
+            "bFilter": false,
+            "bInfo": false,
+            "bAutoWidth": false,
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                type: "GET",
+                url: '{{ route('Caja.get_movimientos_cajas') }}',
+                dataType: 'json',
+                data: function(d) {
+                    $("#reload").prop("disabled", true);
+                    d.mes = $("#mes").val();
+                    d.anio = $("#anio").val();
+                    d.filter = $("#filtros").val();
+                    d.desde = $("#desde").val();
+                    d.hasta = $("#hasta").val();
+                }
+            },
+            "columns": [
+                //Caja chica
+                {
+                    data: 'id',
+                    className: "text-center",
+                    "visible": false
+                },
+                {
+                    data: 'caja',
+                    className: "text-center"
+                },
+                {
+                    data: 'colaborador_nombre',
+                    className: "text-center"
+                },
+                {
+                    data: 'sede_nombre',
+                    className: "text-center"
+                },
+                {
+                    data: null,
+                    className: "text-center",
+                    render: function(data) {
+                        const {
+                            cantidad_inicial
+                        } = data;
+                        let formato = formatoMoneda(cantidad_inicial);
+                        return formato;
+                    }
+                },
+
+                {
+                    data: 'fecha_Inicio',
+                    className: "text-center"
+                },
+                {
+                    data: 'fecha_Cierre',
+                    className: "text-center"
+                },
+                {
+                    data: null,
+                    className: "text-center",
+                    render: function(data) {
+                        const {
+                            cantidad_final
+                        } = data;
+                        if (!isNaN(Number(cantidad_final))) {
+                            let formato = formatoMoneda(cantidad_final);
+                            return formato;
+                        } else {
+                            return cantidad_final;
+                        }
+
+                    }
+                },
+                {
+                    data: null,
+                    className: "text-center",
+                    render: function(data) {
+                        const {
+                            totales
+                        } = data;
+                        const {
+                            TotalVentaDelDia
+                        } = totales;
+                        let formato = formatoMoneda(TotalVentaDelDia);
+                        return formato;
+                    }
+                },
+                {
+                    data: null,
+                    className: "text-center",
+                    "render": function(data, type, row, meta) {
+                        var html =
+                            "<div class='btn-group'><a class='btn btn-primary btn-sm' href='#' title='Caja Cerrada'><i class='fa fa-check'> Caja Cerrada</i></a><a class='btn btn-danger btn-sm' href='#'  onclick='reporte(" +
+                            data.id +
+                            ")' title='Pdf'><i class='fa fa-file-pdf-o'></i></a></div>";
+                        if (data.fecha_Cierre == "-") {
+                            html = `<div class='btn-group'>
+                                <button class='btn btn-warning btn-sm' onclick='cerrarCaja(${data.id})' title='Modificar'><i class='fa fa-lock'> Close</i></button>
+                                <button class='btn btn-danger btn-sm'  onclick='reporte(${data.id})' title='Pdf'><i class='fa fa-file-pdf-o'></i></button>
+                                <button class='btn btn-block btn-sm btn-primary' id='btn_mostrar_colaborades_${data.id}'  data_id=${data.id}  onclick='mostrarColaboradores(${data.id})'>Detalles</button>
+                                </div>
+                                `
+                        }
+                        return html;
+                    }
+                }
+            ],
+            "language": {
+                "url": "{{ asset('Spanish.json') }}"
+            },
+            "order": [
+                [0, "desc"]
+            ],
+        }).on("draw", function() {
+            $("#reload").prop("disabled", false);
+            let tabla = $('.dataTables-cajas').DataTable();
+            let _TotalVentaDelDia = 0.00;
+            tabla.rows().data().each((el, index) => {
+                const {
+                    totales
+                } = el;
+                const {
+                    TotalVentaDelDia
+                } = totales;
+                _TotalVentaDelDia = _TotalVentaDelDia + TotalVentaDelDia;
+            });
+            $("#totalVenta").text(formatoMoneda(_TotalVentaDelDia));
+        });
+
+        $(document).on("click", "#reload", function() {
+            dtMovimientoCajas.draw();
+        });
+    }
+
+    function iniciarSelect2(){
+        $(".select2_form").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            height: '200px',
+            width: '100%',
+        });
+    }
+
 
     function verificarSeleccion(id) {
         let verificar = document.getElementById(`checkBox${id}`);
@@ -229,159 +376,6 @@
     }
 
 
-    function iniciarDataTableMovimientos(){
-        var table = $('.dataTables-cajas').DataTable({
-            "dom": '<"html5buttons"B>lTfgitp',
-            "buttons": [{
-                    extend: 'excelHtml5',
-                    text: '<i class="fa fa-file-excel-o"></i> Excel',
-                    titleAttr: 'Excel',
-                    title: 'MOVIMIENTOS DE CAJAS'
-                },
-                {
-                    titleAttr: 'Imprimir',
-                    extend: 'print',
-                    text: '<i class="fa fa-print"></i> Imprimir',
-                    customize: function(win) {
-                        $(win.document.body).addClass('white-bg');
-                        $(win.document.body).css('font-size', '10px');
-                        $(win.document.body).find('table')
-                            .addClass('compact')
-                            .css('font-size', 'inherit');
-                    }
-                }
-            ],
-            "bPaginate": false,
-            "bLengthChange": false,
-            "bFilter": false,
-            "bInfo": false,
-            "bAutoWidth": false,
-            "processing": true,
-            "serverSide": true,
-            "ajax": {
-                type: "GET",
-                url: '{{ route('Caja.get_movimientos_cajas') }}',
-                dataType: 'json',
-                data: function(d) {
-                    $("#reload").prop("disabled", true);
-                    d.mes = $("#mes").val();
-                    d.anio = $("#anio").val();
-                    d.filter = $("#filtros").val();
-                    d.desde = $("#desde").val();
-                    d.hasta = $("#hasta").val();
-                }
-            },
-            "columns": [
-                //Caja chica
-                {
-                    data: 'id',
-                    className: "text-center",
-                    "visible": false
-                },
-                {
-                    data: 'caja',
-                    className: "text-center"
-                },
-                {
-                    data: null,
-                    className: "text-center",
-                    render: function(data) {
-                        const {
-                            cantidad_inicial
-                        } = data;
-                        let formato = formatoMoneda(cantidad_inicial);
-                        return formato;
-                    }
-                },
-
-                {
-                    data: 'fecha_Inicio',
-                    className: "text-center"
-                },
-                {
-                    data: 'fecha_Cierre',
-                    className: "text-center"
-                },
-                {
-                    data: null,
-                    className: "text-center",
-                    render: function(data) {
-                        const {
-                            cantidad_final
-                        } = data;
-                        if (!isNaN(Number(cantidad_final))) {
-                            let formato = formatoMoneda(cantidad_final);
-                            return formato;
-                        } else {
-                            return cantidad_final;
-                        }
-
-                    }
-                },
-                {
-                    data: null,
-                    className: "text-center",
-                    render: function(data) {
-                        const {
-                            totales
-                        } = data;
-                        const {
-                            TotalVentaDelDia
-                        } = totales;
-                        let formato = formatoMoneda(TotalVentaDelDia);
-                        return formato;
-                    }
-                },
-                {
-                    data: null,
-                    className: "text-center",
-                    "render": function(data, type, row, meta) {
-                        var html =
-                            "<div class='btn-group'><a class='btn btn-primary btn-sm' href='#' title='Caja Cerrada'><i class='fa fa-check'> Caja Cerrada</i></a><a class='btn btn-danger btn-sm' href='#'  onclick='reporte(" +
-                            data.id +
-                            ")' title='Pdf'><i class='fa fa-file-pdf-o'></i></a></div>";
-                        if (data.fecha_Cierre == "-") {
-                            html = `<div class='btn-group'>
-                                <button class='btn btn-warning btn-sm' onclick='cerrarCaja(${data.id})' title='Modificar'><i class='fa fa-lock'> Close</i></button>
-                                <button class='btn btn-danger btn-sm'  onclick='reporte(${data.id})' title='Pdf'><i class='fa fa-file-pdf-o'></i></button>
-                                <button class='btn btn-block btn-sm btn-modal btn-primary' id='btn_mostrar_colaborades_${data.id}'  data_id=${data.id}  onclick='mostrarColaboradores(${data.id})'>Detalles</button>
-                                </div>
-                                `
-                        }
-                        return html;
-                    }
-                }
-            ],
-            "language": {
-                "url": "{{ asset('Spanish.json') }}"
-            },
-            "order": [
-                [0, "desc"]
-            ],
-        }).on("draw", function() {
-            $("#reload").prop("disabled", false);
-            let tabla = $('.dataTables-cajas').DataTable();
-            let _TotalVentaDelDia = 0.00;
-            tabla.rows().data().each((el, index) => {
-                const {
-                    totales
-                } = el;
-                const {
-                    TotalVentaDelDia
-                } = totales;
-                _TotalVentaDelDia = _TotalVentaDelDia + TotalVentaDelDia;
-            });
-            $("#totalVenta").text(formatoMoneda(_TotalVentaDelDia));
-        });
-
-        $(document).on("click", "#reload", function() {
-            table.draw();
-        });
-    }
-  
-       
-   
-
     function reporte(id) {
         var url = "{{ route('Caja.reporte.movimiento', ':id') }}"
         url = url.replace(':id', id);
@@ -391,6 +385,7 @@
     //========= TRAER DATOS DEL MOVIMIENTO CAJA Y ABRIR MODAL CERRAR CAJA =======
     async function cerrarCaja(id) {
         if(id){
+            mostrarAnimacion();
             const res_validacion_docs   =  await validarVentasNoPagadas(id);
             if(res_validacion_docs){
                 axios.get("{{ route('Caja.datos.cierre') }}", {
@@ -408,16 +403,12 @@
                     $("#modal_cerrar_caja #saldo").val(convertFloat(datos.saldo).toFixed(2));
                     $("#modal_cerrar_caja").modal("show");
                 }).catch((value) => {})
+                .finally((r)=>{ ocultarAnimacion();});
+            }else{
+                ocultarAnimacion();
             }
         }
     }
-
-    $(".btn-modal").click(function(e) {
-        e.preventDefault();
-        $("#modal_crear_caja").modal("show");
-    });
-
-
 
     async function validarVentasNoPagadas(movimiento_id){    
         const res =  await axios.get('{{ route('caja.movimiento.verificarVentasNoPagadas', ['movimiento_id' => ':movimiento_id']) }}'.replace(':movimiento_id', movimiento_id))

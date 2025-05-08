@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
@@ -122,221 +123,9 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form  method="POST" action="{{route('pedidos.pedido.generarDocumentoVenta')}}"
-                                id="form-pedido-doc-venta">
-                                @csrf
-                                <div class="row">
-                                    <div class="col-12">
-                                        <h4><b>Datos Generales</b></h4>
-                                    </div>
-                                    <div class="col-12 d-none">
-                                        <div class="form-group row">
-                                            <div class="col-lg-6 col-xs-12">
-                                                <label class="required">Fecha de Documento</label>
-                                                <div class="input-group date">
-                                                    <span class="input-group-addon">
-                                                        <i class="fa fa-calendar"></i>
-                                                    </span>
-                                                    <input type="date" id="fecha_documento" name="fecha_documento_campo"
-                                                    class="form-control input-required {{ $errors->has('fecha_documento') ? ' is-invalid' : '' }}"
-                                                    value="{{ old('fecha_documento', date('Y-m-d')) }}">
-                                                        autocomplete="off" required readonly>
-                                                    @if ($errors->has('fecha_documento'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('fecha_documento') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="___class_+?31___">Moneda</label>
-                                                <select id="moneda" name="moneda"
-                                                    class="select2_form form-control {{ $errors->has('moneda') ? ' is-invalid' : '' }}"
-                                                    disabled>
-                                                    <option selected>SOLES</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="required">Empresa</label>
-                                                <select id="empresa" name="empresa"
-                                                    class="select2_form form-control {{ $errors->has('empresa') ? ' is-invalid' : '' }}"
-                                                    required>
-                                                    <option></option>
-                                                    @foreach ($empresas as $empresa)
-                                                        <option value="{{ $empresa->id }}"
-                                                            {{ old('empresa') == $empresa->id || $empresa->id === 1 ? 'selected' : '' }}>
-                                                            {{ $empresa->razon_social }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @if ($errors->has('empresa'))
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $errors->first('empresa') }}</strong>
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <div class="form-group">
-                                                    <label class="required">Fecha de Atención</label>
-                                                    <div class="input-group date">
-                                                        <span class="input-group-addon">
-                                                            <i class="fa fa-calendar"></i>
-                                                        </span>
-                                                        <input type="date" id="fecha_atencion" name="fecha_atencion_campo"
-                                                            class="form-control {{ $errors->has('fecha_atencion') ? ' is-invalid' : '' }}"
-                                                            value="{{ old('fecha_atencion', date('Y-m-d')) }}"
-                                                            autocomplete="off" required readonly>
-                                                        @if ($errors->has('fecha_atencion'))
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $errors->first('fecha_atencion') }}</strong>
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="form-group">
-                                                    <label class="">Vendedor</label>
-                                                    <select id="vendedor" name="vendedor" class="select2_form form-control" disabled>
-                                                        <option></option>
-                                                        @foreach (vendedores() as $vendedor)
-                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === $vendedor_actual ? 'selected' : '' }}>
-                                                                {{ $vendedor->persona->apellido_paterno . ' ' . $vendedor->persona->apellido_materno . ' ' . $vendedor->persona->nombres }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="form-group">
-                                                    <label class="required">Tipo de Comprobante: </label>
-                                                    <select onchange="validarTipoComprobante(this.value)" name="tipo_venta" id="tipo_venta" class="select2_form form-control {{ $errors->has('tipo_venta') ? ' is-invalid' : '' }}"
-                                                        required>
-                                                        @foreach ($tipoVentas as $tipo_venta)
-                                                            <option value="{{ $tipo_venta['id'] }}"
-                                                                {{ old('tipo_venta') == $tipo_venta['id'] ? 'selected' : '' }}
-                                                                {{ 129 == $tipo_venta['id'] ? 'selected' : '' }}>
-                                                                {{ $tipo_venta['nombre'] }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @if ($errors->has('tipo_venta'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('tipo_venta') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                            
+                            @include('pedidos.pedido.forms.form_pedido_atender')
 
-                                    <div class="col-6" style="border-left: 2px solid #ccc;">
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <div class="form-group">
-                                                    <label class="required">Condición</label>
-                                                    <select id="condicion_id" name="condicion_id" onchange="cambiarCondicion(this.value)"
-                                                        class="select2_form form-control {{ $errors->has('condicion_id') ? ' is-invalid' : '' }}"
-                                                        required>
-                                                        <option></option>
-                                                        @foreach ($condiciones as $condicion)
-                                                            <option value="{{ $condicion->id }}"
-                                                                {{ old('condicion_id') == $condicion->id ? 'selected' : '' }}
-                                                                {{ $pedido->condicion_id == $condicion->id ? 'selected' : '' }}>
-                                                                {{ $condicion->descripcion }} {{ $condicion->dias > 0 ? $condicion->dias.' dias' : '' }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @if ($errors->has('condicion_id'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('condicion_id') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="form-group">
-                                                    <label class="required">Fecha de Vencimiento</label>
-                                                    <div class="input-group date">
-                                                        <span class="input-group-addon">
-                                                            <i class="fa fa-calendar"></i>
-                                                        </span>
-                                                        <input type="date" id="fecha_vencimiento" name="fecha_vencimiento_campo"
-                                                            class="form-control {{ $errors->has('fecha_vencimiento') ? ' is-invalid' : '' }}"
-                                                            value="{{ old('fecha_vencimiento', date('Y-m-d')) }}"
-                                                            autocomplete="off" required readonly>
-                                                        @if ($errors->has('fecha_vencimiento'))
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $errors->first('fecha_vencimiento') }}</strong>
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="form-group">
-                                                    <label class="required">Cliente:
-                                                        {{-- <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
-                                                            Registrar
-                                                        </button> --}}
-                                                    </label> 
-                                                    <select id="cliente" name="cliente"
-                                                        class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}"
-                                                         required disabled>
-                                                        <option></option>
-                                                        @foreach ($clientes as $cliente)
-                                                            <option @if ($cliente->id == 1)
-                                                                selected
-                                                            @endif value="{{ $cliente->id }}"
-                                                                {{ old('cliente') == $cliente->id ? 'selected' : '' }}
-                                                                {{ $pedido->cliente_id == $cliente->id ? 'selected' : '' }}>
-                                                                {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @if ($errors->has('cliente'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('cliente') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                 <!-- OBTENER TIPO DE CLIENTE -->
-                                 <input hidden type="text" name="cliente_id" id="cliente_id">
-                                 <input type="hidden" name="" id="tipo_cliente">
-                                 <!-- OBTENER DATOS DEL PRODUCTO -->
-                                 <input type="hidden" name="" id="presentacion_producto">
-                                 <input type="hidden" name="" id="codigo_nombre_producto">
-                                 <!-- LLENAR DATOS EN UN ARRAY -->
-                                 <input type="hidden" id="productos_tabla" name="productos_tabla">
-
-                                <input type="text" name="igv" value="18" hidden>
-                                <input type="text" name="igv_check" value="on" hidden>
-                                <input type="text" name="efectivo" value="0" hidden>
-                                <input type="text" name="importe" value="0" hidden>
-                                <input type="text" name="empresa_id" hidden value="{{$pedido->empresa_id}}">
-
-                                <input type="hidden" name="monto_sub_total" id="monto_sub_total"    value="{{$pedido->sub_total}}">
-                                <input type="hidden" name="monto_embalaje" id="monto_embalaje"      value="{{$pedido->monto_embalaje}}">
-                                <input type="hidden" name="monto_envio" id="monto_envio"            value="{{$pedido->monto_envio}}">
-                                <input type="hidden" name="monto_total_igv" id="monto_total_igv"                value="{{$pedido->total_igv}}">
-                                <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ $pedido->monto_descuento }}">
-                                <input type="hidden" name="monto_total" id="monto_total"            value="{{$pedido->total}}">
-                                <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{$pedido->total_pagar}}">
-                                
-                                <input type="hidden" name="data_envio" id="data_envio">
-
-                            </form>
                         </div>
                     </div>
 
@@ -365,9 +154,12 @@
                                     </div>
                                 </div>
                                 <div class="panel-body">
-                                    @include('pedidos.pedido.table-detalles-atender',[
-                                        "carrito" => "carrito"
-                                    ])
+                                    <div class="col-12">
+                                        @include('pedidos.pedido.table-detalles-atender',[
+                                            "carrito" => "carrito"
+                                        ])
+                                    </div>
+                                 
                                 </div>
                                 <div class="panel-footer panel-primary">
                                     <div class="table-responsive">
@@ -389,8 +181,10 @@
                                     </div>
                                 </div>
                                 <div class="panel-body">
-                                    <div class="table-responsive">
-                                        @include('pedidos.pedido.tables-historial.table-pedido-detalles')
+                                    <div class="col-12">
+                                        <div class="table-responsive">
+                                            @include('pedidos.pedido.tables-historial.table-pedido-detalles')
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -428,7 +222,8 @@
 @stop
 @push('styles')
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<link href="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.5/b-3.0.2/b-html5-3.0.2/b-print-3.0.2/date-1.5.2/r-3.0.2/sp-2.3.1/datatables.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+
 <style>
 .search-length-container {
     display: flex;
@@ -466,8 +261,12 @@
 @push('scripts')
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-<script src="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.5/b-3.0.2/b-html5-3.0.2/b-print-3.0.2/date-1.5.2/r-3.0.2/sp-2.3.1/datatables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+
 <script>
+
     const tfootSubtotal         =   document.querySelector('.subtotal');
     const tfootEmbalaje         =   document.querySelector('.embalaje');
     const tfootEnvio            =   document.querySelector('.envio');
@@ -493,6 +292,7 @@
 
     document.addEventListener('DOMContentLoaded',async ()=>{
         mostrarAnimacionPedido();
+
         loadSelect2();
         cargarProductosPrevios();
 
@@ -501,11 +301,15 @@
         await getTiposPagoEnvio();
         await getOrigenesVentas();
         await getTipoDocumento();
+
         const tipo_envio    =   $("#tipo_envio").select2('data')[0].text;
         await getEmpresasEnvio(tipo_envio);
+
         pintarHistorialAtencionPedido();
+
         events();
         eventsModalEnvio();
+
         ocultarAnimacionPedido();
     })
 
@@ -522,6 +326,7 @@
 
         //======== EDITAR INPUT CANTIDAD ATENDIDA =======
         document.addEventListener('input',(e)=>{
+
             if(e.target.classList.contains('inputCantidadAtender')){
                 //====== QUITAR EL FOCUS DEL INPUT ======
                 e.target.blur();
@@ -734,12 +539,19 @@
 
     async function generarDocumentoVenta(form){
         try {
-            //=== DESACTIVAR BTN GRABAR ======
-            document.querySelector('#btn_grabar').disabled  = true;
 
             //======== OVERLAY DE CARGA =======
-            const overlay = document.getElementById('overlay_esfera_1');
-            overlay.style.display = 'flex'; 
+            Swal.fire({
+                title: 'Generando documento de venta...',
+                text: 'Por favor, espera',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
 
             //======== VERIFICAR SI EXISTEN CAJAS ABIERTAS ==========
             const { data } = await this.axios.get(route('Caja.movimiento.verificarestado'));
@@ -750,9 +562,7 @@
                 const pedido    =   @json($pedido);
                 const formData  =   new FormData(form);
                 formData.append('pedido_id', pedido.id);
-                // for (const pair of formData.entries()) {
-                //     console.log(pair[0] + ', ' + pair[1]);
-                // }
+             
                 const res       =   await axios.post(route('pedidos.pedido.generarDocumentoVenta'),formData)
                 const success   =   res.data.success;
                 
@@ -761,9 +571,13 @@
                     const documento_id  =   res.data.documento_id;
 
                     toastr.success('¡Documento de venta creado!', 'Exito');
+
+                    let url_open_pdf = '{{ route("ventas.documento.comprobante", [":id1", ":size"]) }}'
+                                        .replace(':id1', documento_id)
+                                        .replace(':size', 80);
+
                     window.location.href = '{{ route('ventas.documento.index') }}';
                     
-                    var url_open_pdf = route("ventas.documento.comprobante", { id: documento_id +"-80"});
                     window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
                     //===> asegurar cierre ===
                    
@@ -775,19 +589,19 @@
                         timeOut: 0,
                         extendedTimeOut: 0 
                     });
+                    Swal.close();
                 }
 
             }else{
                 toastr.error('NO HAY CAJAS APERTURADAS','ERROR');
                 secureClosure = 1;
+                Swal.close();
             }
 
-            console.log(res);
         } catch (error) {
-            
+            toastr.error(error,'ERROR EN LA PETICIÓN GENERAR DOC VENTA');
+            Swal.close();
         }finally{
-            const overlay = document.getElementById('overlay_esfera_1');
-            overlay.style.display = 'none';
             document.querySelector('#btn_grabar').disabled  = false;
         }
     }
@@ -883,6 +697,7 @@
                 const res   =   await axios.post(route('pedidos.pedido.validarCantidadAtender'),{
                     cantidad_atender_anterior,
                     cantidad_atender_nueva,
+                    almacen_id:@json($pedido->almacen_id),
                     producto_id,
                     color_id,
                     talla_id
@@ -999,6 +814,7 @@
 
             if(!producto_color_procesados.includes(id)){
                 const producto ={
+                    almacen_id:             productoPrevio.almacen_id,
                     producto_id:            productoPrevio.producto_id,
                     producto_nombre:        productoPrevio.producto_nombre,
                     producto_codigo:        productoPrevio.producto_codigo,
@@ -1244,7 +1060,7 @@
     }
 
     function formatearDetalle(detalles){
-        if(detalles.length>0){
+        /*if(detalles.length > 0){
             detalles.forEach((d)=>{
                 d.tallas.forEach((t)=>{
                     if(t.cantidad_atender != 0){
@@ -1260,7 +1076,31 @@
                     }
                 })
             })
+        }*/
+        if(detalles.length > 0){
+
+            let producto_valido     =   {};
+
+            carrito.forEach((producto)=>{
+
+                producto_valido =   producto;
+
+                const tallas_validas = producto.tallas.filter((t)=>{
+                    return t.cantidad_atender != 0;
+                })
+
+                tallas_validas.forEach((tv)=>{
+                    tv.cantidad =   tv.cantidad_atender;
+                })
+
+                producto_valido.tallas  =   tallas_validas;
+                if(producto_valido.tallas.length > 0){
+                    data_send.push(producto_valido);
+                }
+
+            })
         }
+
     }
 
     function mostrarAnimacionPedido(){

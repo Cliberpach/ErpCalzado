@@ -57,11 +57,12 @@ class UserSeeder extends Seeder
         $colaborador->estado = 'ACTIVO';
         $colaborador->save();
 
-        $user = new User();
-        $user->usuario = 'ADMINISTRADOR';
-        $user->email = 'ADMIN@SISCOM.COM';
-        $user->password = bcrypt('ADMIN');
-        $user->contra = 'ADMIN';
+        $user           =   new User();
+        $user->usuario  =   'ADMINISTRADOR';
+        $user->email    =   'ADMIN@SISCOM.COM';
+        $user->password =   bcrypt('ADMIN');
+        $user->contra   =   'ADMIN';
+        $user->sede_id  =   1;
         $user->save();
 
         $user_persona=new UserPersona();

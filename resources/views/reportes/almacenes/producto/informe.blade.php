@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout')
+@section('content')
 @include('reportes.almacenes.producto.modal_cod_barras')
 
     <div class="row wrapper border-bottom white-bg page-heading">
@@ -31,25 +32,24 @@
                         </div>
                     </div>
                     <div class="ibox-content">
+                        <div class="row mb-3">
+                            <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+                                <label for="sede" style="font-weight: bold;">SEDE</label>
+                                <select onchange="cambiarSede(this.value)" name="sede" id="sede" class="select2_sede">
+                                    @foreach ($sedes as $sede)
+                                        <option value="{{$sede->id}}">{{$sede->nombre}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+                                <label for="almacen" style="font-weight: bold;">ALMACÉN</label>
+                                <select onchange="cambiarAlmacen();" 
+                                name="almacen" id="almacen" class="select2_almacen">
+                                </select>
+                            </div>
+                        </div>
                         <div class="table-responsive">
-                            <table class="table dataTables-producto table-striped table-bordered table-hover"
-                                style="text-transform:uppercase" id="table_productos">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">CÓDIGO</th>
-                                        <th class="text-center">PRODUCTO</th>
-                                        <th class="text-center">COLOR</th>
-                                        <th class="text-center">TALLA</th>
-                                        <th class="text-center">MODELO</th>
-                                        <th class="text-center">CATEGORÍA</th>
-                                        <th class="text-center">STOCK</th>
-                                        <th class="text-center">ADHESIVOS</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                </tbody>
-                            </table>
+                            @include('reportes.almacenes.producto.tables.tbl_pi_productos')
                         </div>
                     </div>
                 </div>
@@ -113,6 +113,8 @@
                                     <tr>
                                         <th class="text-center">CLIENTE</th>
                                         <th class="text-center">USUARIO</th>
+                                        <th class="text-center">SEDE VENTA</th>
+                                        <th class="text-center">SEDE DESPACHO</th>
                                         <th class="text-center">DOCUMENTO</th>
                                         <th class="text-center">NUMERO</th>
                                         <th class="text-center">FECHA</th>
@@ -171,7 +173,7 @@
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-title">
-                        <h5>Ingresos</h5>
+                        <h5>Notas Ingreso</h5>
                         <div class="ibox-tools">
                             <a class="collapse-link">
                                 <i class="fa fa-chevron-up"></i>
@@ -187,6 +189,42 @@
                                 style="text-transform:uppercase">
                                 <thead>
                                     <tr>
+                                        <th class="text-center">#</th>
+                                        <th class="text-center">DESTINO</th>
+                                        <th class="text-center">CANTIDAD</th>
+                                        <th class="text-center">USUARIO</th>
+                                        <th class="text-center">FECHA</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5>Notas Salida</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link d-none">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table dataTables-salidas table-striped table-bordered table-hover"
+                                style="text-transform:uppercase">
+                                <thead>
+                                    <tr>
+                                        
                                         <th class="text-center">ORIGEN</th>
                                         <th class="text-center">DESTINO</th>
                                         <th class="text-center">CANTIDAD</th>
@@ -206,7 +244,7 @@
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-title">
-                        <h5>Salidas</h5>
+                        <h5>Ingresos por traslado</h5>
                         <div class="ibox-tools">
                             <a class="collapse-link">
                                 <i class="fa fa-chevron-up"></i>
@@ -218,10 +256,11 @@
                     </div>
                     <div class="ibox-content">
                         <div class="table-responsive">
-                            <table class="table dataTables-salidas table-striped table-bordered table-hover"
+                            <table class="table dataTables-trasladoIngreso table-striped table-bordered table-hover"
                                 style="text-transform:uppercase">
                                 <thead>
                                     <tr>
+                                        <th class="text-center">#</th>
                                         <th class="text-center">ORIGEN</th>
                                         <th class="text-center">DESTINO</th>
                                         <th class="text-center">CANTIDAD</th>
@@ -237,11 +276,50 @@
                     </div>
                 </div>
             </div>
+
+
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5>Salidas por traslado</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link d-none">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table dataTables-trasladoSalida table-striped table-bordered table-hover"
+                                style="text-transform:uppercase">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">#</th>
+                                        <th class="text-center">ORIGEN</th>
+                                        <th class="text-center">DESTINO</th>
+                                        <th class="text-center">CANTIDAD</th>
+                                        <th class="text-center">USUARIO</th>
+                                        <th class="text-center">FECHA</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-    @include('reportes.almacenes.producto.modalEditCosto')
+   
 @stop
 @push('styles')
+    <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
     <!-- DataTable -->
     <link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
     <style>
@@ -275,12 +353,62 @@
 @endpush
 
 @push('scripts')
+    <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
     <!-- DataTable -->
     <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
 
     <script>
+
+    function cargarSelect2(){
+        $(".select2_sede").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: false,
+            width: '100%'
+        });
+        $(".select2_almacen").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            width: '100%'
+        });
+    }
+
+    function cambiarAlmacen(){
+        $('.dataTables-producto').DataTable().ajax.reload();
+    }
+
+    function cambiarSede(sede_id){
+
+        if(sede_id){
+
+            const almacenesBD       =   @json($almacenes);
+            console.log(almacenesBD);
+            const almacenesSede     =   almacenesBD.filter((a)=>{
+                return a.sede_id    ==  sede_id;
+            })      
+
+            let selectAlmacen = $('#almacen');
+            selectAlmacen.select2('destroy');
+            selectAlmacen.empty();
+
+            almacenesSede.forEach((as)=>{
+                selectAlmacen.append(new Option(as.descripcion, as.id));
+            })
+
+            $("#almacen").select2({
+                placeholder: "SELECCIONAR",
+                allowClear: true,
+                width: '100%'
+            });
+
+        }
+
+        $('.dataTables-producto').DataTable().ajax.reload();
+
+    }
+
         $(document).ready(function() {
+
             // DataTables
             var productos = [];
             $('.dataTables-compras').dataTable({
@@ -339,6 +467,7 @@
                     [0, "desc"]
                 ],
             });
+
             $('.dataTables-notas-credito').dataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
@@ -367,6 +496,7 @@
                     [0, "desc"]
                 ],
             });
+
             $('.dataTables-salidas').dataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
@@ -395,6 +525,7 @@
                     [0, "desc"]
                 ],
             });
+
             $('.dataTables-ingresos').dataTable({
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
@@ -424,7 +555,72 @@
                 ],
             });
 
+
+            $('.dataTables-trasladoIngreso').dataTable({
+                "dom": '<"html5buttons"B>lTfgitp',
+                "buttons": [{
+                        extend: 'excelHtml5',
+                        text: '<i class="fa fa-file-excel-o"></i> Excel',
+                        titleAttr: 'Excel',
+                        title: 'CONSULTA TRASLADO SALIDA'
+                    },
+                    {
+                        titleAttr: 'Imprimir',
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Imprimir',
+                        customize: function(win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ],
+                "language": {
+                    "url": "{{ asset('Spanish.json') }}"
+                },
+                "order": [
+                    [0, "desc"]
+                ],
+            });
+
+
+       
+            $('.dataTables-trasladoSalida').dataTable({
+                "dom": '<"html5buttons"B>lTfgitp',
+                "buttons": [{
+                        extend: 'excelHtml5',
+                        text: '<i class="fa fa-file-excel-o"></i> Excel',
+                        titleAttr: 'Excel',
+                        title: 'CONSULTA TRASLADO SALIDA'
+                    },
+                    {
+                        titleAttr: 'Imprimir',
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Imprimir',
+                        customize: function(win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ],
+                "language": {
+                    "url": "{{ asset('Spanish.json') }}"
+                },
+                "order": [
+                    [0, "desc"]
+                ],
+            });
+
+
             loadTable();
+
+            cargarSelect2();
+            $('#sede').val(1).trigger('change');
 
             $('buttons-html5').removeClass('.btn-default');
 
@@ -434,20 +630,28 @@
             });
 
             //DOBLE CLICK EN LOTES
-            $('.dataTables-producto').on('dblclick', 'tbody td', function() {
+            $('.dataTables-producto').on('click', 'tbody td', function() {
                 var instancia   = $('.dataTables-producto').DataTable();
                 var producto    = instancia.row(this).data();
                 llenarCompras(producto.producto_id,producto.color_id,producto.talla_id);
-                llenarVentas(producto.producto_id,producto.color_id,producto.talla_id);
-                llenarNotasCredito(producto.producto_id,producto.color_id,producto.talla_id);
-                llenarSalidas(producto.producto_id,producto.color_id,producto.talla_id);
+                llenarVentas(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
+                llenarNotasCredito(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
+                llenarSalidas(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
                 
-                llenarIngresos(producto.producto_id,producto.color_id,producto.talla_id);
+                llenarIngresos(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id);
+
+                llenarTrasladoIngreso(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id)
+
+                llenarTrasladoSalida(producto.almacen_id,producto.producto_id,producto.color_id,producto.talla_id)
+
                 console.log(`${producto.producto_id}-${producto.color_id}-${producto.talla_id}`);
             });
 
             document.addEventListener('click',async (e)=>{
                 if(e.target.classList.contains('btn-ver-cod-barras')){
+                    
+                    mostrarAnimacion();
+                    toastr.clear();
                     
                     const producto_id   =   e.target.getAttribute('data-producto');
                     const color_id      =   e.target.getAttribute('data-color');
@@ -486,6 +690,7 @@
                     }else{
                         toastr.error(res_generarBarCode.message,res_generarBarCode.exception,{timeOut:0});
                     }
+                    ocultarAnimacion();
 
                 }
             })
@@ -494,6 +699,7 @@
 
         async function generarBarCode(producto_id,color_id,talla_id){    
             try {
+                
                 const res       =   await axios.post(route('reporte.producto.obtenerBarCode'),{
                     producto_id,color_id,talla_id
                 });
@@ -594,9 +800,10 @@
             });
         }
 
-        function llenarVentas(producto_id,color_id,talla_id) {
+        function llenarVentas(almacen_id,producto_id,color_id,talla_id) {
             $('.dataTables-ventas').dataTable().fnDestroy();
-            let url = '{{ route('reporte.producto.llenarVentas', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            let url = '{{ route('reporte.producto.llenarVentas', ['almacen_id' => ':almacen_id','producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            url = url.replace(":almacen_id", almacen_id);
             url = url.replace(":producto_id", producto_id);
             url = url.replace(":color_id", color_id);
             url = url.replace(":talla_id", talla_id);
@@ -636,8 +843,18 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'usuario',
-                        name: 'usuario',
+                        data: 'registrador_nombre',
+                        name: 'registrador_nombre',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'sede_nombre',
+                        name: 'sede_nombre',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'sede_despacho_nombre',
+                        name: 'sede_despacho_nombre',
                         className: "letrapequeña"
                     },
                     {
@@ -646,13 +863,13 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'numero',
-                        name: 'numero',
+                        data: 'serie',
+                        name: 'serie',
                         className: "letrapequeña"
                     },
                     {
-                        data: 'fecha_emision',
-                        name: 'fecha_emision',
+                        data: 'fecha',
+                        name: 'fecha',
                         className: "letrapequeña"
                     },
                     {
@@ -666,8 +883,8 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'convertir',
-                        name: 'convertir',
+                        data: 'convert_en_serie',
+                        name: 'convert_en_serie',
                         className: "letrapequeña"
                     }
                 ],
@@ -678,7 +895,7 @@
                     [3, "desc"]
                 ],
                 "createdRow": function(row, data, dataIndex) {
-                    if (data.convertir !== '-') {
+                    if (data.convert_en_serie) {
                         $(row).addClass('azulito-leve');
                     }
                 }
@@ -688,9 +905,10 @@
         }
 
 
-        function llenarNotasCredito(producto_id,color_id,talla_id) {
+        function llenarNotasCredito(almacen_id,producto_id,color_id,talla_id) {
             $('.dataTables-notas-credito').dataTable().fnDestroy();
-            let url = '{{ route('reporte.producto.llenarNotasCredito', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            let url = '{{ route('reporte.producto.llenarNotasCredito', ['almacen_id' => ':almacen_id','producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            url = url.replace(":almacen_id", almacen_id);
             url = url.replace(":producto_id", producto_id);
             url = url.replace(":color_id", color_id);
             url = url.replace(":talla_id", talla_id);
@@ -781,9 +999,10 @@
             });
         }
 
-        function llenarSalidas(producto_id,color_id,talla_id) {
+        function llenarSalidas(almacen_id,producto_id,color_id,talla_id) {
             $('.dataTables-salidas').dataTable().fnDestroy();
-            let url = '{{ route('reporte.producto.llenarSalidas', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            let url = '{{ route('reporte.producto.llenarSalidas', ['almacen_id' => ':almacen_id','producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            url = url.replace(":almacen_id", almacen_id);
             url = url.replace(":producto_id", producto_id);
             url = url.replace(":color_id", color_id);
             url = url.replace(":talla_id", talla_id);
@@ -817,12 +1036,17 @@
                 "columns": [
 
                     {
-                        data: 'origen',
-                        name: 'origen',
+                        data: 'codigo',
+                        name: 'codigo',
                         className: "letrapequeña"
                     },
                     {
-                        data: 'destino',
+                        data: 'almacen_origen_nombre',
+                        name: 'almacen_origen_nombre',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'almacen_destino_nombre',
                         name: 'destino',
                         className: "letrapequeña"
                     },
@@ -832,8 +1056,84 @@
                         className: "letrapequeña"
                     },
                     {
-                        data: 'usuario',
-                        name: 'usuario',
+                        data: 'registrador_nombre',
+                        name: 'registrador_nombre',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'fecha',
+                        name: 'fecha',
+                        className: "letrapequeña"
+                    },
+                ],
+                "language": {
+                    "url": "{{ asset('Spanish.json') }}"
+                },
+                "order": [
+                    [0, "desc"]
+                ],
+            });
+        }
+
+        function llenarTrasladoSalida(almacen_id,producto_id,color_id,talla_id) {
+            $('.dataTables-trasladoSalida').dataTable().fnDestroy();
+            let url = '{{ route('reporte.producto.llenarTrasladoSalida', ['almacen_id' => ':almacen_id','producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            url     = url.replace(":almacen_id", almacen_id);
+            url     = url.replace(":producto_id", producto_id);
+            url     = url.replace(":color_id", color_id);
+            url     = url.replace(":talla_id", talla_id);
+            $('.dataTables-trasladoSalida').DataTable({
+                "dom": '<"html5buttons"B>lTfgitp',
+                "buttons": [{
+                        extend: 'excelHtml5',
+                        text: '<i class="fa fa-file-excel-o"></i> Excel',
+                        titleAttr: 'Excel',
+                        title: 'CONSULTA SALIDAS'
+                    },
+                    {
+                        titleAttr: 'Imprimir',
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Imprimir',
+                        customize: function(win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ],
+                "bPaginate": true,
+                "bLengthChange": true,
+                "bFilter": true,
+                "bInfo": true,
+                "bAutoWidth": false,
+                "ajax": url,
+                "columns": [
+
+                    {
+                        data: 'codigo',
+                        name: 'codigo',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'almacen_origen_nombre',
+                        name: 'almacen_origen_nombre',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'almacen_destino_nombre',
+                        name: 'destino',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'cantidad',
+                        name: 'cantidad',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'registrador_nombre',
+                        name: 'registrador_nombre',
                         className: "letrapequeña"
                     },
                     {
@@ -853,9 +1153,88 @@
             });
         }
 
-        function llenarIngresos(producto_id,color_id,talla_id) {
+        function llenarTrasladoIngreso(almacen_id,producto_id,color_id,talla_id) {
+            $('.dataTables-trasladoIngreso').dataTable().fnDestroy();
+            let url = '{{ route('reporte.producto.llenarTrasladoIngreso', ['almacen_id' => ':almacen_id','producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            url     = url.replace(":almacen_id", almacen_id);
+            url     = url.replace(":producto_id", producto_id);
+            url     = url.replace(":color_id", color_id);
+            url     = url.replace(":talla_id", talla_id);
+            $('.dataTables-trasladoIngreso').DataTable({
+                "dom": '<"html5buttons"B>lTfgitp',
+                "buttons": [{
+                        extend: 'excelHtml5',
+                        text: '<i class="fa fa-file-excel-o"></i> Excel',
+                        titleAttr: 'Excel',
+                        title: 'CONSULTA SALIDAS'
+                    },
+                    {
+                        titleAttr: 'Imprimir',
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Imprimir',
+                        customize: function(win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ],
+                "bPaginate": true,
+                "bLengthChange": true,
+                "bFilter": true,
+                "bInfo": true,
+                "bAutoWidth": false,
+                "ajax": url,
+                "columns": [
+
+                    {
+                        data: 'codigo',
+                        name: 'codigo',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'almacen_origen_nombre',
+                        name: 'almacen_origen_nombre',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'almacen_destino_nombre',
+                        name: 'destino',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'cantidad',
+                        name: 'cantidad',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'registrador_nombre',
+                        name: 'registrador_nombre',
+                        className: "letrapequeña"
+                    },
+                    {
+                        data: 'fecha',
+                        name: 'fecha',
+                        className: "letrapequeña"
+                    },
+                ],
+                "language": {
+                    "url": "{{ asset('Spanish.json') }}"
+                },
+                "order": [
+                    [0, "desc"]
+                ],
+
+
+            });
+        }
+
+        function llenarIngresos(almacen_id,producto_id,color_id,talla_id) {
             $('.dataTables-ingresos').dataTable().fnDestroy();
-            let url = '{{ route('reporte.producto.llenarIngresos', ['producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            let url = '{{ route('reporte.producto.llenarIngresos', ['almacen_id' => ':almacen_id','producto_id' => ':producto_id', 'color_id' => ':color_id', 'talla_id' => ':talla_id']) }}';
+            url = url.replace(":almacen_id", almacen_id);
             url = url.replace(":producto_id", producto_id);
             url = url.replace(":color_id", color_id);
             url = url.replace(":talla_id", talla_id);
@@ -890,8 +1269,8 @@
                 "columns": [
 
                     {
-                        data: 'origen',
-                        name: 'origen',
+                        data: 'codigo',
+                        name: 'codigo',
                         className: "letrapequeña"
                     },
                     {
@@ -919,7 +1298,7 @@
                     "url": "{{ asset('Spanish.json') }}"
                 },
                 "order": [
-                    [0, "desc"]
+                    [4, "desc"]
                 ],
 
 
@@ -928,9 +1307,11 @@
 
         function loadTable() {
             $('.dataTables-producto').DataTable({
+               "processing": true,
                 "dom": '<"html5buttons"B>lTfgitp',
-                "buttons": [
-                        {
+                "buttons": 
+                [
+                    {
                             text: '<i class="fa fa-file-excel-o"></i> Excel',
                             titleAttr: 'Excel',
                             title: 'CONSULTA PRODUCTOS',
@@ -938,32 +1319,9 @@
                                 
                             },
                             init: function(api, node, config) {
-                            // Agregar un atributo href al botón para definir la ruta deseada
-                            $(node).attr('href', '{{ route('reporte.producto.excelProductos') }}');
-                            // Manejar el clic en el botón para abrir la URL en una nueva ventana
-                            $(node).on('click', function() {
-                                window.open($(this).attr('href'), '_blank');
-                            });
-                        }
-                        }
-                    // {
-                    //     extend: 'excelHtml5',
-                    //     text: '<i class="fa fa-file-excel-o"></i> Excel',
-                    //     titleAttr: 'Excel',
-                    //     title: 'CONSULTA PRODUCTOS'
-                    // },
-                    // {
-                    //     titleAttr: 'Imprimir',
-                    //     extend: 'print',
-                    //     text: '<i class="fa fa-print"></i> Imprimir',
-                    //     customize: function(win) {
-                    //         $(win.document.body).addClass('white-bg');
-                    //         $(win.document.body).css('font-size', '10px');
-                    //         $(win.document.body).find('table')
-                    //             .addClass('compact')
-                    //             .css('font-size', 'inherit');
-                    //     }
-                    // }
+                                $(node).on('click', excelProductosPI);
+                            }
+                    }
                 ],
                 "bPaginate": true,
                 "serverSide": true,
@@ -976,41 +1334,50 @@
                 "ordering": true,
                 "bInfo": true,
                 'bAutoWidth': false,
-                "ajax": "{{ route('reporte.producto.getProductos') }}",
-                "columns": [{
-                        data: 'producto_codigo',
+                "ajax": {
+                    "url": "{{ route('reporte.producto.getProductos') }}",
+                    "type": "GET",  
+                    "data": function(d) {
+                        d.sede_id       = $('#sede').val(); 
+                        d.almacen_id    = $('#almacen').val(); 
+                    }
+                },
+                "columns": [
+                    {
+                        data: 'almacen_nombre',
                         className: "text-left",
-                        name: "codigo"
+                        name: "a.descripcion"
                     },
                     {
                         data: 'producto_nombre',
                         className: "text-left",
-                        name: "nombre"
+                        name: "p.nombre"
                     },
                     {
                         data: 'color_nombre',
                         className: "text-left",
-                        name: "colores.descripcion"
+                        name: "co.descripcion"
                     },
                     {
                         data: 'talla_nombre',
                         className: "text-left",
-                        name: "tallas.descripcion"
+                        name: "t.descripcion"
                     },
                     {
                         data: 'modelo_nombre',
                         className: "text-left",
-                        name: "modelos.descripcion"
+                        name: "m.descripcion"
                     },
                     {
                         data: 'categoria_nombre',
                         className: "text-left",
-                        name: "categorias.descripcion"
+                        name: "ca.descripcion"
                     },
                     {
                         data: 'stock',
                         className: "text-center",
-                        name: "producto_color_tallas.stock"
+                        name: "stock",
+                        searchable: false 
                     },
                     {
                         data: null,
@@ -1046,6 +1413,14 @@
             $('#modal_costo_update #total').val(data.total);
             $('#modal_costo_update').modal('show');
         });
+
+        function excelProductosPI(){
+            let sedeId      = document.querySelector('#sede').value;
+            let almacenId   = document.querySelector('#almacen').value;
+
+            let url = '{{ route('reporte.producto.excelProductos') }}' + '?sedeId=' + sedeId + '&almacenId=' + almacenId;
+            window.open(url, '_blank');
+        }
 
       
     </script>

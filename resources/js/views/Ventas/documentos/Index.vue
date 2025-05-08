@@ -6,13 +6,15 @@
                     <div class="ibox">
                         <div class="ibox-title">
                             <h5>
-                                <a style="color: #FDEBD0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a> Documento con NOTAS DE CREDITO 
-                                <a style="color: #EBDEF0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>Documento de CONTINGENCIA
-                                <a style="color:#E3E9FE" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>Documento con cambio de Talla</h5>
-
+                                <a style="color: #FDEBD0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a> DOC CON NOTA DE CRÉDITO 
+                                <a style="color: #EBDEF0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CONVERTIDO
+                                <a style="color:#E3E9FE" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CON CAMBIO DE TALLA
+                                <a style="color:#caffcc" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CON GUIA
+                            </h5>
                         </div>
                         <div class="ibox-content tables_wrapper">
                             <div class="row">
+                                
                                 <div class="col-md-3 form-group">
                                     <label for="">Desde:</label>
                                     <input type="date" id="fechaInicial" class="form-control form-control-sm"
@@ -43,12 +45,15 @@
                                                     <th class="text-center letrapequeña bg-white">COT</th>
                                                     <th class="text-center letrapequeña bg-white">CV</th>
                                                     <th class="text-center letrapequeña bg-white">PE</th>
+                                                    <th class="text-center letrapequeña bg-white">CDR</th>
                                                     <th class="text-center letrapequeña bg-white">DOC</th>
-                                                    <th class="text-center letrapequeña bg-white">FECHA DOC.</th>
+                                                    <th class="text-center letrapequeña bg-white">FECHA</th>
+                                                    <th class="text-center letrapequeña bg-white">REGISTRADOR</th>
+                                                    <th class="text-center letrapequeña bg-white">SEDE</th>
+                                                    <th class="text-center letrapequeña bg-white">ALMACÉN</th>
                                                     <th class="text-center letrapequeña bg-white">CLIENTE</th>
                                                     <th class="text-center letrapequeña bg-white">MONTO</th>
-                                                    <th class="text-center letrapequeña bg-white">TIEMPO</th>
-                                                    <th class="text-center letrapequeña bg-white">MODO</th>
+                                                    <th class="text-center letrapequeña bg-white">CONDICION</th>
                                                     <th class="text-center letrapequeña bg-white">ESTADO</th>
                                                     <th class="text-center letrapequeña bg-white">SUNAT</th>
                                                     <th class="text-center letrapequeña bg-white">DESCARGAS</th>
@@ -58,13 +63,18 @@
                                             <tbody>
                                                 <template v-if="documentos.length > 0">
                                                     <tr v-for="(item, index) in documentos" :key="index" :style="PintarRowTable(item)">
-                                                        <td class="letrapequeña text-center">
+                                                        <!-- <td class="letrapequeña text-center">
                                                             <input v-if="item.cotizacion_venta" type="checkbox" disabled
                                                                 checked />
                                                             <input v-else type="checkbox" disabled />
-                                                        </td>
+                                                        </td> -->
+                                                        
                                                         <td class="letrapequeña text-center">
-                                                            {{ item.doc_convertido }}
+                                                            <span v-if="item.cotizacion_id" v-html="`<strong>CO-${item.cotizacion_id}</strong>`"></span>
+                                                        </td>
+
+                                                        <td class="letrapequeña text-center">
+                                                            {{ item.convert_de_serie }}
                                                         </td>
                                                         <td class="letrapequeña text-center">
 
@@ -74,10 +84,28 @@
 
                                                         </td>
                                                         <td class="letrapequeña text-center">
+                                                            {{ item.regularizado_de_serie }}
+                                                        </td>
+                                                        <td class="letrapequeña text-center">
                                                             {{ item.numero_doc }}
                                                         </td>
                                                         <td class="letrapequeña text-center">
                                                             {{ item.fecha_documento }}
+                                                        </td>
+                                                        <td class="letrapequeña text-center">
+                                                            {{ item.registrador_nombre }}
+                                                        </td>
+
+                                                        <td class="letrapequeña">
+                                                            <div class="text-truncate">
+                                                                {{ item.sede_nombre }}
+                                                            </div>
+                                                        </td>
+
+                                                        <td class="letrapequeña">
+                                                            <div class="text-truncate">
+                                                                {{ item.almacen_nombre }}
+                                                            </div>
                                                         </td>
 
                                                         <td class="letrapequeña">
@@ -86,9 +114,9 @@
                                                             </div>
                                                         </td>
                                                         <td class="letrapequeña text-center">{{ item.total_pagar }}</td>
-                                                        <td class="letrapequeña text-center">
+                                                        <!-- <td class="letrapequeña text-center">
                                                             {{ item.dias > 4 ? 0 : 4 - item.dias }}
-                                                        </td>
+                                                        </td> -->
                                                         <td class="letrapequeña text-center">
                                                             {{ item.condicion }}
                                                         </td>
@@ -119,9 +147,9 @@
                                                                     </template>
 
                                                                     <template v-if="item.sunat == '0' &&
-                                                                        item.tipo_venta_id != 129 &&
+                                                                        item.tipo_venta != 129 &&
                                                                         // dias(item) > 0 &&
-                                                                        item.contingencia == '0'">
+                                                                        item.estado == 'ACTIVO'">
 
                                                                         <b-dropdown-item @click="enviarSunat(item.id, item.contingencia)">
                                                                             <i class="fa fa-send"  style="color: #0065b3;"></i> Sunat
@@ -131,7 +159,7 @@
 
                                                                     <template v-if="
                                                                         item.sunat_contingencia == '0' &&
-                                                                        item.tipo_venta_id != 129 &&
+                                                                        item.tipo_venta != 129 &&
                                                                         item.contingencia == '1'">
 
                                                                         <b-dropdown-item @click="enviarSunat(item.id, item.contingencia)">
@@ -142,23 +170,22 @@
                                                                     
                                                                     <template v-if="(item.sunat == '1' ||
                                                                         item.notas > 0 ||item.sunat_contingencia == '1') &&
-                                                                        item.tipo_venta_id != 129">
+                                                                        item.tipo_venta != 129 && item.estado == 'ACTIVO'">
                                                                         <b-dropdown-item :href="routes(item.id, 'NOTAS')">
                                                                             <i class="fa fa-file-o" style="color: #77600e;"></i> Notas
                                                                         </b-dropdown-item>
                                                                        
                                                                     </template>
 
-                                                                    <template v-if="item.sunat == '1' || item.sunat_contingencia == '1'">
+                                                                    <template v-if="item.sunat == '1' && item.notas == 0 && !item.guia_id && item.estado == 'ACTIVO'" >
                                                                         <b-dropdown-item title="Guía Remisión" @click.prevent="guia(item.id)">
                                                                             <i class="fa fa-file"></i> Guía
                                                                         </b-dropdown-item>
                                                                     </template>
 
-
-                                                                    <template v-if="(item.tipo_venta_id == 129 && item.condicion == 'CONTADO' 
-                                                                        && item.estado_pago == 'PAGADA') ||
-                                                                        (item.tipo_venta_id == 129 &&
+                                                                    <template v-if="(item.tipo_venta == 129 && item.condicion == 'CONTADO' 
+                                                                        && item.estado_pago == 'PAGADA' && item.estado == 'ACTIVO') ||
+                                                                        (item.tipo_venta == 129 &&
                                                                         (item.condicion == 'CREDITO' ||
                                                                         item.condicion == 'CRÉDITO'))">
 
@@ -168,96 +195,83 @@
 
                                                                     </template>
 
-
-                                                                    <template v-if="item.tipo_venta_id == 129 &&
-                                                                        item.estado_pago == 'PENDIENTE'">
-                                                                        <b-dropdown-item title="Guía Remisión" :href="routes(item.id, 'EDITAR')">
-                                                                            <i class="fa fa-pencil"></i> Editar
-                                                                        </b-dropdown-item>
-                                                                    </template>
-
-
-                                                                    <b-dropdown-item title="Cambio de Talla" @click="cambiarTallas(item.id)">
-                                                                        <i class="fas fa-exchange-alt" style="color: #3307ab;"></i> Cambio de Talla
-                                                                    </b-dropdown-item>
-
-                                                                    <!-- <template v-if="(item.sunat == '2' && item.tipo_venta_id == 129) ||
-                                                                        (item.tipo_venta_id == 129 &&   item.estado_pago == 'PENDIENTE' &&
-                                                                        item.contingencia == '0')">
-                                                                        <b-dropdown-item title="Eliminar"  @click.prevent="eliminar(data.id)">
-                                                                            <i class="fa fa-trash"></i> Eliminar
-                                                                        </b-dropdown-item>
-                                                                    </template> -->
-
-                                                                    <template v-if="item.condicion == 'CONTADO' &&
-                                                                        item.estado_pago == 'PENDIENTE' &&
-                                                                        item.tipo_venta_id == '129'">
-                                                                        <b-dropdown-item title="Eliminar"  @click="Pagar(item)">
-                                                                            <i class="fa fa-money" style="color: #007502;"></i> Pagar
-                                                                        </b-dropdown-item>
-                                                                    </template>
-
-                                                                    <template v-if="item.condicion == 'CONTADO' &&
-                                                                        item.estado_pago == 'PENDIENTE' &&
-                                                                        item.tipo_venta_id != 129 &&
-                                                                        (item.convertir == '' || item.convertir == null)">
-                                                                        <b-dropdown-item title="Eliminar"  @click="Pagar(item)">
-                                                                            <i class="fa fa-money" style="color: #007502;"></i> Pagar
-                                                                        </b-dropdown-item>
-                                                                    </template>
-
-
-                                                                    <template v-if="item.code == '1033' && item.regularize == '1' &&
-                                                                        item.sunat != '2' && item.contingencia == '0'">
-
-                                                                        <b-dropdown-item title="Eliminar"  @click.prevent="cdr(item.id)">
-                                                                            <i class="fa fa-money"></i> CDR
-                                                                        </b-dropdown-item>
-                                                                    </template>
-
-                                                                    <!-- <template v-if="
-                                                                    dias(item) <= 0 &&
-                                                                    item.contingencia == '0' &&
-                                                                    item.tipo_venta_id != '129' &&
-                                                                    item.sunat == '0'
-                                                                    ">
-                                                                        <button type="button" class="btn btn-sm btn-warning"
-                                                                            @click.prevent="contingencia(item.id)"
-                                                                            title="Convertir a comprobante de contingencia">
-                                                                            <i class="fa fa-exchange"></i> {{item.estado}}
-                                                                        </button> 
                                                                     
-                                                                    </template> -->
+                                                                    <template v-if="
+                                                                        item.estado_pago == 'PENDIENTE' 
+                                                                        && item.sunat == '0'
+                                                                        && !item.convert_en_id
+                                                                        && !item.convert_de_id
+                                                                        && !item.pedido_id
+                                                                        && item.notas == 0
+                                                                        && item.estado == 'ACTIVO'">
+                                                                        <b-dropdown-item title="Editar" :href="routes(item.id, 'EDITAR')">
+                                                                            <i class="fas fa-edit" style="color:chocolate;"></i> Editar
+                                                                        </b-dropdown-item>
+                                                                    </template>
 
-                                                                    <template v-if="dias(item) <= 0 && item.estado == 'ACTIVO' &&
-                                                                        item.tipo_venta_id != '129' && item.sunat == '0'">
+                                                                    <template v-if="item.notas == 0 && item.estado == 'ACTIVO'">
+                                                                        <b-dropdown-item title="Cambio de Talla" @click="cambiarTallas(item.id)">
+                                                                            <i class="fas fa-exchange-alt" style="color: #3307ab;"></i> Cambio de Talla
+                                                                        </b-dropdown-item>
+                                                                    </template>
+
+                                                                    <template v-if="item.tipo_venta == 129 && !item.convert_en_id && item.notas == 0 && item.estado == 'ACTIVO'">
+                                                                        <b-dropdown-item title="Convertir" :href="routes(item.id, 'CONVERTIR')">
+                                                                            <i class="fas fa-file-invoice" style="color: blue;"></i> Convertir
+                                                                        </b-dropdown-item>
+                                                                    </template>
+
+                                                                    <template v-if="item.condicion == 'CONTADO' &&
+                                                                        item.estado_pago == 'PENDIENTE' &&
+                                                                        item.tipo_venta == '129' && item.estado == 'ACTIVO'">
+                                                                        <b-dropdown-item title="Pagar"  @click="Pagar(item)">
+                                                                            <i class="fa fa-money" style="color: #007502;"></i> Pagar
+                                                                        </b-dropdown-item>
+                                                                    </template>
+
+                                                                    <template v-if="item.condicion == 'CONTADO' &&
+                                                                        item.estado_pago == 'PENDIENTE' &&
+                                                                        item.tipo_venta != 129 &&
+                                                                        (item.convert_de_id == '' || item.convert_de_id == null) 
+                                                                        && item.estado == 'ACTIVO'">
+                                                                        <b-dropdown-item title="Pagar"  @click="Pagar(item)">
+                                                                            <i class="fa fa-money" style="color: #007502;"></i> Pagar
+                                                                        </b-dropdown-item>
+                                                                    </template>
+
+
+                                                                    <template v-if="item.regularize == '1' && item.sunat != '2' 
+                                                                    && item.cdr_response_code != '0' && item.estado == 'ACTIVO'
+                                                                    && item.tipo_venta != '129'
+                                                                    && item.estado == 'ACTIVO'">
+                                                                         <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="regularizarVenta(item)">
+                                                                            <i class="far fa-copy"></i> ANULAR
+                                                                        </b-dropdown-item>
+                                                                    </template>
+
+                                                                    <!-- <template v-if="dias(item) <= 0 && item.estado == 'ACTIVO' &&
+                                                                        item.tipo_venta != '129' && item.sunat == '0'">
                                                                         <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="regularizarVenta(item.id)">
                                                                             <i class="fa fa-exchange"></i> ANULAR
                                                                         </b-dropdown-item>
-                                                                    </template>
+                                                                    </template> -->
 
 
-                                                                    <template v-if="item.estado_despacho!=='DESPACHADO' && item.estado_despacho">
+                                                                    <template v-if="item.estado_despacho !== 'DESPACHADO' && item.estado_despacho
+                                                                    && item.notas == 0 && item.estado == 'ACTIVO'">
                                                                         <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="setDataEnvio(item.id)">
                                                                             <i class="fas fa-truck"></i> DESPACHO
                                                                         </b-dropdown-item>
                                                                     </template>
                                                                 
-
                                                                 </b-dropdown>
-
-                                                            
-                                                               
-                                                               
-
-                                                         
                                                         </td>
                                                     </tr>
                                                 </template>
 
                                                 <template v-if="!loading && documentos.length == 0">
                                                     <tr>
-                                                        <td colspan="12" class="text-center">
+                                                        <td colspan="16" class="text-center">
                                                             <strong class="font-bold">No hay datos</strong>
                                                         </td>
                                                     </tr>
@@ -336,7 +350,6 @@
     </div>
 </template>
 <script>
-
 import Vue from 'vue';
 import BootstrapVue from 'bootstrap-vue';
 Vue.use(BootstrapVue);
@@ -344,7 +357,7 @@ Vue.use(BootstrapVue);
 import ModalPdfDownloadVue from '../../../components/ventas/ModalPdfDownload.vue';
 import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
 import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
-import { Alert } from 'bootstrap';
+
 export default {
     name: "VentaLista",
     props: ["imginicial"],
@@ -433,7 +446,6 @@ export default {
     },
     async created() {
         await this.Lista();
-        
     },
     methods: {
         cambiarTallas(documento_id){
@@ -476,8 +488,11 @@ export default {
                 let { data } = await this.axios.get(route("ventas.getDocument"), {
                     params: this.params,
                 });
+
                 this.loading = false;
+
                 const { documentos, pagination, modos_pago } = data;
+                
                 this.modopagos = modos_pago;
                 this.documentos = documentos;
                 this.pagination = pagination;
@@ -523,16 +538,29 @@ export default {
             }
         },
         estadoSunat(data) {
-            switch (data.sunat) {
-                case "1":
-                    return "<span class='badge badge-primary' d-block>ACEPTADO</span>";
-                    break;
-                case "2":
-                    return "<span class='badge badge-danger' d-block>NULA</span>";
-                    break;
-                default:
-                    return "<span class='badge badge-success' d-block>REGISTRADO</span>";
+            let estado  =   ``;
+
+            if(data.sunat == '1' && data.cdr_response_code == '0'){
+                estado  =   `<span class='badge badge-primary' d-block>ACEPTADO</span>`;
             }
+            if(data.sunat == '1' && data.cdr_response_code != '0'){
+                estado  =   `<span class='badge badge-danger' d-block>RECHAZADO</span>`;
+            }
+            if(data.sunat == '1' && data.cdr_response_code == 'EN ESPERA'){
+                estado  =   `<span class='badge badge-warning' d-block>ENVIADO</span>`;
+            }
+            if(data.sunat == '2'){
+                estado  =   `<span class='badge badge-danger' d-block>NULA</span>`;
+            }
+            if(data.sunat == '0'){
+                estado  =   `<span class='badge badge-success' d-block>REGISTRADO</span>`;
+            }
+            if(data.estado === 'ANULADO'){
+                estado  =   `<span class='badge badge-danger' d-block>ANULADO</span>`;
+            }
+           
+            return estado;
+          
         },
         enviarSunat(id, contingencia) {
             const swalWithBootstrapButtons = Swal.mixin({
@@ -571,7 +599,8 @@ export default {
                         return  d.id == id;
                     });
                     if(documento_index !== -1){
-                        this.documentos[documento_index].sunat  =   '1';
+                        this.documentos[documento_index].sunat              =   '1';
+                        this.documentos[documento_index].cdr_response_code  =   '0';
                     }
 
                     toastr.success(result.value.message,'DOCUMENTO ENVIADO A SUNAT',{timeOut:5000});
@@ -681,7 +710,7 @@ export default {
         }).then((result) => {
             if (result.isConfirmed) {
                 //Ruta Guia
-                var url = route('ventas.guiasremision.create', {id});
+                var url = route('ventas.documento.guiaCreate', {id});
                 $(location).attr('href', url);
 
             } else if (
@@ -713,6 +742,9 @@ export default {
                 }
                 case "CREATE": {
                     return route('ventas.documento.create');
+                }
+                case "CONVERTIR": {
+                    return route('ventas.documento.convertirCreate',{id});
                 }
             }
         },
@@ -761,17 +793,24 @@ export default {
                 return {'background-color':"#FDEBD0"};
             }
 
-            if (aData.contingencia == '1') {
+            if (aData.convert_en_id) {
                 return {'background-color':"#EBDEF0"}
             }
 
             if(aData.cambio_talla == '1'){
                 return {'background-color':"#E3E9FE"} 
             }
+
+            if(aData.guia_id){
+                return {'background-color':"#caffcc"} 
+            }
+
         },
-        async regularizarVenta(documento_id){
+        async regularizarVenta(documento){
+            toastr.clear();
+
             Swal.fire({
-            title: "DESEA ANULAR EL DOC DE VENTA?",
+            title: `ANULAR EL DOC ${documento.serie}-${documento.correlativo}`,
             text: "SE GENERARÁ UN NUEVO DOC DE VENTA COMO REEMPLAZO!",
             icon: "warning",
             showCancelButton: true,
@@ -780,18 +819,22 @@ export default {
             confirmButtonText: "SÍ!"
             }).then(async (result) => {
                 if (result.isConfirmed) {
-                    let alerta_procesando =   toastr.info('ANULANDO DOC DE VENTA', 'PROCESANDO', {
-                            closeButton: false,
-                            progressBar: true,
-                            positionClass: 'toast-top-right',
-                            timeOut: 0, 
-                            tapToDismiss: false 
+
+                    Swal.fire({
+                        title: 'PROCESANDO',
+                        text: 'ANULANDO DOC DE VENTA',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
                     });
+
 
                     try {
 
                         const res   =   await axios.post(route('ventas.regularizarVenta'),{
-                            documento_id
+                            documento_id:documento.id
                         });
                         console.log(res);
 
@@ -801,47 +844,26 @@ export default {
 
                             //======== ACTUALIZANDO LISTADO =====
                             this.Lista();
+
                             //========= RESPUESTA EXITOSA ======
                             toastr.success(message,'OPERACIÓN COMPLETADA',{
                                 timeOut: 0, 
                             });
+
+                            const url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id,size:80});
+                            window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
                         }else{
-                            const type  =   res.data.type;
 
                             //========== MANEJANDO ERRORES DE VALIDACIÓN DEL REQUEST =====
-                            if(type == "VALIDATION"){
-                            
-                                const messages  =   res.data.data.mensajes;
-                                console.log(messages);
-                                let message = ``;
-                                for (const key in messages) {
-                                    if (Object.hasOwnProperty.call(messages, key)) {
-                                        const element = messages[key];
-                                        message += `| ${element[0]} |`;
-                                    }
-                                }
-                                toastr.error(message,'ERROR DE VALIDACIÓN',{
-                                    timeOut: 0, 
-                                });
-                            }
-
-                            //======= MANEJANDO ERRORES EN ACCIONES SOBRE LA BD =====
-                            if(type == "DB"){
-                                const message       =   res.data.message;
-                                const exception  =   res.data.exception;
-
-                                toastr.error(exception,message,{
-                                    timeOut: 0, 
-                                });
-                            }
+                            toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
 
                         }
                     } catch (error) {
-                        toastr.error('ERROR EN EL SERVIDOR','ERROR',{
+                        toastr.error(error,'ERROR EN LA PETICIÓN REGULARIZAR VENTA',{
                                 timeOut: 0, 
                         });
                     }finally{
-                        toastr.clear(alerta_procesando);
+                        Swal.close();
                     }
 
                 }
@@ -849,16 +871,16 @@ export default {
         }
     },
     mounted() {
-
+        
     },
-};
+    };
 </script>
 <style>
     .tables_wrapper table.table-index tbody td{
         vertical-align:middle!important;
     }
     .dropdown-menu {
-    max-height: 100px; /* Establece la altura máxima del dropdown */
-    overflow-y: auto; /* Hace que el contenido sea deslizable verticalmente */
-}
+        max-height: 100px; 
+        overflow-y: auto; 
+    }
 </style>

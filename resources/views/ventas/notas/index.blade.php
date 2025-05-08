@@ -1,7 +1,9 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
+
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-12 col-md-8">
        <h2  style="text-transform:uppercase"><b>Listado de Notas de @if(isset($nota_venta)) Devoluciones @else Crédito / Débito @endif</b></h2>
@@ -29,7 +31,7 @@
                 <i class="fa fa-plus-square"></i> Nota de crédito
             </a>
             @endif
-            @if($documento->tipo_venta == '129' && docValido($documento->id))
+            @if($documento->tipo_venta_id == '129' && docValido($documento->id))
             <a href="{{ route('ventas.notas.create', array('documento_id' => $documento->id, 'nota' => '0','nota_venta' => 1)) }}" class="btn btn-block btn-w-m btn-primary m-t-md">
                 <i class="fa fa-plus-square"></i> Nota
             </a>
@@ -43,7 +45,7 @@
                     <i class="fa fa-plus-square"></i> Nota de crédito
                 </a>
                 @endif
-                @if($documento->tipo_venta == '129' && docValido($documento->id))
+                @if($documento->tipo_venta_id == '129' && docValido($documento->id))
                 <a href="{{ route('ventas.notas.create', array('documento_id' => $documento->id, 'nota' => '0','nota_venta' => 1)) }}" class="btn btn-block btn-w-m btn-primary m-t-md">
                     <i class="fa fa-plus-square"></i> Nota
                 </a>
@@ -317,7 +319,7 @@
                         //Ruta Detalle
 
                         let url_detalle = '{{ route("ventas.notas_dev.show", ":id")}}'
-                        if(data.tipo_venta != 129){
+                        if(data.tipo_venta_id != 129){
                             url_detalle = '{{ route("ventas.notas.show", ":id")}}';
                         }
 
@@ -325,7 +327,7 @@
 
                         let cadena = "<div class='btn-group' style='text-transform:capitalize;'><button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class='fa fa-bars'></i></button><ul class='dropdown-menu'>" ;
 
-                        if(data.tipo_venta != 129)
+                        if(data.tipo_venta_id != 129)
                         {
                             cadena = cadena +
                             "<li><a class='dropdown-item' target='_blank' onclick='detalle(" +data.id+ ")' title='Detalle'><b><i class='fa fa-eye'></i> Detalle</a></b></li>";
@@ -336,7 +338,7 @@
                             "<li><a class='dropdown-item' target='_blank' onclick='detalle_dev(" +data.id+ ")' title='Detalle'><b><i class='fa fa-eye'></i> Detalle</a></b></li>";
                         }
 
-                        if(data.tipo_venta != 129 && data.cdr_response_code != "0")
+                        if(data.tipo_venta_id != 129 && data.cdr_response_code != "0")
                         {
                             cadena = cadena + "<li class='d-none'><a class='dropdown-item' onclick='eliminar(" + data.id + ")' title='Eliminar'><b><i class='fa fa-trash'></i> Eliminar</a></b></li>" +
                             "<li class='dropdown-divider'></li>" +

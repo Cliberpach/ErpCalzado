@@ -84,29 +84,7 @@ class EmpresaSeeder extends Seeder
         $facturacion->save();*/
 
 
-        Numeracion::create([
-            'empresa_id' => $empresa->id,
-            'serie' => 'F001',
-            'tipo_comprobante' => 127,
-            'numero_iniciar' => 1,
-            'emision_iniciada' => 1,
-        ]);
-
-        Numeracion::create([
-            'empresa_id' => $empresa->id,
-            'serie' => 'B001',
-            'tipo_comprobante' => 128,
-            'numero_iniciar' => 1,
-            'emision_iniciada' => 1,
-        ]);
-
-        Numeracion::create([
-            'empresa_id' => $empresa->id,
-            'serie' => 'N001',
-            'tipo_comprobante' => 129,
-            'numero_iniciar' => 1,
-            'emision_iniciada' => 1,
-        ]);
+       
 
 
 

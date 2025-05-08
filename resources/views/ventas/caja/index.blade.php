@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('ventas-active', 'active')
 @section('ventas-caja-active', 'active')
@@ -27,14 +28,12 @@
 <script src="{{ asset('js/app.js?v='.rand()) }}"></script>
 <script>
     function comprobanteElectronico(id) {
-        var url = '{{ route("ventas.documento.comprobante", ":id")}}';
-        url = url.replace(':id',id+'-100');
+        const url = route("ventas.documento.comprobante", { id: id,size:100});
         window.open(url, "Comprobante SISCOM", "width=900, height=600")
     }
 
     function comprobanteElectronicoTicket(id) {
-        var url = '{{ route("ventas.documento.comprobante", ":id")}}';
-        url = url.replace(':id',id+'-80');
+        const url = route("ventas.documento.comprobante", { id: id,size:80});
         window.open(url, "Comprobante SISCOM", "width=900, height=600");
     }
 

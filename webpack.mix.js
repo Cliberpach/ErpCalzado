@@ -23,6 +23,7 @@ mix.js('resources/js/appNotify.js', 'public/js')
     resolve: {
         alias: {
             '@sass': path.resolve(__dirname, 'resources/sass'),
+            'jquery': require.resolve('jquery')
         }
     }
 }).sourceMaps()

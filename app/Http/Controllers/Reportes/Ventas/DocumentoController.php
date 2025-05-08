@@ -27,7 +27,7 @@ class DocumentoController extends Controller
             ->leftjoin('tipos_pago','tipos_pago.id','=','cotizacion_documento.tipo_pago_id')
             ->select(
                 'cotizacion_documento.id',
-                'cotizacion_documento.total as monto',
+                'cotizacion_documento.total_pagar as monto',
                 'cotizacion_documento.fecha_documento as fecha',
                 'clientes.nombre as cliente',
                 'condicions.descripcion as modo_pago',

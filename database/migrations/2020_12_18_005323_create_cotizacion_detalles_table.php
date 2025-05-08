@@ -17,8 +17,11 @@ class CreateCotizacionDetallesTable extends Migration
             $table->Increments('id');
             
             $table->unsignedInteger('cotizacion_id');
-            $table->foreign('cotizacion_id')->references('id')->on('cotizaciones')->onDelete('cascade');
+            $table->foreign('cotizacion_id')->references('id')->on('cotizaciones');
             
+            $table->unsignedInteger('almacen_id');
+            $table->foreign('almacen_id')->references('id')->on('almacenes');
+
             $table->unsignedInteger('producto_id');
             $table->foreign('producto_id')->references('id')->on('productos');
 
@@ -27,6 +30,11 @@ class CreateCotizacionDetallesTable extends Migration
 
             $table->unsignedInteger('talla_id');
             $table->foreign('talla_id')->references('id')->on('tallas');
+
+            $table->string('almacen_nombre',160);
+            $table->string('producto_nombre',160);
+            $table->string('color_nombre',160);
+            $table->string('talla_nombre',160);
             
             $table->unsignedDecimal('cantidad');
             $table->unsignedDecimal('precio_unitario');
@@ -37,13 +45,7 @@ class CreateCotizacionDetallesTable extends Migration
             $table->unsignedDecimal('importe_nuevo', 15, 2);
             $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
 
-            // $table->unsignedDecimal('precio_inicial', 15, 4);
-            // $table->unsignedDecimal('precio_unitario', 15, 4);
-            // $table->unsignedDecimal('descuento', 15, 4)->default(0.00);
-            // $table->unsignedDecimal('dinero', 15, 4)->default(0.00);
-            // $table->unsignedDecimal('precio_nuevo', 15, 4);
-            // $table->unsignedDecimal('valor_unitario', 15, 4);
-            // $table->unsignedDecimal('valor_venta', 15, 4);
+         
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
             $table->timestamps();
         });

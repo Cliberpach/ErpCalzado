@@ -1,103 +1,3 @@
-<style>
-    /* CSS */
-
-
-/*======== MODAL BODY ======*/
-.modal-header,
-.modal-body,
-.modal-footer {
-    background: rgba(255, 255, 255, 0); /* Fondo blanco con 20% de opacidad */
-    backdrop-filter: blur(10px); /* Desenfoque de fondo */
-    border-radius: 0px; /* Bordes redondeados, puedes ajustar si es necesario */
-    padding: 20px; /* Espaciado interno */
-    border: 1px solid rgba(255, 255, 255, 0.3); /* Borde opcional */
-    color: #fff; /* Color del texto blanco para buen contraste */
-}
-
-/* Opcional: Estilo del fondo del modal */
-.modal-content {
-    background: rgba(0, 0, 0, 0); /* Fondo semitransparente */
-}
-.modal-body{
-    color: #000000;
-}
-
-.lbl_mdl_cliente{
-    color: #fff;
-}
-
-/*============= OVERLAY CLIENTE ==========*/
-.overlay_modal_cliente {
-  position: fixed; /* Fija el overlay para que cubra todo el viewport */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
-  z-index: 9999; /* Asegura que el overlay esté sobre todo */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-size: 24px;
-  visibility:hidden;
-}
-
-/*========== LOADER SPINNER =======*/
-.loader_modal_cliente {
-    position: relative;
-    width: 75px;
-    height: 100px;
-    background-repeat: no-repeat;
-    background-image: linear-gradient(#DDD 50px, transparent 0),
-                      linear-gradient(#DDD 50px, transparent 0),
-                      linear-gradient(#DDD 50px, transparent 0),
-                      linear-gradient(#DDD 50px, transparent 0),
-                      linear-gradient(#DDD 50px, transparent 0);
-    background-size: 8px 100%;
-    background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px;
-    animation: pillerPushUp 4s linear infinite;
-  }
-.loader_modal_cliente:after {
-    content: '';
-    position: absolute;
-    bottom: 10px;
-    left: 0;
-    width: 10px;
-    height: 10px;
-    background: #de3500;
-    border-radius: 50%;
-    animation: ballStepUp 4s linear infinite;
-  }
-
-@keyframes pillerPushUp {
-  0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
-  50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
-}
-
-@keyframes ballStepUp {
-  0% {transform: translate(0, 0)}
-  5% {transform: translate(8px, -14px)}
-  10% {transform: translate(15px, -10px)}
-  17% {transform: translate(23px, -24px)}
-  20% {transform: translate(30px, -20px)}
-  27% {transform: translate(38px, -34px)}
-  30% {transform: translate(45px, -30px)}
-  37% {transform: translate(53px, -44px)}
-  40% {transform: translate(60px, -40px)}
-  50% {transform: translate(60px, 0)}
-  57% {transform: translate(53px, -14px)}
-  60% {transform: translate(45px, -10px)}
-  67% {transform: translate(37px, -24px)}
-  70% {transform: translate(30px, -20px)}
-  77% {transform: translate(22px, -34px)}
-  80% {transform: translate(15px, -30px)}
-  87% {transform: translate(7px, -44px)}
-  90% {transform: translate(0, -40px)}
-  100% {transform: translate(0, 0);}
-}
-
-</style>
 
 <div class="overlay_modal_cliente">
     <span class="loader_modal_cliente"></span>
@@ -265,7 +165,7 @@
                     marcados con asterisco (*) son obligatorios.</small>
             </div>
             <div class="col-md-6 text-right">
-                <button disabled id="btnGuardarCliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente" style="color:white;"><i
+                <button id="btnGuardarCliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente" style="color:white;"><i
                         class="fa fa-save"></i> Guardar</button>
                 <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" @click.prevent="Cerrar"><i
                         class="fa fa-times"></i> Cancelar</button>
@@ -287,6 +187,9 @@
     const departamentos     =   @json($departamentos);
     const formCliente       =   document.querySelector('#frmCliente');
 
+    function openModalCliente(){
+        $("#modal_cliente").modal("show");
+    }
 
     function controlNroDoc(e){
         const tipoDocSimbolo    =   e.value;

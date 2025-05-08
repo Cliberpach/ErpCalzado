@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('consulta-active', 'active')
 @section('consulta-comprobantes-active', 'active')
@@ -255,8 +256,8 @@
                     className: "text-center",
                     render: function(data) {
                         //Ruta Detalle
-                        var url_venta = '{{ route("ventas.documento.comprobante", ":id") }}';
-                        url_venta = url_venta.replace(':id', data.id+'-100');
+                        const url_venta = route("ventas.documento.comprobante", { id: data.id,size:100});
+
                         let url_nota = '{{ route("ventas.notas.show", ":id")}}';
                         url_nota = url_nota.replace(':id', data.id);
 
@@ -275,10 +276,10 @@
                             cadena =  cadena + "<a class='btn btn-sm btn-info m-1' href='"+ url_nota +"' target='_blank' title='Vista'><i class='fa fa-eye'></i> </a>";
                         }
 
-                        if(data.tipo == 129 && (data.convertir == '' || data.convertir == null) && data.sunat != '2')
-                        {
-                            cadena = cadena + "<a class='btn btn-sm btn-warning m-1' href='"+ url_convertir +"' title='Convertir'><i class='fa fa-exchange'></i> </a>"
-                        }
+                        // if(data.tipo == 129 && (data.convertir == '' || data.convertir == null) && data.sunat != '2')
+                        // {
+                        //     cadena = cadena + "<a class='btn btn-sm btn-warning m-1' href='"+ url_convertir +"' title='Convertir'><i class='fa fa-exchange'></i> </a>"
+                        // }
 
                         return cadena;
                     },

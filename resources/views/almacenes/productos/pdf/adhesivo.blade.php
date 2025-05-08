@@ -94,11 +94,11 @@
         @endphp
     @endforeach
 
-    {{-- @if ($cantidad >100)
+    @if ($cantidad >= 300 )
         @php
             $tipo_impresion = "LIMITADA"
         @endphp
-    @endif --}}
+    @endif 
 
     @if ($tipo_impresion == "LIBRE")
         @foreach ($nota_detalle as $producto)
@@ -119,40 +119,16 @@
                                 <span class="descripcion_span">COLOR: </span>
                                 <p class="producto" >{{$producto->color_nombre}}</p>
                             </div>
-                       
-                        
-                        {{-- <table>
-                            <tr>
-                                <td style="padding-left: 5px;padding-bottom:7px;padding-top:7px;">
-                                    @if($empresa->ruta_logo)
-                                        <img src="{{ base_path() . '/storage/app/'.$empresa->ruta_logo }}"  class="img-fluid" style="height: 20px;object-fit:cover;"> 
-                                    @else
-                                        <img src="{{ public_path() . '/img/default.png' }}" class="img-fluid">
-                                    @endif
-                                </td>
-                                <td style="padding-left: 8px;">
-                                    <p class="datos-empresa">
-                                        <span style="font-weight:bold;">RUC: </span>{{$empresa->ruc}}
-                                    </p>
-                                    <p class="empresa_nombre">{{$empresa->razon_social}}</p>
-                                    <p class="datos-empresa">{{$empresa->direccion_fiscal}}</p>
-                                    <p class="datos-empresa">{{$empresa->correo}}</p>
-                                </td>
-                            </tr>
-                            <tr style="border-top:solid 1px black;">
-                                <td colspan="2" style="padding-left:5px;">
-                                    <p class="producto" ><span class="descripcion_span">TIPO: </span>{{$producto->categoria_nombre}}</p>
-                                    <p class="producto" ><span class="descripcion_span">MODELO: </span>{{$producto->modelo_nombre}}</p>
-                                    <p class="producto" ><span class="descripcion_span">COLOR: </span>{{$producto->color_nombre}}</p>
-                                </td>
-                            </tr>
-                        </table> --}}
                     </td>
                     <td width="45%" style="border-left:solid 1px black;height:100%;" >
                        
                         <div style="padding:5px;vertical-align: top;text-align:center;height:32px;">
                             <div style="border: .5px dashed black; border-radius: 4px; width:90%;margin:0 auto;padding:1.7px;" >
-                                <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class="img_cod_barras">
+                                @if ($producto->ruta_cod_barras)
+                                    <img src="{{ base_path() . '/storage/app/'.$producto->ruta_cod_barras }}" class="img_cod_barras">
+                                @else
+                                    <img src="#" alt="SIN CÓDIGO DE BARRAS">
+                                @endif
                                 <p style="font-size: 10px;margin:0;padding:0;">{{'775'.$producto->modelo_id.$producto->producto_id.$producto->color_id.$producto->talla_id}}</p>    
                             </div>
                         </div>
@@ -168,7 +144,7 @@
         @endforeach
     @endif
 
-    {{-- @if ($tipo_impresion == "LIMITADA")
+    @if ($tipo_impresion == "LIMITADA")
         @foreach ($nota_detalle as $producto)
             @for ($i = 0; $i < 1; $i++)
             <table>
@@ -187,36 +163,6 @@
                                 <span class="descripcion_span">COLOR: </span>
                                 <p class="producto" >{{$producto->color_nombre}}</p>
                             </div>
-                       
-                        PARTE COMENTADA INICIO
-                        <table>
-                            <tr>
-                                <td style="padding-left: 5px;padding-bottom:7px;padding-top:7px;">
-                                    @if($empresa->ruta_logo)
-                                        <img src="{{ base_path() . '/storage/app/'.$empresa->ruta_logo }}"  class="img-fluid" style="height: 20px;object-fit:cover;"> 
-                                    @else
-                                        <img src="{{ public_path() . '/img/default.png' }}" class="img-fluid">
-                                    @endif
-                                </td>
-                                <td style="padding-left: 8px;">
-                                    <p class="datos-empresa">
-                                        <span style="font-weight:bold;">RUC: </span>{{$empresa->ruc}}
-                                    </p>
-                                    <p class="empresa_nombre">{{$empresa->razon_social}}</p>
-                                    <p class="datos-empresa">{{$empresa->direccion_fiscal}}</p>
-                                    <p class="datos-empresa">{{$empresa->correo}}</p>
-                                </td>
-                            </tr>
-                            <tr style="border-top:solid 1px black;">
-                                <td colspan="2" style="padding-left:5px;">
-                                    <p class="producto" ><span class="descripcion_span">TIPO: </span>{{$producto->categoria_nombre}}</p>
-                                    <p class="producto" ><span class="descripcion_span">MODELO: </span>{{$producto->modelo_nombre}}</p>
-                                    <p class="producto" ><span class="descripcion_span">COLOR: </span>{{$producto->color_nombre}}</p>
-                                </td>
-                            </tr>
-                        </table> 
-                        PARTE COMENTADA FIN
-
                     </td>
                     <td width="45%" style="border-left:solid 1px black;height:100%;" >
                        
@@ -236,7 +182,7 @@
             </table>
             @endfor
         @endforeach
-    @endif --}}
+    @endif 
    
 </body>
 </html>

@@ -363,14 +363,10 @@
                                             <div class="checkmark_kick"></div>
                                         </span>
                                     </div>
-                                @else
-                                    <div class="cont-remove">
-                                        <span class="remove">
-                                            <div class="remove_stem"></div>
-                                            <div class="remove_kick"></div>
-                                        </span>
-                                    </div>
+                                @elseif($ventas->documento->estado === 'ANULADO')
+                                    ANULADO
                                 @endif
+                            
                             </td>
                             <td style="text-align: center; border-right: 2px solid #52BE80;">
                                 {{$ventas->cobrar}}

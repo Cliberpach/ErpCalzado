@@ -5,13 +5,13 @@
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
-       <h2  style="text-transform:uppercase"><b>Listado de Nota de Salidad</b></h2>
+       <h2  style="text-transform:uppercase"><b>Listado de Notas de Salida</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{route('home')}}">Panel de Control</a>
             </li>
             <li class="breadcrumb-item active">
-                <strong>Nota de Salidad</strong>
+                <strong>Nota de Salida</strong>
             </li>
         </ol>
     </div>
@@ -28,23 +28,7 @@
             <div class="ibox ">
                 <div class="ibox-content">
                     <div class="table-responsive">
-                        <table class="table dataTables-ingreso_mercaderia table-striped table-bordered table-hover"
-                        style="text-transform:uppercase">
-                            <thead>
-                                <tr>
-                                    <th class="text-center">#</th>
-                                    <th class="text-center">Usuario</th>
-                                    <th class="text-center">Fecha Registro</th>
-                                    <th class="text-center">Destino</th>
-                                    <th class="text-center">Producto</th>
-                                    <th class="text-center">Observaciones</th>
-                                    <th class="text-center">ACCIONES</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                            </tbody>
-                        </table>
+                        @include('almacenes.nota_salidad.tables.tbl_ns_list')
                     </div>
                 </div>
             </div>
@@ -101,10 +85,10 @@ $(document).ready(function() {
             //{ data: 'id',className: "text-center"},
              
             { data: 'id',className: "text-center"},
-            { data: 'usuario',className: "text-center"},
+            { data: 'registrador_nombre',className: "text-center"},
             { data: 'created_at',className: "text-center"},
-            { data: 'destino',className: "text-center"}, 
-            
+            { data: 'almacen_origen_nombre',className: "text-center"}, 
+            { data: 'almacen_destino_nombre',className: "text-center"}, 
             { data: 'cadena_detalles',className: "text-center"},
             { data: 'observacion',className: "text-center"}, 
             {

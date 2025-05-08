@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 @section('caja-active', 'active')
 @section('caja-chica-active', 'active')
 @include('pos.Cajas.modalcreate')

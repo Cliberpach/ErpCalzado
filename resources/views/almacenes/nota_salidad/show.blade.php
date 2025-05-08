@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout')
+ @section('content')
 
 @section('almacenes-active', 'active')
 @section('nota_salidad-active', 'active')
@@ -100,7 +101,7 @@
                                     <div class="panel-body">
                                         <hr>
                                         <div class="table-responsive">
-                                            @include('almacenes.nota_salidad.table-detalles')
+                                            @include('almacenes.nota_salidad.tables.tbl_ns_detalle')
                                         </div>
                                     </div>
                                 </div>
@@ -162,10 +163,7 @@
 <script>
 
 
-
-
 document.addEventListener('DOMContentLoaded',()=>{
-
     cargarSelect2();
     pintarDetalleNotaSalida();
 })
@@ -180,27 +178,41 @@ function cargarSelect2(){
 }
 
 function pintarDetalleNotaSalida(){
-    const detalles          =   @json($detalle);
-    const tallas            =   @json($tallas);
-    const bodyTablaDetalles =   document.querySelector('#table-detalle-notasalida tbody');
-    let fila              =   ``;
- 
-    detalles.forEach((d)=>{
-        fila    +=  `<tr>
-                        <th scope="row"></th>
-                        <td style="font-weight:bold;">${d.producto_nombre} - ${d.color_nombre}</td>`;
 
-        tallas.forEach((t)=>{
-            if(t.id == d.talla_id ){
-                fila    +=  `<td style="font-weight:bold;">${d.cantidad}</td>`;
-            }else{
-                fila    +=  `<td></td>`;
-            }
-        })
+    let filas= ``;
+    let htmlTallas                  =   ``;
+    const producto_color_procesado  =   [];
+    const bodyTablaDetalles         =   document.querySelector('#tabla_ns_detalle tbody');
+    const detalles                  =   @json($detalle);
+    const tallas                    =   @json($tallas);
 
-        fila    +=      `</tr>`;  
+    detalles.forEach((c)=>{
+        htmlTallas=``;
+        if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
+                
+            filas+= `<tr>   
+                        <td> </td>
+                        <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
+
+            //tallas
+            tallas.forEach((t)=>{
+                let cantidad = detalles.filter((ct)=>{
+                    return ct.producto_id==c.producto_id && ct.color_id==c.color_id && t.id==ct.talla_id;
+                });
+                cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
+                htmlTallas += `<td>${cantidad}</td>`; 
+            })
+
+
+            
+            filas    +=  htmlTallas;
+            filas    +=  `</tr>`;
+            producto_color_procesado.push(`${c.producto_id}-${c.color_id}`)
+        }
     })
-    bodyTablaDetalles.innerHTML      =   fila;
+
+    bodyTablaDetalles.innerHTML  =   filas;
+
 }
 
 </script>

@@ -736,155 +736,115 @@
     }
 
     //============ ENVIAR VENTA ===================
-    function enviarVenta()
-    {
-        axios.get("{{ route('Caja.movimiento.verificarestado') }}").then((value) => {
-            let data = value.data;
+    async function enviarVenta() {
+        try {
+            
+            let response    = await axios.get("{{ route('Caja.movimiento.verificarestado') }}");
+            let data        = response.data;
+
             if (!data.success) {
                 toastr.error(data.mensaje);
                 btnGrabar.disabled = false;
-            } else {
-                let envio_ok = true;
-
-                var tipo = validarTipo();
-
-                if (tipo) {
-                    cargarProductos();
-                    
-
-                    document.getElementById("moneda").disabled                  = false;
-                    document.getElementById("observacion").disabled             = false;
-                    document.getElementById("fecha_documento_campo").disabled   = false;
-                    document.getElementById("fecha_atencion_campo").disabled    = false;
-                    document.getElementById("empresa_id").disabled              = false;
-                    document.getElementById("cliente_id").disabled              = false;
-                    document.getElementById("condicion_id").disabled            = false;
-                    //HABILITAR EL CARGAR PAGINA
-                    // $('#asegurarCierre').val(2)
-
-                    //====== EVITAR DEVOLUCIÓN DE STOCKS ==========
-                    asegurarCierre = 2;
-                    console.log(asegurarCierre);
-
-                    //$('#enviar_documento').submit();
-                }
-                else
-                {
-                    envio_ok = false;
-                }
-
-                if(envio_ok)
-                {
-                    //let formDocumento = document.getElementById('enviar_documento');
-                    let formData = new FormData(formDocumento);
-
-                    var object = {};
-                    formData.forEach(function(value, key){
-                        object[key] = value;
-                    });
-
-                    //var json = JSON.stringify(object);
-
-                    var datos = object;
-                    
-
-                    //========== CUERPO DE LA PETICION HTTP =======
-                    var init = {
-                         method: "POST",
-                         headers: { 
-                             'Content-Type': 'application/json'
-                         },
-                         body: JSON.stringify(datos) 
-                    };
-
-                    //======== RUTA PARA GRABAR EL DOCUMENTO DE VENTA ==========
-                    var url = '{{ route("ventas.documento.store") }}';
-
-                    //====== ALERTA PREGUNTA =========
-                    var textAlert = "¿Seguro que desea guardar cambios?";
-
-                    Swal.fire({
-                        title: "¿Seguro que desea guardar cambios?",
-                        text: "Se generará el documento de venta!",
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonColor: "#3085d6",
-                        cancelButtonColor: "#d33",
-                        confirmButtonText: "Sí, genéralo!"
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                console.log('redireccionando a store document');
-
-                                //======= REALIZAR CONSULTA FETCH =======
-                                fetch(url,init)
-                                .then(response => {
-                                    if (!response.ok) {
-                                        throw new Error(response.statusText)
-                                    }
-                                      return response.json()
-                                }).then((result)=>{
-                                    console.log(result);
-                                    
-                                        if(result.errors)
-                                        {
-                                            let mensaje = sHtmlErrores("result.value.data.mensajes");
-                                            toastr.error(mensaje);
-                                            asegurarCierre = 1;
-                                            document.getElementById("moneda").disabled = true;
-                                            document.getElementById("observacion").disabled = true;
-                                            document.getElementById("fecha_documento_campo").disabled = true;
-                                            document.getElementById("fecha_atencion_campo").disabled = true;
-                                            document.getElementById("empresa_id").disabled = true;
-                                            @if (!empty($cotizacion))
-                                                document.getElementById("cliente_id").disabled = true;
-                                            @endif
-                                        }
-                                        
-                                        if(result.success)
-                                        {
-                                            toastr.success('¡Documento de venta creado!','Exito')
-
-                                            let id              = result.documento_id;
-                                            var url_open_pdf    = '{{ route("ventas.documento.comprobante", ":id")}}';
-                                            url_open_pdf        = url_open_pdf.replace(':id',id+'-80');
-                                            asegurarCierre      = 2;
-
-                                            window.open(url_open_pdf,'Comprobante SISCOM','location=1, status=1, scrollbars=1,width=900, height=600');
-
-                                            location = "{{ route('ventas.documento.index') }}";
-                                        }else{
-                                            toastr.error(result.mensaje,'ERROR AL GENERAR EL DOC DE VENTA');
-                                            asegurarCierre  =   1;
-                                        }
-
-                                         
-                                })
-                                .catch(error => {
-                                    alert('error');
-                                  console.log(error);
-                                  asegurarCierre = 1;
-                                })
-
-                                console.log(asegurarCierre);
-                            
-                            }else{
-                                asegurarCierre  =   1;
-                                btnGrabar.disabled = false;
-                                console.log(asegurarCierre);
-                                document.getElementById("moneda").disabled                  = true;
-                                document.getElementById("observacion").disabled             = true;
-                                document.getElementById("fecha_documento_campo").disabled   = true;
-                                document.getElementById("fecha_atencion_campo").disabled    = true;
-                                document.getElementById("empresa_id").disabled              = true;
-                                document.getElementById("cliente_id").disabled              = true;
-                                document.getElementById("condicion_id").disabled            = true;
-                            }
-                    });
-
-                }
+                return;
             }
-        })
+
+            let envio_ok = true;
+            let tipo = validarTipo();
+
+            if (tipo) {
+                cargarProductos();
+
+                // Habilitar campos del formulario
+                document.getElementById("moneda").disabled = false;
+                document.getElementById("observacion").disabled = false;
+                document.getElementById("fecha_documento_campo").disabled = false;
+                document.getElementById("fecha_atencion_campo").disabled = false;
+                document.getElementById("empresa_id").disabled = false;
+                document.getElementById("cliente_id").disabled = false;
+                document.getElementById("condicion_id").disabled = false;
+
+                // Evitar devolución de stocks
+                asegurarCierre = 2;
+                console.log(asegurarCierre);
+            } else {
+                envio_ok = false;
+            }
+
+            if (!envio_ok) return;
+
+            let formData = new FormData(formDocumento);
+            let datos = object;
+
+            let url = '{{ route("ventas.documento.store") }}';
+
+            let textAlert = "¿Seguro que desea guardar cambios?";
+
+            let result = await Swal.fire({
+                title: textAlert,
+                text: "Se generará el documento de venta!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sí, genéralo!"
+            });
+
+            if (!result.isConfirmed) {
+                asegurarCierre = 1;
+                btnGrabar.disabled = false;
+                return;
+            }
+
+            console.log('Redireccionando a store document');
+
+            // Enviar datos con Fetch
+            let responseFetch = await fetch(url, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            });
+
+            if (!responseFetch.ok) throw new Error(responseFetch.statusText);
+
+            let resultData = await responseFetch.json();
+            console.log(resultData);
+
+            if (resultData.errors) {
+                let mensaje = sHtmlErrores("result.value.data.mensajes");
+                toastr.error(mensaje);
+                asegurarCierre = 1;
+                document.getElementById("moneda").disabled = true;
+                document.getElementById("observacion").disabled = true;
+                document.getElementById("fecha_documento_campo").disabled = true;
+                document.getElementById("fecha_atencion_campo").disabled = true;
+                document.getElementById("empresa_id").disabled = true;
+                document.getElementById("cliente_id").disabled = true;
+                return;
+            }
+
+            if (resultData.success) {
+                toastr.success('¡Documento de venta creado!', 'Éxito');
+
+                let id = resultData.documento_id;
+                let url_open_pdf = '{{ route("ventas.documento.comprobante", [":id1", ":size"]) }}'
+                    .replace(':id1', id)
+                    .replace(':size', 80);
+
+                asegurarCierre = 2;
+
+                window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
+                location = "{{ route('ventas.documento.index') }}";
+            } else {
+                toastr.error(resultData.mensaje, 'ERROR AL GENERAR EL DOC DE VENTA');
+                asegurarCierre = 1;
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert('Ocurrió un error inesperado.');
+            asegurarCierre = 1;
+        }
     }
+
 
     //========== LIBRERIA SELECT 2 =============
     const cargarSelect2 =   ()=>{

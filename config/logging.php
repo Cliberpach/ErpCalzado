@@ -35,6 +35,25 @@ return [
     */
 
     'channels' => [
+
+        'resumenes' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/resumenes.log'),
+            'level' => 'info',
+        ],
+
+        'notas_credito' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/notas_credito.log'),
+            'level' => 'info',
+        ],
+
+        'facturas' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/facturas.log'),
+            'level' => 'info',
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => ['single'],

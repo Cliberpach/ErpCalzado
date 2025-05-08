@@ -365,10 +365,11 @@ function loadTable()
 
                     let cadena = "";
 
-                    if(data.sunat != '2' && data.dias > 0)
+                    /*if(data.sunat != '2' && data.dias > 0)
                     {
                         cadena = cadena + "<a href='"+url_edit+"'  class='btn btn-sm btn-secondary m-1 btn-rounded'  title='Editar'><i class='fa fa-pencil'></i> Editar</a>"
                     }
+                    */
 
                     if(data.sunat == '0' && data.dias > 0 && data.tipo_venta_id != 129)
                     {
@@ -460,14 +461,12 @@ function modificar(cotizacion,id) {
 }
 
 function comprobanteElectronico(id) {
-    var url = '{{ route("ventas.documento.comprobante", ":id")}}';
-    url = url.replace(':id',id+'-100');
+    const url = route("ventas.documento.comprobante", { id: id,size:100});
     window.open(url, "Comprobante SISCOM", "width=900, height=600")
 }
 
 function comprobanteElectronicoTicket(id) {
-    var url = '{{ route("ventas.documento.comprobante", ":id")}}';
-    url = url.replace(':id',id+'-80');
+    const url = route("ventas.documento.comprobante", { id: id,size:80});
     window.open(url, "Comprobante SISCOM", "width=900, height=600");
 }
 

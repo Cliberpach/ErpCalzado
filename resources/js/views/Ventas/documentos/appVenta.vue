@@ -3,7 +3,7 @@
         <div class="row wrapper border-bottom white-bg page-heading align-items-end">
             <div class="col-12 col-md-10">
                 <h2 style="text-transform:uppercase">
-                    <b v-if="ruta == 'index'">Listado de Documentos de Venta</b>
+                    <b v-if="ruta == 'index'">Lista de Documentos de Venta</b>
                     <b v-if="ruta == 'create'">REGISTRAR NUEVO DOCUMENTO DE VENTA</b>
                 </h2>
                 <ol class="breadcrumb">
@@ -36,14 +36,31 @@
             <venta-lista :imginicial="imginicial" />
         </template>
         <template v-if="ruta == 'create'">
-            <venta-create :ruta.sync="ruta" :idcotizacion="idcotizacion" />
+            <venta-create :ruta.sync="ruta" 
+            :registrador="this.registrador"
+            :idcotizacion="idcotizacion" 
+            :lst_almacenes="this.lst_almacenes"
+            :lst_departamentos_base="this.lst_departamentos_base"
+            :lst_provincias_base="this.lst_provincias_base"
+            :lst_distritos_base="this.lst_distritos_base" 
+            />
         </template>
     </div>
 </template>
+
 <script>
+
 export default {
     name: "AppVue",
-    props: ["imginicial"],
+    props: [
+        "imginicial",
+        "registrador",
+        "lst_almacenes",
+        "lst_departamentos_base",
+        "lst_provincias_base",
+        "lst_distritos_base"],
+    components:{
+    },
     data() {
         return {
             ruta: "index",
@@ -52,7 +69,7 @@ export default {
     },
     watch: {
         ruta(data) {
-            console.log(data);
+          
             if (data == "create") {
                 let cotizacion = this.idcotizacion == 0 ? '' : '?cotizacion=' + this.idcotizacion;
                 let url = route('ventas.documento.create') + cotizacion;
@@ -67,6 +84,7 @@ export default {
     },
     created() {
         try {
+
             let url = location.href.split('/');
             let pathUrl = url[url.length - 1];
             let pathUrlGet = pathUrl.split('?');
@@ -105,7 +123,10 @@ export default {
         }
     },
     mounted() {
-
+        
     }
+    
 }
+
+
 </script>

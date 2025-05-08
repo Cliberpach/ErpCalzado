@@ -6,16 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Numeracion extends Model
 {
-    protected $table = 'empresa_numeracion_facturaciones';
-    public $timestamps = true;
-    protected $fillable =[
-        'empresa_id',
-        'serie',
-        'tipo_comprobante',
-        'numero_iniciar',
-        'emision_iniciada',
-        'estado'
-    ];
+    protected $table    =   'empresa_numeracion_facturaciones';
+    public $timestamps  =   true;
+    
+    public $guarded     =   [''];
 
     public function empresa()
     {

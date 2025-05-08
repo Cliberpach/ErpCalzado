@@ -124,7 +124,7 @@
 </li>
 @endcan
 
-@can('restore', [Auth::user(),['almacen.index','categoria.index','marca.index','producto.index','nota_ingreso.index','nota_salida.index']])
+@can('restore', [Auth::user(),['almacen.index','categoria.index','marca.index','producto.index','nota_ingreso.index','nota_salida.index','solicitudes_traslado.index','traslados.index','vehiculos.index','conductores.index']])
 <li class="@yield('almacenes-active')">
     <a href="#"><i class="fa fa-bar-chart-o"></i> <span class="nav-label">Almacén</span><span
             class="fa arrow"></span></a>
@@ -157,6 +157,18 @@
         @endcan
         @can('haveaccess', 'nota_salida.index')
             <li class="@yield('nota_salidad-active')"><a href="{{ route('almacenes.nota_salidad.index') }}">Nota Salida</a></li>
+        @endcan
+        @can('haveaccess', 'solicitudes_traslado.index')
+        <li class="@yield('solicitudes_traslado-active')"><a href="{{ route('almacenes.solicitud_traslado.index') }}">Solicitudes Traslado</a></li>
+        @endcan
+        @can('haveaccess', 'traslados.index')
+            <li class="@yield('traslados-active')"><a href="{{ route('almacenes.traslados.index') }}">Traslados</a></li>
+        @endcan
+        @can('haveaccess', 'vehiculos.index')
+            <li class="@yield('vehiculos-active')"><a href="{{ route('almacenes.vehiculos.index') }}">Vehículos</a></li>
+        @endcan
+        @can('haveaccess', 'conductores.index')
+            <li class="@yield('conductores-active')"><a href="{{ route('almacenes.conductores.index') }}">Conductores</a></li>
         @endcan
     </ul>
 </li>
@@ -332,7 +344,7 @@
 @endcan
 
 
-@can('restore', [Auth::user(),['colaborador.index','vendedor.index','empresa.index','condicion.index','tabla.index','configuracion.index','metodo_entrega.index']])
+@can('restore', [Auth::user(),['colaborador.index','vendedor.index','empresa.index','sedes.index','condicion.index','tabla.index','configuracion.index','metodo_entrega.index']])
 <li class="@yield('mantenimiento-active')">
     <a href="#"><i class="fa fa-cogs"></i> <span class="nav-label">Mantenimento</span><span
             class="fa arrow"></span></a>
@@ -346,6 +358,9 @@
         @can('haveaccess', 'empresa.index')
         <li class="@yield('empresas-active')"><a href="{{ route('mantenimiento.empresas.index') }}">Empresas</a></li>
         @endcan
+        @can('haveaccess', 'sedes.index')
+        <li class="@yield('sedes-active')"><a href="{{ route('mantenimiento.sedes.index') }}">Sedes</a></li>
+        @endcan
         @can('haveaccess','condicion.index')
             <li class="@yield('condicion-active')"><a href="{{ route('mantenimiento.condiciones.index') }}">Condiciones de Pago</a></li>
         @endcan
@@ -358,6 +373,7 @@
         @can('haveaccess', 'metodo_entrega.index')
         <li class="@yield('metodo_entrega-active')"><a href="{{ route('mantenimiento.metodo_entrega.index') }}">Métodos Entrega</a></li>
         @endcan
+
     </ul>
 </li>
 @endcan

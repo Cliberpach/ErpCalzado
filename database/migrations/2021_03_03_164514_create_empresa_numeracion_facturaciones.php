@@ -15,8 +15,13 @@ class CreateEmpresaNumeracionFacturaciones extends Migration
     {
         Schema::create('empresa_numeracion_facturaciones', function (Blueprint $table) {
             $table->Increments('id');
+
             $table->unsignedInteger('empresa_id');
             $table->foreign('empresa_id')->references('id')->on('empresas')->onDelete('cascade');
+            
+            $table->unsignedBigInteger('sede_id'); 
+            $table->foreign('sede_id')->references('id')->on('empresa_sedes');
+
             $table->string('serie');
             $table->string('tipo_comprobante');
             $table->BigInteger('numero_iniciar');

@@ -26,7 +26,7 @@ class BuscarController extends Controller
             $documento = $request->documento;
             $total = $request->total;
 
-            $comprobantes = Documento::where('tipo_venta',$tipo_documento)->where('fecha_documento',$fecha_emision)->where('serie',$serie)->where('correlativo',$correlativo)->where('documento_cliente',$documento)->where('total',$total)->where('estado','!=','ANULADO')->get();
+            $comprobantes = Documento::where('tipo_venta_id',$tipo_documento)->where('fecha_documento',$fecha_emision)->where('serie',$serie)->where('correlativo',$correlativo)->where('documento_cliente',$documento)->where('total',$total)->where('estado','!=','ANULADO')->get();
 
             if(count($comprobantes) > 0)
             {

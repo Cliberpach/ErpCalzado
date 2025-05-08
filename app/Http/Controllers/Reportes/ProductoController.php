@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Reportes;
 
+use App\Almacenes\Almacen;
+use App\Almacenes\CodigoBarra;
 use App\Almacenes\DetalleNotaIngreso;
 use App\Almacenes\DetalleNotaSalidad;
 use App\Almacenes\NotaIngreso;
@@ -21,12 +23,17 @@ use App\Ventas\NotaDetalle;
 use App\Mantenimiento\Empresa\Empresa;
 use Barryvdh\DomPDF\Facade as PDF;
 use App\Almacenes\ProductoColorTalla;
+use App\Mantenimiento\Sedes\Sede;
+use Carbon\Carbon;
 
 class ProductoController extends Controller
 {
     public function informe()
-    {
-        return view('reportes.almacenes.producto.informe');
+    {   
+        $sedes          =   Sede::where('estado','ACTIVO')->get();
+        $almacenes      =   Almacen::where('estado','ACTIVO')->get();
+
+        return view('reportes.almacenes.producto.informe',compact('sedes','almacenes'));
     }
 
     public function getTable()
@@ -68,33 +75,37 @@ class ProductoController extends Controller
         return DataTables::of($coleccion)->make(true);
     }
 
-    public function llenarVentas($producto_id,$color_id,$talla_id)
+    public function llenarVentas($almacen_id,$producto_id,$color_id,$talla_id)
     {
         ini_set('memory_limit', '1024M');
         try{
-            $ventas = DocumentoDetalle::orderBy('id', 'desc')
-            ->where('estado', 'ACTIVO')
-            ->where("producto_id",$producto_id)
-            ->where("color_id",$color_id)
-            ->where("talla_id",$talla_id)
-            ->get();
+            $ventas =   DB::table('cotizacion_documento_detalles as cdd')
+                        ->join('cotizacion_documento as cd','cd.id','cdd.documento_id')
+                        ->join('users as u','u.id','cd.user_id')
+                        ->join('empresa_sedes as es','es.id','cd.sede_id')
+                        ->join('almacenes as a as a','a.id','cd.almacen_id')
+                        ->leftJoin('empresa_sedes as esd','esd.id','a.sede_id')
+                        ->select(
+                            DB::raw("CONCAT(cd.tipo_documento_cliente,':',cd.documento_cliente,'-',cd.cliente) as cliente"),
+                            'u.usuario as registrador_nombre',
+                            'es.nombre as sede_nombre',
+                            'esd.nombre as sede_despacho_nombre',
+                            'cd.tipo_venta_nombre as documento',
+                            DB::raw("CONCAT(cd.serie,'-',cd.correlativo) as serie"),
+                            'cd.created_at as fecha',
+                            DB::raw("FLOOR(cdd.cantidad) as cantidad"),
+                            'cdd.precio_unitario_nuevo',
+                            'cd.convert_en_serie'
+                        )
+                        ->where('cd.almacen_id',$almacen_id)
+                        ->where('cdd.estado', 'ACTIVO')
+                        ->where("cdd.producto_id",$producto_id)
+                        ->where("cdd.color_id",$color_id)
+                        ->where("cdd.talla_id",$talla_id)
+                        ->get();
           
-            $coleccion = collect([]);
-            foreach ($ventas as $producto) {
-                $coleccion->push([
-                    'cliente'               =>  $producto->documento->clienteEntidad->nombre,
-                    'documento'             =>  $producto->documento->nombreTipo(),
-                    'numero'                =>  $producto->documento->serie . '-' . $producto->documento->correlativo,
-                    'fecha_emision'         =>  $producto->documento->fecha_atencion,
-                    'cantidad'              =>  $producto->cantidad,
-                    'precio_unitario_nuevo' =>  $producto->precio_unitario_nuevo,
-                    'convertir'             =>  $producto->documento->doc_convertido(),
-                    'usuario'               =>  $producto->documento->usuario()    
-                    // 'fecha_vencimiento' => $producto->documento->fecha_vencimiento,
-                    // 'medida' => $producto->producto->medidaCompleta(),
-                ]);
-            }
-            return DataTables::of($coleccion)->make(true);
+          
+            return DataTables::of($ventas)->make(true);
         }catch(\Exception $ex){
             dd($ex->getMessage());
             return response()->json([
@@ -106,50 +117,19 @@ class ProductoController extends Controller
                 "ex"=>$ex
             ]);
         }
-        // try{
-        //     $ventas = DocumentoDetalle::orderBy('id', 'desc')
-        //     ->where('estado', 'ACTIVO')
-        //     ->where("eliminado","0")
-        //     ->get();
-        //     $coleccion = collect([]);
-        //     foreach ($ventas as $producto) {
-        //         if ($producto->lote->producto_id == $id) {
-        //             $coleccion->push([
-        //                 'cliente' => $producto->documento->clienteEntidad->nombre,
-        //                 'documento' => $producto->documento->nombreTipo(),
-        //                 'numero' => $producto->documento->serie . '-' . $producto->documento->correlativo,
-        //                 'fecha_emision' => $producto->documento->fecha_atencion,
-        //                 'cantidad' => $producto->cantidad,
-        //                 'precio' => $producto->precio_nuevo,
-        //                 'lote' => $producto->lote->codigo_lote,
-        //                 'fecha_vencimiento' => $producto->documento->fecha_vencimiento,
-        //                 'medida' => $producto->lote->producto->medidaCompleta(),
-        //             ]);
-        //         }
-        //     }
-        //     return DataTables::of($coleccion)->make(true);
-        // }catch(\Exception $ex){
-        //     return response()->json([
-        //         "data"=> [],
-        //         "draw"=> 0,
-        //         "input"=>"1664832061783",
-        //         "recordsFiltered"=>0,
-        //         "recordsTotal"=> 0,
-        //         "ex"=>$ex
-        //     ]);
-        // }
     }
 
-    public function llenarNotasCredito($producto_id,$color_id,$talla_id)
+    public function llenarNotasCredito($almacen_id,$producto_id,$color_id,$talla_id)
     {
         ini_set('memory_limit', '1024M');
         
         try{
-            $detalle_notas_credito = NotaDetalle::orderBy('id', 'desc')
-            ->where("producto_id",$producto_id)
-            ->where("color_id",$color_id)
-            ->where("talla_id",$talla_id)
-            ->get();
+            $detalle_notas_credito  =   NotaDetalle::orderBy('id', 'desc')
+                                        ->where('almacen_id',$almacen_id)
+                                        ->where("producto_id",$producto_id)
+                                        ->where("color_id",$color_id)
+                                        ->where("talla_id",$talla_id)
+                                        ->get();
           
             $coleccion = collect([]);
             foreach ($detalle_notas_credito as $producto) {
@@ -179,72 +159,100 @@ class ProductoController extends Controller
         }
     }
 
-    public function llenarSalidas($producto_id,$color_id,$talla_id)
+    public function llenarSalidas($almacen_id,$producto_id,$color_id,$talla_id)
     {
-        $salidas = DB::table('detalle_nota_salidad')
-        ->join('nota_salidad', 'nota_salidad.id', '=', 'detalle_nota_salidad.nota_salidad_id')
-        ->join('productos', 'productos.id','=', 'detalle_nota_salidad.producto_id')
-        ->join('tabladetalles', 'tabladetalles.id','=','productos.medida')
-        // ->join('lote_productos', 'lote_productos.id', '=', 'detalle_nota_salidad.lote_id')
-        ->select(
-            'detalle_nota_salidad.cantidad',
-            'nota_salidad.origen',
-            'nota_salidad.destino',
-            'nota_salidad.fecha',
-            'nota_salidad.usuario',
-            //'lote_productos.codigo_lote',
-            'tabladetalles.descripcion as unidad'
-        )
-        ->where('detalle_nota_salidad.producto_id', $producto_id)  
-        ->where('detalle_nota_salidad.color_id', $color_id)    
-        ->where('detalle_nota_salidad.talla_id', $talla_id)      
-        ->where('nota_salidad.estado', '!=', 'ANULADO')->get();
-
-        $coleccion = collect([]);
-        foreach ($salidas as $salida) {
-            $coleccion->push([
-                'origen'    =>  $salida->origen,
-                'destino'   =>  $salida->destino,
-                'cantidad'  =>  $salida->cantidad,
-                //'lote' => $salida->codigo_lote,
-                'fecha'     =>  $salida->fecha,
-                'medida'    =>  $salida->unidad,
-                'usuario'   =>  $salida->usuario
-            ]);
-        }
-        return DataTables::of($coleccion)->make(true);
-    }
-
-    public function llenarIngresos($producto_id,$color_id,$talla_id)
-    {
-        $ingresos = DetalleNotaIngreso::orderBy('id', 'desc')
-                    ->where('producto_id', $producto_id)
-                    ->where('color_id', $color_id)
-                    ->where('talla_id', $talla_id)
-                    ->join('nota_ingreso', 'detalle_nota_ingreso.nota_ingreso_id', '=', 'nota_ingreso.id')
-                    ->select('detalle_nota_ingreso.*', 'nota_ingreso.usuario','nota_ingreso.created_at')
+        $salidas =  DB::table('detalle_nota_salidad as dns')
+                    ->join('nota_salidad as ns', 'ns.id', '=', 'dns.nota_salida_id')
+                    ->select(
+                        DB::raw('CONCAT("NS-",ns.id) as codigo'),
+                        'ns.almacen_origen_nombre',
+                        'ns.almacen_destino_nombre',
+                        'dns.cantidad',
+                        'ns.registrador_nombre',
+                        'ns.created_at as fecha',
+                    )
+                    ->where('dns.almacen_id', $almacen_id)  
+                    ->where('dns.producto_id', $producto_id)  
+                    ->where('dns.color_id', $color_id)    
+                    ->where('dns.talla_id', $talla_id)      
+                    ->where('ns.estado', '!=', 'ANULADO')
                     ->get();
 
-        $coleccion = collect([]);
-        foreach ($ingresos as $ingreso) {
-            $coleccion->push([
-                'origen'            => $ingreso->nota_ingreso->origen,
-                'numero'            => $ingreso->nota_ingreso->numero,
-                'destino'           => $ingreso->nota_ingreso->destino,
-                'cantidad'          => $ingreso->cantidad,
-                'costo'             => $ingreso->costo_soles,
-                'nombre'            => $ingreso->producto->nombre,
-                'total'             => $ingreso->valor_ingreso,
-                'nota_ingreso_id'   => $ingreso->nota_ingreso->id,
-                'id'                => $ingreso->id,
-                'moneda'            => $ingreso->nota_ingreso->moneda,
-                'medida'            => $ingreso->producto->medidaCompleta(),
-                'usuario'           => $ingreso->usuario,
-                'fecha'             => $ingreso->created_at->format('Y-m-d H:i:s')
-                //'medida' => $ingreso->loteProducto->producto->medidaCompleta(),
-            ]);
-        }
-        return DataTables::of($coleccion)->make(true);
+       
+        return DataTables::of($salidas)->make(true);
+    }
+
+    public function llenarTrasladoIngreso($almacen_id,$producto_id,$color_id,$talla_id)
+    {
+        $salidas =  DB::table('traslados_detalle as td')
+                    ->join('traslados as t', 't.id', '=', 'td.traslado_id')
+                    ->join('almacenes as a','a.id','t.almacen_origen_id')
+                    ->join('almacenes as ad','ad.id','t.almacen_destino_id')
+                    ->select(
+                        DB::raw('CONCAT("TR-",t.id) as codigo'),
+                        'a.descripcion as almacen_origen_nombre',
+                        'ad.descripcion as almacen_destino_nombre',
+                        'td.cantidad',
+                        't.registrador_nombre',
+                        't.created_at as fecha',
+                    )
+                    ->where('t.almacen_destino_id', $almacen_id)  
+                    ->where('td.producto_id', $producto_id)  
+                    ->where('td.color_id', $color_id)    
+                    ->where('td.talla_id', $talla_id)      
+                    ->where('t.estado', '=', 'RECIBIDO')
+                    ->get();
+
+       
+        return DataTables::of($salidas)->make(true);
+    }
+
+    public function llenarTrasladoSalida($almacen_id,$producto_id,$color_id,$talla_id)
+    {
+        $salidas =  DB::table('traslados_detalle as td')
+                    ->join('traslados as t', 't.id', '=', 'td.traslado_id')
+                    ->join('almacenes as a','a.id','t.almacen_origen_id')
+                    ->join('almacenes as ad','ad.id','t.almacen_destino_id')
+                    ->select(
+                        DB::raw('CONCAT("TR-",t.id) as codigo'),
+                        'a.descripcion as almacen_origen_nombre',
+                        'ad.descripcion as almacen_destino_nombre',
+                        'td.cantidad',
+                        't.registrador_nombre',
+                        't.created_at as fecha',
+                    )
+                    ->where('td.almacen_id', $almacen_id)  
+                    ->where('td.producto_id', $producto_id)  
+                    ->where('td.color_id', $color_id)    
+                    ->where('td.talla_id', $talla_id)      
+                    ->where('t.estado', '!=', 'ANULADO')
+                    ->get();
+
+       
+        return DataTables::of($salidas)->make(true);
+    }
+
+    public function llenarIngresos($almacen_id,$producto_id,$color_id,$talla_id)
+    {
+       
+        $ingresos   =   DB::table('detalle_nota_ingreso  as dni')
+                        ->join('nota_ingreso as ni', 'dni.nota_ingreso_id', '=', 'ni.id')
+                        ->where('almacen_id', $almacen_id)
+                        ->where('producto_id', $producto_id)
+                        ->where('color_id', $color_id)
+                        ->where('talla_id', $talla_id)
+                        ->select(
+                            'dni.*',
+                            DB::raw("CONCAT('NI-',ni.id) as codigo"),
+                            'ni.registrador_nombre as usuario',
+                            'ni.almacen_destino_nombre as destino',
+                            'ni.created_at as fecha'
+                        )
+                        ->orderByDesc('ni.id')
+                        ->get();
+
+     
+        return DataTables::of($ingresos)->make(true);
     }
 
     public function updateIngreso(Request $request)
@@ -315,51 +323,139 @@ class ProductoController extends Controller
         return redirect()->route('reporte.producto.informe');
     }
 
-    public function getProductos(){
-        return datatables()->query(
-            DB::table('productos')
-                ->select('productos.id as producto_id', 'colores.id as color_id', 'tallas.id as talla_id', 'productos.codigo as producto_codigo',
-                         'productos.nombre as producto_nombre', 'colores.descripcion as color_nombre', 'tallas.descripcion as talla_nombre',
-                         'modelos.descripcion as modelo_nombre', 'categorias.descripcion as categoria_nombre', 'producto_color_tallas.stock',
-                         'producto_color_tallas.ruta_cod_barras','producto_color_tallas.codigo_barras')
-                ->join('producto_colores', 'productos.id', '=', 'producto_colores.producto_id')
-                ->join('producto_color_tallas', function ($join) {
-                    $join->on('producto_color_tallas.producto_id', '=', 'producto_colores.producto_id')
-                         ->on('producto_color_tallas.color_id', '=', 'producto_colores.color_id');
-                })
-                ->join('colores', 'colores.id', '=', 'producto_colores.color_id')
-                ->join('tallas', 'tallas.id', '=', 'producto_color_tallas.talla_id')
-                ->join('modelos', 'modelos.id', '=', 'productos.modelo_id')
-                ->join('categorias', 'categorias.id', '=', 'productos.categoria_id')
-                ->where('productos.estado', '=', 'ACTIVO')
-                // ->orderBy('productos.id', 'asc')
-                // ->orderBy('colores.id', 'asc')
-                // ->orderBy('tallas.id', 'asc')
-        )->toJson();
+    public function getProductos(Request $request){
+
+        $sede_id    =   $request->get('sede_id');
+        $almacen_id =   $request->get('almacen_id');
+
+        $productos  =    DB::table('productos as p')
+                        ->join('producto_color_tallas as pct', 'p.id', '=', 'pct.producto_id')
+                        ->join('colores as co', 'co.id', '=', 'pct.color_id')
+                        ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+                        ->join('modelos as m', 'm.id', '=', 'p.modelo_id')
+                        ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
+                        ->join('almacenes as a','a.id','pct.almacen_id')
+                        ->select(
+                            'a.id as almacen_id',
+                            'p.id as producto_id',
+                            'co.id as color_id',
+                            't.id as talla_id',
+                            'p.codigo as producto_codigo',
+                            'p.nombre as producto_nombre',
+                            'co.descripcion as color_nombre',
+                            't.descripcion as talla_nombre',
+                            'm.descripcion as modelo_nombre',
+                            'ca.descripcion as categoria_nombre', 
+                            'pct.stock',
+                            'pct.ruta_cod_barras',
+                            'pct.codigo_barras',
+                            'a.descripcion as almacen_nombre'
+                        )
+                        ->where('p.estado', '=', 'ACTIVO');  
+
+        if($sede_id){
+            $productos->where('a.sede_id',$sede_id);
+        }
+        if($almacen_id){
+            $productos->where('pct.almacen_id',$almacen_id);
+        }
+
+        return datatables()->query($productos)->toJson();
     }
 
-    public function excelProductos(){
-        return Excel::download(new Producto_PI(), 'productos_pi.xlsx');
+    public static function queryProductosPI(Request $request){
+        $productos  =   DB::table('producto_color_tallas as pct')
+                        ->join('productos as p', 'p.id', '=', 'pct.producto_id')
+                        ->join('colores as c', 'c.id', '=', 'pct.color_id')
+                        ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+                        ->join('modelos as m', 'm.id', '=', 'p.modelo_id')
+                        ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
+                        ->join('almacenes as a','a.id','pct.almacen_id')
+                        ->join('empresa_sedes as es','es.id','a.sede_id')
+                        ->where('p.estado','ACTIVO')
+                        ->select(
+                            'es.nombre as sede',
+                            'a.descripcion as almacen',
+                            'p.nombre as producto',
+                            'c.descripcion as color',
+                            't.descripcion as talla',
+                            'm.descripcion as modelo',
+                            'ca.descripcion as categoria',
+                            'pct.stock'
+                        )
+                        ->orderBy('es.nombre')
+                        ->orderBy('a.descripcion')
+                        ->orderBy('p.nombre')
+                        ->orderBy('c.descripcion')
+                        ->orderBy('t.descripcion');
+
+        if($request->get('sedeId')){
+            $productos      =   $productos->where('a.sede_id',$request->get('sedeId'));
+        }
+
+        if($request->get('almacenId')){
+            $productos      =   $productos->where('pct.almacen_id',$request->get('almacenId'));
+        }
+                
+        return $productos->get();
+    }
+
+    public function excelProductos(Request $request){
+        
+        $productos      =  $this->queryProductosPI($request);
+
+        $sede_nombre    =   null;
+        $almacen_nombre =   null;
+        if($request->get('sedeId')){
+            $sede_nombre    =   Sede::find($request->get('sedeId'))->nombre;
+        }
+        if($request->get('almacenId')){
+            $almacen_nombre =   Almacen::find($request->get('almacenId'))->descripcion;
+        }
+
+        $empresa    =   Empresa::find(1);
+
+        $request->merge(['sede_nombre'=>$sede_nombre,'almacen_nombre'=>$almacen_nombre]);
+
+        return Excel::download(new Producto_PI($productos,$request,$empresa), 'productosPI_' . Carbon::now()->format('Y-m-d') . '.xlsx');
     }
 
     public function obtenerBarCode(Request $request){
 
         //======= REVIZANDO SI TIENE O NO CODIGO DE BARRAS ========
         try {
+            
             $producto_id        =   $request->get('producto_id');
             $color_id           =   $request->get('color_id');
             $talla_id           =   $request->get('talla_id');
 
-            $producto           =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,
-                                    p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre,
-                                    m.descripcion as modelo_nombre,pct.ruta_cod_barras,pct.codigo_barras,pct.stock,pct.stock_logico
+            $producto           =   DB::select('select 
+                                    pct.producto_id,
+                                    pct.color_id,
+                                    pct.talla_id,
+                                    p.nombre as producto_nombre,
+                                    c.descripcion as color_nombre,
+                                    t.descripcion as talla_nombre,
+                                    m.descripcion as modelo_nombre,
+                                    cb.ruta_cod_barras,
+                                    cb.codigo_barras,
+                                    pct.stock,
+                                    pct.stock_logico
                                     from producto_color_tallas as pct
-                                    inner join productos as p on p.id=pct.producto_id
-                                    inner join colores as c on c.id=pct.color_id
-                                    inner join tallas as t on t.id=pct.talla_id
-                                    inner join modelos as m on m.id=p.modelo_id
-                                    where pct.producto_id=? and pct.color_id=?  and pct.talla_id=?',
-                                    [$producto_id,$color_id,$talla_id])[0];
+                                    inner join productos as p on p.id = pct.producto_id
+                                    inner join colores as c on c.id = pct.color_id
+                                    inner join tallas as t on t.id = pct.talla_id
+                                    inner join modelos as m on m.id = p.modelo_id
+                                    left join codigos_barra as cb on (cb.producto_id = p.id AND cb.color_id = c.id AND cb.talla_id = t.id)
+                                    WHERE 
+                                    pct.producto_id = ? 
+                                    AND pct.color_id = ?  
+                                    AND pct.talla_id = ?',
+                                    [$producto_id,
+                                    $color_id,
+                                    $talla_id])[0];
+
+            
             
             $message    =   'VISUALIZANDO CÓDIGO DE BARRAS';
             if(!$producto->codigo_barras && !$producto->ruta_cod_barras){
@@ -375,6 +471,7 @@ class ProductoController extends Controller
                 $message                    =   $res_generarBarCode['message'];
             }
 
+
             return response()->json(['success'=>true,'producto'=>$producto,'message'=>$message]);
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>'ERROR EN EL SERVIDOR AL OBTENER EL CÓDIGO DE BARRAS',
@@ -385,23 +482,38 @@ class ProductoController extends Controller
 
     public function getAdhesivos($producto_id,$color_id,$talla_id){
         try {
-            $producto           =   DB::select('select pct.producto_id,pct.color_id,pct.talla_id,m.id as modelo_id,
-                                    p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre,
-                                    m.descripcion as modelo_nombre,pct.ruta_cod_barras,pct.codigo_barras,pct.stock as cantidad,
+            $producto           =   DB::select('select 
+                                    pct.producto_id,
+                                    pct.color_id,
+                                    pct.talla_id,
+                                    m.id as modelo_id,
+                                    p.nombre as producto_nombre,
+                                    c.descripcion as color_nombre,
+                                    t.descripcion as talla_nombre,
+                                    m.descripcion as modelo_nombre,
+                                    cb.ruta_cod_barras,
+                                    cb.codigo_barras,
+                                    pct.stock as cantidad,
                                     ca.descripcion as categoria_nombre
                                     from producto_color_tallas as pct
-                                    inner join productos as p on p.id=pct.producto_id
-                                    inner join colores as c on c.id=pct.color_id
-                                    inner join tallas as t on t.id=pct.talla_id
-                                    inner join modelos as m on m.id=p.modelo_id
-                                    inner join categorias as ca on ca.id=p.categoria_id
-                                    where pct.producto_id=? and pct.color_id=?  and pct.talla_id=?',
-                                    [$producto_id,$color_id,$talla_id])[0];
+                                    inner join productos as p on p.id = pct.producto_id
+                                    inner join colores as c on c.id = pct.color_id
+                                    inner join tallas as t on t.id = pct.talla_id
+                                    inner join modelos as m on m.id = p.modelo_id
+                                    inner join categorias as ca on ca.id = p.categoria_id
+                                    left join codigos_barra as cb on (cb.producto_id = p.id and cb.color_id = c.id and cb.talla_id = t.id)
+                                    WHERE 
+                                    pct.producto_id = ? 
+                                    AND pct.color_id = ?  
+                                    AND pct.talla_id = ?',
+                                    [$producto_id,
+                                    $color_id,
+                                    $talla_id])[0];
 
-            $empresa        =   Empresa::first();
+            $empresa            =   Empresa::first();
           
-            $width_in_points    = 300 * 72 / 25.4;  // 5 cm = 50 mm
-            $height_in_points   = 170 * 72 / 25.4; 
+            $width_in_points    =   300 * 72 / 25.4;  // 5 cm = 50 mm
+            $height_in_points   =   170 * 72 / 25.4; 
                                 
             // Establecer el tamaño del papel
             $custom_paper = array(0, 0, $width_in_points, $height_in_points);
@@ -437,17 +549,20 @@ class ProductoController extends Controller
             file_put_contents($pathToFile, $code);
 
             //======== GUARDAR KEY Y RUTA IMG ========
-            ProductoColorTalla::where('producto_id', $producto->producto_id)
-            ->where('color_id', $producto->color_id)
-            ->where('talla_id', $producto->talla_id)
-            ->update([
-                'codigo_barras'         =>  $key,
-                'ruta_cod_barras'       =>  'public/productos/'.$name  
-            ]);
+            $codigoBarra                    = new CodigoBarra();
+            $codigoBarra->producto_id       = $producto->producto_id;
+            $codigoBarra->color_id          = $producto->color_id;
+            $codigoBarra->talla_id          = $producto->talla_id;
+            $codigoBarra->codigo_barras     = $key;
+            $codigoBarra->ruta_cod_barras   = 'public/productos/' . $name;
+            $codigoBarra->save();
 
 
             DB::commit();
-            return ['success'=>true,'message'=>"CÓDIGO DE BARRAS GENERADO, EL PRODUCTO NO CONTABA CON UNO",'codigo_barras'=>$key,'ruta_cod_barras'=>'public/productos/'.$name];
+            return ['success'=>true,
+            'message'=>"CÓDIGO DE BARRAS GENERADO, EL PRODUCTO NO CONTABA CON UNO",
+            'codigo_barras'=>$key,
+            'ruta_cod_barras'=>'public/productos/'.$name];
             
         } catch (\Throwable $th) {
             DB::rollback();

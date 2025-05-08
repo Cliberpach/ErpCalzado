@@ -685,7 +685,7 @@ $(".select2_form").select2({
             htmlTallas=``;
             if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
                 fila+= `<tr>   
-                            <td>                          </td>
+                            <td> </td>
                             <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
 
                 //tallas

@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
@@ -143,6 +144,7 @@ div.content-animacion.sk__loading::after {
                                                     <thead>
                                                       <tr>
                                                         <th scope="col">#</th>
+                                                        <th scope="col">ALMACÉN</th>
                                                         <th scope="col">PRODUCTO</th>
                                                         <th scope="col">COLOR</th>
                                                         <th scope="col">TALLA</th>
@@ -158,6 +160,7 @@ div.content-animacion.sk__loading::after {
                                                         @foreach ($detalles as $detalle)
                                                             <tr>
                                                                 <th>{{$detalle->id}}</th>
+                                                                <th scope="row">{{$detalle->almacen_nombre}}</th>
                                                                 <th scope="row">{{$detalle->nombre_producto}}</th>
                                                                 <td>{{$detalle->nombre_color}}</td>
                                                                 <td>{{$detalle->nombre_talla}}</td>
@@ -167,7 +170,9 @@ div.content-animacion.sk__loading::after {
                                                                 <td>{{$detalle->precio_unitario_nuevo}}</td>
                                                                 <td>
                                                                     @if ($detalle->estado_cambio_talla === NULL)
-                                                                        <i class="fas fa-exchange-alt btn btn-success btn-obtener-tallas" data-id="{{$detalle->id}}" data-producto-id="{{$detalle->producto_id}}" data-color-id="{{$detalle->color_id}}"
+                                                                        <i class="fas fa-exchange-alt btn btn-success btn-obtener-tallas" data-id="{{$detalle->id}}" 
+                                                                            data-almacen-id="{{$detalle->almacen_id}}"
+                                                                            data-producto-id="{{$detalle->producto_id}}" data-color-id="{{$detalle->color_id}}"
                                                                             data-talla-id="{{$detalle->talla_id}}" data-producto-nombre="{{$detalle->nombre_producto}}"
                                                                             data-color-nombre="{{$detalle->nombre_color}}" data-talla-nombre="{{$detalle->nombre_talla}}"></i>
                                                                     @endif
@@ -258,11 +263,12 @@ div.content-animacion.sk__loading::after {
                 e.target.classList.add('fa-spin');
                 document.querySelector('#btn-cambiar-talla').disabled   =   false;
 
-                const detalles      =   @json($detalles);
-                const detalle_id    =   e.target.getAttribute('data-id');
-                const producto_id   =   e.target.getAttribute('data-producto-id');
-                const color_id      =   e.target.getAttribute('data-color-id');
-                const talla_id      =   e.target.getAttribute('data-talla-id');
+                const detalles              =   @json($detalles);
+                const detalle_id            =   e.target.getAttribute('data-id');
+                const almacen_id            =   e.target.getAttribute('data-almacen-id');
+                const producto_id           =   e.target.getAttribute('data-producto-id');
+                const color_id              =   e.target.getAttribute('data-color-id');
+                const talla_id              =   e.target.getAttribute('data-talla-id');
                 const producto_nombre       =   e.target.getAttribute('data-producto-nombre');
                 const color_nombre          =   e.target.getAttribute('data-color-nombre');
                 const talla_nombre          =   e.target.getAttribute('data-talla-nombre');
@@ -280,6 +286,7 @@ div.content-animacion.sk__loading::after {
                
                 setProductoCambiado({detalle_id,producto_id,color_id,talla_id,producto_nombre,color_nombre,talla_nombre,cantidad_detalle});
 
+                document.querySelector('#talla').setAttribute('data-almacen-id', almacen_id);
                 document.querySelector('#talla').setAttribute('data-producto-id', producto_id);
                 document.querySelector('#talla').setAttribute('data-color-id', color_id);
                 document.querySelector('#talla').setAttribute('data-producto-nombre', producto_nombre);
@@ -367,7 +374,7 @@ div.content-animacion.sk__loading::after {
                             //======= ALERTA DE CONFIRMACIÓN ======
                             Swal.fire({
                                 title: res.data.message,
-                                text: 'Se generó una nota de ingreso y salida',
+                                text: 'Se generó una nota de ingreso y salida para el almacén del documento, además una nota de ingreso para el almacén cambios',
                                 icon: 'success',
                                 confirmButtonText: 'Aceptar'
                             });

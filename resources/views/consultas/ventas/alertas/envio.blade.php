@@ -320,14 +320,14 @@ $(".dataTables-envio").on('click','.btn-pdf',function(){
 });
 
 function comprobanteElectronico(id) {
-    var url = '{{ route("ventas.documento.comprobante", ":id")}}';
-    url = url.replace(':id',id+'-100');
+    const url = route("ventas.documento.comprobante", { id: id,size:100});
+
     window.open(url, "Comprobante SISCOM", "width=900, height=600")
 }
 
 function comprobanteElectronicoTicket(id) {
-    var url = '{{ route("ventas.documento.comprobante", ":id")}}';
-    url = url.replace(':id',id+'-80');
+    const url = route("ventas.documento.comprobante", { id: id,size:80});
+
     window.open(url, "Comprobante SISCOM", "width=900, height=600");
 }
 
@@ -420,7 +420,7 @@ function anularVenta(id) {
 
 }
 
-function enviarSunat(id , sunat) {
+function enviarSunat(id) {
     const swalWithBootstrapButtons = Swal.mixin({
     customClass: {
         confirmButton: 'btn btn-success',
@@ -527,8 +527,7 @@ function enviarSunat(id , sunat) {
     let doc = '{{ Session::get("documento_id")}}';
     let id = doc+'-100';
 
-    var url = '{{ route("ventas.documento.comprobante", ":id")}}';
-    url = url.replace(':id', id);
+    const url = route("ventas.documento.comprobante", { id: doc,size:100});
     // $('#nueva_ventana').attr('href',url);
     // document.getElementById('nueva_ventana').click;
     window.open(url, "Comprobante SISCOM", "width=900, height=600")

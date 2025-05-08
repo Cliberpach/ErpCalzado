@@ -1,8 +1,8 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 @section('almacenes-active', 'active')
 @section('producto-active', 'active')
-@include('almacenes.productos.modalfile')
-@include('almacenes.productos.modal-show-stocks')
+@include('almacenes.productos.modals.mdl_producto_stocks')
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
@@ -20,9 +20,6 @@
         <button id="btn_añadir_producto" class="btn btn-block btn-w-m btn-primary m-t-md">
             <i class="fa fa-plus-square"></i> Añadir nuevo
         </button>
-        <a class="btn btn-block btn-w-m btn-primary m-t-md btn-modal-file" href="#">
-            <i class="fa fa-plus-square"></i> Importar Excel
-        </a>
     </div>
 </div>
 
@@ -47,24 +44,7 @@
                         </div>
                         <div class="col-12">
                             <div class="table-responsive">
-                                <table class="table dataTables-producto table-striped table-bordered table-hover"
-                                    style="text-transform:uppercase" id="table_productos">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center">CÓDIGO</th>
-                                            <th class="text-center">CÓDIGO BARRA</th>
-                                            <th class="text-center">NOMBRE</th>
-                                            <th class="text-center">MODELO</th>
-                                            <th class="text-center">MARCA</th>
-                                            <th class="text-center">CATEGORIA</th>
-                                            <th class="text-center">STOCK</th>
-                                            <th class="text-center">ACCIONES</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-
-                                    </tbody>
-                                </table>
+                                @include('almacenes.productos.tables.tbl_list_productos')
                             </div>
                         </div>
                     </div>
@@ -74,36 +54,55 @@
     </div>
 </div>
 
-@include('almacenes.productos.modalIngreso')
 
 @stop
+
 @push('styles')
-<!-- DataTable -->
-<link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
 <style>
-
-
+    
 </style>
 @endpush
 
 @push('scripts')
-<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
-<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
-<!-- DataTable -->
-<script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
-
+<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
-    const stocks = @json($stocks);
-    const tallas = @json($tallas);
-    const colores = @json($colores);
-    let table   =null;
-    const bodyTableShowStocks = document.querySelector('#tableShowStocks tbody');
+
+    let table                   =   null;
+    const bodyTableShowStocks   =   document.querySelector('#tableShowStocks tbody');
+    let dtProductoColores       =   null;
+    let dtProductoTallas        =   null;
 
     document.addEventListener('DOMContentLoaded',()=>{
-           // DataTables
-           $('.dataTables-producto').DataTable({
+        iniciarDataTableProductos();
+        cargarSelect2();
+        events();
+
+        dtProductoColores   =   iniciarDataTable('tbl_producto_colores');
+        dtProductoTallas    =   iniciarDataTable('tbl_producto_tallas');
+    })
+
+    function events(){
+        $('#btn_añadir_producto').on('click', añadirProducto);
+        eventsMdlStocks();
+    }
+
+    function cargarSelect2(){
+        $(".select2_almacen").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            width: '100%',
+            appendTo: "#mdl_producto_stocks .modal-body"        
+        });
+    }
+
+    function iniciarDataTableProductos(){
+        // DataTables
+        $('.dataTables-producto').DataTable({
             "dom": '<"html5buttons"B>lTfgitp',
             "buttons": [
                 {
@@ -139,32 +138,27 @@
             "columns": [{
                     data: 'codigo',
                     className: "text-left",
-                    name:"productos.codigo"
-                },
-                {
-                    data: 'codigo_barra',
-                    className: "text-left",
-                    name:"productos.codigo_barra"
+                    name:"codigo"
                 },
                 {
                     data: 'nombre',
                     className: "text-left",
-                    name:"productos.nombre"
+                    name:"nombre"
                 },
                 {
                     data: 'modelo',
                     className: "text-left",
-                    name:"modelos.descripcion"
+                    name:"modelo"
                 },
                 {
                     data: 'marca',
                     className: "text-left",
-                    name:"marcas.marca"
+                    name:"marca"
                 },
                 {
                     data: 'categoria',
                     className: "text-left",
-                    name:"categorias.descripcion"
+                    name:"categoria"
                 },
                 {
                     data: 'id',
@@ -173,8 +167,11 @@
                     className: "text-center",
                     render: function(data,type,row) {
                        
+                        const btnStock  =   `<a onclick="openMdlStocks(${data});"     data-id=${data} class='btn btn-primary' href='javascript:void(0);' title='STOCKS'>
+                                                <i class='fa fa-eye ver-stocks-producto'></i> Ver
+                                            </a>`;
 
-                        return `<a  data-product-nombre="${row.nombre}"  data-whatever="${data}" data-toggle="modal" data-target="#modal_show_stocks" data-id=${data} class='btn btn-primary ver-stocks-producto' href='javascript:void(0);' title='STOCKS'><i class='fa fa-eye ver-stocks-producto'></i> Ver</a>`;
+                        return btnStock;
                     }
                 },
                 {
@@ -195,11 +192,7 @@
 
                             "<li><a class='dropdown-item' href='" + url_detalle +"' title='Detalle'><i class='fa fa-eye'></i> Ver</a></b></li>" +
                             "<li><a class='dropdown-item modificarDetalle' href='" + url_editar + "' title='Modificar'><i class='fa fa-edit'></i> Editar</a></b></li>" +
-                            "<li><a class='dropdown-item' href='#' onclick='eliminar(" + data.id + ")' title='Eliminar'><i class='fa fa-trash'></i> Eliminar</a></b></li>" +
-                            "<li class='dropdown-divider'></li>" +
-
-                            "<li><a class='dropdown-item nuevo-ingreso' href='#' title='Ingreso'><i class='fa fa-save'></i> Ingreso</a></b></li>" +
-
+                            "<li><a class='dropdown-item' href='#' onclick='eliminar(" + data.id + ")' title='Eliminar'><i class='fa fa-trash'></i> Eliminar</a></b></li>" 
                         "</ul></div>";
                     }
                 }
@@ -213,31 +206,9 @@
                 $(row).attr('data-href', "");
             },
         });
+    }
 
-        $('buttons-html5').removeClass('.btn-default');
-        $('#table_productos_wrapper').removeClass('');
-        $('.dataTables-productos tbody').on( 'click', 'tr', function () {
-                $('.dataTables-productos').DataTable().$('tr.selected').removeClass('selected');
-                $(this).addClass('selected');
-        } );
-
-        // Eventos
-        $('#btn_añadir_producto').on('click', añadirProducto);
-    })
-
-    $(".dataTables-producto").on('click','.nuevo-ingreso',function(){
-        var data = $(".dataTables-producto").dataTable().fnGetData($(this).closest('tr'));
-
-        $('#modal_ingreso').modal('show');
-        $('#cantidad_fast').val('');
-        $('#producto_id_fast').val(data.id);
-        setTimeout(function() { $('#cantidad_fast').focus() }, 10);
-
-    });
-
-
-
-
+    
     //Controlar Error
     $.fn.DataTable.ext.errMode = 'throw';
 
@@ -253,10 +224,6 @@
     // Funciones de Eventos
     function añadirProducto() {
         window.location = "{{ route('almacenes.producto.create') }}";
-    }
-
-    function editarCliente(url) {
-        window.location = url;
     }
 
     function eliminar(id) {
@@ -296,52 +263,6 @@
         $("#modal_file").modal("show");
     });
 
-
-    $('#modal_show_stocks').on('show.bs.modal', function (event) {
-       
-        if(table){
-            table.destroy();
-        }
-        resetearTabla();
-
-        var button = $(event.relatedTarget) 
-        var product_id = button.data('whatever') 
-        const product_name = button.data('product-nombre');
-
-        let filas = ``;
-
-        const colores_producto = colores.filter((c)=>{
-            return c.producto_id==product_id;
-        })
-
-        colores_producto.forEach((color)=>{
-            filas +=    `
-                            <tr>
-                                <th scope="row">${color.color_nombre}</th>
-                        `;
-            tallas.forEach((t)=>{
-                let stock = stocks.filter((s) => {
-                    return s.producto_id == product_id && s.color_id == color.color_id && s.talla_id == t.id;
-                });
-
-                stock = stock.length > 0 ? stock[0].stock : 0;
-                filas +=    `
-                                <td><span style="font-weight: ${stock > 0 ? 'bold' : 'normal'}">${stock}</span></td>
-                            `;
-
-            })
-            filas+=`</tr>`;
-        })
-
-        bodyTableShowStocks.innerHTML= filas;
-       
-         var modal = $(this)
-         modal.find('.modal-title').text('Stocks: ' + product_name)
-         modal.find('.product_name').text(product_name);
-         cargarDataTables();
-    })
-
-
     function resetearTabla(){
        bodyTableShowStocks.innerHTML = '';
     }
@@ -374,10 +295,6 @@
             }
         });
         
-        // const tableStocks   = document.querySelector('#table-productos');
-        // if(tableStocks.children[1]){
-        //     tableStocks.children[1].remove();
-        // }
     }
 </script>
 

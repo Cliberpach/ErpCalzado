@@ -65,8 +65,8 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
     {
         if($this->tipo == 129 || $this->tipo == 128 || $this->tipo == 127)
         {
-            // $consulta = Documento::where('estado','!=','ANULADO')->where('tipo_venta', $this->tipo);
-            $consulta = Documento::where('tipo_venta', $this->tipo);
+            // $consulta = Documento::where('estado','!=','ANULADO')->where('tipo_venta_id', $this->tipo);
+            $consulta = Documento::where('tipo_venta_id', $this->tipo);
 
             if($this->fecha_desde && $this->fecha_hasta)
             {
@@ -199,8 +199,8 @@ class DocumentosExport implements FromCollection,WithHeadings,WithEvents
 
         if($this->tipo == 125) //Fact, Boletas y Nota Crédito
         {
-            // $ventas = Documento::where('estado','!=','ANULADO')->where('tipo_venta','!=',129);
-            $ventas = Documento::where('tipo_venta','!=',129);
+            // $ventas = Documento::where('estado','!=','ANULADO')->where('tipo_venta_id','!=',129);
+            $ventas = Documento::where('tipo_venta_id','!=',129);
 
             if($this->fecha_desde && $this->fecha_hasta)
             {

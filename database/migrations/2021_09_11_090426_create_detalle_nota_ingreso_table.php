@@ -15,28 +15,29 @@ class CreateDetalleNotaIngresoTable extends Migration
     {
         Schema::create('detalle_nota_ingreso', function (Blueprint $table) {
             $table->Increments('id');
-            $table->unsignedInteger('nota_ingreso_id')->unsigned();
-            $table->foreign('nota_ingreso_id')
-                  ->references('id')->on('nota_ingreso')
-                  ->onDelete('cascade');
 
+            $table->unsignedInteger('nota_ingreso_id')->unsigned();
+            $table->foreign('nota_ingreso_id')->references('id')->on('nota_ingreso');
+
+            $table->unsignedInteger('almacen_id')->unsigned();
+            $table->foreign('almacen_id')->references('id')->on('almacenes');
+            
             $table->unsignedInteger('producto_id')->unsigned();
-            $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
+            $table->foreign('producto_id')->references('id')->on('productos');
+            
             $table->unsignedInteger('color_id')->unsigned();
-            $table->foreign('color_id')->references('id')->on('colores')->onDelete('cascade');
+            $table->foreign('color_id')->references('id')->on('colores');
+            
             $table->unsignedInteger('talla_id')->unsigned();
-            $table->foreign('talla_id')->references('id')->on('tallas')->onDelete('cascade');
-            // $table->string('lote');
-            // $table->unsignedInteger('lote_id')->unsigned()->nullable();
-            // $table->foreign('lote_id')->references('id')->on('lote_productos')->onDelete('cascade');
+            $table->foreign('talla_id')->references('id')->on('tallas');
+
+            $table->string('almacen_nombre',160);
+            $table->string('producto_nombre',160);
+            $table->string('color_nombre',160);
+            $table->string('talla_nombre',160);
+
             $table->unsignedDecimal('cantidad', 15,2);
-            //$table->date("fecha_vencimiento");
-            // $table->unsignedDecimal('costo', 15,4)->nullable();
-            // $table->unsignedDecimal('costo_soles', 15,4)->nullable();
-            // $table->unsignedDecimal('costo_dolares', 15,4)->nullable();
-            // $table->unsignedDecimal('costo_mas_igv_soles', 15,4)->nullable();
-            // $table->unsignedDecimal('costo_mas_igv_dolares', 15,4)->nullable();
-            // $table->unsignedDecimal('valor_ingreso', 15,4)->nullable();
+          
             $table->timestamps();
         });
     }

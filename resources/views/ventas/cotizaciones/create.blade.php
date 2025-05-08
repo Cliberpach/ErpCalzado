@@ -1,83 +1,9 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 @include('ventas.cotizaciones.modal-cliente') 
     
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
-
-<style>
-
-.overlay_cotizacion_create {
-  position: fixed; /* Fija el overlay para que cubra todo el viewport */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
-  z-index: 9999; /* Asegura que el overlay esté sobre todo */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-size: 24px;
-  visibility:hidden;
-}
-
-/*========== LOADER SPINNER =======*/
-.loader_cotizacion_create {
-    position: relative;
-    width: 75px;
-    height: 100px;
-    background-repeat: no-repeat;
-    background-image: linear-gradient(#DDD 50px, transparent 0),
-                      linear-gradient(#DDD 50px, transparent 0),
-                      linear-gradient(#DDD 50px, transparent 0),
-                      linear-gradient(#DDD 50px, transparent 0),
-                      linear-gradient(#DDD 50px, transparent 0);
-    background-size: 8px 100%;
-    background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px;
-    animation: pillerPushUp 4s linear infinite;
-  }
-.loader_cotizacion_create:after {
-    content: '';
-    position: absolute;
-    bottom: 10px;
-    left: 0;
-    width: 10px;
-    height: 10px;
-    background: #de3500;
-    border-radius: 50%;
-    animation: ballStepUp 4s linear infinite;
-  }
-
-@keyframes pillerPushUp {
-  0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
-  50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
-}
-
-@keyframes ballStepUp {
-  0% {transform: translate(0, 0)}
-  5% {transform: translate(8px, -14px)}
-  10% {transform: translate(15px, -10px)}
-  17% {transform: translate(23px, -24px)}
-  20% {transform: translate(30px, -20px)}
-  27% {transform: translate(38px, -34px)}
-  30% {transform: translate(45px, -30px)}
-  37% {transform: translate(53px, -44px)}
-  40% {transform: translate(60px, -40px)}
-  50% {transform: translate(60px, 0)}
-  57% {transform: translate(53px, -14px)}
-  60% {transform: translate(45px, -10px)}
-  67% {transform: translate(37px, -24px)}
-  70% {transform: translate(30px, -20px)}
-  77% {transform: translate(22px, -34px)}
-  80% {transform: translate(15px, -30px)}
-  87% {transform: translate(7px, -44px)}
-  90% {transform: translate(0, -40px)}
-  100% {transform: translate(0, 0);}
-}
-    
-    
-</style>
 
 
 <div class="overlay_cotizacion_create">
@@ -110,176 +36,7 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form action="{{ route('ventas.cotizacion.store') }}" method="POST"
-                                id="form-cotizacion">
-                                @csrf
-                                <div class="row">
-                                    <div class="col-12">
-                                        <h4><b>Datos Generales</b></h4>
-                                    </div>
-                                    <div class="col-12 d-none">
-                                        <div class="form-group row">
-                                            <div class="col-lg-6 col-xs-12">
-                                                <label class="required">Fecha de Documento</label>
-                                                <div class="input-group date">
-                                                    <span class="input-group-addon">
-                                                        <i class="fa fa-calendar"></i>
-                                                    </span>
-                                                    <input type="date" id="fecha_documento" name="fecha_documento"
-                                                        class="form-control input-required {{ $errors->has('fecha_documento') ? ' is-invalid' : '' }}"
-                                                        value="{{ old('fecha_documento', $fecha_hoy) }}"
-                                                        autocomplete="off" required readonly>
-                                                    @if ($errors->has('fecha_documento'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('fecha_documento') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="___class_+?31___">Moneda</label>
-                                                <select id="moneda" name="moneda"
-                                                    class="select2_form form-control {{ $errors->has('moneda') ? ' is-invalid' : '' }}"
-                                                    disabled>
-                                                    <option selected>SOLES</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-lg-6 col-xs-12 select-required">
-                                                <label class="required">Empresa</label>
-                                                <select id="empresa" name="empresa"
-                                                    class="select2_form form-control {{ $errors->has('empresa') ? ' is-invalid' : '' }}"
-                                                    required>
-                                                    <option></option>
-                                                    @foreach ($empresas as $empresa)
-                                                        <option value="{{ $empresa->id }}"
-                                                            {{ old('empresa') == $empresa->id || $empresa->id === 1 ? 'selected' : '' }}>
-                                                            {{ $empresa->razon_social }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @if ($errors->has('empresa'))
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $errors->first('empresa') }}</strong>
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="row">
-                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                                <div class="form-group">
-                                                    <label class="required">Fecha de Atención</label>
-                                                    <div class="input-group date">
-                                                        <span class="input-group-addon">
-                                                            <i class="fa fa-calendar"></i>
-                                                        </span>
-                                                        <input type="date" id="fecha_atencion" name="fecha_atencion"
-                                                            class="form-control {{ $errors->has('fecha_atencion') ? ' is-invalid' : '' }}"
-                                                            value="{{ old('fecha_atencion', $fecha_hoy) }}"
-                                                            autocomplete="off" required readonly>
-                                                        @if ($errors->has('fecha_atencion'))
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $errors->first('fecha_atencion') }}</strong>
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                           
-                                           
-                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                                <div class="form-group">
-                                                    <label class="">Vendedor</label>
-                                                    <select id="vendedor" name="vendedor" class="select2_form form-control" disabled>
-                                                        <option></option>
-                                                        @foreach (vendedores() as $vendedor)
-                                                            <option value="{{ $vendedor->id }}" {{ $vendedor->id === $vendedor_actual ? 'selected' : '' }}>
-                                                                {{ $vendedor->persona->apellido_paterno . ' ' . $vendedor->persona->apellido_materno . ' ' . $vendedor->persona->nombres }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                                <div class="form-group">
-                                                    <label class="required">Condición</label>
-                                                    <select id="condicion_id" name="condicion_id"
-                                                        class="select2_form form-control {{ $errors->has('condicion_id') ? ' is-invalid' : '' }}"
-                                                        required>
-                                                        <option></option>
-                                                        @foreach ($condiciones as $condicion)
-                                                            <option value="{{ $condicion->id }}"
-                                                                {{ $condicion->id == 1 ? 'selected' : '' }}
-                                                                {{ old('condicion_id') == $condicion->id ? 'selected' : '' }}>
-                                                                {{ $condicion->descripcion }} {{ $condicion->dias > 0 ? $condicion->dias.' dias' : '' }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @if ($errors->has('condicion_id'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('condicion_id') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-
-                                            <input hidden type="text" name="vendedor" value="{{$vendedor_actual}}">
-
-                                        </div>
-                                       
-                                        <div class="row">
-                                            <div class="col-12 col-md-6 select-required">
-                                                <div class="form-group">
-                                                    <label class="required">Cliente:
-                                                        <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">
-                                                            Registrar
-                                                        </button>
-                                                    </label>
-                                                    <select id="cliente" name="cliente"
-                                                        class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}"
-                                                         required>
-                                                        <option></option>
-                                                        @foreach ($clientes as $cliente)
-                                                            <option @if ($cliente->id == 1)
-                                                                selected
-                                                            @endif value="{{ $cliente->id }}"
-                                                                {{ old('cliente') == $cliente->id ? 'selected' : '' }}>
-                                                                {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @if ($errors->has('cliente'))
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $errors->first('cliente') }}</strong>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- OBTENER TIPO DE CLIENTE -->
-                                        <input type="hidden" name="" id="tipo_cliente">
-                                        <!-- OBTENER DATOS DEL PRODUCTO -->
-                                        <input type="hidden" name="" id="presentacion_producto">
-                                        <input type="hidden" name="" id="codigo_nombre_producto">
-                                        <!-- LLENAR DATOS EN UN ARRAY -->
-                                        <input type="hidden" id="productos_tabla" name="productos_tabla[]">
-
-                                    </div>
-                                </div>
-
-                                <input type="hidden" name="monto_sub_total" id="monto_sub_total" value="{{ old('monto_sub_total') }}">
-                                <input type="hidden" name="monto_embalaje" id="monto_embalaje" value="{{ old('monto_embalaje') }}">
-                                <input type="hidden" name="monto_envio" id="monto_envio" value="{{ old('monto_envio') }}">
-                                <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ old('monto_total_igv') }}">
-                                <input type="hidden" name="monto_descuento" id="monto_descuento" value="{{ old('monto_descuento') }}">
-                                <input type="hidden" name="monto_total" id="monto_total" value="{{ old('monto_total') }}">
-                                <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ old('monto_total_pagar') }}">
-
-                            </form>
+                            @include('ventas.cotizaciones.forms.form_create_cotizacion')
                         </div>
                     </div>
                     <hr>
@@ -287,17 +44,43 @@
                         <div class="col-lg-12 col-xs-12">
                             <div class="panel panel-primary">
                                 <div class="panel-heading">
-                                    <h4><b>Seleccionar productos</b></h4>
+                                    <h4><b>SELECCIONAR PRODUCTOS</b></h4>
                                 </div>
                                 <div class="panel-body">
                                     <div class="row">
                                         <div class="col-lg-12">
                                             <div class="form-group row">
-                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                                                    <label class="required" style="font-weight: bold;">CATEGORÍA</label>
+                                                    <select id="categoria"
+                                                        class="select2_form form-control {{ $errors->has('categoria') ? ' is-invalid' : '' }}"
+                                                        onchange="getProductos()" >
+                                                        <option></option>
+                                                        @foreach ($categorias as $categoria)
+                                                            <option value="{{ $categoria->id }}"
+                                                                {{ old('categoria') == $categoria->id ? 'selected' : '' }}>
+                                                                {{ $categoria->descripcion }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                                                    <label class="required" style="font-weight: bold;">MARCA</label>
+                                                    <select id="marca"
+                                                        class="select2_form form-control {{ $errors->has('marca') ? ' is-invalid' : '' }}"
+                                                        onchange="getProductos()" >
+                                                        <option></option>
+                                                        @foreach ($marcas as $marca)
+                                                            <option value="{{ $marca->id }}"
+                                                                {{ old('marca') == $marca->id ? 'selected' : '' }}>
+                                                                {{ $marca->marca }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                                                     <label class="required" style="font-weight: bold;">MODELO</label>
                                                     <select id="modelo"
                                                         class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
-                                                        onchange="getProductosByModelo(this)" >
+                                                        onchange="getProductos()" >
                                                         <option></option>
                                                         @foreach ($modelos as $modelo)
                                                             <option value="{{ $modelo->id }}"
@@ -306,7 +89,7 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
-                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                                                     <label class="required" style="font-weight: bold;">PRODUCTO</label>
                                                     <select id="producto"
                                                         class="select2_form form-control {{ $errors->has('producto') ? ' is-invalid' : '' }}"
@@ -314,17 +97,27 @@
                                                         <option value=""></option>
                                                     </select>
                                                 </div>
-                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-3">
                                                     <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
                                                     <select id="precio_venta" class="select2_form form-control">
                                                     </select>
+                                                </div>
+                                                <div class="col-12 mt-3">
+                                                    <label style="font-weight: bold;">CÓDIGO BARRA</label>
+                                                    <div class="input-group mb-3">
+                                                        <div class="input-group-prepend">
+                                                          <span class="input-group-text" id="basic-addon1">
+                                                            <i class="fas fa-barcode"></i>
+                                                          </span>
+                                                        </div>
+                                                        <input class="inputBarCode form-control" maxlength="8" type="text" placeholder="Escriba el código de barra" aria-label="Username" aria-describedby="basic-addon1">
+                                                    </div> 
                                                 </div>
                                             </div>
 
                                             <div class="form-group row mt-3">
                                                 <div class="col-lg-12">
                                                     @include('ventas.cotizaciones.table-stocks')
-                                                    
                                                 </div>
                                             </div>
 
@@ -349,6 +142,7 @@
                                     <h4><b>Detalle de la Cotización</b></h4>
                                 </div>
                                 <div class="panel-body">
+                                    
                                     @include('ventas.cotizaciones.table-stocks',[
                                         "carrito" => "carrito"
                                     ])
@@ -391,29 +185,20 @@
         </div>
     </div>
 </div>
-
-
-
 @stop
 
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/datapicker/datepicker3.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/daterangepicker/daterangepicker-bs3.css') }}" rel="stylesheet">
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/dist/toastr.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
 @endpush
 
 @push('scripts')
 
-<script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/fullcalendar/moment.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/daterangepicker/daterangepicker.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4"></script>
-<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
     const tableStocksBody       =   document.querySelector('#table-stocks tbody');
@@ -430,14 +215,6 @@
     const tfootTotalPagar       =   document.querySelector('.total-pagar');
     const tfootDescuento        =   document.querySelector('.descuento');
     
-    const inputSubTotal         =   document.querySelector('#monto_sub_total');
-    const inputEmbalaje         =   document.querySelector('#monto_embalaje');
-    const inputEnvio            =   document.querySelector('#monto_envio');
-    const inputTotal            =   document.querySelector('#monto_total');
-    const inputIgv              =   document.querySelector('#monto_total_igv');
-    const inputTotalPagar       =   document.querySelector('#monto_total_pagar');
-    const inputMontoDescuento   =   document.querySelector('#monto_descuento');
-
     const selectClientes        =   document.querySelector('#cliente');
 
     const inputProductos        =   document.querySelector('#productos_tabla');
@@ -448,15 +225,25 @@
     let carritoFormateado   =   [];
     let dataTableStocksCotizacion   =   null;
     let dataTableDetallesCotizacion =   null;
+    const productoBarCode           =   {producto_id:null,color_id:null,talla_id:null};
+    const amountsCotizacion         =   {
+                                            subtotal:0,
+                                            embalaje:0,
+                                            envio:0,
+                                            total:0,
+                                            igv:0,
+                                            totalPagar:0,
+                                            monto_descuento:0
+                                        }
    
     document.addEventListener('DOMContentLoaded',()=>{
-        mostrarAnimacionCotizacion();
+        mostrarAnimacion();
         loadSelect2();
         loadDataTableDetallesCotizacion();
         setUbicacionDepartamento(13,'first');
         events();
         eventsCliente();
-        ocultarAnimacionCotizacion();
+        ocultarAnimacion();
     })
 
     function events(){
@@ -518,6 +305,13 @@
                 calcularDescuento(producto_id,color_id,porcentaje_desc)
             }
 
+            //======== INPUT BARCODE ======
+            if(e.target.classList.contains('inputBarCode')){
+                if(e.target.value.trim().length === 8){
+                    getProductoBarCode(e.target.value);
+                }
+            }
+
         })
 
 
@@ -541,60 +335,42 @@
 
         formCotizacion.addEventListener('submit',(e)=>{
             e.preventDefault();
-            
-            //===== VALIDAR FECHA =====
-            const correcto =  validarFecha();
 
-            if (correcto) {
-                Swal.fire({
-                    title: 'Opción Guardar',
-                    text: "¿Seguro que desea guardar cambios?",
-                    icon: 'question',
-                showCancelButton: true,
-                    confirmButtonColor: "#1ab394",
-                    confirmButtonText: 'Si, Confirmar',
-                    cancelButtonText: "No, Cancelar",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        
-                        if(carrito.length>0){
-                            document.querySelector('#btn_grabar').disabled = true;
-                            formatearDetalle();
-                            inputProductos.value=JSON.stringify(carritoFormateado);
-                            console.log(carritoFormateado);
-                            formCotizacion.submit();
-                        }else{
-                            toastr.error('Debe tener almenos un producto en el detalle','ERROR');
-                        }
-
-                    } else if (result.dismiss === Swal.DismissReason.cancel) {
-                        swalWithBootstrapButtons.fire(
-                        'Cancelado',
-                        'La Solicitud se ha cancelado.',
-                        'error'
-                        )
-                        document.querySelector('#btn_grabar').disabled = false;
-                    }
-                })
+            toastr.clear();
+            if(carrito.length === 0){
+                toastr.error('EL DETALLE DE LA COTIZACIÓN ESTÁ VACÍO!!');
+                return;
             }
-
+         
+            formatearDetalle();
+            const formData      =   new FormData(e.target);
+            formData.append('lstCotizacion',JSON.stringify(carritoFormateado));
+            formData.append('sede_id',@json($sede_id));
+            formData.append('registrador_id',@json($registrador->id));
+            formData.append('montos_cotizacion',JSON.stringify(amountsCotizacion));
+            formData.append('porcentaje_igv',@json($porcentaje_igv));
+            registrarCotizacion(formData);
+                      
         })
        
 
         //======= AGREGAR PRODUCTO AL DETALLE ======
         btnAgregarDetalle.addEventListener('click',()=>{
 
+            toastr.clear();
             mostrarAnimacionCotizacion();
-            if(!$('#modelo').val()){
-                toastr.error('DEBE SELECCIONAR UN MODELO','OPERACIÓN INCORRECTA');
-                return;
-            }
+            // if(!$('#modelo').val()){
+            //     toastr.error('DEBE SELECCIONAR UN MODELO','OPERACIÓN INCORRECTA');
+            //     return;
+            // }
             if(!$('#producto').val()){
                 toastr.error('DEBE SELECCIONAR UN PRODUCTO','OPERACIÓN INCORRECTA');
+                ocultarAnimacionCotizacion();
                 return;
             }
             if(!$('#precio_venta').val()){
                 toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA','OPERACIÓN INCORRECTA');
+                ocultarAnimacionCotizacion();
                 return;
             }
           
@@ -602,8 +378,8 @@
             agregarProductoCotizacion();
             reordenarCarrito();
             calcularSubTotal();
-            clearDetalleCotizacion();
             destruirDataTableDetalleCotizacion();
+            clearDetalleCotizacion();
             pintarDetalleCotizacion(carrito);
             //===== RECALCULANDO DESCUENTOS Y MONTOS =====
             carrito.forEach((c)=>{
@@ -612,6 +388,7 @@
             calcularMontos();
             loadDataTableDetallesCotizacion();
             ocultarAnimacionCotizacion();
+            toastr.info('PRODUCTOS AGREGADOS!!');
 
         })
     }
@@ -628,53 +405,57 @@
             
             for (const ic of inputsCantidad) {
 
-                const cantidad = ic.value ? ic.value : null;
+                const cantidad              = ic.value ? ic.value : null;
+                const producto              = formarProducto(ic);
+                const indiceProductoColor   = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
                 if (cantidad) {
-                            const producto      = formarProducto(ic);
-                            const indiceExiste  = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+                        
+                    //===== PRODUCTO NUEVO =====
+                    if (indiceProductoColor == -1) {
 
-                            //===== PRODUCTO NUEVO =====
-                            if (indiceExiste == -1) {
-                                const objProduct = {
-                                    producto_id: producto.producto_id,
-                                    color_id: producto.color_id,
-                                    producto_nombre: producto.producto_nombre,
-                                    color_nombre: producto.color_nombre,
-                                    precio_venta: producto.precio_venta,
-                                    monto_descuento:0,
-                                    porcentaje_descuento:0,
-                                    precio_venta_nuevo:0,
-                                    subtotal_nuevo:0,
-                                    tallas: [{
-                                        talla_id: producto.talla_id,
-                                        talla_nombre: producto.talla_nombre,
-                                        cantidad: producto.cantidad
-                                    }]
-                                };
+                        const objProduct = {
+                            producto_id: producto.producto_id,
+                            color_id: producto.color_id,
+                            producto_nombre: producto.producto_nombre,
+                            color_nombre: producto.color_nombre,
+                            precio_venta: producto.precio_venta,
+                            monto_descuento:0,
+                            porcentaje_descuento:0,
+                            precio_venta_nuevo:0,
+                            subtotal_nuevo:0,
+                            tallas: [{
+                                talla_id: producto.talla_id,
+                                talla_nombre: producto.talla_nombre,
+                                cantidad: producto.cantidad
+                            }]
+                        };
 
-                                carrito.push(objProduct);
-                            } else {
-                                const productoModificar = carrito[indiceExiste];
-                                productoModificar.precio_venta = producto.precio_venta;
+                        carrito.push(objProduct);
 
-                                const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+                    } else {
 
-                                if (indexTalla !== -1) {
-                                    const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
-                                    productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
-                                    carrito[indiceExiste] = productoModificar;
-                                } else {
-                                    const objTallaProduct = {
-                                        talla_id: producto.talla_id,
-                                        talla_nombre: producto.talla_nombre,
-                                        cantidad: producto.cantidad
-                                    };
-                                    carrito[indiceExiste].tallas.push(objTallaProduct);
-                                }
-                            }
+                        const productoModificar         = carrito[indiceProductoColor];
+                        productoModificar.precio_venta  = producto.precio_venta;
+
+                        const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                        if (indexTalla !== -1) {
+                            const cantidadAnterior                          = productoModificar.tallas[indexTalla].cantidad;
+                            productoModificar.tallas[indexTalla].cantidad   = producto.cantidad;
+                            carrito[indiceProductoColor]                           = productoModificar;
+                        } else {
+                            const objTallaProduct = {
+                                talla_id: producto.talla_id,
+                                talla_nombre: producto.talla_nombre,
+                                cantidad: producto.cantidad
+                            };
+                            carrito[indiceProductoColor].tallas.push(objTallaProduct);
+                        }
+
+                    }
+
                 } else {
-                    const producto = formarProducto(ic);
-                    const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
 
                     if (indiceProductoColor !== -1) {
                         const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
@@ -690,6 +471,7 @@
                             }
                         }
                     }
+
                 }
             }
     }
@@ -788,6 +570,7 @@
 
     //====== FORMATEAR EL CARRITO A FORMATO DE BD ======
     function formatearDetalle(){
+        carritoFormateado.length    =   0;
         carrito.forEach((d)=>{
             console.log('producto_color')
             d.tallas.forEach((t)=>{
@@ -851,6 +634,7 @@
         let igv         =   0;
         let total_pagar =   0;
         let descuento   =   0;
+        const porcentaje_igv    =   parseFloat(@json($porcentaje_igv));
         
         //====== subtotal es la suma de todos los productos ======
         carrito.forEach((c)=>{
@@ -863,7 +647,7 @@
         })
 
         total_pagar =   subtotal + embalaje + envio;
-        total       =   total_pagar/1.18;
+        total       =   total_pagar / (1 + (porcentaje_igv / 100));
         igv         =   total_pagar - total;
        
         tfootTotalPagar.textContent =   'S/. ' + total_pagar.toFixed(2);
@@ -872,13 +656,13 @@
         tfootSubtotal.textContent   =   'S/. ' + subtotal.toFixed(2);
         tfootDescuento.textContent  =   'S/. ' + descuento.toFixed(2);
         
-        inputTotalPagar.value       =   total_pagar.toFixed(2);
-        inputIgv.value              =   igv.toFixed(2);
-        inputTotal.value            =   total.toFixed(2);
-        inputEmbalaje.value         =   embalaje.toFixed(2);
-        inputEnvio.value            =   envio.toFixed(2);
-        inputSubTotal.value         =   subtotal.toFixed(2);
-        inputMontoDescuento.value   =   descuento.toFixed(2);
+        amountsCotizacion.totalPagar        =   total_pagar.toFixed(2);
+        amountsCotizacion.igv               =   igv.toFixed(2);
+        amountsCotizacion.total             =   total.toFixed(2);
+        amountsCotizacion.embalaje          =   embalaje.toFixed(2);
+        amountsCotizacion.envio             =   envio.toFixed(2);
+        amountsCotizacion.subtotal          =   subtotal.toFixed(2);
+        amountsCotizacion.monto_descuento   =   descuento.toFixed(2);
     }
 
     
@@ -1007,17 +791,28 @@
     }
 
     //======== OBTENER PRODUCTOS POR MODELO ========
-    async function  getProductosByModelo(e){
+    async function  getProductos(){
         toastr.clear();
         mostrarAnimacionCotizacion();
         limpiarTableStocks();
-        modelo_id                   =   e.value;
+
+        modelo_id                   =   document.querySelector('#modelo').value;
+        marca_id                    =   document.querySelector('#marca').value;
+        categoria_id                =   document.querySelector('#categoria').value;
+
         btnAgregarDetalle.disabled  =   true;
         
-        if(modelo_id){
+        if(modelo_id || marca_id || categoria_id){
             try {
-                const res   =   await axios.get(route('ventas.cotizacion.getProductosByModelo',{modelo_id}));
-                if(res.data.success){
+                const res = await axios.get(route('ventas.cotizacion.getProductos'), {
+                    params: {
+                        modelo_id: modelo_id,
+                        marca_id: marca_id,
+                        categoria_id: categoria_id
+                    }
+                });   
+
+             if(res.data.success){
                     pintarSelectProductos(res.data.productos);
                     toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
                 }else{
@@ -1036,14 +831,33 @@
 
     //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
     async function getColoresTallas(){
-        mostrarAnimacionCotizacion();
+        mostrarAnimacion();
+        toastr.clear();
+
         const producto_id   =   $('#producto').val();
+        const almacen_id    =   document.querySelector('#almacen').value;
+
+        if(!almacen_id){
+            $('#almacen').select2('open'); 
+
+            document.querySelector('#producto').onchange    =   null;
+            $('#producto').val(null).trigger('change');
+            document.querySelector('#producto').onchange = function() {
+                getColoresTallas();
+            };
+
+            toastr.error('DEBE SELECCIONAR UN ALMACÉN!!!');
+            ocultarAnimacion();
+            return;
+        }
+
         if(producto_id){
             try {
-                const res   =   await   axios.get(route('ventas.cotizacion.getColoresTallas',{producto_id}));
+                const res   =   await   axios.get(route('ventas.cotizacion.getColoresTallas',
+                                        {almacen_id,producto_id}));
                 if(res.data.success){
                     pintarTableStocks(res.data.producto_color_tallas);
-                    pintarPreciosVenta(res.data.producto_color_tallas);
+                    pintarPreciosVenta(res.data.precios_venta);
                     loadCarrito();
                 }else{
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
@@ -1051,12 +865,12 @@
             } catch (error) {
                 toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
             }finally{
-                ocultarAnimacionCotizacion();
+                ocultarAnimacion();
             }
         }else{
             limpiarTableStocks();
             limpiarSelectPreciosVenta();
-            ocultarAnimacionCotizacion();
+            ocultarAnimacion();
         }
     }
 
@@ -1134,32 +948,34 @@
             dataTableStocksCotizacion.destroy();
         }
 
-        producto.colores.forEach((color)=>{
-            filas   +=  `  <tr>
-                            <th scope="row" data-producto=${producto.id} data-color=${color.id} >
-                                <div style="width:200px;">${producto.nombre}</div>
-                            </th>
-                            <th scope="row">${color.nombre}</th>
-                        `;
+        if(producto){
+            producto.colores.forEach((color)=>{
+                filas   +=  `  <tr>
+                                <th scope="row" data-producto=${producto.id} data-color=${color.id} >
+                                    <div style="width:200px;">${producto.nombre}</div>
+                                </th>
+                                <th scope="row">${color.nombre}</th>
+                            `;
 
-            color.tallas.forEach((talla)=>{
-                filas   +=  `<td style="background-color: rgb(210, 242, 242);">
-                                        <p style="margin:0;width:20px;text-align:center;${talla.stock != 0?'font-weight:bold':''};">${talla.stock}</p>
-                            </td>
-                            <td width="8%">
-                                <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
-                                id="inputCantidad_${producto.id}_${color.id}_${talla.id}" 
-                                data-producto-id="${producto.id}"
-                                data-producto-nombre="${producto.nombre}"
-                                data-color-nombre="${color.nombre}"
-                                data-talla-nombre="${talla.nombre}"
-                                data-color-id="${color.id}" data-talla-id="${talla.id}"></input>    
-                            </td>`;
+                color.tallas.forEach((talla)=>{
+                    filas   +=  `<td style="background-color: rgb(210, 242, 242);">
+                                            <p style="margin:0;width:20px;text-align:center;${talla.stock_logico != 0?'font-weight:bold':''};">${talla.stock_logico}</p>
+                                </td>
+                                <td width="8%">
+                                    <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
+                                    id="inputCantidad_${producto.id}_${color.id}_${talla.id}" 
+                                    data-producto-id="${producto.id}"
+                                    data-producto-nombre="${producto.nombre}"
+                                    data-color-nombre="${color.nombre}"
+                                    data-talla-nombre="${talla.nombre}"
+                                    data-color-id="${color.id}" data-talla-id="${talla.id}"></input>    
+                                </td>`;
+                })
+
+                filas   +=  `</tr>`;
+            
             })
-
-            filas   +=  `</tr>`;
-           
-        })
+        }
 
         tableStocksBody.innerHTML = filas;
         loadDataTableStocksCotizacion();
@@ -1199,11 +1015,7 @@
         }) 
     }
 
-    //============= ABRIR MODAL CLIENTE =============
-    function openModalCliente(){
-        $("#modal_cliente").modal("show");
-    }
-
+   
     function cargarDataTables(){
         table = new DataTable('#table-productos',
         {
@@ -1231,6 +1043,236 @@
             }
         });
         
+    }
+
+    async function getProductoBarCode(barcode){
+        try {
+            toastr.clear();
+            mostrarAnimacionCotizacion();
+            const res   =   await axios.get(route('ventas.cotizacion.getProductoBarCode',{barcode}));
+            
+            if(res.data.success){
+
+                addProductoBarCode(res.data.producto);
+
+                toastr.info('AGREGADO AL DETALLE!!!',`${res.data.producto.nombre} - ${res.data.producto.color_nombre} - ${res.data.producto.talla_nombre}
+                            PRECIO: ${res.data.producto.precio_venta_1}`,{timeOut:0});
+            }else{
+                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+            }
+        } catch (error) {
+            toastr.error(error,'ERROR EN LA PETICIÓN OBTENER PRODUCTO POR CÓDIGO DE BARRA');
+        }finally{
+            ocultarAnimacionCotizacion();
+        }
+    }
+
+    function addProductoBarCode(_producto){
+
+        const producto_id           = _producto.id;
+        const producto_nombre       = _producto.nombre;
+        const color_id              = _producto.color_id;
+        const color_nombre          = _producto.color_nombre;
+        const talla_id              = _producto.talla_id;
+        const talla_nombre          = _producto.talla_nombre;
+        const precio_venta          = _producto.precio_venta_1;
+        const cantidad              = 1;
+        const subtotal              = 0;
+        const subtotal_nuevo        = 0;
+        const porcentaje_descuento  = 0;
+        const monto_descuento       = 0;
+        const precio_venta_nuevo    = 0;
+
+        const producto  =   {   
+                                producto_id,producto_nombre,color_id,color_nombre,
+                                talla_id,talla_nombre,cantidad,precio_venta,
+                                subtotal,subtotal_nuevo,porcentaje_descuento,monto_descuento,precio_venta_nuevo
+                            };
+                    
+        const indiceExiste  = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+        //===== PRODUCTO NUEVO =====
+        if (indiceExiste == -1) {
+                    const objProduct = {
+                        producto_id: producto.producto_id,
+                        color_id: producto.color_id,
+                        producto_nombre: producto.producto_nombre,
+                        color_nombre: producto.color_nombre,
+                        precio_venta: producto.precio_venta,
+                        monto_descuento:0,
+                        porcentaje_descuento:0,
+                        precio_venta_nuevo:0,
+                        subtotal_nuevo:0,
+                        tallas: [{
+                            talla_id: producto.talla_id,
+                            talla_nombre: producto.talla_nombre,
+                            cantidad: producto.cantidad
+                        }]
+                    };
+
+                    carrito.push(objProduct);
+        } else {
+
+            const productoModificar         = carrito[indiceExiste];
+            productoModificar.precio_venta  = producto.precio_venta;
+
+            const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+            if (indexTalla !== -1) {
+                const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
+                productoModificar.tallas[indexTalla].cantidad++;
+                carrito[indiceExiste] = productoModificar;
+            } else {
+                const objTallaProduct   =   {
+                                                talla_id: producto.talla_id,
+                                                talla_nombre: producto.talla_nombre,
+                                                cantidad: producto.cantidad
+                                            };
+                carrito[indiceExiste].tallas.push(objTallaProduct);
+            }
+        }
+
+        reordenarCarrito();
+        calcularSubTotal();
+        clearDetalleCotizacion();
+        destruirDataTableDetalleCotizacion();
+        pintarDetalleCotizacion(carrito);
+        //===== RECALCULANDO DESCUENTOS Y MONTOS =====
+        carrito.forEach((c)=>{
+            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+         })
+        calcularMontos();
+        loadDataTableDetallesCotizacion();
+    }
+
+    function registrarCotizacion(formData){
+        const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: false
+        });
+        swalWithBootstrapButtons.fire({
+        title: "Deseas registrar la cotización?",
+        text: "Se creará un nuevo registro!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí!",
+        cancelButtonText: "No, cancelar!",
+        reverseButtons: true
+        }).then(async (result) => {
+        if (result.isConfirmed) {
+           
+            Swal.fire({
+                title: "Registrando cotización...",
+                text: "Por favor, espere",
+                icon: "info",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const res   =   await axios.post(route('ventas.cotizacion.store'),formData);
+                /*const delay = new Promise(resolve => setTimeout(resolve, 10000)); 
+                const request   = axios.post(route('ventas.cotizacion.store'), formData);
+                const [res]     = await Promise.all([request, delay]);*/
+
+                if(res.data.success){
+                    window.location =  route('ventas.cotizacion.index');
+                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                }else{
+                    Swal.close();
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                if (error.response) {
+                    if (error.response.status === 422) {
+                        const errors = error.response.data.errors;
+                        pintarErroresValidacion(errors, 'error');
+                        Swal.close();
+                        toastr.error("ERRORES DE VALIDACIÓN!!!");
+                    } else {
+                        Swal.close();
+                        toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                    }
+                } else if (error.request) {
+                    Swal.close();
+                    toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+                } else {
+                    Swal.close();
+                    toastr.error(error.message, 'ERROR DESCONOCIDO');
+                }    
+            }
+
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            swalWithBootstrapButtons.fire({
+            title: "Operación cancelada",
+            text: "No se realizaron acciones",
+            icon: "error"
+            });
+        }
+        });
+    }
+
+    function cambiarAlmacen(almacen_id){
+        
+        toastr.clear();
+
+        mostrarAnimacionCotizacion();
+        //====== QUITAR EVENTOS ======
+        document.querySelector('#categoria').onchange   =   null;
+        document.querySelector('#marca').onchange       =   null;
+        document.querySelector('#modelo').onchange      =   null;
+        document.querySelector('#producto').onchange    =   null;
+
+
+        //======== LIMPIAR SELECTS ======
+        $('#categoria').val(null).trigger('change');
+        $('#marca').val(null).trigger('change');
+        $('#modelo').val(null).trigger('change');
+        $('#producto').val(null).trigger('change');
+        $('#precio_venta').val(null).trigger('change');
+
+        //======= LIMPIAR TABLERO STOCKS ======
+        destruirDataTable(dataTableStocksCotizacion);
+        limpiarTabla('table-stocks');
+        loadDataTableStocksCotizacion();
+
+        //========= AGREGAR EVENTOS NUEVAMENTE =======
+        document.querySelector('#categoria').onchange = function() {
+            getProductos();
+        };
+        document.querySelector('#marca').onchange = function() {
+            getProductos();
+        };
+        document.querySelector('#modelo').onchange = function() {
+            getProductos();
+        };
+        document.querySelector('#producto').onchange = function() {
+            getColoresTallas();
+        };
+
+
+        //========== LIMPIAR DETALLE DE LA COTIZACIÓN ========
+        carrito.length  =   0;
+        destruirDataTableDetalleCotizacion();
+        clearDetalleCotizacion();
+        pintarDetalleCotizacion(carrito);
+        loadDataTableDetallesCotizacion();
+
+        carrito.forEach((c)=>{
+            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+         })
+        calcularMontos();
+
+        ocultarAnimacionCotizacion();
+        toastr.info('SE HA LIMPIADO EL FORMULARIO');
+
     }
 
 

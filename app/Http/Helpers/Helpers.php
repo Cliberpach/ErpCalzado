@@ -1306,8 +1306,15 @@ if (!function_exists('movimientoUser')) {
             ======
             */
 
-            return DB::select('select dmc.movimiento_id from detalles_movimiento_caja as dmc
-            where dmc.usuario_id=? and dmc.fecha_salida is null',[Auth::user()->id]);
+            $movimiento =   DB::select('select 
+                            dmc.movimiento_id 
+                            from detalles_movimiento_caja as dmc
+                            where 
+                            dmc.colaborador_id = ? 
+                            and dmc.fecha_salida is null',
+                            [Auth::user()->colaborador_id]);
+
+            return  $movimiento;
 
 
             // if (FullAccess() || PuntoVenta()) {
@@ -1390,7 +1397,12 @@ if (!function_exists('cuadreMovimientoCajaIngresosVenta')) {
        
         //====== BUSCAR LOS DOCUMENTOS VENTA QUE NO SE ENCUENTREN PAGADOS CON RECIBOS =========
         foreach ($movimiento->detalleMovimientoVentas as $item) {
-            if ($item->cobrar === 'SI' && $item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA' && $item->documento->tipo_pago_id!='4') { // && $item->documento->sunat != '2'
+            if ($item->cobrar === 'SI' 
+            && $item->documento->condicion_id == 1 
+            && ifNoConvertido($item->documento->id) 
+            && $item->documento->estado_pago == 'PAGADA' 
+            && $item->documento->tipo_pago_id !='4'
+            && $item->documento->estado === 'ACTIVO') { // && $item->documento->sunat != '2'
                 $totalIngresos = $totalIngresos + ($item->documento->importe + $item->documento->efectivo);
             }
         }
@@ -1445,7 +1457,12 @@ if (!function_exists('cuadreMovimientoCajaIngresosVentaResum')) {
         if($tipo_pago == 5){
 
             foreach ($movimiento->detalleMovimientoVentas as $item) {
-                if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA') { // && $item->documento->sunat != '2'
+                if (
+                    $item->documento->condicion_id == 1 
+                    && ifNoConvertido($item->documento->id) 
+                    && $item->documento->estado_pago == 'PAGADA'
+                    && $item->documento->estado == 'ACTIVO'
+                ) { // && $item->documento->sunat != '2'
                     if ($item->documento->tipo_pago_id == 1 || $item->documento->tipo_pago_id == 2 || $item->documento->tipo_pago_id == 3 || $item->documento->tipo_pago_id !== 4) {
                         $totalIngresos = $totalIngresos + $item->documento->importe + $item->documento->efectivo;
                     }
@@ -1456,7 +1473,12 @@ if (!function_exists('cuadreMovimientoCajaIngresosVentaResum')) {
 
             //======= INGRESO POR TIPO DE PAGO ESPECÍFICO =======
             foreach ($movimiento->detalleMovimientoVentas as $item) {
-                if ($item->documento->condicion_id == 1 && ifNoConvertido($item->documento->id) && $item->documento->estado_pago == 'PAGADA') { // && $item->documento->sunat != '2'
+                if (
+                    $item->documento->condicion_id == 1 
+                    && ifNoConvertido($item->documento->id) 
+                    && $item->documento->estado_pago == 'PAGADA'
+                    && $item->documento->estado == 'ACTIVO'
+                ) { // && $item->documento->sunat != '2'
                     if ($item->documento->tipo_pago_id == $tipo_pago) {
                         $totalIngresos = $totalIngresos + $item->documento->importe + $item->documento->efectivo;
                     }
@@ -1530,7 +1552,8 @@ if (!function_exists('obtenerTotalIngresosPorTipoPago')) {
 
             //======= CALCULAR TOTAL INGRESOS ======
             foreach ($docs_venta as $doc_venta) {
-                if($doc_venta->documento->tipo_pago_id == $tipo_pago->id){
+               
+                if($doc_venta->documento->tipo_pago_id == $tipo_pago->id && $doc_venta->documento->estado !== 'ANULADO'){
                     $resultado['monto_total_ingresos']  +=  $doc_venta->documento->importe;
                 }
             }
@@ -1805,7 +1828,7 @@ if (!function_exists('ventas_mensual')) {
         $mes = date_format($fecha_hoy,'m');
         $anio = date_format($fecha_hoy,'Y');
         $total = DocumentoDocumento::where('estado','!=','ANULADO')->whereMonth('fecha_documento',$mes)->whereYear('fecha_documento',$anio)->sum('total');
-        $total_invalida = DocumentoDocumento::where('estado', '!=', 'ANULADO')->whereMonth('fecha_documento', $mes)->whereYear('fecha_documento', $anio)->where('convertir', '!=', '')->where('tipo_venta','!=','129')->sum('total');
+        $total_invalida = DocumentoDocumento::where('estado', '!=', 'ANULADO')->whereMonth('fecha_documento', $mes)->whereYear('fecha_documento', $anio)->where('convertir', '!=', '')->where('tipo_venta_id','!=','129')->sum('total');
         $total_notas = Nota::whereMonth('fechaEmision',$mes)->whereYear('fechaEmision',$anio)->sum('mtoImpVenta');
         return (float)($total - $total_invalida - $total_notas);
     }
@@ -1815,7 +1838,7 @@ if (!function_exists('ventas_mensual_random')) {
     function ventas_mensual_random($mes,$anio)
     {
         $total = DocumentoDocumento::where('estado','!=','ANULADO')->whereMonth('fecha_documento',$mes)->whereYear('fecha_documento',$anio)->sum('total');
-        $total_invalida = DocumentoDocumento::where('estado','!=','ANULADO')->whereMonth('fecha_documento',$mes)->whereYear('fecha_documento',$anio)->where('convertir','!=','')->where('tipo_venta','!=','129')->sum('total');
+        $total_invalida = DocumentoDocumento::where('estado','!=','ANULADO')->whereMonth('fecha_documento',$mes)->whereYear('fecha_documento',$anio)->where('convertir','!=','')->where('tipo_venta_id','!=','129')->sum('total');
         $total_notas = Nota::whereMonth('fechaEmision', $mes)->whereYear('fechaEmision', $anio)->sum('mtoImpVenta');
         return (float)($total - $total_invalida - $total_notas);
     }
@@ -2004,12 +2027,16 @@ if (!function_exists('generarCodigo')) {
     {
         $existe     =   true;
         while ($existe) {
-            $key = '';
-            $pattern = '1234567890abcdefghijklmnopqrstuvwxyz0987654321ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            $max = strlen($pattern)-1;
+            
+            $key        = '';
+            // $pattern    = '1234567890abcdefghijklmnopqrstuvwxyz0987654321ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            $pattern    = '12345678900987654321ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            $max        = strlen($pattern)-1;
             for($i=0;$i < $longitud;$i++) $key .= $pattern[mt_rand(0,$max)];
     
-            $existe =  DB::table('productos')->where('codigo_barra', $key)->first();
+            $existe =   DB::table('codigos_barra')
+                        ->whereRaw('UPPER(codigo_barras) = ?', [strtoupper($key)])
+                        ->first();
         }
 
         return $key;
@@ -2082,19 +2109,26 @@ if (!function_exists('ifNoConvertido')) {
     function ifNoConvertido($id)
     {
         $doc = DocumentoDocumento::find($id);
-        if($doc->tipo_venta == '129')
-        {
+        
+        if($doc->convert_de_id){
+            return false;
+        }else{
             return true;
         }
-        else
-        {
-            if($doc->convertir)
-            {
-                return false;
-            }else{
-                return true;
-            }
-        }
+
+        // if($doc->tipo_venta_id == '129')
+        // {
+        //     return true;
+        // }
+        // else
+        // {
+        //     if($doc->convertir)
+        //     {
+        //         return false;
+        //     }else{
+        //         return true;
+        //     }
+        // }
     }
 }
 
@@ -2191,7 +2225,7 @@ if (!function_exists('refreshNotifications')) {
         ->select(
             'cotizacion_documento.*',
         )
-        ->whereIn('cotizacion_documento.tipo_venta',['127','128'])
+        ->whereIn('cotizacion_documento.tipo_venta_id',['127','128'])
         ->where('cotizacion_documento.estado', '!=','ANULADO')
         ->where('cotizacion_documento.sunat','0')
         ->where('cotizacion_documento.contingencia','0')
@@ -2215,7 +2249,7 @@ if (!function_exists('refreshNotifications')) {
             'cotizacion_documento.*',
         )
         ->orderBy('cotizacion_documento.id','DESC')
-        ->whereIn('cotizacion_documento.tipo_venta',['127','128'])
+        ->whereIn('cotizacion_documento.tipo_venta_id',['127','128'])
         ->where('cotizacion_documento.estado', '!=','ANULADO')
         ->where('cotizacion_documento.sunat', '!=','2')
         ->where('cotizacion_documento.contingencia', '0')

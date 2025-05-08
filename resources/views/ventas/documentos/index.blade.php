@@ -1,8 +1,18 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
-<ventas-app :imginicial="'{{ asset('img/default.png') }}'"></ventas-app>
+
+<ventas-app 
+:registrador = "{{json_encode($registrador)}}"
+:lst_almacenes="{{ json_encode($almacenes) }}" 
+:lst_departamentos_base="{{ json_encode($departamentos) }}" 
+:lst_provincias_base="{{ json_encode($provincias) }}" 
+:lst_distritos_base="{{ json_encode($distritos) }}" 
+:imginicial="'{{ asset('img/default.png') }}'">
+</ventas-app>
+
 @stop
 @push('styles')
 <style>

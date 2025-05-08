@@ -6,16 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class NotaSalidad extends Model
 {
-    protected $table = 'nota_salidad';
-    protected $fillable = [
-        'numero',
-        'fecha',
-        'origen',
-        'destino',
-        'observacion',
-        'usuario',
-        'estado'
-    ];
+    protected $table    =   'nota_salidad';
+    protected $guarded  =   [''];
+
     
 
     public $timestamps = true;

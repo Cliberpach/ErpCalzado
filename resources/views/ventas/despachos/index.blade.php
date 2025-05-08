@@ -1,8 +1,10 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 @include('ventas.despachos.modal-detalles-doc')
 @include('ventas.despachos.modal-bultos')
 @section('ventas-active', 'active')
 @section('despachos-active', 'active')
+
     <div class="row wrapper border-bottom white-bg page-heading">
         <div class="col-lg-10 col-md-10">
             <h2 style="text-transform:uppercase"><b>Listado de Despachos</b></h2>
@@ -15,14 +17,6 @@
                 </li>
             </ol>
         </div>
-        {{-- <div class="col-lg-2 col-md-2">
-            <button id="btn_añadir_cliente" class="btn btn-block btn-w-m btn-primary m-t-md">
-                <i class="fa fa-plus-square"></i> Añadir nuevo
-            </button>
-            <button id="btn_file_cliente" class="btn btn-block btn-w-m btn-primary m-t-md">
-                <i class="fa fa-file-excel-o"></i> Importar Excel
-            </button>
-        </div> --}}
     </div>
 
     <div class="wrapper wrapper-content animated fadeInRight">
@@ -33,71 +27,42 @@
                         <div class="row mb-5">
                             <div class="col-3">
                                 <label for="filtroEstado" style="font-weight: bold;">ESTADO:</label>
-                                <select id="filtroEstado" class="form-control select2_form" onchange="filtrarDespachosEstado(this.value)">
+                                <select id="filtroEstado" class="form-control select2_form" onchange="dtDespachos.ajax.reload();">
                                     <option value="PENDIENTE">PENDIENTE</option>
                                     <option value="EMBALADO">EMBALADO</option>
                                     <option value="DESPACHADO">DESPACHADO</option>
                                 </select>
                             </div>
+                            
                             <div class="col-3">
                                 <label for="filtroCliente" style="font-weight: bold;">CLIENTE:</label>
-                                <select id="filtroCliente" class="form-control select2_form" onchange="filtrarDespachosCliente(this.value)">
+                                <select class="select2_form"
+                                    style="text-transform: uppercase; width:100%"  name="filtroCliente"
+                                    id="filtroCliente" required onchange="dtDespachos.ajax.reload();">
+                                    <option value="{{$cliente_varios[0]->id}}">{{$cliente_varios[0]->nombre}}</option>
+                                </select>
+                                {{-- <select id="filtroCliente" class="form-control select2_form" onchange="dtDespachos.ajax.reload();">
                                     @foreach ($clientes as $cliente)
                                         <option value="{{$cliente->id}}">{{$cliente->nombre}}</option>
                                     @endforeach
-                                </select>
+                                </select> --}}
                             </div>
                           
                             <div class="col-3">
                                 <label for="filtroFechaInicio" style="font-weight: bold;">FEC INICIO:</label>
-                                <input type="date" class="form form-control" id="filtroFechaInicio" onchange="filtrarDespachoFechaInic(this.value)">
+                                <input value="<?php echo date('Y-m-d'); ?>" type="date" class="form form-control" id="filtroFechaInicio" onchange="filtrarDespachoFechaInic()">
                             </div>
                             <div class="col-3">
                                 <label for="filtroFechaFin" style="font-weight: bold;">FEC FIN:</label>
-                                <input type="date" class="form form-control" id="filtroFechaFin" onchange="filtrarDespachoFechaFin(this.value)">
+                                <input value="<?php echo date('Y-m-d'); ?>" type="date" class="form form-control" id="filtroFechaFin" onchange="filtrarDespachoFechaFin()">
                             </div> 
                         </div>
                         <div class="row">
                             <div class="col-12">
                                 <div class="table-responsive">
-                                    <table class="table dataTables-despacho table-striped table-bordered table-hover"
-                                        style="text-transform:uppercase">
-                                        <thead>
-                                            {{-- <tr>
-        
-                                                <th colspan="4" class="text-center">CLIENTES</th>
-                                                <th colspan="4" class="text-center">UBICACIONES</th>
-                                                <th colspan="1" class="text-center"></th>
-        
-                                            </tr> --}}
-                                            <tr>
-                                                <th class="text-center">DOC</th>
-                                                <th class="text-center">CLIENTE</th>
-                                                <th class="text-center">CLIENTE CELULAR</th>
-                                                <th class="text-center">VENDEDOR</th>
-                                                <th class="text-center">DESPACHADOR</th>
-                                                <th class="text-center">FEC PROPUESTA</th>
-                                                <th class="text-center">FEC ENVIO</th>
-                                                <th class="text-center">FEC REGISTRO</th>
-                                                <th class="text-center">TIPO ENVIO</th>
-                                                <th class="text-center">EMPRESA</th>
-                                                <th class="text-center">SEDE</th>
-                                                <th class="text-center">DESTINO</th>
-                                                <th class="text-center">DEST NOMBRE</th>
-                                                <th class="text-center">DEST DOC</th>
-                                                <th class="text-center">TIPO PAGO</th>
-                                                <th class="text-center">MONTO ENVÍO</th>
-                                                <th class="text-center">ENVÍO DOMICILIO</th>
-                                                <th class="text-center">DIRECCIÓN DOMICILIO</th>
-                                                <th class="text-center">OBS DESPACHO</th>
-                                                <th class="text-center" >ESTADO</th>
-                                                <th class="text-center">ACCIONES</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-        
-                                        </tbody>
-                                    </table>
+
+                                    @include('ventas.despachos.tables.tbl_list_despachos')
+                                   
                                 </div>
                             </div>
                         </div>
@@ -110,11 +75,7 @@
 
 @stop
 @push('styles')
-    <!-- DataTable -->
-    <link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
     <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.7/css/dataTables.dataTables.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.2/css/dataTables.dateTime.min.css">
     <style>
         .letrapequeña {
             font-size: 11px;
@@ -165,16 +126,27 @@
 @endpush
 
 @push('scripts')
-    <!-- DataTable -->
-    <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
-    <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
     <script>
         let detallesDataTable;
+        let dtDespachos =   null;
 
-        $(document).ready(function() {
-            
+        document.addEventListener('DOMContentLoaded',()=>{
+            iniciarDataTableDespachos();
+            events();
+            iniciarSelect2();
+            detallesDataTable   =   dataTableDetalles();   
+        })
+
+        function events(){
+            eventsModalBultos();
+        }
+
+        function iniciarSelect2(){
             $(".select2_form").select2({
                 placeholder: "SELECCIONAR",
                 allowClear: true,
@@ -182,9 +154,68 @@
                 width: '100%',
             });
 
-          
-            //========= DATATABLE DESPACHO =======
-            $('.dataTables-despacho').DataTable({
+            $('#filtroCliente').select2({
+                width:'100%',
+                placeholder: "Buscar Cliente...",
+                allowClear: true,
+                language: {
+                    inputTooShort: function(args) {
+                        var min = args.minimum;
+                        return "Por favor, ingrese " + min + " o más caracteres";
+                    },
+                    searching: function() {
+                        return "BUSCANDO...";
+                    },
+                    noResults: function() {
+                        return "No se encontraron clientes";
+                    }
+                },
+                ajax: {
+                    url: '{{route("utilidades.getClientes")}}', 
+                    dataType: 'json',
+                    delay: 250, 
+                    data: function(params) {
+                        return {
+                            search: params.term,
+                            page: params.page || 1  
+                        };
+                    },
+                    processResults: function(data,params) {
+                        if(data.success){
+                            params.page     =   params.page || 1;
+                            const clientes  =   data.clientes;
+                            return {
+                                results: clientes.map(item => ({
+                                    id: item.id,
+                                    text: item.descripcion 
+                                })),
+                                pagination: {
+                                    more: data.more 
+                                }
+                            };
+                        }else{
+                            toastr.error(data.message,'ERROR EN EL SERVIDOR');
+                            return {
+                                results:[]
+                            }
+                        }
+                        
+                    },
+                    cache: true
+                },
+                minimumInputLength: 2,
+                templateResult: function(data) {
+                    if (data.loading) {
+                        return $('<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>');
+                    }
+                    return data.text;
+                },
+            });
+        }
+
+        function iniciarDataTableDespachos(){
+
+            dtDespachos =   new DataTable('#dataTables-despacho',{
                 "dom": '<"html5buttons"B>lTfgitp',
                 "buttons": [{
                         extend: 'excelHtml5',
@@ -215,9 +246,17 @@
                 "ajax": {
                     "url": "{{ route('ventas.despachos.getTable') }}",
                     "type": "GET",
+                    "beforeSend": function() {
+                        mostrarAnimacion();
+                    },
                     "data": function(d) {
-                        d.fecha_inicio = $('#filtroFechaInicio').val();
-                        d.fecha_fin = $('#filtroFechaFin').val();
+                        d.fecha_inicio  =   $('#filtroFechaInicio').val();
+                        d.fecha_fin     =   $('#filtroFechaFin').val();
+                        d.estado        =   $('#filtroEstado').val();
+                        d.cliente_id    =   $('#filtroCliente').val();
+                    },
+                    "complete": function() {
+                        ocultarAnimacion();
                     }
                 },
                 "columns": [{
@@ -232,8 +271,21 @@
                         data: 'cliente_celular',
                         className: "text-left letrapequeña"
                     },
+                   
                     {
                         data: 'user_vendedor_nombre',
+                        className: "text-left letrapequeña"
+                    },
+                    {
+                        data: 'almacen_nombre',
+                        className: "text-left letrapequeña"
+                    },
+                    {
+                        data: 'sede_origen_nombre',
+                        className: "text-left letrapequeña"
+                    },
+                    {
+                        data: 'sede_despachadora_nombre',
                         className: "text-left letrapequeña"
                     },
                     {
@@ -269,6 +321,14 @@
                         className: "text-center letrapequeña"
                     },
                     {
+                        data: 'entrega_domicilio',
+                        className: "text-center letrapequeña"
+                    },
+                    {
+                        data: 'direccion_entrega',
+                        className: "text-center letrapequeña"
+                    },
+                    {
                         data: 'destinatario_nombre',
                         className: "text-center letrapequeña"
                     },
@@ -285,14 +345,7 @@
                         className: "text-center letrapequeña"
                     },
                   
-                    {
-                        data: 'entrega_domicilio',
-                        className: "text-center letrapequeña"
-                    },
-                    {
-                        data: 'direccion_entrega',
-                        className: "text-center letrapequeña"
-                    },
+                   
                     {
                         data: 'obs_despacho',
                         className: "text-center letrapequeña"
@@ -320,7 +373,7 @@
                         render: function(data) {
                             //Ruta Detalle
                             var url_detalle = '{{ route('ventas.despachos.showDetalles', ':id') }}';
-                            url_detalle = url_detalle.replace(':id', data.id);
+                            url_detalle     = url_detalle.replace(':id', data.id);
 
                            
                                 //======== ACCIONES ========
@@ -371,19 +424,11 @@
                 ]
                 
             });
-            $('#filtroEstado').val(null).trigger('change');
-            $('#filtroCliente').val(null).trigger('change');
+         
+           
+        }
 
-            //========= DATATABLE DE TABLA DETALLES ======
-            detallesDataTable   =   dataTableDetalles();
-
-            //======= EVENTS =======
-            eventsModalBultos();
-        });
-
-        //Controlar Error
-        $.fn.DataTable.ext.errMode = 'throw';
-
+    
         //Modal Eliminar
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
@@ -393,41 +438,54 @@
             buttonsStyling: false
         })
 
-        // Funciones de Eventos
-        function añadirCliente() {
-            window.location = "{{ route('ventas.cliente.create') }}";
-        }
+     
         
         async function verDetalles(documento_id){
             try {
+                mostrarAnimacion();
                 const res    =   await   axios.get(route('ventas.despachos.showDetalles',documento_id));
 
                 if(res.data.success){
                     const detalles_doc_venta    =   res.data.detalles_doc_venta;
-                    console.log(detalles_doc_venta);
+                  
                     $("#modal_detalles_doc").modal("show");
                     pintarDetallesDoc(detalles_doc_venta);
+                    pintarMaestroDoc(res.data.documento)
+
                 }else{
                     toastr.error(`${res.data.message} - ${res.data.exception}`,"ERROR");
                 }
             } catch (error) {
-                
+                toasr.error(error,'ERROR EN LA PETICIÓN MOSTRAR DETALLE')
+            }finally{
+                ocultarAnimacion();
             }
         }
 
+        function pintarMaestroDoc(documento){
+            document.querySelector('#info_documento').textContent           =   `${documento.serie}-${documento.correlativo}`;
+            document.querySelector('#info_almacen_despacho').textContent    =   `${documento.almacen_despacho}`;
+            document.querySelector('#info_sede_despacho').textContent       =   `${documento.sede_despacho}`;
+        }
+
         function pintarDetallesDoc(detalles_doc_venta){
+            
             detallesDataTable.clear();
 
             detalles_doc_venta.forEach((ddc) => {
                 detallesDataTable.row.add([
+                    ddc.nombre_modelo,
                     ddc.nombre_producto,
                     ddc.nombre_color,
                     ddc.nombre_talla,
-                    ddc.cantidad
+                    parseInt(ddc.cantidad),
+                    parseInt(ddc.cantidad_cambiada),
+                    parseInt(ddc.cantidad_sin_cambio)
                 ]);
             });
 
             detallesDataTable.draw();
+
         }
 
         function imprimirEnvio(documento_id,despacho_id){
@@ -441,7 +499,7 @@
         //========= EMBALAR =========
         function embalar(documento_id,despacho_id){
             //======= OBTENER LOS DATOS DEL DESPACHO ======
-            var miTabla = $('.dataTables-despacho').DataTable();
+            var miTabla = dtDespachos;
 
             const fila = miTabla.rows().data().filter(function (value, index) {
                 return value['id'] == despacho_id;
@@ -490,8 +548,8 @@
 
                 if(res.data.success){
                     //======= PINTANDO ESTADO EN DATATABLE ======
-                    const fila          =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id);
-                    const indiceFila    =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id).index();
+                    const fila          =   dtDespachos.row((idx,data) => data['id'] == despacho_id);
+                    const indiceFila    =   dtDespachos.row((idx,data) => data['id'] == despacho_id).index();
                     await fila.cell(indiceFila,0).data('EMBALADO').draw();
                     //toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
                 }
@@ -506,7 +564,7 @@
 
         function despachar(documento_id,despacho_id){
             //======= OBTENER LOS DATOS DEL DESPACHO ======
-            var miTabla = $('.dataTables-despacho').DataTable();
+            var miTabla = dtDespachos;
 
             const fila = miTabla.rows().data().filter(function (value, index) {
                 return value['id'] == despacho_id;
@@ -554,11 +612,11 @@
                 })
 
                 if(res.data.success){
-                    $('.dataTables-despacho').DataTable().ajax.reload(null, false);
+                    dtDespachos.ajax.reload(null, false);
                     //======= PINTANDO ESTADO EN DATATABLE ======
 
-                    // const fila          =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id);
-                    // const indiceFila    =   $('.dataTables-despacho').DataTable().row((idx,data) => data['id'] == despacho_id).index();
+                    // const fila          =   dtDespachos.row((idx,data) => data['id'] == despacho_id);
+                    // const indiceFila    =   dtDespachos.row((idx,data) => data['id'] == despacho_id).index();
                     // await fila.cell(indiceFila,0).data('DESPACHADO').draw();
                 }
 
@@ -569,15 +627,7 @@
             }
         }
 
-        function filtrarDespachosEstado(estado_despacho){
-            $('.dataTables-despacho').DataTable().column('17').search(estado_despacho).draw();
-        }
-
-        function filtrarDespachosCliente(cliente_despacho){
-            const clienteSeleccionado = $('#filtroCliente').find('option:selected').text();
-            $('.dataTables-despacho').DataTable().column('1').search(clienteSeleccionado).draw();
-        }
-
+      
         function filtrarDespachoFechaInic(fecha_inicio){
 
             const fi    =   document.querySelector('#filtroFechaInicio').value;
@@ -586,12 +636,12 @@
             if((fi.toString().trim().length >0 && ff.toString().trim().length >0) & (fi > ff) ){
                 document.querySelector('#filtroFechaInicio').value  =   '';
                 toastr.error('FECHA INICIO DEBE SER MENOR O IGUAL A FECHA FIN','ERROR FECHAS');
-                $('.dataTables-despacho').DataTable().ajax.reload();
+                dtDespachos.ajax.reload();
 
                 return;
             }
 
-            $('.dataTables-despacho').DataTable().ajax.reload();
+            dtDespachos.ajax.reload();
         }
         
         function filtrarDespachoFechaFin(fecha_fin){
@@ -601,11 +651,11 @@
             if((fi.toString().trim().length >0 && ff.toString().trim().length >0) & (ff < fi) ){
                 document.querySelector('#filtroFechaFin').value  =   '';
                 toastr.error('FECHA FIN DEBE SER MAYOR O IGUAL A FECHA INICIO','ERROR FECHAS');
-                $('.dataTables-despacho').DataTable().ajax.reload();
+                dtDespachos.ajax.reload();
                 return;
             }
 
-            $('.dataTables-despacho').DataTable().ajax.reload();
+            dtDespachos.ajax.reload();
         }
         
 

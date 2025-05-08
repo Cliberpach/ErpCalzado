@@ -29,6 +29,7 @@
                 <div class="ibox-content">
                     <form action="{{route('user.store')}}" method="POST">
                         @csrf
+                        <input type="hidden" name="sede_id" id="sede_id" value="{{$sede_id}}">
                         <div class="row">
                             <div class="col-lg-6 col-xs-12 b-r">
                                 <h4><b>Datos Generales</b></h4>
@@ -54,10 +55,10 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="">Colaborador</label>
-                                    <select name="colaborador_id" id="colaborador_id" class="form-control select2_form {{ $errors->has('colaborador_id') ? ' is-invalid' : '' }}">
+                                    <select  required name="colaborador_id" id="colaborador_id" class="form-control select2_form {{ $errors->has('colaborador_id') ? ' is-invalid' : '' }}">
                                         <option></option>
                                         @foreach($colaboradores as $colaborador)
-                                            <option value="{{$colaborador->id}}"  {{old('colaborador_id') == $colaborador->id ? "selected" : ""}}{{session('colaborador_id') == $colaborador->id ? "selected" : ""}}>{{$colaborador->colaborador}} - {{$colaborador->area}}</option>
+                                            <option value="{{$colaborador->id}}"  {{old('colaborador_id') == $colaborador->id ? "selected" : ""}}{{session('colaborador_id') == $colaborador->id ? "selected" : ""}}>{{$colaborador->nombre}} - {{$colaborador->tipo_documento_nombre.':'.$colaborador->nro_documento}} - {{$colaborador->sede_nombre}}</option>
                                         @endforeach
                                     </select>
                                     @if ($errors->has('colaborador_id'))
@@ -81,7 +82,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 mb-3">
                                         <label class="required">Confirmar contraseña</label>
                                         <div class="input-group">
                                             <input type="password" id="confirm_password" class="form-control {{ session('confirm_password') ? ' is-invalid' : '' }} text-uppercase" name="confirm_password" value="{{session('confirm_password')}}" required>
@@ -92,8 +93,8 @@
                                             </span>
                                             @endif
                                         </div>
-
                                     </div>
+                                    
                                 </div>
                             </div>
 

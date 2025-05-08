@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('almacenes-active', 'active')
 @section('nota_ingreso-active', 'active')
@@ -35,98 +36,7 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                            <form action="{{route('almacenes.nota_ingreso.store')}}" method="POST" id="enviar_ingresos">
-                                {{csrf_field()}}
-                                <input type="hidden" name="generarAdhesivos" id="generarAdhesivos">
-                                <div class="col-sm-12">
-                                    <h4 class=""><b>Nota de Ingreso</b></h4>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <p>Registrar datos de la Nota de Ingreso :</p>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-
-                                            <input type="hidden" id="numero"  name="numero" class="form-control" value="{{$ngenerado}}" >
-
-
-                                        <div class="col-12 col-lg-3 col-md-3"  id="fecha">
-                                            <label>Fecha</label>
-                                            <div class="input-group date">
-                                                <span class="input-group-addon">
-                                                    <i class="fa fa-calendar"></i>
-                                                </span>
-                                                <input type="date" id="fecha" name="fecha"
-                                                    class="form-control {{ $errors->has('fecha') ? ' is-invalid' : '' }}"
-                                                    value="{{old('fecha',$fecha_hoy)}}"
-                                                    autocomplete="off" readonly required>
-                                                @if ($errors->has('fecha'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('fecha') }}</strong>
-                                                </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <div class="col-12 col-md-3 d-none">
-
-                                            <label class="required">Moneda</label>
-                                            <select
-                                                class="select2_form form-control {{ $errors->has('moneda') ? ' is-invalid' : '' }}"
-                                                style="text-transform: uppercase; width:100%" value="{{old('moneda')}}"
-                                                name="moneda" id="moneda" required disabled>
-                                                {{-- onchange="cambioMoneda(this)" --}}
-                                                    <option></option>
-                                                @foreach ($monedas as $moneda)
-                                                <option value="{{$moneda->descripcion}}" @if(old('moneda') == $moneda->descripcion || $moneda->descripcion == 'SOLES') {{'selected'}} @endif
-                                                    >{{$moneda->simbolo.' - '.$moneda->descripcion}}</option>
-                                                @endforeach
-                                                @if ($errors->has('moneda'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('moneda') }}</strong>
-                                                </span>
-                                                @endif
-
-                                            </select>
-
-                                            <input type="hidden" id="moneda" name="moneda" value="SOLES">
-
-                                        </div>
-                                        <div class="col-12 col-lg-3 col-md-3">
-                                            <label class="required">Origen</label>
-                                            <select name="origen" id="origen" class="select2_form form-control {{ $errors->has('origen') ? ' is-invalid' : '' }}" required>
-                                                <option value="">Seleccionar Origen</option>
-                                                @foreach ($origenes as  $tabla)
-                                                    <option {{ old('origen') == $tabla->id ? 'selected' : '' }} value="{{$tabla->id}}">{{$tabla->descripcion}}</option>
-                                                @endforeach
-                                            </select>
-                                            @if ($errors->has('origen'))
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $errors->first('origen') }}</strong>
-                                            </span>
-                                            @endif
-                                        </div>
-                                        <div class="col-12 col-lg-3 col-md-3">
-                                            <label>Destino</label>
-                                            <select name="destino" id="destino" class="select2_form form-control {{ $errors->has('destino') ? ' is-invalid' : '' }}">
-                                                <option value="">Seleccionar Destino</option>
-                                                @foreach ($destinos as $tabla)
-                                                    <option {{ old('destino') == $tabla->id ? 'selected' : '' }} value="{{$tabla->id}}">{{$tabla->descripcion}}</option>
-                                                @endforeach
-                                            </select>
-                                            @if ($errors->has('destino'))
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $errors->first('destino') }}</strong>
-                                            </span>
-                                            @endif
-                                        </div>
-                                        <div class="col-12 col-lg-3 col-md-3">
-                                            <label for="observacion">OBSERVACIÓN</label>
-                                            <textarea class="form-control" name="observacion" id="observacion" cols="30" rows="3"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                                <input type="hidden" id="notadetalle_tabla" name="notadetalle_tabla[]">
-                            </form>
+                            @include('almacenes.nota_ingresos.forms.form_nota_ingreso_create')
                         </div>
                     </div>
                     <hr>
@@ -144,7 +54,7 @@
                                                     <label class="required">Modelo</label>
                                                     <select id="modelo"
                                                         class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
-                                                        onchange="getProductosByModelo(this)" >
+                                                        onchange="getNiProductos(this)" >
                                                         <option></option>
                                                         @foreach ($modelos as $modelo)
                                                             <option value="{{ $modelo->id }}"
@@ -159,14 +69,8 @@
 
                                             <div class="form-group row mt-3 content-window">
                                                 <div class="col-lg-12">
-                                                    <div class="sk-spinner sk-spinner-wave hide-window" >
-                                                        <div class="sk-rect1"></div>
-                                                        <div class="sk-rect2"></div>
-                                                        <div class="sk-rect3"></div>
-                                                        <div class="sk-rect4"></div>
-                                                        <div class="sk-rect5"></div>
-                                                    </div>
-                                                    @include('almacenes.nota_ingresos.tabla-productos')
+                                            
+                                                    @include('almacenes.nota_ingresos.tables.tbl_ni_productos')
                                                 </div>
                                             </div>
                                             <div class="form-group row mt-1">
@@ -180,98 +84,14 @@
                                     </div>
                                     <div class="row m-t-sm" style="text-transform:uppercase">
                                         <div class="col-lg-12">
-                                            @include('almacenes.nota_ingresos.tabla-productos',[
-                                                "carrito" => "carrito"
-                                            ])
+                                            <div class="table-responsive">
+                                                @include('almacenes.nota_ingresos.tables.tbl_ni_detalle')
+                                            </div>
                                         </div>
                                     </div> 
                                 </div>
-                                {{-- <div class="panel-body">
-                                    <div class="row align-items-end">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="col-form-label">Producto</label>
-                                            <select name="producto" id="producto" class="form-control select2_form">
-                                                <option value=""></option>
-                                                @foreach ($productos as $producto)
-                                                    <option  value="{{$producto->id}}" id="{{$producto->id}}">{{$producto->nombre}}</option>
-                                                @endforeach
-                                            </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <div class="form-group">
-                                                <label class="col-form-label">Cantidad </label>
-                                                <input type="text" id="cantidad" class="form-control" min="1" onkeypress="return filterFloat(event, this, true);">
-                                                <div class="invalid-feedback"><b><span id="error-cantidad"></span></b></div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-2">
-                                            <div class="form-group">
-                                                <label class="col-form-label">Costo(Total)</label>
-                                                <input type="text" name="costo" id="costo" class="form-control" onkeypress="return filterFloat(event, this, true);">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-2 d-none">
-                                            <div class="form-group">
-                                                <label class="col-form-label">lote</label>
-                                                <input type="text" name="lote" id="lote" class="form-control">
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-3 d-none">
-                                            <div class="form-group">
-                                                <label class="col-form-label">Fecha Vencimiento</label>
-                                                <div class="input-group date">
-                                                    <span class="input-group-addon">
-                                                        <i class="fa fa-calendar"></i>
-                                                    </span>
-                                                    <input type="date" id="fechavencimiento" name="fechavencimiento" class="form-control" autocomplete="off">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-12 col-md-2">
-                                            <div class="form-group">
-                                            <a class="btn btn-block btn-warning enviar_detalle"
-                                            style='color:white;'> <i class="fa fa-plus"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <hr>
-
-                                    <div class="table-responsive">
-                                        <table
-                                            class="table dataTables-ingreso table-striped table-bordered table-hover"
-                                                onkeyup="return mayus(this)">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th class="text-center">ACCIONES</th>
-                                                    <th class="text-center">Cantidad</th>
-                                                    <th class="text-center">Lote</th>
-                                                    <th class="text-center">Producto</th>
-                                                    <th class="text-center">Fecha Vencimiento</th>
-                                                    <th class="text-center">Costo U.</th>
-                                                    <th class="text-center">Total</th>
-
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-
-                                            </tbody>
-                                            <tfoot>
-                                                <tr>
-                                                    <th colspan="7" class="text-center">TOTAL:</th>
-                                                    <th class="text-right"><span id="total">0.00</span></th>
-
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                </div> --}}
                             </div>
                         </div>
-
                     </div>
 
                     <div class="hr-line-dashed"></div>
@@ -297,432 +117,52 @@
     </div>
 
 </div>
-@include('almacenes.nota_ingresos.modal')
 @stop
 
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css') }}"
-    rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/datapicker/datepicker3.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/daterangepicker/daterangepicker-bs3.css') }}" rel="stylesheet">
+
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 
 
 <!-- DataTable -->
-<link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
+{{-- <link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet"> --}}
 
 <style>
     .talla-no-creada{
         color:rgb(201, 47, 9);
         font-weight: bold;
     }
-
-div.content-window {
-    position: relative;
-}
-
-div.content-window.sk__loading::after {
-    content: '';
-    background-color: rgba(255, 255, 255, 0.7);
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 3000;
-}
-
-.content-window.sk__loading>.sk-spinner.sk-spinner-wave {
-    margin: 0 auto;
-    width: 50px;
-    height: 30px;
-    text-align: center;
-    font-size: 10px;
-}
-
-.content-window.sk__loading>.sk-spinner {
-    display: block;
-    position: absolute;
-    top: 40%;
-    left: 0;
-    right: 0;
-    z-index: 3500;
-}
-
-.content-window .sk-spinner.sk-spinner-wave.hide-window {
-    display: none;
-}
 </style>
 
 @endpush
 
 @push('scripts')
-<!-- Data picker -->
-<script src="{{ asset('Inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
-<!-- Date range use moment.js same as full calendar plugin -->
-<script src="{{ asset('Inspinia/js/plugins/fullcalendar/moment.min.js') }}"></script>
-<!-- Date range picker -->
-<script src="{{ asset('Inspinia/js/plugins/daterangepicker/daterangepicker.js') }}"></script>
 <!-- Select2 -->
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
-<!-- DataTable -->
-<script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
-
-
-
 
 <script>
-//Select2
     $(".select2_form").select2({
         placeholder: "SELECCIONAR",
         allowClear: true,
         width: '100%',
     });
-
-
-    // $('.input-group.date #fechavencimiento').datepicker({
-    //     todayBtn: "linked",
-    //     keyboardNavigation: false,
-    //     forceParse: false,
-    //     autoclose: true,
-    //     language: 'es',
-    //     format: "dd/mm/yyyy",
-    // });
-    // $('.modal_editar_detalle #fechavencimiento').datepicker({
-    //     todayBtn: "linked",
-    //     keyboardNavigation: false,
-    //     forceParse: false,
-    //     autoclose: true,
-    //     language: 'es',
-    //     format: "dd/mm/yyyy",
-    // });
-
-
-
-
-    // $('#enviar_ingresos').submit(function(e) {
-    //     e.preventDefault();
-    //     let correcto = true;
-    //     cargarDetalle();
-    //     let detalles = JSON.parse($('#notadetalle_tabla').val());
-    //     if (detalles.length < 1) {
-    //         correcto = false;
-    //         toastr.error('El documento debe tener almenos un producto de ingreso.');
-    //     }
-    //     console.log(detalles.length);
-    //     if (correcto) {
-    //         const swalWithBootstrapButtons = Swal.mixin({
-    //             customClass: {
-    //                 confirmButton: 'btn btn-success',
-    //                 cancelButton: 'btn btn-danger',
-    //             },
-    //             buttonsStyling: false
-    //         })
-
-    //         Swal.fire({
-    //             title: 'Opción Guardar',
-    //             text: "¿Seguro que desea guardar cambios?",
-    //             icon: 'question',
-    //             showCancelButton: true,
-    //             confirmButtonColor: "#1ab394",
-    //             confirmButtonText: 'Si, Confirmar',
-    //             cancelButtonText: "No, Cancelar",
-    //         }).then((result) => {
-    //             if (result.isConfirmed) {
-    //                 this.submit();
-    //             } else if (
-    //                 /* Read more about handling dismissals below */
-    //                 result.dismiss === Swal.DismissReason.cancel
-    //             ) {
-    //                 swalWithBootstrapButtons.fire(
-    //                     'Cancelado',
-    //                     'La Solicitud se ha cancelado.',
-    //                     'error'
-    //                 )
-    //             }
-    //         })
-    //     }
-
-    // })
-
-
-    //  $(document).ready(function() {
-
-    //     $('#lote').val('LT-{{ $fecha_actual }}');
-    //     $('#fechavencimiento').val('{{$fecha_5}}');
-
-         // DataTables
-    //      table = $('#table-productos').DataTable({
-    //          "dom": '<"html5buttons"B>lTfgitp',
-    //          "buttons": [
-    //         ],
-    //          "bPaginate": true,
-    //          "bLengthChange": true,
-    //          "bFilter": true,
-    //          "bInfo": true,
-    //          "bAutoWidth": false,
-    //          "language": {
-    //              "url": "{{asset('Spanish.json')}}"
-    //          },
-
-    //          "columnDefs": [{
-    //                  "targets": [0],
-    //                  "visible": false,
-    //                  "searchable": false
-    //              },
-    //              {
-
-    //                  "targets": [1],
-    //                  className: "text-center",
-    //                  render: function(data, type, row) {
-    //                      return "<div class='btn-group'>" +
-    //                          "<a class='btn btn-warning btn-sm modificarDetalle btn-edit'  style='color:white;' title='Modificar'><i class='fa fa-edit'></i></a>" +
-    //                          "<a class='btn btn-danger btn-sm' id='borrar_detalle' style='color:white;' title='Eliminar'><i class='fa fa-trash'></i></a>" +
-    //                          "</div>";
-    //                  }
-    //              },
-    //              {
-    //                  "targets": [2],
-    //              },
-    //              {
-    //                 "targets": [3],
-    //                  className: "text-center",
-    //                  "visible": false,
-    //              },
-    //              {
-    //                  "targets": [4],
-    //                  className: "text-center",
-    //              },
-    //              {
-    //                  "targets": [5],
-    //                  className: "text-center",
-    //                  "visible": false,
-    //              },
-    //              {
-    //                  "targets": [6],
-    //                  className: "text-center"
-    //              },
-    //              {
-    //                  "targets": [7],
-    //                  className: "text-center"
-    //              }
-
-    //         ],
-
-    //     });
-
-    // })
-
-    // //Borrar registro de articulos
-    // $(document).on('click', '#borrar_detalle', function(event) {
-
-    //     const swalWithBootstrapButtons = Swal.mixin({
-    //         customClass: {
-    //             confirmButton: 'btn btn-success',
-    //             cancelButton: 'btn btn-danger',
-    //         },
-    //         buttonsStyling: false
-    //     })
-
-    //     Swal.fire({
-    //         title: 'Opción Eliminar',
-    //         text: "¿Seguro que desea eliminar Artículo?",
-    //         icon: 'question',
-    //         showCancelButton: true,
-    //         confirmButtonColor: "#1ab394",
-    //         confirmButtonText: 'Si, Confirmar',
-    //         cancelButtonText: "No, Cancelar",
-    //     }).then((result) => {
-    //         if (result.isConfirmed) {
-    //             var table = $('.dataTables-ingreso').DataTable();
-    //             table.row($(this).parents('tr')).remove().draw();
-
-    //         } else if (
-    //             /* Read more about handling dismissals below */
-    //             result.dismiss === Swal.DismissReason.cancel
-    //         ) {
-    //             swalWithBootstrapButtons.fire(
-    //                 'Cancelado',
-    //                 'La Solicitud se ha cancelado.',
-    //                 'error'
-    //             )
-    //         }
-    //     })
-
-
-
-    // });
-
-
-    // //Validacion al ingresar tablas
-    // $(".enviar_detalle").click(function() {
-
-    //     var enviar = true;
-    //     var cantidad = $('#cantidad').val();
-    //     var costo_aux = $('#costo').val();
-    //     var lote= $('#lote').val();
-    //     var producto= $('#producto').val();
-    //     var fechavencimiento= $('#fechavencimiento').val();
-
-    //     if ($('#producto').val() == '') {
-    //         toastr.error('Seleccione Producto.', 'Error');
-    //         enviar = false;
-    //     } else {
-    //         var existe = buscarproducto($('#producto').val())
-    //         if (existe == true) {
-    //             toastr.error('Producto con el mismo lote ya se encuentra ingresado.', 'Error');
-    //             enviar = false;
-    //         }
-    //     }
-
-    //     if(cantidad.length==0|| lote.length==0 || fechavencimiento.length==0)
-    //     {
-    //         toastr.error('Ingrese datos', 'Error');
-    //         enviar = false;
-    //     }
-
-
-    //     if (enviar) {
-
-    //         let aux = convertFloat(costo_aux) / convertFloat(cantidad);
-    //         let costo = (aux).toFixed(4)
-    //         const swalWithBootstrapButtons = Swal.mixin({
-    //             customClass: {
-    //                 confirmButton: 'btn btn-success',
-    //                 cancelButton: 'btn btn-danger',
-    //             },
-    //             buttonsStyling: false
-    //         })
-
-    //         Swal.fire({
-    //             title: 'Opción Agregar',
-    //             text: "¿Seguro que desea agregar Producto?",
-    //             icon: 'question',
-    //             showCancelButton: true,
-    //             confirmButtonColor: "#1ab394",
-    //             confirmButtonText: 'Si, Confirmar',
-    //             cancelButtonText: "No, Cancelar",
-    //         }).then((result) => {
-    //             if (result.isConfirmed) {
-
-    //                 var detalle = {
-    //                     cantidad: convertFloat($('#cantidad').val()).toFixed(2),
-    //                     lote:$('#lote').val(),
-    //                     producto:$( "#producto option:selected" ).text(),
-    //                     fechavencimiento: $('#fechavencimiento').val(),
-    //                     producto_id:$( "#producto" ).val(),
-    //                     costo:costo
-
-    //                 }
-    //                 agregarTabla(detalle);
-    //                 limpiarDetalle();
-
-    //             } else if (
-    //                 /* Read more about handling dismissals below */
-    //                 result.dismiss === Swal.DismissReason.cancel
-    //             ) {
-    //                 swalWithBootstrapButtons.fire(
-    //                     'Cancelado',
-    //                     'La Solicitud se ha cancelado.',
-    //                     'error'
-    //                 )
-    //             }
-    //         })
-
-    //     }
-    // });
-
-    // function limpiarDetalle()
-    // {
-    //     $('#cantidad').val('');
-    //     $('#costo').val('');
-    //     $('#lote').val('LT-{{ $fecha_actual }}');
-    //     $('#fechavencimiento').val('{{$fecha_5}}');
-    //     $('#producto').val($('#producto option:first-child').val()).trigger('change');
-    // }
-
-    // $(document).on('click', '.btn-edit', function(event) {
-    //     var table = $('.dataTables-ingreso').DataTable();
-    //     var data = table.row($(this).parents('tr')).data();
-    //     $('#modal_editar_detalle #indice').val(table.row($(this).parents('tr')).index());
-    //     $('#modal_editar_detalle #lote').val(data[3]);
-    //     $('#modal_editar_detalle #cantidad').val(data[2]);
-    //     $('#modal_editar_detalle #costo').val(data[6]);
-    //     $('#modal_editar_detalle #prod_id').val(data[0]);
-    //     $('#modal_editar_detalle #fechavencimiento').val(data[5]);
-    //     $('#modal_editar_detalle').modal('show');
-    //     $("#modal_editar_detalle #producto").val(data[0]).trigger('change');
-    // });
-
-
-    // function agregarTabla($detalle) {
-    //     var t = $('.dataTables-ingreso').DataTable();
-    //     t.row.add([
-    //         $detalle.producto_id,'',
-    //         $detalle.cantidad,
-    //         $detalle.lote,
-    //         $detalle.producto,
-    //         $detalle.fechavencimiento,
-    //         $detalle.costo,
-    //         ($detalle.costo * $detalle.cantidad).toFixed(2),
-    //     ]).draw(false);
-    //     sumaTotal();
-    //     cargarDetalle();
-    // }
-
-    // function cargarDetalle() {
-    //     var notadetalle = [];
-    //     var table = $('.dataTables-ingreso').DataTable();
-    //     var data = table.rows().data();
-    //     data.each(function(value, index) {
-    //         let fila = {
-    //             cantidad: value[2],
-    //             lote: value[3],
-    //             producto_id: value[0],
-    //             fechavencimiento: value[5],
-    //             costo: value[6],
-    //             valor_ingreso: value[7],
-    //         };
-
-    //         notadetalle.push(fila);
-
-    //     });
-    //     $('#notadetalle_tabla').val(JSON.stringify(notadetalle))
-    // }
-
-    // function sumaTotal() {
-    //     var total = 0;
-    //     table.rows().data().each(function(el, index) {
-    //         total = Number(el[7]) + total
-    //     });
-    //     $('#total').text(total.toFixed(2))
-    //     $('#monto_total').val(total.toFixed(2))
-    // }
-
-    // function buscarproducto(id) {
-    //     var existe = false;
-    //     table.rows().data().each(function(el, index) {
-    //         (el[0] == id) ? existe = true : ''
-    //     });
-    //     return existe
-    // }
-
 </script>
 <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
-<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
-    const selectModelo  =  document.querySelector('#modelo');
-    const tokenValue    = document.querySelector('input[name="_token"]').value;
-    const tallas        = @json($tallas);
-    const colores       = @json($colores);
-    const bodyTablaProductos  =  document.querySelector('#table-productos tbody');
-    const bodyTablaDetalle  =  document.querySelector('#table-detalle tbody');
-    const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle');
-    const inputProductos=document.querySelector('#notadetalle_tabla');
+    const selectModelo          =   document.querySelector('#modelo');
+    const tokenValue            =   document.querySelector('input[name="_token"]').value;
+    const tallas                =   @json($tallas);
+    const colores               =   @json($colores);
+    const bodyTablaProductos    =   document.querySelector('#tabla_ni_productos tbody');
+    const bodyTablaDetalle      =   document.querySelector('#tabla_ni_detalle tbody');
+    const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
+    const inputProductos        =   document.querySelector('#notadetalle_tabla');
    
     const formNotaIngreso   = document.querySelector('#enviar_ingresos');
     const btnGrabar         =   document.querySelector('#btn_grabar');
@@ -734,13 +174,17 @@ div.content-window.sk__loading::after {
                                             buttonsStyling: false
                                         })
 
-    let modelo_id   = null;
-    let carrito = [];
-    let table = null;
+    let modelo_id       =   null;
+    let carrito         =   [];
+    let dtNiDetalle     =   null;
+    let dtNiProductos   =   null;
+
 
     document.addEventListener('DOMContentLoaded',()=>{
         events();
-        //cargarDataTables();
+        
+        dtNiDetalle     =   iniciarDataTable('tabla_ni_detalle');
+        dtNiProductos   =   iniciarDataTable('tabla_ni_productos');
     })
 
     function events(){
@@ -773,8 +217,13 @@ div.content-window.sk__loading::after {
                 }
                   
             })
+
             reordenarCarrito();
+
+            destruirDataTable(dtNiDetalle);
+            limpiarTabla('tabla_ni_detalle');
             pintarDetalleNotaIngreso(carrito);
+            dtNiDetalle   =   iniciarDataTable('tabla_ni_detalle');
             
         })
 
@@ -793,8 +242,7 @@ div.content-window.sk__loading::after {
             e.preventDefault();
             btnGrabar.disabled          =   true;
             
-            if(carrito.length>0){
-                inputProductos.value    =   JSON.stringify(carrito);
+            if(carrito.length > 0){
 
                 Swal.fire({
                     title: 'Generar etiquetas adhesivas?',
@@ -805,12 +253,21 @@ div.content-window.sk__loading::after {
                     confirmButtonText: 'Si, generar',
                     cancelButtonText: "No",
                 }).then((result) => {
+
+                    let generarAdhesivos    =   'NO';
+
                     if (result.isConfirmed) {
-                        document.querySelector('#generarAdhesivos').value   =   'SI';            
+                        generarAdhesivos   =   'SI';            
                     }else if (result.dismiss === Swal.DismissReason.cancel) {
-                        document.querySelector('#generarAdhesivos').value   =   'NO';            
+                        generarAdhesivos   =   'NO';            
                     }
-                    formNotaIngreso.submit();
+                    
+                    const formData  =   new FormData(e.target);
+                    formData.append('lstNi',JSON.stringify(carrito))
+                    formData.append('registrador_id',@json($registrador->id));
+                    formData.append('sede_id',@json($sede_id));
+                    formData.append('generarAdhesivos',generarAdhesivos);
+                    registrarNotaIngreso(formData,generarAdhesivos);
                 })
             }else{
                 toastr.error('El detalle de la nota de ingreso está vacío!!!')
@@ -825,6 +282,85 @@ div.content-window.sk__loading::after {
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
             }
         })
+    }
+
+    async function registrarNotaIngreso(formData,generarAdhesivos){
+
+        const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: false
+        });
+        swalWithBootstrapButtons.fire({
+        title: "Desea registrar la nota de ingreso?",
+        text: "Se ingresará stock en el almacén destino!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí!",
+        cancelButtonText: "No, cancelar!",
+        reverseButtons: true
+        }).then(async (result) => {
+        if (result.isConfirmed) {
+           
+            Swal.fire({
+                title: "Procesando...",
+                text: "Por favor, espere",
+                icon: "info",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            try {
+                toastr.clear();
+                const res   =   await axios.post(route('almacenes.nota_ingreso.store'),formData);
+                console.log(res);
+                if(res.data.success){
+
+                    if(generarAdhesivos === 'SI'){
+                        window.open(route('almacenes.nota_ingreso.generarEtiquetas', {nota_id: res.data.nota_id}), '_blank');
+                    }
+
+                    window.location =  route('almacenes.nota_ingreso.index');
+                    toastr.success(res.data.message,'OPERCIÓN COMPLETADA');
+                }else{
+                    Swal.close();
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                if (error.response) {
+                    if (error.response.status === 422) {
+                        const errors = error.response.data.errors;
+                        pintarErroresValidacion(errors, 'error');
+                        Swal.close();
+                        toastr.error('Errores de validación encontrados.', 'ERROR DE VALIDACIÓN');
+                    } else {
+                        Swal.close();
+                        toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                    }
+                } else if (error.request) {
+                    Swal.close();
+                    toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+                } else {
+                    Swal.close();
+                    toastr.error(error.message, 'ERROR DESCONOCIDO');
+                }        
+            }
+
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            swalWithBootstrapButtons.fire({
+            title: "Operación cancelada",
+            text: "No se realizaron acciones",
+            icon: "error"
+            });
+        }
+        });
+       
     }
 
   
@@ -847,18 +383,41 @@ div.content-window.sk__loading::after {
     }
 
     //============== FUNCIÓN OBTENER PRODUCTOS DE UN MODELO ==============
-     
-    async function getProductosByModelo(e){
+    async function getNiProductos(e){
+
+        toastr.clear();
         modelo_id                   =   e.value;
+
         btnAgregarDetalle.disabled  =   true;
         
+        const almacen_id            =   document.querySelector('#almacen_destino').value;
 
-        if(modelo_id){
+        if(modelo_id && !almacen_id){
+            mostrarAnimacion();
+            toastr.error('DEBE SELECCIONAR UN ALMACÉN DE DESTINO!!!');
+            
+            destruirDataTable(dtNiProductos);
+            limpiarTabla('tabla_ni_productos');
+            dtNiProductos   =   iniciarDataTable('tabla_ni_productos');
+
+            document.querySelector('#modelo').onchange = null;
+            $('#modelo').val(null).trigger('change');
+            document.querySelector('#modelo').onchange = function() {
+                getNiProductos(this);
+            };
+            $('#almacen_destino').select2('open');
+            ocultarAnimacion();
+        }
+
+        if(modelo_id && almacen_id){
             mostrarAnimacion();
             try {
-                const res       =   await axios.get(route('almacenes.nota_ingreso.getProductos',modelo_id));
+                const res       =   await axios.get(route('almacenes.nota_ingreso.getProductos',{modelo_id,almacen_id}));
                 if(res.data.success){
+                    destruirDataTable(dtNiProductos);
+                    limpiarTabla('tabla_ni_productos');
                     pintarTableStocks(tallas,res.data.productos);
+                    dtNiProductos   =   iniciarDataTable('tabla_ni_productos');
                 }else{
                     toastr.error(res.data.exception,res.data.message);
                 }
@@ -866,11 +425,9 @@ div.content-window.sk__loading::after {
                 toastr.error(error,'ERROR AL REALIZAR LA SOLICITUD DE PRODUCTOS');
             }finally{
                 ocultarAnimacion();
-            }
-             
-        }else{
-            bodyTablaProductos.innerHTML = ``;
+            }   
         }
+
     }
 
     //============ REORDENAR CARRITO ===============
@@ -886,16 +443,18 @@ div.content-window.sk__loading::after {
 
     //=============== FORMAR OBJETO PRODUCTO PARA INSERTAR EN EL CARRITO POSTERIORMENTE =============
     const formarProducto = (ic)=>{
-        const producto_id = ic.getAttribute('data-producto-id');
-        const producto_nombre = ic.getAttribute('data-producto-nombre');
-        const color_id = ic.getAttribute('data-color-id');
-        const color_nombre = ic.getAttribute('data-color-nombre');
-        const talla_id = ic.getAttribute('data-talla-id');
-        const talla_nombre = ic.getAttribute('data-talla-nombre');
-        const cantidad     = ic.value?ic.value:0;
-        const producto = {producto_id,producto_nombre,color_id,color_nombre,
-                            talla_id,talla_nombre,cantidad};
+
+        const producto_id       =   ic.getAttribute('data-producto-id');
+        const producto_nombre   =   ic.getAttribute('data-producto-nombre');
+        const color_id          =   ic.getAttribute('data-color-id');
+        const color_nombre      =   ic.getAttribute('data-color-nombre');
+        const talla_id          =   ic.getAttribute('data-talla-id');
+        const talla_nombre      =   ic.getAttribute('data-talla-nombre');
+        const cantidad          =   ic.value?ic.value:0;
+        const producto          =   {producto_id,producto_nombre,color_id,color_nombre,
+                                    talla_id,talla_nombre,cantidad};
         return producto;
+
     }
 
     //============ RENDERIZAR TABLA DE CANTIDADES ============
@@ -969,19 +528,12 @@ div.content-window.sk__loading::after {
         btnAgregarDetalle.disabled = false;
     }
 
-    //================== LIMPIAR TABLA DETALLE ===============
-    function clearDetalleCotizacion(){
-        while (bodyTablaDetalle.firstChild) {
-            bodyTablaDetalle.removeChild(bodyTablaDetalle.firstChild);
-        }
-    }
-
     //====== RENDERIZAR TABLA DETALLE NOTA INGRESO ==============
     function pintarDetalleNotaIngreso(carrito){
         let fila= ``;
         let htmlTallas= ``;
         const producto_color_procesado=[];
-        clearDetalleCotizacion();
+        
 
         carrito.forEach((c)=>{
             htmlTallas=``;
@@ -1012,37 +564,19 @@ div.content-window.sk__loading::after {
         })
     }
 
-    function cargarDataTables(){
-        table = new DataTable('#table-productos',
-        {
-            language: {
-                processing:     "Traitement en cours...",
-                search:         "BUSCAR: ",
-                lengthMenu:    "MOSTRAR _MENU_ PRODUCTOS",
-                info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ PRODUCTOS",
-                infoEmpty:      "MOSTRANDO 0 ELEMENTOS",
-                infoFiltered:   "(FILTRADO de _MAX_ PRODUCTOS)",
-                infoPostFix:    "",
-                loadingRecords: "CARGA EN CURSO",
-                zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
-                emptyTable:     "NO HAY PRODUCTOS DISPONIBLES",
-                paginate: {
-                    first:      "PRIMERO",
-                    previous:   "ANTERIOR",
-                    next:       "SIGUIENTE",
-                    last:       "ÚLTIMO"
-                },
-                aria: {
-                    sortAscending:  ": activer pour trier la colonne par ordre croissant",
-                    sortDescending: ": activer pour trier la colonne par ordre décroissant"
-                }
-            }
-        });
-        
-        const tableStocks   = document.querySelector('#table-productos');
-        if(tableStocks.children[1]){
-            tableStocks.children[1].remove();
-        }
+
+    function cambiarAlmacenDestino(){
+
+        destruirDataTable(dtNiProductos);
+        limpiarTabla('tabla_ni_productos');
+        dtNiProductos = iniciarDataTable('tabla_ni_productos')
+
+        carrito =   [];
+        destruirDataTable(dtNiDetalle);
+        limpiarTabla('tabla_ni_detalle');
+        dtNiDetalle =   iniciarDataTable('tabla_ni_detalle');
+
+        $('#modelo').val(null).trigger('change');
     }
 
 </script>

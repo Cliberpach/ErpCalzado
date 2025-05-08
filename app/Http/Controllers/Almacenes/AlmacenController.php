@@ -4,34 +4,66 @@ namespace App\Http\Controllers\Almacenes;
 
 use App\Almacenes\Almacen;
 use App\Http\Controllers\Controller;
+use App\Mantenimiento\Sedes\Sede;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Yajra\DataTables\Facades\DataTables;
 
 class AlmacenController extends Controller
 {
     public function index()
     {
         $this->authorize('haveaccess','almacen.index');
-        return view('almacenes.almacen.index');
+        
+        $sede_id                =   Auth::user()->sede->id;
+
+        $sede_have_principal    =   Almacen::where('estado', 'ACTIVO')
+                                    ->where('sede_id', $sede_id)
+                                    ->where('tipo_almacen','PRINCIPAL')
+                                    ->exists();
+
+        return view('almacenes.almacen.index',compact('sede_id','sede_have_principal'));
     }
     public function getRepository(){
-        
-        return datatables()->query(
-            DB::table('almacenes')
-            ->select('almacenes.*', 
-            DB::raw('DATE_FORMAT(created_at, "%d/%m/%Y") as creado'),
-            DB::raw('DATE_FORMAT(updated_at, "%d/%m/%Y") as actualizado')
-            )->where('almacenes.estado','ACTIVO')->orderBy('id','DESC')
-        )->toJson();
+
+        $sede_id   =   Auth::user()->sede->id;
+
+        $almacenes  =   DB::table('almacenes as a')
+                        ->join('empresa_sedes as es','es.id','a.sede_id')
+                        ->select('a.*',
+                        'es.direccion as sede_direccion', 
+                        DB::raw('DATE_FORMAT(a.created_at, "%d/%m/%Y") as creado'),
+                        DB::raw('DATE_FORMAT(a.updated_at, "%d/%m/%Y") as actualizado')
+                        )
+                        ->where('a.estado','ACTIVO')
+                        ->where('a.sede_id',$sede_id)
+                        ->orderBy('a.id','DESC')
+                        ->get();
+
+        return DataTables::of($almacenes)
+        ->make(true);
     }
 
+/*
+array:7 [▼
+  "_token" => "1GLZQwEm27g0iIhFDg4ixijgrzEPTT3PfQqqPkWE"
+  "_method" => "POST"
+  "almacen_existe" => null
+  "sede_id" => "2"
+  "descripcion_guardar" => "ASDA"
+  "ubicacion_guardar" => "SDASDAS"
+  "tipo_almacen" => "PRINCIPAL"
+]
+*/
     public function store(Request $request){
-        
+     
         $this->authorize('haveaccess','almacen.index'); 
         $data = $request->all();
+    
 
         $rules = [
             'descripcion_guardar' => [
@@ -51,15 +83,17 @@ class AlmacenController extends Controller
 
         Validator::make($data, $rules, $message)->validate();
 
-        $almacen = new Almacen();
-        $almacen->descripcion = $request->get('descripcion_guardar');
-        $almacen->ubicacion = $request->get('ubicacion_guardar');
+        $almacen                =   new Almacen();
+        $almacen->descripcion   =   $request->get('descripcion_guardar');
+        $almacen->ubicacion     =   $request->get('ubicacion_guardar');
+        $almacen->sede_id       =   $request->get('sede_id');
+        $almacen->tipo_almacen  =   $request->get('tipo_almacen');
         $almacen->save();
 
         
         //Registro de actividad
-        $descripcion = "SE AGREGÓ EL ALMACEN CON EL NOMBRE: ". $almacen->descripcion;
-        $gestion = "ALMACEN";
+        $descripcion    = "SE AGREGÓ EL ALMACEN CON EL NOMBRE: ". $almacen->descripcion;
+        $gestion        = "ALMACEN";
         crearRegistro($almacen, $descripcion , $gestion);
 
         Session::flash('success','Almacen creado.');
@@ -84,14 +118,15 @@ class AlmacenController extends Controller
 
         Validator::make($data, $rules, $message)->validate();
         
-        $almacen = Almacen::findOrFail($request->get('tabla_id'));
-        $almacen->descripcion = $request->get('descripcion');
-        $almacen->ubicacion = $request->get('ubicacion');
+        $almacen                =   Almacen::findOrFail($request->get('tabla_id'));
+        $almacen->descripcion   =   $request->get('descripcion');
+        $almacen->ubicacion     =   $request->get('ubicacion');
+        $almacen->sede_id       =   $request->get('sede_id');
         $almacen->update();
 
         //Registro de actividad
-        $descripcion = "SE MODIFICÓ EL ALMACEN CON EL NOMBRE: ". $almacen->descripcion;
-        $gestion = "ALMACEN";
+        $descripcion    = "SE MODIFICÓ EL ALMACEN CON EL NOMBRE: ". $almacen->descripcion;
+        $gestion        = "ALMACEN";
         modificarRegistro($almacen, $descripcion , $gestion);
 
         Session::flash('success','Almacen modificado.');

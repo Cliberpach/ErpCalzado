@@ -1,9 +1,10 @@
 @extends('layout') 
 
 @section('content')
-    @include('mantenimiento.metodos_entrega.modal_create')
-    @include('mantenimiento.metodos_entrega.modal_edit')
-    @include('mantenimiento.metodos_entrega.modal_sedes')
+
+@include('mantenimiento.metodos_entrega.modal_create')
+@include('mantenimiento.metodos_entrega.modal_edit')
+@include('mantenimiento.metodos_entrega.modal_sedes')
 
 @section('mantenimiento-active', 'active')
 @section('metodo_entrega-active', 'active')
@@ -137,30 +138,33 @@
                         className:"text-center",
                         render: function(data) {
                            
-                            var url_detalle = '{{ route("mantenimiento.vendedor.show", ":id")}}';
-                            url_detalle = url_detalle.replace(':id',data.id);
 
-                           
-              
-
-                            var accionesHtml = "<div class='btn-group'>" +
-                        "<button type='button' class='btn btn-primary btn-sm dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Acciones</button>" +
-                        "<div class='dropdown-menu'>" +
-                            "<a class='dropdown-item' href='"+url_detalle+"' title='Detalle'><i class='fa fa-eye'></i> Detalle</a>" +
-                            "<div class='dropdown-divider'></div>" + 
-                            "<a class='dropdown-item modificarDetalle' onclick='editarMetodoEntrega("+data.id+")' href='#' title='Modificar'><i class='fa fa-edit'></i> Modificar</a>" +
-                            "<div class='dropdown-divider'></div>"; 
-
-                            if (data.tipo_envio === "AGENCIA" || data.tipo_envio === "RECOJO EN TIENDA" || data.tipo_envio === "RECOJO EN ALMACEN") {
-                                accionesHtml += "<a class='dropdown-item' href='#' onclick='sedes("+data.id+")' title='Sedes'><i class='fa fa-building'></i> Sedes</a>" +
-                                                "<div class='dropdown-divider'></div>"; 
-                            }
-
-                            accionesHtml += "<a class='dropdown-item' href='#' onclick='eliminar("+data.id+")' title='Eliminar'><i class='fa fa-trash'></i> Eliminar</a>" +
-                                            "</div>" +
-                                            "</div>";
+                            var accionesHtml = `
+                                <div class='btn-group'>
+                                    <button type='button' class='btn btn-primary btn-sm dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
+                                        Acciones
+                                    </button>
+                                    <div class='dropdown-menu'>
+                                       
+                                        <a class='dropdown-item modificarDetalle' onclick='editarMetodoEntrega(${data.id})' href='#' title='Modificar'>
+                                            <i class='fa fa-edit'></i> Modificar
+                                        </a>
+                                        <div class='dropdown-divider'></div>
+                                        ${["AGENCIA", "RECOJO EN TIENDA", "RECOJO EN ALMACEN"].includes(data.tipo_envio) ? `
+                                            <a class='dropdown-item' href='#' onclick='sedes(${data.id})' title='Sedes'>
+                                                <i class='fa fa-building'></i> Sedes
+                                            </a>
+                                            <div class='dropdown-divider'></div>
+                                        ` : ""}
+                                        <a class='dropdown-item' href='#' onclick='eliminar(${data.id})' title='Eliminar'>
+                                            <i class='fa fa-trash'></i> Eliminar
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
 
                             return accionesHtml;
+
                         }
                     }
 

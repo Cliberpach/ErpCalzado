@@ -91,15 +91,15 @@
                                     <div class="col-12 col-md-6">
                                         <div class="form-group">
                                             <label class="required" for="departamento">Departamento</label>
-                                            <v-select v-model="departamento" :options="Departamentos" :reduce="d=>d"
+                                            <v-select v-model="departamento" :options="lst_departamentos_base" :reduce="d=>d"
                                                 label="nombre"></v-select>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-6">
                                         <div class="form-group">
                                             <label class="required" for="provincia">Provincia</label>
-                                            <v-select v-model="provincia" :options="Provincias" :reduce="p=>p"
-                                                label="text"></v-select>
+                                            <v-select v-model="provincia" :options="lstProvinciasFiltrado" :reduce="p=>p"
+                                                label="nombre"></v-select>
                                         </div>
                                     </div>
                                 </div>
@@ -107,12 +107,8 @@
                                     <div class="col-12 col-md-6">
                                         <div class="form-group">
                                             <label class="required" for="distrito">Distrito</label>
-                                            <v-select v-model="distrito" :options="Distritos" :reduce="d=>d"
-                                                label="text"></v-select>
-                                            <!-- <select id="distrito" name="distrito" class="select2_form form-control"
-                                                style="width: 100%">
-                                                <option></option>
-                                            </select> -->
+                                            <v-select v-model="distrito" :options="lstDistritosFiltrado" :reduce="d=>d"
+                                                label="nombre"></v-select>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-6">
@@ -181,14 +177,27 @@
 <script>
 export default {
     name: "ModalCliente",
+    props: {
+        lst_departamentos_base:{
+            type:Array,
+            default:[]
+        },
+        lst_provincias_base:{
+            type:Array,
+            default:[]
+        },
+        lst_distritos_base:{
+            type:Array,
+            default:[]
+        }
+    },
     data() {
         return {
             loading: false,
             tipoDocumentos: [],
             tipoClientes: [],
-            Departamentos: [],
-            Provincias: [],
-            Distritos: [],
+            lstProvinciasFiltrado: [],
+            lstDistritosFiltrado: [],
             tipo_documento: "",
             tipo_cliente_id: "",
             departamento: {
@@ -198,11 +207,11 @@ export default {
             },
             provincia: {
                 id: 0,
-                text: ""
+                nombre: ""
             },
             distrito: {
                 id: 0,
-                text: ""
+                nombre: ""
             },
             formCliente: {
                 tipo_documento: "",
@@ -273,40 +282,38 @@ export default {
         tipoClientes(value) {
             this.tipo_cliente_id = value.length > 0 ? value[0].id : "";
         },
-        Departamentos() {
-            this.departamento = {
-                id: 13,
-                nombre: "LA LIBERTAD",
-                zona: "NORTE"
-            };
+        departamento: {
+            handler(value) {
+                
+                this.provincia                  =   null;
+                this.distrito                   =   null;
+                this.lstProvinciasFiltrado      =   [];
+                this.lstDistritosFiltrado       =   [];
+                this.formCliente.zona           =   value ? value.zona : "";
+                this.formCliente.departamento   =   value ? value.id : 0;
+
+                let departamento_id = value.id;
+
+                if (departamento_id) {
+                    this.setLstProvinciasFiltradas(departamento_id);
+                    this.provincia                  =   this.lstProvinciasFiltrado[0];
+                    this.formCliente.departamento   =   value.id;
+                    this.formCliente.provincia      =   this.provincia.id;
+                }
+            },
+            deep: true 
         },
-        Provincias(value) {
-            if (!this.dataDNI.buscado && this.loadingProvincias) {
-                this.provincia = value.length > 0 ? value[0] : null;
+        provincia(value){
+          
+            let provincia_id            =   value.id;
+            this.distrito               =   null;
+            this.lstDistritosFiltrado   =   [];
+            
+            if(provincia_id){
+               this.setLstDistritosFiltrados(provincia_id);
+               this.distrito                =   this.lstDistritosFiltrado[0];
+               this.formCliente.distrito    =   this.distrito.id;
             }
-            if (!this.dataRUC.buscado && this.loadingProvincias) {
-                this.provincia = value.length > 0 ? value[0] : null;
-            }
-        },
-        Distritos(value) {
-            if (!this.dataDNI.buscado && this.loadingDistritos) {
-                this.distrito = value.length > 0 ? value[0] : null;
-            }
-            if (!this.dataRUC.buscado && this.loadingDistritos) {
-                this.distrito = value.length > 0 ? value[0] : null;
-            }
-        },
-        departamento(value) {
-            this.formCliente.zona = value ? value.zona : "";
-            this.formCliente.departamento = value ? value.id : 0;
-            this.$nextTick(this.getProvincias);
-        },
-        provincia(value) {
-            this.formCliente.provincia = value ? value.id : 0;
-            this.$nextTick(this.getDistritos);
-        },
-        distrito(value) {
-            this.formCliente.distrito = value ? value.id : 0;
         },
         tipo_documento(value) {
             //======= LIMPIAR EL NRO DE DOCUMENTO ======
@@ -329,10 +336,7 @@ export default {
                 this.maxlength = 11;
             }else{
                 this.maxlength = 20; 
-            }
-            
-           
-            
+            }  
         },
         tipo_cliente_id(value) {
             this.formCliente.tipo_cliente_id = value;
@@ -382,40 +386,96 @@ export default {
         },
         dataDNI(value) {
             if (value.buscado) {
-                let iddepart = value.ubigeo.length > 0 ? value.ubigeo[0] : 0;
-                this.Departamentos.forEach(item => {
-                    if (Number(item.id) == Number(iddepart)) {
-                        this.departamento = item;
-                    }
-                });
-                this.formCliente.codigo_verificacion = this.dataDNI.codigo_verificacion == "-" || this.dataDNI.codigo_verificacion === null ? "" : this.dataDNI.codigo_verificacion;
-                this.formCliente.nombre = this.dataDNI.nombres + " " + this.dataDNI.apellido_paterno + " " + this.dataDNI.apellido_materno;
-                this.formCliente.direccion = this.dataDNI.direccion_completa;
-                this.formCliente.activo = "ACTIVO";
+                
+                //========= COLOCANDO DATOS DEL CLIENTE =======
+                this.formCliente.codigo_verificacion    = this.dataDNI.codigo_verificacion == "-" || this.dataDNI.codigo_verificacion === null ? "" : this.dataDNI.codigo_verificacion;
+                this.formCliente.nombre                 = this.dataDNI.nombres + " " + this.dataDNI.apellido_paterno + " " + this.dataDNI.apellido_materno;
+                this.formCliente.direccion              = this.dataDNI.direccion_completa;
+                this.formCliente.activo                 = "ACTIVO";
+
+                //======== COLOCANDO UBIGEO =======
+                const departamento_id   =   value.ubigeo[0];
+                const provincia_id      =   value.ubigeo[1];
+                const distrito_id       =   value.ubigeo[2];
+
+                if(departamento_id && provincia_id && distrito_id){
+
+                    this.departamento       =   this.lst_departamentos_base.find((d)=>{
+                        return d.id == departamento_id;
+                    })
+
+                    this.$nextTick(() => {
+                        this.provincia = this.lst_provincias_base.find((pr) => pr.id == provincia_id);
+
+                        this.$nextTick(() => {
+                            this.distrito = this.lst_distritos_base.find((d) => d.id == distrito_id);
+                        });
+                    });
+                   
+                }
             }
         },
         dataRUC(value){
             if (value.buscado) {
-                let iddepart = value.ubigeo.length > 0 ? value.ubigeo[0] : 0;
-                this.Departamentos.forEach(item => {
-                    if (Number(item.id) == Number(iddepart)) {
-                        this.departamento = item;
-                    }
-                });
-                this.formCliente.codigo_verificacion = "";
-                this.formCliente.nombre = this.dataRUC.nombre_o_razon_social;
-                this.formCliente.direccion = this.dataRUC.direccion;
-                this.formCliente.activo = "ACTIVO";
+
+                let iddepart                            = value.ubigeo.length > 0 ? value.ubigeo[0] : 0;
+                this.formCliente.codigo_verificacion    = "";
+                this.formCliente.nombre                 = this.dataRUC.nombre_o_razon_social;
+                this.formCliente.direccion              = this.dataRUC.direccion;
+                this.formCliente.activo                 = "ACTIVO";
+
+                //======== COLOCANDO UBIGEO =======
+                const departamento_id   =   value.ubigeo[0];
+                const provincia_id      =   value.ubigeo[1];
+                const distrito_id       =   value.ubigeo[2];
+
+                if(departamento_id && provincia_id && distrito_id){
+
+                    this.departamento       =   this.lst_departamentos_base.find((d)=>{
+                        return d.id == departamento_id;
+                    })
+
+                    this.$nextTick(() => {
+                        this.provincia = this.lst_provincias_base.find((pr) => pr.id == provincia_id);
+
+                        this.$nextTick(() => {
+                            this.distrito = this.lst_distritos_base.find((d) => d.id == distrito_id);
+                        });
+                    });
+                   
+                }
+
             }
         },
     },
+   
     created() {
+
+        this.setLstProvinciasFiltradas(13);
+        this.setLstDistritosFiltrados(1301);
+
+        this.departamento   =   { id: 13, nombre: "LA LIBERTAD", zona: "NORTE" };
+        this.provincia      =   { id: 1301, nombre: "TRUJILLO",departamento_id:13 };
+        this.distrito       =   { id: 130101, nombre: "TRUJILLO",provincia_id:1301 };
+
+
         this.getTipoDocumento();
-        this.getTipoCliente();
-        this.getDepartamentos();
-       
+        this.getTipoCliente();       
     },
     methods: {
+       
+        setLstProvinciasFiltradas(departamento_id){
+            departamento_id             = String(departamento_id).padStart(2, '0');
+            this.lstProvinciasFiltrado  = this.lst_provincias_base.filter(provincia => provincia.departamento_id == departamento_id);
+            
+        },
+        setLstDistritosFiltrados(provincia_id){
+            provincia_id = String(provincia_id).padStart(4, '0');
+
+            this.lstDistritosFiltrado      =   this.lst_distritos_base.filter((distrito)=>{
+                return  distrito.provincia_id == provincia_id;
+            })  
+        },
         async Guardar() {
             try {
                 this.clearErrores();
@@ -424,14 +484,14 @@ export default {
 
                 this.loading = true;
                 const res = await this.axios.post(route('ventas.cliente.storeFast'), this.formCliente);
-                console.log(res);
-
+                
                 if(res.data.success){
                 
                     this.clienteNuevo    =   res.data.cliente;
 
                     this.$emit("newCliente",this.clienteNuevo);
 
+                    this.Cerrar();
                     toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
                     $("#modal_cliente").modal("hide");
                     return;
@@ -484,38 +544,6 @@ export default {
 
             }
         },
-        async getDepartamentos() {
-            try {
-                const { data } = await this.axios.get(route("consulta.ajax.getDepartamentos"));
-                this.Departamentos = data;
-            } catch (ex) {
-
-            }
-        },
-        async getProvincias() {
-            try {
-                const { data } = await this.axios.post(route('mantenimiento.ubigeo.provincias'), {
-                    departamento_id: this.formCliente.departamento
-                });
-                const { error, message, provincias } = data;
-                this.Provincias = provincias;
-                this.loadingProvincias = true;
-            } catch (ex) {
-
-            }
-        },
-        async getDistritos() {
-            try {
-                const { data } = await this.axios.post(route('mantenimiento.ubigeo.distritos'), {
-                    provincia_id: this.formCliente.provincia
-                });
-                const { error, message, distritos } = data;
-                this.Distritos = distritos;
-                this.loadingDistritos = true;
-            } catch (ex) {
-
-            }
-        },
         async consultarDocumento() {
             try {
                 this.loading = true;
@@ -552,10 +580,10 @@ export default {
         },
         async consultarAPI() {
             try {
-                let tipoDoc = this.tipo_documento;
-                let documento = this.formCliente.documento;
-                let url = tipoDoc == "DNI" ? route('getApidni', { dni: documento }) : route('getApiruc', { ruc: documento });
-                const res = await this.axios.get(url);
+                let tipoDoc     = this.tipo_documento;
+                let documento   = this.formCliente.documento;
+                let url         = tipoDoc == "DNI" ? route('getApidni', { dni: documento }) : route('getApiruc', { ruc: documento });
+                const res       = await this.axios.get(url);
                 
                 if(res.data.success){
                     const data  =   res.data;
@@ -580,9 +608,9 @@ export default {
         CamposDNI(results) {
             const { success, data } = results;
             if (success) {
-                this.dataDNI = data;
-                this.dataDNI.buscado = true;
-                this.loading = false;
+                this.dataDNI            =   data;
+                this.dataDNI.buscado    =   true;
+                this.loading            =   false;
             } else {
 
             }
@@ -599,18 +627,16 @@ export default {
        
         Cerrar(){
             
-            this.departamento = {
-                id: 13,
-                nombre: "LA LIBERTAD",
-                zona: "NORTE"
-            };
+            this.departamento   =   { id: 13, nombre: "LA LIBERTAD", zona: "NORTE" };
+            this.provincia      =   { id: 1301, nombre: "TRUJILLO",departamento_id:13 };
+            this.distrito       =   { id: 130101, nombre: "TRUJILLO",provincia_id:1301 };
 
             this.formCliente={
                 tipo_documento: "DNI",
                 tipo_cliente_id: 121,
-                departamento: 0,
-                provincia: 0,
-                distrito: 0,
+                departamento: 13,
+                provincia: 1301,
+                distrito: 130101,
                 zona: "",
                 nombre: "",
                 documento: "",

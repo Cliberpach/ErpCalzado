@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Mantenimiento\Colaborador;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\UtilidadesController;
+use App\Http\Requests\Mantenimiento\Colaborador\ColaboradorStoreRequest;
 use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Persona\Persona;
+use App\Mantenimiento\Sedes\Sede;
 use App\PersonaTrabajador;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -14,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Str;
 
 class ColaboradorController extends Controller
 {
@@ -23,229 +28,176 @@ class ColaboradorController extends Controller
         return view('mantenimiento.colaboradores.index');
     }
 
-    public function getTable()
-    {
-        $colaboradores =Colaborador::get();
-        //dd($colaboradores);
-        $coleccion = collect([]);
-        foreach($colaboradores as $colaborador) {
-            if($colaborador->persona->estado=="ACTIVO")
-            {
-                $coleccion->push([
-                'id' => $colaborador->id,
-                'documento' => $colaborador->persona->getDocumento(),
-                'apellidos_nombres' => $colaborador->persona->getApellidosYNombres(),
-                'telefono_movil' => $colaborador->persona->telefono_movil,
-                'area' => $colaborador->getArea(),
-                'cargo' =>$colaborador->getCargo(),
-             ]);
-            }
-        }
-        return DataTables::of($coleccion)->toJson();
+    public function getColaboradores(Request $request){
+
+        $colaboradores  =   DB::table('colaboradores as co')
+                            ->join('tabladetalles as td', 'td.id', '=', 'co.cargo_id')
+                            ->join('empresa_sedes as es','es.id','co.sede_id')
+                            ->select(
+                                'co.id', 
+                                'es.nombre as sede_nombre',
+                                'co.nombre',
+                                'co.direccion',
+                                'co.telefono',
+                                'co.nro_documento',
+                                'co.dias_trabajo',
+                                'co.dias_descanso',
+                                'co.pago_mensual',
+                                'td.descripcion as cargo_nombre',
+                                'co.estado',
+                                'co.tipo_documento_nombre'
+                            )
+                            ->where('co.estado','ACTIVO')
+                            ->get();
+
+        return DataTables::of($colaboradores)
+                ->make(true);
     }
 
     public function create()
     {
         $this->authorize('haveaccess','colaborador.index');
-        return view('mantenimiento.colaboradores.create');
+
+        $sedes  =   Sede::where('estado','ACTIVO')->get();
+    
+        return view('mantenimiento.colaboradores.create',compact('sedes'));
     }
 
-    public function store(Request $request)
+
+/*
+array:10 [
+  "_token"              =>  "uA8DojLYx1bnlHUStJrLNeX1e0TYsd5OkhYgNM2o"
+  "tipo_documento"      =>  "6"
+  "nro_documento"       =>  "75608753"
+  "nombre"              =>  "LUIS DANIEL ALVA LUJAN"
+  "cargo"               =>  "27"
+  "direccion"           =>  "AV CHAVIMOCHIC 1234"
+  "telefono"            =>  null
+  "dias_trabajo"        =>  "24"
+  "dias_descanso"       =>  "10"
+  "pago_mensual"        =>  null
+  "sede"                =>  1
+]
+*/ 
+    public function store(ColaboradorStoreRequest $request)
     {
         $this->authorize('haveaccess','colaborador.index');
-        $data = $request->all();
-        $rules = [
-            'tipo_documento' => 'required',
-            'documento' => ['required', Rule::unique('personas','documento')->where(function ($query) {
-                $query->whereIn('estado',["ACTIVO"]);
-            })],
-            'nombres' => 'required',
-            'apellido_paterno' => 'required',
-            'apellido_materno' => 'required',
-            'fecha_nacimiento' => 'required',
-            'sexo' => 'required',
-        ];
 
-        $message = [
-            'tipo_documento.required' => 'El campo nombre es obligatorio.',
-            'documento.unique' => 'Ya existe una persona (vendedor o colaborador) con este documento.',
-            'nombres.required' => 'El campo nombres es obligatorio.',
-            'apellido_paterno.required' => 'El campo apellido paterno es obligatorio.',
-            'apellido_materno.required' => 'El campo apellido materno es obligatorio.',
-            'fecha_nacimiento.required' => 'El campo fecha de nacimiento es obligatorio.',
-            'sexo.required' => 'El campo sexo es obligatorio.',
-        ];
+        DB::beginTransaction();
+        try {
 
-        Validator::make($data, $rules, $message)->validate();
-        $persona = new Persona();
-        $persona->tipo_documento = $request->get('tipo_documento');
-        $persona->documento = $request->get('documento');
-        $persona->codigo_verificacion = $request->get('codigo_verificacion');
-        $persona->nombres = $request->get('nombres');
-        $persona->apellido_paterno = $request->get('apellido_paterno');
-        $persona->apellido_materno = $request->get('apellido_materno');
-        $persona->fecha_nacimiento = $request->get('fecha_nacimiento');
-        $persona->sexo = $request->get('sexo');
-        $persona->estado_civil = $request->get('estado_civil');
-        $persona->departamento_id = str_pad($request->get('departamento'), 2, "0", STR_PAD_LEFT);
-        $persona->provincia_id = str_pad($request->get('provincia'), 4, "0", STR_PAD_LEFT);
-        $persona->distrito_id = str_pad($request->get('distrito'), 6, "0", STR_PAD_LEFT);
-        $persona->direccion = $request->get('direccion');
-        $persona->correo_electronico = $request->get('correo_electronico');
-        $persona->telefono_movil = $request->get('telefono_movil');
-        $persona->telefono_fijo = $request->get('telefono_fijo');
-        $persona->correo_corporativo= $request->get('correo_corporativo');
-        $persona->telefono_trabajo= $request->get('telefono_trabajo');
-        $persona->estado_documento = $request->get('estado_documento');
-        $persona->save();
+            //======= OBTENIENDO NOMBRE DEL TIPO DOCUMENTO =====
+            $tipo_documento =   DB::select('select 
+                                td.* 
+                                from tabladetalles as td 
+                                where 
+                                td.id = ?',
+                                [$request->get('tipo_documento')])[0];
 
-        $colaborador = new Colaborador();
-        $colaborador->persona_id = $persona->id;
-        $colaborador->area = $request->get('area');
-        $colaborador->profesion = $request->get('profesion');
-        $colaborador->cargo = $request->get('cargo');
-        $colaborador->telefono_referencia = $request->get('telefono_referencia');
-        $colaborador->contacto_referencia = $request->get('contacto_referencia');
-        $colaborador->grupo_sanguineo = $request->get('grupo_sanguineo');
-        $colaborador->alergias = $request->get('alergias');
-        $colaborador->numero_hijos = $request->get('numero_hijos');
-        $colaborador->sueldo = $request->get('sueldo');
-        $colaborador->sueldo_bruto = $request->get('sueldo_bruto');
-        $colaborador->sueldo_neto = $request->get('sueldo_neto');
-        $colaborador->moneda_sueldo = $request->get('moneda_sueldo');
-        $colaborador->tipo_banco = $request->get('tipo_banco');
-        $colaborador->numero_cuenta = $request->get('numero_cuenta');
+            $colaborador                        =   new Colaborador();
+            $colaborador->tipo_documento_id     =   $request->get('tipo_documento');
+            $colaborador->tipo_documento_nombre =   $tipo_documento->simbolo;
+            $colaborador->nombre                =   Str::upper($request->get('nombre'));
+            $colaborador->cargo_id              =   $request->get('cargo');
+            $colaborador->direccion             =   Str::upper($request->get('direccion'));
+            $colaborador->telefono              =   $request->get('telefono');
+            $colaborador->dias_trabajo          =   $request->get('dias_trabajo');
+            $colaborador->dias_descanso         =   $request->get('dias_descanso');
+            $colaborador->pago_mensual          =   $request->get('pago_mensual');
+            $colaborador->nro_documento         =   $request->get('nro_documento');
+            $colaborador->pago_dia              =   $request->get('pago_mensual')/30;
+            $colaborador->sede_id               =   $request->get('sede');
+            $colaborador->save();
 
-        if($request->hasFile('imagen')){
-            $file = $request->file('imagen');
-            $name = $file->getClientOriginalName();
-            $colaborador->nombre_imagen = $name;
-            $colaborador->ruta_imagen = $request->file('imagen')->store('public/colaboradores/imagenes');
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>'COLABORADOR REGISTRADO']);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
 
-        $colaborador->fecha_inicio_actividad = $request->get('fecha_inicio_actividad');
-        $colaborador->fecha_fin_actividad = $request->get('fecha_fin_actividad');
-        $colaborador->fecha_inicio_planilla = $request->get('fecha_inicio_planilla');
-        $colaborador->fecha_fin_planilla = $request->get('fecha_fin_planilla');
-        $colaborador->save();
-        //Registro de actividad
-        $descripcion = "SE AGREGÓ EL colaborador CON EL NOMBRE: ". $colaborador->persona->nombres.' '.$colaborador->persona->apellido_paterno.' '.$colaborador->persona->apellido_materno;
-        $gestion = "colaboradores";
-        crearRegistro($colaborador, $descripcion , $gestion);
-
-
-
-        Session::flash('success','Colaborador creado.');
-        return redirect()->route('mantenimiento.colaborador.index')->with('guardar', 'success');
     }
 
     public function edit($id)
     {
         $this->authorize('haveaccess','colaborador.index');
+
         $colaborador = Colaborador::findOrFail($id);
+        $sedes  =   Sede::where('estado','ACTIVO')->get();
+
         return view('mantenimiento.colaboradores.edit', [
-            'colaborador' => $colaborador
+            'colaborador'   =>  $colaborador,
+            'sedes'         =>  $sedes  
         ]);
     }
 
+/*
+array:10 [
+  "_token"                  => "uA8DojLYx1bnlHUStJrLNeX1e0TYsd5OkhYgNM2o"
+  "tipo_documento"          => "6"
+  "nro_documento"           => "75608753"
+  "nombre"                  => "LUIS DANIEL ALVA LUJAN"
+  "cargo"                   => "27"
+  "direccion"               => "AV CHAVIMOCHIC 1234"
+  "telefono"                => "974585471"
+  "dias_trabajo"            => "24.00"
+  "dias_descanso"           => "12.00"
+  "pago_mensual"            => "1400.00"
+  "sede"                    => "1"
+]    
+*/ 
     public function update(Request $request, $id)
     {
         $this->authorize('haveaccess','colaborador.index');
-        $data = $request->all();
-        $colaborador = Colaborador::findOrFail($id);
-        $rules = [
-            'tipo_documento' => 'required',
-            'documento' => ['required', Rule::unique('personas','documento')->where(function ($query) {
-                $query->whereIn('estado',["ACTIVO"]);
-            })->ignore($colaborador->persona->id)],
-            'nombres' => 'required',
-            'apellido_paterno' => 'required',
-            'apellido_materno' => 'required',
-            'fecha_nacimiento' => 'required',
-            'sexo' => 'required',
-        ];
+        DB::beginTransaction();
+        try {
 
-        $message = [
-            'tipo_documento.required' => 'El campo nombre es obligatorio.',
-            'documento.unique' => 'Ya existe una persona (vendedor o colaborador) con este documento.',
-            'nombres.required' => 'El campo nombres es obligatorio.',
-            'apellido_paterno.required' => 'El campo apellido paterno es obligatorio.',
-            'apellido_materno.required' => 'El campo apellido materno es obligatorio.',
-            'fecha_nacimiento.required' => 'El campo fecha de nacimiento es obligatorio.',
-            'sexo.required' => 'El campo sexo es obligatorio.',
-        ];
+            $colaborador                    =   Colaborador::find($id);
 
-        Validator::make($data, $rules, $message)->validate();
-
-        $persona =  $colaborador->persona;
-        $persona->tipo_documento = $request->get('tipo_documento');
-        $persona->documento = $request->get('documento');
-        $persona->codigo_verificacion = $request->get('codigo_verificacion');
-        $persona->nombres = $request->get('nombres');
-        $persona->apellido_paterno = $request->get('apellido_paterno');
-        $persona->apellido_materno = $request->get('apellido_materno');
-        $persona->fecha_nacimiento = $request->get('fecha_nacimiento');
-        $persona->sexo = $request->get('sexo');
-        $persona->estado_civil = $request->get('estado_civil');
-        $persona->departamento_id = str_pad($request->get('departamento'), 2, "0", STR_PAD_LEFT);
-        $persona->provincia_id = str_pad($request->get('provincia'), 4, "0", STR_PAD_LEFT);
-        $persona->distrito_id = str_pad($request->get('distrito'), 6, "0", STR_PAD_LEFT);
-        $persona->direccion = $request->get('direccion');
-        $persona->correo_electronico = $request->get('correo_electronico');
-        $persona->telefono_movil = $request->get('telefono_movil');
-        $persona->telefono_fijo = $request->get('telefono_fijo');
-        $persona->correo_corporativo= $request->get('correo_corporativo');
-        $persona->telefono_trabajo= $request->get('telefono_trabajo');
-        $persona->estado_documento = $request->get('estado_documento');
-        $persona->update();
-
-
-        $colaborador->area = $request->get('area');
-        $colaborador->profesion = $request->get('profesion');
-        $colaborador->cargo = $request->get('cargo');
-        $colaborador->telefono_referencia = $request->get('telefono_referencia');
-        $colaborador->contacto_referencia = $request->get('contacto_referencia');
-        $colaborador->grupo_sanguineo = $request->get('grupo_sanguineo');
-        $colaborador->alergias = $request->get('alergias');
-        $colaborador->numero_hijos = $request->get('numero_hijos');
-        $colaborador->sueldo = $request->get('sueldo');
-        $colaborador->sueldo_bruto = $request->get('sueldo_bruto');
-        $colaborador->sueldo_neto = $request->get('sueldo_neto');
-        $colaborador->moneda_sueldo = $request->get('moneda_sueldo');
-        $colaborador->tipo_banco = $request->get('tipo_banco');
-        $colaborador->numero_cuenta = $request->get('numero_cuenta');
-
-        if($request->hasFile('imagen')){
-            //Eliminar Archivo anterior
-            Storage::delete($colaborador->ruta_imagen);
-            //Agregar nuevo archivo
-            $file = $request->file('imagen');
-            $name = $file->getClientOriginalName();
-            $colaborador->nombre_imagen = $name;
-            $colaborador->ruta_imagen = $request->file('imagen')->store('public/colaboradores/imagenes');
-        }else{
-            if ($colaborador->ruta_imagen) {
-                //Eliminar Archivo anterior
-                Storage::delete($colaborador->ruta_imagen);
-                $colaborador->nombre_imagen = '';
-                $colaborador->ruta_imagen = '';
+            //======= VERIFICAR QUE EL COLABORADOR A CAMBIAR NO TENGA CAJAS ABIERTAS ======
+            $movimiento =   DB::select('select 
+                            dmc.movimiento_id 
+                            from detalles_movimiento_caja as dmc
+                            where 
+                            dmc.colaborador_id = ? 
+                            and dmc.fecha_salida is null',
+                            [$id]);
+       
+            if($colaborador->sede_id != $request->get('sede') &&  count($movimiento) != 0 ){
+          
+                throw new Exception("PERTENECES A UNA CAJA ABIERTA EN LA SEDE ACTUAL, NO PUEDES CAMBIARTE DE SEDE HASTA QUE LA CIERRES");
+                
             }
+
+
+            $colaborador->tipo_documento_id =   $request->get('tipo_documento');
+            $colaborador->nombre            =   Str::upper($request->get('nombre'));
+            $colaborador->cargo_id          =   $request->get('cargo');
+            $colaborador->direccion         =   Str::upper($request->get('direccion'));
+            $colaborador->telefono          =   $request->get('telefono');
+            $colaborador->dias_trabajo      =   $request->get('dias_trabajo');
+            $colaborador->dias_descanso     =   $request->get('dias_descanso');
+            $colaborador->pago_mensual      =   $request->get('pago_mensual');
+            $colaborador->nro_documento     =   $request->get('nro_documento');
+            $colaborador->pago_dia          =   $request->get('pago_mensual')/30;
+            $colaborador->sede_id           =   $request->get('sede');
+            $colaborador->update();
+
+            //======== ACTUALIZAR USUARIO EN CASO TENGA =======
+            DB::table('users')
+            ->where('colaborador_id', '=', $colaborador->id)
+            ->update([
+                'sede_id'       =>  $request->get('sede'),
+                'updated_at'    =>  now()
+            ]);  
+
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>'COLABORADOR ACTUALIZADO']);
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
-
-        $colaborador->fecha_inicio_actividad = $request->get('fecha_inicio_actividad');
-        $colaborador->fecha_fin_actividad = $request->get('fecha_fin_actividad');
-        $colaborador->fecha_inicio_planilla = $request->get('fecha_inicio_planilla');
-        $colaborador->fecha_fin_planilla = $request->get('fecha_fin_planilla');
-        $colaborador->update();
-        //Registro de actividad
-        $descripcion = "SE MODIFICÓ EL colaborador CON EL NOMBRE: ". $colaborador->persona->nombres.' '.$colaborador->persona->apellido_paterno.' '.$colaborador->persona->apellido_materno;
-        $gestion = "colaboradores";
-        modificarRegistro($colaborador, $descripcion , $gestion);
-
-
-
-        Session::flash('success','Colaborador modificado.');
-        return redirect()->route('mantenimiento.colaborador.index')->with('modificar', 'success');
     }
 
     public function show($id)
@@ -259,26 +211,19 @@ class ColaboradorController extends Controller
     public function destroy($id)
     {
         $this->authorize('haveaccess','colaborador.index');
-        DB::transaction(function() use ($id) {
-
-            $colaborador= Colaborador::findOrFail($id);
-            $colaborador->estado = 'ANULADO';
+        DB::beginTransaction();
+        try {
+            $colaborador                    =   Colaborador::find($id);
+            $colaborador->estado            =   'ANULADO';
             $colaborador->update();
-            $persona=$colaborador->persona;
-            $persona->estado = 'ANULADO';
-            $persona->update();
 
-            //Registro de actividad
-            $descripcion = "SE ELIMINÓ EL COLABORADOR CON EL NOMBRE: ". $colaborador->persona->nombres.' '.$colaborador->persona->apellido_paterno.' '.$colaborador->persona->apellido_materno;
-            $gestion = "colaboradores";
-            eliminarRegistro($colaborador, $descripcion , $gestion);
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>'COLABORADOR ELIMINADO']);
 
-        });
-
-
-
-        Session::flash('success','Colaborador eliminado.');
-        return redirect()->route('mantenimiento.colaborador.index')->with('eliminar', 'success');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
     }
 
     public function getDni(Request $request)
@@ -317,5 +262,40 @@ class ColaboradorController extends Controller
         ];
 
         return response()->json($result);
+    }
+
+    public function consultarDni($dni){
+        try {
+            //======== VALIDANDO FORMATO DNI ========
+            if(strlen($dni) !== 8){
+                throw new Exception("EL DNI DEBE CONTAR CON 8 DÍGITOS");
+            }
+
+            //======== VALIDAR DNI ÚNICO =========
+            $existe =   DB::select('select 
+                        c.id 
+                        from colaboradores as c
+                        where c.nro_documento = ? 
+                        and c.estado = "ACTIVO"',
+                        [$dni]);
+
+            if(count($existe) > 0){
+                throw new Exception('El dni ya existe en la tabla colaboradores');    
+            }
+
+            //======== CONSULTANDO DNI EN API RENIEC ========
+            $res_consulta_api   =   UtilidadesController::apiDni($dni);
+            $res                =   $res_consulta_api->getData();
+
+            //======= EN CASO LA CONSULTA FUE EXITOSA =====
+            if($res->success){
+                return response()->json(['success'=>true,'data'=>$res->data,'message'=>'OPERACIÓN COMPLETADA']);
+            }else{
+                throw new Exception($res->message);
+            }
+
+        } catch (\Throwable $th) {
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
     }
 }

@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 
 @section('ventas-active', 'active')
 @section('guias-remision-active', 'active')
@@ -26,854 +27,639 @@
 </div>
 
 
-<div class="wrapper wrapper-content animated fadeInRight">
-
+<div class="wrapper wrapper-content animated fadeInRight" style="padding-bottom: 0px;">
     <div class="row">
         <div class="col-lg-12">
             <div class="ibox">
-
                 <div class="ibox-content">
-
-                    <form action="{{route('ventas.guiasremision.store')}}" method="POST" id="enviar_documento">
-                        {{csrf_field()}}
-
-                        <input type="hidden" name="documento_id" value="{{old('documento_id', $documento->id)}}">
-
-                        <div class="row">
-                            <div class="col-sm-6 b-r">
-                                <h4 class=""><b>Guia de Remision</b></h4>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <p>Registrar datos de la guia de remision:</p>
-                                    </div>
-                                </div>
-
-                                <div class="form-group row">
-
-                                    <div class="col-lg-6 col-xs-12" id="fecha_documento">
-                                        <label class="required">Fecha de Documento</label>
-                                        <div class="input-group">
-                                            <span class="input-group-addon">
-                                                <i class="fa fa-calendar"></i>
-                                            </span>
-
-                                            <input type="text" id="fecha_documento_campo" name="fecha_documento"
-                                                class="form-control {{ $errors->has('fecha_documento') ? ' is-invalid' : '' }}"
-                                                value="{{old('fecha_documento',getFechaFormato($documento->fecha_documento, 'd/m/Y'))}}"
-                                                autocomplete="off" required readonly disabled>
-
-
-                                            @if ($errors->has('fecha_documento'))
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $errors->first('fecha_documento') }}</strong>
-                                            </span>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    <div class="col-lg-6 col-xs-12" id="fecha_entrega">
-                                        <label class="required">Fecha de Atención</label>
-                                        <div class="input-group">
-                                            <span class="input-group-addon">
-                                                <i class="fa fa-calendar"></i>
-                                            </span>
-
-
-                                            <input type="text" id="fecha_atencion_campo" name="fecha_atencion_campo"
-                                                class="form-control{{ $errors->has('fecha_atencion') ? ' is-invalid' : '' }}"
-                                                value="{{old('fecha_atencion',getFechaFormato( $documento->fecha_atencion ,'d/m/Y'))}}"
-                                                autocomplete="off" required readonly disabled>
-
-
-
-                                            @if ($errors->has('fecha_atencion'))
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $errors->first('fecha_atencion') }}</strong>
-                                            </span>
-                                            @endif
-
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                <div class="form-group row">
-                                    <div class="col-lg-6 col-xs-12">
-                                        <label class="required">Tipo: </label>
-                                        <select
-                                            class="select2_form form-control {{ $errors->has('tipo_venta') ? ' is-invalid' : '' }}"
-                                            style="text-transform: uppercase; width:100%" value="{{old('tipo_venta')}}"
-                                            name="tipo_venta" id="tipo_venta" required disabled>
-                                            <option></option>
-
-                                                @foreach (tipos_venta() as $tipo)
-                                                <option value="{{$tipo->descripcion}}" @if(old('tipo_venta',$documento->descripcionTipo())==$tipo->descripcion ) {{'selected'}} @endif >{{$tipo->nombre}}</option>
-                                                @endforeach
-
-                                                @if ($errors->has('tipo_venta'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('tipo_venta') }}</strong>
-                                                </span>
-                                                @endif
-
-
-
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-6 col-xs-12">
-                                        <label class="required">Moneda:</label>
-                                        <select id="moneda" name="moneda" class="select2_form form-control {{ $errors->has('moneda') ? ' is-invalid' : '' }}" disabled >
-                                            <option selected>SOLES</option>
-                                        </select>
-
-                                    </div>
-
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="required">Cliente: </label>
-                                    <select class="select2_form form-control {{ $errors->has('proveedor_id') ? ' is-invalid' : '' }}" style="text-transform: uppercase; width:100%" value="{{old('cliente_id')}}" name="cliente_id" id="cliente_id" required disabled>
-                                    <option></option>
-                                        @foreach ($clientes as $cliente)
-
-                                            <option value="{{$cliente->id}}" @if(old('cliente_id',$documento->cliente_id)==$cliente->id )
-                                                {{'selected'}} @endif >{{$cliente->tipo_documento.': '.$cliente->documento.' - '.$cliente->nombre}}
-                                            </option>
-
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="form-group row">
-                                    <div class="col-lg-6 col-xs-12">
-                                        <label class="required">Cantidad de Productos: </label>
-                                        <input type="number" name="cantidad_productos" id="cantidad_productos" value="{{old('peso_productos',$cantidad_productos)}}" readonly class="form-control {{ $errors->has('cantidad_productos') ? ' is-invalid' : '' }}">
-                                        @if ($errors->has('cantidad_productos'))
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $errors->first('cantidad_productos') }}</strong>
-                                            </span>
-                                        @endif
-                                    </div>
-
-                                    <div class="col-md-6 col-xs-12">
-                                        <label class="required">Peso Total de productos:</label>
-                                        <input type="number" name="peso_productos" id="peso_productos" readonly value="{{old('peso_productos',$pesos_productos)}}" class="form-control {{ $errors->has('peso_productos') ? ' is-invalid' : '' }}">
-                                        @if ($errors->has('peso_productos'))
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $errors->first('peso_productos') }}</strong>
-                                            </span>
-                                        @endif
-
-                                    </div>
-
-                                </div>
-
-                                <hr>
-
-                                <h4 class=""><b>Dirección de Partida</b></h4>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <p>Registrar dirección de partida de los productos:</p>
-                                    </div>
-                                </div>
-
-                                <div class="form-group row">
-                                    <div class="col-lg-8 col-xs-12">
-                                        <label class="required">Empresa: </label>
-
-                                        <select class="select2_form form-control {{ $errors->has('empresa_id') ? ' is-invalid' : '' }}"
-                                                style="text-transform: uppercase; width:100%" value="{{old('empresa_id',$documento->empresa_id)}}"
-                                                name="empresa_id" id="empresa_id" required disabled>
-                                                <option></option>
-                                                @foreach ($empresas as $empresa)
-                                                <option value="{{$empresa->id}}" @if(old('empresa_id', $documento->empresa_id)==$empresa->id )
-                                                    {{'selected'}} @endif >{{$empresa->razon_social}}</option>
-                                                @endforeach
-                                        </select>
-                                    </div>
-
-                                    <div class="col-lg-4 col-xs-12">
-                                        <label class="required">Ubigeo: </label>
-                                        <input type="text" id="ubigeo_partida" class="form-control input-required {{ $errors->has('ubigeo_partida') ? ' is-invalid' : '' }}" required name="ubigeo_partida" value="{{ old('ubigeo_partida',$empresa->ubigeo)}}">
-                                        @if ($errors->has('ubigeo_partida'))
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $errors->first('ubigeo_partida') }}</strong>
-                                        </span>
-                                        @endif
-                                    </div>
-
-                                </div>
-
-
-                                <div class="form-group">
-                                    <label class="required">Dirección de la Empresa (Partida): </label>
-                                    <textarea type="text" placeholder=""
-                                        class="form-control input-required {{ $errors->has('direccion_tienda') ? ' is-invalid' : '' }}"
-                                        name="direccion_empresa" id="direccion_empresa" value="{{old('direccion_empresa',$direccion_empresa->direccion_fiscal)}}" required >{{old('direccion_empresa',$direccion_empresa->direccion_fiscal)}}</textarea>
-
-
-                                    @if ($errors->has('direccion_empresa'))
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $errors->first('direccion_empresa') }}</strong>
-                                    </span>
-                                    @endif
-                                </div>
-
-
-
-                            </div>
-
-                            <div class="col-sm-6">
-
-                                <h4 class=""><b>Dirección de llegada</b></h4>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <p>Registrar dirección de llegada de los productos:</p>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-lg-12 col-xs-12">
-                                        <div class="form-group">
-                                            <label class="">Tienda (Opcional): </label>
-                                            <input type="text" id="tienda" class="form-control {{ $errors->has('tienda') ? ' is-invalid' : '' }}"  name="tienda" value="{{ old('tienda')}}">
-                                            @if ($errors->has('tienda'))
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $errors->first('tienda') }}</strong>
-                                            </span>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    <div class="col-lg-12 col-xs-12">
-                                        <div class="form-group">
-                                            <label class="required">Departamento</label>
-                                            <select id="departamento" name="departamento"
-                                                class="select2_form form-control {{ $errors->has('departamento') ? ' is-invalid' : '' }}"
-                                                style="width: 100%" required>
-                                                <option></option>
-                                                @foreach (departamentos() as $departamento)
-                                                    <option value="{{ $departamento->id }}"
-                                                        {{ (old('departamento') == $departamento->id ? 'selected' : '') }}>
-                                                        {{ $departamento->nombre }}</option>
-                                                @endforeach
-                                            </select>
-                                            @if ($errors->has('departamento'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('departamento') }}</strong>
-                                                </span>
-                                            @endif
-                                            {{-- <label class="required">Ubigeo: </label>
-                                            <input type="text" id="ubigeo_llegada" class="form-control input-required {{ $errors->has('ubigeo_llegada') ? ' is-invalid' : '' }}" required  name="ubigeo_llegada" value="{{ old('ubigeo_llegada')}}">
-                                            @if ($errors->has('ubigeo_llegada'))
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $errors->first('ubigeo_llegada') }}</strong>
-                                            </span>
-                                            @endif --}}
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6 col-xs-12">
-                                        <div class="form-group">
-                                            <label class="required">Provincia</label>
-                                            <select id="provincia" name="provincia"
-                                                class="select2_form form-control {{ $errors->has('provincia') ? ' is-invalid' : '' }}"
-                                                style="width: 100%" required>
-                                                <option></option>
-                                                @foreach (provincias() as $provincia)
-                                                    <option value="{{ $provincia->id }}"
-                                                        {{ (old('provincia') == $provincia->id ? 'selected' : '') }}>
-                                                        {{ $provincia->nombre }}</option>
-                                                @endforeach
-                                            </select>
-                                            @if ($errors->has('provincia'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('provincia') }}</strong>
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6 col-xs-12">
-                                        <div class="form-group">
-                                            <label class="required">Distrito</label>
-                                            <select id="ubigeo_llegada" name="ubigeo_llegada"
-                                                class="select2_form form-control {{ $errors->has('ubigeo_llegada') ? ' is-invalid' : '' }}"
-                                                style="width: 100%" required>
-                                                <option></option>
-                                                @foreach (distritos() as $distrito)
-                                                    <option value="{{ $distrito->id }}"
-                                                        {{ (old('ubigeo_llegada') == $distrito->id ? 'selected' : '') }}>
-                                                        {{ $distrito->nombre }}</option>
-                                                @endforeach
-                                            </select>
-                                            @if ($errors->has('ubigeo_llegada'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('ubigeo_llegada') }}</strong>
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="required">Dirección de la tienda o destino (Llegada): </label>
-                                    <textarea type="text" placeholder=""
-                                        class="form-control input-required {{ $errors->has('direccion_tienda') ? ' is-invalid' : '' }}"
-                                        name="direccion_tienda" id="direccion_tienda" value="{{old('direccion_tienda')}}"  required>{{old('direccion_tienda')}}</textarea>
-
-
-                                    @if ($errors->has('direccion_tienda'))
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $errors->first('direccion_tienda') }}</strong>
-                                    </span>
-                                    @endif
-                                </div>
-
-                                <hr>
-
-                                <h4 class=""><b>Detalles del envio</b></h4>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <p>Registrar datos adicionales del envio:</p>
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-lg-6 col-xs-12">
-                                        <label class="">Dni del Conductor: </label>
-                                        <input type="text" id="dni_conductor" class="form-control {{ $errors->has('dni_conductor') ? ' is-invalid' : '' }}" maxlength="8" name="dni_conductor" value="{{ old('dni_conductor')}}">
-                                        @if ($errors->has('dni_conductor'))
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $errors->first('dni_conductor') }}</strong>
-                                        </span>
-                                        @endif
-                                    </div>
-                                    <div class="col-lg-6 col-xs-12">
-                                        <label class="">Placa del Vehículo: </label>
-                                        <input type="text" id="placa_vehiculo" class="form-control {{ $errors->has('placa_vehiculo') ? ' is-invalid' : '' }}" name="placa_vehiculo" value="{{ old('placa_vehiculo')}}">
-                                        @if ($errors->has('placa_vehiculo'))
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $errors->first('placa_vehiculo') }}</strong>
-                                        </span>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="required">Motivo de Traslado</label>
-                                    <select name="motivo_traslado" id="motivo_traslado" class="select2_form form-control" required>
-                                        <option value=""></option>
-                                        @foreach (motivo_traslado() as $motivo)
-                                            <option value="{{ $motivo->id }}" {{ $motivo->simbolo == '01' ? 'selected' : ''}}>{{ $motivo->descripcion }}</option>
-                                        @endforeach
-                                    </select>
-                                    @if ($errors->has('motivo_traslado'))
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $errors->first('motivo_traslado') }}</strong>
-                                    </span>
-                                    @endif
-                                </div>
-                                <div class="form-group">
-                                    <label>Observación:</label>
-
-                                    <textarea type="text" placeholder=""
-                                        class="form-control {{ $errors->has('observacion') ? ' is-invalid' : '' }}"
-                                        name="observacion" id="observacion"  onkeyup="return mayus(this)"
-                                        value="{{old('observacion')}}"></textarea>
-
-
-                                    @if ($errors->has('observacion'))
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $errors->first('observacion') }}</strong>
-                                    </span>
-                                    @endif
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <hr>
-
-                        <div class="row">
-
-                            <div class="col-lg-12">
-                                <div class="panel panel-primary">
-                                    <div class="panel-heading">
-                                        <h4 class=""><b>Detalle de la Guia de Remision</b></h4>
-                                    </div>
-                                    <div class="panel-body">
-
-                                        <div class="table-responsive">
-                                            <table
-                                                class="table dataTables-detalle-documento table-striped table-bordered table-hover"
-                                                style="text-transform:uppercase;width:100%">
-                                                <thead>
-                                                    <tr>
-                                                        {{-- <th></th>
-                                                        <th class="text-center">ACCIONES</th>
-                                                        <th class="text-center">CANTIDAD</th>
-                                                        <th class="text-center">UNIDAD DE MEDIDA</th>
-                                                        <th class="text-center">PESO (KG)</th>
-                                                        <th class="text-center">DESCRIPCION DEL PRODUCTO</th>
-                                                        <th class="text-center">PRECIO</th>
-                                                        <th class="text-center">TOTAL</th> --}}
-
-                                                        <th style="width: 5%;" class="text-center">ACCIONES</th>
-                                                        <th style="width: 5%;" class="text-center">CANT</th>
-                                                        <th style="width: 20%;" class="text-center">DESCRIPCION DEL PRODUCTO</th>
-                                                        <th style="width: 60%;" class="text-center">DESCRIPCION(TALLA/CANT)</th>
-                                                        <th style="width: 10%;" class="text-center">PESO (KG)</th>
-                                                        {{-- <th class="text-center">DESCRIPCION DEL PRODUCTO</th>
-                                                        <th class="text-center">PRECIO</th>
-                                                        <th class="text-center">TOTAL</th> --}}
-
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-
-                                                    @foreach($detalles as $producto)
-                                                        <tr>
-                                                            <td >-</td>
-                                                            <td style="text-align: center">{{$producto['cantidad_total']}}</td>
-                                                            <td style="text-align: start">{{$producto['producto_codigo'].' - '.$producto['modelo_nombre'].' - '.$producto['producto_nombre'].' - '.$producto['color_nombre']}}</td>
-                                                            @php
-                                                                $descripcion = '';
-                                                            @endphp
-                                                            @foreach ($producto['tallas'] as $talla)
-                                                                @php
-                                                                    $descripcion .= '['.$talla['talla_nombre'].'/'.intval($talla['cantidad']).']';
-                                                                @endphp                                                           
-                                                            @endforeach
-                                                            <td style="text-align: center">{{$descripcion}}</td>
-                                                            <td style="text-align: center">00.00</td>
-
-                                                        </tr>
-                                                        {{-- <tr>
-                                                            <td>{{ $detalle->lote->producto->id }}</td>
-                                                            <td>-</td>
-                                                            <td>{{ $detalle->cantidad }}</td>
-                                                            <td>{{ $detalle->lote->producto->getMedida()}}</td>
-                                                            <td>{{ number_format($detalle->lote->producto->peso_producto *  $detalle->cantidad,2 , '.', '') }}</td>
-                                                            <td>{{ $detalle->lote->producto->nombre.' - '. $detalle->lote->codigo }}</td>
-                                                            <td>{{ $detalle->precio_nuevo }}</td>
-                                                            <td>{{ number_format($detalle->precio_nuevo *  $detalle->cantidad,2 , '.', '') }}</td>
-                                                            <td>{{ $detalle->lote->producto->medida }}</td>
-                                                        </tr> --}}
-                                                    @endforeach 
-
-                                                </tbody>
-                                                <tfoot style="display: none">
-                                                    <tr>
-                                                        <th colspan="7" class="text-center">Sub Total:</th>
-                                                        <th><span id="subtotal">{{ number_format($documento->sub_total,2 , '.', '') }}</span></th>
-
-                                                    </tr>
-                                                    <tr>
-                                                        <th colspan="7" class="text-center">IGV 18% <span
-                                                                id="igv_int"></span>:</th>
-                                                        <th class="text-center"><span id="igv_monto">{{ number_format($documento->total_igv,2 , '.', '') }}</span></th>
-
-                                                    </tr>
-                                                    <tr>
-                                                        <th colspan="7" class="text-center">TOTAL:</th>
-                                                        <th class="text-center"><span id="total">{{ number_format($documento->total,2 , '.', '') }}</span></th>
-
-                                                    </tr>
-                                                </tfoot>
-                                            </table>
-                                        </div>
-
-
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="hr-line-dashed"></div>
-                        <div class="form-group row">
-
-                            <div class="col-md-6 text-left" style="color:#fcbc6c">
-                                <i class="fa fa-exclamation-circle"></i> <small>Los campos marcados con asterisco
-                                    (<label class="required"></label>) son obligatorios.</small>
-                            </div>
-
-                            <div class="col-md-6 text-right">
-
-                                <a href="{{route('ventas.documento.index')}}" id="btn_cancelar"
-                                    class="btn btn-w-m btn-default">
-                                    <i class="fa fa-arrow-left"></i> Regresar
-                                </a>
-
-                                <button type="submit" id="btn_grabar" class="btn btn-w-m btn-primary">
-                                    <i class="fa fa-save"></i> Grabar
-                                </button>
-                            </div>
-
-                        </div>
-
-                    </form>
-
+                    @include('ventas.guias.forms.form_guia_create')
                 </div>
-
-
             </div>
         </div>
-
     </div>
-    <input type="hidden" id="codigoProvincia">
-    <input type="hidden" id="codigoDistrito">
+</div>
+
+
+<div class="wrapper wrapper-content animated fadeInRight" style="padding-top:0px;">
+
+    <div class="row">
+        <div class="col-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <h3 class="font-weight-bold text-primary">
+                                <i class="fas fa-box-open"></i> PRODUCTOS
+                            </h3>
+                            <hr>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
+                            <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
+                            <select 
+                                id="producto"
+                                class=""
+                                onchange="getColoresTallas()" >
+                                <option value=""></option>
+                            </select>
+                        </div>
+                       
+                        <div class="col-12 mb-3">
+                            @include('ventas.guias.table-stocks')
+                        </div>           
+                        <div class="col-lg-2 col-xs-12">
+                            <button  type="button" id="btn_agregar_detalle" class="btn btn-warning btn-block">
+                                <i class="fa fa-plus"></i> AGREGAR
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="panel panel-primary" id="panel_detalle">
+                                <div class="panel-heading">
+                                    <h4 class=""><b>DETALLE DE LA GUÍA</b></h4>
+                                </div>
+                                <div class="panel-body ibox-content">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            @include('ventas.guias.table-detalle')
+                                        </div>
+                                        <div class="col-12 d-flex justify-content-end">
+                                            <button class="btn btn-primary" type="submit" form="formRegistrarGuia">
+                                                <i class="fas fa-save"></i> REGISTRAR
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
-@include('ventas.documentos.modal')
+
+
+
+
+
 @stop
 
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css') }}"
-    rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/datapicker/datepicker3.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/daterangepicker/daterangepicker-bs3.css') }}" rel="stylesheet">
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<!-- DataTable -->
-<link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
-
 @endpush
 
 @push('scripts')
-<!-- Data picker -->
-<script src="{{ asset('Inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
-<!-- Date range use moment.js same as full calendar plugin -->
-<script src="{{ asset('Inspinia/js/plugins/fullcalendar/moment.min.js') }}"></script>
-<!-- Date range picker -->
-<script src="{{ asset('Inspinia/js/plugins/daterangepicker/daterangepicker.js') }}"></script>
+
 <!-- Select2 -->
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-
-<!-- DataTable -->
-<script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
-
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
 
-        $('#cantidad').on('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
+let dtGuiaStocks            =   null
+const carrito               =   [];
 
-        $(document).ready(function() {
-            $(".select2_form").select2({
-                placeholder: "SELECCIONAR",
-                allowClear: true,
-                height: '200px',
-                width: '100%',
+const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
+const tableDetalleBody      =   document.querySelector('#table-detalle-guia tbody');      
+const tfoot_cantidadTotal   =   document.querySelector('#tfoot_cantidadTotal');   
+
+document.addEventListener('DOMContentLoaded',()=>{
+    loadSelect2();
+    $('#modalidad_traslado').val('02').trigger('change');
+    dtGuiaStocks    =   iniciarDataTable('table-stocks');
+    events();
+})
+
+function events(){
+
+    document.addEventListener('click',(e)=>{
+
+        if (e.target.classList.contains('chkTipoVehiculo')) { 
+            const marcado   =   e.target.checked;
+            if(marcado){
+                document.querySelector('#divTransportista').style.display = 'none';
+                document.querySelector('#vehiculo').removeAttribute('required');
+                document.querySelector('#conductor').removeAttribute('required');
+            }else{
+                document.querySelector('#divTransportista').style.display   = 'flex';
+                document.querySelector('#vehiculo').setAttribute('required', 'required');
+                document.querySelector('#conductor').setAttribute('required', 'required');
+            }
+        }
+
+        if(e.target.classList.contains('delete-product')){
+
+            const producto_id   =   e.target.getAttribute('data-producto');
+            const color_id      =   e.target.getAttribute('data-color');
+
+            const item          =   carrito.filter((p)=>{
+                return p.producto_id==producto_id && p.color_id==color_id;
+            })[0];
+
+            const index_item    =   carrito.findIndex((p)=> {
+                return p.producto_id==producto_id && p.color_id==color_id; 
+            })
+                
+            eliminarItem(item,index_item);
+        }
+
+    })
+
+    btnAgregarDetalle.addEventListener('click',()=>{ 
+
+        toastr.clear();
+        mostrarAnimacion();
+        agregarProducto();
+        reordenarCarrito();
+        pintarDetalle();
+        toastr.info('PRODUCTOS AGREGADOS');
+        ocultarAnimacion();
+        
+    })
+
+    document.querySelector('#formRegistrarGuia').addEventListener('submit',(e)=>{
+        e.preventDefault();
+        toastr.clear();
+
+        if(carrito.length === 0){
+            toastr.error('EL DETALLE DE LA GUÍA ESTÁ VACÍO');
+            return;
+        }
+
+        registrarGuia(e.target);
+
+    })
+}
+
+function loadSelect2(){
+
+    $(".select2_form").select2({
+        placeholder: "SELECCIONAR", 
+        allowClear: true,          
+        width: '100%',            
+    });
+
+    $('#producto').select2({
+        width:'100%',
+        placeholder: "Buscar producto...",
+        allowClear: true,
+        language: {
+            inputTooShort: function(args) {
+                var min = args.minimum;
+                return "Por favor, ingrese " + min + " o más caracteres";
+            },
+            searching: function() {
+                return "BUSCANDO...";
+            },
+            noResults: function() {
+                return "No se encontraron productos";
+            }
+        },
+        ajax: {
+            url: '{{route("ventas.guiasremision.getProductos")}}', 
+            dataType: 'json',
+            delay: 250, 
+            data: function(params) {
+                return {
+                    search: params.term,
+                    almacen_id: $('#almacen').val(),
+                    page: params.page || 1  
+                };
+            },
+            processResults: function(data,params) {
+                if(data.success){
+                    params.page     =   params.page || 1;
+                    const productos =   data.productos;
+                    return {
+                         results: productos.map(item => ({
+                            id: item.producto_id,
+                            text: item.producto_completo 
+                        })),
+                        pagination: {
+                            more: data.more 
+                        }
+                    };
+                }else{
+                    toastr.error(data.message,'ERROR EN EL SERVIDOR');
+                    return {
+                        results:[]
+                    }
+                }    
+            },
+            cache: true
+        },
+        minimumInputLength: 2,
+        templateResult: function(data) {
+            if (data.loading) {
+                return $('<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>');
+            }
+            return data.text;
+        },
+    });
+
+}
+
+    function formarProducto(ic){
+        const producto_id           =   ic.getAttribute('data-producto-id');
+        const producto_nombre       =   ic.getAttribute('data-producto-nombre');
+        const color_id              =   ic.getAttribute('data-color-id');
+        const color_nombre          =   ic.getAttribute('data-color-nombre');
+        const talla_id              =   ic.getAttribute('data-talla-id');
+        const talla_nombre          =   ic.getAttribute('data-talla-nombre');
+        const cantidad              =   ic.value?ic.value:0;
+        const producto              =   {producto_id,producto_nombre,color_id,color_nombre,
+                                        talla_id,talla_nombre,cantidad};
+        return producto;
+    }
+
+    //=========== CALCULAR LA CANTIDAD DE PRODUCTOS ===============
+    function calcularCantidad(lista){
+        if(lista.length!==0){
+            let cantidadTotal =   0;
+            lista.forEach((p)=>{
+                p.tallas.forEach((t)=>{
+                    cantidadTotal += parseInt(t.cantidad);                
+                })
+            })
+            return cantidadTotal;
+        }else{
+            return 0;
+        }
+    }
+
+     //============= ELIMINAR PRODUCTO COLOR DEL CARRITO ===============
+     function eliminarItem(item,index) {
+             
+        toastr.clear();
+        //========== ACTUALIZAR CARRITO =======
+        carrito.splice(index, 1);
+        carrito.length>0?asegurarCierre=1:0;
+        //======= REORDENAR CARRITO =======
+        reordenarCarrito();
+        //====== PINTAR CARRITO ==========
+        pintarDetalle();
+        //======= ALERTA ==========
+        toastr.success('Producto eliminado')
+                              
+         
+    }
+
+     //============  REORDENAR CARRITO ============
+     function reordenarCarrito(){
+        carrito.sort(function(a, b) {
+            if (a.producto_id === b.producto_id) {
+                return a.color_id - b.color_id;
+            } else {
+                return a.producto_id - b.producto_id;
+            }
+        });
+    }
+
+    function pintarDetalle(){
+        let fila            =   ``;
+        let cantidadTotal   =   calcularCantidad(carrito);
+        
+        carrito.forEach((p)=>{
+            const carritoFiltrado = carrito.filter((c) => {
+                return c.producto_id == p.producto_id && c.color_id == p.color_id;
             });
 
-            $("#departamento").on("change", cargarProvincias);
+            const cantidadColor =   calcularCantidad(carritoFiltrado);
+            fila += `   
+                        <tr>
+                            <th scope="row"> 
+                                <i class="fas fa-trash-alt btn btn-primary delete-product"
+                                data-producto="${p.producto_id}" data-color="${p.color_id}"></i>
+                            </th>
+                            <td>${cantidadColor}</td>
+                            <td>${p.producto_nombre} - ${p.color_nombre}</td> 
+                    `;
+            let descripcion =   ``;
+            p.tallas.forEach((t)=>{
+                descripcion += `[${t.talla_nombre}/${t.cantidad}]`
+            })
 
-            $('#provincia').on("change", cargarDistritos);
-        });
-
-        function cargarProvincias() {
-            var departamento_id = $("#departamento").val();
-            if (departamento_id !== "" || departamento_id.length > 0) {
-                $.ajax({
-                    type: 'post',
-                    dataType: 'json',
-                    data: {
-                        _token: $('input[name=_token]').val(),
-                        departamento_id: departamento_id
-                    },
-                    url: "{{ route('mantenimiento.ubigeo.provincias') }}",
-                    success: function(data) {
-                        // Limpiamos data
-                        $("#provincia").empty();
-                        $("#distrito").empty();
-
-                        if (!data.error) {
-                            // Mostramos la información
-                            if (data.provincias != null) {
-                                $("#provincia").empty().trigger("change");
-                                let codigoProvincia = $("#codigoProvincia").val();
-                                if(codigoProvincia == ""){
-                                    $("#provincia").select2({
-                                        placeholder: "SELECCIONAR",
-                                        allowClear: true,
-                                        height: '200px',
-                                        width: '100%',
-                                        data: data.provincias
-                                    }).val($("#provincia").find(':selected').val()).trigger('change');
-                                }else{
-                                    $("#provincia").select2({
-                                        placeholder: "SELECCIONAR",
-                                        allowClear: true,
-                                        height: '200px',
-                                        width: '100%',
-                                        data: data.provincias
-                                    });
-                                    $("#provincia").select2("val", codigoProvincia);
-                                    $("#codigoProvincia").val("");
-                                }
-                            }
-                        } else {
-                            toastr.error(data.message, 'Mensaje de Error', {
-                                "closeButton": true,
-                                positionClass: 'toast-bottom-right'
-                            });
-                        }
-                    }
-                });
-            }
-        }
-
-        function cargarDistritos() {
-            var provincia_id = $("#provincia").val();
-            if (provincia_id !== null && provincia_id.length > 0) {
-                $.ajax({
-                    type: 'post',
-                    dataType: 'json',
-                    data: {
-                        _token: $('input[name=_token]').val(),
-                        provincia_id: provincia_id
-                    },
-                    url: "{{ route('mantenimiento.ubigeo.distritos') }}",
-                    success: function(data) {
-                        // Limpiamos data
-                        $("#ubigeo_llegada").empty();
-
-                        if (!data.error) {
-                            // Mostramos la información
-                            if (data.distritos != null) {
-                                var selected = $('#ubigeo_llegada').find(':selected').val();
-                                // $("#ubigeo_llegada").select2({
-                                //     data: data.distritos
-                                // });
-
-                                let codigoDistrito = $("#codigoDistrito").val();
-                                if(codigoDistrito == ""){
-                                    $("#ubigeo_llegada").select2({
-                                        placeholder: "SELECCIONAR",
-                                        allowClear: true,
-                                        height: '200px',
-                                        width: '100%',
-                                        data: data.distritos
-                                    }).val($("#ubigeo_llegada").find(':selected').val()).trigger('change');
-                                }else{
-                                    $("#ubigeo_llegada").select2({
-                                        placeholder: "SELECCIONAR",
-                                        allowClear: true,
-                                        height: '200px',
-                                        width: '100%',
-                                        data: data.distritos
-                                    });
-                                    $("#ubigeo_llegada").select2("val", codigoDistrito);
-                                    $("#codigoDistrito").val("");
-                                }
-                            }
-                        } else {
-                            toastr.error(data.message, 'Mensaje de Error', {
-                                "closeButton": true,
-                                positionClass: 'toast-bottom-right'
-                            });
-                        }
-                    }
-                });
-            }
-        }
-
-        // Solo campos numericos
-        $('#ubigeo_partida, #dni_conductor').on('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-
-         $(document).ready(function() {
-
-
-             //DATATABLE - COTIZACION
-             table = $('.dataTables-detalle-documento').DataTable({
-                 "dom": 'lTfgitp',
-                 "bPaginate": true,
-                 "bLengthChange": true,
-                 "responsive": true,
-                 "bFilter": true,
-                 "bInfo": false,
-                 "columnDefs": [
-                    //  {
-                    //    "targets": 0,
-                    //      "visible": false,
-                    //      "searchable": false
-                    //  },
-                    {
-                        searchable: false,
-                         "targets": [0],
-                         "className": 'text-center'
-                     },
-                     {
-                         searchable: false,
-                         "targets": [1],
-                         "className": 'text-center'
-                     },
-                     {
-                         "targets": [2],
-                         "className": 'text-center'
-                     },
-                     {
-                         "targets": [3],
-                         "className": 'text-center'
-                     },
-                     {
-                         "targets": [4],
-                         "className": 'text-center'
-                     },
-                    //   {
-                    //       "targets": [5],
-                    //   },
-                    //   {
-                    //       "targets": [6],
-                    //       "className": 'text-center',
-                    //      "visible": false,
-                    //   },
-                    //  {
-                    //      "targets": [7],
-                    //      "className": 'text-center',
-                    //      "visible": false,
-                    //  },
-                    //  {
-                    //      "targets": [8],
-                    //      "visible": false,
-                    //      "className": 'text-center'
-                    //  },
-                 ],
-                 'bAutoWidth': false,
-                 "language": {
-                     url: "{{asset('Spanish.json')}}"
-                 },
-                 "order": [[ 0, "desc" ]],
-             });
-
-             //DIRECCION DE LA TIENDA OLD
-
-             //Controlar Error
-             $.fn.DataTable.ext.errMode = 'throw';
-         });
-
-        function limpiarErrores() {
-            $('#cantidad').removeClass("is-invalid")
-            $('#error-cantidad').text('')
-
-            $('#precio').removeClass("is-invalid")
-            $('#error-precio').text('')
-
-            $('#producto').removeClass("is-invalid")
-            $('#error-producto').text('')
-        }
-
-        function limpiarDetalle() {
-            $('#precio').val('')
-            $('#cantidad').val('')
-            $('#presentacion_producto').val('')
-            $('#codigo_nombre_producto').val('')
-            $('#producto').val($('#producto option:first-child').val()).trigger('change');
-
-        }
-
-        function obtenerMedida(id) {
-            var medida = ""
-            @foreach(unidad_medida() as $medida)
-                if ("{{$medida->id}}" == id) {
-                    medida = "{{$medida->simbolo.' - '.$medida->descripcion}}"
-                }
-            @endforeach
-            return medida
-        }
-
-        function registrosProductos() {
-            var table = $('.dataTables-detalle-documento').DataTable();
-            var registros = table.rows().data().length;
-            return registros
-        }
-
-        function validarFecha() {
-            var enviar = false
-            var productos = registrosProductos()
-            if ($('#fecha_documento_campo').val() == '') {
-                toastr.error('Ingrese Fecha de Documento.', 'Error');
-                $("#fecha_documento_campo").focus();
-                enviar = true;
-            }
-
-            if ($('#fecha_atencion_campo').val() == '') {
-                toastr.error('Ingrese Fecha de Atención.', 'Error');
-                $("#fecha_atencion_campo").focus();
-                enviar = true;
-            }
-
-            if (productos == 0) {
-                toastr.error('Ingrese al menos 1 Producto.', 'Error');
-                enviar = true;
-            }
-            return enviar
-        }
-
-        $('#enviar_documento').submit(function(e) {
-            e.preventDefault();
-                const swalWithBootstrapButtons = Swal.mixin({
-                    customClass: {
-                        confirmButton: 'btn btn-success',
-                        cancelButton: 'btn btn-danger',
-                    },
-                    buttonsStyling: false
-                })
-
-                Swal.fire({
-                    title: 'Opción Guardar',
-                    text: "¿Seguro que desea guardar cambios?",
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: "#1ab394",
-                    confirmButtonText: 'Si, Confirmar',
-                    cancelButtonText: "No, Cancelar",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-
-
-
-                            this.submit();
-
-
-                    } else if (
-                        /* Read more about handling dismissals below */
-                        result.dismiss === Swal.DismissReason.cancel
-                    ) {
-                        swalWithBootstrapButtons.fire(
-                            'Cancelado',
-                            'La Solicitud se ha cancelado.',
-                            'error'
-                        )
-                    }
-                })
-
-
+            fila+=  `
+                            <td>${descripcion}</td>
+                            <td>0.0</td>
+                        </tr>
+                    `;
         })
-</script>
 
-<script>
-    $(function(){
-        let cliente_id = $("#cliente_id").val();
-        $.ajax({
-            type: 'post',
-            dataType: 'json',
-            data: {
-                _token: $('input[name=_token]').val(),
-                cliente_id
-            },
-            url: "{{ route('ventas.cliente.getcustomer') }}",
-            success: function(data) {
-                const { departamento_id, provincia_id, distrito_id,direccion } = data;
-                $("#codigoProvincia").val(provincia_id);
-                $("#codigoDistrito").val(distrito_id);
-                $("#departamento").select2("val", departamento_id);
-                $("#direccion_tienda").val(direccion)
-            }
-        });
+        tableDetalleBody.innerHTML          =   fila;
+        tfoot_cantidadTotal.textContent     =   cantidadTotal;
+    }
+
+function cambiarModalidadTraslado(modalidad){
+
+    const conductores       =   @json($conductores);
+    let   conductoresNew    =   [];
+    let   selectConductor   =   $('#conductor');
+
+
+    if(modalidad === '02'){
+        conductoresNew  =   conductores.filter((c)=>{
+            return c.modalidad_transporte   === 'PRIVADO';
+        })
+        document.querySelector('#divCategoriaML').style.display     =   'flex';
+        document.querySelector('.chkTipoVehiculo').checked          =   false;
+    }
+
+    if(modalidad === '01'){
+        conductoresNew  =   conductores.filter((c)=>{
+            return c.modalidad_transporte   === 'PUBLICO';
+        })
+        document.querySelector('#divTransportista').style.display   = 'flex';
+        document.querySelector('#divCategoriaML').style.display     = 'none';
+    }
+
+    selectConductor.val(null).trigger('change'); 
+    selectConductor.select2('destroy');
+    selectConductor.empty();
+
+    conductoresNew.forEach(opcion => {
+        const texto =   `${opcion.tipo_documento_nombre}:${opcion.nro_documento} - ${opcion.nombres}`;
+        let newOption = new Option(texto, opcion.id, false, false);
+        selectConductor.append(newOption);
     });
+
+    selectConductor.select2({
+        placeholder: 'Seleccione un conductor',
+        allowClear: true,
+        width:'100%'
+    });
+
+}
+
+    //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
+    async function getColoresTallas(){
+        mostrarAnimacion();
+        const producto_id   =   $('#producto').val();
+        const almacen_id    =   $('#almacen').val();
+
+        if(producto_id && almacen_id){
+            try {
+                const res   =   await   axios.get(route('ventas.guiasremision.getColoresTallas',{almacen_id,producto_id}));
+                if(res.data.success){
+
+                    destruirDataTable(dtGuiaStocks);
+                    limpiarTabla('table-stocks');
+                    pintarTableStocks(res.data.producto_color_tallas);
+                    dtGuiaStocks    =   iniciarDataTable('table-stocks');
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
+            }finally{
+                ocultarAnimacion();
+            }
+        }else{
+            destruirDataTable(dtGuiaStocks);
+            limpiarTabla('table-stocks');
+            dtGuiaStocks    =   iniciarDataTable('table-stocks');
+            ocultarAnimacion();
+        }
+    }
+
+    function agregarProducto(){
+
+        const inputsCantidad = document.querySelectorAll('.inputCantidad');
+            
+        for (const ic of inputsCantidad) {
+
+                const cantidad              = ic.value ? ic.value : null;
+                const producto              = formarProducto(ic);
+                const indiceProductoColor   = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+
+                if (cantidad) {
+                        
+                    //===== PRODUCTO NUEVO =====
+                    if (indiceProductoColor == -1) {
+
+                        const objProduct = {
+                            producto_id: producto.producto_id,
+                            color_id: producto.color_id,
+                            producto_nombre: producto.producto_nombre,
+                            color_nombre: producto.color_nombre,
+                            precio_venta: producto.precio_venta,
+                            monto_descuento:0,
+                            porcentaje_descuento:0,
+                            precio_venta_nuevo:0,
+                            subtotal_nuevo:0,
+                            tallas: [{
+                                talla_id: producto.talla_id,
+                                talla_nombre: producto.talla_nombre,
+                                cantidad: producto.cantidad
+                            }]
+                        };
+
+                        carrito.push(objProduct);
+
+                    } else {
+
+                        const productoModificar         = carrito[indiceProductoColor];
+                        productoModificar.precio_venta  = producto.precio_venta;
+
+                        const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                        if (indexTalla !== -1) {
+                            const cantidadAnterior                          = productoModificar.tallas[indexTalla].cantidad;
+                            productoModificar.tallas[indexTalla].cantidad   = producto.cantidad;
+                            carrito[indiceProductoColor]                           = productoModificar;
+                        } else {
+                            const objTallaProduct = {
+                                talla_id: producto.talla_id,
+                                talla_nombre: producto.talla_nombre,
+                                cantidad: producto.cantidad
+                            };
+                            carrito[indiceProductoColor].tallas.push(objTallaProduct);
+                        }
+
+                    }
+
+                } else {
+
+                    if (indiceProductoColor !== -1) {
+                        const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                        if (indiceTalla !== -1) {
+                            const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
+                            carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
+                            
+                            const cantidadTallas = carrito[indiceProductoColor].tallas.length;
+
+                            if (cantidadTallas == 0) {
+                                carrito.splice(indiceProductoColor, 1);
+                            }
+                        }
+                    }
+
+                }
+        }
+    }
+
+
+    const pintarTableStocks = (producto)=>{
+
+        let filas = ``;
+        const   tableStocksBody     =   document.querySelector('#table-stocks tbody');
+
+        producto.colores.forEach((color)=>{
+            filas   +=  `  <tr>
+                            <th scope="row" data-producto=${producto.id} data-color=${color.id} >
+                                <div style="width:200px;">${producto.nombre}</div>
+                            </th>
+                            <th scope="row">${color.nombre}</th>
+                        `;
+
+            color.tallas.forEach((talla)=>{
+                filas += `<td style="background-color: rgb(210, 242, 242);">
+                        <p style="margin:0;width:20px;text-align:center;${talla.stock != 0 ? 'font-weight:bold' : ''};">
+                            ${talla.stock}
+                        </p>
+                      </td>`;
+
+            if (talla.stock != 0) {
+                filas += `<td width="8%">
+                                <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
+                                    id="inputCantidad_${producto.id}_${color.id}_${talla.id}" 
+                                    data-producto-id="${producto.id}"
+                                    data-producto-nombre="${producto.nombre}"
+                                    data-color-nombre="${color.nombre}"
+                                    data-talla-nombre="${talla.nombre}"
+                                    data-color-id="${color.id}" 
+                                    data-talla-id="${talla.id}" 
+                                    data-producto-codigo="${producto.codigo}">
+                            </td>`;
+                } else {
+                    filas += `<td width="8%"></td>`; 
+                }
+            })
+
+            filas   +=  `</tr>`;
+           
+        })
+
+        tableStocksBody.innerHTML = filas;
+
+    }
+
+    function registrarGuia(formRegistrarGuia){
+
+        const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: false
+        });
+        swalWithBootstrapButtons.fire({
+        title: "Deseas registrar la Guía de Remisión?",
+        text: "Se creará un nuevo registro!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí!",
+        cancelButtonText: "No, cancelar!",
+        reverseButtons: true
+        }).then(async (result) => {
+        if (result.isConfirmed) {
+           
+            Swal.fire({
+                title: "Registrando guía...",
+                text: "Por favor, espere",
+                icon: "info",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const formData  =   new FormData(formRegistrarGuia);
+                formData.append('lstGuia',JSON.stringify(carrito));
+                formData.append('sede_id',@json($sede_id));
+                formData.append('registrador_id',@json($registrador->id));
+
+                const res       =   await axios.post(route('ventas.guiasremision.store'),formData);
+                if(res.data.success){
+                    window.location =  route('ventas.guiasremision.index');
+                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                }else{
+                    Swal.close();
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                if (error.response) {
+                    if (error.response.status === 422) {
+                        const errors = error.response.data.errors;
+                        pintarErroresValidacion(errors, 'error');
+                        Swal.close();
+                        toastr.error("ERRORES DE VALIDACIÓN!!!");
+                    } else {
+                        Swal.close();
+                        toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                    }
+                } else if (error.request) {
+                    Swal.close();
+                    toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+                } else {
+                    Swal.close();
+                    toastr.error(error.message, 'ERROR DESCONOCIDO');
+                }    
+            }
+
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            swalWithBootstrapButtons.fire({
+            title: "Operación cancelada",
+            text: "No se realizaron acciones",
+            icon: "error"
+            });
+        }
+        });
+    }
+
+    function cambiarMotivoTraslado(motivo_traslado){
+
+        toastr.clear();
+        if(motivo_traslado === '01'){ //========= VENTA ======
+
+            document.querySelector('#sede_destino').removeAttribute('required');
+            document.querySelector('#divSedeDestino').style.display = 'none';
+
+            document.querySelector('#divCliente').style.display = 'block';
+            document.querySelector('#cliente').setAttribute('required', 'required');
+
+            toastr.info('PUNTO LLEGADA CLIENTE');
+
+        }
+
+        if(motivo_traslado === '04'){ //========= TRASLADO INTERNO ======
+
+            document.querySelector('#cliente').removeAttribute('required');
+            document.querySelector('#divCliente').style.display = 'none';
+
+            document.querySelector('#divSedeDestino').style.display = 'block';
+            document.querySelector('#sede_destino').setAttribute('required', 'required');
+
+            toastr.info('PUNTO LLEGADA SEDE');
+
+        }
+
+    }
+
+      
 </script>
 @endpush

@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout') 
+@section('content')
 @include('ventas.documentos.modal-envio')
 @section('ventas-active', 'active')
 @section('documento-active', 'active')

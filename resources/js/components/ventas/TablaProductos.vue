@@ -13,16 +13,16 @@
     }
 
     .overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
     }
 
     .fulfilling-bouncing-circle-spinner, .fulfilling-bouncing-circle-spinner * {
@@ -134,7 +134,9 @@
 </style>
 <template>
 
+    
     <div class="row">
+        
         <div class="col-lg-12">
            
             <!-- PRIMER PANEL  -->
@@ -152,66 +154,87 @@
 
                     <div class="row" v-if="idcotizacion == 0">
 
-                        <div class="col-12 col-md-12 select-required d-flex justify-content-between align-items-center">
-                            <div class="form-group">
-                                <label class="required">SELECCIONA UN MODELO: </label>
-                                <v-select
-                                    v-model="modeloSeleccionado"
-                                    :options="modelos"
-                                    :reduce="modelo => modelo.id"
-                                    label="descripcion"
-                                    placeholder="Seleccionar modelo...">
-                                </v-select>
-                            </div>
-                            <div class="form-group">
-                                <button class="btn btn-danger" @click="eliminarCarrito"> ELIMINAR TODO </button>
-                            </div>
+                        <!-- <div class="col-12 mb-3 d-flex justify-content-end">
+                            <button class="btn btn-danger" @click="eliminarCarrito"> ELIMINAR TODO </button>
+                        </div> -->
+
+                        <!-- <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
+                            <label class="required" style="font-weight: bold;">CATEGORÍA</label>
+
+                            <v-select
+                                v-model="categoriaSeleccionada"
+                                :options="categorias"
+                                :reduce="categoria => categoria.id"
+                                label="descripcion"
+                                placeholder="Seleccionar"
+                            >
+                            </v-select>
+
+                        </div>
+
+                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
+                            <label class="required" style="font-weight: bold;">MARCA</label>
+                            <v-select
+                                v-model="marcaSeleccionada"
+                                :options="marcas"
+                                :reduce="marca => marca.id"
+                                label="marca"
+                                placeholder="Seleccionar">
+                            </v-select>
                         </div>
                     
-                       
-                        <!-- <div class="col-lg-6 col-xs-12">
-                            <label class="col-form-label required">Producto:</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="producto_lote" readonly
-                                    v-model="formDetalles.producto_lote">
-                                <span class="input-group-append">
-                                    <button type="button" class="btn btn-primary" id="ModalLotes"
-                                        @click.prevent="ModalLotes" :disabled="btnDisabled">
-                                        <i class='fa fa-search'></i>
-                                        Buscar
-                                    </button>
-                                </span>
-                            </div>
-                            <div class="invalid-feedback"><b><span id="error-producto"></span></b>
-                            </div>
+
+                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
+                            <label class="required" style="font-weight: bold;">MODELO</label>
+                            <v-select
+                                v-model="modeloSeleccionado"
+                                :options="modelos"
+                                :reduce="modelo => modelo.id"
+                                label="descripcion"
+                                placeholder="Seleccionar">
+                            </v-select>
                         </div> -->
+
+                        <div class="col-lg-12 col-md-3 col-sm-12 col-xs-12 mt-3" >
+                            <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
+                            
+                            <v-select
+                                v-model="productoSeleccionado"
+                                :options="productos"
+                                label="producto_completo"
+                                placeholder="Seleccionar"
+                                @search="buscarProducto"
+                                :loading="loadingProductos"
+                                >
+                            </v-select>
+                        </div>
+
+                        
+                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 mt-3" >
+                            <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
+                            <v-select
+                                v-model="precioVentaSeleccionado"
+                                :options="preciosVenta"
+                                placeholder="Seleccionar">
+                            </v-select>
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <label style="font-weight: bold;">CÓDIGO BARRA</label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                        <span class="input-group-text" id="basic-addon1">
+                                            <i class="fas fa-barcode"></i>
+                                    </span>
+                                </div>
+                                <input v-model="buscarCodigoBarra" class="inputBarCode form-control" maxlength="8" type="text" placeholder="Escriba el código de barra" aria-label="Username" aria-describedby="basic-addon1">
+                            </div> 
+                        </div>
+                    
                         <input type="hidden" name="producto_id" id="producto_id">
                         <input type="hidden" name="producto_unidad" id="producto_unidad">
                         <input type="hidden" name="producto_json" id="producto_json">
-                        <!-- <div class="col-lg-2 col-xs-12">
-                            <label class="col-form-label required">Cantidad:</label>
-                            <input type="text" name="cantidad" id="cantidad" class="form-control"
-                                v-model="formDetalles.cantidad">
-                            <div class="invalid-feedback"><b><span id="error-cantidad"></span></b>
-                            </div>
-                        </div>
-                        <div class="col-lg-2 col-xs-12">
-                            <div class="form-group">
-                                <label class="col-form-label required" for="amount">Precio:</label>
-                                <input type="number" id="precio" name="precio" class="form-control"
-                                    v-model="formDetalles.precio">
-                                <div class="invalid-feedback"><b><span id="error-precio"></span></b>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-2 col-xs-12">
-                            <div class="form-group">
-                                <label class="col-form-label" for="amount">&nbsp;</label>
-                                <button type=button class="btn btn-block btn-warning" style='color:white;'
-                                    id="btn_agregar_detalle" @click.prevent="Agregar"> <i class="fa fa-plus"></i>
-                                    AGREGAR</button>
-                            </div>
-                        </div> -->
+                       
                     </div>
                     <hr>
                     <div class="table-responsive">
@@ -226,12 +249,6 @@
                                         </th>
                                         <th>CANT</th>
                                     </template>
-                                    <th class="">PRECIO VENTA</th>
-
-                                    <!-- <th v-for="talla in tallas" :key="talla.id">
-                                        {{ talla.descripcion }}<th>CANT</th>
-                                    </th> -->
-                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -248,6 +265,7 @@
                                             <input
                                             type="text"
                                             class="form-control inputCantidad inputCantidadColor"
+                                            :data-almacen-id="pc.almacen_id"
                                             :data-producto-id="pc.producto_id"
                                             :data-producto-nombre="pc.producto_nombre"
                                             :data-color-nombre="pc.color_nombre"
@@ -262,47 +280,11 @@
 
                                         </td>
                                     </template>
-                               
-                                    <td v-if="pc.printPreciosVenta">
-                                        <select class="form-control" :id="'precio-venta-' + pc.producto_id" >
-                                            <option>{{ pc.precio_venta_1 }}</option>    
-                                            <option>{{ pc.precio_venta_2 }}</option>    
-                                            <option>{{ pc.precio_venta_3 }}</option>    
-                                        </select>
-                                    </td>
-                                    <td v-else>
-                                        
-                                    </td> 
-                                
                                 </tr>
                             </tbody>
 
-                           
                             <tfoot>
-                                <!-- <tr>
-                                    <th class="text-right" colspan="7">Sub Total:</th>
-                                    <th class="text-center">
-                                        <span id="subtotal">{{ formDetalles.monto_sub_total }}</span>
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th class="text-right" colspan="7">IGV <span id="igv_int">{{
-                                            formDetalles.igv_int
-                                    }}</span>:</th>
-                                    <th class="text-center">
-                                        <span id="igv_monto">
-                                            {{ formDetalles.monto_total_igv }}
-                                        </span>
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th class="text-right" colspan="7">TOTAL:</th>
-                                    <th class="text-center">
-                                        <span id="total">
-                                            {{ formDetalles.monto_total }}
-                                        </span>
-                                    </th>
-                                </tr> -->
+                            
                             </tfoot>
                         </table>
                     </div>
@@ -317,79 +299,7 @@
                             </button>
                         </div>
                     </div>
-                        <!-- <table class="table table-sm table-striped table-bordered table-hover"
-                            style="text-transform:uppercase">
-                            <thead>
-                                <tr>
-                                    <th class="text-center">
-                                        <i class="fa fa-dashboard"></i>
-                                    </th>
-                                    <th class="text-center">CANT</th>
-                                    <th class="text-center">UM</th>
-                                    <th class="text-center">PRODUCTO</th>
-                                    <th class="text-center">P. UNITARIO</th>
-                                    <th class="text-center">DESCUENTO</th>
-                                    <th class="text-center">P. NUEVO</th>
-                                    <th class="text-center">TOTAL</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="tablaDetalles.length > 0">
-                                    <tr v-for="(item, index) in tablaDetalles" :key="index">
-                                        <td class="text-center">
-                                            <div class='btn-group'>
-                                                <button type="button" class='btn btn-sm btn-warning btn-edit'
-                                                    style='color:white' @click.prevent="EditarItem(item)">
-                                                    <i class='fa fa-pencil'></i>
-                                                </button>
-                                                <button type="button" class='btn btn-sm btn-danger btn-delete'
-                                                    style='color:white' @click.prevent="EliminarItem(item, index)">
-                                                    <i class='fa fa-trash'></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">{{ item.cantidad }}</td>
-                                        <td class="text-center">{{ item.unidad }}</td>
-                                        <td class="text-left">{{ item.producto }}</td>
-                                        <td class="text-center">{{ item.precio_unitario }}</td>
-                                        <td class="text-center">{{ item.dinero }}</td>
-                                        <td class="text-center">{{ item.precio_nuevo }}</td>
-                                        <td class="text-center">{{ item.valor_venta }}</td>
-                                    </tr>
-                                </template>
-                                <template v-else>
-                                    <tr>
-                                        <td colspan="8" class="text-center"><strong>no hay detalles</strong></td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th class="text-right" colspan="7">Sub Total:</th>
-                                    <th class="text-center">
-                                        <span id="subtotal">{{ formDetalles.monto_sub_total }}</span>
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th class="text-right" colspan="7">IGV <span id="igv_int">{{
-                                            formDetalles.igv_int
-                                    }}</span>:</th>
-                                    <th class="text-center">
-                                        <span id="igv_monto">
-                                            {{ formDetalles.monto_total_igv }}
-                                        </span>
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th class="text-right" colspan="7">TOTAL:</th>
-                                    <th class="text-center">
-                                        <span id="total">
-                                            {{ formDetalles.monto_total }}
-                                        </span>
-                                    </th>
-                                </tr>
-                            </tfoot>
-                        </table>  -->
+                      
                 </div>
             </div>
             <!-- FIN PRIMER PANEL -->
@@ -414,8 +324,6 @@
                                     </template>
                                     
                                     <th class="text-center">P. VENTA</th>
-                                    <!-- <th class="text-center">DESCUENTO</th> -->
-                                    <!-- <th class="text-center">P. NUEVO</th> -->
                                     <th class="text-center">SUBTOTAL</th>
                                     <th class="text-center">DSCTO %</th>
                                 </tr>
@@ -425,15 +333,23 @@
                                     <tr v-for="(item, index) in carrito" :key="index">
                                         <td class="text-center">
                                             <div class='btn-group'>
+                                                <button type="button" class='btn btn-sm btn-warning btn-edit'
+                                                    style='color:white' @click.prevent="openModal(item)">
+                                                    <i class='fa fa-edit'></i>
+                                                </button>
                                                 <button type="button" class='btn btn-sm btn-danger btn-delete'
                                                     style='color:white' @click.prevent="EliminarItem(item, index)">
                                                     <i class='fa fa-trash'></i>
                                                 </button>
                                             </div>
                                         </td>
-                                        <td class="text-center">{{ item.producto_nombre }}-{{ item.color_nombre }}</td>
+                                        <td class="text-center">
+                                            <div style="width: 160px;">
+                                                {{ item.producto_nombre }}-{{ item.color_nombre }}
+                                            </div>
+                                        </td>
                                         <td v-for="t in tallas">
-                                            {{ printTallaDetalle(t.id,item) }}
+                                            <p style="font-weight: bold;">{{ printTallaDetalle(t.id,item) }}</p>
                                         </td>
                                         <td>{{ item.porcentaje_descuento!=0 ? item.precio_venta_nuevo : item.precio_venta }}</td>
                                         <td>{{ item.porcentaje_descuento !=0 ? item.subtotal_nuevo : item.subtotal }}</td>
@@ -449,74 +365,77 @@
                                     </tr>
                                 </template>
                             </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">SUBTOTAL:</td>
-                                    <td class="subtotal" colspan="1" style="font-weight: bold;text-align:end;">
-                                        {{`S/. ${Number(monto_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`}}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">EMBALAJE:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        <div class="input-group">
-                                            <span class="input-group-text" id="basic-addon1">
-                                                <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M425.7 256c-16.9 0-32.8-9-41.4-23.4L320 126l-64.2 106.6c-8.7 14.5-24.6 23.5-41.5 23.5-4.5 0-9-.6-13.3-1.9L64 215v178c0 14.7 10 27.5 24.2 31l216.2 54.1c10.2 2.5 20.9 2.5 31 0L551.8 424c14.2-3.6 24.2-16.4 24.2-31V215l-137 39.1c-4.3 1.3-8.8 1.9-13.3 1.9zm212.6-112.2L586.8 41c-3.1-6.2-9.8-9.8-16.7-8.9L320 64l91.7 152.1c3.8 6.3 11.4 9.3 18.5 7.3l197.9-56.5c9.9-2.9 14.7-13.9 10.2-23.1zM53.2 41L1.7 143.8c-4.6 9.2 .3 20.2 10.1 23l197.9 56.5c7.1 2 14.7-1 18.5-7.3L320 64 69.8 32.1c-6.9-.8-13.5 2.7-16.6 8.9z"/></svg>
-                                            </span>
-                                            <input style="width: 10px;" v-model="monto_embalaje" type="text" class="form-control" aria-label="PRECIO DESPACHO" aria-describedby="basic-addon1">
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">ENVÍO:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        <div class="input-group">
-                                            <span class="input-group-text btn btn-light" id="basic-addon1"  @click.prevent="setDataEnvio">
-                                                <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>                                                    
-                                            </span>
-                                            <input style="width: 10px;" v-model="monto_envio"  type="text" class="form-control"  aria-label="PRECIO ENVÍO" aria-describedby="basic-addon1">
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">DESCUENTO:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        <span>    {{ `S/. ${Number(monto_descuento).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }} </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">MONTO TOTAL:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        {{ `S/. ${Number(monto_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">IGV:</td>
-                                    <td class="igv" colspan="1" style="font-weight: bold;text-align:end;">
-                                        {{`S/. ${Number(monto_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`}}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td :colspan="tallas.length + 4" style="font-weight: bold;text-align:end;">MONTO TOTAL A PAGAR:</td>
-                                    <td  class="total" colspan="1" style="font-weight: bold;text-align:end;">
-                                        {{ `S/. ${Number(monto_total_pagar).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}   
-                                    </td> 
-                                </tr>
-                            </tfoot>
                         </table> 
                     </div>
+                    
+                        <div class="col-12 d-flex justify-content-end">
+                            <div class="table-responsive">
+                                <table style="margin:0 0 0 auto;">
+                                    <tfoot>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">SUBTOTAL:</td>
+                                            <td class="subtotal" colspan="1" style="font-weight: bold; text-align:end;">
+                                                {{ `S/. ${Number(monto_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">EMBALAJE:</td>
+                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                                <div class="input-group">
+                                                    <span class="input-group-text" id="basic-addon1">
+                                                        <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M425.7 256c-16.9 0-32.8-9-41.4-23.4L320 126l-64.2 106.6c-8.7 14.5-24.6 23.5-41.5 23.5-4.5 0-9-.6-13.3-1.9L64 215v178c0 14.7 10 27.5 24.2 31l216.2 54.1c10.2 2.5 20.9 2.5 31 0L551.8 424c14.2-3.6 24.2-16.4 24.2-31V215l-137 39.1c-4.3 1.3-8.8 1.9-13.3 1.9zm212.6-112.2L586.8 41c-3.1-6.2-9.8-9.8-16.7-8.9L320 64l91.7 152.1c3.8 6.3 11.4 9.3 18.5 7.3l197.9-56.5c9.9-2.9 14.7-13.9 10.2-23.1zM53.2 41L1.7 143.8c-4.6 9.2 .3 20.2 10.1 23l197.9 56.5c7.1 2 14.7-1 18.5-7.3L320 64 69.8 32.1c-6.9-.8-13.5 2.7-16.6 8.9z"/></svg>
+                                                    </span>
+                                                    <input style="width: 70px;" v-model="monto_embalaje" type="text" class="form-control" aria-label="PRECIO DESPACHO" aria-describedby="basic-addon1">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">ENVÍO:</td>
+                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                                <div class="input-group">
+                                                    <span class="input-group-text btn btn-light" id="basic-addon1"  @click.prevent="setDataEnvio">
+                                                        <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>                                                    
+                                                    </span>
+                                                    <input style="width: 70px;" v-model="monto_envio" type="text" class="form-control" aria-label="PRECIO ENVÍO" aria-describedby="basic-addon1">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">DESCUENTO:</td>
+                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                                <span>{{ `S/. ${Number(monto_descuento).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">MONTO TOTAL:</td>
+                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                                {{ `S/. ${Number(monto_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">IGV:</td>
+                                            <td class="igv" colspan="1" style="font-weight: bold; text-align:end;">
+                                                {{ `S/. ${Number(monto_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">MONTO TOTAL A PAGAR:</td>
+                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                                {{ `S/. ${Number(monto_total_pagar).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>    
+                        </div>
+
                 </div>
             </div>
             <!-- FIN SEGUNDO PANEL -->
 
-        <!-- <ModalLotesVue :show.sync="modalLote" :fullAccess="fullaccessTable" :tipoCliente="paramsLotes.tipo_cliente"
-            :tipoComprobante="paramsLotes.tipocomprobante" @selectedProductos="ProductoSeleccionado" /> -->
-        <!-- <ModalLotesVue :dataLotes="Lotes" :fullAccess="fullaccessTable" :searchInput.sync="searchInput"
-            @selectedProductos="ProductoSeleccionado" /> -->
-        <!-- <ModalCodigoPrecioMenorVue :estadoPrecioMenor="estadoPrecioMenor"
-            @addCodigoPrecioMenor="SaveCodigoPrecioMenor" />
-        <ModalEditaDetalleVue :item.sync="itemLote" :detalles.sync="tablaDetalles" /> -->
+      
         <ModalEnvioVue :cliente="cliente" @addDataEnvio="addDataEnvio"/>
+
         </div>
         <!-- FIN COLUMNA -->
     </div>
@@ -524,7 +443,8 @@
 </template>
 <script>
 
-// import ModalLotesVue from '../ModalLotes.vue';
+
+
 import ModalEnvioVue from "./ModalEnvio.vue";
 import { Empresa } from "../../interfaces/Empresa.js";
 import ModalCodigoPrecioMenorVue from './ModalCodigoPrecioMenor.vue';
@@ -536,14 +456,27 @@ import axios from "axios";
 export default {
     name: "TablaProductos",
     components: {
-    // ModalLotesVue,
-    ModalEnvioVue,
-    ModalCodigoPrecioMenorVue,
-    ModalEditaDetalleVue,
-    TablaProductos
-},
-    props: ["fullaccessTable", "btnDisabled", "parametros",
-     "productoTabla", "TotalesObj", 'idcotizacion','modelos','tallas','cliente'],
+        ModalEnvioVue,
+        ModalCodigoPrecioMenorVue,
+        ModalEditaDetalleVue,
+        TablaProductos,
+    },
+    props: [
+    "fullaccessTable", 
+    "btnDisabled", 
+    "parametros",
+    "productoTabla",
+    "TotalesObj", 
+    'idcotizacion',
+    'modelos',
+    'categorias',
+    'marcas',
+    'tallas',
+    'cliente',
+    'almacenSeleccionado',
+    'lst_departamentos_base',
+    'lst_provincias_base',
+    'lst_distritos_base'],
     data() {
         return {
             monto_embalaje:0,
@@ -560,6 +493,13 @@ export default {
             deshabilitarBtnAgregar: true,
             productosPorModelo: {},
             modeloSeleccionado:null,
+            categoriaSeleccionada:null,
+            marcaSeleccionada:null,
+            productoSeleccionado:null,
+            precioVentaSeleccionado:null,
+            buscarCodigoBarra:null,
+            productos:[],
+            preciosVenta:[],
             asegurarCierre: 5,
             formDetalles: {
                 producto_id: "",
@@ -572,59 +512,6 @@ export default {
                 monto_sub_total: 0,
                 monto_total_igv: 0,
                 monto_total: 0
-            },
-            productoJson: {
-                cantidad: 0,
-                cantidad_inicial: 0,
-                cantidad_logica: 0,
-                costo_flete_soles: 0,
-                costo_flete: 0,
-                costo_flete_dolares: 0,
-                cantidad_comprada: 0,
-                categoria: "",
-                cliente: "",
-                codigo_barra: "",
-                codigo_lote: "",
-                compra_documento_id: "",
-                confor_almacen: "",
-                created_at: "",
-                dolar_compra: "",
-                dolar_ingreso: "",
-                estado: "",
-                facturacion: "",
-                fecha_entrega: "",
-                fecha_venci: "",
-                fecha_vencimiento: "",
-                id: "",
-                igv: "",
-                igv_compra: "",
-                marca: "",
-                moneda: "",
-                moneda_compra: "",
-                moneda_ingreso: "",
-                nombre: "",
-                nota_ingreso_id: "",
-                observacion: "",
-                porcentaje: "",
-                porcentaje_distribuidor: "",
-                porcentaje_normal: "",
-                precioCompra: "",
-                precioDistribuidor: "",
-                precioNormal: "",
-                precio_compra: "",
-                precio_ingreso: "",
-                precio_ingreso_soles: "",
-                precio_mas_igv_soles: "",
-                precio_soles: "",
-                producto_id: 0,
-                unidad_producto: "",
-                updated_at: "",
-            },
-            Lotes: [],
-            paramsLotes: {
-                tipo_cliente: 0,
-                tipocomprobante: 0,
-                search: ""
             },
             searchInput: "",
             dataEmpresa: new Empresa(),
@@ -644,17 +531,20 @@ export default {
                 igv: 0
             },
             Igv: 18,
-            modalLote: false
+            modalLote: false,
+
+            //======== SELECT PRODUCTOS ========
+            loadingProductos: false,          
+            paginaActual: 1,      
+            perPage: 10,              
+            buscando: false          
         }
     },
     watch: {
+
         monto_envio: {
             handler(value) {
                 let valor = value;
-             
-                // console.log('MONTO ENVÍO')
-                // console.log(value);
-                // console.log(typeof value);
 
                 if (!/^\d*\.?\d*$/.test(valor)) {
                     //========= PERMITIR ENTEROS Y DECIMALES ========
@@ -667,7 +557,6 @@ export default {
                     return;
                 }
 
-                // console.log('CALCULANDO MONTOS')
                 //======== RECALCULAR MONTOS =======
                 this.calcularMontos();
 
@@ -693,10 +582,6 @@ export default {
             handler(value) {
                 let valor = value;
              
-                // console.log('MONTO EMBALAJE')
-                // console.log(value);
-                // console.log(typeof value);
-
                 if (!/^\d*\.?\d*$/.test(valor)) {
                     //========= PERMITIR ENTEROS Y DECIMALES ========
                     valor   = valor.replace(/^0+/, '0'); 
@@ -708,7 +593,6 @@ export default {
                     return;
                 }
 
-                // console.log('CALCULANDO MONTOS')
                 //======== RECALCULAR MONTOS =======
                 this.calcularMontos();
 
@@ -732,9 +616,12 @@ export default {
         },
         carrito:{
             handler(value){
+
+                console.log('WATCH CARRITO');
+
                 //======== si aún quedan items en el carrito , asegurar cierre será 1 =========
-                 if(this.carrito.length>0){
-                     this.asegurarCierre=1;
+                 if(this.carrito.length > 0){
+                    this.asegurarCierre = 1;
                 }
                 const montos = {
                     monto_sub_total: parseFloat(this.monto_subtotal),
@@ -745,58 +632,73 @@ export default {
                     monto_total_pagar: parseFloat(this.monto_total_pagar),
                     monto_descuento:parseFloat(this.monto_descuento)
                 };
+
                 this.$emit('addProductoDetalle', {
                     detalles:   this.carrito,
                     totales :   montos
                 });
+
             },
             deep: true,
+        },
+        buscarCodigoBarra:{
+            handler(value){
+
+                //======= VALIDAR QUE HAYA SELECCIONADO UN ALMACÉN PREVIAMENTE =======
+                if(!this.almacenSeleccionado){
+                    toastr.clear();
+                    toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
+                    //======= FOCUS AL VSELECT ALMACÉN ========
+                    this.$nextTick(() => {
+                        this.$parent.$refs.selectAlmacen.$el.querySelector("input").focus();
+                    });
+                    this.$parent.ocultarAnimacionVenta();
+                    return;
+                }
+                
+                if(value.trim().length === 8){
+                    this.getProductoBarCode(value);
+                }
+            },
+            deep:true,
         },
         modeloSeleccionado: {
             handler(value) {
                 console.log('modeloSeleccionado cambió:', value);
-                this.getProductosByModelo();
+                this.getProductos();
             },
             deep: true,
         },
-        tablaDetalles: {
+        categoriaSeleccionada: {
             handler(value) {
-                let total = this.tablaDetalles.reduce((sum, { valor_venta }) => Number(sum + valor_venta), 0);
-                console.log(total);
-                this.conIgv(total);
-                this.$emit("addProductoDetalle", {
-                    detalles: this.tablaDetalles,
-                    totales: {
-                        igv: this.Igv,
-                        igv_int: "",
-                        monto_sub_total: convertFloat(this.formDetalles.monto_sub_total),
-                        monto_total_igv: convertFloat(this.formDetalles.monto_total_igv),
-                        monto_total: convertFloat(this.formDetalles.monto_total)
-                    }
-                });
+                console.log('categoriaSeleccionada cambió:', value);
+                this.getProductos();
             },
-            deep: true
+            deep: true,
         },
+        marcaSeleccionada: {
+            handler(value) {
+                console.log('marcaSeleccionada cambió:', value);
+                this.getProductos();
+            },
+            deep: true,
+        },
+        productoSeleccionado: {
+            handler(value) {
+                const producto_id   =   value.producto_id;
+                console.log('producto seleccionado');
+                if(producto_id){
+                    //====== OBTENER COLORES Y TALLAS DEL PRODUCTO ======
+                    this.getColoresTallas();
+                }
+            
+            },
+            deep: true,
+        },
+       
         codigoPrecioMenor: {
             handler(value) {
                 this.estadoPrecioMenor = value.estado_precio_menor;
-            },
-            deep: true,
-        },
-        productoJson: {
-            handler(value) {
-                this.formDetalles.precio = this.evaluarPrecioigv(value);
-                this.formDetalles.producto_id = value.id;
-                this.formDetalles.producto_lote = `${value.nombre} - ${value.codigo_lote}`;
-                this.formDetalles.cantidad = "";
-                this.formDetalles.producto_unidad = value.unidad_producto;
-            },
-            deep: true,
-        },
-        parametros: {
-            handler(value) {
-                this.paramsLotes.tipo_cliente = value.tipo_cliente;
-                this.paramsLotes.tipocomprobante = value.tipocomprobante;
             },
             deep: true,
         },
@@ -808,12 +710,6 @@ export default {
                 this.$nextTick(this.ObtenerLotes);
                 clearTimeout(timeout);
             }, 1000);
-        },
-        loadingLotes(value) {
-            if (value) {
-                this.Lotes = [];
-                this.loadingLotes = false;
-            }
         },
         formDetalles: {
             handler(value) {
@@ -829,23 +725,66 @@ export default {
         }
     },
     created() {
-        console.log('Cliente:');
-        console.log(this.cliente);
-        //this.ObtenerCodigoPrecioMenor();
-        //============= en caso la ventanta se cierre ===============
-        window.addEventListener('beforeunload', async () => {
-            console.log('saliendo...',this.asegurarCierre);
-            if (this.asegurarCierre == 1) {
-                 await this.DevolverCantidades();
-                 this.asegurarCierre = 10;
-            } else {
-                 console.log("beforeunload", this.asegurarCierre);
-            }
-            // await this.DevolverCantidades();
-            //this.asegurarCierre = 10;
-        });
+
     },
     methods: {
+        async buscarProducto(query) {
+            console.log('OLA');
+            if(!this.almacenSeleccionado){
+                toastr.clear();
+                toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
+                //======= FOCUS AL VSELECT ALMACÉN ========
+                //this.$parent.$refs.selectAlmacen.$el.querySelector("input").focus();
+                return;
+            }
+
+            if (query.length > 2) { 
+
+                this.loadingProductos   = true;
+                this.buscando           = true;
+
+                try {
+                    toastr.clear();
+                    const url = route('ventas.documento.getProductosVenta');
+
+                    const response = await axios.get(url, {
+                    params: {
+                        search: query,
+                        page: this.paginaActual,
+                        perPage: this.perPage,
+                        almacen_id: this.almacenSeleccionado,                  
+                    }
+                    });
+
+                    console.log(response);
+
+                    if(response.data.success){
+                        this.productos          = response.data.data.data;  
+                        this.loadingProductos   = false;
+                        this.buscando           = false;
+                    }else{
+                        console.log(response.data.message)
+                        toastr.error(response.data.message,'ERROR EN EL SERVIDOR');
+                    }
+
+                } catch (error) {
+                    console.error("Error al buscar productos:", error);
+                    this.loadingProductos = false;
+                    this.buscando = false;
+                }
+            }
+           
+        },
+        openModal(producto) {
+           this.$parent.openModal(producto);
+        },
+        closeModal(){
+            this.$parent.closeModal(producto);
+        },
+        closeModal() {
+            this.modalVisible = false;
+            this.selectedProducto = null;
+        },
         addDataEnvio(value){
             this.$emit('addDataEnvio', value);
         },
@@ -912,7 +851,7 @@ export default {
         },
        async eliminarCarrito(){
             if(this.carrito.length !== 0){
-                document.getElementById('overlay').style.display = 'flex';
+                this.$parent.mostrarAnimacionVenta();            
                 try {
                     await this.axios.post(route('ventas.documento.devolver.cantidades'), {
                         carrito: JSON.stringify(this.carrito)
@@ -921,13 +860,13 @@ export default {
                     this.monto_subtotal=0;
                     this.monto_igv=0;
                     this.monto_total=0;
-                    await this.getProductosByModelo();       
-                    document.getElementById('overlay').style.display = 'none';
+                    await this.getColoresTallas();       
+                    this.$parent.ocultarAnimacionVenta();            
                     toastr.success('Detalle eliminado','Completado');
                 } catch (error) {
                     toastr.error('Ocurrio un error al eliminar el detalle','Error');
                 } finally{
-                    document.getElementById('overlay').style.display = 'none';
+                    this.$parent.ocultarAnimacionVenta();            
                 }
             }else{
                 toastr.warning('El detalle no tiene productos','Advertencia');
@@ -967,12 +906,13 @@ export default {
             this.monto_descuento    =   descuento;
         },
         async getStockLogico(inputCantidad){
+            const almacen_id            =   inputCantidad.getAttribute('data-almacen-id');
             const producto_id           =   inputCantidad.getAttribute('data-producto-id');
             const color_id              =   inputCantidad.getAttribute('data-color-id');
             const talla_id              =   inputCantidad.getAttribute('data-talla-id');
             
             try {  
-                const url = `/get-stocklogico/${producto_id}/${color_id}/${talla_id}`;
+                const url = `/get-stocklogico/${almacen_id}/${producto_id}/${color_id}/${talla_id}`;
                 const response = await axios.get(url);
                 if(response.data.message=='success'){
                     const stock_logico  =   response.data.data[0].stock_logico;
@@ -990,7 +930,7 @@ export default {
           
             const itemTalla =  item.tallas.find((t)=>  talla_id==t.talla_id);
             // console.log(itemTalla);
-            const cantidad  =    itemTalla?itemTalla.cantidad:0;
+            const cantidad  =    itemTalla?itemTalla.cantidad:'';
             
             return cantidad;
         },
@@ -1019,125 +959,204 @@ export default {
         async validarCantidadCarrito(inputCantidad){
             const stockLogico           =   await  this.getStockLogico(inputCantidad);
             const cantidadSolicitada    =   inputCantidad.value;
-            return stockLogico>=cantidadSolicitada;
+            return stockLogico >= cantidadSolicitada;
+        },
+        clearInputsCantidad(){
+            const inputsCantidad    =   document.querySelectorAll('.inputCantidad');
+            inputsCantidad.forEach((ic)=>{
+                ic.value    =   '';
+            })
         },
         async agregarProducto() {
-            
-            document.getElementById('overlay').style.display = 'flex';
 
-            const inputsCantidad = document.querySelectorAll('.inputCantidad');
-            
-            for (const ic of inputsCantidad) {
-                ic.classList.remove('inputCantidadIncorrecto');
-                const cantidad = ic.value ? ic.value : null;
+            toastr.clear();
 
-                if (cantidad) {
-                    try {
-                        const cantidadValida = await this.validarCantidadCarrito(ic);
-
-                        if (cantidadValida) {
-                            const producto      = this.formarProducto(ic);
-                            const indiceExiste  = this.carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
-
-                            //===== PRODUCTO NUEVO =====
-                            if (indiceExiste == -1) {
-                                const objProduct = {
-                                    producto_id: producto.producto_id,
-                                    color_id: producto.color_id,
-                                    producto_nombre: producto.producto_nombre,
-                                    color_nombre: producto.color_nombre,
-                                    precio_venta: producto.precio_venta,
-                                    monto_descuento:0,
-                                    porcentaje_descuento:0,
-                                    precio_venta_nuevo:0,
-                                    subtotal_nuevo:0,
-                                    tallas: [{
-                                        talla_id: producto.talla_id,
-                                        talla_nombre: producto.talla_nombre,
-                                        cantidad: producto.cantidad
-                                    }]
-                                };
-
-                                await this.carrito.push(objProduct);
-                                this.asegurarCierre = 1;
-                                await this.actualizarStockLogico(producto, "nuevo");
-                            } else {
-                                const productoModificar = this.carrito[indiceExiste];
-                                productoModificar.precio_venta = producto.precio_venta;
-
-                                const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
-
-                                if (indexTalla !== -1) {
-                                    const cantidadAnterior = productoModificar.tallas[indexTalla].cantidad;
-                                    productoModificar.tallas[indexTalla].cantidad = producto.cantidad;
-                                    this.carrito[indiceExiste] = productoModificar;
-                                    this.asegurarCierre = 1;
-                                    await this.actualizarStockLogico(producto, "editar", cantidadAnterior);
-                                } else {
-                                    const objTallaProduct = {
-                                        talla_id: producto.talla_id,
-                                        talla_nombre: producto.talla_nombre,
-                                        cantidad: producto.cantidad
-                                    };
-                                    console.log(`${productoModificar.producto_nombre} - ${productoModificar.color_nombre}`);
-                                    this.carrito[indiceExiste].tallas.push(objTallaProduct);
-                                    console.log(this.carrito);
-                                    // productoModificar.tallas.push(objTallaProduct);
-                                    //this.carrito[indiceExiste] = productoModificar;
-                                    //this.carrito.splice(indiceExiste, 1, productoModificar);
-                                    this.asegurarCierre = 1;
-                                    await this.actualizarStockLogico(producto, "nuevo");
-                                }
-                            }
-                            
-                        } else {
-                            ic.classList.add('inputCantidadIncorrecto');
-                        }
-
-                    } catch (error) {
-                        console.error("Error:", error);
-                    }
-
-                } else {
-                    const producto = this.formarProducto(ic);
-                    const indiceProductoColor = this.carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
-
-                    if (indiceProductoColor !== -1) {
-                        const indiceTalla = this.carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
-
-                        if (indiceTalla !== -1) {
-                            const cantidadAnterior = this.carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
-                            this.carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
-                            
-                            this.asegurarCierre = 1;
-                            await this.actualizarStockLogico(producto, "editar", cantidadAnterior);
-
-                            const cantidadTallas = this.carrito[indiceProductoColor].tallas.length;
-
-                            if (cantidadTallas == 0) {
-                                this.carrito.splice(indiceProductoColor, 1);
-                            }
-                        }
-                    }
-                }
+            //====== VALIDACIONES =======
+            if(!this.precioVentaSeleccionado){
+                toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA!!!');
+                return;
             }
 
-            this.reordenarCarrito();
-            this.calcularSubTotal();
-            this.calcularMontos();
+            //======= DEBE SELECCIONARSE UN ALMACÉN =======
+            if(!this.almacenSeleccionado){
+                toastr.clear();
+                toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
+                //======= FOCUS AL VSELECT ALMACÉN ========
+                this.$nextTick(() => {
+                    this.$parent.$refs.selectAlmacen.$el.querySelector("input").focus();
+                });
+                this.$parent.ocultarAnimacionVenta();
+                return;
+            }
 
-            //===== RECALCULANDO DESCUENTOS =====
-            this.carrito.forEach((c)=>{
-                this.calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
-            })
+            //======== ANIMACIÓN =======
+            this.$parent.mostrarAnimacionVenta();       
             
-            //===== ACTUALIZANDO TABLERO DE PRODUCTOS BY MODELO =====
-            this.getProductosByModelo().then(()=>{
-                document.getElementById('overlay').style.display = 'none';
-            });
+            //========= GET INPUTS TO PRODUCTS ARRAY ======
+            const resInputProducts  =   this.getInputProductos();
+
+            if(!resInputProducts.validacion){
+                this.$parent.ocultarAnimacionVenta();            
+                return;
+            }
+
+            try {
+
+                const res_actualizar_stock    =   await this.actualizarStockLogicoVentas(this.almacenSeleccionado,resInputProducts.lstInputProducts);
+
+                if(!res_actualizar_stock.data.success){
+                    toastr.error(res_actualizar_stock.data.message,'ERROR EN EL SERVIDOR');
+                    this.$parent.ocultarAnimacionVenta();            
+                    return;
+                }
+
+                
+                //======== ACTIVAR LA DEVOLUCIÓN DE STOCK ======
+                this.asegurarCierre = 1;
+                toastr.success(res_actualizar_stock.data.message,'OPERACIÓN COMPLETADA');
+
+                //====== AGREGAR AL CARRITO =======
+                this.agregarCarrito(resInputProducts.lstInputProducts);
+
+                //======= LIMPIAR INPUTS CANTIDAD ======
+                this.clearInputsCantidad();
+
+                //======== ACTUALIZAR TABLERO STOCKS =======
+                this.getColoresTallas();
+
+                this.reordenarCarrito();
+                this.calcularSubTotal();
+                this.calcularMontos();
+
+                //===== RECALCULANDO DESCUENTOS =====
+                this.carrito.forEach((c)=>{
+                    this.calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+                })
+
+                console.log('CARRITO',this.carrito);
+               
+
+            } catch (error) {
+                toastr.error(error,'ERROR AL AGREGAR PRODUCTO!!!');
+            }
+           
+            this.$parent.ocultarAnimacionVenta();            
 
             console.log(this.asegurarCierre);
             console.log(this.carrito);
+        },
+        async validarStockVentas(almacenId,lstInputProducts){
+
+            const res   =   await axios.post(route('ventas.documento.validarStockVentas'),
+                            {almacenId,lstInputProducts:JSON.stringify(lstInputProducts)});
+
+            return res;   
+
+        },
+        async actualizarStockLogicoVentas(almacenId,lstInputProducts){
+            
+            //===== RESTAR STOCK LÓGICO ======
+            const res  =   await axios.post(route('ventas.documento.actualizarStockAdd')
+                            ,{almacenId,lstInputProducts:JSON.stringify(lstInputProducts)});  
+
+            return res;
+        },
+        agregarCarrito(lstInputProducts){
+            lstInputProducts.forEach((producto)=>{
+
+                //========= REVIZAR SI EXISTE EL PRODUCTO COLOR EN EL CARRITO ======
+                const indiceExiste  = this.carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+                console.log('existe carrito',indiceExiste);
+                //======= EN CASO EL PRODUCTO COLOR SEA NUEVO ======
+                if (indiceExiste == -1) {
+
+                    const objProduct = {
+                        almacen_id:  producto.almacen_id,
+                        producto_id: producto.producto_id,
+                        color_id: producto.color_id,
+                        producto_nombre: producto.producto_nombre,
+                        color_nombre: producto.color_nombre,
+                        precio_venta: producto.precio_venta,
+                        monto_descuento:0,
+                        porcentaje_descuento:0,
+                        precio_venta_nuevo:0,
+                        subtotal_nuevo:0,
+                        tallas: [{
+                            talla_id: producto.talla_id,
+                            talla_nombre: producto.talla_nombre,
+                            cantidad: producto.cantidad
+                        }]
+                    };
+
+                    this.carrito.push(objProduct);
+                }else{
+
+                    //======== PRODUCTO COLOR EXISTE =========
+                    const productoModificar         = this.carrito[indiceExiste];
+                    productoModificar.precio_venta  = producto.precio_venta;
+
+                    //===== PREGUNTANDO SI EXISTE LA TALLA EN EL CARRITO ======
+                    const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
+
+                    //========== TALLA NUEVA ======
+                    if (indexTalla === -1) {
+
+                        const objTallaProduct = {
+                                                    talla_id: producto.talla_id,
+                                                    talla_nombre: producto.talla_nombre,
+                                                    cantidad: producto.cantidad
+                                                };
+
+                        console.log(`${productoModificar.producto_nombre} - ${productoModificar.color_nombre}`);
+                        this.carrito[indiceExiste].tallas.push(objTallaProduct);
+                        console.log(this.carrito);
+                                   
+                    }
+                } 
+
+            })
+        },
+        getInputProductos(){
+
+            //========= OBTENER TODOS LOS INPUT CANTIDAD =======
+            const inputsCantidad    =   document.querySelectorAll('.inputCantidad');
+            const lstInputProducts  =   [];
+            let validacion          =   true;
+
+            for (let i = 0; i < inputsCantidad.length; i++) {
+                const ic = inputsCantidad[i];
+
+                if (ic.value) {
+                    const producto = this.formarProducto(ic);
+
+                    //========= VERIFICAR SI EL COLOR YA EXISTE EN EL CARRITO =====
+                    const indiceProductoColor = this.carrito.findIndex((c) => {
+                        return c.producto_id == producto.producto_id && c.color_id == producto.color_id;
+                    });
+
+                    if (indiceProductoColor !== -1) {
+                        //======== VERIFICAR SI LA TALLA YA EXISTE EN EL CARRITO ====
+                        const indiceTalla = this.carrito[indiceProductoColor].tallas.findIndex((t) => {
+                            return t.talla_id == producto.talla_id;
+                        });
+
+                        if (indiceTalla !== -1) {
+
+                            //======== ROMPER EL BUCLE EN CASO EXISTA LA TALLA EN EL CARRITO ======
+                            toastr.error(
+                                `YA FUE AGREGADO!! ${this.carrito[indiceProductoColor].producto_nombre}-${this.carrito[indiceProductoColor].color_nombre}-${this.carrito[indiceProductoColor].tallas[indiceTalla].talla_nombre}`
+                            );
+                            validacion = false;
+                            break; 
+                        }
+                    }
+
+                    lstInputProducts.push(producto);
+                }
+            }
+
+            return {validacion,lstInputProducts};
+
         },
         async actualizarStockLogico(producto,modo,cantidadAnterior){
 
@@ -1161,13 +1180,14 @@ export default {
             }
         },
         formarProducto(ic){
+            const almacen_id        = ic.getAttribute('data-almacen-id');
             const producto_id       = ic.getAttribute('data-producto-id');
             const producto_nombre   = ic.getAttribute('data-producto-nombre');
             const color_id          = ic.getAttribute('data-color-id');
             const color_nombre      = ic.getAttribute('data-color-nombre');
             const talla_id          = ic.getAttribute('data-talla-id');
             const talla_nombre      = ic.getAttribute('data-talla-nombre');
-            const precio_venta      = document.querySelector(`#precio-venta-${producto_id}`).value;
+            const precio_venta      = this.precioVentaSeleccionado;
             const cantidad          = ic.value?ic.value:0;
 
             const monto_descuento           =   0.0;
@@ -1175,7 +1195,7 @@ export default {
             const precio_venta_nuevo        =   0.0;
             const subtotal_nuevo            =   0.0;
 
-            const producto = {producto_id,producto_nombre,color_id,color_nombre,
+            const producto  =   {almacen_id,producto_id,producto_nombre,color_id,color_nombre,
                                 talla_id,talla_nombre,cantidad,precio_venta,
                                 monto_descuento,porcentaje_descuento,precio_venta_nuevo,subtotal_nuevo};
             return producto;
@@ -1213,35 +1233,98 @@ export default {
                 console.error('Error al obtener stock logico:', error);
             }
         },
-        async  getProductosByModelo() {
-            try {
-                const url = `/get-producto-by-modelo/${this.modeloSeleccionado}`;
-                const response = await axios.get(url);
-                //console.log(response.data);
-                this.productosPorModelo = response.data;
-                //this.pintarTableStocks(response.data.stocks,tallas,response.data.producto_colores);
-            } catch (error) {
-                console.error('Error al obtener productos por modelo:', error);
+        async  getProductos() {
+            toastr.clear();
+
+            const modelo_id                   =   this.modeloSeleccionado;
+            const marca_id                    =   this.marcaSeleccionada;
+            const categoria_id                =   this.categoriaSeleccionada;
+            
+            if(modelo_id || marca_id || categoria_id){
+                try {
+                    const res = await axios.get(route('ventas.documento.getProductos'), {
+                        params: {
+                            modelo_id: modelo_id,
+                            marca_id: marca_id,
+                            categoria_id: categoria_id
+                        }
+                    });   
+
+                    if(res.data.success){
+                        this.productos                  =   res.data.productos;
+                        this.productoSeleccionado       = null;
+                        this.precioVentaSeleccionado    = null;
+
+                        toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
+                    }else{
+                        //ocultarAnimacionCotizacion();
+                        toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    }
+                } catch (error) {
+                    //ocultarAnimacionCotizacion();
+                    toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
+                }
+                
+            }else{
+                //ocultarAnimacionCotizacion();
             }
+        },
+        //======= OBTENER COLORES Y TALLAS POR PRODUCTO ======= 
+        async  getColoresTallas(){   
+            
+            //======= MOSTRAR ANIMACIÓN =======
+            this.$parent.mostrarAnimacionVenta();                     
+            const producto_id   =   this.productoSeleccionado.producto_id;
+            const almacen_id    =   this.almacenSeleccionado;
+
+            if(!producto_id){
+                this.$parent.ocultarAnimacionVenta();
+                return;
+            }
+
+           //======= DEBE SELECCIONARSE UN ALMACÉN =======
+           if(!this.almacenSeleccionado){
+                toastr.clear();
+                toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
+                //======= FOCUS AL VSELECT ALMACÉN ========
+                this.$nextTick(() => {
+                    this.$parent.$refs.selectAlmacen.$el.querySelector("input").focus();
+                });
+                this.$parent.ocultarAnimacionVenta();
+                return;
+            }
+
+            if(producto_id){
+                try {
+                    const res   =   await   axios.get(route('ventas.documento.getColoresTallas',{almacen_id,producto_id}));
+                    if(res.data.success){
+                        this.productosPorModelo =   res.data;
+                        this.preciosVenta       =   res.data.precios_venta;
+                    }else{
+                        toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    }
+                } catch (error) {
+                    toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
+                }finally{
+                    //ocultarAnimacionCotizacion();
+                }
+            }
+            this.$parent.ocultarAnimacionVenta();            
         },
         printStockLogico(productoId, colorId, tallaId) {
             const stock = this.productosPorModelo.stocks.find(st => st.producto_id === productoId && st.color_id === colorId && st.talla_id === tallaId);
             return stock ? stock.stock_logico : 0;
-         },
-        // async ExecuteDevolverCantidades() {
-        //     if (this.asegurarCierre == 1) {
-        //         await this.DevolverCantidades();
-        //         this.asegurarCierre = 10;
-        //     } else {
-        //         console.log("ExecuteDevolverCantidades", this.asegurarCierre);
-        //     }
-        // }
-        async DevolverCantidades() {
-                await this.axios.post(route('ventas.documento.devolver.cantidades'), {
-                    // cantidades: JSON.stringify(this.tablaDetalles)
-                    carrito: JSON.stringify(this.carrito)
-                });  
+        },
+        async devolverCantidades() {
+            console.log('ASEGURAR CIERRE',this.asegurarCierre);
+            if(this.asegurarCierre == 1){
+                console.log('DEVOLVIENDO STOCK');
+                await this.axios.post(route('ventas.documento.devolverCantidades'), {
+                    carrito: JSON.stringify(this.carrito),
+                }); 
                 this.ChangeAsegurarCierre();
+            }
+                
         },
         async ObtenerCodigoPrecioMenor() {
             
@@ -1251,202 +1334,6 @@ export default {
             } catch (ex) {
 
             }
-        },
-        // ModalLotes() {
-        //     try {
-        //         this.modalLote = true;
-        //         // $("#modal_lote").modal("show");
-        //         // this.ObtenerLotes();
-        //     } catch (ex) {
-        //         console.log("error en ModalLotes ", ex);
-        //     }
-        // },
-        //async ObtenerLotes() {
-            // try {
-            //     const { data } = await this.axios.post(route("ventas.getLoteProductos"), this.paramsLotes);
-            //     const { lotes } = data;
-            //     this.Lotes = lotes.data;
-            // } catch (ex) {
-            //     console.log("error en ObtenerLotes ", ex);
-            // }
-        //},
-        evaluarPrecioigv(producto) {
-            if (producto.precio_compra == null) {
-                let cambio = convertFloat(producto.dolar_ingreso);
-                let precio = 0;
-                var precio_ = producto.precio_ingreso;
-                let porcentaje_ = producto.porcentaje;
-                let precio_nuevo = 0;
-                if (producto.moneda_ingreso == 'DOLARES') {
-                    precio = precio_ * cambio;
-                    precio_nuevo = precio * (1 + (porcentaje_ / 100))
-                }
-                else {
-                    precio = precio_;
-                    precio_nuevo = precio * (1 + (porcentaje_ / 100))
-                }
-                return convertFloat(precio_nuevo).toFixed(2);
-            } else {
-                let cambio = convertFloat(producto.dolar_compra);
-                let precio = 0;
-                let precio_ = producto.precio_compra;
-                let porcentaje_ = producto.porcentaje;
-                let precio_nuevo = 0;
-                let totalCostoFlote = Number(producto.costo_flete) / Number(producto.cantidad_comprada);
-                let costo_flete = convertFloat(totalCostoFlote * (1 + porcentaje_ / 100)).toFixed(2);
-
-                if (producto.moneda_compra == 'DOLARES') {
-                    if (producto.igv_compra == 1) {
-                        precio = precio_ * cambio;
-                        precio_nuevo = precio * (1 + porcentaje_ / 100) + Number(costo_flete)
-                    }
-                    else {
-                        precio = (precio_ * cambio * 1.18)
-                        precio_nuevo = precio * (1 + porcentaje_ / 100) + Number(costo_flete)
-                    }
-                }
-                else {
-                    if (producto.igv_compra == 1) {
-                        precio = precio_;
-                        precio_nuevo = precio * (1 + porcentaje_ / 100) + Number(costo_flete)
-                    }
-                    else {
-                        precio = (precio_ * 1.18)
-                        precio_nuevo = precio * (1 + porcentaje_ / 100) + Number(costo_flete)
-                    }
-                }
-                return convertFloat(precio_nuevo).toFixed(2);
-            }
-        },
-        ProductoSeleccionado(item) {
-
-            let existe = this.buscarProductoAdded(item.id);
-            if (existe) {
-                toastr.error('Este Producto ya se encuentra en el detalle.', 'Error');
-            } else {
-                this.modalLote = false;
-                let obj = item;
-                for (let key in item) {
-                    obj[key] = this.TransformarNumber(item[key]);
-                }
-                this.productoJson = obj;
-            }
-        },
-        Agregar(condicion = "VISTA") {
-            try {
-                let enviar = true;
-                // let cantidad = !isNaN(Number(this.formDetalles.cantidad)) ? Number(this.formDetalles.cantidad) : 0;
-                // let precio = !isNaN(Number(this.formDetalles.precio)) ? Number(this.formDetalles.precio) : 0;
-                // let precioActual = this.evaluarPrecioigv(this.productoJson);
-                // if (this.productoJson.producto_id == "") {
-                //     toastr.error("Seleccione Producto.");
-                //     enviar = false;
-                // } else {
-                //     var existe = this.buscarProductoAdded(this.formDetalles.producto_id)
-                //     if (existe) {
-                //         toastr.error('Producto ya se encuentra ingresado.', 'Error');
-                //         enviar = false;
-                //     }
-                // }
-
-                // if (this.formDetalles.precio == "") {
-                //     toastr.error('Ingrese el precio del producto.', 'Error');
-                //     enviar = false;
-                // } else {
-                //     if (precio == 0) {
-                //         toastr.error('Ingrese el precio del producto superior a 0.0.', 'Error');
-                //         enviar = false;
-                //     }
-
-                //     if (precio < precioActual) {
-
-                //         this.estadoPrecioMenor = this.dataEmpresa.estado_precio_menor;
-
-                //         if (this.dataEmpresa.estado_precio_menor == '1') {
-
-                //             if (this.codigo_precio_menor != this.dataEmpresa.codigo_precio_menor) {
-
-                //                 if (condicion == 'MODAL') {
-                //                     toastr.error('El codigo para poder vender a un precio menor a lo establecido es incorrecto.', 'Error');
-                //                 } else {
-                //                     this.codigo_precio_menor = "";
-                //                     $('#modal-codigo-precio').modal('show');
-                //                 }
-
-                //                 enviar = false;
-
-                //             } else {
-                //                 this.codigo_precio_menor = "";
-                //                 $('#modal-codigo-precio').modal('hide');
-                //             }
-                //         } else {
-                //             toastr.error('No puedes vender a un precio menor a lo establecido.', 'Error');
-                //             enviar = false;
-                //         }
-                //     }
-                // }
-
-                // if (cantidad == '') {
-                //     toastr.error('Ingrese cantidad del artículo.', 'Error');
-                //     enviar = false;
-                // }
-
-                // if (cantidad == 0) {
-                //     enviar = false;
-                // }
-
-                if (enviar) {
-                    this.asegurarCierre = 1;
-                    this.CambiarCantidadLogica(detalle);
-                    //this.LlenarDatos();
-                }
-
-            } catch (ex) {
-                alert(ex);
-            }
-        },
-        LlenarDatos() {
-            try {
-                let pdescuento = 0;
-                let precio_inicial = convertFloat(this.formDetalles.precio);
-                let igv = convertFloat(this.formDetalles.igv);
-                let igv_calculado = convertFloat(igv / 100);
-
-                let valor_unitario = 0.00;
-                let precio_unitario = 0.00;
-                let dinero = 0.00;
-                let precio_nuevo = 0.00;
-                let valor_venta = 0.00;
-                let cantidad = convertFloat(this.formDetalles.cantidad);
-
-                precio_unitario = precio_inicial;
-                valor_unitario = precio_unitario / (1 + igv_calculado);
-                dinero = precio_unitario * (pdescuento / 100);
-                precio_nuevo = precio_unitario - dinero;
-                valor_venta = precio_nuevo * cantidad;
-
-                let detalle = {
-                    producto_id: this.formDetalles.producto_id,
-                    unidad: this.formDetalles.producto_unidad,
-                    producto: this.formDetalles.producto_lote,
-                    precio_unitario: precio_unitario,
-                    valor_unitario: RedondearDecimales(valor_unitario),
-                    valor_venta: RedondearDecimales(valor_venta),
-                    cantidad: cantidad,
-                    precio_inicial: precio_inicial,
-                    dinero: dinero,
-                    descuento: pdescuento,
-                    precio_nuevo: precio_nuevo,
-                    precio_minimo: convertFloat(this.evaluarPrecioigv(this.productoJson)),
-                }
-
-                this.AgregarDatos(detalle);
-                this.CambiarCantidadLogica(detalle);
-
-            } catch (ex) {
-                alert("Error en LlenarDatos " + ex);
-            }
-
         },
         AgregarDatos(item) {
             this.tablaDetalles.push(item);
@@ -1460,19 +1347,6 @@ export default {
             let obj = this.tablaDetalles.find(item => Number(item.producto_id) == Number(id));
             return obj ? true : false;
         },
-        conIgv(total) {
-            let subtotal = total / (1 + (this.formDetalles.igv / 100));
-            let igv_calculado = total - subtotal;
-            this.formDetalles.igv_int = this.formDetalles.igv + '%';
-            this.formDetalles.monto_sub_total = subtotal.toFixed(2);
-            this.formDetalles.monto_total_igv = igv_calculado.toFixed(2);
-            this.formDetalles.monto_total = total.toFixed(2);
-        },
-        SaveCodigoPrecioMenor(value) {
-            const { codigoPrecio, condicion } = value;
-            this.codigo_precio_menor = codigoPrecio;
-            this.Agregar(condicion);
-        },
         TransformarNumber(item) {
             if (item && !isNaN(Number(item))) {
 
@@ -1481,78 +1355,137 @@ export default {
                 return item;
             }
         },
-        async CambiarCantidadLogica(detalle) {
-            
-            try {
-                await this.axios.post(route('ventas.documento.cantidad'), {
-                    'producto_id': detalle.producto_id,
-                    'cantidad': detalle.cantidad,
-                    'condicion': this.asegurarCierre,
-                });
-            } catch (ex) {
+        async actualizarStockDelete(producto){
+            const res   =   await   axios.post(route('ventas.documento.actualizarStockDelete'),
+                            {
+                                almacen_id:producto.almacen_id,
+                                producto_id:producto.producto_id,
+                                color_id:producto.color_id,
+                                tallas:JSON.stringify(producto.tallas)
+                            });
 
-            }
+            return res;
         },
-        EliminarItem(item, index) {
+        async EliminarItem(item, index) {
            
             try {
+                toastr.clear();
+                this.$parent.mostrarAnimacionVenta();            
+
                 //==== devolvemos el stock logico separado ========
-                this.actualizarStockLogico(item, "eliminar");
-                //====== obtenemos los stocks logicos actualizados de la bd ========
+                const res_delete    =   await this.actualizarStockDelete(item);
+
+                if(!res_delete.data.success){
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR AL DEVOLVER STOCK LÓGICO!!!');
+                }
+
+                //this.actualizarStockLogico(item, "eliminar");
                 //======== renderizamos la tabla de stocks ==============
-                this.getProductosByModelo();
+                this.getColoresTallas();
                 //========== eliminar el item del carrito ========
                 //============ renderizamos la tabla detalle =======
                 this.carrito.splice(index, 1);
                 //========= recalcular subtotal,igv,total =========
                 this.calcularMontos();
-                console.log('ITEM ELIMINADO DEL CARRITO');
-                console.log(this.carrito);
+               
                 //======= alerta ======================
-                toastr.success('Producto eliminado',"Cantidad devuelta")
+                this.$parent.ocultarAnimacionVenta();            
+                toastr.info('ITEM ELIMINADO',"CANTIDAD DEVUELTA");
             } catch (error) {
-                console.error("Error en Eliminar item:", error);
-                alert("Error en Eliminar item: " + error);
+                toastr.error(error,'ERROR EN LA PETICIÓN ELIMINAR ITEM!!!');
             } 
-            // try {
-            //     this.asegurarCierre = 0; //aumentar
-            //     this.CambiarCantidadLogica(item);
-            //     this.tablaDetalles.splice(index, 1);
-            // } catch (ex) {
-            //     alert("Error en Eliminar item" + ex);
-            // }
-        },
-        async EditarItem(item) {
-            try {
-                const { data } = await this.axios.post(route('ventas.documento.obtener.lote'), {
-                    lote_id: Number(item.producto_id)
-                });
-                const { success, lote } = data;
-                if (success) {
-                    let cantidad_logica = lote.cantidad_logica;
-
-                    this.itemLote.cantidadMax = parseFloat(cantidad_logica) + parseFloat(item.cantidad);
-                    this.itemLote.precio = item.precio_inicial;
-                    this.itemLote.producto = item.producto;
-                    this.itemLote.cantidad = item.cantidad;
-                    this.itemLote.unidadMedida = item.unidad;
-                    this.itemLote.id = item.producto_id;
-                    this.itemLote.precioMinimo = item.precio_minimo;
-                    this.itemLote.estado_precio_menor = this.dataEmpresa.estado_precio_menor;
-                    this.itemLote.codigo_precio_menor = this.dataEmpresa.codigo_precio_menor;
-                    this.itemLote.igv = this.Igv;
-                    $('#modal_editar_detalle').modal({ backdrop: 'static', keyboard: false });
-                } else {
-                    toastr.warning('Ocurrió un error porfavor recargar la pagina.')
-                }
-            } catch (ex) {
-
-            }
         },
         ChangeAsegurarCierre() {
             this.asegurarCierre = 5;
-            console.log('devuelvo',this.asegurarCierre);
+            console.log('devuelto',this.asegurarCierre);
+        },
+        async getProductoBarCode(barcode){
+            try {
+                toastr.clear();
+                this.$parent.mostrarAnimacionVenta();        
+
+                const res   =   await axios.get(route('ventas.documento.getProductoBarCode',{barcode}));
+                
+                if(res.data.success){  //====== PRODUCTO EXISTE ====
+
+                    toastr.info('BUSCANDO PRODUCTO');
+
+                    res.data.producto.cantidad  =   1;
+
+                    res.data.producto.almacen_id    =   this.almacenSeleccionado;  //======= AGREGAR ALMACEN ID ====== 
+                    const lstInputProducts          =   [res.data.producto];
+                    let indiceProductoColor         =   -1;
+                    let indiceTalla                 =   -1;
+
+                    //======= VALIDAR QUE EL PRODUCTO NO EXISTA EN EL DETALLE ======
+                    indiceProductoColor = this.carrito.findIndex((c) => {
+                                                    return c.producto_id == res.data.producto.producto_id && c.color_id == res.data.producto.color_id;
+                                                });
+
+                    if (indiceProductoColor !== -1) {
+                        indiceTalla = this.carrito[indiceProductoColor].tallas.findIndex((t) => {
+                                                return t.talla_id == res.data.producto.talla_id;
+                                            });
+                    }
+
+                    if(indiceTalla !== -1){
+                        toastr.error(`${res.data.producto.producto_nombre}-${res.data.producto.color_nombre}-${res.data.producto.talla_nombre}`,'ERROR, YA EXISTE EN EL DETALLE!!!');
+                        return;
+                    }
+
+                    //======= RESTAR STOCK LÓGICO ======
+                    const res_actualizar_stock  =   await this.actualizarStockLogicoVentas(this.almacenSeleccionado,lstInputProducts);
+
+                    if(!res_actualizar_stock.data.success){
+                        toastr.error(res_actualizar_stock.data.message,'ERROR EN EL SERVIDOR');
+                        return;
+                    }
+
+                    //======== ACTIVAR LA DEVOLUCIÓN DE STOCK ======
+                    this.asegurarCierre = 1;
+
+                    //====== AGREGAR AL CARRITO =======
+                    this.agregarCarrito(lstInputProducts);
+
+                    //======= LIMPIAR INPUTS CANTIDAD ======
+                    this.clearInputsCantidad();
+
+                    //======== ACTUALIZAR TABLERO STOCKS =======
+                    this.getColoresTallas();
+
+                    this.reordenarCarrito();
+                    this.calcularSubTotal();
+                    this.calcularMontos();
+
+                    //===== RECALCULANDO DESCUENTOS =====
+                    this.carrito.forEach((c)=>{
+                        this.calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+                    })
+
+                    
+                    toastr.info('AGREGADO AL DETALLE!!!',`${res.data.producto.producto_nombre} - ${res.data.producto.color_nombre} - ${res.data.producto.talla_nombre}
+                                PRECIO: ${res.data.producto.precio_venta}`,{timeOut:0});
+
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                toastr.error(error,'ERROR EN LA PETICIÓN OBTENER PRODUCTO POR CÓDIGO DE BARRA');
+            }finally{
+                this.$parent.ocultarAnimacionVenta();            
+            }
+        },
+        async limpiarFormularioDetalle(){
+            this.$parent.mostrarAnimacionVenta();            
+            await this.devolverCantidades();
+            this.carrito                    =   [];
+            this.productosPorModelo         =   [];
+            this.productos                  =   [];
+            this.productoSeleccionado       =   '';
+            this.precioVentaSeleccionado    =   '';
+            this.$parent.ocultarAnimacionVenta();            
         }
+
     }
 }
 </script>

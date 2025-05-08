@@ -1,7 +1,97 @@
 
+<style>
+
+.overlay_venta {
+  position: fixed; /* Fija el overlay para que cubra todo el viewport */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Color oscuro con opacidad */
+  z-index: 99999999999 !important; /* Asegura que el overlay esté sobre todo */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 24px;
+  visibility:hidden;
+}
+
+/*========== LOADER SPINNER =======*/
+.loader_cotizacion_create {
+    position: relative;
+    width: 75px;
+    height: 100px;
+    background-repeat: no-repeat;
+    background-image: linear-gradient(#DDD 50px, transparent 0),
+                      linear-gradient(#DDD 50px, transparent 0),
+                      linear-gradient(#DDD 50px, transparent 0),
+                      linear-gradient(#DDD 50px, transparent 0),
+                      linear-gradient(#DDD 50px, transparent 0);
+    background-size: 8px 100%;
+    background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px;
+    animation: pillerPushUp 4s linear infinite;
+  }
+.loader_cotizacion_create:after {
+    content: '';
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    background: #de3500;
+    border-radius: 50%;
+    animation: ballStepUp 4s linear infinite;
+  }
+
+@keyframes pillerPushUp {
+  0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
+  50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
+}
+
+@keyframes ballStepUp {
+  0% {transform: translate(0, 0)}
+  5% {transform: translate(8px, -14px)}
+  10% {transform: translate(15px, -10px)}
+  17% {transform: translate(23px, -24px)}
+  20% {transform: translate(30px, -20px)}
+  27% {transform: translate(38px, -34px)}
+  30% {transform: translate(45px, -30px)}
+  37% {transform: translate(53px, -44px)}
+  40% {transform: translate(60px, -40px)}
+  50% {transform: translate(60px, 0)}
+  57% {transform: translate(53px, -14px)}
+  60% {transform: translate(45px, -10px)}
+  67% {transform: translate(37px, -24px)}
+  70% {transform: translate(30px, -20px)}
+  77% {transform: translate(22px, -34px)}
+  80% {transform: translate(15px, -30px)}
+  87% {transform: translate(7px, -44px)}
+  90% {transform: translate(0, -40px)}
+  100% {transform: translate(0, 0);}
+}
+    
+    
+</style>
 
 <template>
+    
     <div class="">
+
+        <EditarItemVue 
+        :visible="modalVisible" 
+        :title="modalTitle" 
+        :tallas="initData.tallas"
+        :tallasProducto="tallasProductoEdit"
+        :productoEditar="productoEditar"
+        :detalleVenta="productos_tabla"
+        @close="closeModal">
+        </EditarItemVue>
+
+        <div class="overlay_venta">
+            <span class="loader_cotizacion_create"></span>
+        </div> 
+
         <div class="wrapper wrapper-content animated fadeInRight content-create" :class="{'sk__loading':loading}">
             <div class="row">
                 <div class="col-lg-12">
@@ -9,56 +99,56 @@
                         <div class="ibox-content">
                             <form @submit.prevent="Grabar" class="formulario" id="EnviarVenta">
                                 <div class="row">
+
                                     <div class="col-12 col-md-6 b-r">
+
                                         <div class="row">
-                                            <div class="col-12 col-md-6" id="fecha_documento">
-                                                <div class="form-group">
-                                                    <label class="">Fecha de Documento</label>
+
+                                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3" id="fecha_documento">
+                                                    <label style="font-weight: bold;">FECHA DOCUMENTO</label>
                                                     <div class="input-group">
                                                         <span class="input-group-addon">
                                                             <i class="fa fa-calendar"></i>
                                                         </span>
 
-                                                        <input type="date" id="fecha_documento_campo"
+                                                        <input readonly type="date" id="fecha_documento_campo"
                                                             name="fecha_documento_campo"
                                                             class="form-control input-required" autocomplete="off"
                                                             required v-model="formCreate.fecha_documento_campo">
+
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong></strong>
                                                         </span>
 
                                                     </div>
-                                                </div>
                                             </div>
 
-                                            <div class="col-12 col-md-6 d-none" id="fecha_entrega">
-                                                <div class="form-group">
-                                                    <label>Placa</label>
+                                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3" id="almacen">
 
-                                                    <input type="text" placeholder="" class="form-control"
-                                                        name="observacion" id="observacion" onkeyup="return mayus(this)"
-                                                        maxlength="7" v-model="formCreate.observacion">
-
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong></strong>
-                                                    </span>
-
-                                                </div>
+                                                <label style="font-weight: bold;">ALMACÉN</label>
+                                                    
+                                                <v-select v-model="almacenSeleccionado" :options="lst_almacenes"
+                                                    :reduce="a => a.id" label="descripcion"
+                                                    placeholder="Seleccionar"
+                                                    ref="selectAlmacen">
+                                                </v-select>
+                                                    
                                             </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-12 col-md-6 select-required">
+
+
+                                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 select-required mb-3">
                                                 <div class="form-group">
-                                                    <label class="required">Tipo de Comprobante: </label>
+                                                    <label style="font-weight: bold;" class="required">COMPROBANTE </label>
                                                     <v-select v-model="tipo_venta" :options="initData.tipoVentas"
                                                         :reduce="tipo => tipo.id" label="nombre"
                                                         placeholder="Seleccionar comprobante...">
                                                     </v-select>
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-md-6 select-required">
+
+                                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 select-required mb-3">
                                                 <div class="form-group">
-                                                    <label>Moneda:</label>
+                                                    <label style="font-weight: bold;">MONEDA</label>
                                                     <select id="moneda" name="moneda" class="select2_form form-control"
                                                         disabled>
                                                         <option selected>SOLES</option>
@@ -67,6 +157,8 @@
                                             </div>
                                         </div>
                                     </div>
+
+
                                     <div class="col-12 col-md-6">
                                         <div class="row">
                                             <div class="col-12 col-md-6 select-required">
@@ -120,28 +212,26 @@
 
                                                 </div>
                                             </div>
-                                            <!-- <div class="col-12 col-md-4">
-                                                <div class="form-group">
-                                                    <label>
-                                                        <input type="checkbox" class="i-checks" name="envio_sunat"
-                                                            id="envio_sunat" v-model="formCreate.envio_sunat">
-                                                        <b class="text-danger">Enviar a Sunat</b>
-                                                    </label>
-                                                </div>
-                                            </div> -->
                                         </div>
                                     </div>
                                 </div>
                             </form>
                             <hr>
-                            <TablaProductos @addProductoDetalle="AddProductoDetalles" @addDataEnvio="addDataEnvio"
-                                :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto"
+
+                            <TablaProductos @addProductoDetalle="addProductoDetalle" @addDataEnvio="addDataEnvio"
+                                :fullaccessTable="FullaccessTable" 
+                                :idcotizacion="idcotizacion" 
+                                :btnDisabled="disabledBtnProducto"
                                 :parametros="paramsLotes"
-                                :modelos="initData.modelos"
-                                :tallas="initData.tallas" :precio_envio="formCreate.precio_envio"
+                                :modelos="initData.modelos" 
+                                :categorias="initData.categorias" 
+                                :marcas="initData.marcas"
+                                :tallas="initData.tallas" 
+                                :precio_envio="formCreate.precio_envio"
                                 :precio_despacho="formCreate.precio_despacho"
                                 :cliente="cliente_id"
-                            ref="tablaDetalles" />
+                                :almacenSeleccionado="almacenSeleccionado"
+                            ref="tablaProductos" />
 
                             <div class="hr-line-dashed"></div>
                             <div class="form-group row">
@@ -168,16 +258,13 @@
                     </div>
                 </div>
             </div>
-            <div class="sk-spinner sk-spinner-wave" :class="{'hide':!loading}">
-                <div class="sk-rect1"></div>
-                <div class="sk-rect2"></div>
-                <div class="sk-rect3"></div>
-                <div class="sk-rect4"></div>
-                <div class="sk-rect5"></div>
-            </div>
+           
         </div>
 
-        <ModalClienteVue @newCliente="formAddCliente" />
+        <ModalClienteVue @newCliente="formAddCliente"   
+        :lst_departamentos_base="this.lst_departamentos_base"
+        :lst_provincias_base="this.lst_provincias_base"
+        :lst_distritos_base="this.lst_distritos_base" />
 
     </div>
 </template>
@@ -185,12 +272,15 @@
 <script>
 import ModalClienteVue from '../../../components/ventas/ModalCliente.vue';
 import TablaProductos from '../../../components/ventas/TablaProductos.vue';
+import EditarItemVue from '../../../components/ventas/EditarItem.vue';
+import { faAslInterpreting } from '@fortawesome/free-solid-svg-icons';
 
 export default {
     name: "VentaCreate",
     components: {
         ModalClienteVue,
-        TablaProductos
+        TablaProductos,
+        EditarItemVue
     },
     props: {
         ruta: {
@@ -200,10 +290,39 @@ export default {
         idcotizacion:{
             type:Number,
             default:0
-        }
+        },
+        lst_departamentos_base:{
+            type:Array,
+            default:[]
+        },
+        lst_provincias_base:{
+            type:Array,
+            default:[]
+        },
+        lst_distritos_base:{
+            type:Array,
+            default:[]
+        },
+        lst_almacenes:{
+            type:Array,
+            default:[]
+        },
+        registrador:{
+            type:Object,
+            default:[]
+        },
     },
     data() {
         return {
+
+            //======= MODAL EDITAR ITEM ======
+            productoEditar:{producto_id:null,color_id:null},
+            tallasProductoEdit:[],
+            modalTitle:'',
+            modalVisible: false,
+
+            //====== ALMACÉN =====
+            almacenSeleccionado:null,
             checkDespacho: false,
             checkEnvio: false,
             initData: {
@@ -216,7 +335,10 @@ export default {
                 vista: "",
                 tipoVentas: [],
                 modelos: [],
+                categorias:[],
+                marcas:[],
                 tallas:[],
+                sede_id:null
             },
             formCreate: {
                 fecha_documento_campo: "",
@@ -254,7 +376,6 @@ export default {
                 tipo_documento: ""
             },
             loading: true,
-            loadingLotes: false,
             loadingClienteNew: false,
             paramsLotes: {
                 tipo_cliente: '',
@@ -274,6 +395,14 @@ export default {
         }
     },
     watch: {
+        almacenSeleccionado:{
+            handler(value){
+
+                //===== LIMPIAR FORMULARIO DETALLE ======
+                this.$refs.tablaProductos.limpiarFormularioDetalle();
+               
+            }
+        },
         productos_tabla:{
            handler(value){
                 this.formCreate.productos_tabla = JSON.stringify(value);
@@ -357,18 +486,44 @@ export default {
         }
     },
     created() {
-        this.formCreate.fecha_documento_campo = this.$fechaActual;
-        this.formCreate.fecha_atencion_campo = this.$fechaActual;
+        
+        console.log(this.registrador);
+        this.lst_almacenes.forEach((a)=>{
+            if(a.sede_id == this.registrador.sede_id){
+                this.almacenSeleccionado    =   a.id;
+            }
+        })
+
+        window.addEventListener("beforeunload", this.handleBeforeUnload);
+
+
+        this.formCreate.fecha_documento_campo   = this.$fechaActual;
+        this.formCreate.fecha_atencion_campo    = this.$fechaActual;
         this.formCreate.fecha_vencimiento_campo = this.$fechaActual;
         this.ObtenerData();
     },
     beforeDestroy() {
-        console.log('destruyendo',this.$refs.tablaDetalles.asegurarCierre);
-        if(this.$refs.tablaDetalles.asegurarCierre == 1){
-            this.$refs.tablaDetalles.DevolverCantidades();
-        }
+        
+        this.$refs.tablaProductos.devolverCantidades();
+        
     },
     methods: {
+        cambiarAlmacen(){
+            alert('ola');
+        },
+        handleBeforeUnload(event) {
+            this.$refs.tablaProductos?.devolverCantidades();
+        },
+        openModal(producto) {
+            console.log('edit',producto.producto_nombre);
+            this.modalVisible       =   true;
+            this.modalTitle         =   `EDITAR: ${producto.producto_nombre}-${producto.color_nombre}`;
+            this.tallasProductoEdit =   producto.tallas;
+            this.productoEditar     =   {producto_id:producto.producto_id,color_id:producto.color_id};
+        },
+        closeModal() {
+            this.modalVisible       = false;  
+        },
         addDataEnvio(value){
             // const { departamento,provincia,distrito,tipo_envio,empresa_envio,sede_envio,destinatario } = value;
             this.formCreate.data_envio             = value;
@@ -396,11 +551,11 @@ export default {
         },
         async ObtenerData() {
             try {
-                this.loading = true;
-                const { data } = await this.axios.post(route("ventas.documento.getCreate"));
+                this.loading                = true;
+                const { data }              = await this.axios.post(route("ventas.documento.getCreate"));
                 const { success, initData } = data;
-                this.initData = initData;
-                this.loading = false;
+                this.initData               = initData;
+                this.loading                = false;
             } catch (ex) {
 
             }
@@ -420,110 +575,99 @@ export default {
             this.initData.clientes.push(clienteNuevo);
             this.cliente_id = clienteNuevo;
         },
-        //======= obteniendo carrito del componente hijo TablaProductos.vue ==========
-        AddProductoDetalles(value) {
-            const { detalles, totales } = value;
-            this.productos_tabla        =   this.formatearDetalle(detalles);
-            //this.productos_tabla    = detalles;
-            this.formCreate             = Object.assign(this.formCreate, totales);
+        //======= OBTENIENDO CARRITO DEL COMPONENTE HIJO TablaProductos.vue ==========
+        addProductoDetalle(value) {
+            const { detalles, totales } =   value;
+            //this.productos_tabla      =   this.formatearDetalle(detalles);
+            this.productos_tabla        =   detalles;
+            this.formCreate             =   Object.assign(this.formCreate, totales);
             console.log(this.formCreate);
         },
         Grabar() {
             try {
+                toastr.clear();
                 let correcto = this.validarCampos();
-                if (correcto) {
-                    this.EnviarVenta();
-                }
-            } catch (ex) {
 
+                if(!correcto){
+                    return;
+                }
+
+                const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    confirmButton: "btn btn-success",
+                    cancelButton: "btn btn-danger"
+                },
+                buttonsStyling: false
+                });
+                swalWithBootstrapButtons.fire({
+                title: "Desea generar el documento de venta?",
+                text: "OPERACIÓN NO REVERSIBLE!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "SÍ!",
+                cancelButtonText: "NO, CANCELAR!",
+                reverseButtons: true
+                }).then((result) => {
+                if (result.isConfirmed) {
+                   
+                    this.EnviarVenta();
+                    
+                } else if (
+                    /* Read more about handling dismissals below */
+                    result.dismiss === Swal.DismissReason.cancel
+                ) {
+                    swalWithBootstrapButtons.fire({
+                    title: "OPERACIÓN CANCELADA",
+                    text: "NO SE REALIZARON ACCIONES",
+                    icon: "error"
+                    });
+                }
+                });
+              
+            } catch (ex) {
+                toastr.error(ex,'ERROR EN LA PETICIÓN GENERAR DOCUMENTO DE VENTA');
             }
         },
         async EnviarVenta() {
+            
+
+            Swal.fire({
+                title: 'Registrando venta...',
+                text: 'Por favor, espera.',
+                allowOutsideClick: false, 
+                didOpen: () => {
+                    Swal.showLoading(); 
+                }
+            });
+
             try {
+                this.formCreate.almacenSeleccionado =   this.almacenSeleccionado;
+                this.formCreate.sede_id             =   this.initData.sede_id;
 
-                //=== desactivar botón grabar ======
-                document.querySelector('#btn_grabar').disabled=true;
+                const res     =   await this.axios.post(route('ventas.documento.store'),this.formCreate);
+                /*
+                const delay     =   new Promise(resolve => setTimeout(resolve, 10000)); 
+                const request   =   this.axios.post(route('ventas.documento.store'), this.formCreate);
+                const [res]     =   await Promise.all([request, delay]);
+                */
 
-                //======= spiner de carga =========
-                this.loading = true;
+                if(res.data.success){
+                    this.$refs.tablaProductos.ChangeAsegurarCierre();
+                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                    const url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id,size:80});
+                    window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
+                    //this.$emit("update:ruta", "index");
+                    window.location.href = route("ventas.documento.index");
 
-                //======== verificar si existen cajas abiertas ==========
-                //const { data } = await this.axios.get(route('Caja.movimiento.verificarestado'));
-                const res = await this.axios.get(route('Caja.movimiento.verificarestado'));
-                console.log('VERIFICAR CAJA ESTADO');
-                console.log(res);
-                //======= desestructuración de objeto ===========
-                const success  = res.data.success;
-
-                //======== si existen cajas abiertas ===========
-                if (success) {
-
-                    let envio_ok = true;
-
-                    var tipo = this.validarTipo();
-                    console.log('VALIDAR TIPO',tipo);
-
-                    if (!tipo) {
-                        envio_ok = false;
-                    }
-
-                     if (envio_ok) {
-                        console.log('FORM ENVIADO');
-                        console.log(this.formCreate)
-
-                        //const { data } = await this.axios.post(route("ventas.documento.store"), this.formCreate);
-                        const res = await this.axios.post(route("ventas.documento.store"), this.formCreate);
-                        
-                        console.log('RES DOCUMENT STORE');
-                        console.log(res);
-                        //const { success, documento_id } = data;
-
-
-                        if (res.data.success) {
-                            
-
-                            toastr.success('¡Documento de venta creado!', 'Exito');
-
-                            var url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id +"-80"});
-
-                            window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
-
-                             this.$refs.tablaDetalles.ChangeAsegurarCierre();
-
-
-                            this.$emit("update:ruta", "index");
-
-                        } else {
-                            document.querySelector('#btn_grabar').disabled=false;
-                            this.loading = false;
-                            const excepcion   =   data.excepcion;
-                            if(data.codigo == "22003" && excepcion.includes('UPDATE producto_color_tallas') && excepcion.includes('SET stock')){
-                                toastr.error(`ERROR AL RESTAR STOCK DE: ${data.producto.producto.nombre} (ID: ${data.producto.producto.id}) - 
-                                ${data.producto.color.descripcion} (ID: ${data.producto.color.id}) - 
-                                ${data.producto.talla.descripcion} (ID: ${data.producto.talla.id})
-                                | STOCK: ${data.producto.stock} | CANTIDAD SOLICITADA: ${data.producto.cantidad_solicitada}
-                                RECOMENDACIÓN: Verificar que el producto no se encuentre en algún documento de venta en plena edición.
-                                EN OTRO CASO EL ADMINISTRADOR DEBE EMPAREJAR STOCKS.`,'ERROR EN EL SERVIDOR - STOCKS DESIGUALES',
-                                {timeOut:0, extendedTimeOut: 0,closeButton: true,progressBar: true})
-                                return;
-                            }
-                            toastr.error(data.excepcion,data.mensaje,{timeOut:0});
-                        }
-                     }
+                }else{
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    Swal.close();
                 }
-
-                //======== en caso no existan cajas abiertas ===========
-                if(!success){
-                    document.querySelector('#btn_grabar').disabled=false;
-                    toastr.error('Debe aperturar una caja previamente',"Error");
-                    this.loading = false;
-                }
-
-            } catch (e) {
-                document.querySelector('#btn_grabar').disabled=false;
-                this.loading = false;
-                toastr.error(e.message + "\n" + e.stack, 'Error',{timeOut:0});
+            } catch (error) {
+                toastr.error(error,'ERROR EN LA PETICIÓN REGISTRAR VENTA');
+                Swal.close();
             }
+               
         },
         validarTipo() {
 
@@ -635,47 +779,17 @@ export default {
         },
         VolverAIndex() {
             this.$emit("update:ruta", "index");
+        },
+        mostrarAnimacionVenta(){
+            document.querySelector('.overlay_venta').style.visibility   =   'visible';
+        },
+        ocultarAnimacionVenta(){ 
+            document.querySelector('.overlay_venta').style.visibility   =   'hidden';
         }
     },
 }
 </script>
 <style lang="scss">
-div.content-create {
-    position: relative;
-}
-
-div.content-create.sk__loading::after {
-    content: '';
-    background-color: rgba(255, 255, 255, 0.7);
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 10;
-}
-
-.content-create.sk__loading>.sk-spinner.sk-spinner-wave {
-    margin: 0 auto;
-    width: 50px;
-    height: 30px;
-    text-align: center;
-    font-size: 10px;
-}
-
-.content-create.sk__loading>.sk-spinner {
-    display: block;
-    position: absolute;
-    top: 40%;
-    left: 0;
-    right: 0;
-    z-index: 2000;
-}
-
-.content-create .sk-spinner.sk-spinner-wave.hide {
-    display: none;
-}
-
 @media (min-width: 992px) {
     .modal-lg {
         max-width: 1200px;

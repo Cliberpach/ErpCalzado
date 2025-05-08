@@ -17,8 +17,39 @@ class DetalleNotaSalidad extends Model
         'producto_id'
     ];
 
-    public $timestamps = true;
-    public $decrementarStockLogico    =   true;
+    public $timestamps                  =   true;
+    public $decrementarStockLogico      =   true;
+    public $almacen_origen_id           =   null;
+    public $almacen_destino_id          =   null;
+    public $sede_id                     =   null;
+
+
+    public function setAlmacenDestinoId($valor)
+    {
+        $this->almacen_destino_id = $valor;
+    }
+
+    public function setAlmacenOrigenId($valor)
+    {
+        $this->almacen_origen_id = $valor;
+    }
+
+    public function setSedeId($valor)
+    {
+        $this->sede_id = $valor;
+    }
+
+    public function getAlmacenDestinoId(){
+        return $this->almacen_destino_id;
+    }
+
+    public function getAlmacenOrigenId(){
+        return $this->almacen_origen_id;
+    }
+
+    public function getSedeId(){
+        return $this->sede_id;
+    }
 
     public function nota_salidad(){
         return $this->belongsTo(NotaSalidad::class,'nota_salidad_id','id');
@@ -40,103 +71,209 @@ class DetalleNotaSalidad extends Model
          $this->decrementarStockLogico = false;
      }
     
-     // Método para activar el decremento de stock lógico
-     public function enableDecrementarStockLogico()
-     {
-         $this->decrementarStockLogico = true;
-     }
+    // Método para activar el decremento de stock lógico
+    public function enableDecrementarStockLogico()
+    {
+        $this->decrementarStockLogico = true;
+    }
  
-     public function getDecrementarStockLogico(){
+    public function getDecrementarStockLogico(){
          return $this->decrementarStockLogico;
-     }
+    }
 
     
-    protected static function booted()
+    /*protected static function booted()
     {
-       //=========== actualizando stock producto ===============
+       //=========== ACTUALIZANDO STOCK PRODUCTOS ===============
        static::created(function(DetalleNotaSalidad $detalleNotaSalida){
 
            $cantidadProductos  = $detalleNotaSalida->cantidad;
 
-           //comprobando si existe el producto_color_talla
-           $producto   =   DB::select('select * from producto_color_tallas as pct
-                                       where pct.producto_id = ? and
-                                       pct.color_id = ? and pct.talla_id = ?',[$detalleNotaSalida->producto_id,
-                                       $detalleNotaSalida->color_id,$detalleNotaSalida->talla_id]);
+           //======= COMPROBANDO SI EXISTE EL PRODUCTO COLOR TALLA =========
+           $producto    =   DB::select('select
+                            pct.* 
+                            from producto_color_tallas as pct
+                            where pct.producto_id = ? 
+                            and pct.color_id = ? 
+                            and pct.talla_id = ?',
+                            [$detalleNotaSalida->producto_id,
+                            $detalleNotaSalida->color_id,
+                            $detalleNotaSalida->talla_id]);
                 
            //======== el producto existe =========
-           //========= decrementar sus stocks ===========
+           //========= DECREMENTAR STOCK EN ALMACEN ORIGEN ===========
            if (count($producto) > 0) {
+
                 if($detalleNotaSalida->nota_salidad->observacion == '/guiasremision/create_new'){
                     ProductoColorTalla::where('producto_id', $detalleNotaSalida->producto_id)
                     ->where('color_id', $detalleNotaSalida->color_id)
                     ->where('talla_id', $detalleNotaSalida->talla_id)
+                    ->where('almacen_id', $detalleNotaSalida->getAlmacenOrigenId())
                     ->update([
-                        'stock' => DB::raw("stock - $cantidadProductos"),
-                        'estado'        =>  '1',  
+                        'stock'     =>  DB::raw("stock - $cantidadProductos"),
+                        'estado'    =>  '1',  
                     ]);
                 }
                 
                 if($detalleNotaSalida->nota_salidad->observacion !== '/guiasremision/create_new'){
                     if($detalleNotaSalida->getDecrementarStockLogico()){
+
+                        //===== RESTAR STOCK EN ALMACÉN ORIGEN ======
                         ProductoColorTalla::where('producto_id', $detalleNotaSalida->producto_id)
                         ->where('color_id', $detalleNotaSalida->color_id)
                         ->where('talla_id', $detalleNotaSalida->talla_id)
+                        ->where('almacen_id', $detalleNotaSalida->getAlmacenOrigenId())
                         ->update([
-                            'stock' => DB::raw("stock - $cantidadProductos"),
+                            'stock'         =>  DB::raw("stock - $cantidadProductos"),
                             'stock_logico'  =>  DB::raw("stock_logico - $cantidadProductos"),
                             'estado'        =>  '1',  
                         ]);
+
+                        //===== AUMENTAR STOCK EN ALMACÉN DESTINO =======
+                        //=> COMPROBANDO SI EXISTE EL PRODUCTO COLOR TALLA EN EL DESTINO <=
+                        $pct_en_destino =   DB::select('select 
+                                            pct.* 
+                                            from producto_color_tallas as pct
+                                            where pct.producto_id = ? 
+                                            and pct.color_id = ? 
+                                            and pct.talla_id = ?
+                                            and pct.almacen_id = ?',
+                                            [$detalleNotaSalida->producto_id,
+                                            $detalleNotaSalida->color_id,
+                                            $detalleNotaSalida->talla_id,
+                                            $detalleNotaSalida->getAlmacenDestinoId()]);
+
+                        if(count($pct_en_destino) > 0){
+
+                            //======= INCREMENTAMOS STOCK ======
+                            ProductoColorTalla::where('producto_id', $detalleNotaSalida->producto_id)
+                            ->where('color_id', $detalleNotaSalida->color_id)
+                            ->where('talla_id', $detalleNotaSalida->talla_id)
+                            ->where('almacen_id', $detalleNotaSalida->getAlmacenDestinoId())
+                            ->update([
+                                'stock'         =>  DB::raw("stock + $cantidadProductos"),
+                                'stock_logico'  =>  DB::raw("stock_logico + $cantidadProductos"),
+                                'estado'        =>  '1',  
+                            ]);
+
+                        }else{
+
+                            //======= EN CASO NO EXISTE =====
+                            //===== PREGUNTAMOS SI EXISTE EL PRODUCTO COLOR EN DESTINO =====
+                            $existeColor    =   ProductoColor::where('producto_id', $detalleNotaSalida->producto_id)
+                                                ->where('color_id', $detalleNotaSalida->color_id)
+                                                ->where('almacen_id',$detalleNotaSalida->getAlmacenDestinoId())
+                                                ->exists();
+
+                            //======== EN CASO NO EXISTE EL COLOR ======
+                            //======= CREARLO EN EL DESTINO ======
+                            if(!$existeColor){
+                                $producto_color                 =   new ProductoColor();
+                                $producto_color->producto_id    =   $detalleNotaSalida->producto_id;
+                                $producto_color->color_id       =   $detalleNotaSalida->color_id;
+                                $producto_color->almacen_id     =   $detalleNotaSalida->getAlmacenDestinoId();
+                                $producto_color->save(); 
+                            }  
+
+                            //=========== REGISTRAR EL PRODUCTO COLOR TALLA ============
+                            $pct_destino                   =   new ProductoColorTalla();
+                            $pct_destino->producto_id      =   $detalleNotaSalida->producto_id;
+                            $pct_destino->color_id         =   $detalleNotaSalida->color_id;
+                            $pct_destino->talla_id         =   $detalleNotaSalida->talla_id;
+                            $pct_destino->stock            =   $cantidadProductos;
+                            $pct_destino->stock_logico     =   $cantidadProductos;
+                            $pct_destino->almacen_id       =   $detalleNotaSalida->getAlmacenDestinoId();
+                            $pct_destino->save();
+                            
+                        }
+
                     }else{
+
                         ProductoColorTalla::where('producto_id', $detalleNotaSalida->producto_id)
                         ->where('color_id', $detalleNotaSalida->color_id)
                         ->where('talla_id', $detalleNotaSalida->talla_id)
+                        ->where('almacen_id', $detalleNotaSalida->getAlmacenOrigenId())
                         ->update([
-                            'stock' => DB::raw("stock - $cantidadProductos"),
+                            'stock'         =>  DB::raw("stock - $cantidadProductos"),
                             'estado'        =>  '1',  
                         ]);
+
                     } 
                 }
            } 
            
-           //=========== registrando movimiento ===============
+            //=========== REGISTRANDO MOVIMIENTO ===============
             MovimientoNota::create([
-                'cantidad' => $detalleNotaSalida->cantidad,
-                'observacion' => $detalleNotaSalida->producto->modelo->descripcion.' - '.$detalleNotaSalida->producto->nombre,
-                'movimiento' => "Salida",
-                'usuario_id' => Auth()->user()->id,
-                'nota_id' => $detalleNotaSalida->id,
-                'producto_id' => $detalleNotaSalida->producto_id,
-                'color_id' => $detalleNotaSalida->color_id,
-                'talla_id' => $detalleNotaSalida->talla_id,
+                'cantidad'      => $detalleNotaSalida->cantidad,
+                'observacion'   => $detalleNotaSalida->producto->modelo->descripcion.' - '.$detalleNotaSalida->producto->nombre,
+                'movimiento'    => "SALIDA",
+                'usuario_id'    => Auth()->user()->id,
+                'nota_id'       => $detalleNotaSalida->id,
+                'producto_id'   => $detalleNotaSalida->producto_id,
+                'color_id'      => $detalleNotaSalida->color_id,
+                'talla_id'      => $detalleNotaSalida->talla_id,
+                'almacen_origen_id'     =>   $detalleNotaSalida->getAlmacenOrigenId(),
+                'almacen_destino_id'    =>   $detalleNotaSalida->getAlmacenDestinoId(),
+                'sede_id'               =>   $detalleNotaSalida->getSedeId()
             ]);
 
             //=========== OBTENIENDO PRODUCTO CON STOCK NUEVO ===========
-            $producto   =   DB::select('select * from producto_color_tallas as pct
-                                       where pct.producto_id = ? and
-                                       pct.color_id = ? and pct.talla_id = ?',[$detalleNotaSalida->producto_id,
-                                       $detalleNotaSalida->color_id,$detalleNotaSalida->talla_id]);
+            $producto_origen   =    DB::select('select 
+                                    pct.* 
+                                    from producto_color_tallas as pct
+                                    where pct.producto_id = ? 
+                                    and pct.color_id = ? 
+                                    and pct.talla_id = ?
+                                    and pct.almacen_id = ?',
+                                    [$detalleNotaSalida->producto_id,
+                                    $detalleNotaSalida->color_id,
+                                    $detalleNotaSalida->talla_id,
+                                    $detalleNotaSalida->getAlmacenOrigenId()]);
+
+            $producto_destino   =    DB::select('select 
+                                    pct.* 
+                                    from producto_color_tallas as pct
+                                    where pct.producto_id = ? 
+                                    and pct.color_id = ? 
+                                    and pct.talla_id = ?
+                                    and pct.almacen_id = ?',
+                                    [$detalleNotaSalida->producto_id,
+                                    $detalleNotaSalida->color_id,
+                                    $detalleNotaSalida->talla_id,
+                                    $detalleNotaSalida->getAlmacenDestinoId()]);
                 
 
             //==================== KARDEX ==================
-           $kardex                    =    new Kardex();
-           $kardex->origen            =    'Salida';
-           $kardex->numero_doc        =    $detalleNotaSalida->nota_salidad->numero;
-           $kardex->fecha             =    $detalleNotaSalida->nota_salidad->fecha;
-           $kardex->cantidad          =    $detalleNotaSalida->cantidad;
-           $kardex->producto_id       =    $detalleNotaSalida->producto_id;
-           $kardex->color_id          =    $detalleNotaSalida->color_id;
-           $kardex->talla_id          =    $detalleNotaSalida->talla_id;
-           $kardex->descripcion       =    $detalleNotaSalida->nota_salidad->origen;
-           //$kardex->precio          = $detalle->costo_soles;
-           //$kardex->importe         = $detalle->costo_soles * $detalle->cantidad;
-           //$kardex->stock           = $detalle->producto->stock;
-           count($producto)>0? $kardex->stock = $producto[0]->stock: 0;
-           $kardex->save();
+            $kardex                    =     new Kardex();
+            $kardex->origen            =     'SALIDA';
+            $kardex->numero_doc        =     $detalleNotaSalida->nota_salidad->numero;
+            $kardex->fecha             =     $detalleNotaSalida->nota_salidad->fecha;
+            $kardex->cantidad          =     $detalleNotaSalida->cantidad;
+            $kardex->producto_id       =     $detalleNotaSalida->producto_id;
+            $kardex->color_id          =     $detalleNotaSalida->color_id;
+            $kardex->talla_id          =     $detalleNotaSalida->talla_id;
+            $kardex->descripcion       =     $detalleNotaSalida->nota_salidad->observacion;
+            $kardex->almacen_id        =     $detalleNotaSalida->getAlmacenOrigenId();
+            count($producto_origen)>0? $kardex->stock = $producto_origen[0]->stock: 0;
+            $kardex->save();
+
+            $kardex                    =     new Kardex();
+            $kardex->origen            =     'INGRESO';
+            $kardex->numero_doc        =     $detalleNotaSalida->nota_salidad->numero;
+            $kardex->fecha             =     $detalleNotaSalida->nota_salidad->fecha;
+            $kardex->cantidad          =     $detalleNotaSalida->cantidad;
+            $kardex->producto_id       =     $detalleNotaSalida->producto_id;
+            $kardex->color_id          =     $detalleNotaSalida->color_id;
+            $kardex->talla_id          =     $detalleNotaSalida->talla_id;
+            $kardex->descripcion       =     $detalleNotaSalida->nota_salidad->observacion;
+            $kardex->almacen_id        =     $detalleNotaSalida->getAlmacenDestinoId();
+            count($producto_destino)>0? $kardex->stock = $producto_destino[0]->stock: 0;
+            $kardex->save();
           
        });
+    */
        
-   //     static::created(function (detalleNotaSalida $detalle) {
+    /*     static::created(function (detalleNotaSalida $detalle) {
 
    //         $lote = new LoteProducto();
    //         $lote->nota_ingreso_id = $detalle->nota_ingreso->id;
@@ -233,4 +370,5 @@ class DetalleNotaSalidad extends Model
     //          //$producto->update();
     //     });
     // }
+    */
 }

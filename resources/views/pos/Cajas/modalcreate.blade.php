@@ -3,6 +3,7 @@
     <div class="modal-dialog" role="document">
         <form action="{{ route('Caja.store') }}" method="post">
             @csrf
+            <input type="hidden" value="{{$sede_id}}" name="sede_id">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modal_crear_caja">Crear Nueva Caja</h5>

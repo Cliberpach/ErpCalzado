@@ -25,15 +25,15 @@ class CreateProductosTable extends Migration
             $table->unsignedInteger('modelo_id');
             $table->foreign('modelo_id')->references('id')->on('modelos')->onDelete('cascade');
 
-            $table->unsignedInteger('almacen_id');
-            $table->foreign('almacen_id')->references('id')->on('almacenes')->onDelete('cascade');
+            // $table->unsignedInteger('almacen_id');
+            // $table->foreign('almacen_id')->references('id')->on('almacenes')->onDelete('cascade');
             
             $table->string('codigo', 50)->nullable(); //opcional
             $table->string('nombre');
             $table->mediumText('descripcion')->nullable();
             $table->string('medida');
             $table->string('codigo_barra')->nullable();
-            // $table->string('moneda');
+            //$table->string('moneda');
             //$table->unsignedDecimal('stock', 15, 2)->default(0);
             $table->unsignedDecimal('stock_minimo', 15, 2)->default(1);
             $table->unsignedDecimal('precio_compra', 15, 2)->nullable();

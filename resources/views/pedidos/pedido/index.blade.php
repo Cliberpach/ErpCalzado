@@ -74,6 +74,7 @@
                                     <th class="text-center">ID</th>
                                     <th class="text-center">FACTURADO</th>
                                     <th class="text-center">COT</th>
+                                    <th class="text-center">ALMACEN</th>
                                     <th class="text-center">CLIENTE</th>
                                     <th class="text-center">FECHA</th>
                                     <th class="text-center">TOTAL</th>
@@ -222,6 +223,7 @@
                 { data: 'id' },
                 { data: 'documento_venta'},
                 { data: 'cotizacion_nro'},
+                { data: 'almacen_nombre' },
                 { data: 'cliente_nombre' },
                 {
             data: 'created_at',
@@ -274,10 +276,12 @@
                                     
                                     
                             
-
-                            if(row.estado !== "FINALIZADO"){
+                            //========= SOLO PUEDEN ELIMINARSE O EDITARSE PEDIDOS NO FACTURADOS,NO FINALIZADOS =====
+                            if(row.estado !== "FINALIZADO" && !row.documento_venta_facturacion_id ){
                                 acciones+=`<li><a class='dropdown-item' onclick="modificarPedido(${row.id})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>`;
+                            }
 
+                            if(row.estado !== 'FINALIZADO'){
                                 acciones+=`<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='FINALIZAR'><b><i class='fa fa-trash'></i> Finalizar</a></b></li>`;
                             }
 
@@ -811,11 +815,18 @@
             const res_cliente   =   await axios.get(route('pedidos.pedido.getCliente',{pedido_id}));
             
             if(res_cliente.data.success){
+
                 const cliente_pedido    =   res_cliente.data.cliente;
                 const tipo_comprobante  =   cliente_pedido.tipo_documento === 'RUC'?'FACTURA':'BOLETA';
 
+                let numero_documento    =   '99999999';
+                if(cliente_pedido.tipo_documento === 'RUC' || cliente_pedido.tipo_documento === 'DNI'){
+                    numero_documento    =   cliente_pedido.documento;
+                }
+              
+
                 Swal.fire({
-                title: `DESEA GENERAR UNA ${tipo_comprobante} PARA EL CLIENTE: ${cliente_pedido.nombre} CON DOCUMENTO ${cliente_pedido.tipo_documento}: ${cliente_pedido.documento}`,
+                title: `DESEA GENERAR UNA ${tipo_comprobante} PARA EL CLIENTE: ${cliente_pedido.nombre} CON DOCUMENTO ${cliente_pedido.tipo_documento}: ${numero_documento}`,
                 text: "Esta acción no genera despacho y es IRREVERSIBLE!",
                 icon: "warning",
                 showCancelButton: true,
@@ -840,14 +851,22 @@
 
                         Swal.close(); 
                         if(res.data.success){
+                            
                             pedidos_data_table.ajax.reload();
                             toastr.success(res.data.message, 'Exito');
+
+                            let url_open_pdf = '{{ route("ventas.documento.comprobante", [":id1", ":size"]) }}'
+                                                .replace(':id1', res.data.documento_id)
+                                                .replace(':size', 80);
+
                             window.location.href = '{{ route('ventas.documento.index') }}';
-                            const url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id +"-80"});
+
                             window.open(url_open_pdf, 'Comprobante MERRIS', 'location=1, status=1, scrollbars=1,width=900, height=600');
                         }else{
                             toastr.error(res.data.message,`ERROR AL GENERAR EL COMPROBANTE ${tipo_comprobante}`);
+                            Swal.close();
                         }
+
                     }
                 });
 

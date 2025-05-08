@@ -40,9 +40,9 @@ class NoEnviadosController extends Controller
     {
         $documento = [];
         if ($request->fecha_desde && $request->fecha_hasta) {
-            $documentos = Documento::where('estado', '!=', 'ANULADO')->where('sunat', '0')->where('contingencia','0')->where('tipo_venta', '!=', 129)->whereBetween('fecha_documento', [$request->fecha_desde, $request->fecha_hasta])->orderBy('id', 'desc')->get();
+            $documentos = Documento::where('estado', '!=', 'ANULADO')->where('sunat', '0')->where('contingencia','0')->where('tipo_venta_id', '!=', 129)->whereBetween('fecha_documento', [$request->fecha_desde, $request->fecha_hasta])->orderBy('id', 'desc')->get();
         } else {
-            $documentos = Documento::where('estado', '!=', 'ANULADO')->where('sunat', '0')->where('contingencia','0')->where('tipo_venta', '!=', 129)->orderBy('id', 'desc')->get();
+            $documentos = Documento::where('estado', '!=', 'ANULADO')->where('sunat', '0')->where('contingencia','0')->where('tipo_venta_id', '!=', 129)->orderBy('id', 'desc')->get();
         }
 
         $hoy = Carbon::now();
@@ -683,81 +683,6 @@ class NoEnviadosController extends Controller
                     
                 } 
             }
-
-            // foreach ($detalles as $item) {
-            //     $lote = LoteProducto::findOrFail($item->lote_id);
-            //     $lote->cantidad =  $lote->cantidad + $item->cantidad;
-            //     $lote->cantidad_logica =  $lote->cantidad_logica + $item->cantidad;
-            //     $lote->estado = '1';
-            //     $lote->update();
-            //     $item->eliminado = '1';
-            //     $item->update();
-            // }
-
-            // foreach ($productotabla as $producto) {
-            //     if ($producto->detalle_id != 0) {
-            //         $lote = LoteProducto::findOrFail($producto->lote_id);
-            //         $detalle = Detalle::find($producto->detalle_id);
-            //         $cantidad = $detalle->cantidad;
-            //         $detalle->codigo_producto = $lote->producto->codigo;
-            //         $detalle->unidad = $lote->producto->getMedida();
-            //         $detalle->nombre_producto = $lote->producto->nombre;
-            //         $detalle->codigo_lote = $lote->codigo_lote;
-            //         $detalle->cantidad = $producto->cantidad;
-            //         $detalle->precio_unitario = $producto->precio_unitario;
-            //         $detalle->precio_inicial = $producto->precio_inicial;
-            //         $detalle->precio_nuevo = $producto->precio_nuevo;
-            //         $detalle->dinero = $producto->dinero;
-            //         $detalle->descuento = $producto->descuento;
-            //         $detalle->valor_unitario = $producto->valor_unitario;
-            //         $detalle->valor_venta = $producto->valor_venta;
-            //         $detalle->estado = 'ACTIVO';
-            //         $detalle->eliminado = '0';
-            //         $detalle->update();
-
-            //         $lote->cantidad = $lote->cantidad - $cantidad;
-            //         $lote->cantidad_logica = $lote->cantidad_logica - $cantidad;
-            //         if ($cantidad >= $producto->cantidad) {
-            //             $cant_aux = $cantidad - $producto->cantidad;
-            //             $lote->cantidad =  $lote->cantidad + $cant_aux;
-            //         } else {
-            //             $cant_aux = $producto->cantidad - $cantidad;
-            //             $lote->cantidad =  $lote->cantidad - $cant_aux;
-            //         }
-
-            //         if ($cantidad >= $producto->cantidad) {
-            //             $cant_aux = $cantidad - $producto->cantidad;
-            //             $lote->cantidad_logica =  $lote->cantidad_logica + $cant_aux;
-            //         }
-            //         $lote->update();
-            //     } else {
-            //         $lote = LoteProducto::findOrFail($producto->lote_id);
-            //         Detalle::create([
-            //             'documento_id' => $documento->id,
-            //             'lote_id' => $producto->lote_id, //LOTE
-            //             'codigo_producto' => $lote->producto->codigo,
-            //             'unidad' => $lote->producto->getMedida(),
-            //             'nombre_producto' => $lote->producto->nombre,
-            //             'codigo_lote' => $lote->codigo_lote,
-            //             'cantidad' => $producto->cantidad,
-            //             'precio_unitario' => $producto->precio_unitario,
-            //             'precio_inicial' => $producto->precio_inicial,
-            //             'precio_nuevo' => $producto->precio_nuevo,
-            //             'dinero' => $producto->dinero,
-            //             'descuento' => $producto->descuento,
-            //             'valor_unitario' => $producto->valor_unitario,
-            //             'valor_venta' => $producto->valor_venta,
-            //         ]);
-
-            //         if ($lote->cantidad - $producto->cantidad == 0) {
-            //             $lote->cantidad_logica =  0;
-            //         }
-
-            //         $lote->cantidad =  $lote->cantidad - $producto->cantidad;
-            //         $lote->update();
-            //     }
-            // }
-
 
             $documento = Documento::find($documento->id);
             $documento->nombre_comprobante_archivo = $documento->serie . '-' . $documento->correlativo . '.pdf';

@@ -1,61 +1,74 @@
-<div class="modal inmodal" id="modal_detalles_doc" role="dialog" aria-hidden="true">
-
-    <div class="modal-dialog modal-lg" style="max-width: 94%;">
-        <div class="modal-content animated bounceInRight">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" @click.prevent="Cerrar">
+<div class="modal fade" id="modal_detalles_doc" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content shadow rounded border-0">
+            
+            {{-- Header --}}
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title mb-0">
+                    <i class="fas fa-info-circle mr-2"></i> DETALLE
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" @click.prevent="Cerrar">
                     <span aria-hidden="true">&times;</span>
-                    <span class="sr-only">Close</span>
                 </button>
-                {{-- <i class="fa fa-user-plus modal-icon"></i> --}}
-                <i class="fas fa-info-circle modal-icon"></i>
-                <h4 class="modal-title">DETALLE</h4>
-                <small class="font-bold">Registrar</small>
             </div>
-            <div class="modal-body content_cliente">
-                @include('components.overlay_search')
-                @include('components.overlay_save')
 
-                <div class="table-responsive">
-                    <table class="table table-hover" id="table-detalles-doc">
-                        <thead>
-                          <tr>
-                            <th scope="col">PRODUCTO</th>
-                            <th scope="col">COLOR</th>
-                            <th scope="col">TALLA</th>
-                            <th scope="col">CANTIDAD</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                         
-                        </tbody>
-                    </table>
-                </div>
-                
-
-                <div class="sk-spinner sk-spinner-wave d-none">
-                    <div class="sk-rect1"></div>
-                    <div class="sk-rect2"></div>
-                    <div class="sk-rect3"></div>
-                    <div class="sk-rect4"></div>
-                    <div class="sk-rect5"></div>
-                </div>
+            {{-- Subtítulo --}}
+            <div class="px-4 pt-2">
+                <small class="text-muted font-italic">Productos del despacho</small>
             </div>
-            <div class="modal-footer">
-                <div class="col-md-6 text-left">
-                    <i class="fa fa-exclamation-circle leyenda-required"></i> <small class="leyenda-required">Los
-                        campos
-                        marcados con asterisco (*) son obligatorios.</small>
+
+            {{-- Body --}}
+            <div class="modal-body content_cliente pt-2">
+
+                <div class="row">
+                    <div class="col-lg-3 col-md-3 col-sm-4 col-xs-12 mb-3">
+                        <label class="font-weight-bold mb-0">DOCUMENTO:</label>
+                        <div id="info_documento" class="border p-2 rounded bg-light">--</div>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-4 col-xs-12 mb-3">
+                        <label class="font-weight-bold mb-0">SEDE DESPACHO:</label>
+                        <div id="info_sede_despacho" class="border p-2 rounded bg-light">--</div>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-4 col-xs-12 mb-3">
+                        <label class="font-weight-bold mb-0">ALMACÉN DESPACHO:</label>
+                        <div id="info_almacen_despacho" class="border p-2 rounded bg-light">--</div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover table-sm" id="table-detalles-doc">
+                                <thead class="bg-light text-dark text-center">
+                                    <tr>
+                                        <th scope="col">MODELO</th>
+                                        <th scope="col">PRODUCTO</th>
+                                        <th scope="col">COLOR</th>
+                                        <th scope="col">TALLA</th>
+                                        <th scope="col">CANT</th>
+                                        <th scope="col">CANT. CAMBIADA</th>
+                                        <th scope="col">CANT. SIN CAMBIO</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6 text-right">
-                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" @click.prevent="Cerrar"><i
-                            class="fa fa-times"></i> Cerrar</button>
-                </div>
+               
+            </div>
+
+            {{-- Footer --}}
+            <div class="modal-footer d-flex justify-content-between px-4">
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" @click.prevent="Cerrar">
+                    <i class="fa fa-times"></i> Cerrar
+                </button>
             </div>
         </div>
-
     </div>
 </div>
+
+
 
 @push('scripts')
 <script src="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.5/b-3.0.2/b-html5-3.0.2/b-print-3.0.2/date-1.5.2/r-3.0.2/sp-2.3.1/datatables.min.js"></script>
