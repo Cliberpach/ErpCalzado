@@ -170,7 +170,7 @@
                                                                     
                                                                     <template v-if="(item.sunat == '1' ||
                                                                         item.notas > 0 ||item.sunat_contingencia == '1') &&
-                                                                        item.tipo_venta != 129 && item.estado == 'ACTIVO' && item.estado_pago == 'PAGADO'">
+                                                                        item.tipo_venta != 129 && item.estado == 'ACTIVO' && item.estado_pago == 'PAGADA'">
                                                                         <b-dropdown-item :href="routes(item.id, 'NOTAS')">
                                                                             <i class="fa fa-file-o" style="color: #77600e;"></i> Notas
                                                                         </b-dropdown-item>
