@@ -170,11 +170,10 @@
                                                                     
                                                                     <template v-if="(item.sunat == '1' ||
                                                                         item.notas > 0 ||item.sunat_contingencia == '1') &&
-                                                                        item.tipo_venta != 129 && item.estado == 'ACTIVO'">
+                                                                        item.tipo_venta != 129 && item.estado == 'ACTIVO' && item.estado_pago == 'PAGADO'">
                                                                         <b-dropdown-item :href="routes(item.id, 'NOTAS')">
                                                                             <i class="fa fa-file-o" style="color: #77600e;"></i> Notas
                                                                         </b-dropdown-item>
-                                                                       
                                                                     </template>
 
                                                                     <template v-if="item.sunat == '1' && item.notas == 0 && !item.guia_id && item.estado == 'ACTIVO'" >
@@ -245,7 +244,7 @@
                                                                     && item.tipo_venta != '129'
                                                                     && item.estado == 'ACTIVO'">
                                                                          <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="regularizarVenta(item)">
-                                                                            <i class="far fa-copy"></i> ANULAR
+                                                                            <i class="far fa-copy"></i> ANULAR Y REPLICAR
                                                                         </b-dropdown-item>
                                                                     </template>
 
@@ -259,7 +258,7 @@
 
                                                                     <template v-if="item.estado_despacho !== 'DESPACHADO' && item.estado_despacho
                                                                     && item.notas == 0 && item.estado == 'ACTIVO'">
-                                                                        <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="setDataEnvio(item.id)">
+                                                                        <b-dropdown-item title="Editar datos despacho"  @click.prevent="setDataEnvio(item.id)">
                                                                             <i class="fas fa-truck"></i> DESPACHO
                                                                         </b-dropdown-item>
                                                                     </template>
