@@ -164,9 +164,7 @@ array:10 [
                             [$id]);
        
             if($colaborador->sede_id != $request->get('sede') &&  count($movimiento) != 0 ){
-          
                 throw new Exception("PERTENECES A UNA CAJA ABIERTA EN LA SEDE ACTUAL, NO PUEDES CAMBIARTE DE SEDE HASTA QUE LA CIERRES");
-                
             }
 
 
@@ -213,6 +211,20 @@ array:10 [
         $this->authorize('haveaccess','colaborador.index');
         DB::beginTransaction();
         try {
+
+            //======= VERIFICAR QUE EL COLABORADOR A CAMBIAR NO TENGA CAJAS ABIERTAS ======
+            $movimiento =   DB::select('select 
+                            dmc.movimiento_id 
+                            from detalles_movimiento_caja as dmc
+                            where 
+                            dmc.colaborador_id = ? 
+                            and dmc.fecha_salida is null',
+                            [$id]);
+   
+            if(count($movimiento) != 0 ){
+                throw new Exception("ESTE COLABORADOR NO PUEDE ELIMINARSE, PORQUE TIENE UNA CAJA ABIERTA");
+            }
+
             $colaborador                    =   Colaborador::find($id);
             $colaborador->estado            =   'ANULADO';
             $colaborador->update();

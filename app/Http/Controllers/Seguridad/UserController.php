@@ -9,6 +9,7 @@ use App\Mantenimiento\Sedes\Sede;
 use App\Permission\Model\Role;
 use App\User;
 use App\UserPersona;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -279,7 +280,7 @@ array:8 [▼
 
         $colaborador            =   Colaborador::find($request->get('colaborador_id'));
 
-        $password = strtoupper($request->password);
+        $password               =   strtoupper($request->password);
 
         $user->usuario          =   strtoupper($request->usuario);
         $user->email            =   strtoupper($request->email);
@@ -317,9 +318,23 @@ array:8 [▼
     {
         $this->authorize('haveaccess','user.delete');
         $user = User::find($id);
+
+        //======= VERIFICAR QUE EL COLABORADOR DEL USER NO TENGA CAJAS ABIERTAS ======
+        $movimiento =   DB::select('select 
+                        dmc.movimiento_id 
+                        from detalles_movimiento_caja as dmc
+                        where 
+                        dmc.colaborador_id = ? 
+                        and dmc.fecha_salida is null',
+                        [$user->colaborador_id]);
+
+        if(count($movimiento) != 0 ){
+            abort(402,"ESTE USUARIO NO PUEDE ELIMINARSE, PORQUE SU COLABORADOR TIENE UNA CAJA ABIERTA");
+        }
+
         //Registro de actividad
-        $descripcion = "SE ELIMINÓ EL USUARIO CON EL NOMBRE: ". $user->usuario;
-        $gestion = "USUARIOS";
+        $descripcion    = "SE ELIMINÓ EL USUARIO CON EL NOMBRE: ". $user->usuario;
+        $gestion        = "USUARIOS";
         eliminarRegistro($user, $descripcion , $gestion);
 
         $user->estado = 'ANULADO';
