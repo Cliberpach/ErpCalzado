@@ -208,13 +208,13 @@
                                                                         </b-dropdown-item>
                                                                     </template>
 
-                                                                    <template v-if="item.notas == 0 && item.estado == 'ACTIVO'">
+                                                                    <template v-if="item.notas == 0 && item.estado == 'ACTIVO' && !item.convert_en_id">
                                                                         <b-dropdown-item title="Cambio de Talla" @click="cambiarTallas(item.id)">
                                                                             <i class="fas fa-exchange-alt" style="color: #3307ab;"></i> Cambio de Talla
                                                                         </b-dropdown-item>
                                                                     </template>
 
-                                                                    <template v-if="item.tipo_venta == 129 && !item.convert_en_id && item.notas == 0 && item.estado == 'ACTIVO'">
+                                                                    <template v-if="item.tipo_venta == 129 && !item.convert_en_id && item.notas == 0 && item.estado == 'ACTIVO' && item.estado_pago == 'PAGADA'">
                                                                         <b-dropdown-item title="Convertir" :href="routes(item.id, 'CONVERTIR')">
                                                                             <i class="fas fa-file-invoice" style="color: blue;"></i> Convertir
                                                                         </b-dropdown-item>

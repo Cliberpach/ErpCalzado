@@ -380,6 +380,7 @@
         
 
         <br>
+        
         <div class="detalles">
             <table class="tbl-detalles" cellpadding="2" cellspacing="0">
                 <thead>

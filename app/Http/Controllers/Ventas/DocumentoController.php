@@ -1104,7 +1104,8 @@ array:27 [
             if($request->has('documento_convertido')){
                 $documento_convertido           =   Documento::find($request->get('documento_convertido'));
                 $documento->convert_de_id       =   $request->get('documento_convertido');
-                $documento->convert_de_serie    =   $documento_convertido->serie.'-'.$documento_convertido->correlativo;   
+                $documento->convert_de_serie    =   $documento_convertido->serie.'-'.$documento_convertido->correlativo; 
+                $documento->estado_pago         =   'PAGADA';  
             }
 
             //======= EN CASO DE REGULARIZACIÓN =====
