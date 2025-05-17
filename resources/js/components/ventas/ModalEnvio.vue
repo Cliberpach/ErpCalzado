@@ -93,7 +93,7 @@
                                     </div>
                                     <div class="col-7">
                                         <label :class="{ 'required': entrega_domicilio }" for="" style="font-weight: bold;">DIRECCION DE ENTREGA</label>
-                                        <input :readonly="!entrega_domicilio" :required="entrega_domicilio" type="text" class="form-control" 
+                                        <input maxlength="150" :readonly="!entrega_domicilio" :required="entrega_domicilio" type="text" class="form-control" 
                                         v-model="direccion_entrega">
                                     </div>
                                 </div>
