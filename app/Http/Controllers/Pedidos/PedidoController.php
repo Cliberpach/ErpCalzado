@@ -1263,6 +1263,7 @@ array:23 [
 */
 public function generarDocumentoVenta(Request $request){
 
+    dd('generando doc');
     //========= GENERAR DOC VENTA ======
     $pedido_id              =   $request->get('pedido_id');
     $pedido                 =   Pedido::find($pedido_id);
