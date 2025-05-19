@@ -481,6 +481,8 @@ public function aperturaCaja(MovimientoCajaAperturaRequest $request){
                 throw new Exception("DEBES FORMAR PARTE DE UNA CAJA ABIERTA!!!");
             }
 
+            return response()->json(['success'=>true,'message'=>'CAJA VALIDA']);
+
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
