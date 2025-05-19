@@ -70,17 +70,17 @@
   90% {transform: translate(0, -40px)}
   100% {transform: translate(0, 0);}
 }
-    
-    
+
+
 </style>
 
 <template>
-    
+
     <div class="">
 
-        <EditarItemVue 
-        :visible="modalVisible" 
-        :title="modalTitle" 
+        <EditarItemVue
+        :visible="modalVisible"
+        :title="modalTitle"
         :tallas="initData.tallas"
         :tallasProducto="tallasProductoEdit"
         :productoEditar="productoEditar"
@@ -90,7 +90,7 @@
 
         <div class="overlay_venta">
             <span class="loader_cotizacion_create"></span>
-        </div> 
+        </div>
 
         <div class="wrapper wrapper-content animated fadeInRight content-create" :class="{'sk__loading':loading}">
             <div class="row">
@@ -126,13 +126,13 @@
                                             <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3" id="almacen">
 
                                                 <label style="font-weight: bold;">ALMACÉN</label>
-                                                    
+
                                                 <v-select v-model="almacenSeleccionado" :options="lst_almacenes"
                                                     :reduce="a => a.id" label="descripcion"
                                                     placeholder="Seleccionar"
                                                     ref="selectAlmacen">
                                                 </v-select>
-                                                    
+
                                             </div>
 
 
@@ -219,14 +219,14 @@
                             <hr>
 
                             <TablaProductos @addProductoDetalle="addProductoDetalle" @addDataEnvio="addDataEnvio"
-                                :fullaccessTable="FullaccessTable" 
-                                :idcotizacion="idcotizacion" 
+                                :fullaccessTable="FullaccessTable"
+                                :idcotizacion="idcotizacion"
                                 :btnDisabled="disabledBtnProducto"
                                 :parametros="paramsLotes"
-                                :modelos="initData.modelos" 
-                                :categorias="initData.categorias" 
+                                :modelos="initData.modelos"
+                                :categorias="initData.categorias"
                                 :marcas="initData.marcas"
-                                :tallas="initData.tallas" 
+                                :tallas="initData.tallas"
                                 :precio_envio="formCreate.precio_envio"
                                 :precio_despacho="formCreate.precio_despacho"
                                 :cliente="cliente_id"
@@ -258,13 +258,14 @@
                     </div>
                 </div>
             </div>
-           
+
         </div>
 
-        <ModalClienteVue @newCliente="formAddCliente"   
+        <ModalClienteVue @newCliente="formAddCliente"
         :lst_departamentos_base="this.lst_departamentos_base"
         :lst_provincias_base="this.lst_provincias_base"
-        :lst_distritos_base="this.lst_distritos_base" />
+        :lst_distritos_base="this.lst_distritos_base"
+        :v_sede="this.v_sede" />
 
     </div>
 </template>
@@ -273,7 +274,6 @@
 import ModalClienteVue from '../../../components/ventas/ModalCliente.vue';
 import TablaProductos from '../../../components/ventas/TablaProductos.vue';
 import EditarItemVue from '../../../components/ventas/EditarItem.vue';
-import { faAslInterpreting } from '@fortawesome/free-solid-svg-icons';
 
 export default {
     name: "VentaCreate",
@@ -290,6 +290,9 @@ export default {
         idcotizacion:{
             type:Number,
             default:0
+        },
+        v_sede:{
+            default:null
         },
         lst_departamentos_base:{
             type:Array,
@@ -400,7 +403,7 @@ export default {
 
                 //===== LIMPIAR FORMULARIO DETALLE ======
                 this.$refs.tablaProductos.limpiarFormularioDetalle();
-               
+
             }
         },
         productos_tabla:{
@@ -486,8 +489,10 @@ export default {
         }
     },
     created() {
-        
-        console.log(this.registrador);
+
+        console.log('SEDE',this.v_sede);
+
+        //======= SELECCIONAR ALMACÉN PRINCIPAL DE LA SEDE DEL USUARIO ======
         this.lst_almacenes.forEach((a)=>{
             if(a.sede_id == this.registrador.sede_id){
                 this.almacenSeleccionado    =   a.id;
@@ -503,9 +508,9 @@ export default {
         this.ObtenerData();
     },
     beforeDestroy() {
-        
+
         this.$refs.tablaProductos.devolverCantidades();
-        
+
     },
     methods: {
         cambiarAlmacen(){
@@ -522,7 +527,7 @@ export default {
             this.productoEditar     =   {producto_id:producto.producto_id,color_id:producto.color_id};
         },
         closeModal() {
-            this.modalVisible       = false;  
+            this.modalVisible       = false;
         },
         addDataEnvio(value){
             // const { departamento,provincia,distrito,tipo_envio,empresa_envio,sede_envio,destinatario } = value;
@@ -539,7 +544,7 @@ export default {
                         producto.color_id               =   d.color_id;
                         producto.talla_id               =   t.talla_id;
                         producto.cantidad               =   t.cantidad;
-                        producto.precio_unitario        =   d.precio_venta;  
+                        producto.precio_unitario        =   d.precio_venta;
                         producto.porcentaje_descuento   =   d.porcentaje_descuento;
                         producto.precio_unitario_nuevo  =   d.precio_venta_nuevo;
                         carritoFormateado.push(producto);
@@ -609,9 +614,9 @@ export default {
                 reverseButtons: true
                 }).then((result) => {
                 if (result.isConfirmed) {
-                   
+
                     this.EnviarVenta();
-                    
+
                 } else if (
                     /* Read more about handling dismissals below */
                     result.dismiss === Swal.DismissReason.cancel
@@ -623,20 +628,20 @@ export default {
                     });
                 }
                 });
-              
+
             } catch (ex) {
                 toastr.error(ex,'ERROR EN LA PETICIÓN GENERAR DOCUMENTO DE VENTA');
             }
         },
         async EnviarVenta() {
-            
+
 
             Swal.fire({
                 title: 'Registrando venta...',
                 text: 'Por favor, espera.',
-                allowOutsideClick: false, 
+                allowOutsideClick: false,
                 didOpen: () => {
-                    Swal.showLoading(); 
+                    Swal.showLoading();
                 }
             });
 
@@ -646,7 +651,7 @@ export default {
 
                 const res     =   await this.axios.post(route('ventas.documento.store'),this.formCreate);
                 /*
-                const delay     =   new Promise(resolve => setTimeout(resolve, 10000)); 
+                const delay     =   new Promise(resolve => setTimeout(resolve, 10000));
                 const request   =   this.axios.post(route('ventas.documento.store'), this.formCreate);
                 const [res]     =   await Promise.all([request, delay]);
                 */
@@ -667,7 +672,7 @@ export default {
                 toastr.error(error,'ERROR EN LA PETICIÓN REGISTRAR VENTA');
                 Swal.close();
             }
-               
+
         },
         validarTipo() {
 
@@ -783,7 +788,7 @@ export default {
         mostrarAnimacionVenta(){
             document.querySelector('.overlay_venta').style.visibility   =   'visible';
         },
-        ocultarAnimacionVenta(){ 
+        ocultarAnimacionVenta(){
             document.querySelector('.overlay_venta').style.visibility   =   'hidden';
         }
     },

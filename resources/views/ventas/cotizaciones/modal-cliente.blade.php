@@ -14,7 +14,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-        
+
         <div class="modal-body">
             <form id="frmCliente" class="formulario">
                 <div class="row">
@@ -103,7 +103,7 @@
                                 <div class="form-group m-0">
                                     <label class="required lbl_mdl_cliente" for="provincia">PROVINCIA</label>
                                     <select required class="select2_modal_cliente" name="provincia" id="provincia" onchange="setUbicacionProvincia(this.value,'first')" >
-                                       
+
                                     </select>
                                 </div>
                                 <span style="color:rgb(251, 135, 135);" class="error_mdl_client_provincia"></span>
@@ -114,7 +114,7 @@
                                 <div class="form-group m-0">
                                     <label class="required lbl_mdl_cliente" for="distrito">DISTRITO</label>
                                     <select required class="select2_modal_cliente" name="distrito" id="distrito">
-                                       
+
                                     </select>
                                 </div>
                                 <span style="color:rgb(251, 135, 135);" class="error_mdl_client_distrito"></span>
@@ -122,7 +122,7 @@
                             <div class="col-12 col-md-6 mb-2">
                                 <div class="form-group m-0">
                                     <label class="required lbl_mdl_cliente" for="zona">Zona</label>
-                                    <input type="text" id="zona" name="zona" 
+                                    <input type="text" id="zona" name="zona"
                                         class=" text-center form-control" readonly>
                                 </div>
                                 <span style="color:rgb(251, 135, 135);" class="error_mdl_client_zona"></span>
@@ -193,7 +193,7 @@
 
     function controlNroDoc(e){
         const tipoDocSimbolo    =   e.value;
-       
+
         //======= LIMPIAR EL NRO DOC ======
         inputNroDoc.value   =   '';
         document.querySelector('#btnGuardarCliente').disabled    =   true;
@@ -231,22 +231,22 @@
     }
 
     async function setUbicacionDepartamento(dep_id,provincia_id){
-        
+
         const departamento_id   =   dep_id;
         console.log(`provincia: ${provincia_id}`);
-       
+
         setZona(getZona(departamento_id));
-        
+
         mostrarAnimacionModalCliente();
         const provincias    =   await getProvincias(departamento_id,provincia_id);
         pintarProvincias(provincias,provincia_id);
-        
-       
+
+
     }
 
     async function setUbicacionProvincia(prov_id,distrito_id){
         const provincia_id      =   prov_id;
-        
+
         const distritos         =   await getDistritos(provincia_id);
         pintarDistritos(distritos,distrito_id);
         ocultarAnimacionModalCliente();
@@ -264,13 +264,13 @@
         inputZona.value =   zona_nombre;
     }
 
-  
+
 
 
     //======= GET PROVINCIAS ==========
     async function getProvincias(departamento_id) {
             try {
-                
+
                 const { data } = await this.axios.post(route('mantenimiento.ubigeo.provincias'), {
                     departamento_id
                 });
@@ -348,7 +348,7 @@
             console.log(numeroDocumento);
             console.log(numeroDocumento.trim().length)
 
-           
+
             //========  VALIDACIÓN DEL NRO DOCUMENTO ==========
             if(tipoDocumento === 'DNI'){
                 if(numeroDocumento.length !== 8){
@@ -380,8 +380,8 @@
             }else{
                 toastr.error(res.data.message,'ERROR AL CONSULTAR CLIENTE EN LA BASE DE DATOS');
             }
-            
-        
+
+
             if(!existeCliente){
                 //======= DNI = "6" =========
                 if (tipoDocumento === "DNI") {
@@ -391,17 +391,17 @@
                          console.log('el dni no tiene 8 digitos')
                          toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
                     }
-                
+
                 //======= RUC = "8" =========
                 } else if (tipoDocumento === "RUC") {
                      if (numeroDocumento.trim().length === 11) {
                          await consultarAPI(tipoDocumento,numeroDocumento);
                      } else {
-                         toastr.error('El RUC debe de contar con 11 dígitos', 'Error');   
+                         toastr.error('El RUC debe de contar con 11 dígitos', 'Error');
                      }
                 }
             }
-            
+
         }catch (ex) {
                 alert("Error en consultarDocumento" + ex);
         }finally{
@@ -425,7 +425,7 @@
                 }
 
                 const { data } = await this.axios.get(url);
-               
+
                 console.log(data);
                 if(data.success){
                     //===== COLOCANDO NOMBRE EN EL INPUT DEL FORMULARIO ======
@@ -446,7 +446,7 @@
                         inputNroDoc.focus();
                     }
                 }
-              
+
                 // if (tipoDoc == "DNI") {
                 //     this.CamposDNI(data);
                 // }
@@ -475,7 +475,7 @@
         document.querySelector('#nombre').value     =   data_ruc.nombre_o_razon_social;
         document.querySelector('#direccion').value  =   data_ruc.direccion;
         document.querySelector('#activo').value     =   data_ruc.estado;
-        
+
         if(data_ruc.ubigeo[0] && data_ruc.ubigeo[1] && data_ruc.ubigeo[2]){
             document.querySelector('#departamento').onchange    =   null;
             document.querySelector('#provincia').onchange    =   null;
@@ -493,12 +493,12 @@
             document.querySelector('#provincia').onchange = function() {
                 setUbicacionProvincia(this.value, 'first');
             };
-            
+
 
             ocultarAnimacionModalCliente();
             return;
         }
-        
+
         toastr.warning('NO SE ENCONTRÓ UBIGEO DEL DOCUMENTO','UBIGEO NO ENCONTRADO');
     }
 
@@ -514,12 +514,39 @@
         document.querySelector('#direccion').value =  '';
     }
 
-    function eventsCliente(){
+    async function eventsCliente(){
+
+        await loadConfigMdlCliente();
+
         formCliente.addEventListener('submit',(e)=>{
-            e.preventDefault();     
-                 
+            e.preventDefault();
+
             guardarCliente();
         })
+
+    }
+
+    async function loadConfigMdlCliente(){
+        await setUbigeoDefault();
+    }
+
+    async function setUbigeoDefault(){
+        //==== APAGAR EVENTS =====
+        const selectDepartamento    =   document.querySelector('#departamento');
+        const selectProvincia       =   document.querySelector('#provincia');
+
+        const onchangeDepartamento  =   selectDepartamento.onchange;
+        const onchangeProvincia     =   selectProvincia.onchange;
+
+        selectDepartamento.onchange    =   null;
+        selectProvincia.onchange       =   null;
+
+        const sede  =   @json($sede);
+        await setUbicacionDepartamento(sede.departamento_id,sede.provincia_id);
+        await setUbicacionProvincia(sede.provincia_id,sede.distrito_id);
+
+        selectDepartamento.onchange =   onchangeDepartamento;
+        selectProvincia.onchange    =   onchangeProvincia;
     }
 
     //====== GUARDAR CLIENTE ======
@@ -534,16 +561,16 @@
 
                 const res = await axios.post(route('ventas.cliente.storeFast'), formData);
 
-                
+
                 if(res.data.success){
-                   
+
                     updateSelectClientes(res.data.cliente);
                     toastr.success(res.data.message,'OPERACION COMPLETADA');
                     formCliente.reset();
                     $("#modal_cliente").modal("hide");
-                
+
                 }else{
-                  
+
                     toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                 }
 
@@ -601,20 +628,20 @@
             }
         }
 
-       
+
     }
 
     function mostrarAnimacionModalCliente(){
-      
+
         document.querySelector('.overlay_modal_cliente').style.visibility   =   'visible';
     }
 
     function ocultarAnimacionModalCliente(){
-        
+
         document.querySelector('.overlay_modal_cliente').style.visibility   =   'hidden';
     }
 
-    
+
 
 </script>
 

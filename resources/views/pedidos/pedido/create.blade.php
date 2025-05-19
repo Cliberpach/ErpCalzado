@@ -1,6 +1,6 @@
-@extends('layout') 
+@extends('layout')
 @section('content')
-@include('ventas.cotizaciones.modal-cliente') 
+@include('ventas.cotizaciones.modal-cliente')
 
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
@@ -21,14 +21,14 @@
 </div>
 
 <div class="wrapper wrapper-content animated fadeInRight">
-    
+
     <div class="row">
         <div class="col-lg-12">
             <div class="ibox">
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                           
+
                             @include('pedidos.pedido.forms.form_pedido_create')
 
                         </div>
@@ -49,7 +49,7 @@
 
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
                                                     <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
-                                                    <select 
+                                                    <select
                                                         id="producto"
                                                         class=""
                                                         onchange="getColoresTallas()" >
@@ -120,7 +120,7 @@
                                         class="btn btn-w-m btn-default">
                                         <i class="fa fa-arrow-left"></i> Regresar
                                     </a>
-                                   
+
                                     <button type="submit" id="btn_grabar" form="form-pedido" class="btn btn-w-m btn-primary">
                                         <i class="fa fa-save"></i> Grabar
                                     </button>
@@ -160,7 +160,7 @@
     font-size: 14px;
     margin: 8px 0px !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: background-color 3s, color 3s; 
+    transition: background-color 3s, color 3s;
 }
 
 .custom-button:hover {
@@ -186,7 +186,7 @@
     const tfootDescuento        =   document.querySelector('.descuento');
     const tfootEmbalaje         =   document.querySelector('.embalaje');
     const tfootEnvio            =   document.querySelector('.envio');
-    
+
     const amountsPedido         =   {
                                         subtotal:0,
                                         embalaje:0,
@@ -202,15 +202,16 @@
     let dataTableStocksPedido   =   null;
 
 
-    document.addEventListener('DOMContentLoaded',()=>{
+    document.addEventListener('DOMContentLoaded',async()=>{
+        mostrarAnimacion();
         loadSelect2();
-        setUbicacionDepartamento(13,'first');
         events();
         eventsCliente();
+        ocultarAnimacion();
     })
 
     function events(){
-      
+
 
         //====== ELIMINAR ITEM =========
         document.addEventListener('click',(e)=>{
@@ -229,10 +230,10 @@
 
         //====== SUBMIT FORM PEDIDOS =======
         document.querySelector('#form-pedido').addEventListener('submit',(e)=>{
-            
+
             e.preventDefault();
             registrarPedido(e.target);
-            
+
         })
 
 
@@ -260,7 +261,7 @@
                 const regex = /^[0-9]+(\.[0-9]{0,2})?$/;
                 //==== BORRAR CARACTER NO NUMÉRICO ====
                 if (!regex.test(valor)) {
-                    event.target.value = valor.slice(0, -1); 
+                    event.target.value = valor.slice(0, -1);
                     return;
                 }
 
@@ -302,7 +303,7 @@
                 toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA','OPERACIÓN INCORRECTA');
                 return;
             }
-            
+
             mostrarAnimacion();
             toastr.clear();
 
@@ -323,6 +324,7 @@
         })
     }
 
+
     //====== SELECT2 =======
     function loadSelect2(){
         $(".select2_form").select2({
@@ -333,9 +335,9 @@
         });
 
         $(".select2_modal_cliente").select2({
-            placeholder: "SELECCIONAR", 
-            allowClear: true,          
-            width: '100%'        
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            width: '100%'
         });
 
         $('#producto').select2({
@@ -355,14 +357,14 @@
                 }
             },
             ajax: {
-                url: '{{route("pedidos.pedido.getProductos")}}', 
+                url: '{{route("pedidos.pedido.getProductos")}}',
                 dataType: 'json',
-                delay: 250, 
+                delay: 250,
                 data: function(params) {
                     return {
                         search: params.term,
                         almacen_id: $('#almacen').val(),
-                        page: params.page || 1  
+                        page: params.page || 1
                     };
                 },
                 processResults: function(data,params) {
@@ -372,10 +374,10 @@
                         return {
                             results: productos.map(item => ({
                                 id: item.producto_id,
-                                text: item.producto_completo 
+                                text: item.producto_completo
                             })),
                             pagination: {
-                                more: data.more 
+                                more: data.more
                             }
                         };
                     }else{
@@ -384,7 +386,7 @@
                             results:[]
                         }
                     }
-                    
+
                 },
                 cache: true
             },
@@ -413,19 +415,19 @@
             return !(p.producto_id == productoId && p.color_id == colorId);
         })
     }
-   
+
 
     //===== LIMPIAR INPUTS DEL TABLERO PRODUCTOS ======
     function clearInputsCantidad(){
         const inputsCantidad    =   document.querySelectorAll('.inputCantidad');
         inputsCantidad.forEach((inputCantidad)=>{
             inputCantidad.value =   '';
-        })  
+        })
     }
 
     function agregarProducto(){
         const inputsCantidad = document.querySelectorAll('.inputCantidad');
-            
+
         for (const ic of inputsCantidad) {
 
             const cantidad = ic.value ? ic.value : null;
@@ -485,7 +487,7 @@
                     if (indiceTalla !== -1) {
                         const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
                         carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
-                            
+
                         const cantidadTallas = carrito[indiceProductoColor].tallas.length;
 
                         if (cantidadTallas == 0) {
@@ -507,7 +509,7 @@
         let igv         =   0;
         let total_pagar =   0;
         let descuento   =   0;
-        
+
         //====== subtotal es la suma de todos los productos ======
         carrito.forEach((c)=>{
             if(c.porcentaje_descuento === 0){
@@ -518,16 +520,16 @@
             descuento += parseFloat(c.monto_descuento);
         })
 
-        total_pagar =   subtotal + embalaje + envio;        
+        total_pagar =   subtotal + embalaje + envio;
         total       =   total_pagar/1.18;
         igv         =   total_pagar - total;
-       
+
         tfootTotalPagar.textContent =   'S/. ' + total_pagar.toFixed(2);
         tfootIgv.textContent        =   'S/. ' + igv.toFixed(2);
         tfootTotal.textContent      =   'S/. ' + total.toFixed(2);
         tfootSubtotal.textContent   =   'S/. ' + subtotal.toFixed(2);
         tfootDescuento.textContent  =   'S/. ' + descuento.toFixed(2);
-        
+
         amountsPedido.totalPagar        =   total_pagar.toFixed(2);
         amountsPedido.igv               =   igv.toFixed(2);
         amountsPedido.total             =   total.toFixed(2);
@@ -556,11 +558,11 @@
             carrito[indiceExiste] = producto_color_editar;
 
             //==== RECALCULANDO MONTOS ====
-            calcularMontos();   
+            calcularMontos();
 
             //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
-            const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`); 
-            const detailSubtotal    =   document.querySelector(`.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);    
+            const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
+            const detailSubtotal    =   document.querySelector(`.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
 
             if(porcentaje_descuento !== 0){
                 detailPrecioVenta.textContent = producto_color_editar.precio_venta_nuevo;
@@ -619,12 +621,12 @@
 
         carrito.forEach((p)=>{
             p.tallas.forEach((t)=>{
-                    subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad);   
+                    subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad);
             })
-               
-            p.subtotal=subtotal; 
-            subtotal=0; 
-        })  
+
+            p.subtotal=subtotal;
+            subtotal=0;
+        })
     }
 
     //========= PINTAR DETALLE PEDIDO =======
@@ -637,14 +639,14 @@
 
         carrito.forEach((c)=>{
             htmlTallas=``;
-                fila+= `<tr>   
+                fila+= `<tr>
                             <td>
                                 <i class="fas fa-trash-alt btn btn-danger delete-product"
                                 data-producto="${c.producto_id}" data-color="${c.color_id}">
-                                </i>                            
+                                </i>
                             </td>
                             <th>
-                                <div style="width:120px;">${c.producto_nombre}</div>    
+                                <div style="width:120px;">${c.producto_nombre}</div>
                             </th>
                             <th>${c.color_nombre}</th>`;
 
@@ -655,7 +657,7 @@
                         return t.id==ct.talla_id;
                     });
                     cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad='';
-                    htmlTallas += `<td>${cantidad}</td>`; 
+                    htmlTallas += `<td>${cantidad}</td>`;
                 })
 
 
@@ -663,7 +665,7 @@
                                     <div style="width:100px;">
                                         <span class="precio_venta_${c.producto_id}_${c.color_id}">
                                             ${c.porcentaje_descuento === 0? c.precio_venta:c.precio_venta_nuevo}
-                                        </span>       
+                                        </span>
                                     </div>
                                 </td>
                                 <td class="td-subtotal" style="text-align: right;">
@@ -672,19 +674,19 @@
                                     </span>
                                 </td>
                                 <td style="text-align: center;">
-                                    <input data-producto-id="${c.producto_id}" data-color-id="${c.color_id}" 
+                                    <input data-producto-id="${c.producto_id}" data-color-id="${c.color_id}"
                                     style="width:130px; margin: 0 auto;" value="${c.porcentaje_descuento}"
                                     class="form-control detailDescuento"></input>
                                 </td>
                             </tr>`;
 
                 fila+=htmlTallas;
-                bodyDetalleTable.innerHTML=fila;            
+                bodyDetalleTable.innerHTML=fila;
         })
     }
 
 
-    
+
     //========== OBTENER PRODUCTOS POR MODELO =========
     async function  getProductosByModelo(e){
         toastr.clear();
@@ -695,7 +697,7 @@
 
         const modelo_id                   =   e.value;
         btnAgregarDetalle.disabled  =   true;
-        
+
         if(modelo_id){
             try {
                 const res       =   await axios.get(route('pedidos.pedido.getProductosByModelo', modelo_id));
@@ -710,7 +712,7 @@
                 ocultarAnimacion();
                 toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
             }
-               
+
         }else{
             ocultarAnimacion();
         }
@@ -805,18 +807,18 @@
                             </td>
                             <td width="8%">
                                 <input style="width:50px;text-align:center;" type="text" class="form-control inputCantidad"
-                                id="inputCantidad_${producto.id}_${color.id}_${talla.id}" 
+                                id="inputCantidad_${producto.id}_${color.id}_${talla.id}"
                                 data-producto-id="${producto.id}"
                                 data-producto-nombre="${producto.nombre}"
                                 data-color-nombre="${color.nombre}"
                                 data-talla-nombre="${talla.nombre}"
-                                data-color-id="${color.id}" data-talla-id="${talla.id}" 
-                                data-producto-codigo="${producto.codigo}"></input>    
+                                data-color-id="${color.id}" data-talla-id="${talla.id}"
+                                data-producto-codigo="${producto.codigo}"></input>
                             </td>`;
             })
 
             filas   +=  `</tr>`;
-           
+
         })
 
         tableStocksBody.innerHTML = filas;
@@ -850,13 +852,13 @@
                 const option_2 = new Option(producto_color_tallas.precio_venta_2, 'precio_venta_2', false, false);
                 $('#precio_venta').append(option_2);
             }
-           
+
             if(producto_color_tallas.precio_venta_3 != null){
                 const option_3 = new Option(producto_color_tallas.precio_venta_3, 'precio_venta_3', false, false);
                 $('#precio_venta').append(option_3);
             }
         }
-       
+
         // Refrescar Select2
         $('#precio_venta').trigger('change');
     }
@@ -865,11 +867,11 @@
     function pintarSelectProductos(productos){
         //======= LIMPIAR SELECT2 DE PRODUCTOS ======
         $('#producto').empty();
-    
+
         if(productos.length === 0){
             ocultarAnimacion();
         }
-        
+
         //====== LLENAR =======
         productos.forEach((producto) => {
             const option = new Option(producto.nombre, producto.id, false, false);
@@ -903,15 +905,15 @@
             //==== UBICANDO PRECIO VENTA SELECCIONADO ======
             $('#precio_venta option').each(function() {
                 if ($(this).text() == itemProducto.precio_venta) {
-                    targetValue = $(this).val(); 
+                    targetValue = $(this).val();
                     return false;
                 }
             });
-            
+
             if (targetValue) {
                 $('#precio_venta').val(targetValue).trigger('change');
-                console.log('precio venta fijado'); 
-            } 
+                console.log('precio venta fijado');
+            }
         }else{
             toastr.info('NO SE ENCONTRÓ PRECIO DE VENTA PREVIO PARA EL PRODUCTO');
         }
@@ -939,7 +941,7 @@
             if(selectPrecioVenta){
                 selectPrecioVenta.value =   c.precio_venta;
             }
-        }) 
+        })
     }
 
     //============= ABRIR MODAL CLIENTE =============
@@ -949,17 +951,17 @@
 
     //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
     function loadCarrito(){
-        
+
         carrito.forEach((c)=>{
             c.tallas.forEach((talla)=>{
-                let llave   =   `#inputCantidad_${c.producto_id}_${c.color_id}_${talla.talla_id}`;   
+                let llave   =   `#inputCantidad_${c.producto_id}_${c.color_id}_${talla.talla_id}`;
                 const inputLoad = document.querySelector(llave);
                 console.log(inputLoad)
                 if(inputLoad){
                     inputLoad.value = talla.cantidad;
                 }
             })
-        }) 
+        })
 
     }
 
@@ -1005,11 +1007,11 @@
 
                     const res     =   await axios.post(route('pedidos.pedido.store'),formData);
                     /*
-                    const delay     =   new Promise(resolve => setTimeout(resolve, 10000)); 
+                    const delay     =   new Promise(resolve => setTimeout(resolve, 10000));
                     const request   =   axios.post(route('pedidos.pedido.store'), formData);
                     const [res]     =   await Promise.all([request, delay]);
                     */
-                    
+
                     if(res.data.success){
                         window.location =  route('pedidos.pedido.index');
                         toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
@@ -1034,11 +1036,11 @@
                     } else {
                         Swal.close();
                         toastr.error(error.message, 'ERROR DESCONOCIDO');
-                    }    
+                    }
                 }
 
             } else if (result.dismiss === Swal.DismissReason.cancel) {
-     
+
                 swalWithBootstrapButtons.fire(
                     'Cancelado',
                     'La Solicitud se ha cancelado.',
@@ -1050,7 +1052,7 @@
     }
 
     function cambiarAlmacen(almacen_id){
-        
+
         toastr.clear();
 
         mostrarAnimacion();
@@ -1063,7 +1065,7 @@
         limpiarTabla('table-stocks-pedidos');
         loadDataTableStocksPedido();
 
-     
+
         //========== LIMPIAR DETALLE DEL PEDIDO ========
         carrito.length  =   0;
         destruirDataTableStocks();
@@ -1079,6 +1081,6 @@
         toastr.info('SE HA LIMPIADO EL FORMULARIO');
 
     }
-  
+
 </script>
 @endpush

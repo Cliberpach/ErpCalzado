@@ -178,6 +178,9 @@
 export default {
     name: "ModalCliente",
     props: {
+        v_sede:{
+            default:null
+        },
         lst_departamentos_base:{
             type:Array,
             default:[]
@@ -284,7 +287,7 @@ export default {
         },
         departamento: {
             handler(value) {
-                
+                console.log('WATCH DEPART');
                 this.provincia                  =   null;
                 this.distrito                   =   null;
                 this.lstProvinciasFiltrado      =   [];
@@ -301,14 +304,14 @@ export default {
                     this.formCliente.provincia      =   this.provincia.id;
                 }
             },
-            deep: true 
+            deep: true
         },
         provincia(value){
-          
+            console.log('WATCH PROVINCIA');
             let provincia_id            =   value.id;
             this.distrito               =   null;
             this.lstDistritosFiltrado   =   [];
-            
+
             if(provincia_id){
                this.setLstDistritosFiltrados(provincia_id);
                this.distrito                =   this.lstDistritosFiltrado[0];
@@ -325,7 +328,7 @@ export default {
                 this.entidad                    =   "Entidad";
                 return;
             }
-            
+
             this.formCliente.activo         = "SIN VERIFICAR";
             this.entidad = value == "DNI" ? "Reniec" : (value == "RUC" ? "Sunat" : "Entidad");
 
@@ -335,8 +338,8 @@ export default {
             if(value  ==  "RUC"){
                 this.maxlength = 11;
             }else{
-                this.maxlength = 20; 
-            }  
+                this.maxlength = 20;
+            }
         },
         tipo_cliente_id(value) {
             this.formCliente.tipo_cliente_id = value;
@@ -386,7 +389,7 @@ export default {
         },
         dataDNI(value) {
             if (value.buscado) {
-                
+
                 //========= COLOCANDO DATOS DEL CLIENTE =======
                 this.formCliente.codigo_verificacion    = this.dataDNI.codigo_verificacion == "-" || this.dataDNI.codigo_verificacion === null ? "" : this.dataDNI.codigo_verificacion;
                 this.formCliente.nombre                 = this.dataDNI.nombres + " " + this.dataDNI.apellido_paterno + " " + this.dataDNI.apellido_materno;
@@ -411,7 +414,7 @@ export default {
                             this.distrito = this.lst_distritos_base.find((d) => d.id == distrito_id);
                         });
                     });
-                   
+
                 }
             }
         },
@@ -442,39 +445,50 @@ export default {
                             this.distrito = this.lst_distritos_base.find((d) => d.id == distrito_id);
                         });
                     });
-                   
+
                 }
 
             }
         },
     },
-   
+
     created() {
-
-        this.setLstProvinciasFiltradas(13);
-        this.setLstDistritosFiltrados(1301);
-
-        this.departamento   =   { id: 13, nombre: "LA LIBERTAD", zona: "NORTE" };
-        this.provincia      =   { id: 1301, nombre: "TRUJILLO",departamento_id:13 };
-        this.distrito       =   { id: 130101, nombre: "TRUJILLO",provincia_id:1301 };
-
-
+        this.loadUbigeoSede();
         this.getTipoDocumento();
-        this.getTipoCliente();       
+        this.getTipoCliente();
     },
     methods: {
-       
+
+        loadUbigeoSede(){
+            const departamento_sede = String(this.v_sede.departamento_id).padStart(2, '0');
+            const provincia_sede    = String(this.v_sede.provincia_id).padStart(4, '0');
+            const distrito_sede     = String(this.v_sede.distrito_id).padStart(6, '0');
+
+
+            const departamento_nombre   =   this.v_sede.departamento_nombre;
+            const provincia_nombre      =   this.v_sede.provincia_nombre;
+            const distrito_nombre       =   this.v_sede.distrito_nombre;
+
+
+            this.departamento   =   { id: departamento_sede, nombre: departamento_nombre, zona: "NORTE" };
+            this.provincia      =   { id: provincia_sede, nombre: provincia_nombre};
+
+            this.$nextTick(() => {
+                this.distrito       =   { id: distrito_sede, nombre: distrito_nombre};
+            });
+        },
+
         setLstProvinciasFiltradas(departamento_id){
             departamento_id             = String(departamento_id).padStart(2, '0');
             this.lstProvinciasFiltrado  = this.lst_provincias_base.filter(provincia => provincia.departamento_id == departamento_id);
-            
+
         },
         setLstDistritosFiltrados(provincia_id){
             provincia_id = String(provincia_id).padStart(4, '0');
 
             this.lstDistritosFiltrado      =   this.lst_distritos_base.filter((distrito)=>{
                 return  distrito.provincia_id == provincia_id;
-            })  
+            })
         },
         async Guardar() {
             try {
@@ -484,9 +498,9 @@ export default {
 
                 this.loading = true;
                 const res = await this.axios.post(route('ventas.cliente.storeFast'), this.formCliente);
-                
+
                 if(res.data.success){
-                
+
                     this.clienteNuevo    =   res.data.cliente;
 
                     this.$emit("newCliente",this.clienteNuevo);
@@ -584,7 +598,7 @@ export default {
                 let documento   = this.formCliente.documento;
                 let url         = tipoDoc == "DNI" ? route('getApidni', { dni: documento }) : route('getApiruc', { ruc: documento });
                 const res       = await this.axios.get(url);
-                
+
                 if(res.data.success){
                     const data  =   res.data;
                     if (tipoDoc == "DNI") {
@@ -599,7 +613,7 @@ export default {
                     this.loading = false;
                     toastr.error(res.data.message,'ERROR AL CONSULTAR '+tipoDoc);
                 }
-               
+
             } catch (ex) {
                 this.loading = false;
                 alert("Error en consultarAPI" + ex);
@@ -624,19 +638,17 @@ export default {
             }
 
         },
-       
+
         Cerrar(){
-            
-            this.departamento   =   { id: 13, nombre: "LA LIBERTAD", zona: "NORTE" };
-            this.provincia      =   { id: 1301, nombre: "TRUJILLO",departamento_id:13 };
-            this.distrito       =   { id: 130101, nombre: "TRUJILLO",provincia_id:1301 };
+
+            this.loadUbigeoSede();
 
             this.formCliente={
                 tipo_documento: "DNI",
                 tipo_cliente_id: 121,
-                departamento: 13,
-                provincia: 1301,
-                distrito: 130101,
+                departamento: this.v_sede.departamento_id,
+                provincia: this.v_sede.provincia_id,
+                distrito: this.v_sede.distrito_id,
                 zona: "",
                 nombre: "",
                 documento: "",

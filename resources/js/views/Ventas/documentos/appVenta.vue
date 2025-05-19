@@ -36,13 +36,14 @@
             <venta-lista :imginicial="imginicial" />
         </template>
         <template v-if="ruta == 'create'">
-            <venta-create :ruta.sync="ruta" 
+            <venta-create :ruta.sync="ruta"
+            :v_sede="this.v_sede"
             :registrador="this.registrador"
-            :idcotizacion="idcotizacion" 
+            :idcotizacion="idcotizacion"
             :lst_almacenes="this.lst_almacenes"
             :lst_departamentos_base="this.lst_departamentos_base"
             :lst_provincias_base="this.lst_provincias_base"
-            :lst_distritos_base="this.lst_distritos_base" 
+            :lst_distritos_base="this.lst_distritos_base"
             />
         </template>
     </div>
@@ -54,6 +55,7 @@ export default {
     name: "AppVue",
     props: [
         "imginicial",
+        "v_sede",
         "registrador",
         "lst_almacenes",
         "lst_departamentos_base",
@@ -69,13 +71,13 @@ export default {
     },
     watch: {
         ruta(data) {
-          
+
             if (data == "create") {
                 let cotizacion = this.idcotizacion == 0 ? '' : '?cotizacion=' + this.idcotizacion;
                 let url = route('ventas.documento.create') + cotizacion;
                 history.pushState(null, "", url);
             }
-            
+
             if (data == "index") {
                 history.pushState(null, "", route('ventas.documento.index'));
                 this.idcotizacion = 0;
@@ -106,7 +108,7 @@ export default {
         } catch (ex) {
             console.log(ex);
         }
-        
+
     },
     methods: {
         routes(tipo) {
@@ -123,9 +125,9 @@ export default {
         }
     },
     mounted() {
-        
+
     }
-    
+
 }
 
 

@@ -47,14 +47,14 @@ use Exception;
 class CotizacionController extends Controller
 {
     public function index()
-    { 
+    {
 
         return view('ventas.cotizaciones.index');
     }
 
     public function getCotizaciones(Request $request)
     {
-       
+
         $query = DB::table('cotizaciones as co')
                 ->select(
                     DB::raw('CONCAT("CO-",co.id) as simbolo'),
@@ -78,22 +78,22 @@ class CotizacionController extends Controller
                 ->join('roles as r', 'r.id', '=', 'rl.role_id')
                 ->where('rl.user_id', Auth::user()->id)
                 ->pluck('r.name')
-                ->toArray(); 
+                ->toArray();
 
         //======== ADMIN PUEDE VER TODAS LAS COTIZACIONES DE SU SEDE =====
         if (in_array('ADMIN', $roles)) {
             $query->where('co.sede_id', Auth::user()->sede_id);
         } else {
-            
+
             //====== USUARIOS PUEDEN VER SOLO SUS PROPIAS COTIZACIONES ======
             $query->where('co.sede_id', Auth::user()->sede_id)
             ->where('co.registrador_id', Auth::user()->id);
-            
+
         }
-           
-        return DataTables::of($query->get())->make(true); 
+
+        return DataTables::of($query->get())->make(true);
     }
-    
+
 
     public function create()
     {
@@ -107,22 +107,23 @@ class CotizacionController extends Controller
         $categorias         =   Categoria::where('estado','ACTIVO')->get();
         $marcas             =   Marca::where('estado','ACTIVO')->get();
         $tallas             =   Talla::where('estado','ACTIVO')->get();
-       
-        $registrador        =   DB::select('select 
-                                u.* 
+
+        $registrador        =   DB::select('select
+                                u.*
                                 from users as u where u.id = ?',
                                 [Auth::user()->id])[0];
 
         $sede_id            =   Auth::user()->sede_id;
+        $sede               =   Sede::find($sede_id);
 
         $almacenes          =   Almacen::where('estado','ACTIVO')->where('tipo_almacen','PRINCIPAL')->get();
         $porcentaje_igv     =   Empresa::find(1)->igv;
 
-        return view('ventas.cotizaciones.create', 
+        return view('ventas.cotizaciones.create',
         compact(
             'tallas',
             'modelos',
-            'clientes', 
+            'clientes',
             'condiciones',
             'tipos_documento',
             'departamentos',
@@ -132,7 +133,8 @@ class CotizacionController extends Controller
             'registrador',
             'almacenes',
             'sede_id',
-            'porcentaje_igv')
+            'porcentaje_igv',
+            'sede')
         );
     }
 
@@ -149,23 +151,23 @@ array:10 [
   "sede_id"             => "1"
   "registrador_id"      => "1"
   "porcentaje_igv"      => "18.00"
-  "montos_cotizacion"   => 
+  "montos_cotizacion"   =>
                             "{"subtotal":"100.00","embalaje":"11.00","envio":"12.00",
                             "total":"104.24","igv":"18.76",
                             "totalPagar":"123.00","monto_descuento":"0.00"}"
 ]
-*/ 
+*/
     public function store(CotizacionStoreRequest $request)
     {
         DB::beginTransaction();
         try {
-            
+
             $lstCotizacion      =   json_decode($request->get('lstCotizacion'));
             $montos_cotizacion  =   json_decode($request->get('montos_cotizacion'));
 
             $almacen            =   Almacen::find($request->get('almacen'));
             $registrador        =   User::find($request->get('registrador_id'));
-        
+
             //======= CALCULANDO MONTOS ========
             $monto_subtotal     =   0.0;
             $monto_embalaje     =   $montos_cotizacion->embalaje??0;
@@ -207,7 +209,7 @@ array:10 [
             $cotizacion->monto_envio            =   $monto_envio;
             $cotizacion->total_igv              =   $monto_igv;
             $cotizacion->total                  =   $monto_total;
-            $cotizacion->total_pagar            =   $monto_total_pagar;  
+            $cotizacion->total_pagar            =   $monto_total_pagar;
             $cotizacion->monto_descuento        =   $monto_descuento;
             $cotizacion->porcentaje_descuento   =   $porcentaje_descuento;
 
@@ -236,7 +238,7 @@ array:10 [
                     throw new Exception("LA TALLA NO EXISTE EN LA BD!!!");
                 }
 
-              
+
                 //==== CALCULANDO MONTOS PARA EL DETALLE ====
                 $importe        =   floatval($item->cantidad) * floatval($item->precio_venta);
                 $precio_venta   =   $item->porcentaje_descuento == 0?$item->precio_venta:$item->precio_venta_nuevo;
@@ -271,12 +273,12 @@ array:10 [
             Session::flash('message_success','COTIZACIÓN REGISTRADA CON ÉXITO');
             DB::commit();
             return response()->json(['success'=>true,'message'=>"COTIZACIÓN REGISTRADA CON ÉXITO"]);
-        
+
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
         }
-        
+
     }
 
     public function edit($id)
@@ -308,6 +310,7 @@ array:10 [
         $registrador    =   User::find($cotizacion->registrador_id);
         $almacenes      =   Almacen::where('estado','ACTIVO')->where('tipo_almacen','PRINCIPAL')->get();
         $sede_id        =   Auth::user()->sede_id;
+        $sede           =   Sede::find($sede_id);
 
 
         return view('ventas.cotizaciones.edit', [
@@ -326,7 +329,8 @@ array:10 [
             'porcentaje_igv'    =>  $porcentaje_igv,
             'registrador'       =>  $registrador,
             'almacenes'         =>  $almacenes,
-            'sede_id'           =>  $sede_id
+            'sede_id'           =>  $sede_id,
+            'sede'              =>  $sede
         ]);
     }
 
@@ -345,10 +349,10 @@ array:11 [
   "montos_cotizacion"   => "{"subtotal":"16.00","embalaje":"0.00","envio":"0.00","total":"13.56","igv":"2.44","totalPagar":"16.00","monto_descuento":"0.00"}"
   "porcentaje_igv"      => "18.00"
 ]
-*/ 
+*/
     public function update(Request $request,$id)
     {
-       
+
         DB::beginTransaction();
 
 
@@ -399,7 +403,7 @@ array:11 [
             $cotizacion->monto_envio            =   $monto_envio;
             $cotizacion->total_igv              =   $monto_igv;
             $cotizacion->total                  =   $monto_total;
-            $cotizacion->total_pagar            =   $monto_total_pagar;  
+            $cotizacion->total_pagar            =   $monto_total_pagar;
             $cotizacion->monto_descuento        =   $monto_descuento;
             $cotizacion->porcentaje_descuento   =   $porcentaje_descuento;
 
@@ -412,29 +416,29 @@ array:11 [
 
                 //======== ELIMINAR DETALLE ANTERIOR ======
                 CotizacionDetalle::where('cotizacion_id', $id)->delete();
-    
+
                 foreach ($lstCotizacion as $item) {
 
                     $existe_producto    =   Producto::find($item->producto_id);
                     $existe_color       =   Color::find($item->color_id);
                     $existe_talla       =   Talla::find($item->talla_id);
-    
+
                     if(!$existe_producto){
                         throw new Exception("EL PRODUCTO NO EXISTE EN LA BD!!!");
                     }
-    
+
                     if(!$existe_color){
                         throw new Exception("EL COLOR NO EXISTE EN LA BD!!!");
                     }
-    
+
                     if(!$existe_talla){
                         throw new Exception("LA TALLA NO EXISTE EN LA BD!!!");
                     }
-    
+
                     //==== CALCULANDO MONTOS PARA EL DETALLE ====
                     $importe        =   floatval($item->cantidad) * floatval($item->precio_venta);
                     $precio_venta   =   $item->porcentaje_descuento == 0?$item->precio_venta:$item->precio_venta_nuevo;
-    
+
                     $detalle                        = new CotizacionDetalle();
                     $detalle->cotizacion_id         = $cotizacion->id;
                     $detalle->almacen_id            = $almacen->id;
@@ -453,17 +457,17 @@ array:11 [
                     $detalle->monto_descuento       = floatval($importe) * floatval($item->porcentaje_descuento) / 100;
                     $detalle->importe_nuevo         = floatval($precio_venta) * floatval($item->cantidad);
                     $detalle->save();
-    
+
                 }
             }
-    
+
             //Registro de actividad
             $descripcion = "SE MODIFICÓ LA COTIZACION CON LA FECHA: ". Carbon::parse($cotizacion->fecha_documento)->format('d/m/y');
             $gestion    = "COTIZACION";
             modificarRegistro($cotizacion, $descripcion , $gestion);
-    
+
             Session::flash('success','Cotización modificada.');
-            
+
             DB::commit();
             return response()->json(['success'=>true,'message'=>"COTIZACIÓN ACTUALIZADA"]);
 
@@ -554,9 +558,9 @@ array:11 [
         $empresa            = Empresa::first();
         $paper_size         = array(0,0,360,360);
 
-        $mostrar_cuentas =   DB::select('select 
-                            c.propiedad 
-                            from configuracion as c 
+        $mostrar_cuentas =   DB::select('select
+                            c.propiedad
+                            from configuracion as c
                             where c.slug = "MCB"')[0]->propiedad;
 
         $detalles = $this->formatearArrayDetalle($detalles);
@@ -588,7 +592,7 @@ array:11 [
                 $producto_color_tallas = $detalles->filter(function ($detalleFiltro) use ($detalle) {
                     return $detalleFiltro->producto_id == $detalle->producto_id && $detalleFiltro->color_id == $detalle->color_id;
                 });
-                
+
                 $producto['producto_codigo']        =   $detalle->producto->codigo;
                 $producto['producto_id']            =   $detalle->producto_id;
                 $producto['color_id']               =   $detalle->color_id;
@@ -613,7 +617,7 @@ array:11 [
                     $cantidadTotal+=$talla['cantidad'];
                    array_push($tallas,$talla);
                 }
-                
+
                 $producto['tallas']=$tallas;
                 $producto['subtotal']=$subtotal;
                 $producto['cantidad_total']=$cantidadTotal;
@@ -625,7 +629,7 @@ array:11 [
     }
 
     public function document($id){
-        
+
         $documento = Documento::where('cotizacion_venta',$id)->where('estado','!=','ANULADO')->first();
         if ($documento) {
             Session::flash('error', 'Esta cotizacion ya tiene un documento de venta generado.');
@@ -650,11 +654,11 @@ array:10 [
   "tipo_cliente_2"          => "1"
   "cot_doc"                 => "SI"
   "data_envio"              => "{"departamento":{"nombre":"LA LIBERTAD"},"provincia":{"text":"TRUJILLO"},"distrito":{"text":"TRUJILLO"},"empresa_envio":{"id":"2","empresa":"EMTRAFESA"},"sede_envio":{"id":"2","direccion":"AV TUPAC AMARU 123"},"tipo_envio":{"descripcion":"AGENCIA"},"destinatario":{"nro_documento":"75608753","nombres":"LUIS DANIEL ALVA LUJAN","tipo_documento":"DNI"},"tipo_pago_envio":{"descripcion":"PAGAR ENVÍO"},"entrega_domicilio":true,"direccion_entrega":"av rotulos 111","fecha_envio_propuesta":"2025-02-13","origen_venta":{"descripcion":"WATHSAPP"},"obs_rotulo":"obs rotulado","obs_despacho":"obs despacho"}"
- 
+
 ]
-*/ 
+*/
     public function convertirADocVenta(CotizacionADocVentaRequest $request){
-      
+
         DB::beginTransaction();
         try {
 
@@ -662,7 +666,7 @@ array:10 [
             $cotizacion_id  =   $request->get('cotizacion_id');
             if(!$cotizacion_id){
                 throw new Exception("NO EXISTE COTIZACIÓN ID EN LA PETICIÓN!!!");
-            } 
+            }
 
             //======= VALIDAR EXISTENCIA DE COTIZACIÓN EN LA BD =======
             $cotizacion     =   Cotizacion::find($request->get('cotizacion_id'));
@@ -683,13 +687,13 @@ array:10 [
 
             //========= VALIDAR QUE EL COLABORADOR ESTÉ EN UNA CAJA ABIERTA ======
             $caja_movimiento           =   movimientoUser();
-          
+
             if(count($caja_movimiento) == 0 ){
                 throw new Exception("DEBES FORMAR PARTE DE UNA CAJA ABIERTA!!!");
             }
 
-            $tipo_venta         =   DB::select('select 
-                                    td.* 
+            $tipo_venta         =   DB::select('select
+                                    td.*
                                     from tabladetalles as td
                                     where td.id = ?',[$request->get('tipo_venta')])[0];
 
@@ -712,61 +716,61 @@ array:10 [
             //========= FECHAS ========
             $documento->fecha_documento     = Carbon::now()->toDateString();
             $documento->fecha_atencion      = Carbon::now()->toDateString();
-  
+
             if ($condicion->id != 1) {
-                $nro_dias                       = $condicion->dias; 
+                $nro_dias                       = $condicion->dias;
                 $documento->fecha_vencimiento   = Carbon::now()->addDays($nro_dias)->toDateString();
             } else {
                   $documento->fecha_vencimiento   = Carbon::now()->toDateString();
             }
 
-  
+
             //======== EMPRESA ========
             $empresa                                =   Empresa::find($cotizacion->empresa_id);
             $documento->ruc_empresa                 =   $empresa->ruc;
             $documento->empresa                     =   $empresa->razon_social;
             $documento->direccion_fiscal_empresa    =   $empresa->direccion_fiscal;
-            $documento->empresa_id                  =   $empresa->id; 
-  
-             
+            $documento->empresa_id                  =   $empresa->id;
+
+
             //========= CLIENTE =======
             $cliente                            =   Cliente::find($cotizacion->cliente_id);
             $documento->tipo_documento_cliente  =   $cliente->tipo_documento;
             $documento->documento_cliente       =   $cliente->documento;
             $documento->direccion_cliente       =   $cliente->direccion;
             $documento->cliente                 =   $cliente->nombre;
-            $documento->cliente_id              =   $cliente->id; 
-  
+            $documento->cliente_id              =   $cliente->id;
+
             //======== TIPO VENTA ======
             $documento->tipo_venta_id           = $tipo_venta->id;   //boleta,factura,nota_venta
-            $documento->tipo_venta_nombre       = $tipo_venta->descripcion;   
-  
+            $documento->tipo_venta_nombre       = $tipo_venta->descripcion;
+
             //========= CONDICIÓN PAGO ======
             $documento->condicion_id            = $condicion->id;
-  
-              
+
+
             $documento->observacion = $request->get('observacion');
             $documento->user_id     = $cotizacion->registrador_id;
-  
-             
+
+
             //========= MONTOS Y MONEDA ========
             $documento->sub_total               =   $cotizacion->sub_total;
-            $documento->monto_embalaje          =   $cotizacion->monto_embalaje;  
-            $documento->monto_envio             =   $cotizacion->monto_envio;  
-            $documento->total                   =   $cotizacion->total;  
+            $documento->monto_embalaje          =   $cotizacion->monto_embalaje;
+            $documento->monto_envio             =   $cotizacion->monto_envio;
+            $documento->total                   =   $cotizacion->total;
             $documento->total_igv               =   $cotizacion->total_igv;
-            $documento->total_pagar             =   $cotizacion->total_pagar;  
+            $documento->total_pagar             =   $cotizacion->total_pagar;
             $documento->igv                     =   $cotizacion->igv;
             $documento->monto_descuento         =   $cotizacion->monto_descuento;
-            $documento->porcentaje_descuento    =   $cotizacion->porcentaje_descuento;   
+            $documento->porcentaje_descuento    =   $cotizacion->porcentaje_descuento;
             $documento->moneda                  =   1;
-  
+
             //======= SERIE Y CORRELATIVO ======
             $documento->serie       =   $datos_correlativo->serie;
             $documento->correlativo =   $datos_correlativo->correlativo;
-  
+
             $documento->legenda     =   $legenda;
-  
+
             $documento->sede_id         =   $cotizacion->sede_id;
             $documento->almacen_id      =   $cotizacion->almacen_id;
             $documento->almacen_nombre  =   $cotizacion->almacen_nombre;
@@ -776,14 +780,14 @@ array:10 [
             if($request->has('facturado') && $request->get('facturado') === 'SI'){
                 $documento->estado_pago  =   'PAGADA';
             }
-  
+
             $documento->save();
 
             //========= GRABAR DETALLE ========
             foreach($cotizacion_detalle as $item){
-               
+
                 //====== COMPROBAR SI EXISTE EL PRODUCTO COLOR TALLA EN EL ALMACÉN =====
-                $existe =   DB::select('select 
+                $existe =   DB::select('select
                             pct.*,
                             p.nombre as producto_nombre,
                             p.codigo as producto_codigo,
@@ -795,7 +799,7 @@ array:10 [
                             inner join colores as c on c.id = pct.color_id
                             inner join tallas as t on t.id = pct.talla_id
                             inner join modelos as m on m.id = p.modelo_id
-                            where 
+                            where
                             pct.almacen_id = ?
                             AND pct.producto_id = ?
                             AND pct.color_id = ?
@@ -809,7 +813,7 @@ array:10 [
                         throw new Exception($item->producto_nombre.'-'.$item->color_nombre.'-'.$item->talla_nombre.', NO EXISTE EN EL ALMACÉN!!!');
                 }
 
-                  
+
                 $detalle                            =   new Detalle();
                 $detalle->documento_id              =   $documento->id;
                 $detalle->almacen_id                =   $item->almacen_id;
@@ -833,17 +837,17 @@ array:10 [
                 $detalle->save();
 
                 //===== ACTUALIZANDO STOCK ===========
-                DB::update('UPDATE producto_color_tallas 
-                SET stock = stock - ? 
-                WHERE 
+                DB::update('UPDATE producto_color_tallas
+                SET stock = stock - ?
+                WHERE
                 almacen_id = ?
-                AND producto_id = ? 
-                AND color_id = ? 
-                AND talla_id = ?', 
+                AND producto_id = ?
+                AND color_id = ?
+                AND talla_id = ?',
                 [$item->cantidad,
                 $item->almacen_id,
-                $item->producto_id, 
-                $item->color_id, 
+                $item->producto_id,
+                $item->color_id,
                 $item->talla_id]);
 
                 $nuevo_stock    =   DB::table('producto_color_tallas')
@@ -876,7 +880,7 @@ array:10 [
                 $kardex->fecha              =   Carbon::today()->toDateString();
                 $kardex->descripcion        =   mb_strtoupper($request->get('observacion'), 'UTF-8');
                 $kardex->save();
-                    
+
             }
 
             //======== GUARDAR ENVÍO ========
@@ -915,20 +919,20 @@ array:10 [
                 $envio_venta->sede_id               =   $documento->sede_id;
                 $envio_venta->sede_despachadora_id  =   $almacen->sede_id;
                 $envio_venta->save();
-             
+
             }else{
-                   
-                    
+
+
                 //======== OBTENER EMPRESA ENVÍO =======
-                $empresa_envio                      =   DB::select('select 
+                $empresa_envio                      =   DB::select('select
                                                         ee.id,ee.empresa,ee.tipo_envio
                                                         from empresas_envio as ee')[0];
-                    
-                $sede_envio                         =   DB::select('select 
-                                                        ees.id,ees.direccion 
+
+                $sede_envio                         =   DB::select('select
+                                                        ees.id,ees.direccion
                                                         from empresa_envio_sedes as ees
                                                         where ees.empresa_envio_id=?',[$empresa_envio->id])[0];
-                
+
                 $envio_venta                        =   new EnvioVenta();
                 $envio_venta->documento_id          =   $documento->id;
                 $envio_venta->departamento          =   "LA LIBERTAD";
@@ -977,10 +981,10 @@ array:10 [
 
             //========== ACTUALIZAR ESTADO FACTURACIÓN A INICIADA ======
             DB::table('empresa_numeracion_facturaciones')
-             ->where('empresa_id', Empresa::find(1)->id) 
-             ->where('sede_id', $cotizacion->sede_id) 
-             ->where('tipo_comprobante', $documento->tipo_venta_id) 
-             ->where('emision_iniciada', '0') 
+             ->where('empresa_id', Empresa::find(1)->id)
+             ->where('sede_id', $cotizacion->sede_id)
+             ->where('tipo_comprobante', $documento->tipo_venta_id)
+             ->where('emision_iniciada', '0')
              ->where('estado','ACTIVO')
              ->update([
                 'emision_iniciada'       => '1',
@@ -1029,13 +1033,13 @@ array:10 [
 array:1 [
   "cotizacion_id" => 18
 ]
-*/ 
+*/
     public function generarPedido(Request $request){
-     
+
         DB::beginTransaction();
-        
+
         try {
-           
+
             $cotizacion_id  =   $request->get('cotizacion_id');
 
             if(!$cotizacion_id){
@@ -1048,20 +1052,20 @@ array:1 [
             }
 
             //===== OBTENIENDO DETALLE DE LA COTIZACIÓN ===========
-            $cotizacion =   DB::select('select 
-                            c.* 
+            $cotizacion =   DB::select('select
+                            c.*
                             from cotizaciones as c
-                            where 
-                            c.id = ? 
-                            AND c.estado != "ANULADO" 
+                            where
+                            c.id = ?
+                            AND c.estado != "ANULADO"
                             AND c.estado != "VENCIDA"'
                             ,[$cotizacion_id]);
 
-            $detalle_cotizacion =   DB::select('select 
-                                    cd.* 
-                                    from cotizacion_detalles as cd 
-                                    where 
-                                    cd.cotizacion_id = ? 
+            $detalle_cotizacion =   DB::select('select
+                                    cd.*
+                                    from cotizacion_detalles as cd
+                                    where
+                                    cd.cotizacion_id = ?
                                     and cd.estado = "ACTIVO"',
                                     [$cotizacion_id]);
 
@@ -1070,22 +1074,22 @@ array:1 [
             $pedido->cliente_id = $cotizacion[0]->cliente_id;
 
             //======= OBTENIENDO NOMBRE DEL CLIENTE =======
-            $cliente    =   DB::select('select 
-                            c.nombre 
-                            from clientes as c 
-                            where 
-                            c.estado="ACTIVO" 
+            $cliente    =   DB::select('select
+                            c.nombre
+                            from clientes as c
+                            where
+                            c.estado="ACTIVO"
                             and c.id=?',[$cotizacion[0]->cliente_id]);
-            
-            $pedido->cliente_nombre =   $cliente[0]->nombre;   
+
+            $pedido->cliente_nombre =   $cliente[0]->nombre;
             $pedido->empresa_id     =   $cotizacion[0]->empresa_id;
-            
+
             //======== OBTENIENDO NOMBRE DE LA EMPRESA ========
-            $empresa    =   DB::select('select 
-                            e.razon_social 
+            $empresa    =   DB::select('select
+                            e.razon_social
                             from empresas as e
-                            where 
-                            e.estado="ACTIVO" 
+                            where
+                            e.estado="ACTIVO"
                             and e.id = ?',
                             [$cotizacion[0]->empresa_id]);
 
@@ -1093,11 +1097,11 @@ array:1 [
             $pedido->user_id        =   $cotizacion[0]->registrador_id;
 
             //====== OBTENIENDO NOMBRE DEL USUARIO =====
-            $usuario    =   DB::select('select 
-                            u.usuario 
-                            from users as u 
-                            where 
-                            u.estado = "ACTIVO" 
+            $usuario    =   DB::select('select
+                            u.usuario
+                            from users as u
+                            where
+                            u.estado = "ACTIVO"
                             and u.id=?',
                             [$cotizacion[0]->registrador_id]);
 
@@ -1133,22 +1137,22 @@ array:1 [
                 $detalle_pedido->talla_id       =   $item->talla_id;
 
                 //====== OBTENIENDO DATOS DEL PRODUCTO ======
-                $producto   =   DB::select('select 
+                $producto   =   DB::select('select
                                 p.codigo,
                                 p.nombre,
-                                p.modelo_id 
+                                p.modelo_id
                                 from productos as p
-                                where 
+                                where
                                 p.id = ?',
                                 [$item->producto_id]);
-                
+
                 $detalle_pedido->producto_codigo = $producto[0]->codigo;
                 $detalle_pedido->unidad          = 'NIU';
                 $detalle_pedido->producto_nombre = $producto[0]->nombre;
 
                 //====== OBTENIENDO DATOS DEL COLOR =========
-                $color      =   DB::select('select 
-                                c.descripcion 
+                $color      =   DB::select('select
+                                c.descripcion
                                 from colores as c
                                 where c.id = ?',
                                 [$item->color_id]);
@@ -1156,8 +1160,8 @@ array:1 [
                 $detalle_pedido->color_nombre   =  $color[0]->descripcion;
 
                 //======= OBTENIENDO DATOS DE LA TALLA =======
-                $talla      =   DB::select('select 
-                                t.descripcion 
+                $talla      =   DB::select('select
+                                t.descripcion
                                 from tallas as t
                                 where t.id = ?',
                                 [$item->talla_id]);
@@ -1165,14 +1169,14 @@ array:1 [
                 $detalle_pedido->talla_nombre   =   $talla[0]->descripcion;
 
                 //===== OBTENIENDO DATOS DEL MODELO ======
-                $modelo     =   DB::select('select 
-                                m.descripcion 
-                                from modelos as m 
+                $modelo     =   DB::select('select
+                                m.descripcion
+                                from modelos as m
                                 where m.id = ?',
                                 [$producto[0]->modelo_id]);
 
                 $detalle_pedido->modelo_nombre = $modelo[0]->descripcion;
-                
+
                 $detalle_pedido->cantidad               =   $item->cantidad;
                 $detalle_pedido->precio_unitario        =   $item->precio_unitario;
                 $detalle_pedido->importe                =   $item->importe;
@@ -1185,30 +1189,30 @@ array:1 [
                 $detalle_pedido->save();
             }
 
-        
+
             DB::commit();
-            
+
             return response()->json(['success' => true ,
             'message' => "SE HA GENERADO EL PEDIDO N° ". $pedido->pedido_nro ]);
 
 
         } catch (\Throwable $th) {
-            
+
             return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
         }
-    
+
     }
 
     public function getProductos(Request $request){
         try {
-            
+
             $categoria_id   =   $request->get('categoria_id');
             $marca_id       =   $request->get('marca_id');
             $modelo_id      =   $request->get('modelo_id');
 
 
-            $query = 'SELECT p.id, p.nombre 
-                    FROM productos AS p 
+            $query = 'SELECT p.id, p.nombre
+                    FROM productos AS p
                     WHERE p.estado = "ACTIVO"';
 
             $params = [];
@@ -1237,57 +1241,57 @@ array:1 [
     }
 
     public function getColoresTallas($almacen_id,$producto_id){
-       
+
         try {
 
 
-            $precios_venta  =   DB::select('SELECT 
+            $precios_venta  =   DB::select('SELECT
                                 p.id AS producto_id,
                                 p.nombre AS producto_nombre,
                                 p.precio_venta_1,
                                 p.precio_venta_2,
                                 p.precio_venta_3
-                                FROM 
-                                    productos AS p 
-                                WHERE 
-                                    p.id = ? AND p.estado = "ACTIVO" ',[$producto_id]);  
+                                FROM
+                                    productos AS p
+                                WHERE
+                                    p.id = ? AND p.estado = "ACTIVO" ',[$producto_id]);
 
-           
-            $colores =  DB::select('SELECT 
+
+            $colores =  DB::select('SELECT
                                     p.id AS producto_id,
                                     p.nombre AS producto_nombre,
                                     c.id AS color_id,
                                     c.descripcion AS color_nombre
-                                FROM 
-                                    producto_colores AS pc 
+                                FROM
+                                    producto_colores AS pc
                                     inner join productos as p on p.id = pc.producto_id
                                     inner join colores as c on c.id = pc.color_id
-                                WHERE 
+                                WHERE
                                     pc.almacen_id  = ?
-                                    AND pc.producto_id = ? 
+                                    AND pc.producto_id = ?
                                     AND p.estado = "ACTIVO" and c.estado = "ACTIVO" ',
                         [$almacen_id,$producto_id]);
 
-            $stocks =   DB::select('select  
+            $stocks =   DB::select('select
                         pct.producto_id,
                         pct.color_id,
                         pct.talla_id,
                         pct.stock,
-                        pct.stock_logico, 
+                        pct.stock_logico,
                         t.descripcion as talla_nombre
                         from producto_color_tallas as pct
                         inner join productos as p on p.id = pct.producto_id
-                        inner join colores as c on c.id = pct.color_id 
+                        inner join colores as c on c.id = pct.color_id
                         inner join tallas as t on t.id = pct.talla_id
-                        where 
-                        p.estado = "ACTIVO" 
-                        and c.estado = "ACTIVO" 
+                        where
+                        p.estado = "ACTIVO"
+                        and c.estado = "ACTIVO"
                         and t.estado = "ACTIVO"
                         and pct.almacen_id = ?
                         AND p.id = ?',
                         [$almacen_id,$producto_id]);
 
-            $tallas =   Talla::where('estado','ACTIVO')->orderBy('id')->get();   
+            $tallas =   Talla::where('estado','ACTIVO')->orderBy('id')->get();
 
             $producto_color_tallas  =   null;
             $_precios_venta          =   null;
@@ -1304,7 +1308,7 @@ array:1 [
             'message'                   =>  'TALLAS OBTENIDAS']);
 
         } catch (\Throwable $th) {
-    
+
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
     }
@@ -1371,7 +1375,7 @@ array:1 [
     public function getProductoBarCode($barcode){
         try{
 
-            $producto   =   DB::select('select 
+            $producto   =   DB::select('select
                             cb.*,
                             c.descripcion as color_nombre,
                             t.descripcion as talla_nombre,
@@ -1404,25 +1408,25 @@ array:1 [
         DB::beginTransaction();
         try {
             $cotizacion_detalle =   CotizacionDetalle::where('cotizacion_id',$request->get('cotizacion_id'))->get();
-           
+
             foreach ($cotizacion_detalle as $item) {
 
                 //===== DEVOLVER STOCK LÓGICO ===========
-                DB::update('UPDATE producto_color_tallas 
-                SET stock_logico = stock_logico + ? 
-                WHERE 
+                DB::update('UPDATE producto_color_tallas
+                SET stock_logico = stock_logico + ?
+                WHERE
                 almacen_id = ?
-                AND producto_id = ? 
-                AND color_id = ? 
-                AND talla_id = ?', 
+                AND producto_id = ?
+                AND color_id = ?
+                AND talla_id = ?',
                 [$item->cantidad,
                 $item->almacen_id,
-                $item->producto_id, 
-                $item->color_id, 
+                $item->producto_id,
+                $item->color_id,
                 $item->talla_id]);
 
             }
-           
+
             DB::commit();
             return response()->json(['success'=>true,'message'=>'CANTIDAD DEVUELTA CON ÉXITO']);
 
