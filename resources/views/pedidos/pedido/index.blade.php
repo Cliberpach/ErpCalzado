@@ -2,8 +2,8 @@
 
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
-@include('pedidos.pedido.modal-historial-atenciones') 
-@include('pedidos.pedido.modal-pedido-detalles') 
+@include('pedidos.pedido.modal-historial-atenciones')
+@include('pedidos.pedido.modal-pedido-detalles')
 
 
 <div class="row wrapper border-bottom white-bg page-heading align-items-center" style="padding:10px 5px;">
@@ -72,6 +72,7 @@
                             <thead>
                                 <tr>
                                     <th class="text-center">ID</th>
+                                    <th class="text-center">NRO</th>
                                     <th class="text-center">FACTURADO</th>
                                     <th class="text-center">COT</th>
                                     <th class="text-center">ALMACEN</th>
@@ -120,7 +121,7 @@
     font-size: 14px;
     margin: 8px 0px !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: background-color 3s, color 3s; 
+    transition: background-color 3s, color 3s;
 }
 
 .custom-button:hover {
@@ -131,7 +132,7 @@
 
 .dropdown-menu {
     max-height: 140px;
-    overflow-y: auto; 
+    overflow-y: auto;
 }
 
 </style>
@@ -156,7 +157,7 @@
         sessionMessages();
         loadSelect2();
         loadDataTable();
-        
+
         eventsModalAtenciones();
     })
 
@@ -167,20 +168,20 @@
         }
     }
 
-    
+
     function loadSelect2(){
         $(".select2_form").select2({
                 placeholder: "SELECCIONAR",
                 allowClear: true,
                 height: '200px',
                 width: '100%',
-                minimumResultsForSearch: -1 
+                minimumResultsForSearch: -1
         });
     }
 
     function loadDataTable(){
         const getPedidosUrl = "{{ route('pedidos.pedido.getTable') }}";
-        
+
         pedidos_data_table = new DataTable('#pedidos_table',{
             serverSide: true,
             ajax: {
@@ -195,7 +196,7 @@
             "order": [
                             [0, 'desc']
                         ],
-            
+
             buttons: [
                     {
                         text: '<a id="btn-excel-pedidos" href="javascript:void(0);"><i class="fa fa-file-excel-o"></i> Excel</a>',
@@ -206,13 +207,13 @@
                     },
                     {
                         extend: 'pdf',
-                        className: 'custom-button btn-check', 
+                        className: 'custom-button btn-check',
                         text: '<i class="fas fa-file-pdf"></i> Pdf',
                         title: 'Pedidos'
                     },
                     {
                         extend: 'print',
-                        className: 'custom-button btn-check', 
+                        className: 'custom-button btn-check',
                         text: '<i class="fa fa-print"></i> Imprimir',
                         title: 'Pedidos'
                     }
@@ -220,7 +221,8 @@
             dom: '<"buttons-container"B><"search-length-container"lf>tp',
             bProcessing: true,
             columns: [
-                { data: 'id' },
+                { data: 'id',visible:false },
+                { data: 'pedido_nro'},
                 { data: 'documento_venta'},
                 { data: 'cotizacion_nro'},
                 { data: 'almacen_nombre' },
@@ -273,9 +275,9 @@
                                 <ul class='dropdown-menu dropdown-menu-up'>
                                     ${accion_facturar}
                                     <li><a class='dropdown-item'  target='_blank' href="${url_reporte}" title='PDF'><b><i class='fa fa-file-pdf-o'></i> Pdf</a></b></li>`;
-                                    
-                                    
-                            
+
+
+
                             //========= SOLO PUEDEN ELIMINARSE O EDITARSE PEDIDOS NO FACTURADOS,NO FINALIZADOS =====
                             if(row.estado !== "FINALIZADO" && !row.documento_venta_facturacion_id ){
                                 acciones+=`<li><a class='dropdown-item' onclick="modificarPedido(${row.id})" href="javascript:void(0);" title='Modificar' ><b><i class='fa fa-edit'></i> Modificar</a></b></li>`;
@@ -288,7 +290,7 @@
                             acciones += `<li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_pedido_detalles"  title='Detalles'><b><i class="fas fa-info-circle"></i> Detalles</a></b></li>
                                 <div class="dropdown-divider"></div>`;
 
-                           
+
 
                             if(row.estado === "ATENDIENDO" || row.estado === "PENDIENTE"){
                                 acciones+=` <li>
@@ -308,7 +310,7 @@
                             acciones+=`<li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_historial_atenciones"  title='Historial'><b><i class="fas fa-history"></i> Historial Atenciones</a></b></li>
                                         ${optionReciboCaja}</ul></div>`;
 
-                           
+
 
                             return acciones;
                         }
@@ -316,12 +318,12 @@
             ],
             language: getLanguajeDataTable()
         })
-        
+
 
         document.querySelector('.dt-buttons').classList.add('btn-group');
     }
 
-   
+
     function getLanguajeDataTable(){
         return {
             processing:     "Procesando...",
@@ -352,7 +354,7 @@
     }
 
     async function modificarPedido(pedido_id) {
-        
+
         //======== VALIDAR ESTADO DEL PEDIDO ======
         const pedido    =   pedidos_data_table.rows().data().filter(function (value, index) {
                     return value['id'] == pedido_id;
@@ -360,7 +362,7 @@
 
         if(pedido.length >0){
             const estado    =   pedido[0].estado;
-                   
+
             if(estado === "FINALIZADO"){
                 toastr.error('EL PEDIDO NO PUEDE SER MODIFICADO','PEDIDO FINALIZADO');
                 return;
@@ -372,11 +374,11 @@
             }
 
             window.location = `{{ route('pedidos.pedido.edit', ['id' => ':id']) }}`.replace(':id', pedido_id);
-               
+
         }else{
             toastr.error('ERROR EN EL ID DEL PEDIDO','PEDIDO NO ENCONTRADO');
-        }      
-         
+        }
+
     }
 
     function reportePedido(pedido_id){
@@ -403,7 +405,7 @@
 
                 if(pedido.length >0){
                     const estado    =   pedido[0].estado;
-                   
+
                     if(estado === "FINALIZADO"){
                         toastr.error('EL PEDIDO NO PUEDE SER ATENDIDO','PEDIDO FINALIZADO');
                         return;
@@ -418,7 +420,7 @@
                         //======== ATENDER EN EL CONTROLLER ========
                         document.querySelector(`#formAtenderPedido_${pedido_id}`).submit();
                     }
-                          
+
                 }else{
                     toastr.error('ERROR EN EL ID DEL PEDIDO','PEDIDO NO ENCONTRADO');
                 }
@@ -428,9 +430,9 @@
     }
 
     $('#modal_historial_atenciones').on('show.bs.modal', async function (event) {
-       
 
-       var button           =   $(event.relatedTarget) 
+
+       var button           =   $(event.relatedTarget)
        const pedido_id      =   button.data('pedido-id');
 
 
@@ -446,15 +448,15 @@
                 pintarTablePedidoAtenciones(pedido_atenciones);
             }
         } catch (error) {
-        
+
         }
-        
+
     })
 
 
     $('#modal_pedido_detalles').on('show.bs.modal', async function (event) {
-       
-       var button = $(event.relatedTarget) 
+
+       var button = $(event.relatedTarget)
        const pedido_id   = button.data('pedido-id');
 
         document.querySelector('.pedido_id_span_pd').textContent    =   pedido_id;
@@ -473,7 +475,7 @@
             if(type == 'error'){
                const message    =   res.data.message;
                const exception  =   res.data.exception;
-               
+
                toastr.error(`${message} - ${exception}`,'ERROR');
             }
         } catch (error) {
@@ -488,14 +490,14 @@
         if(detalles_data_table){
             detalles_data_table.destroy();
         }
-        
+
         bodyPedidoDetalles.innerHTML    =   '';
         let body    =   ``;
 
         pedido_detalles.forEach((pd)=>{
             body    +=  `<tr>
-                <th scope="row">${pd.producto_nombre}</th>  
-                <td scope="row">${pd.color_nombre}</td> 
+                <th scope="row">${pd.producto_nombre}</th>
+                <td scope="row">${pd.color_nombre}</td>
                 <td scope="row">${pd.talla_nombre}</td>
                 <td scope="row">${pd.cantidad}</td>
                 <td scope="row">${pd.cantidad_atendida}</td>
@@ -515,17 +517,17 @@
             buttons: [
                     {
                         extend: 'excelHtml5',
-                        className: 'custom-button btn-check', 
+                        className: 'custom-button btn-check',
                         text: '<i class="fa fa-file-excel-o" style="font-size:15px;"></i> Excel',
                         title: 'DETALLES DEL PEDIDO',
                     },
                     {
                         extend: 'print',
-                        className: 'custom-button btn-check', 
+                        className: 'custom-button btn-check',
                         text: '<i class="fa fa-print"></i> Imprimir',
                         title: 'DETALLES DEL PEDIDO'
                     },
-                ], 
+                ],
             dom: '<"buttons-container"B><"search-length-container"lf>tp',
             bProcessing: true,
             language: {
@@ -551,7 +553,7 @@
                     }
             }
         });
-    
+
     }
 
     function pintarTablePedidoAtenciones(pedido_atenciones) {
@@ -559,7 +561,7 @@
         bodyPedidoDetalles.innerHTML    =   '';
 
         const bodyPedidoAtenciones    =   document.querySelector('#table-pedido-atenciones tbody');
-        
+
         if(atenciones_data_table){
             atenciones_data_table.destroy();
         }
@@ -569,8 +571,8 @@
 
         pedido_atenciones.forEach((pa)=>{
             body    +=  `<tr class="rowAtencion" data-pedido-id="${pa.pedido_id}" data-documento-id=${pa.documento_id}>
-                <th scope="row">${pa.documento_serie}-${pa.documento_correlativo}</th>  
-                <td scope="row">${pa.fecha_atencion}</td> 
+                <th scope="row">${pa.documento_serie}-${pa.documento_correlativo}</th>
+                <td scope="row">${pa.fecha_atencion}</td>
                 <td scope="row">${pa.documento_usuario}</td>
                 <td scope="row">${pa.documento_monto_envio}</td>
                 <td scope="row">${pa.documento_monto_embalaje}</td>
@@ -587,17 +589,17 @@
             buttons: [
                     {
                         extend: 'excelHtml5',
-                        className: 'custom-button btn-check', 
+                        className: 'custom-button btn-check',
                         text: '<i class="fa fa-file-excel-o" style="font-size:15px;"></i> Excel',
                         title: 'ATENCIONES DEL PEDIDO'
                     },
                     {
                         extend: 'print',
-                        className: 'custom-button btn-check', 
+                        className: 'custom-button btn-check',
                         text: '<i class="fa fa-print"></i> Imprimir',
                         title: 'ATENCIONES DEL PEDIDO'
                     },
-                ], 
+                ],
             dom: '<"buttons-container"B><"search-length-container"lf>tp',
             bProcessing: true,
             language: {
@@ -632,7 +634,7 @@
         const pedido    =   pedidos_data_table.rows().data().filter(function (value, index) {
             return value['id'] == pedido_id;
         });
-      
+
         let descripcion =   '';
         if(pedido[0].facturado === 'SI'){
             descripcion =   'Recuerde realizar la nota de crédito del documento facturado';
@@ -642,7 +644,7 @@
 
         if(pedido.length >0){
             const estado    =   pedido[0].estado;
-                   
+
             if(estado === "FINALIZADO"){
                 toastr.error('EL PEDIDO NO PUEDE SER FINALIZADO','PEDIDO FINALIZADO');
                 return;
@@ -652,18 +654,18 @@
                 toastr.error('EL PEDIDO NO PUEDE SER ANULADO','PEDIDO ANULADO');
                 return;
             }
-               
+
         }else{
             toastr.error('ERROR EN EL ID DEL PEDIDO','PEDIDO NO ENCONTRADO');
             return;
-        } 
+        }
 
         //====== OBTENIENDO INFO DEL CLIENTE ======
         const res_cliente   =   await axios.get(route('pedidos.pedido.getCliente',{pedido_id}));
 
         if(!res_cliente.data.success){
             toastr.error('ERROR AL OBTENER INFORMACION DEL CLIENTE');
-        }   
+        }
 
         if(res_cliente.data.success){
             const cliente_pedido    =   res_cliente.data.cliente;
@@ -696,7 +698,7 @@
                     });
                 }
             });
-            
+
         }
     }
 
@@ -726,18 +728,18 @@
 
     async function generarRecibo(pedido_id){
         const res_caja_apert        =   await buscarCajaApertUsuario();
-        
+
         //======= REDIRIGIR A CREAR RECIBO DE CAJA ======
         if(res_caja_apert){
             var url = "{{ route('recibos_caja.create', ':id') }}";
             url = url.replace(':id', pedido_id);
             window.location.href = url;
         }
-        
+
     }
 
 
-    //========= BUSCAR CAJA APERTURADA DE USUARIO =========== 
+    //========= BUSCAR CAJA APERTURADA DE USUARIO ===========
     async function buscarCajaApertUsuario() {
         try {
             const res   = await axios.get(route('recibos_caja.buscarCajaApertUsuario'));
@@ -800,20 +802,20 @@
     //========== EXCEL PEDIDOS =======
     function excelPedidos(){
         const fecha_inicio  =   $('#filtroFechaInicio').val()?$('#filtroFechaInicio').val():null;
-        const fecha_fin     =   $('#filtroFechaFin').val()?$('#filtroFechaFin').val():null;      
+        const fecha_fin     =   $('#filtroFechaFin').val()?$('#filtroFechaFin').val():null;
         const estado        =   document.querySelector('#pedido_estado').value?document.querySelector('#pedido_estado').value:null;
 
         const rutaExcelPedidos  =   @json(route('pedidos.pedido.getExcel'))+`/${fecha_inicio}/${fecha_fin}/${estado}`;
 
         window.location.href = rutaExcelPedidos;
-        
+
     }
 
     async function facturar(pedido_id){
         try {
             //====== VALIDANDO CLIENTE =====
             const res_cliente   =   await axios.get(route('pedidos.pedido.getCliente',{pedido_id}));
-            
+
             if(res_cliente.data.success){
 
                 const cliente_pedido    =   res_cliente.data.cliente;
@@ -823,7 +825,7 @@
                 if(cliente_pedido.tipo_documento === 'RUC' || cliente_pedido.tipo_documento === 'DNI'){
                     numero_documento    =   cliente_pedido.documento;
                 }
-              
+
 
                 Swal.fire({
                 title: `DESEA GENERAR UNA ${tipo_comprobante} PARA EL CLIENTE: ${cliente_pedido.nombre} CON DOCUMENTO ${cliente_pedido.tipo_documento}: ${numero_documento}`,
@@ -849,9 +851,9 @@
                             pedido_id
                         });
 
-                        Swal.close(); 
+                        Swal.close();
                         if(res.data.success){
-                            
+
                             pedidos_data_table.ajax.reload();
                             toastr.success(res.data.message, 'Exito');
 
@@ -874,7 +876,7 @@
                 toastr.error('ERROR AL COMPROBAR EL DOCUMENTO DE IDENTIDAD DEL CLIENTE','OPERACIÓN ERRÓNEA');
                 return;
             }
-           
+
         } catch (error) {
             console.log(error);
         }

@@ -1,4 +1,4 @@
-@extends('layout') 
+@extends('layout')
 @section('content')
 
 @section('ventas-active', 'active')
@@ -45,7 +45,7 @@
 
 
 @if(Session::has('error'))
-    <script>    
+    <script>
         toastr.error('{{ Session::get('error') }}', 'Error');
     </script>
 @endif
@@ -73,7 +73,7 @@
                 url: urlGetCotizaciones,
                 type: 'GET',
             },
-            order: [[0, 'desc']], 
+            order: [[0, 'desc']],
             columns: [
                 { data: 'id', name: 'id' ,visible:false},
                 { data: 'simbolo', name: 'simbolo' },
@@ -126,7 +126,7 @@
                                     <b><i class="fas fa-concierge-bell"></i> Pedido</b>
                                     </a>
                                 </li>
-                                <div class="dropdown-divider"></div>`;        
+                                <div class="dropdown-divider"></div>`;
                         }
 
                        if(data.pedido_id === '-' && data.documento === '-'){
@@ -143,7 +143,7 @@
                                     </ul>
                                     </div>`;
                        }
-                                
+
                         return options;
 
                     }
@@ -217,7 +217,7 @@
             cancelButtonText: "No, Cancelar",
         }).then((result) => {
             if (result.isConfirmed) {
-                
+
                 let url_concretar   = '{{ route('ventas.cotizacion.documento', ':id') }}';
                 url_concretar       = url_concretar.replace(':id', id);
                 $(location).attr('href', url_concretar);
@@ -248,7 +248,7 @@
             cancelButtonText: "No, Cancelar",
         }).then(async (result) => {
             if (result.isConfirmed) {
-                
+
                 Swal.fire({
                     title: 'Procesando...',
                     text: 'Por favor, espere.',
