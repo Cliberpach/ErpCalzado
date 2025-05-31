@@ -26,19 +26,12 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
-
 use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
-
 use App\Ventas\Pedido;
 use App\Ventas\PedidoDetalle;
-
-use App\Mantenimiento\Ubigeo\Departamento;
-use App\Mantenimiento\Ubigeo\Distrito;
-use App\Mantenimiento\Ubigeo\Provincia;
 use App\Pos\DetalleMovimientoVentaCaja;
 use App\User;
 use App\Ventas\EnvioVenta;
@@ -675,7 +668,7 @@ array:10 [
             }
 
             //========== VALIDAR QUE LA COTIZACIÓN NO ESTÉ CONVERTIDA AÚN =========
-            $documento  =   Documento::where('convertir', $request->get('cotizacion_id'))->first();
+            $documento  =   Documento::where('cotizacion_venta', $request->get('cotizacion_id'))->first();
             if($documento){
                 throw new Exception("LA COTIZACIÓN YA ESTÁ CONVERTIDA EN DOCUMENTO DE VENTA!!!");
             }
