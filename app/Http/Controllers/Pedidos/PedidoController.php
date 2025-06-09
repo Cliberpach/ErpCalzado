@@ -301,6 +301,7 @@ array:18 [
 
 
         $sede_id            =   Auth::user()->sede_id;
+        $sede               =   Sede::find($sede_id);
 
         $almacenes          =   Almacen::where('estado','ACTIVO')->where('tipo_almacen','PRINCIPAL')->get();
 
@@ -318,11 +319,10 @@ array:18 [
         $tipo_clientes      =   tipo_clientes();
 
 
-
         return view('pedidos.pedido.edit',
         compact('empresas','clientes','almacenes','condiciones',
         'modelos','tallas','pedido','pedido_detalles',
-        'tipos_documento','departamentos','tipo_clientes','registrador','sede_id'));
+        'tipos_documento','departamentos','tipo_clientes','registrador','sede_id','sede'));
     }
 
 /*
