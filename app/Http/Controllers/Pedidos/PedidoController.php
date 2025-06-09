@@ -67,7 +67,7 @@ class PedidoController extends Controller
             $pedidos    =   $pedidos->where('pedidos.estado', '=', $pedido_estado);
         }
 
-        return DataTables::of($pedidos->get())->toJson();
+        return DataTables::of($pedidos)->make(true);
     }
 
 
