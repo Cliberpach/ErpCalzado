@@ -195,7 +195,8 @@
                         <option value=""></option>
                         @foreach ($clientes as $cliente)
                             <option value="{{ $cliente->id }}">
-                                {{ $cliente->tipo_documento . ':' . $cliente->documento . '-' . $cliente->nombre }}</option>
+                                {{ $cliente->tipo_documento . ':' . $cliente->documento . '-' . $cliente->nombre }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -548,7 +549,6 @@
                 {
                     data: 'cantidad_enviada',
                     className: "text-center",
-                    ,
                     searchable: false,
                     render: function(data, type, row) {
                         let etiqueta = ``;
@@ -896,7 +896,7 @@
                         if (aux_cant_resultante < 0) {
                             toastr.error(
                                 'ERROR AL RESTAR LA CANTIDAD DEL PRODUCTO DEL LISTADO DE PROGRAMACIÓN DE PRODUCCIÓN'
-                                );
+                            );
                         }
                     }
 
