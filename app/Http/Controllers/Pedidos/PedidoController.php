@@ -76,8 +76,8 @@ class PedidoController extends Controller
         }
 
         return DataTables::of($pedidos)
-            ->filterColumn('almacen_nombre', function ($query, $keyword) {
-                $query->whereRaw('LOWER(a.descripcion) like ?', ["%" . strtolower($keyword) . "%"]);
+            ->filterColumn('cliente_nombre', function ($query, $keyword) {
+                $query->whereRaw('LOWER(pedidos.cliente_nombre) like ?', ["%" . strtolower($keyword) . "%"]);
             })
             ->filterColumn('documento_venta', function ($query, $keyword) {
                 $query->whereRaw('LOWER(CONCAT(pedidos.documento_venta_facturacion_serie, "-", pedidos.documento_venta_facturacion_correlativo)) like ?', ["%" . strtolower($keyword) . "%"]);

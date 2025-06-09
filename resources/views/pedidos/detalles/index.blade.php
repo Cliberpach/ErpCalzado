@@ -179,7 +179,7 @@
                     <label for="fecha_fin" style="font-weight: bold;">Fecha hasta:</label>
                     <input type="date" class="form-control" id="filtroFechaFin" value="{{ now()->format('Y-m-d') }}" onchange="filtrarDespachoFechaFin(this.value)">
                 </div> --}}
-                <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12 mb-3">
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-12 col-xs-12">
                     <label for="pedido_estado" style="font-weight: bold;">ESTADO</label>
                     <select id="pedido_detalle_estado" class="form-control select2_form"
                         onchange="filtrarEstadoDetalle()">
@@ -189,19 +189,14 @@
                     </select>
                 </div>
 
-                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3">
-                    <label for="cliente_id" style="font-weight: bold;">CLIENTE</label>
-                    <select id="cliente_id" class="form-control select2_form" onchange="filtrarCliente()">
-                        <option value=""></option>
-                        @foreach ($clientes as $cliente)
-                            <option value="{{ $cliente->id }}">
-                                {{ $cliente->tipo_documento . ':' . $cliente->documento . '-' . $cliente->nombre }}
-                            </option>
-                        @endforeach
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-12 col-xs-12">
+                    <label for="filtroCliente" style="font-weight: bold;">CLIENTE:</label>
+                    <select class="select2_form" style="text-transform: uppercase; width:100%" name="filtroCliente"
+                        id="filtroCliente" required onchange="dataTablePedidoDetalles.ajax.reload();">
                     </select>
                 </div>
 
-                <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12 mb-3">
+                {{-- <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12 mb-3">
                     <label for="modelo_id" style="font-weight: bold;">MODELO</label>
                     <select id="modelo_id" class="form-control select2_form" onchange="getProductosByModelo(this)">
                         <option value=""></option>
@@ -215,11 +210,9 @@
                     <label for="producto_id" style="font-weight: bold;">PRODUCTO</label>
                     <select id="producto_id" class="form-control select2_form" onchange="filtrarProducto()">
                         <option value=""></option>
-                        {{-- @foreach ($productos as $producto)
-                            <option value="{{$producto->id}}">{{$producto->nombre}}</option>
-                        @endforeach --}}
+
                     </select>
-                </div>
+                </div> --}}
 
             </div>
         </div>
@@ -348,6 +341,65 @@
             height: '200px',
             width: '100%',
         });
+        $('#filtroCliente').select2({
+            width: '100%',
+            placeholder: "Buscar Cliente...",
+            allowClear: true,
+            language: {
+                inputTooShort: function(args) {
+                    var min = args.minimum;
+                    return "Por favor, ingrese " + min + " o más caracteres";
+                },
+                searching: function() {
+                    return "BUSCANDO...";
+                },
+                noResults: function() {
+                    return "No se encontraron clientes";
+                }
+            },
+            ajax: {
+                url: '{{ route('utilidades.getClientes') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        search: params.term,
+                        page: params.page || 1
+                    };
+                },
+                processResults: function(data, params) {
+                    if (data.success) {
+                        params.page = params.page || 1;
+                        const clientes = data.clientes;
+                        return {
+                            results: clientes.map(item => ({
+                                id: item.id,
+                                text: item.descripcion
+                            })),
+                            pagination: {
+                                more: data.more
+                            }
+                        };
+                    } else {
+                        toastr.error(data.message, 'ERROR EN EL SERVIDOR');
+                        return {
+                            results: []
+                        }
+                    }
+
+                },
+                cache: true
+            },
+            minimumInputLength: 2,
+            templateResult: function(data) {
+                if (data.loading) {
+                    return $(
+                        '<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>'
+                    );
+                }
+                return data.text;
+            },
+        });
     }
 
     function destruirDataTableProgramacionProduccion() {
@@ -443,9 +495,7 @@
                 "type": "GET",
                 "data": function(d) {
                     d.pedido_detalle_estado = $('#pedido_detalle_estado').val();
-                    d.cliente_id = $('#cliente_id').val();
-                    d.modelo_id = $('#modelo_id').val();
-                    d.producto_id = $('#producto_id').val();
+                    d.cliente_id = $('#filtroCliente').val();
                 }
             },
             "columns": [{
@@ -495,18 +545,21 @@
                 },
                 {
                     data: 'producto_nombre',
+                    name: 'pd.producto_nombre',
                     className: "text-center",
-                    searchable: false
+                    searchable: true
                 },
                 {
                     data: 'color_nombre',
+                    name: 'pd.color_nombre',
                     className: "text-center",
-                    searchable: false
+                    searchable: true
                 },
                 {
                     data: 'talla_nombre',
+                    name: 'pd.talla_nombre',
                     className: "text-left",
-                    searchable: false
+                    searchable: true
                 },
                 {
                     data: 'cantidad',
@@ -605,12 +658,34 @@
                 },
             ],
             "language": {
-                "url": "{{ asset('Spanish.json') }}"
+                "search": "Buscar código,producto,color,talla:",
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando página _PAGE_ de _PAGES_",
+                "infoEmpty": "No hay registros disponibles",
+                "infoFiltered": "(filtrado de _MAX_ registros totales)",
+                "loadingRecords": "Cargando...",
+                "processing": "Procesando...",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                }
             },
-            "order": [[1, "desc"]],
+            "order": [
+                [1, "desc"]
+            ],
             "initComplete": function(settings, json) {
-                $('.dataTables_filter input').attr('placeholder', 'Buscar por código');
+                $('.dataTables_filter input').attr('placeholder', 'Buscar');
             }
+        });
+
+        let label = $('.dataTables_filter label');
+        label.contents().first()[0].textContent = "Buscar código, producto, color, talla: ";
+        label.css({
+            'color': '#3f51b5',
+            'font-weight': 'bold'
         });
     }
 

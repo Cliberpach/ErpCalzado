@@ -246,7 +246,7 @@
                 if (data.loading) {
                     return $(
                         '<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>'
-                        );
+                    );
                 }
                 return data.text;
             },
@@ -262,10 +262,10 @@
                 url: getPedidosUrl,
                 type: 'GET',
                 "data": function(d) {
-                    d.fecha_inicio      =   $('#filtroFechaInicio').val();
-                    d.fecha_fin         =   $('#filtroFechaFin').val();
-                    d.pedido_estado     =   $('#pedido_estado').val();
-                    d.cliente_id        =   $('#filtroCliente').val();
+                    d.fecha_inicio = $('#filtroFechaInicio').val();
+                    d.fecha_fin = $('#filtroFechaFin').val();
+                    d.pedido_estado = $('#pedido_estado').val();
+                    d.cliente_id = $('#filtroCliente').val();
                 }
             },
             "order": [
@@ -297,31 +297,33 @@
             columns: [{
                     data: 'id',
                     visible: false,
-                    searchable:false
+                    searchable: false
                 },
                 {
                     data: 'pedido_nro',
-                    searchable:true
+                    name: 'pedidos.pedido_nro',
+                    searchable: true
                 },
                 {
                     data: 'documento_venta',
-                    searchable:true
+                    searchable: true
                 },
                 {
                     data: 'cotizacion_nro',
-                    searchable:true
+                    searchable: true
                 },
                 {
                     data: 'almacen_nombre',
-                    searchable:true
+                    searchable: false
                 },
                 {
                     data: 'cliente_nombre',
-                    searchable:false
+                    name: 'pedidos.cliente_nombre',
+                    searchable: true
                 },
                 {
                     data: 'created_at',
-                    searchable:false,
+                    searchable: false,
                     render: function(data, type, row) {
                         const date = new Date(data);
                         const formattedDate = date.getFullYear() + '-' +
@@ -335,15 +337,15 @@
                 },
                 {
                     data: 'total_pagar',
-                    searchable:false
+                    searchable: false
                 },
                 {
                     data: 'user_nombre',
-                    searchable:false
+                    searchable: false
                 },
                 {
                     data: 'estado',
-                    searchable:false,
+                    searchable: false,
                     className: "text-center",
                     render: function(data, type, row) {
                         if (data === 'PENDIENTE') {
@@ -357,7 +359,7 @@
                 },
                 {
                     data: null,
-                    searchable:false,
+                    searchable: false,
                     className: "text-center",
                     render: function(data, type, row) {
                         let url_reporte = '{{ route('pedidos.pedido.reporte', ':id') }}';
@@ -426,7 +428,13 @@
             initComplete: function() {
                 $('#pedidos_table input[type=search]').attr('placeholder', 'Buscar nro,facturado,cot');
             },
+
         })
+
+        $('label[for="dt-search-0"]').css({
+            'color': '#3f51b5',
+            'font-weight': 'bold'
+        });
 
 
         document.querySelector('.dt-buttons').classList.add('btn-group');
@@ -436,7 +444,7 @@
     function getLanguajeDataTable() {
         return {
             processing: "Procesando...",
-            search: "Buscar nro,facturado,cot: ",
+            search: "Buscar nro,facturado,cot,cliente: ",
             lengthMenu: "MOSTRAR _MENU_ PEDIDOS",
             info: "MOSTRANDO _START_ A _END_ DE _TOTAL_ PEDIDOS",
             infoEmpty: "MOSTRANDO 0 PEDIDOS",
