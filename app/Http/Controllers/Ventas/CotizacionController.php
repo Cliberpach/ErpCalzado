@@ -84,7 +84,7 @@ class CotizacionController extends Controller
 
         }
 
-        return DataTables::of($query->get())->make(true);
+        return DataTables::of($query)->make(true);
     }
 
 
