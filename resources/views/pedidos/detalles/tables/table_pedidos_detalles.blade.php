@@ -1,10 +1,11 @@
-<table class="table table-striped table-bordered table-hover" id="pedidos_detalles" style="text-transform:uppercase" width="100%">
+<table class="table table-striped table-bordered table-hover display nowrap" id="pedidos_detalles" style="text-transform:uppercase" width="100%">
     <thead>
         <tr>
             <th><i class="fas fa-vote-yea"></i></th>
             <th class="text-center">PED</th>
-            <th class="text-center">FECHA</th>
             <th class="text-center">CLIENTE</th>
+            <th class="text-center">FEC REGISTRO</th>
+            <th class="text-center">FEC PROPUESTA</th>
             <th class="text-center">VENDEDOR</th>
             <th class="text-center">PRODUCTO</th>
             <th class="text-center">COLOR</th>

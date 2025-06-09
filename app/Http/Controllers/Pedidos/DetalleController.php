@@ -22,7 +22,7 @@ use App\Exports\Pedido\Detalles\PedidoDetalleExport;
 class DetalleController extends Controller
 {
     public function index(){
-        $clientes   =   DB::select('select c.id,c.tipo_documento,c.documento,c.nombre 
+        $clientes   =   DB::select('select c.id,c.tipo_documento,c.documento,c.nombre
                         from clientes as c where c.estado = "ACTIVO"');
 
         $modelos    =   DB::select('select m.id,m.descripcion from modelos as m where m.estado = "ACTIVO"');
@@ -48,6 +48,7 @@ class DetalleController extends Controller
                                 'p.cliente_id',
                                 'p.cliente_nombre',
                                 'p.user_nombre as vendedor_nombre',
+                                'p.fecha_propuesta',
                                 'prod.modelo_id',
                                 'pd.producto_id',
                                 'pd.color_id',
@@ -64,12 +65,12 @@ class DetalleController extends Controller
                                 'pd.cantidad_enviada',
                                 'pd.cantidad_devuelta',
                                 'pd.cantidad_fabricacion',
-                                \DB::raw('concat("PE-", p.id) as pedido_name_id')
+                                DB::raw('concat("PE-", p.id) as pedido_name_id')
                             )
                             ->join('pedidos as p', 'pd.pedido_id', '=', 'p.id')
                             ->join('productos as prod', 'prod.id', '=', 'pd.producto_id')
                             ->join('modelos as m', 'm.id', '=', 'prod.modelo_id');
-                            
+
 
         // Aplicar el filtro de estado si se proporciona
         if (!empty($pedido_detalle_estado)) {
@@ -98,30 +99,30 @@ class DetalleController extends Controller
         }
 
         // Ordenar y obtener los resultados
-        $pedidos_detalles = $pedidos_detalles->orderBy('p.id', 'desc')->get();
+        $pedidos_detalles = $pedidos_detalles->orderBy('p.id', 'desc');
 
         // Retornar los resultados como JSON para DataTable
-        return DataTables::of($pedidos_detalles)->toJson();
+        return DataTables::of($pedidos_detalles)->make(true);
     }
 
     public function getDetallesAtenciones($pedido_id,$producto_id,$color_id,$talla_id){
         try {
             $documentos_antenciones =   DB::select('select cd.id as documento_id,cd.serie,cd.correlativo,cd.cliente,
                                         cd.created_at,cdd.producto_id,cdd.color_id,cdd.talla_id,cdd.cantidad,
-                                        u.usuario 
-                                        from  cotizacion_documento as cd 
+                                        u.usuario
+                                        from  cotizacion_documento as cd
                                         inner join cotizacion_documento_detalles as cdd on cdd.documento_id = cd.id
                                         inner join users as u on u.id = cd.user_id
-                                        where cd.pedido_id = ? and 
+                                        where cd.pedido_id = ? and
                                         cdd.producto_id = ? and
                                         cdd.color_id = ?  and
-                                        cdd.talla_id = ? and 
+                                        cdd.talla_id = ? and
                                         cd.tipo_doc_venta_pedido = "ATENCION"',[$pedido_id,$producto_id,$color_id,$talla_id]);
-            
+
             //dd($documentos_antenciones);
 
             return response()->json(['success'=>true,'documentos_atenciones'=>$documentos_antenciones]);
-            
+
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
@@ -132,18 +133,18 @@ class DetalleController extends Controller
             $fabricaciones_ordenes =   DB::select('select op.id,op.created_at as fecha_registro,
                                         op.user_nombre as usuario, op.fecha_propuesta_atencion,
                                         op.observacion,op.tipo , op.estado
-                                        from  ordenes_produccion as op 
+                                        from  ordenes_produccion as op
                                         inner join ordenes_produccion_detalles as opd on op.id = opd.orden_produccion_id
-                                        where opd.pedido_id = ? and 
+                                        where opd.pedido_id = ? and
                                         opd.producto_id = ? and
                                         opd.color_id = ?  and
                                         opd.talla_id = ? and op.estado != "ANULADO"',
                                         [$pedido_id,$producto_id,$color_id,$talla_id]);
-            
-            
+
+
 
             return response()->json(['success'=>true,'fabricaciones'=>$fabricaciones_ordenes]);
-            
+
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
@@ -155,18 +156,18 @@ class DetalleController extends Controller
                                         cd.created_at as fecha_venta,cdd.producto_id,cdd.color_id,
                                         cdd.talla_id,cdd.cantidad,u.usuario,ev.user_despachador_nombre,
                                         ev.fecha_envio as fecha_despacho,ev.estado as estado_despacho
-                                        from  cotizacion_documento as cd 
+                                        from  cotizacion_documento as cd
                                         inner join cotizacion_documento_detalles as cdd on cdd.documento_id = cd.id
                                         inner join users as u on u.id = cd.user_id
                                         inner join envios_ventas as ev on ev.documento_id = cd.id
-                                        where cd.pedido_id = ? and 
+                                        where cd.pedido_id = ? and
                                         cdd.producto_id = ? and
                                         cdd.color_id = ?  and
                                         cdd.talla_id = ? ',[$pedido_id,$producto_id,$color_id,$talla_id]);
-            
+
 
             return response()->json(['success'=>true,'despachos'=>$despachos]);
-            
+
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
@@ -178,18 +179,18 @@ class DetalleController extends Controller
                                         ned.producto_id,ned.color_id,ned.talla_id,
                                         u.usuario,ne.created_at as fecha, ned.cantidad as cantidad_devuelta,
                                         ne.pedido_id
-                                        from  nota_electronica as ne 
+                                        from  nota_electronica as ne
                                         inner join nota_electronica_detalle as ned on ned.nota_id = ne.id
                                         inner join users as u on u.id = ne.user_id
-                                        where 
-                                        ne.pedido_id = ? and 
-                                        ned.producto_id = ? and 
-                                        ned.color_id = ? and 
+                                        where
+                                        ne.pedido_id = ? and
+                                        ned.producto_id = ? and
+                                        ned.color_id = ? and
                                         ned.talla_id = ?',[$pedido_id,$producto_id,$color_id,$talla_id,]);
 
-        
+
             return response()->json(['success'=>true,'devoluciones'=>$notas_devoluciones]);
-            
+
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
@@ -214,17 +215,17 @@ class DetalleController extends Controller
 
                     foreach ($detalles_doc as $item_detalle) {
 
-                        DB::update('UPDATE pedidos_detalles 
-                        SET cantidad_enviada = cantidad_enviada + ? 
+                        DB::update('UPDATE pedidos_detalles
+                        SET cantidad_enviada = cantidad_enviada + ?
                         WHERE pedido_id = ? and producto_id = ? and color_id = ? and talla_id = ?',
-                        [$item_detalle->cantidad, 
+                        [$item_detalle->cantidad,
                         $pedido_atencion->pedido_id,
                         $item_detalle->producto_id,
                         $item_detalle->color_id,
                         $item_detalle->talla_id]);
 
                     }
-                     
+
                 }
             }
 
@@ -247,7 +248,7 @@ class DetalleController extends Controller
             $usuario_impresion_nombre   =   Auth::user()->usuario;
             $fecha_actual               =   Carbon::now();
 
-            
+
             $pdf = PDF::loadview('pedidos.detalles.pdf.prog_produccion', [
                 'lstProgramacionProduccion'     =>  $lstProgramacionProduccion,
                 'tallasBD'                      =>  $tallasBD,
@@ -255,7 +256,7 @@ class DetalleController extends Controller
                 'usuario_impresion_nombre'      =>  $usuario_impresion_nombre,
                 'fecha_actual'                =>  $fecha_actual
             ])->setPaper('a4', 'landscape')->setWarnings(false);
-            
+
             return $pdf->stream('PROGRAMACIÓN_PRODUCCIÓN.pdf');
 
         } catch (\Throwable $th) {
@@ -266,11 +267,11 @@ class DetalleController extends Controller
 
     public function generarOrdenProduccion(DetalleGenerarOrdenProduccion $request){
         DB::beginTransaction();
-       
+
         try {
             $lstProgramacionProduccion  =   json_decode($request->get('lstProgramacionProduccion'));
-            
-            
+
+
             //===== CREAMOS LA ORDEN DE PEDIDO CABEZERA ========
             $orden_produccion                           =   new OrdenProduccion();
             $orden_produccion->user_id                  =   Auth::user()->id;
@@ -287,7 +288,7 @@ class DetalleController extends Controller
                         foreach ($color->tallas as $talla) {
 
                             //====== VERIFICAR SI EL DETALLE DEL PEDIDO ID YA TIENE ORDEN DE PRODUCCION =====
-                            $pedido_detalle =   DB::select('select pd.orden_produccion_id 
+                            $pedido_detalle =   DB::select('select pd.orden_produccion_id
                                                 from pedidos_detalles as pd
                                                 where pd.pedido_id = ? and
                                                 pd.producto_id = ? and
@@ -317,21 +318,21 @@ class DetalleController extends Controller
                             $orden_produccion_detalle->color_nombre         =   $color->nombre;
                             $orden_produccion_detalle->talla_nombre         =   $talla->nombre;
                             $orden_produccion_detalle->cantidad             =   $talla->cantidad_pendiente;
-                            $orden_produccion_detalle->save();        
-                            
+                            $orden_produccion_detalle->save();
+
                             //======== INCREMENTANDO CANTIDAD FABRICADA EN EL PEDIDO ID =======
                             //======= ASOCIANDO DETALLE DEL PEDIDO CON LA ORDEN DE PRODUCCIÓN =======
-                            DB::update('UPDATE pedidos_detalles 
-                            SET orden_produccion_id = ?,cantidad_fabricacion = cantidad_fabricacion + ? 
-                            WHERE pedido_id = ? and producto_id = ?  and color_id = ?  and talla_id = ?', 
+                            DB::update('UPDATE pedidos_detalles
+                            SET orden_produccion_id = ?,cantidad_fabricacion = cantidad_fabricacion + ?
+                            WHERE pedido_id = ? and producto_id = ?  and color_id = ?  and talla_id = ?',
                             [$orden_produccion->id,
                             $talla->cantidad_pendiente,$pedido->id,$producto->id,$color->id,$talla->id]);
 
-                        }  
-                    } 
+                        }
+                    }
                 }
             }
-           
+
 
             DB::commit();
             return response()->json(['success'=>true,'message'=>'ORDEN DE PRODUCCIÓN N° '.$orden_produccion->id.' GENERADA CON ÉXITO']);
@@ -355,7 +356,7 @@ class DetalleController extends Controller
         // Obtener los detalles de los pedidos según los filtros proporcionados
         $pedidos_detalles = PedidoDetalle::from('pedidos_detalles as pd')
                             ->select(
-                                \DB::raw('concat("PE-", p.id) as pedido_id'),
+                                DB::raw('concat("PE-", p.id) as pedido_id'),
                                 'p.created_at as pedido_fecha',
                                 'p.cliente_nombre',
                                 'p.user_nombre as vendedor_nombre',
@@ -368,9 +369,9 @@ class DetalleController extends Controller
                                 'pd.cantidad_atendida',
                                 'pd.cantidad_pendiente',
                                 'pd.cantidad_enviada',
-                                \DB::raw('"-" as cantidad_fabricacion'),
-                                \DB::raw('"-" as cantidad_cambio'),
-                                \DB::raw('"-" as cantidad_devolucion')
+                                DB::raw('"-" as cantidad_fabricacion'),
+                                DB::raw('"-" as cantidad_cambio'),
+                                DB::raw('"-" as cantidad_devolucion')
                             )
                             ->join('pedidos as p', 'pd.pedido_id', '=', 'p.id')
                             ->join('productos as prod', 'prod.id', '=', 'pd.producto_id')
@@ -404,7 +405,7 @@ class DetalleController extends Controller
 
         // Generar el PDF
         $pdf = Pdf::loadView('pedidos.detalles.pdf.prog_produccion', compact('pedidos_detalles', 'empresa', 'usuario_impresion_nombre', 'fecha_actual'))
-              ->setPaper('a4', 'landscape'); 
+              ->setPaper('a4', 'landscape');
 
         // Descargar el PDF
         return $pdf->download('pedidos_detalles.pdf');

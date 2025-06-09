@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout')
+@section('content')
 
 @section('pedidos-active', 'active')
 @section('pedidos-detalles-active', 'active')
@@ -24,7 +25,7 @@
       font-size: 24px;
       visibility:hidden;
     }
-    
+
     /*========== LOADER SPINNER =======*/
     .loader_pedidos_detalles {
         position: relative;
@@ -51,12 +52,12 @@
         border-radius: 50%;
         animation: ballStepUp 4s linear infinite;
       }
-    
+
     @keyframes pillerPushUp {
       0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
       50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
     }
-    
+
     @keyframes ballStepUp {
       0% {transform: translate(0, 0)}
       5% {transform: translate(8px, -14px)}
@@ -78,8 +79,8 @@
       90% {transform: translate(0, -40px)}
       100% {transform: translate(0, 0);}
     }
-        
-        
+
+
 </style>
 
 <div class="row wrapper border-bottom white-bg page-heading">
@@ -119,7 +120,7 @@
                         <option value="ATENDIDO">ATENDIDO</option>
                         <option value="FABRICACION">FABRICACION</option>
                     </select>
-                </div> 
+                </div>
 
                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3">
                     <label for="cliente_id" style="font-weight: bold;">CLIENTE</label>
@@ -129,7 +130,7 @@
                             <option value="{{$cliente->id}}">{{$cliente->tipo_documento.':'.$cliente->documento.'-'.$cliente->nombre}}</option>
                         @endforeach
                     </select>
-                </div> 
+                </div>
 
                 <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12 mb-3">
                     <label for="modelo_id" style="font-weight: bold;">MODELO</label>
@@ -139,7 +140,7 @@
                             <option value="{{$modelo->id}}">{{$modelo->descripcion}}</option>
                         @endforeach
                     </select>
-                </div> 
+                </div>
 
                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-xs-12 mb-3">
                     <label for="producto_id" style="font-weight: bold;">PRODUCTO</label>
@@ -149,7 +150,7 @@
                             <option value="{{$producto->id}}">{{$producto->nombre}}</option>
                         @endforeach --}}
                     </select>
-                </div> 
+                </div>
 
             </div>
         </div>
@@ -179,12 +180,12 @@
                         {{-- <div class="col-12 d-flex justify-content-end">
                             <a class="btn btn-success" href="javascript:void(0);" onclick="descargarPdfProgramacionProduccion()">
                                 <i class="fas fa-file-pdf"></i> PDF
-                            </a>                        
+                            </a>
                         </div> --}}
                         <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
                             <label class="required" style="font-weight: bold;" for="fecha_propuesta_atencion">FECHA PROPUESTA ATENCIÓN</label>
-                            <input id="fecha_propuesta_atencion" type="date" class="form-control">   
-                            <p style="font-weight: bold;color:red;" class="fecha_propuesta_atencion_error spanError"></p>                    
+                            <input id="fecha_propuesta_atencion" type="date" class="form-control">
+                            <p style="font-weight: bold;color:red;" class="fecha_propuesta_atencion_error spanError"></p>
                         </div>
                         <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
                             <label style="font-weight: bold;" for="observacion" class="form-label">OBSERVACIÓN</label>
@@ -193,7 +194,7 @@
                         <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 d-flex justify-content-end">
                             <a class="btn btn-success" style="height: 32px;" href="javascript:void(0);" onclick="generarOrdenProduccion()">
                                 <i class="fas fa-save"></i> GENERAR ORDEN DE PRODUCCIÓN
-                            </a>                        
+                            </a>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -333,7 +334,7 @@
                             modelo_id: modelo_id || '-',
                             producto_id: producto_id || '-'
                         });
-                        
+
                         window.location.href = url;
                     }
                 },
@@ -359,6 +360,7 @@
                     }
                 }
             ],
+            responsive:true,
             "bPaginate": true,
             "bLengthChange": true,
             "bFilter": true,
@@ -381,10 +383,10 @@
                     data: null,
                     className: "text-center",
                     render: function (data, type, row) {
-                        let etiqueta    =   ``;   
+                        let etiqueta    =   ``;
 
                         if(row.orden_produccion_id == null && row.cantidad_pendiente > 0){
-                            etiqueta = `<input class="form-control checkProducto" id="checkProducto_${row.pedido_id}_${row.producto_id}_${row.color_id}_${row.talla_id}" type="checkbox" data-modelo-id="${row.modelo_id}" data-producto-id="${row.producto_id}" data-color-id="${row.color_id}" data-talla-id="${row.talla_id}" 
+                            etiqueta = `<input class="form-control checkProducto" id="checkProducto_${row.pedido_id}_${row.producto_id}_${row.color_id}_${row.talla_id}" type="checkbox" data-modelo-id="${row.modelo_id}" data-producto-id="${row.producto_id}" data-color-id="${row.color_id}" data-talla-id="${row.talla_id}"
                             data-pedido-id="${row.pedido_id}" data-modelo-nombre="${row.modelo_nombre}" data-producto-nombre="${row.producto_nombre}" data-color-nombre="${row.color_nombre}" data-talla-nombre="${row.talla_nombre}"  data-cant-pend="${row.cantidad_pendiente}">`;
                         }
 
@@ -399,11 +401,15 @@
                     }
                 },
                 {
+                    data: 'cliente_nombre',
+                    className: "text-center"
+                },
+                {
                     data: 'pedido_fecha',
                     className: "text-center"
                 },
                 {
-                    data: 'cliente_nombre',
+                    data: 'fecha_propuesta',
                     className: "text-center"
                 },
                 {
@@ -438,10 +444,10 @@
                     data: 'cantidad_atendida',
                     className: "text-center",
                     render: function (data, type, row) {
-                        let etiqueta    =   ``;   
+                        let etiqueta    =   ``;
 
                         if(data > 0){
-                            etiqueta    =   `<p style="cursor:pointer;font-weight:bold;margin:0;color:blue;" onclick="openMdlAtenciones(${row.pedido_id}, ${row.producto_id}, ${row.color_id}, ${row.talla_id})" style="font-weight:bold;">${data}</p>`;   
+                            etiqueta    =   `<p style="cursor:pointer;font-weight:bold;margin:0;color:blue;" onclick="openMdlAtenciones(${row.pedido_id}, ${row.producto_id}, ${row.color_id}, ${row.talla_id})" style="font-weight:bold;">${data}</p>`;
                         }
 
                         if(data == 0){
@@ -459,10 +465,10 @@
                     data: 'cantidad_enviada',
                     className: "text-center",
                     render: function (data, type, row) {
-                        let etiqueta    =   ``;   
+                        let etiqueta    =   ``;
 
                         if(row.cantidad_atendida > 0){
-                            etiqueta    =   `<p style="cursor:pointer;font-weight:bold;margin:0;" onclick="openMdlDespachos(${row.pedido_id}, ${row.producto_id}, ${row.color_id}, ${row.talla_id})" style="font-weight:bold;">${data}</p>`;   
+                            etiqueta    =   `<p style="cursor:pointer;font-weight:bold;margin:0;" onclick="openMdlDespachos(${row.pedido_id}, ${row.producto_id}, ${row.color_id}, ${row.talla_id})" style="font-weight:bold;">${data}</p>`;
                         }
 
                         if(row.cantidad_atendida == 0){
@@ -476,10 +482,10 @@
                     data: 'cantidad_fabricacion',
                     className: "text-center",
                     render: function (data, type, row) {
-                        
+
                         let etiqueta    =   '';
                         if(data > 0){
-                            etiqueta    =   `<p style="cursor:pointer;font-weight:bold;margin:0;color:blue;" onclick="openMdlFabricaciones(${row.pedido_id}, ${row.producto_id}, ${row.color_id}, ${row.talla_id})" style="font-weight:bold;">${data}</p>`;   
+                            etiqueta    =   `<p style="cursor:pointer;font-weight:bold;margin:0;color:blue;" onclick="openMdlFabricaciones(${row.pedido_id}, ${row.producto_id}, ${row.color_id}, ${row.talla_id})" style="font-weight:bold;">${data}</p>`;
                         }
 
                         if(data == 0){
@@ -493,7 +499,7 @@
                     data: 'detalle_id',
                     className: "text-center",
                     render: function (data, type, row) {
-                        
+
                         return 'CANT CAMBIO';
                     }
                 },
@@ -501,7 +507,7 @@
                     data: 'cantidad_devuelta',
                     className: "text-center",
                     render: function (data, type, row) {
-                        
+
                         return `<p style="cursor:pointer;font-weight:bold;margin:0;" onclick="openMdlDevoluciones(${row.pedido_id}, ${row.producto_id}, ${row.color_id}, ${row.talla_id})" >${data}</p>`;
                     }
                 },
@@ -519,13 +525,13 @@
         const producto_id           =   checkProducto.getAttribute('data-producto-id');
         const color_id              =   checkProducto.getAttribute('data-color-id');
         const talla_id              =   checkProducto.getAttribute('data-talla-id');
-        const modelo_nombre         =   checkProducto.getAttribute('data-modelo-nombre');  
-        const producto_nombre       =   checkProducto.getAttribute('data-producto-nombre');  
-        const color_nombre          =   checkProducto.getAttribute('data-color-nombre');    
-        const talla_nombre          =   checkProducto.getAttribute('data-talla-nombre');    
-        const cantidad_pendiente    =   checkProducto.getAttribute('data-cant-pend');    
+        const modelo_nombre         =   checkProducto.getAttribute('data-modelo-nombre');
+        const producto_nombre       =   checkProducto.getAttribute('data-producto-nombre');
+        const color_nombre          =   checkProducto.getAttribute('data-color-nombre');
+        const talla_nombre          =   checkProducto.getAttribute('data-talla-nombre');
+        const cantidad_pendiente    =   checkProducto.getAttribute('data-cant-pend');
 
-        
+
         return {pedido_id,modelo_id,producto_id,color_id,talla_id,
             modelo_nombre,producto_nombre,color_nombre,talla_nombre,cantidad_pendiente};
 
@@ -534,7 +540,7 @@
 
     //========= AGREGAR PRODUCTO AL LISTADO DE PRODUCCIÓN =======
     function agregarProductoToProduccion(producto_nuevo){
-        
+
         //====== REVIZAR SI EL PEDIDO ID YA EXISTE EN EL LISTADO ======
         const indicePedido    =   lstProgramaProduccion.findIndex((item)=>{
             return  item.id == producto_nuevo.pedido_id;
@@ -546,7 +552,7 @@
             //======= INSTANCIAR PEDIDO ======
             const instancia_pedido  =   {id:producto_nuevo.pedido_id};
 
-           
+
             //======== INSTANCIAR PRODUCTO ======
              const instancia_producto    =   {id:producto_nuevo.producto_id,nombre:producto_nuevo.producto_nombre}
 
@@ -566,7 +572,7 @@
             instancia_pedido.productos              =   [instancia_producto];
 
             lstProgramaProduccion.push(instancia_pedido);
-            
+
         }
 
         //====== EN CASO EL PEDIDO YA EXISTA ======
@@ -618,7 +624,7 @@
 
                     //===== INSTANCIAR TALLA =======
                     const instancia_talla       =   {id:producto_nuevo.talla_id,nombre:producto_nuevo.talla_nombre,cantidad_pendiente:parseInt(producto_nuevo.cantidad_pendiente)};
-                    
+
                     //======= FORMANDO =======
                     instancia_color.tallas      =   [instancia_talla];
 
@@ -638,7 +644,7 @@
                     if(indiceTalla === -1){
                         //===== INSTANCIAR TALLA =======
                         const instancia_talla       =   {id:producto_nuevo.talla_id,nombre:producto_nuevo.talla_nombre,cantidad_pendiente:parseInt(producto_nuevo.cantidad_pendiente)};
-                        
+
                         //======= FORMANDO =======
                         color_existe.tallas.push(instancia_talla);
                     }
@@ -651,7 +657,7 @@
             }
         }
 
-       
+
 
         //===== EL PRODUCTO YA EXISTE =======
         /**/
@@ -711,7 +717,7 @@
 
                         //====== CONTROLAR LA CANTIDAD AL RESTAR =======
                         let aux_cant_resultante =   talla_existe.cantidad_pendiente - parseInt(producto_desmarcado.cantidad_pendiente);
-                        
+
                         //======== LA RESTA FUE CORRECTA =====
                         if(aux_cant_resultante >= 0){
                             //==== RESTAMOS =======
@@ -761,9 +767,9 @@
                 }
             }
 
-           
+
         }
-  
+
     }
 
     function limpiarTableProgramacionProduccion(){
@@ -779,7 +785,7 @@
         const   tbody       =   document.querySelector('#table_programacion_produccion tbody');
 
         lstProgramaProduccion.forEach((pedido)=>{
-            
+
             //========= RECORRIENDO PRODUCTOS DE CADA PEDIDO =====
             pedido.productos.forEach((producto)=>{
 
@@ -822,27 +828,27 @@
             const res   =   await axios.post(route('pedidos.pedido.llenarCantEnviada'));
             console.log(res);
         } catch (error) {
-            
+
         }
     }
 
-    
-    
+
+
 
     function mostrarAnimacionCotizacion(){
-      
+
         document.querySelector('.overlay_pedidos_detalles').style.visibility   =   'visible';
     }
 
     function ocultarAnimacionCotizacion(){
-        
+
         document.querySelector('.overlay_pedidos_detalles').style.visibility   =   'hidden';
     }
 
     function filtrarEstadoDetalle(){
         $('#pedidos_detalles').DataTable().draw();
     }
-    
+
     function filtrarCliente(){
         $('#pedidos_detalles').DataTable().draw();
     }
@@ -851,7 +857,7 @@
         filtrarModelo();
         mostrarAnimacionCotizacion();
         modelo_id                   =   e.value;
-        
+
         if(modelo_id){
             try {
                 const res   =   await axios.get(route('ventas.cotizacion.getProductosByModelo',{modelo_id}));
@@ -868,7 +874,7 @@
             }finally{
                 ocultarAnimacionCotizacion();
             }
-               
+
         }else{
             ocultarAnimacionCotizacion();
         }
@@ -923,7 +929,7 @@
 
             window.open(url, '_blank');
         } catch (error) {
-            
+
         }
     }*/
 
@@ -931,10 +937,10 @@
     async function generarOrdenProduccion(){
         if(lstProgramaProduccion.length === 0){
             toastr.error('LA PROGRAMACIÓN DE PRODUCCIÓN ESTÁ VACÍA','OPERACIÓN INCORRECTA');
-            return;  
+            return;
         }
 
-       
+
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
                 confirmButton: "btn btn-success",
@@ -952,7 +958,7 @@
             reverseButtons: true
         }).then( async (result) => {
             if (result.isConfirmed) {
-               
+
                 try {
                     limpiarMessagesErrorValidacion();
                     mostrarAnimacionCotizacion();
@@ -964,17 +970,17 @@
                             fecha_propuesta_atencion,observacion
                         }
                     );
-                   
+
 
                     if(res.data.success){
                         dataTablePedidoDetalles.ajax.reload();
                         toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
                     }else{
                         console.log(res.data);
-                      
+
                         toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
-                    }    
-                    
+                    }
+
                 } catch (error) {
                     if('errors' in error.response.data){
                         pintarMessagesErrorValidacion(error.response.data.errors);
@@ -984,7 +990,7 @@
                 }finally{
                     ocultarAnimacionCotizacion();
                 }
-               
+
 
             } else if (
                 /* Read more about handling dismissals below */
@@ -997,7 +1003,7 @@
                 });
             }
             });
-        
+
     }
 
     function limpiarMessagesErrorValidacion(){
