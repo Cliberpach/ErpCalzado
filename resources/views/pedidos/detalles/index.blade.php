@@ -360,7 +360,7 @@
                     }
                 }
             ],
-            responsive:true,
+            "responsive":true,
             "bPaginate": true,
             "bLengthChange": true,
             "bFilter": true,
