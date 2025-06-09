@@ -305,11 +305,11 @@
                 },
                 {
                     data: 'documento_venta',
-                    searchable:true
+                    searchable:false
                 },
                 {
                     data: 'cotizacion_nro',
-                    searchable:true
+                    searchable:false
                 },
                 {
                     data: 'almacen_nombre',
@@ -422,7 +422,10 @@
                     }
                 }
             ],
-            language: getLanguajeDataTable()
+            language: getLanguajeDataTable(),
+            initComplete: function() {
+                $('#pedidos_table_filter input[type=search]').attr('placeholder', 'Buscar nro,almacén');
+            },
         })
 
 
