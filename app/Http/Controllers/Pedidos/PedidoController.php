@@ -39,7 +39,14 @@ class PedidoController extends Controller
 {
     public function index()
     {
-        return view('pedidos.pedido.index');
+        $roles = DB::table('role_user as rl')
+            ->join('roles as r', 'r.id', '=', 'rl.role_id')
+            ->where('rl.user_id', Auth::user()->id)
+            ->pluck('r.name')
+            ->toArray();
+
+        $isAdmin = in_array('ADMIN', $roles);
+        return view('pedidos.pedido.index',compact('isAdmin'));
     }
 
     public function getTable(Request $request)
@@ -75,7 +82,23 @@ class PedidoController extends Controller
             $pedidos    =   $pedidos->where('pedidos.cliente_id', $cliente_id);
         }
 
-        return DataTables::of($pedidos)
+        $roles = DB::table('role_user as rl')
+            ->join('roles as r', 'r.id', '=', 'rl.role_id')
+            ->where('rl.user_id', Auth::user()->id)
+            ->pluck('r.name')
+            ->toArray();
+
+        //======== ADMIN PUEDE VER TODOS LOS PEDIDOS DE SU SEDE =====
+        if (in_array('ADMIN', $roles)) {
+            $pedidos->where('pedidos.sede_id', Auth::user()->sede_id);
+        } else {
+
+            //====== USUARIOS PUEDEN VER SOLO SUS PROPIOS PEDIDOS ======
+            $pedidos->where('pedidos.sede_id', Auth::user()->sede_id)
+                ->where('pedidos.user_id', Auth::user()->id);
+        }
+
+        $dataTable  =   DataTables::of($pedidos)
             ->filterColumn('cliente_nombre', function ($query, $keyword) {
                 $query->whereRaw('LOWER(pedidos.cliente_nombre) like ?', ["%" . strtolower($keyword) . "%"]);
             })
@@ -84,8 +107,15 @@ class PedidoController extends Controller
             })
             ->filterColumn('cotizacion_nro', function ($query, $keyword) {
                 $query->whereRaw('LOWER(IF(pedidos.cotizacion_id IS NULL,"-",concat("CO-",pedidos.cotizacion_id))) like ?', ["%" . strtolower($keyword) . "%"]);
-            })
-            ->make(true);
+            });
+
+        if (in_array('ADMIN', $roles)) {
+            $dataTable->filterColumn('user_nombre', function ($query, $keyword) {
+                $query->whereRaw('LOWER(pedidos.user_nombre) like ?', ["%" . strtolower($keyword) . "%"]);
+            });
+        }
+
+        return $dataTable->make(true);
     }
 
 

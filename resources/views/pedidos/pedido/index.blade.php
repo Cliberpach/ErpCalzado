@@ -341,7 +341,7 @@
                 },
                 {
                     data: 'user_nombre',
-                    searchable: false
+                    searchable: true
                 },
                 {
                     data: 'estado',
@@ -442,9 +442,11 @@
 
 
     function getLanguajeDataTable() {
+        const userIsAdmin = @json($isAdmin);
         return {
             processing: "Procesando...",
-            search: "Buscar nro,facturado,cot,cliente: ",
+            search: userIsAdmin ?
+                "Buscar nro,facturado,cot,cliente,usuario: " : "Buscar nro,facturado,cot,cliente: ",
             lengthMenu: "MOSTRAR _MENU_ PEDIDOS",
             info: "MOSTRANDO _START_ A _END_ DE _TOTAL_ PEDIDOS",
             infoEmpty: "MOSTRANDO 0 PEDIDOS",
