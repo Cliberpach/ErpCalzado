@@ -467,6 +467,7 @@
                 {
                     data: 'pedido_name_id',
                     className: "text-left",
+                    name: 'p.pedido_nro',
                     searchable: true,
                     render: function(data, type, row) {
                         return `<p style="font-weight:bold;">${data}</p>`;
