@@ -68,6 +68,7 @@ class PedidoController extends Controller
             $pedidos    =   $pedidos->where('pedidos.estado', '=', $pedido_estado);
         }
 
+        dd($cliente_id);
         if($cliente_id){
             $pedidos    =   $pedidos->where('pedidos.cliente_id',$cliente_id);
         }
