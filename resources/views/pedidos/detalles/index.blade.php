@@ -607,7 +607,10 @@
             "language": {
                 "url": "{{ asset('Spanish.json') }}"
             },
-            "order": [],
+            "order": [[1, "desc"]],
+            "initComplete": function(settings, json) {
+                $('.dataTables_filter input').attr('placeholder', 'Buscar por código');
+            }
         });
     }
 
