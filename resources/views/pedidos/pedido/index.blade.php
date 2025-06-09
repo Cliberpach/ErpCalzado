@@ -305,11 +305,11 @@
                 },
                 {
                     data: 'documento_venta',
-                    searchable:false
+                    searchable:true
                 },
                 {
                     data: 'cotizacion_nro',
-                    searchable:false
+                    searchable:true
                 },
                 {
                     data: 'almacen_nombre',
@@ -424,7 +424,7 @@
             ],
             language: getLanguajeDataTable(),
             initComplete: function() {
-                $('#pedidos_table_filter input[type=search]').attr('placeholder', 'Buscar nro,almacén');
+                $('#pedidos_table input[type=search]').attr('placeholder', 'Buscar nro,facturado,cot');
             },
         })
 
@@ -436,7 +436,7 @@
     function getLanguajeDataTable() {
         return {
             processing: "Procesando...",
-            search: "BUSCAR: ",
+            search: "Buscar nro,facturado,cot: ",
             lengthMenu: "MOSTRAR _MENU_ PEDIDOS",
             info: "MOSTRANDO _START_ A _END_ DE _TOTAL_ PEDIDOS",
             infoEmpty: "MOSTRANDO 0 PEDIDOS",
