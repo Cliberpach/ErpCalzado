@@ -37,18 +37,18 @@
     <div class="row mb-3">
         <div class="col-9">
             <div class="row">
-                <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-12 col-xs-12">
                     <label for="fecha_inicio" style="font-weight: bold;">Fecha desde:</label>
                     <input type="date" class="form-control" id="filtroFechaInicio"
                         value="{{ old('fecha_inicio', now()->format('Y-m-d')) }}"
                         onchange="filtrarDespachoFechaInic(this.value)">
                 </div>
-                <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-12 col-xs-12">
                     <label for="fecha_fin" style="font-weight: bold;">Fecha hasta:</label>
                     <input type="date" class="form-control" id="filtroFechaFin" value="{{ now()->format('Y-m-d') }}"
                         onchange="filtrarDespachoFechaFin(this.value)">
                 </div>
-                <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-12 col-xs-12">
                     <label for="pedido_estado" style="font-weight: bold;">Estado</label>
                     <select id="pedido_estado" class="form-control select2_form"
                         onchange="filtrarDespachosEstado(this.value)">
@@ -58,11 +58,10 @@
                         <option value="FINALIZADO">FINALIZADO</option>
                     </select>
                 </div>
-                <div class="col-3">
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-12 col-xs-12">
                     <label for="filtroCliente" style="font-weight: bold;">CLIENTE:</label>
                     <select class="select2_form" style="text-transform: uppercase; width:100%" name="filtroCliente"
                         id="filtroCliente" required onchange="pedidos_data_table.ajax.reload();">
-
                     </select>
                 </div>
 
@@ -263,9 +262,10 @@
                 url: getPedidosUrl,
                 type: 'GET',
                 "data": function(d) {
-                    d.fecha_inicio = $('#filtroFechaInicio').val();
-                    d.fecha_fin = $('#filtroFechaFin').val();
-                    d.pedido_estado = $('#pedido_estado').val();
+                    d.fecha_inicio      =   $('#filtroFechaInicio').val();
+                    d.fecha_fin         =   $('#filtroFechaFin').val();
+                    d.pedido_estado     =   $('#pedido_estado').val();
+                    d.cliente_id        =   $('#filtroCliente').val();
                 }
             },
             "order": [
@@ -296,25 +296,32 @@
             bProcessing: true,
             columns: [{
                     data: 'id',
-                    visible: false
+                    visible: false,
+                    searchable:false
                 },
                 {
-                    data: 'pedido_nro'
+                    data: 'pedido_nro',
+                    searchable:true
                 },
                 {
-                    data: 'documento_venta'
+                    data: 'documento_venta',
+                    searchable:true
                 },
                 {
-                    data: 'cotizacion_nro'
+                    data: 'cotizacion_nro',
+                    searchable:true
                 },
                 {
-                    data: 'almacen_nombre'
+                    data: 'almacen_nombre',
+                    searchable:true
                 },
                 {
-                    data: 'cliente_nombre'
+                    data: 'cliente_nombre',
+                    searchable:false
                 },
                 {
                     data: 'created_at',
+                    searchable:false,
                     render: function(data, type, row) {
                         const date = new Date(data);
                         const formattedDate = date.getFullYear() + '-' +
@@ -327,13 +334,16 @@
                     }
                 },
                 {
-                    data: 'total_pagar'
+                    data: 'total_pagar',
+                    searchable:false
                 },
                 {
-                    data: 'user_nombre'
+                    data: 'user_nombre',
+                    searchable:false
                 },
                 {
                     data: 'estado',
+                    searchable:false,
                     className: "text-center",
                     render: function(data, type, row) {
                         if (data === 'PENDIENTE') {
@@ -347,6 +357,7 @@
                 },
                 {
                     data: null,
+                    searchable:false,
                     className: "text-center",
                     render: function(data, type, row) {
                         let url_reporte = '{{ route('pedidos.pedido.reporte', ':id') }}';

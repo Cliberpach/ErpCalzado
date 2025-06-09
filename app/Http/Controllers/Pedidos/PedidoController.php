@@ -45,6 +45,7 @@ class PedidoController extends Controller
         $fecha_inicio   =   $request->get('fecha_inicio');
         $fecha_fin      =   $request->get('fecha_fin');
         $pedido_estado  =   $request->get('pedido_estado');
+        $cliente_id     =   $request->get('filtroCliente');
 
         $pedidos    =   Pedido::select(
                         'pedidos.*',
@@ -65,6 +66,10 @@ class PedidoController extends Controller
 
         if($pedido_estado){
             $pedidos    =   $pedidos->where('pedidos.estado', '=', $pedido_estado);
+        }
+
+        if($cliente_id){
+            $pedidos    =   $pedidos->where('pedidos.cliente_id',$cliente_id);
         }
 
         return DataTables::of($pedidos)->make(true);
