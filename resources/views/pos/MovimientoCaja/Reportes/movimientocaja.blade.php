@@ -293,7 +293,7 @@
                 <tr>
                     <td style="padding-left: 5px;">Colaborador</td>
                     <td>:</td>
-                    <td>{{ $movimiento->colaborador->persona->apellido_paterno . ' ' . $movimiento->colaborador->persona->apellido_materno . ' ' . $movimiento->colaborador->persona->nombres }}
+                    <td>{{ $colaborador->nombres }}
                     </td>
                     {{-- <td>{{ getFechaFormato( $documento->fecha_documento ,'d/m/Y')}}</td> --}}
                 </tr>
@@ -366,7 +366,7 @@
                                 @elseif($ventas->documento->estado === 'ANULADO')
                                     ANULADO
                                 @endif
-                            
+
                             </td>
                             <td style="text-align: center; border-right: 2px solid #52BE80;">
                                 {{$ventas->cobrar}}
@@ -376,7 +376,7 @@
                             </td>
                             @foreach (tipos_pago() as $tipo)
                             {{-- EFECTIVO --}}
-                                @if ($tipo->id == 1)        
+                                @if ($tipo->id == 1)
                                     @if ($tipo->id == $ventas->documento->tipo_pago_id)
                                         <td style="text-align: center; border-right: 2px solid #52BE80">
                                             {{ $ventas->documento->importe }}</td>';
@@ -581,14 +581,14 @@
                             <td style="text-align: center; border-right: 2px solid #52BE80">
                                 {{ $recibo->monto }}</td>
                             @foreach (tipos_pago() as $tipo)
-                               
+
                                 @if ($tipo->descripcion == $recibo->metodo_pago)
                                     <td style="text-align: center; border-right: 2px solid #52BE80">
                                             {{ $recibo->monto }}</td>';
                                 @else
                                     <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
                                 @endif
-                                
+
                             @endforeach
                         </tr>
                     @endif
@@ -676,7 +676,7 @@
             </tbody>
         </table>
     </div><br>
-    
+
     <br>
     <div class="info-total-qr">
         <table class="tbl-qr" cellpadding="2" cellspacing="0">
@@ -899,7 +899,7 @@
                             <td style="text-align: center; border-right: 2px solid #52BE80">
                                 {{ $u->fecha_salida }}
                             </td>
-                           
+
 
                         </tr>
                     @endforeach
