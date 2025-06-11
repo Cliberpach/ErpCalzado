@@ -293,7 +293,7 @@
                 <tr>
                     <td style="padding-left: 5px;">Colaborador</td>
                     <td>:</td>
-                    <td>{{ $colaborador->nombres }}
+                    <td>{{ $colaborador->nombre }}
                     </td>
                     {{-- <td>{{ getFechaFormato( $documento->fecha_documento ,'d/m/Y')}}</td> --}}
                 </tr>
