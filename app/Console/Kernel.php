@@ -27,11 +27,11 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         //$schedule->command('inspire')->hourly();
-        //$schedule->command('test:create')->everyThreeHours();	
-        $schedule->command('notas_credito:send')->dailyAt('23:00');	
-        $schedule->command('stock:send')->dailyAt('23:20');	
-        $schedule->command('resumenes:send')->dailyAt('23:30');	
-
+        //$schedule->command('test:create')->everyThreeHours();
+        $schedule->command('notas_credito:send')->dailyAt('23:00');
+        $schedule->command('facturas:send')->dailyAt('23:10');
+        $schedule->command('stock:send')->dailyAt('23:20');
+        $schedule->command('resumenes:send')->dailyAt('23:30');
     }
 
     /**
@@ -41,7 +41,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands()
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }
