@@ -52,7 +52,7 @@ class SendFacturas extends Command
                                 where
                                 cd.tipo_venta_id = "127"
                                 AND cd.sunat = "0"
-                                AND cd.cdr_response_code <> "0"
+                                AND cd.cdr_response_code is null
                                 AND cd.created_at >= DATE_SUB(NOW(), INTERVAL 4 DAY)
                             ');
 
