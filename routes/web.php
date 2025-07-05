@@ -204,13 +204,13 @@ function(){
         Route::post('/store', 'Mantenimiento\Sede\SedeController@store')->name('mantenimiento.sedes.store');
         Route::put('/update/{id}', 'Mantenimiento\Sede\SedeController@update')->name('mantenimiento.sedes.update');
         Route::get('/getSedes', 'Mantenimiento\Sede\SedeController@getSedes')->name('mantenimiento.sedes.getSedes');
-        
+
         Route::get('/numeracion/create/{sede_id}', 'Mantenimiento\Sede\SedeController@numeracionCreate')->name('mantenimiento.sedes.numeracionCreate');
         Route::get('/numeracion/getNumeracion', 'Mantenimiento\Sede\SedeController@getNumeracion')->name('mantenimiento.sedes.getNumeracion');
         Route::post('/numeracion/store', 'Mantenimiento\Sede\SedeController@numeracionStore')->name('mantenimiento.sedes.numeracionStore');
 
     });
-    
+
 
     //Almacenes
     //Almacen
@@ -288,7 +288,7 @@ function(){
         Route::get('generarCode','Almacenes\ProductoController@generarCode')->name('generarCode');
 
         Route::get('/obtenerProducto/{id}', 'Almacenes\ProductoController@obtenerProducto')->name('almacenes.producto.obtenerProducto');
-        
+
 
 
     });
@@ -349,7 +349,7 @@ function(){
         Route::get('show/{id}', 'Almacenes\SolicitudTrasladoController@show')->name('almacenes.solicitud_traslado.show');
         Route::get('/generarEtiquetas/{id}', 'Almacenes\SolicitudTrasladoController@generarEtiquetas')->name('almacenes.solicitud_traslado.generarEtiquetas');
 
-    
+
     });
 
     //========== TRASLADOS =====
@@ -504,7 +504,7 @@ function(){
         Route::get('/getColoresTallas/{almacen_id}/{producto_id}', 'Ventas\CotizacionController@getColoresTallas')->name('ventas.cotizacion.getColoresTallas');
 
         Route::get('nuevodocumento/{id}','Ventas\CotizacionController@newdocument')->name('ventas.cotizacion.nuevodocumento');
-    
+
         Route::post('convertirADocVenta','Ventas\CotizacionController@convertirADocVenta')->name('ventas.cotizacion.convertirADocVenta');
         Route::post('devolverCantidades','Ventas\CotizacionController@devolverCantidades')->name('ventas.cotizacion.devolverCantidades');
 
@@ -532,7 +532,7 @@ function(){
         Route::post('/actualizarStockAdd', 'Ventas\DocumentoController@actualizarStockAdd')->name('ventas.documento.actualizarStockAdd');
         Route::post('/actualizarStockDelete', 'Ventas\DocumentoController@actualizarStockDelete')->name('ventas.documento.actualizarStockDelete');
         Route::post('/actualizarStockEdit', 'Ventas\DocumentoController@actualizarStockEdit')->name('ventas.documento.actualizarStockEdit');
-       
+
         Route::get('convertir/create/{id}','Ventas\DocumentoController@convertirCreate')->name('ventas.documento.convertirCreate');
         Route::post('convertir/store','Ventas\DocumentoController@convertirStore')->name('ventas.documento.convertirStore');
 
@@ -557,7 +557,7 @@ function(){
         Route::post('customers','Ventas\DocumentoController@customers')->name('ventas.customers');
         Route::post('customers-all','Ventas\DocumentoController@customers_all')->name('ventas.customers_all');
         Route::post('vouchersAvaible','Ventas\DocumentoController@vouchersAvaible')->name('ventas.vouchersAvaible');
-        
+
         Route::post('regularizar-venta','Ventas\DocumentoController@regularizarVenta')->name('ventas.regularizarVenta');
         Route::get('cambiarTallas/create/{id}','Ventas\DocumentoController@cambiarTallasCreate')->name('venta.cambiarTallas.create');
         Route::get('getTallas/{almacen_id}/{producto_id}/{color_id}','Ventas\DocumentoController@getTallas')->name('venta.cambiarTallas.getTallas');
@@ -644,8 +644,8 @@ function(){
         Route::post('generarOrdenProduccion/', 'Pedidos\DetalleController@generarOrdenProduccion')->name('pedidos.pedidos_detalles.generarOrdenProduccion');
         Route::get('getExcel/{pedido_detalle_estado?}/{cliente_id?}/{modelo_id?}/{producto_id?}', 'Pedidos\DetalleController@getExcel')->name('pedidos.pedidos_detalles.getExcel');
         Route::get('getPdf/{pedido_detalle_estado?}/{cliente_id?}/{modelo_id?}/{producto_id?}', 'Pedidos\DetalleController@getPdf')->name('pedidos.pedidos_detalles.getPdf');
-    });  
-    
+    });
+
     //======= ÓRDENES - PEDIDO =======
     Route::prefix('pedidos/ordenes')->group(function(){
         Route::get('index', 'Pedidos\OrdenProduccionController@index')->name('pedidos.ordenes_produccion.index');
@@ -657,10 +657,10 @@ function(){
         Route::get('/getColoresTallas/{producto_id}', 'Pedidos\OrdenProduccionController@getColoresTallas')->name('pedidos.ordenes_produccion.getColoresTallas');
         Route::post('store', 'Pedidos\OrdenProduccionController@store')->name('pedidos.ordenes_produccion.store');
 
-    });   
+    });
 
-     // Despachos
-     Route::prefix('ventas/despachos')->group(function() {
+    //Despachos
+    Route::prefix('ventas/despachos')->group(function() {
 
         Route::get('/', 'Ventas\DespachoController@index')->name('ventas.despachos.index');
         Route::get('/getTable', 'Ventas\DespachoController@getTable')->name('ventas.despachos.getTable');
@@ -671,6 +671,21 @@ function(){
         Route::get('get-despacho/{documento_id}','Ventas\DespachoController@getDespacho')->name('ventas.despachos.getDespacho');
         Route::post('/updateDespacho', 'Ventas\DespachoController@updateDespacho')->name('ventas.despachos.updateDespacho');
         Route::post('/eliminarDespacho', 'Ventas\DespachoController@eliminarDespacho')->name('ventas.despachos.eliminarDespacho');
+
+    });
+
+    //Reservas
+    Route::prefix('ventas/reservas')->group(function() {
+
+        Route::get('/', 'Ventas\ReservaController@index')->name('ventas.reservas.index');
+        Route::get('/getTable', 'Ventas\ReservaController@getTable')->name('ventas.reservas.getTable');
+        Route::get('/showDetalles/{documento_id}', 'Ventas\ReservaController@showDetalles')->name('ventas.reservas.showDetalles');
+        // Route::get('/pdfBultos/{documento_id}/{despacho_id}/{nro_bultos}', 'Ventas\DespachoController@pdfBultos')->name('ventas.despachos.pdfBultos');
+        // Route::post('/setEmbalaje', 'Ventas\DespachoController@setEmbalaje')->name('ventas.despachos.setEmbalaje');
+        // Route::post('/setDespacho', 'Ventas\DespachoController@setDespacho')->name('ventas.despachos.setDespacho');
+        // Route::get('get-despacho/{documento_id}','Ventas\DespachoController@getDespacho')->name('ventas.despachos.getDespacho');
+        // Route::post('/updateDespacho', 'Ventas\DespachoController@updateDespacho')->name('ventas.despachos.updateDespacho');
+        // Route::post('/eliminarDespacho', 'Ventas\DespachoController@eliminarDespacho')->name('ventas.despachos.eliminarDespacho');
 
     });
 
@@ -734,9 +749,9 @@ function(){
         Route::get('index/movimiento','Pos\CajaController@indexMovimiento')->name('Caja.Movimiento.index');
         Route::get('getMovimientosCajas','Pos\CajaController@getMovimientosCajas')->name('Caja.get_movimientos_cajas');
         Route::get('getDatosAperturaCaja','Pos\CajaController@getDatosAperturaCaja')->name('Caja.getDatosAperturaCaja');
-        
+
         Route::post('aperturaCaja','Pos\CajaController@aperturaCaja')->name('Caja.apertura');
-        
+
         Route::post('cerrarCaja','Pos\CajaController@cerrarCaja')->name('Caja.cerrar');
         Route::get('estadoCaja','Pos\CajaController@estadoCaja')->name('Caja.estado');
         Route::get('cajaDatosCierre','Pos\CajaController@cajaDatosCierre')->name('Caja.datos.cierre');
@@ -768,7 +783,7 @@ function(){
         Route::put('destroy/{recibo_caja_id}', 'ReciboCaja\ReciboCajaController@destroy')->name('recibos_caja.destroy');
         Route::get('detalles/{recibo_caja_id}','ReciboCaja\ReciboCajaController@detalles')->name('recibos_caja.detalles');
 
-        
+
         // Route::get('getEgreso','Egreso\EgresoController@getEgreso')->name('Egreso.getEgreso');
         // Route::post('store','Egreso\EgresoController@store')->name('Egreso.store');
         // Route::post('update/{id}','Egreso\EgresoController@update')->name('Egreso.update');
@@ -959,7 +974,14 @@ function(){
 
     });
 
-   
+    // Consultas - Kardex - Cliente
+    Route::prefix('consultas/kardex/venta')->group(function(){
+        Route::get('index', 'Consultas\Kardex\VentaController@index')->name('consultas.kardex.venta.index');
+        Route::get('getTable','Consultas\Kardex\VentaController@getTable')->name('consultas.kardex.venta.getTable');
+
+    });
+
+
     // Consultas - Kardex - Salida -Ventas
     Route::prefix('consultas/kardex/salidas')->group(function(){
 

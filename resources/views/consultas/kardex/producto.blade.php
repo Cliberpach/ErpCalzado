@@ -1,5 +1,6 @@
-@extends('layout') @section('content')
+@extends('layout')
 
+@section('content')
 @section('kardex-active', 'active')
 @section('producto_kardex-active', 'active')
 <div class="row wrapper border-bottom white-bg page-heading">
@@ -263,7 +264,7 @@
                 }
             ],
             "columnDefs": [{
-                "targets": [1, 2, 3], 
+                "targets": [1, 2, 3],
                 "searchable": true,
                 "orderable": true
             }],

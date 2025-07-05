@@ -998,6 +998,8 @@ array:27 [
 
   "regularizar"             => "SI" "NO"
   "doc_regularizar_id"      => id
+
+  "modo" => "ATENCION" "RESERVA"
 ]
 */
     public function store(DocVentaStoreRequest $request){
@@ -1107,6 +1109,8 @@ array:27 [
                 $documento->regularizado_de_serie   =   $doc_regularizar->serie.'-'.$doc_regularizar->correlativo;
                 $documento->estado_pago             =   'PAGADA';
             }
+
+            $documento->modo    =   $request->get('modo')??'VENTA';
             $documento->save();
 
             foreach($datos_validados->lstVenta as $item){
@@ -1285,6 +1289,7 @@ array:27 [
                 $envio_venta->almacen_nombre        =   $documento->almacen_nombre;
                 $envio_venta->sede_id               =   $documento->sede_id;
                 $envio_venta->sede_despachadora_id  =   $datos_validados->almacen->sede_id;
+                $envio_venta->modo                  =   $request->get('modo')??'VENTA';
                 $envio_venta->save();
 
             }
@@ -1334,6 +1339,7 @@ array:27 [
                 $envio_venta->almacen_nombre        =   $documento->almacen_nombre;
                 $envio_venta->sede_id               =   $documento->sede_id;
                 $envio_venta->sede_despachadora_id  =   $datos_validados->almacen->sede_id;
+                $envio_venta->modo                  =   $request->get('modo')??'VENTA';
                 $envio_venta->save();
             }
 

@@ -82,7 +82,6 @@
                             <thead>
                                 <tr>
                                     <th class="text-center">ID</th>
-                                    <th class="text-center">NRO</th>
                                     <th class="text-center">FACTURADO</th>
                                     <th class="text-center">COT</th>
                                     <th class="text-center">ALMACEN</th>
@@ -294,14 +293,9 @@
             ],
             dom: '<"buttons-container"B><"search-length-container"lf>tp',
             bProcessing: true,
-            columns: [{
-                    data: 'id',
-                    visible: false,
-                    searchable: false
-                },
+            columns: [
                 {
-                    data: 'pedido_nro',
-                    name: 'pedidos.pedido_nro',
+                    data: 'id',
                     searchable: true
                 },
                 {

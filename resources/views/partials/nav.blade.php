@@ -70,7 +70,7 @@
 </li>
 @endcan
 
-@can('restore', [Auth::user(),['cliente.index','cotizacion.index','documento_venta.index','ventascaja.index','guia.index','resumenes.index','pedidos.index','despachos.index']])
+@can('restore', [Auth::user(),['cliente.index','cotizacion.index','documento_venta.index','ventascaja.index','guia.index','resumenes.index','pedidos.index','despachos.index','reservas.index']])
 <li class="@yield('ventas-active')">
     <a href="#"><i class="fa fa-signal"></i> <span class="nav-label">Ventas</span><span
             class="fa arrow"></span></a>
@@ -89,6 +89,9 @@
         @endcan
         @can('haveaccess', 'despachos.index')
         <li class="@yield('despachos-active')"><a href="{{ route('ventas.despachos.index') }}">Despacho</a></li>
+        @endcan
+        @can('haveaccess', 'reservas.index')
+        <li class="@yield('reservas-active')"><a href="{{ route('ventas.reservas.index') }}">Reserva</a></li>
         @endcan
         @can('haveaccess', 'guia.index')
         <li class="@yield('guias-remision-active')"><a href="{{ route('ventas.guiasremision.index') }}">Guias de Remision</a></li>
@@ -256,7 +259,7 @@
         @can('haveaccess','consulta_utilidad_bruta.index')
         <li class="@yield('utilidad_bruta-active')"><a href="{{ route('consultas.caja.utilidad.index') }}">Utilidad Bruta</a></li>
         @endcan
-      
+
     </ul>
 </li>
 @endcan
@@ -324,6 +327,9 @@
         @endcan
         @can('haveaccess','kardex_producto.index')
         <li class="@yield('producto_kardex-active')"><a href="{{ route('consultas.kardex.producto.index') }}">Producto</a></li>
+        @endcan
+        @can('haveaccess','kardex_venta.index')
+        <li class="@yield('venta_kardex-active')"><a href="{{ route('consultas.kardex.venta.index') }}">Venta</a></li>
         @endcan
 
         {{-- @can('restore', [Auth::user(),['kardex_salida.index','kardex_venta.index']])

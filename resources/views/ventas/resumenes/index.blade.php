@@ -15,7 +15,7 @@
      position: relative;
    }
    .loader::before {
-     content: '';  
+     content: '';
      position: absolute;
      left: 34px;
      bottom: 8px;
@@ -27,7 +27,7 @@
      box-sizing: border-box;
      animation: rotation 0.6s linear infinite;
    }
-   
+
    @keyframes rotation {
      0% {
        transform: rotate(0deg);
@@ -35,7 +35,7 @@
      100% {
        transform: rotate(360deg);
      }
-   }   
+   }
 
    .loader-container {
         position: fixed;
@@ -72,7 +72,7 @@
     </div>
     <div class="col-lg-2 col-md-2">
         <button type="button" class="btn btn-block btn-w-m btn-primary m-t-md" onclick="openModalResumenes()">
-            <i class="fa fa-plus-square"></i> Añadir nuevo        
+            <i class="fa fa-plus-square"></i> Añadir nuevo
         </button>
     </div>
 </div>
@@ -88,7 +88,7 @@
                         <table class="table dataTables-gui table-striped table-bordered table-hover"
                         style="text-transform:uppercase" id="table-resumenes" width="100%">
                             <thead>
-                             
+
                                 <tr>
                                     <th class="text-center">NRO</th>
                                     <th class="text-center">FEC.EMISIÓN</th>
@@ -98,12 +98,12 @@
                                     <th class="text-center">ESTADO</th>
                                     <th class="text-center">TICKET</th>
                                     <th class="text-center">DESCARGAS</th>
-                                    <th class="text-center">ACCIONES</th> 
-                                    
+                                    <th class="text-center">ACCIONES</th>
+
                                 </tr>
                             </thead>
                             <tbody>
-                               
+
                             </tbody>
                         </table>
 
@@ -120,7 +120,7 @@
 @push('styles')
 <style>
     .swal2-container {
-        z-index: 9999 !important; 
+        z-index: 9999 !important;
     }
 </style>
     <!-- DataTable -->
@@ -142,7 +142,7 @@
     let tableResumenes  = null;
 
     let fecha_comprobantes              =   null;
-    let listComprobantes                =   [];   
+    let listComprobantes                =   [];
 
     document.addEventListener('DOMContentLoaded',()=>{
         events();
@@ -195,9 +195,9 @@
                             Swal.fire({
                                 title: 'REGISTRANDO RESUMEN Y ENVIANDO A SUNAT...',
                                 text: 'Por favor, espere mientras se procesa la solicitud.',
-                                allowOutsideClick: false,  
+                                allowOutsideClick: false,
                                 didOpen: () => {
-                                    Swal.showLoading();  
+                                    Swal.showLoading();
                                 }
                             });
 
@@ -245,7 +245,7 @@
     //====== REENVIAR RESUMEN ========
      //====== REENVIAR RESUMEN ========
      async function enviarResumen(resumen_id){
-        
+
         try {
             mostrarAnimacion();
 
@@ -261,11 +261,11 @@
             }else{
                 toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
             }
-           
+
         } catch (error) {
-            
+
             toastr.error(error.response.data, 'ERROR EN LA PETICIÓN ENVIAR RESUMEN A SUNAT', {
-                timeOut: 0 
+                timeOut: 0
             });
         }finally{
             ocultarAnimacion();
@@ -275,7 +275,7 @@
 
     //======== CONSULTAR RESUMEN ======
     async function consultarResumen(resumen_id){
-        
+
         try {
             mostrarAnimacion();
 
@@ -286,15 +286,15 @@
 
             console.log(res);
 
-           
+
             if(res.data.success){
                 tableResumenes.ajax.reload(null, false);
                 toastr.success(res.data.message,'CONSULTA COMPLETADA',{timeOut:0});
             }else{
                 toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
             }
-            
-          
+
+
         } catch (error) {
             console.error('Error al consultar el estado del ticket:', error);
             toastr.error(error,'CONSULTA INCORRECTA');
@@ -327,20 +327,20 @@
             serverSide: true,
             ajax: {
                 url: getResumenesUrl,
-                type: 'GET' 
+                type: 'GET'
             },
             columns: [
                 { data: 'id'},
                 { data: 'created_at' },
                 { data: 'fecha_comprobantes' },
-                { 
-                    data: null, 
+                {
+                    data: null,
                     render: function(data, type, row) {
                         return data.serie + '-' + data.correlativo;
                     }
                 },
-                { 
-                    data: null, 
+                {
+                    data: null,
                     render: function(data, type, row) {
 
                         //======= ENVIADO A SUNAT ======
@@ -367,24 +367,24 @@
                                 return `<span class="badge badge-primary">ENVIADO</span>`;
                             }
                         }
-                      
+
                         //====== AÚN NO ENVIADO A SUNAT =====
                         if(data.send_sunat == 0){
                             //======== ERRORES HTTP,ETC ======
                             if(!data.ticket){
                                 return `<span class="badge badge-danger">ERROR AL ENVIAR</span>`;
                             }
-                           
+
                         }
 
                     }
                 },
                 { data: 'ticket', title: 'ticket' },
-                { 
-                    data: null, 
+                {
+                    data: null,
                     render: function(data, type, row) {
                         var html = `<td style="white-space: nowrap;"><div style="display: flex; justify-content: center;">`;
-                        
+
                         if (data.ruta_xml) {
                             let urlGetXml       =   "{{ route('ventas.resumenes.getXml', ['resumen_id' => ':resumen_id']) }}";
                             urlGetXml           =   urlGetXml.replace(':resumen_id', data.id);
@@ -393,7 +393,7 @@
                             html += `<button type="submit" class="btn btn-primary btn-xml">XML</button>`;
                             html += `</form>`;
                         }
-                                                
+
                         if (data.ruta_cdr) {
                             let urlGetCdr     = "{{ route('ventas.resumenes.getCdr', ['resumen_id' => ':resumen_id']) }}";
                             let url_getCdr    = urlGetCdr.replace(':resumen_id', data.id);
@@ -403,17 +403,17 @@
                             html += `<button type="submit" class="btn btn-primary btn-xml">CDR</button>`;
                             html += `</form>`;
                         }
-                                                
+
                         html += `</div></td>`;
-                        
+
                         return html;
                     }
                 },
-                { 
-                    data: null, 
+                {
+                    data: null,
                     render: function(data, type, row) {
                         var html = '<td><div class="btn-group">';
-                        
+
                             if (data.send_sunat == 1) {
                                 if (data.code_estado == 98 || (data.ticket && !data.code_estado)) {
                                     html += `<button type="button" data-resumen-id="${data.id}" class="btn btn-primary btn-consultar-resumen">CONSULTAR</button>`;
@@ -424,13 +424,13 @@
                                 html += `<button type="button" data-resumen-id="${data.id}" class="btn btn-primary btn-reenviar-resumen">REENVIAR</button>`;
                             }
 
-                            html += `<i class="fas fa-eye btn btn-success d-flex align-items-center btn-detalle-resumen" data-resumen-id="${data.id}"></i>`; 
-                       
+                            html += `<i class="fas fa-eye btn btn-success d-flex align-items-center btn-detalle-resumen" data-resumen-id="${data.id}"></i>`;
+
                         html += '</div></td>';
-                        
+
                         return html;
                     }
-                } 
+                }
             ],
             language: {
                 processing:     "Cargando resúmenes",
@@ -461,16 +461,16 @@
 
      //========= GUARDAR RESUMEN Y ENVIAR A SUNAT A LA VEZ ==========
      async function saveSendResumen(){
-         
+
          try {
-    
+
             const url   =   '{{route('ventas.resumenes.store')}}';
             const res   =   await axios.post(url,{
                                 'comprobantes': JSON.stringify(listComprobantes),
                                 'fecha_comprobantes': fecha_comprobantes,
                                 'sede_id':@json($sede_id)
                              });
- 
+
              if(res.data.success){
                  tableResumenes.ajax.reload(null, false);
                  $('#modal_resumenes').modal('hide');
@@ -478,7 +478,7 @@
              }else{
                  toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
              }
- 
+
          } catch (error) {
              toastr.error(error.message, 'ERROR EN LA PETICIÓN GUARDAR Y ENVIAR RESÚMEN', { timeOut: 0 });
 
@@ -487,7 +487,7 @@
             $("#modal_resumenes").modal("hide");
          }
      }
-   
+
 
     //====== PINTAR NUEVO RESUMEN =====
     function addNewResumen(resumen){
@@ -497,7 +497,7 @@
     //==== ELIMINAR COMPROBANTE DEL CARRITO ======
     function eliminarComprobante(documento_id){
         listComprobantes    =   listComprobantes.filter((c)=>{
-            return  c.documento_id != documento_id; 
+            return  c.documento_id != documento_id;
         })
     }
 
@@ -531,7 +531,7 @@
 
             const url       =   route('ventas.resumenes.getStatus',@json($sede_id));
             const response  =   await axios.get(url);
-            
+
             const resumenActive =   response.data.resumenActive;
             //====== VERIFICANDO SI LOS RESUMENES ESTÁN ACTIVOS =====
             if(response.data.success){
@@ -553,7 +553,7 @@
     //====== PINTAR TABLE COMPROBANTES =====
     function pintarTableComprobantes(){
         clearTableComprobantes();
-     
+
         let tbody = `<tr>`;
         listComprobantes.forEach((c)=>{
             tbody   +=  `
@@ -564,7 +564,7 @@
                                 <td>${c.documento_igv}</td>
                                 <td>${c.documento_total}</td>
                                 <td>
-                                    <i class="btn btn-danger fas fa-trash-alt btn-delete-document" data-documento-id=${c.documento_id}></i>    
+                                    <i class="btn btn-danger fas fa-trash-alt btn-delete-document" data-documento-id=${c.documento_id}></i>
                                 </td>
                             </tr>
                         `;
@@ -591,7 +591,7 @@
         if(!isActive()){
             validacion = false;
         }
-        
+
         return validacion;
     }
 
@@ -600,11 +600,11 @@
         const rowIndex = tableResumenes.rows().indexes().filter(function(index) {
             return tableResumenes.row(index).data().id == resumen_id;
         });
-        
+
 
         if (rowIndex.length > 0) {
             const fila = tableResumenes.row(rowIndex[0]).data();
-            document.querySelector('#resumen-title').textContent  =   `${fila.serie}-${fila.correlativo}`; 
+            document.querySelector('#resumen-title').textContent  =   `${fila.serie}-${fila.correlativo}`;
 
             await getDetallesResumen(resumen_id);
 
@@ -615,7 +615,7 @@
 
     }
 
-  
+
 
 </script>
 @endpush

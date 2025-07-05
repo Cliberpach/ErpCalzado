@@ -208,7 +208,7 @@
                         <div class="nombre-cotizacion">
                             <p class="m-0 p-0 text-uppercase">PEDIDO</p>
                         </div>
-                        <p class="m-0 p-0 text-uppercase">{{ 'PE-'.$pedido->pedido_nro}}</p>
+                        <p class="m-0 p-0 text-uppercase">{{ 'PE-'.$pedido->id}}</p>
                     </div>
                 </div>
             </div>
@@ -300,13 +300,13 @@
                         <th style="text-align: right; width: 10%;">TOTAL</th> --}}
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 6%;">CANT</th>
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 20%;">PRODUCTO</th>
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 40%;">DESCRIPCIÓN 
+                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 40%;">DESCRIPCIÓN
                             <span>[TALLA/CANT]</span>
                         </th>
                         {{-- @foreach ($tallas as $talla)
                             <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">{{$talla->descripcion}}</th>
                         @endforeach --}}
-                        
+
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">P. UNIT.</th>
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">TOTAL</th>
                     </tr>
@@ -327,12 +327,12 @@
                             @foreach ($tallas as $talla)
                                 @php
                                     $descripcion .= '[' . $talla['talla_nombre'] . '/' . intval($talla['cantidad']) . ']';
-                                @endphp  
+                                @endphp
                             @endforeach
 
                             <td style="text-align: center; border-right: 2px solid #52BE80">{{ $descripcion }}</td>
-                           
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['precio_unitario_nuevo'], 2, ',', '.') }}</td>   
+
+                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['precio_unitario_nuevo'], 2, ',', '.') }}</td>
                             <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['subtotal'], 2, ',', '.') }}</td>
 
                             @php
@@ -372,10 +372,10 @@
                         <td></td>
                         <td></td>
                         <td ></td>
-                     
+
                         {{-- <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($cotizacion->total_pagar + $cotizacion->monto_descuento, 2) }}</td> --}}
                         <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($pedido->total_pagar, 2) }}</td>
-                      
+
                     </tr>
                 </tfoot>
             </table>

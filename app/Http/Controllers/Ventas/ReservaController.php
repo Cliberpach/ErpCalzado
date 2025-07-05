@@ -13,14 +13,12 @@ use App\Mantenimiento\Empresa\Empresa;
 use Illuminate\Support\Facades\Auth;
 use Throwable;
 
-class DespachoController extends Controller
+class ReservaController extends Controller
 {
     public function index(){
-        $this->authorize('haveaccess','despachos.index');
+        $this->authorize('haveaccess','reservas.index');
 
-        $cliente_varios       =   DB::select('select c.id,c.nombre from clientes as c where c.id = 1');
-
-        return view('ventas.despachos.index',compact('cliente_varios'));
+        return view('ventas.reservas.index');
     }
 
 
@@ -60,10 +58,13 @@ class DespachoController extends Controller
                         'ev.estado',
                         'ev.documento_id',
                         'ev.obs_despacho',
-                        'ev.modo'
+                        'ev.modo',
+                        DB::raw("CONCAT('PE', '-', cd.pedido_id) AS pedido_nro")
                     )
+                    ->leftJoin('cotizacion_documento as cd','cd.id','ev.documento_id')
                     ->join('empresa_sedes as es','es.id','ev.sede_despachadora_id')
                     ->join('empresa_sedes as eso','eso.id','ev.sede_id')
+                    ->where('ev.modo','RESERVA')
                     ->orderByDesc('id');
 
         if ($fecha_inicio) {
@@ -98,7 +99,11 @@ class DespachoController extends Controller
 
         }
 
-        return DataTables::of($query)->make(true);
+        return DataTables::of($query)
+        ->filterColumn('pedido_nro', function ($query, $keyword) {
+            $query->whereRaw("CONCAT('PE-', cd.pedido_id) like ?", ["%{$keyword}%"]);
+        })
+        ->make(true);
     }
 
 

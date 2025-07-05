@@ -1,7 +1,8 @@
-<table id="dataTables-despacho" class="table table-bordered table-hover" style="text-transform:uppercase">
+<table id="dataTables-reserva" class="table table-bordered table-hover" style="text-transform:uppercase">
     <thead>
         <tr>
             <th class="text-center" rowspan="2">MODO</th>
+            <th class="text-center" rowspan="2">PEDIDO</th>
 
             <th class="text-center" colspan="5">DOC VENTA</th>
 
@@ -23,7 +24,7 @@
 
             <th class="text-center" rowspan="2">OBS DESPACHO</th>
             <th class="text-center" rowspan="2">ESTADO</th>
-            <th data-priority="1" class="text-center" rowspan="2">ACCIONES</th>
+            <th class="text-center" rowspan="2">ACCIONES</th>
         </tr>
         <tr>
 

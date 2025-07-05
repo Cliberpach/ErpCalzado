@@ -25,8 +25,6 @@ class DocumentoController extends Controller
             $documentos = Documento::where('estado','!=','ANULADO')->orderBy('id', 'desc')->get();
         }
 
-
-
         $coleccion = collect();
         foreach($documentos as $documento){
 

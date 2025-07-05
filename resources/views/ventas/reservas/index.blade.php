@@ -1,9 +1,9 @@
 @extends('layout')
 @section('content')
-    @include('ventas.despachos.modal-detalles-doc')
-    @include('ventas.despachos.modal-bultos')
+    @include('ventas.reservas.modals.modal-detalles-doc')
+    @include('ventas.reservas.modals.modal-bultos')
 @section('ventas-active', 'active')
-@section('despachos-active', 'active')
+@section('reservas-active', 'active')
 
 <style>
     .fila-pendiente {
@@ -38,13 +38,13 @@
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
-        <h2 style="text-transform:uppercase"><b>Listado de Despachos</b></h2>
+        <h2 style="text-transform:uppercase"><b>Listado de Reservas</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{ route('home') }}">Panel de Control</a>
             </li>
             <li class="breadcrumb-item active">
-                <strong>Despachos</strong>
+                <strong>Reservas</strong>
             </li>
         </ol>
     </div>
@@ -59,7 +59,7 @@
                         <div class="col-3">
                             <label for="filtroEstado" style="font-weight: bold;">ESTADO:</label>
                             <select id="filtroEstado" class="form-control select2_form"
-                                onchange="dtDespachos.ajax.reload();">
+                                onchange="dtReservas.ajax.reload();">
                                 <option value="PENDIENTE">PENDIENTE</option>
                                 <option value="RESERVADO">RESERVADO</option>
                                 <option value="DESPACHADO">DESPACHADO</option>
@@ -69,7 +69,7 @@
                         <div class="col-3">
                             <label for="filtroCliente" style="font-weight: bold;">CLIENTE:</label>
                             <select class="select2_form" style="text-transform: uppercase; width:100%"
-                                name="filtroCliente" id="filtroCliente" required onchange="dtDespachos.ajax.reload();">
+                                name="filtroCliente" id="filtroCliente" required onchange="dtReservas.ajax.reload();">
                                 <option value=""></option>
                             </select>
                         </div>
@@ -103,7 +103,7 @@
                         <div class="col-12">
                             <div class="table-responsive">
 
-                                @include('ventas.despachos.tables.tbl_list_despachos')
+                                @include('ventas.reservas.tables.tbl_list_reservas')
 
                             </div>
                         </div>
@@ -118,8 +118,6 @@
 @stop
 @push('styles')
 <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<link href="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/sc-2.4.3/datatables.min.css" rel="stylesheet"
-    integrity="sha384-Y3z8QWg2WxeGcCzoUszKioTOl/t5nsuw04Ovug3XmL1vq/3169xaFbunr4cHL2NG" crossorigin="anonymous">
 <style>
     .letrapequeña {
         font-size: 11px;
@@ -170,17 +168,16 @@
 
 @push('scripts')
 <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-<script src="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/sc-2.4.3/datatables.min.js"
-    integrity="sha384-4iaAiW9Gi2uzZr7WGtxLB2ax39LxR04skeQ7solBQcyk0k55Q+fY2hjec0EHc5kd" crossorigin="anonymous">
-</script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
     let detallesDataTable;
-    let dtDespachos = null;
+    let dtReservas = null;
 
     document.addEventListener('DOMContentLoaded', () => {
-        iniciarDataTableDespachos();
-
+        iniciarDtReservas();
         events();
         iniciarSelect2();
         detallesDataTable = dataTableDetalles();
@@ -259,23 +256,25 @@
         });
     }
 
-    function iniciarDataTableDespachos() {
+    function iniciarDtReservas() {
 
-        dtDespachos = new DataTable('#dataTables-despacho', {
+        dtReservas = new DataTable('#dataTables-reserva', {
             "bPaginate": true,
             "bLengthChange": true,
             "bFilter": true,
             "bInfo": true,
             "bAutoWidth": false,
+            "processing": true,
             "serverSide": true,
             initComplete: function() {
-                $('.dt-search').append(`
+                $('.dataTables_filter').append(`
                 <div class="text-muted small mt-1">
-                    <strong>Buscar por: Modo, Doc, Cliente, Vendedor, Tipo envío, Empresa envío</strong>
+                    <strong>Buscar por: Modo,Pedido, Doc, Cliente, Vendedor, Tipo envío, Empresa envío</strong>
                 </div>
                 `);
             },
             rowCallback: function(row, data, index) {
+                // Asegúrate de que `estado` esté en el objeto `data`
                 let estado = data.estado;
 
                 if (estado === 'PENDIENTE') {
@@ -287,7 +286,7 @@
                 }
             },
             "ajax": {
-                "url": "{{ route('ventas.despachos.getTable') }}",
+                "url": "{{ route('ventas.reservas.getTable') }}",
                 "type": "GET",
                 "beforeSend": function() {
                     mostrarAnimacion();
@@ -305,122 +304,128 @@
             "columns": [
                 {
                     data: 'modo',
-                    name: 'ev.modo',
+                    name:'ev.modo',
+                    className: "text-center letrapequeña"
+                },
+                {
+                    data: 'pedido_nro',
+                    name:'pedido_nro',
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'documento_nro',
-                    name: 'ev.documento_nro',
+                    name:'ev.documento_nro',
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'cliente_nombre',
-                    name: 'ev.cliente_nombre',
+                    name:'ev.cliente_nombre',
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'cliente_celular',
-                    className: "text-left letrapequeña",
-                    searchable: false
+                    searchable:false,
+                    className: "text-left letrapequeña"
                 },
+
                 {
                     data: 'user_vendedor_nombre',
-                    name: 'ev.user_vendedor_nombre',
+                    name:'ev.user_vendedor_nombre',
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'almacen_nombre',
-                    searchable: false,
+                    searchable:false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'sede_origen_nombre',
-                    searchable: false,
+                    searchable:false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'sede_despachadora_nombre',
-                    searchable: false,
+                    searchable:false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'user_despachador_nombre',
-                    searchable: false,
+                    searchable:false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'fecha_envio_propuesta',
-                    searchable: false,
+                    searchable:false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'fecha_envio',
-                    searchable: false,
+                    searchable:false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'fecha_registro',
-                    searchable: false,
+                    searchable:false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'tipo_envio',
-                    name: 'ev.tipo_envio',
+                    name:'ev.tipo_envio',
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'empresa_envio_nombre',
-                    name: 'ev.empresa_envio_nombre',
+                    name:'ev.empresa_envio_nombre',
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'sede_envio_nombre',
-                    searchable: false,
+                    searchable:false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'ubigeo',
-                    searchable: false,
+                    searchable:false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'entrega_domicilio',
-                    searchable: false,
+                    searchable:false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'direccion_entrega',
-                    searchable: false,
+                    searchable:false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'destinatario_nombre',
-                    searchable: false,
+                    searchable:false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'destinatario_nro_doc',
-                    searchable: false,
+                    searchable:false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'tipo_pago_envio',
-                    searchable: false,
+                    searchable:false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'monto_envio',
-                    searchable: false,
+                    searchable:false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'obs_despacho',
-                    searchable: false,
+                    searchable:false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'estado',
-                    searchable: false,
+                    searchable:false,
                     className: "text-center letrapequeña",
                     render: function(data) {
                         let estado = '';
@@ -438,7 +443,7 @@
                 },
                 {
                     data: null,
-                    searchable: false,
+                    searchable:false,
                     className: "text-center",
                     render: function(data) {
                         //Ruta Detalle
@@ -453,18 +458,12 @@
                                                             <li><a class='dropdown-item' href='javascript:void(0);' onclick="imprimirEnvio(${data.documento_id},${data.id})" title='Imprimir' ><b><i class="fas fa-print"></i> Imprimir</a></b></li>
                                                        `;
 
-                        if (data.estado == "PENDIENTE" && data.modo === "VENTA") {
+                        if (data.estado == "PENDIENTE") {
                             acciones += `<li class='dropdown-divider'></li>
+                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="reservar(${data.documento_id},${data.id})" title='Reservar' ><b><i class="fas fa-tape"></i> Reservar</a></b></li>
                                                             <li><a class='dropdown-item' href='javascript:void(0);' onclick="despachar(${data.documento_id},${data.id})" title='Despachar' ><b><i class="fas fa-people-carry"></i> Despachar</a></b></li>
                                                     </ul>
                                                     </div>`;
-                        }
-
-                        if (data.estado === 'PENDIENTE' && data.modo === 'RESERVA') {
-                            acciones += `
-                            <li class='dropdown-divider'></li>
-                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="reservar(${data.documento_id},${data.id})" title='Reservar' ><b><i class="fas fa-tape"></i> Reservar</a></b></li>
-                            </ul></div>`;
                         }
 
                         if (data.estado == "RESERVADO") {
@@ -494,7 +493,15 @@
             "language": {
                 "url": "{{ asset('Spanish.json') }}"
             },
+            "order": [],
+            "columnDefs": [{
+                "searchable": false,
+                "targets": 5
+            }]
+
         });
+
+
     }
 
 
@@ -568,7 +575,7 @@
     //========= RESERVAR =========
     function reservar(documento_id, despacho_id) {
         //======= OBTENER LOS DATOS DEL DESPACHO ======
-        var miTabla = dtDespachos;
+        var miTabla = dtReservas;
 
         const fila = miTabla.rows().data().filter(function(value, index) {
             return value['id'] == despacho_id;
@@ -617,8 +624,8 @@
 
             if (res.data.success) {
                 //======= PINTANDO ESTADO EN DATATABLE ======
-                const fila = dtDespachos.row((idx, data) => data['id'] == despacho_id);
-                const indiceFila = dtDespachos.row((idx, data) => data['id'] == despacho_id).index();
+                const fila = dtReservas.row((idx, data) => data['id'] == despacho_id);
+                const indiceFila = dtReservas.row((idx, data) => data['id'] == despacho_id).index();
                 await fila.cell(indiceFila, 0).data('RESERVADO').draw();
                 //toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
             }
@@ -633,7 +640,7 @@
 
     function despachar(documento_id, despacho_id) {
         //======= OBTENER LOS DATOS DEL DESPACHO ======
-        var miTabla = dtDespachos;
+        var miTabla = dtReservas;
 
         const fila = miTabla.rows().data().filter(function(value, index) {
             return value['id'] == despacho_id;
@@ -681,11 +688,11 @@
             })
 
             if (res.data.success) {
-                dtDespachos.ajax.reload(null, false);
+                dtReservas.ajax.reload(null, false);
                 //======= PINTANDO ESTADO EN DATATABLE ======
 
-                // const fila          =   dtDespachos.row((idx,data) => data['id'] == despacho_id);
-                // const indiceFila    =   dtDespachos.row((idx,data) => data['id'] == despacho_id).index();
+                // const fila          =   dtReservas.row((idx,data) => data['id'] == despacho_id);
+                // const indiceFila    =   dtReservas.row((idx,data) => data['id'] == despacho_id).index();
                 // await fila.cell(indiceFila,0).data('DESPACHADO').draw();
             }
 
@@ -705,12 +712,12 @@
         if ((fi.toString().trim().length > 0 && ff.toString().trim().length > 0) & (fi > ff)) {
             document.querySelector('#filtroFechaInicio').value = '';
             toastr.error('FECHA INICIO DEBE SER MENOR O IGUAL A FECHA FIN', 'ERROR FECHAS');
-            dtDespachos.ajax.reload();
+            dtReservas.ajax.reload();
 
             return;
         }
 
-        dtDespachos.ajax.reload();
+        dtReservas.ajax.reload();
     }
 
     function filtrarDespachoFechaFin(fecha_fin) {
@@ -720,11 +727,11 @@
         if ((fi.toString().trim().length > 0 && ff.toString().trim().length > 0) & (ff < fi)) {
             document.querySelector('#filtroFechaFin').value = '';
             toastr.error('FECHA FIN DEBE SER MAYOR O IGUAL A FECHA INICIO', 'ERROR FECHAS');
-            dtDespachos.ajax.reload();
+            dtReservas.ajax.reload();
             return;
         }
 
-        dtDespachos.ajax.reload();
+        dtReservas.ajax.reload();
     }
 </script>
 @endpush

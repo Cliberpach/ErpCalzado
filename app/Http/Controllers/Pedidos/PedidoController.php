@@ -8,7 +8,6 @@ use Exception;
 use Illuminate\Http\Request;
 use App\Ventas\Pedido;
 use App\Ventas\PedidoDetalle;
-use App\Ventas\PedidoAtencion;
 use App\Mantenimiento\Condicion;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Ventas\Cliente;
@@ -16,17 +15,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Almacenes\Modelo;
 use App\Almacenes\Talla;
-use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Session;
 use Barryvdh\DomPDF\Facade as PDF;
-use Illuminate\Support\Collection;
 use App\Ventas\Documento\Documento;
 use  App\Http\Controllers\Ventas\DocumentoController;
 use App\Ventas\Documento\Detalle;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Pedido\PedidosExport;
+use App\Http\Requests\Pedidos\Pedido\PedidoDocVentaRequest;
 use App\Http\Requests\Pedidos\Pedido\PedidoStoreRequest;
 use App\Http\Requests\Pedidos\Pedido\PedidoUpdateRequest;
 use App\Http\Requests\Ventas\DocVenta\DocVentaStoreRequest;
@@ -34,6 +32,7 @@ use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Sedes\Sede;
 use App\Pos\ReciboCaja;
 use App\User;
+use Throwable;
 
 class PedidoController extends Controller
 {
@@ -1362,7 +1361,7 @@ array:6 [
         }
     }
 
-    /*
+/*
 array:23 [
   "_token" => "5MGXGnvyPqmaWivHZqfgugbvucN0v7DZj6Q0bkUX"
   "registrador" => "ADMIN"
@@ -1371,6 +1370,7 @@ array:23 [
   "fecha_vencimiento_campo" => "2025-02-26"
   "tipo_venta" => "129"
   "condicion_id" => "1"
+  "modo" => "ATENCION"
   "cliente_id" => "1"
   "productos_tabla" => "[{"producto_id":1,"color_id":3,"talla_id":1,"cantidad":1,"precio_unitario":"1.00","porcentaje_descuento":0,"precio_unitario_nuevo":0}]"
   "igv" => "18"
@@ -1390,9 +1390,8 @@ array:23 [
   "data_envio" => "{opcional}
 ]
 */
-    public function generarDocumentoVenta(Request $request)
+    public function generarDocumentoVenta(PedidoDocVentaRequest $request)
     {
-
         //========= GENERAR DOC VENTA ======
         $pedido_id              =   $request->get('pedido_id');
         $pedido                 =   Pedido::find($pedido_id);
@@ -1411,7 +1410,8 @@ array:23 [
         $request->merge(
             [
                 'almacenSeleccionado'   =>  $pedido->almacen_id,
-                'sede_id'               =>  $pedido->sede_id
+                'sede_id'               =>  $pedido->sede_id,
+                'modo'                  =>  $request->get('modo')
             ]
         );
 
@@ -1462,7 +1462,6 @@ array:23 [
 
             //======= CAMBIANDO ESTADO DEL PEDIDO =====
             //===== CANTIDAD DE ITEMS QUE TIENE EL PEDIDO ======
-            $cant_items_pedido                  =   PedidoDetalle::where('pedido_id', $pedido_id)->count('*');
             $cant_items_pendientes_pedido       =   PedidoDetalle::where('pedido_id', $pedido_id)
                 ->where('cantidad_pendiente', '>', 0)
                 ->count('*');
@@ -1550,7 +1549,7 @@ array:23 [
                 'documento_id'  => $documento_id,
                 'mensaje'       =>   'DOCUMENTO DE VENTA GENERADO - PEDIDO ACTUALIZADO'
             ]);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
 
             //======== REVERTIR ACCIONES REALIZADAS EN PEDIDO CONTROLLER ======
             DB::rollBack();
