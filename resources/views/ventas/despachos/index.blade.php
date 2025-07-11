@@ -453,7 +453,7 @@
                                                             <li><a class='dropdown-item' href='javascript:void(0);' onclick="imprimirEnvio(${data.documento_id},${data.id})" title='Imprimir' ><b><i class="fas fa-print"></i> Imprimir</a></b></li>
                                                        `;
 
-                        if (data.estado == "PENDIENTE" && data.modo === "VENTA") {
+                        if (data.estado == "PENDIENTE" && (data.modo === "VENTA" || data.modo === 'ATENCION')) {
                             acciones += `<li class='dropdown-divider'></li>
                                                             <li><a class='dropdown-item' href='javascript:void(0);' onclick="despachar(${data.documento_id},${data.id})" title='Despachar' ><b><i class="fas fa-people-carry"></i> Despachar</a></b></li>
                                                     </ul>
