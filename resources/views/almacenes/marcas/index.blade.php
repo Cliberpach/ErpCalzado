@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout')
+@section('content')
 @include('almacenes.marcas.create')
 @include('almacenes.marcas.edit')
 @include('almacenes.marcas.modalfile')
@@ -64,9 +65,6 @@
 
 @stop
 @push('styles')
-<!-- DataTable -->
-<link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
-
 <style>
     .my-swal {
         z-index: 3000 !important;
@@ -75,9 +73,6 @@
 @endpush
 
 @push('scripts')
-<!-- DataTable -->
-<script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 
 <script>
 
@@ -86,33 +81,6 @@
 
         $('.dataTables-articulo').DataTable({
             "dom": '<"html5buttons"B>lTfgitp',
-            "buttons": [
-                {
-                    extend:    'excelHtml5',
-                    text:      '<i class="fa fa-file-excel-o"></i> Excel',
-                    titleAttr: 'Excel',
-                    title: 'MARCAS'
-                },
-
-                {
-                    titleAttr: 'Imprimir',
-                    extend: 'print',
-                    text:      '<i class="fa fa-print"></i> Imprimir',
-                    customize: function (win){
-                        $(win.document.body).addClass('white-bg');
-                        $(win.document.body).css('font-size', '10px');
-
-                        $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
-                    }
-                }
-            ],
-            "bPaginate": true,
-            "bLengthChange": true,
-            "bFilter": true,
-            "bInfo": true,
-            "bAutoWidth": false,
             "processing":true,
             "ajax": '{{ route("getmarca")}}' ,
             "columns": [

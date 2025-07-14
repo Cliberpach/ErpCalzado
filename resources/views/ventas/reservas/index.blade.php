@@ -87,15 +87,15 @@
                     </div>
                     <div class="row">
                         <div class="col-auto d-flex align-items-center mr-3">
-                            <i class="fas fa-square icono-pendiente"></i>
+                            <i class="fa fa-square icono-pendiente"></i>
                             <span class="ml-2">PENDIENTE</span>
                         </div>
                         <div class="col-auto d-flex align-items-center mr-3">
-                            <i class="fas fa-square icono-reservado"></i>
+                            <i class="fa fa-square icono-reservado"></i>
                             <span class="ml-2">RESERVADO</span>
                         </div>
                         <div class="col-auto d-flex align-items-center">
-                            <i class="fas fa-square icono-despachado"></i>
+                            <i class="fa fa-square icono-despachado"></i>
                             <span class="ml-2">DESPACHADO</span>
                         </div>
                     </div>
@@ -117,7 +117,6 @@
 
 @stop
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 <style>
     .letrapequeña {
         font-size: 11px;
@@ -167,11 +166,6 @@
 @endpush
 
 @push('scripts')
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
-
 <script>
     let detallesDataTable;
     let dtReservas = null;
@@ -259,11 +253,6 @@
     function iniciarDtReservas() {
 
         dtReservas = new DataTable('#dataTables-reserva', {
-            "bPaginate": true,
-            "bLengthChange": true,
-            "bFilter": true,
-            "bInfo": true,
-            "bAutoWidth": false,
             "processing": true,
             "serverSide": true,
             initComplete: function() {
@@ -301,131 +290,130 @@
                     ocultarAnimacion();
                 }
             },
-            "columns": [
-                {
+            "columns": [{
                     data: 'modo',
-                    name:'ev.modo',
+                    name: 'ev.modo',
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'pedido_nro',
-                    name:'pedido_nro',
+                    name: 'pedido_nro',
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'documento_nro',
-                    name:'ev.documento_nro',
+                    name: 'ev.documento_nro',
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'cliente_nombre',
-                    name:'ev.cliente_nombre',
+                    name: 'ev.cliente_nombre',
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'cliente_celular',
-                    searchable:false,
+                    searchable: false,
                     className: "text-left letrapequeña"
                 },
 
                 {
                     data: 'user_vendedor_nombre',
-                    name:'ev.user_vendedor_nombre',
+                    name: 'ev.user_vendedor_nombre',
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'almacen_nombre',
-                    searchable:false,
+                    searchable: false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'sede_origen_nombre',
-                    searchable:false,
+                    searchable: false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'sede_despachadora_nombre',
-                    searchable:false,
+                    searchable: false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'user_despachador_nombre',
-                    searchable:false,
+                    searchable: false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'fecha_envio_propuesta',
-                    searchable:false,
+                    searchable: false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'fecha_envio',
-                    searchable:false,
+                    searchable: false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'fecha_registro',
-                    searchable:false,
+                    searchable: false,
                     className: "text-left letrapequeña"
                 },
                 {
                     data: 'tipo_envio',
-                    name:'ev.tipo_envio',
+                    name: 'ev.tipo_envio',
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'empresa_envio_nombre',
-                    name:'ev.empresa_envio_nombre',
+                    name: 'ev.empresa_envio_nombre',
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'sede_envio_nombre',
-                    searchable:false,
+                    searchable: false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'ubigeo',
-                    searchable:false,
+                    searchable: false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'entrega_domicilio',
-                    searchable:false,
+                    searchable: false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'direccion_entrega',
-                    searchable:false,
+                    searchable: false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'destinatario_nombre',
-                    searchable:false,
+                    searchable: false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'destinatario_nro_doc',
-                    searchable:false,
+                    searchable: false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'tipo_pago_envio',
-                    searchable:false,
+                    searchable: false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'monto_envio',
-                    searchable:false,
+                    searchable: false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'obs_despacho',
-                    searchable:false,
+                    searchable: false,
                     className: "text-center letrapequeña"
                 },
                 {
                     data: 'estado',
-                    searchable:false,
+                    searchable: false,
                     className: "text-center letrapequeña",
                     render: function(data) {
                         let estado = '';
@@ -443,7 +431,7 @@
                 },
                 {
                     data: null,
-                    searchable:false,
+                    searchable: false,
                     className: "text-center",
                     render: function(data) {
                         //Ruta Detalle
@@ -455,20 +443,20 @@
                         let acciones = `<div class='btn-group' style='text-transform:capitalize;'><button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class='fa fa-bars'></i></button>
                                                         <ul class='dropdown-menu'>
                                                             <li><a class='dropdown-item' href='javascript:void(0);' onclick="verDetalles(${data.documento_id})" title='Modificar' ><b><i class='fa fa-eye'></i> Detalle</a></b></li>
-                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="imprimirEnvio(${data.documento_id},${data.id})" title='Imprimir' ><b><i class="fas fa-print"></i> Imprimir</a></b></li>
+                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="imprimirEnvio(${data.documento_id},${data.id})" title='Imprimir' ><b><i class="fa fa-print"></i> Imprimir</a></b></li>
                                                        `;
 
                         if (data.estado == "PENDIENTE") {
                             acciones += `<li class='dropdown-divider'></li>
-                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="reservar(${data.documento_id},${data.id})" title='Reservar' ><b><i class="fas fa-tape"></i> Reservar</a></b></li>
-                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="despachar(${data.documento_id},${data.id})" title='Despachar' ><b><i class="fas fa-people-carry"></i> Despachar</a></b></li>
+                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="reservar(${data.documento_id},${data.id})" title='Reservar' ><b><i class="fa fa-tape"></i> Reservar</a></b></li>
+                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="despachar(${data.documento_id},${data.id})" title='Despachar' ><b><i class="fa fa-people-carry"></i> Despachar</a></b></li>
                                                     </ul>
                                                     </div>`;
                         }
 
                         if (data.estado == "RESERVADO") {
                             acciones += `<li class='dropdown-divider'></li>
-                                                <li><a class='dropdown-item' href='javascript:void(0);' onclick="despachar(${data.documento_id},${data.id})" title='Despachar' ><b><i class="fas fa-people-carry"></i> Despachar</a></b></li>
+                                                <li><a class='dropdown-item' href='javascript:void(0);' onclick="despachar(${data.documento_id},${data.id})" title='Despachar' ><b><i class="fa fa-people-carry"></i> Despachar</a></b></li>
                                                 </ul></div>`;
                         }
 
@@ -504,7 +492,6 @@
 
     }
 
-
     //Modal Eliminar
     const swalWithBootstrapButtons = Swal.mixin({
         customClass: {
@@ -513,8 +500,6 @@
         },
         buttonsStyling: false
     })
-
-
 
     async function verDetalles(documento_id) {
         try {

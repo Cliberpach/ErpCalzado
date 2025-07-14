@@ -1,4 +1,4 @@
-@extends('layout') 
+@extends('layout')
 @section('content')
 
 @section('almacenes-active', 'active')
@@ -7,13 +7,13 @@
 <div class="row wrapper border-bottom white-bg page-heading">
 
     <div class="col-lg-12">
-       <h2  style="text-transform:uppercase"><b>REGISTRAR NUEVAS NOTA DE INGRESO</b></h2>
+        <h2 style="text-transform:uppercase"><b>REGISTRAR NUEVAS NOTA DE INGRESO</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
-                <a href="{{route('home')}}">Panel de Control</a>
+                <a href="{{ route('home') }}">Panel de Control</a>
             </li>
             <li class="breadcrumb-item">
-                <a href="{{route('almacenes.nota_ingreso.index')}}">Notas de Ingreso</a>
+                <a href="{{ route('almacenes.nota_ingreso.index') }}">Notas de Ingreso</a>
             </li>
             <li class="breadcrumb-item active">
                 <strong>Registrar</strong>
@@ -54,7 +54,7 @@
                                                     <label class="required">Modelo</label>
                                                     <select id="modelo"
                                                         class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
-                                                        onchange="getNiProductos(this)" >
+                                                        onchange="getNiProductos(this)">
                                                         <option></option>
                                                         @foreach ($modelos as $modelo)
                                                             <option value="{{ $modelo->id }}"
@@ -69,15 +69,15 @@
 
                                             <div class="form-group row mt-3 content-window">
                                                 <div class="col-lg-12">
-                                            
+
                                                     @include('almacenes.nota_ingresos.tables.tbl_ni_productos')
                                                 </div>
                                             </div>
                                             <div class="form-group row mt-1">
                                                 <div class="col-lg-2 col-xs-12">
                                                     <button disabled type="button" id="btn_agregar_detalle"
-                                                        class="btn btn-warning btn-block"><i
-                                                          class="fa fa-plus"></i> AGREGAR</button>
+                                                        class="btn btn-warning btn-block"><i class="fa fa-plus"></i>
+                                                        AGREGAR</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -88,7 +88,7 @@
                                                 @include('almacenes.nota_ingresos.tables.tbl_ni_detalle')
                                             </div>
                                         </div>
-                                    </div> 
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -101,11 +101,12 @@
                                 (<label class="required"></label>) son obligatorios.</small>
                         </div>
                         <div class="col-md-6 text-right">
-                            <a href="{{route('almacenes.nota_ingreso.index')}}" id="btn_cancelar"
+                            <a href="{{ route('almacenes.nota_ingreso.index') }}" id="btn_cancelar"
                                 class="btn btn-w-m btn-default">
                                 <i class="fa fa-arrow-left"></i> Regresar
                             </a>
-                            <button type="submit" id="btn_grabar" form="enviar_ingresos" class="btn btn-w-m btn-primary">
+                            <button type="submit" id="btn_grabar" form="enviar_ingresos"
+                                class="btn btn-w-m btn-primary">
                                 <i class="fa fa-save"></i> Grabar
                             </button>
                         </div>
@@ -121,26 +122,15 @@
 
 @push('styles')
 
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-
-
-<!-- DataTable -->
-{{-- <link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet"> --}}
-
 <style>
-    .talla-no-creada{
-        color:rgb(201, 47, 9);
+    .talla-no-creada {
+        color: rgb(201, 47, 9);
         font-weight: bold;
     }
 </style>
-
 @endpush
 
 @push('scripts')
-<!-- Select2 -->
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-
-
 <script>
     $(".select2_form").select2({
         placeholder: "SELECCIONAR",
@@ -148,74 +138,74 @@
         width: '100%',
     });
 </script>
-<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
-    const selectModelo          =   document.querySelector('#modelo');
-    const tokenValue            =   document.querySelector('input[name="_token"]').value;
-    const tallas                =   @json($tallas);
-    const colores               =   @json($colores);
-    const bodyTablaProductos    =   document.querySelector('#tabla_ni_productos tbody');
-    const bodyTablaDetalle      =   document.querySelector('#tabla_ni_detalle tbody');
-    const btnAgregarDetalle     =   document.querySelector('#btn_agregar_detalle');
-    const inputProductos        =   document.querySelector('#notadetalle_tabla');
-   
-    const formNotaIngreso   = document.querySelector('#enviar_ingresos');
-    const btnGrabar         =   document.querySelector('#btn_grabar');
-    const swalWithBootstrapButtons  =   Swal.mixin({
-                                        customClass: {
-                                            confirmButton: 'btn btn-success',
-                                            cancelButton: 'btn btn-danger',
-                                            },
-                                            buttonsStyling: false
-                                        })
+    const selectModelo = document.querySelector('#modelo');
+    const tokenValue = document.querySelector('input[name="_token"]').value;
+    const tallas = @json($tallas);
+    const colores = @json($colores);
+    const bodyTablaProductos = document.querySelector('#tabla_ni_productos tbody');
+    const bodyTablaDetalle = document.querySelector('#tabla_ni_detalle tbody');
+    const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle');
+    const inputProductos = document.querySelector('#notadetalle_tabla');
 
-    let modelo_id       =   null;
-    let carrito         =   [];
-    let dtNiDetalle     =   null;
-    let dtNiProductos   =   null;
-
-
-    document.addEventListener('DOMContentLoaded',()=>{
-        events();
-        
-        dtNiDetalle     =   iniciarDataTable('tabla_ni_detalle');
-        dtNiProductos   =   iniciarDataTable('tabla_ni_productos');
+    const formNotaIngreso = document.querySelector('#enviar_ingresos');
+    const btnGrabar = document.querySelector('#btn_grabar');
+    const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-danger',
+        },
+        buttonsStyling: false
     })
 
-    function events(){
+    let modelo_id = null;
+    let carrito = [];
+    let dtNiDetalle = null;
+    let dtNiProductos = null;
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        events();
+
+        dtNiDetalle = iniciarDataTable('tabla_ni_detalle');
+        dtNiProductos = iniciarDataTable('tabla_ni_productos');
+    })
+
+    function events() {
         //========= EVENTO AGREGAR DETALLE ============
-        btnAgregarDetalle.addEventListener('click',()=>{
-            
+        btnAgregarDetalle.addEventListener('click', () => {
+
             const inputsCantidad = document.querySelectorAll('.inputCantidad');
-            inputsCantidad.forEach((ic)=>{
-                const cantidad = ic.value?ic.value:0;
-                if(cantidad != 0){
+            inputsCantidad.forEach((ic) => {
+                const cantidad = ic.value ? ic.value : 0;
+                if (cantidad != 0) {
                     const producto = formarProducto(ic);
-                    const indiceExiste  = carrito.findIndex((p)=>{
-                    return p.producto_id==producto.producto_id && p.color_id==producto.color_id && p.talla_id==producto.talla_id})
-                    
-                    if(indiceExiste == -1){
+                    const indiceExiste = carrito.findIndex((p) => {
+                        return p.producto_id == producto.producto_id && p.color_id == producto
+                            .color_id && p.talla_id == producto.talla_id
+                    })
+
+                    if (indiceExiste == -1) {
                         carrito.push(producto);
-                    }else{
+                    } else {
                         const productoModificar = carrito[indiceExiste];
                         productoModificar.cantidad = producto.cantidad;
                         carrito[indiceExiste] = productoModificar;
-                    
+
                     }
-                }else{
+                } else {
                     const producto = formarProducto(ic);
-                    const indiceExiste  = carrito.findIndex((p)=>{
-                    return p.producto_id==producto.producto_id && p.color_id==producto.color_id && p.talla_id==producto.talla_id})
-                    if(indiceExiste !== -1){
+                    const indiceExiste = carrito.findIndex((p) => {
+                        return p.producto_id == producto.producto_id && p.color_id == producto
+                            .color_id && p.talla_id == producto.talla_id
+                    })
+                    if (indiceExiste !== -1) {
                         carrito.splice(indiceExiste, 1);
                     }
                 }
-                  
+
             })
 
             reordenarCarrito();
@@ -223,26 +213,26 @@
             destruirDataTable(dtNiDetalle);
             limpiarTabla('tabla_ni_detalle');
             pintarDetalleNotaIngreso(carrito);
-            dtNiDetalle   =   iniciarDataTable('tabla_ni_detalle');
-            
+            dtNiDetalle = iniciarDataTable('tabla_ni_detalle');
+
         })
 
         //======== EVENTO ELIMINAR PRODUCTO DEL CARRITO ============
-        document.addEventListener('click',(e)=>{
-            if(e.target.classList.contains('delete-product')){
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-product')) {
                 const productoId = e.target.getAttribute('data-producto');
                 const colorId = e.target.getAttribute('data-color');
-                eliminarProducto(productoId,colorId);
+                eliminarProducto(productoId, colorId);
                 pintarDetalleNotaIngreso(carrito);
             }
         })
 
         //============ EVENTO ENVIAR FORMULARIO =============
-        formNotaIngreso.addEventListener('submit',async (e)=>{
+        formNotaIngreso.addEventListener('submit', async (e) => {
             e.preventDefault();
-            btnGrabar.disabled          =   true;
-            
-            if(carrito.length > 0){
+            btnGrabar.disabled = true;
+
+            if (carrito.length > 0) {
 
                 Swal.fire({
                     title: 'Generar etiquetas adhesivas?',
@@ -254,151 +244,155 @@
                     cancelButtonText: "No",
                 }).then((result) => {
 
-                    let generarAdhesivos    =   'NO';
+                    let generarAdhesivos = 'NO';
 
                     if (result.isConfirmed) {
-                        generarAdhesivos   =   'SI';            
-                    }else if (result.dismiss === Swal.DismissReason.cancel) {
-                        generarAdhesivos   =   'NO';            
+                        generarAdhesivos = 'SI';
+                    } else if (result.dismiss === Swal.DismissReason.cancel) {
+                        generarAdhesivos = 'NO';
                     }
-                    
-                    const formData  =   new FormData(e.target);
-                    formData.append('lstNi',JSON.stringify(carrito))
-                    formData.append('registrador_id',@json($registrador->id));
-                    formData.append('sede_id',@json($sede_id));
-                    formData.append('generarAdhesivos',generarAdhesivos);
-                    registrarNotaIngreso(formData,generarAdhesivos);
+
+                    const formData = new FormData(e.target);
+                    formData.append('lstNi', JSON.stringify(carrito))
+                    formData.append('registrador_id', @json($registrador->id));
+                    formData.append('sede_id', @json($sede_id));
+                    formData.append('generarAdhesivos', generarAdhesivos);
+                    registrarNotaIngreso(formData, generarAdhesivos);
                 })
-            }else{
+            } else {
                 toastr.error('El detalle de la nota de ingreso está vacío!!!')
                 btnGrabar.disabled = false;
             }
-           
+
         })
 
         //============== EVENTO VALIDACIÓN INPUT CANTIDADES ==========
-        document.addEventListener('input',(e)=>{
-            if(e.target.classList.contains('inputCantidad')){
+        document.addEventListener('input', (e) => {
+            if (e.target.classList.contains('inputCantidad')) {
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
             }
         })
     }
 
-    async function registrarNotaIngreso(formData,generarAdhesivos){
+    async function registrarNotaIngreso(formData, generarAdhesivos) {
 
         const swalWithBootstrapButtons = Swal.mixin({
-        customClass: {
-            confirmButton: "btn btn-success",
-            cancelButton: "btn btn-danger"
-        },
-        buttonsStyling: false
+            customClass: {
+                confirmButton: "btn btn-success",
+                cancelButton: "btn btn-danger"
+            },
+            buttonsStyling: false
         });
         swalWithBootstrapButtons.fire({
-        title: "Desea registrar la nota de ingreso?",
-        text: "Se ingresará stock en el almacén destino!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Sí!",
-        cancelButtonText: "No, cancelar!",
-        reverseButtons: true
+            title: "Desea registrar la nota de ingreso?",
+            text: "Se ingresará stock en el almacén destino!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí!",
+            cancelButtonText: "No, cancelar!",
+            reverseButtons: true
         }).then(async (result) => {
-        if (result.isConfirmed) {
-           
-            Swal.fire({
-                title: "Procesando...",
-                text: "Por favor, espere",
-                icon: "info",
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-            
-            try {
-                toastr.clear();
-                const res   =   await axios.post(route('almacenes.nota_ingreso.store'),formData);
-                console.log(res);
-                if(res.data.success){
+            if (result.isConfirmed) {
 
-                    if(generarAdhesivos === 'SI'){
-                        window.open(route('almacenes.nota_ingreso.generarEtiquetas', {nota_id: res.data.nota_id}), '_blank');
+                Swal.fire({
+                    title: "Procesando...",
+                    text: "Por favor, espere",
+                    icon: "info",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
                     }
+                });
 
-                    window.location =  route('almacenes.nota_ingreso.index');
-                    toastr.success(res.data.message,'OPERCIÓN COMPLETADA');
-                }else{
-                    Swal.close();
-                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
-                }
-            } catch (error) {
-                if (error.response) {
-                    if (error.response.status === 422) {
-                        const errors = error.response.data.errors;
-                        pintarErroresValidacion(errors, 'error');
-                        Swal.close();
-                        toastr.error('Errores de validación encontrados.', 'ERROR DE VALIDACIÓN');
+                try {
+                    toastr.clear();
+                    const res = await axios.post(route('almacenes.nota_ingreso.store'), formData);
+                    console.log(res);
+                    if (res.data.success) {
+
+                        if (generarAdhesivos === 'SI') {
+                            window.open(route('almacenes.nota_ingreso.generarEtiquetas', {
+                                nota_id: res.data.nota_id
+                            }), '_blank');
+                        }
+
+                        window.location = route('almacenes.nota_ingreso.index');
+                        toastr.success(res.data.message, 'OPERCIÓN COMPLETADA');
                     } else {
                         Swal.close();
-                        toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                        toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                     }
-                } else if (error.request) {
-                    Swal.close();
-                    toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
-                } else {
-                    Swal.close();
-                    toastr.error(error.message, 'ERROR DESCONOCIDO');
-                }        
-            }
+                } catch (error) {
+                    if (error.response) {
+                        if (error.response.status === 422) {
+                            const errors = error.response.data.errors;
+                            pintarErroresValidacion(errors, 'error');
+                            Swal.close();
+                            toastr.error('Errores de validación encontrados.', 'ERROR DE VALIDACIÓN');
+                        } else {
+                            Swal.close();
+                            toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
+                        }
+                    } else if (error.request) {
+                        Swal.close();
+                        toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.',
+                            'ERROR DE CONEXIÓN');
+                    } else {
+                        Swal.close();
+                        toastr.error(error.message, 'ERROR DESCONOCIDO');
+                    }
+                }
 
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-            swalWithBootstrapButtons.fire({
-            title: "Operación cancelada",
-            text: "No se realizaron acciones",
-            icon: "error"
-            });
-        }
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                swalWithBootstrapButtons.fire({
+                    title: "Operación cancelada",
+                    text: "No se realizaron acciones",
+                    icon: "error"
+                });
+            }
         });
-       
+
     }
 
-  
+
 
     //========= FUNCIÓN ELIMINAR PRODUCTO DEL CARRITO =============
-    const eliminarProducto = (productoId,colorId)=>{
+    const eliminarProducto = (productoId, colorId) => {
         console.log(carrito);
-        carrito = carrito.filter((p)=>{
+        carrito = carrito.filter((p) => {
             return !(p.producto_id == productoId && p.color_id == colorId);
         })
     }
 
-    function mostrarAnimacion(){
+    function mostrarAnimacion() {
         document.querySelector('.content-window').classList.add('sk__loading');
         document.querySelector('.sk-spinner').classList.remove('hide-window');
     }
-    function ocultarAnimacion(){
+
+    function ocultarAnimacion() {
         document.querySelector('.content-window').classList.remove('sk__loading');
         document.querySelector('.sk-spinner').classList.add('hide-window');
     }
 
     //============== FUNCIÓN OBTENER PRODUCTOS DE UN MODELO ==============
-    async function getNiProductos(e){
+    async function getNiProductos(e) {
 
         toastr.clear();
-        modelo_id                   =   e.value;
+        modelo_id = e.value;
 
-        btnAgregarDetalle.disabled  =   true;
-        
-        const almacen_id            =   document.querySelector('#almacen_destino').value;
+        btnAgregarDetalle.disabled = true;
 
-        if(modelo_id && !almacen_id){
+        const almacen_id = document.querySelector('#almacen_destino').value;
+
+        if (modelo_id && !almacen_id) {
             mostrarAnimacion();
             toastr.error('DEBE SELECCIONAR UN ALMACÉN DE DESTINO!!!');
-            
+
             destruirDataTable(dtNiProductos);
             limpiarTabla('tabla_ni_productos');
-            dtNiProductos   =   iniciarDataTable('tabla_ni_productos');
+            dtNiProductos = iniciarDataTable('tabla_ni_productos');
 
             document.querySelector('#modelo').onchange = null;
             $('#modelo').val(null).trigger('change');
@@ -409,29 +403,32 @@
             ocultarAnimacion();
         }
 
-        if(modelo_id && almacen_id){
+        if (modelo_id && almacen_id) {
             mostrarAnimacion();
             try {
-                const res       =   await axios.get(route('almacenes.nota_ingreso.getProductos',{modelo_id,almacen_id}));
-                if(res.data.success){
+                const res = await axios.get(route('almacenes.nota_ingreso.getProductos', {
+                    modelo_id,
+                    almacen_id
+                }));
+                if (res.data.success) {
                     destruirDataTable(dtNiProductos);
                     limpiarTabla('tabla_ni_productos');
-                    pintarTableStocks(tallas,res.data.productos);
-                    dtNiProductos   =   iniciarDataTable('tabla_ni_productos');
-                }else{
-                    toastr.error(res.data.exception,res.data.message);
+                    pintarTableStocks(tallas, res.data.productos);
+                    dtNiProductos = iniciarDataTable('tabla_ni_productos');
+                } else {
+                    toastr.error(res.data.exception, res.data.message);
                 }
             } catch (error) {
-                toastr.error(error,'ERROR AL REALIZAR LA SOLICITUD DE PRODUCTOS');
-            }finally{
+                toastr.error(error, 'ERROR AL REALIZAR LA SOLICITUD DE PRODUCTOS');
+            } finally {
                 ocultarAnimacion();
-            }   
+            }
         }
 
     }
 
     //============ REORDENAR CARRITO ===============
-    const reordenarCarrito= ()=>{
+    const reordenarCarrito = () => {
         carrito.sort(function(a, b) {
             if (a.producto_id === b.producto_id) {
                 return a.color_id - b.color_id;
@@ -442,143 +439,153 @@
     }
 
     //=============== FORMAR OBJETO PRODUCTO PARA INSERTAR EN EL CARRITO POSTERIORMENTE =============
-    const formarProducto = (ic)=>{
+    const formarProducto = (ic) => {
 
-        const producto_id       =   ic.getAttribute('data-producto-id');
-        const producto_nombre   =   ic.getAttribute('data-producto-nombre');
-        const color_id          =   ic.getAttribute('data-color-id');
-        const color_nombre      =   ic.getAttribute('data-color-nombre');
-        const talla_id          =   ic.getAttribute('data-talla-id');
-        const talla_nombre      =   ic.getAttribute('data-talla-nombre');
-        const cantidad          =   ic.value?ic.value:0;
-        const producto          =   {producto_id,producto_nombre,color_id,color_nombre,
-                                    talla_id,talla_nombre,cantidad};
+        const producto_id = ic.getAttribute('data-producto-id');
+        const producto_nombre = ic.getAttribute('data-producto-nombre');
+        const color_id = ic.getAttribute('data-color-id');
+        const color_nombre = ic.getAttribute('data-color-nombre');
+        const talla_id = ic.getAttribute('data-talla-id');
+        const talla_nombre = ic.getAttribute('data-talla-nombre');
+        const cantidad = ic.value ? ic.value : 0;
+        const producto = {
+            producto_id,
+            producto_nombre,
+            color_id,
+            color_nombre,
+            talla_id,
+            talla_nombre,
+            cantidad
+        };
         return producto;
 
     }
 
     //============ RENDERIZAR TABLA DE CANTIDADES ============
-    const pintarTableStocks = (tallas,productos)=>{
-        let options =``;
+    const pintarTableStocks = (tallas, productos) => {
+        let options = ``;
 
-        const producto_color_procesados      =   [];
+        const producto_color_procesados = [];
 
-        productos.forEach((p)=>{
+        productos.forEach((p) => {
 
-            const llave_producto_color     =   `${p.producto_id}-${p.color_id}`;
+            const llave_producto_color = `${p.producto_id}-${p.color_id}`;
 
-            if(!producto_color_procesados.includes(llave_producto_color)){
-                options+=`  <tr>
+            if (!producto_color_procesados.includes(llave_producto_color)) {
+                options += `  <tr>
                                 <th scope="row"  data-color=${p.color_id} >
-                                    ${p.color_nombre} 
+                                    ${p.color_nombre}
                                 </th>
                                 <th scope="row" data-producto=${p.producto_id}>
-                                    ${p.producto_nombre} 
+                                    ${p.producto_nombre}
                                 </th>
                         `;
 
-                        let htmlTallas = ``;
+                let htmlTallas = ``;
 
-                        tallas.forEach((t)=>{
+                tallas.forEach((t) => {
 
-                            //======= BUSCAMOS SI EXISTE EL PRODUCTO-COLOR-TALLA ========
-                            const existeProducto     =   productos.findIndex((item)=>{
-                                return  item.producto_id == p.producto_id && item.color_id  ==  p.color_id && item.talla_id == t.id;
-                            });
+                    //======= BUSCAMOS SI EXISTE EL PRODUCTO-COLOR-TALLA ========
+                    const existeProducto = productos.findIndex((item) => {
+                        return item.producto_id == p.producto_id && item.color_id == p
+                            .color_id && item.talla_id == t.id;
+                    });
 
-                            let classProducto   =   null;
-                            let stock   =   0;
-                            let message        =   null;
+                    let classProducto = null;
+                    let stock = 0;
+                    let message = null;
 
-                            existeProducto == -1?stock=0:stock=productos[existeProducto].stock;
-                            existeProducto == -1?classProducto='talla-no-creada':classProducto='talla-creada';
-                            existeProducto == -1?message='AÚN NO SE HA CREADO ESTA TALLA':message=null;
+                    existeProducto == -1 ? stock = 0 : stock = productos[existeProducto].stock;
+                    existeProducto == -1 ? classProducto = 'talla-no-creada' : classProducto =
+                        'talla-creada';
+                    existeProducto == -1 ? message = 'AÚN NO SE HA CREADO ESTA TALLA' : message =
+                        null;
 
-                            let etiquetaStock   =   ``;
+                    let etiquetaStock = ``;
 
-                            if(message){
-                                etiquetaStock   =   `<td><p class="${classProducto}" title="${message}" >${stock}</p></td>`;
-                            }else{
-                                etiquetaStock   =   `<td><p class="${classProducto}" >${stock}</p></td>`; 
-                            }
-                            
-                            htmlTallas +=   `   
+                    if (message) {
+                        etiquetaStock =
+                            `<td><p class="${classProducto}" title="${message}" >${stock}</p></td>`;
+                    } else {
+                        etiquetaStock = `<td><p class="${classProducto}" >${stock}</p></td>`;
+                    }
+
+                    htmlTallas += `
                                                 ${etiquetaStock}
                                                 <td >
-                                                    <input type="text" class="form-control inputCantidad" 
+                                                    <input type="text" class="form-control inputCantidad"
                                                     data-producto-id="${p.producto_id}"
                                                     data-producto-nombre="${p.producto_nombre}"
                                                     data-color-nombre="${p.color_nombre}"
                                                     data-talla-nombre="${t.descripcion}"
-                                                    data-color-id="${p.color_id}" data-talla-id="${t.id}"></input>    
+                                                    data-color-id="${p.color_id}" data-talla-id="${t.id}"></input>
                                                 </td>
-                                            `;   
-                        })
+                                            `;
+                })
                 htmlTallas += `</tr>`;
                 options += htmlTallas;
 
                 //======= MARCANDO PRODUCTO COLOR COMO PROCESADO ========
                 producto_color_procesados.push(llave_producto_color);
             }
-               
+
         })
-        
+
 
         bodyTablaProductos.innerHTML = options;
         btnAgregarDetalle.disabled = false;
     }
 
     //====== RENDERIZAR TABLA DETALLE NOTA INGRESO ==============
-    function pintarDetalleNotaIngreso(carrito){
-        let fila= ``;
-        let htmlTallas= ``;
-        const producto_color_procesado=[];
-        
+    function pintarDetalleNotaIngreso(carrito) {
+        let fila = ``;
+        let htmlTallas = ``;
+        const producto_color_procesado = [];
 
-        carrito.forEach((c)=>{
-            htmlTallas=``;
+
+        carrito.forEach((c) => {
+            htmlTallas = ``;
             if (!producto_color_procesado.includes(`${c.producto_id}-${c.color_id}`)) {
-                fila+= `<tr>   
+                fila += `<tr>
                             <td>
-                                <i class="fas fa-trash-alt btn btn-primary delete-product"
+                                <i class="fa fa-trash btn btn-danger delete-product"
                                 data-producto="${c.producto_id}" data-color="${c.color_id}">
-                                </i>                            
+                                </i>
                             </td>
                             <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
 
                 //tallas
-                tallas.forEach((t)=>{
-                    let cantidad = carrito.filter((ct)=>{
-                        return ct.producto_id==c.producto_id && ct.color_id==c.color_id && t.id==ct.talla_id;
+                tallas.forEach((t) => {
+                    let cantidad = carrito.filter((ct) => {
+                        return ct.producto_id == c.producto_id && ct.color_id == c.color_id && t
+                            .id == ct.talla_id;
                     });
-                    cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
-                    htmlTallas += `<td>${cantidad}</td>`; 
+                    cantidad.length != 0 ? cantidad = cantidad[0].cantidad : cantidad = 0;
+                    htmlTallas += `<td>${cantidad}</td>`;
                 })
 
 
-            
-                fila+=htmlTallas;
-                bodyTablaDetalle.innerHTML=fila;
+
+                fila += htmlTallas;
+                bodyTablaDetalle.innerHTML = fila;
                 producto_color_procesado.push(`${c.producto_id}-${c.color_id}`)
             }
         })
     }
 
 
-    function cambiarAlmacenDestino(){
+    function cambiarAlmacenDestino() {
 
         destruirDataTable(dtNiProductos);
         limpiarTabla('tabla_ni_productos');
         dtNiProductos = iniciarDataTable('tabla_ni_productos')
 
-        carrito =   [];
+        carrito = [];
         destruirDataTable(dtNiDetalle);
         limpiarTabla('tabla_ni_detalle');
-        dtNiDetalle =   iniciarDataTable('tabla_ni_detalle');
+        dtNiDetalle = iniciarDataTable('tabla_ni_detalle');
 
         $('#modelo').val(null).trigger('change');
     }
-
 </script>
-
 @endpush

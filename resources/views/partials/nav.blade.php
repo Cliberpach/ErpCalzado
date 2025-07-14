@@ -1,13 +1,10 @@
 <li class="nav-header">
     <div class="dropdown profile-element">
-        @if (auth()->user()->ruta_imagen)
-            <img alt="image" alt="{{ auth()->user()->name }}" class="rounded-circle" height="48" width="48"
-                src="{{ Storage::url(auth()->user()->ruta_imagen) }}" />
+        {{-- @if (auth()->user()->ruta_imagen)
+            <img alt="image" alt="{{ auth()->user()->name }}" class="rounded-circle" height="48" width="48" src="{{ Storage::url(auth()->user()->ruta_imagen) }}" />
         @else
-            <img alt="{{ auth()->user()->name }}" alt="{{ auth()->user()->name }}" class="rounded-circle" height="48"
-                width="48" src="{{ asset('img/default.jpg') }}" />
-
-        @endif
+            <img alt="{{ auth()->user()->name }}" alt="{{ auth()->user()->name }}" class="rounded-circle" height="48" width="48" src="{{ asset('img/default.jpg') }}" />
+        @endif --}}
         <a data-toggle="dropdown" class="dropdown-toggle" href="#">
             <span class="block m-t-xs font-bold">{{ auth()->user()->name }}</span>
             <span class="text-muted text-xs block">Administrador <b class="caret"></b></span>
@@ -17,7 +14,7 @@
         </ul>
     </div>
     <div class="logo-element">
-        <img src="{{ asset('img/default.png') }}" height="30" width="45">
+        {{-- <img src="{{ asset('img/default.png') }}" height="30" width="45"> --}}
     </div>
 </li>
 

@@ -1,4 +1,4 @@
-@extends('layout') 
+@extends('layout')
 @section('content')
 @section('almacenes-active', 'active')
 @section('conductores-active', 'active')
@@ -30,13 +30,13 @@
                 </div>
                 <div class="ibox-footer d-flex justify-content-between align-items-center">
                     <span  style="color:rgb(219, 155, 35);font-size:14px;font-weight:bold;">Los campos con * son obligatorios</span>
-                    
+
                     <div style="display:flex;">
                         <button class="btn btn-danger btnVolver" style="margin-right:5px;" type="button">
-                            <i class="fas fa-reply-all"></i> VOLVER
+                            <i class="fa fa-reply-all"></i> VOLVER
                         </button>
                         <button class="btn btn-primary" type="submit" form="formRegistrarConductor">
-                            <i class="fas fa-save"></i> REGISTRAR
+                            <i class="fa fa-save"></i> REGISTRAR
                         </button>
                     </div>
                 </div>
@@ -48,12 +48,9 @@
 @stop
 
 @push('styles')
-<link href="{{asset('Inspinia/css/plugins/select2/select2.min.css')}}" rel="stylesheet">
 @endpush
 
 @push('scripts')
-<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded',()=>{
@@ -99,14 +96,14 @@
                 consultarDocumento(tipo_documento,nro_documento);
 
             }
-            
+
         })
 
         //========== PERMITIR SOLO FORMATO DE CELULAR O TELEFONO ======
         document.querySelector('#telefono').addEventListener('input',(e)=>{
             const input = e.target;
             const maxLength = 20;
-            
+
             // Expresión regular para validar números de teléfono internacionales
             const validPattern = /^\+?[0-9]*$/;
 
@@ -129,14 +126,14 @@
             input.value = value;
         })
 
-      
+
     }
 
     function iniciarSelect2(){
         $( '.select2_form' ).select2( {
             width:'100%',
             placeholder: $( this ).data( 'placeholder' ),
-        } ); 
+        } );
     }
 
     function registrarConductor(){
@@ -169,7 +166,7 @@
                 html: 'Registrando nuevo conductor...',
                 allowOutsideClick: false,
                 didOpen: () => {
-                    Swal.showLoading(); 
+                    Swal.showLoading();
                 }
             });
 
@@ -177,15 +174,15 @@
                 const response  =   await fetch(urlRegistrarConductor, {
                                         method: 'POST',
                                         headers: {
-                                            'X-CSRF-TOKEN': token 
+                                            'X-CSRF-TOKEN': token
                                         },
                                         body: formData
                                     });
 
                 const   res =   await response.json();
-                
+
                 console.log(res);
-                
+
                 if(response.status === 422){
                     if('errors' in res){
                         pintarErroresValidacion(res.errors,'error');
@@ -193,7 +190,7 @@
                     Swal.close();
                     return;
                 }
-                
+
                 if(res.success){
                     const conductor_index     =   @json(route('almacenes.conductores.index'));
                     toastr.success(res.message,'OPERACIÓN COMPLETADA');
@@ -203,12 +200,12 @@
                     Swal.close();
                 }
 
-              
+
             } catch (error) {
                 toastr.error(error,'ERROR EN LA PETICIÓN REGISTRAR CONDUCTOR');
                 Swal.close();
             }
-          
+
 
         } else if (result.dismiss === Swal.DismissReason.cancel) {
             swalWithBootstrapButtons.fire({
@@ -232,7 +229,7 @@
         const tipo_documento        =   document.querySelector('#tipo_documento').value;
         const inputNroDoc           =   document.querySelector('#nro_documento');
         const btnConsultarDocumento =   document.querySelector('.btn_consultar_documento');
-        
+
         //======== DNI =======
         if(tipo_documento == 6){
             inputNroDoc.value               =   '';
@@ -266,11 +263,11 @@
         try {
             const token                     =   document.querySelector('input[name="_token"]').value;
             const urlConsultarDocumento     =   `{{ route('almacenes.conductores.consultarDocumento') }}?tipo_documento=${encodeURIComponent(tipo_documento)}&nro_documento=${encodeURIComponent(nro_documento)}`;
-            
+
             const response  =   await fetch(urlConsultarDocumento, {
                                     method: 'GET',
                                     headers: {
-                                        'X-CSRF-TOKEN': token 
+                                        'X-CSRF-TOKEN': token
                                     },
                                 });
 
@@ -354,46 +351,46 @@
                         <label for="nro_documento" style="font-weight: bold;" class="required">Nro Doc</label>
                         <div class="input-group mb-3">
                             <button disabled class="btn btn-primary btn_consultar_documento" type="button" id="button-addon1">
-                                <i class="fas fa-search"></i>
+                                <i class="fa fa-search"></i>
                             </button>
                             <input required readonly id="nro_documento" name="nro_documento" type="text" class="form-control" placeholder="Nro de Documento" aria-label="Example text with button addon" aria-describedby="button-addon1">
-                        </div>                 
+                        </div>
                         <span class="nro_documento_error msgError"  style="color:red;"></span>
-                    </div>    
+                    </div>
                   <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
                         <label for="nombre" style="font-weight: bold;" class="required">Nombres</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
-                                <i class="fas fa-user-check"></i>                  
+                                <i class="fa fa-user-check"></i>
                             </span>
                             <input required id="nombre" maxlength="150"  name="nombre" type="text" class="form-control" placeholder="Nombre" aria-label="Username" aria-describedby="basic-addon1">
-                        </div>       
-                        <span style="color:rgb(0, 89, 255); font-style: italic;">(150 LONGITUD MÁXIMA)</span>                 
+                        </div>
+                        <span style="color:rgb(0, 89, 255); font-style: italic;">(150 LONGITUD MÁXIMA)</span>
                         <span class="nombre_error msgError"  style="color:red;"></span>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2" id="divApellido">
                         <label for="apellido" style="font-weight: bold;" class="required">Apellidos</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
-                                <i class="fas fa-user-check"></i>                   
+                                <i class="fa fa-user-check"></i>
                             </span>
                             <input id="apellido" maxlength="150"  name="apellido" type="text" class="form-control" placeholder="Apellidos" aria-label="Username" aria-describedby="basic-addon1">
-                        </div>       
-                        <span style="color:rgb(0, 89, 255); font-style: italic;display:block;">(150 LONGITUD MÁXIMA)</span>                 
+                        </div>
+                        <span style="color:rgb(0, 89, 255); font-style: italic;display:block;">(150 LONGITUD MÁXIMA)</span>
                         <span class="apellido_error msgError"  style="color:red;"></span>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
                         <label for="registro_mtc" style="font-weight: bold;" class="required">Registro MTC</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
-                                <i class="fas fa-user-check"></i>                  
+                                <i class="fa fa-user-check"></i>
                             </span>
                             <input required id="registro_mtc" maxlength="20"  name="registro_mtc" type="text" class="form-control" placeholder="MTC" aria-label="Username" aria-describedby="basic-addon1">
-                        </div>       
-                        <span style="color:rgb(0, 89, 255); font-style: italic;">(SE PERMITE 20 CARACTERES COMO MÁXIMO, LETRAS MAYÚSCULAS Y NÚMEROS SIN ESPACIOS,SÍMBOLOS.)</span>                 
+                        </div>
+                        <span style="color:rgb(0, 89, 255); font-style: italic;">(SE PERMITE 20 CARACTERES COMO MÁXIMO, LETRAS MAYÚSCULAS Y NÚMEROS SIN ESPACIOS,SÍMBOLOS.)</span>
                         <span class="registro_mtc_error msgError"  style="color:red;"></span>
                     </div>
-            `;  
+            `;
 
             iniciarSelect2();
         }
@@ -417,57 +414,57 @@
                         <label for="nro_documento" style="font-weight: bold;" class="required">Nro Doc</label>
                         <div class="input-group mb-3">
                             <button disabled class="btn btn-primary btn_consultar_documento" type="button" id="button-addon1">
-                                <i class="fas fa-search"></i>
+                                <i class="fa fa-search"></i>
                             </button>
                             <input required readonly id="nro_documento" name="nro_documento" type="text" class="form-control" placeholder="Nro de Documento" aria-label="Example text with button addon" aria-describedby="button-addon1">
-                        </div>                 
+                        </div>
                         <span class="nro_documento_error msgError"  style="color:red;"></span>
-                    </div>    
+                    </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
                         <label for="nombre" style="font-weight: bold;" class="required">Nombres</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
-                                <i class="fas fa-user-check"></i>                  
+                                <i class="fa fa-user-check"></i>
                             </span>
                             <input required id="nombre" maxlength="150"  name="nombre" type="text" class="form-control" placeholder="Nombre" aria-label="Username" aria-describedby="basic-addon1">
-                        </div>       
-                        <span style="color:rgb(0, 89, 255); font-style: italic;">(150 LONGITUD MÁXIMA)</span>                 
+                        </div>
+                        <span style="color:rgb(0, 89, 255); font-style: italic;">(150 LONGITUD MÁXIMA)</span>
                         <span class="nombre_error msgError"  style="color:red;"></span>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2" id="divApellido">
                         <label for="apellido" style="font-weight: bold;" class="required">Apellidos</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
-                                <i class="fas fa-user-check"></i>                   
+                                <i class="fa fa-user-check"></i>
                             </span>
                             <input required id="apellido" maxlength="150"  name="apellido" type="text" class="form-control" placeholder="Apellidos" aria-label="Username" aria-describedby="basic-addon1">
-                        </div>       
-                        <span style="color:rgb(0, 89, 255); font-style: italic;display:block;">(150 LONGITUD MÁXIMA)</span>                 
+                        </div>
+                        <span style="color:rgb(0, 89, 255); font-style: italic;display:block;">(150 LONGITUD MÁXIMA)</span>
                         <span class="apellido_error msgError"  style="color:red;"></span>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2" id="divLicencia">
                         <label class="required" for="licencia" style="font-weight: bold;">LICENCIA</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
-                                <i class="fas fa-id-card"></i>                                        
+                                <i class="fa fa-id-card"></i>
                             </span>
                             <input minlength="9" maxlength="10" required id="licencia" name="licencia" type="text" class="form-control" placeholder="Licencia" aria-label="Username" aria-describedby="basic-addon1">
-                        </div>            
-                        <span style="color:rgb(0, 89, 255); font-style: italic;display:block;">(9 - 10 CARACTERES ALFANUMÉRICOS)</span>      
+                        </div>
+                        <span style="color:rgb(0, 89, 255); font-style: italic;display:block;">(9 - 10 CARACTERES ALFANUMÉRICOS)</span>
                         <span class="licencia_error msgError"  style="color:red;"></span>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 pb-2">
                         <label for="telefono" style="font-weight: bold;">Teléfono</label>
                         <div class="input-group">
                             <span class="input-group-text" id="basic-addon1">
-                                <i class="fas fa-phone"></i>                                      
+                                <i class="fa fa-phone"></i>
                             </span>
                             <input maxlength="20"  id="telefono" name="telefono" type="text" class="form-control" placeholder="Teléfono" aria-label="Username" aria-describedby="basic-addon1">
-                        </div> 
-                        <span style="color:rgb(0, 89, 255); font-style: italic;display:block;">(20 LONGITUD MÁXIMA)</span>                                 
+                        </div>
+                        <span style="color:rgb(0, 89, 255); font-style: italic;display:block;">(20 LONGITUD MÁXIMA)</span>
                         <span class="telefono_error msgError"  style="color:red;"></span>
                     </div>
-            `;  
+            `;
 
             iniciarSelect2();
         }

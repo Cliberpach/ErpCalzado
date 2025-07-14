@@ -18,9 +18,9 @@
                    <input type="hidden" value="{{$sede_id}}" name="sede_id" id="sede_id">
 
                    <div class="form-group">
-                        <label class="required">Descripción:</label> 
+                        <label class="required">Descripción:</label>
                         <input type="text" class="form-control {{ $errors->has('descripcion') ? ' is-invalid' : '' }}" name="descripcion" id="descripcion_editar" value="{{old('descripcion')}}" onkeyup="return mayus(this)" required>
-                        
+
                         @if ($errors->has('descripcion'))
                         <span class="invalid-feedback" role="alert">
                             <strong id="error-descripcion">{{ $errors->first('descripcion') }}</strong>
@@ -29,7 +29,7 @@
                     </div>
 
                     <div class="form-group">
-                        
+
                         <label class="required">Ubicación:</label>
                         <input type="text" class="form-control {{ $errors->has('ubicacion') ? ' is-invalid' : '' }}" id="ubicacion_editar" name="ubicacion" value="{{old('ubicacion')}}" onkeyup="return mayus(this)" required>
 
@@ -40,7 +40,7 @@
                         @endif
                     </div>
             </div>
-                
+
                     <div class="modal-footer">
                         <div class="col-md-6 text-left" style="color:#fcbc6c">
                             <i class="fa fa-exclamation-circle"></i> <small>Los campos marcados con asterisco (<label class="required"></label>) son obligatorios.</small>
@@ -50,18 +50,15 @@
                             <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i class="fa fa-times"></i> Cancelar</button>
                         </div>
                     </div>
-                
+
                 </form>
         </div>
     </div>
 </div>
 
 @push('styles')
-<link href="{{asset('Inspinia/css/plugins/select2/select2.min.css')}}" rel="stylesheet">
-@endpush 
+@endpush
 @push('scripts')
-<!-- Select2 -->
-<script src="{{asset('Inspinia/js/plugins/select2/select2.full.min.js')}}"></script>
 
 <script>
 
@@ -122,7 +119,7 @@
                             if (result.existe == true) {
                                 toastr.error('El almacen ya se encuentra registrado','Error');
                                 $(this).focus();
-                                
+
                             }else{
                                 // this.submit();
                                 var url = $('#editar_almacen').attr('id');
@@ -141,10 +138,10 @@
                     'La Solicitud se ha cancelado.',
                     'error'
                     )
-                    
+
                 }
                 })
-        
+
     }
 
 </script>

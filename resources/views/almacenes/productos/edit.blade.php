@@ -1,4 +1,4 @@
-@extends('layout') 
+@extends('layout')
 
 @section('content')
 @section('almacenes-active', 'active')
@@ -26,7 +26,7 @@
       font-size: 24px;
       visibility:hidden;
     }
-    
+
     /*========== LOADER SPINNER =======*/
     .loader_producto_edit {
         position: relative;
@@ -53,12 +53,12 @@
         border-radius: 50%;
         animation: ballStepUp 4s linear infinite;
       }
-    
+
     @keyframes pillerPushUp {
       0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
       50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
     }
-    
+
     @keyframes ballStepUp {
       0% {transform: translate(0, 0)}
       5% {transform: translate(8px, -14px)}
@@ -80,10 +80,10 @@
       90% {transform: translate(0, -40px)}
       100% {transform: translate(0, 0);}
     }
-        
-        
+
+
 </style>
-    
+
 <div class="overlay_producto_edit">
     <span class="loader_producto_edit"></span>
 </div>
@@ -118,19 +118,7 @@
 </div>
 @stop
 
-@push('styles')
-    <link href="{{asset('Inspinia/css/plugins/select2/select2.min.css')}}" rel="stylesheet">
-@endpush
-
 @push('scripts')
-    <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-    <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-
-    <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
 
@@ -167,7 +155,7 @@
 
         function events(){
 
-            //marcar check color 
+            //marcar check color
             document.addEventListener('click',(e)=>{
                 if(e.target.classList.contains('checkColor')){
                     const colorId = e.target.getAttribute('data-color-id');
@@ -446,14 +434,14 @@
                 [`<div style="text-align: left;font-weight:bold;">${color.id}</div>`,
                  `
                     <div class="form-check">
-                        <input class="form-check-input checkColor" type="checkbox" value="" id="checkColor_${color.id}" 
+                        <input class="form-check-input checkColor" type="checkbox" value="" id="checkColor_${color.id}"
                         data-color-id="${color.id}">
                         <label class="form-check-label" for="checkColor_${color.id}">
                             ${color.descripcion}
                         </label>
                     </div>
                  `
-                ] 
+                ]
             ).draw();
         }
 
@@ -468,7 +456,7 @@
             coloresAsignados = coloresAsignados.filter((c)=>{return c!=idColor })
         }
 
-        //load colores previos 
+        //load colores previos
         function loadColoresPrevios(){
             coloresPrevios.forEach((c)=>{
                 addColor(c.id);
@@ -493,10 +481,10 @@
                 Swal.fire({
                     title: "Actualizando producto...",
                     text: "Por favor, espera mientras procesamos la solicitud.",
-                    allowOutsideClick: false, 
-                    allowEscapeKey: false,   
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
                     didOpen: () => {
-                        Swal.showLoading(); 
+                        Swal.showLoading();
                     },
                 });
 
@@ -520,7 +508,7 @@
                     }else{
                         toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                     }
-                    
+
                 } catch (error) {
                     if (error.response) {
                         if (error.response.status === 422) {
@@ -534,11 +522,11 @@
                         toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
                     } else {
                         toastr.error(error.message, 'ERROR DESCONOCIDO');
-                    }      
+                    }
                 }finally{
                     Swal.close();
                 }
-                    
+
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 swalWithBootstrapButtons.fire(
                     'Cancelado',
@@ -546,7 +534,7 @@
                     'error'
                 )
             }
-        })        
+        })
     }
 
     function pintarTablaColores(lstColores){
@@ -557,7 +545,7 @@
         lstColores.forEach((color)=>{
 
             let indiceProductoColor  =   coloresAsignados.findIndex((c)=> {
-                return  c == color.id; 
+                return  c == color.id;
             })
 
             const marcar    =   indiceProductoColor !== -1?true:false;
@@ -570,7 +558,7 @@
                                     <label class="form-check-label" for="checkColor_${color.id}">
                                         ${color.descripcion}
                                     </label>
-                                </div> 
+                                </div>
                             </td>
                         </tr>`;
         })
@@ -596,7 +584,7 @@
             }
 
             const res           =   await axios.get(route('almacenes.producto.getColores',{almacen_id,producto_id}));
-            
+
             if(res.data.success){
 
                 coloresAsignados        =   [];
@@ -609,7 +597,7 @@
                 limpiarTabla('tbl_producto_colores');
                 pintarTablaColores(@json($colores));
                 cargarDatatables();
-                
+
                 toastr.info(res.data.message,'OPERACIÓN COMPLETADA');
 
             }else{
@@ -624,16 +612,16 @@
     }
 
     function mostrarAnimacionProductoEdit(){
-      
+
         document.querySelector('.overlay_producto_edit').style.visibility   =   'visible';
     }
 
     function ocultarAnimacionProductoEdit(){
-        
+
         document.querySelector('.overlay_producto_edit').style.visibility   =   'hidden';
     }
 
-       
+
 
 </script>
 

@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout')
+@section('content')
 
 @section('almacenes-active', 'active')
 @section('nota_salidad-active', 'active')
@@ -39,14 +40,9 @@
 
 @stop
 @push('styles')
-<!-- DataTable -->
-<link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
 @endpush
 
 @push('scripts')
-<!-- DataTable -->
-<script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 
 <script>
 $(document).ready(function() {
@@ -54,43 +50,20 @@ $(document).ready(function() {
     // DataTables
     $('.dataTables-ingreso_mercaderia').DataTable({
         "dom": '<"html5buttons"B>lTfgitp',
-        "buttons": [{
-                extend: 'excelHtml5',
-                text: '<i class="fa fa-file-excel-o"></i> Excel',
-                titleAttr: 'Excel',
-                title: 'Tablas Generales'
-            },
-            {
-                titleAttr: 'Imprimir',
-                extend: 'print',
-                text: '<i class="fa fa-print"></i> Imprimir',
-                customize: function(win) {
-                    $(win.document.body).addClass('white-bg');
-                    $(win.document.body).css('font-size', '10px');
-                    $(win.document.body).find('table')
-                        .addClass('compact')
-                        .css('font-size', 'inherit');
-                }
-            }
-        ],
-        "bPaginate": true,
-        "bLengthChange": true,
-        "bFilter": true,
-        "bInfo": true,
-        "bAutoWidth": false,
+        "responsive":true,
         "processing": true,
         "ajax": "{{ route('almacenes.nota_salidad.data')}}",
         "columns": [
             //ingreso_mercaderia INTERNA
             //{ data: 'id',className: "text-center"},
-             
+
             { data: 'id',className: "text-center"},
             { data: 'registrador_nombre',className: "text-center"},
             { data: 'created_at',className: "text-center"},
-            { data: 'almacen_origen_nombre',className: "text-center"}, 
-            { data: 'almacen_destino_nombre',className: "text-center"}, 
+            { data: 'almacen_origen_nombre',className: "text-center"},
+            { data: 'almacen_destino_nombre',className: "text-center"},
             { data: 'cadena_detalles',className: "text-center"},
-            { data: 'observacion',className: "text-center"}, 
+            { data: 'observacion',className: "text-center"},
             {
                 data: null,
                 className: "text-center",

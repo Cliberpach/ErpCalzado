@@ -1,4 +1,4 @@
-@extends('layout') 
+@extends('layout')
 @section('content')
 @section('almacenes-active', 'active')
 @section('vehiculos-active', 'active')
@@ -31,13 +31,13 @@
                 </div>
                 <div class="ibox-footer d-flex justify-content-between align-items-center">
                     <span  style="color:rgb(219, 155, 35);font-size:14px;font-weight:bold;">Los campos con * son obligatorios</span>
-                    
+
                     <div style="display:flex;">
                         <button class="btn btn-danger btnVolver" style="margin-right:5px;" type="button">
-                            <i class="fas fa-reply-all"></i> VOLVER
+                            <i class="fa fa-reply-all"></i> VOLVER
                         </button>
                         <button class="btn btn-primary" type="submit" form="formRegistrarVehiculo">
-                            <i class="fas fa-save"></i> REGISTRAR
+                            <i class="fa fa-save"></i> REGISTRAR
                         </button>
                     </div>
                 </div>
@@ -49,12 +49,9 @@
 @stop
 
 @push('styles')
-<link href="{{asset('Inspinia/css/plugins/select2/select2.min.css')}}" rel="stylesheet">
 @endpush
 
 @push('scripts')
-<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
 <script>
       document.addEventListener('DOMContentLoaded',()=>{
@@ -63,7 +60,7 @@
     })
 
     function events(){
-        
+
         document.querySelector('#formRegistrarVehiculo').addEventListener('submit',(e)=>{
             e.preventDefault();
             registrarVehiculo();
@@ -84,7 +81,7 @@
             width: $( this ).data( 'width' ) ? $( this ).data( 'width' ) : $( this ).hasClass( 'w-100' ) ? '100%' : 'style',
             placeholder: $( this ).data( 'placeholder' ),
         } );
-        
+
     }
 
     function registrarVehiculo(){
@@ -117,7 +114,7 @@
                 html: 'Registrando nuevo vehiculo...',
                 allowOutsideClick: false,
                 didOpen: () => {
-                    Swal.showLoading(); 
+                    Swal.showLoading();
                 }
             });
 
@@ -125,15 +122,15 @@
                 const response  =   await fetch(urlRegistrarVehiculo, {
                                         method: 'POST',
                                         headers: {
-                                            'X-CSRF-TOKEN': token 
+                                            'X-CSRF-TOKEN': token
                                         },
                                         body: formData
                                     });
 
                 const   res =   await response.json();
-                
+
                 console.log(res);
-                
+
                 if(response.status === 422){
                     if('errors' in res){
                         pintarErroresValidacion(res.errors,'error');
@@ -141,7 +138,7 @@
                     Swal.close();
                     return;
                 }
-                
+
                 if(res.success){
                     const vehiculo_index     =   @json(route('almacenes.vehiculos.index'));
                     toastr.success(res.message,'OPERACIÓN COMPLETADA');
@@ -151,12 +148,12 @@
                     Swal.close();
                 }
 
-              
+
             } catch (error) {
                 toastr.error(error,'ERROR EN LA PETICIÓN REGISTRAR VEHÍCULO');
                 Swal.close();
             }
-          
+
 
         } else if (result.dismiss === Swal.DismissReason.cancel) {
             swalWithBootstrapButtons.fire({
@@ -168,7 +165,7 @@
         });
     }
 
-   
+
 </script>
 
 @endpush

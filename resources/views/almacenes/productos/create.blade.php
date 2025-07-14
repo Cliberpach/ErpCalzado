@@ -1,11 +1,11 @@
-@extends('layout') 
+@extends('layout')
 @section('content')
 @section('almacenes-active', 'active')
 @section('producto-active', 'active')
 @include('almacenes.categorias.create')
 @include('almacenes.marcas.create')
 @include('almacenes.modelos.create')
-@include('almacenes.colores.create') 
+@include('almacenes.colores.create')
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
@@ -38,19 +38,9 @@
 
 @stop
 
-@push('styles')
-<link href="{{asset('Inspinia/css/plugins/select2/select2.min.css')}}" rel="stylesheet">
-<link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
-@endpush
 
 @push('scripts')
-<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-<script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 
-<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
-<script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
 <script>
 
         //====== VARIABLES ===============
@@ -80,7 +70,7 @@
 
         function events(){
 
-            //marcar check color 
+            //marcar check color
             document.addEventListener('click',(e)=>{
                 if(e.target.classList.contains('checkColor')){
                     const colorId = e.target.getAttribute('data-color-id');
@@ -342,18 +332,18 @@
                 [`<div style="text-align: left;font-weight:bold;">${color.id}</div>`,
                  `
                     <div class="form-check">
-                        <input class="form-check-input checkColor" type="checkbox" value="" id="checkColor_${color.id}" 
+                        <input class="form-check-input checkColor" type="checkbox" value="" id="checkColor_${color.id}"
                         data-color-id="${color.id}">
                         <label class="form-check-label" for="checkColor_${color.id}">
                             ${color.descripcion}
                         </label>
                     </div>
                  `
-                ] 
+                ]
             ).draw();
         }
 
-        //agregar colores al array asignados 
+        //agregar colores al array asignados
         function addColor (idColor){
             if(!coloresAsignados.includes(idColor)){
                 coloresAsignados.push(idColor);
@@ -382,10 +372,10 @@
                 Swal.fire({
                     title: "Registrando producto...",
                     text: "Por favor, espera mientras procesamos la solicitud.",
-                    allowOutsideClick: false, 
-                    allowEscapeKey: false,   
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
                     didOpen: () => {
-                        Swal.showLoading(); 
+                        Swal.showLoading();
                     },
                 });
 
@@ -402,7 +392,7 @@
                     }else{
                         toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                     }
-                    
+
                 } catch (error) {
                     if (error.response) {
                         if (error.response.status === 422) {
@@ -416,11 +406,11 @@
                         toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
                     } else {
                         toastr.error(error.message, 'ERROR DESCONOCIDO');
-                    }           
+                    }
                 }finally{
-                    Swal.close(); 
+                    Swal.close();
                 }
-                    
+
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 swalWithBootstrapButtons.fire(
                     'Cancelado',
@@ -428,7 +418,7 @@
                     'error'
                 )
             }
-        })        
+        })
     }
 
 
@@ -476,7 +466,7 @@
                                     <label class="form-check-label" for="checkColor_${color.id}">
                                         ${color.descripcion}
                                     </label>
-                                </div> 
+                                </div>
                             </td>
                         </tr>`;
         })

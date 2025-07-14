@@ -47,7 +47,6 @@ class CotizacionController extends Controller
 
     public function getCotizaciones(Request $request)
     {
-
         $query = DB::table('cotizaciones as co')
                 ->select(
                     DB::raw('CONCAT("CO-",co.id) as simbolo'),

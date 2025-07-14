@@ -1,4 +1,4 @@
-@extends('layout') 
+@extends('layout')
 @section('content')
 @section('almacenes-active', 'active')
 @section('producto-active', 'active')
@@ -57,18 +57,8 @@
 
 @stop
 
-@push('styles')
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
-<style>
-    
-</style>
-@endpush
 
 @push('scripts')
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
 
@@ -96,44 +86,17 @@
             placeholder: "SELECCIONAR",
             allowClear: true,
             width: '100%',
-            appendTo: "#mdl_producto_stocks .modal-body"        
+            appendTo: "#mdl_producto_stocks .modal-body"
         });
     }
 
     function iniciarDataTableProductos(){
         // DataTables
         $('.dataTables-producto').DataTable({
-            "dom": '<"html5buttons"B>lTfgitp',
-            "buttons": [
-                {
-                    extend:    'excelHtml5',
-                    text:      '<i class="fa fa-file-excel-o"></i> Excel',
-                    titleAttr: 'Excel',
-                    title: 'PRODUCTOS'
-                },
-
-                {
-                    titleAttr: 'Imprimir',
-                    extend: 'print',
-                    text:      '<i class="fa fa-print"></i> Imprimir',
-                    customize: function (win){
-                        $(win.document.body).addClass('white-bg');
-                        $(win.document.body).css('font-size', '10px');
-
-                        $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
-                    }
-                }
-            ],
-            "bPaginate": true,
+            "responsive":true,
             "serverSide":true,
             "processing":true,
-            "bLengthChange": true,
-            "bFilter": true,
             "order": [],
-            "bInfo": true,
-            'bAutoWidth': false,
             "ajax": "{{ route('almacenes.producto.getTable') }}",
             "columns": [{
                     data: 'codigo',
@@ -166,7 +129,7 @@
                     searchable: false,
                     className: "text-center",
                     render: function(data,type,row) {
-                       
+
                         const btnStock  =   `<a onclick="openMdlStocks(${data});"     data-id=${data} class='btn btn-primary' href='javascript:void(0);' title='STOCKS'>
                                                 <i class='fa fa-eye ver-stocks-producto'></i> Ver
                                             </a>`;
@@ -192,7 +155,7 @@
 
                             "<li><a class='dropdown-item' href='" + url_detalle +"' title='Detalle'><i class='fa fa-eye'></i> Ver</a></b></li>" +
                             "<li><a class='dropdown-item modificarDetalle' href='" + url_editar + "' title='Modificar'><i class='fa fa-edit'></i> Editar</a></b></li>" +
-                            "<li><a class='dropdown-item' href='#' onclick='eliminar(" + data.id + ")' title='Eliminar'><i class='fa fa-trash'></i> Eliminar</a></b></li>" 
+                            "<li><a class='dropdown-item' href='#' onclick='eliminar(" + data.id + ")' title='Eliminar'><i class='fa fa-trash'></i> Eliminar</a></b></li>"
                         "</ul></div>";
                     }
                 }
@@ -208,7 +171,7 @@
         });
     }
 
-    
+
     //Controlar Error
     $.fn.DataTable.ext.errMode = 'throw';
 
@@ -294,7 +257,7 @@
                 }
             }
         });
-        
+
     }
 </script>
 

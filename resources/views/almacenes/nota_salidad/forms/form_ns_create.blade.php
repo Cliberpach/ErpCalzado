@@ -17,7 +17,7 @@
                     <div class="input-group">
                         <div class="input-group-prepend">
                           <span class="input-group-text" id="basic-addon1">
-                            <i class="fas fa-user-shield"></i>
+                            <i class="fa fa-user-shield"></i>
                           </span>
                         </div>
                         <input value="{{$registrador->usuario}}" readonly name="registrador" id="registrador" type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
@@ -29,7 +29,7 @@
                     <div class="input-group">
                         <div class="input-group-prepend">
                           <span class="input-group-text" id="basic-addon1">
-                            <i class="fas fa-calendar-alt"></i>
+                            <i class="fa fa-calendar"></i>
                           </span>
                         </div>
                         <input value="<?= date('Y-m-d'); ?>" readonly name="registrador" id="fecha_registro" type="date" class="form-control">
@@ -82,7 +82,7 @@
                     <h4 class=""><b>Seleccionar productos</b></h4>
                 </div>
                 <div class="panel-body">
-                  
+
                     <div class="col-lg-3 col-xs-12 mb-3">
                         <label class="required">Modelo</label>
                         <select id="modelo"
@@ -112,8 +112,8 @@
                                 id="btn_agregar_detalle" disabled> <i class="fa fa-plus"></i>
                                 AGREGAR</button>
                         </div>
-                    </div> 
-                   
+                    </div>
+
                 </div>
             </div>
         </div>

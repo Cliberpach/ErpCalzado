@@ -1,4 +1,4 @@
-@extends('layout') 
+@extends('layout')
 @section('content')
 @section('almacenes-active', 'active')
 @section('vehiculos-active', 'active')
@@ -52,20 +52,10 @@
 
 @stop
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<style>
 
-
-</style>
 @endpush
 
 @push('scripts')
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
-
 <script>
     let dtVehiculos    =   null;
 
@@ -91,7 +81,7 @@
                 { data: 'fecha_registro', name: 'fecha_registro' },
                 { data: 'fecha_modificacion', name: 'fecha_modificacion' },
                 {
-                    data: null, 
+                    data: null,
                     render: function(data, type, row) {
                         const urlEdit   =   `{{ route('almacenes.vehiculos.edit', ['id' => ':id']) }}`.replace(':id', data.id);
 
@@ -114,9 +104,9 @@
                                 </div>
                             `;
                     },
-                    name: 'actions', 
-                    orderable: false, 
-                    searchable: false 
+                    name: 'actions',
+                    orderable: false,
+                    searchable: false
                 }
             ],
             language: {
@@ -171,13 +161,13 @@
         reverseButtons: true
         }).then(async (result) => {
         if (result.isConfirmed) {
-            
+
             Swal.fire({
                 title: 'Cargando...',
                 html: 'Eliminando vehículo...',
                 allowOutsideClick: false,
                 didOpen: () => {
-                    Swal.showLoading(); 
+                    Swal.showLoading();
                 }
             });
 
@@ -189,7 +179,7 @@
                 const response  =   await fetch(urlDeleteVehiculo, {
                                         method: 'DELETE',
                                         headers: {
-                                            'X-CSRF-TOKEN': token 
+                                            'X-CSRF-TOKEN': token
                                         }
                                     });
 

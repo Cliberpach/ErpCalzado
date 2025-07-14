@@ -7,7 +7,7 @@
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only">Close</span>
                 </button>
-                <i class="fas fa-box-open modal-icon"></i>
+                <i class="fa fa-box-open modal-icon"></i>
                 <h4 class="modal-title">N° BULTOS</h4>
             </div>
             <div class="modal-body content_cliente">
@@ -35,7 +35,7 @@
                 </div>
                 <div class="col-md-6 text-right">
                     <button type="submit" class="btn btn-primary btn-sm" form="form-pdf-bultos"><i
-                            class="fas fa-file-pdf"></i> GENERAR PDF </button>
+                            class="fa fa-file-pdf"></i> GENERAR PDF </button>
                     <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i
                             class="fa fa-times"></i> Cerrar</button>
                 </div>

@@ -87,15 +87,15 @@
                     </div>
                     <div class="row">
                         <div class="col-auto d-flex align-items-center mr-3">
-                            <i class="fas fa-square icono-pendiente"></i>
+                            <i class="fa fa-square icono-pendiente"></i>
                             <span class="ml-2">PENDIENTE</span>
                         </div>
                         <div class="col-auto d-flex align-items-center mr-3">
-                            <i class="fas fa-square icono-reservado"></i>
+                            <i class="fa fa-square icono-reservado"></i>
                             <span class="ml-2">RESERVADO</span>
                         </div>
                         <div class="col-auto d-flex align-items-center">
-                            <i class="fas fa-square icono-despachado"></i>
+                            <i class="fa fa-square icono-despachado"></i>
                             <span class="ml-2">DESPACHADO</span>
                         </div>
                     </div>
@@ -117,9 +117,6 @@
 
 @stop
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<link href="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/sc-2.4.3/datatables.min.css" rel="stylesheet"
-    integrity="sha384-Y3z8QWg2WxeGcCzoUszKioTOl/t5nsuw04Ovug3XmL1vq/3169xaFbunr4cHL2NG" crossorigin="anonymous">
 <style>
     .letrapequeña {
         font-size: 11px;
@@ -169,11 +166,6 @@
 @endpush
 
 @push('scripts')
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-<script src="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/sc-2.4.3/datatables.min.js"
-    integrity="sha384-4iaAiW9Gi2uzZr7WGtxLB2ax39LxR04skeQ7solBQcyk0k55Q+fY2hjec0EHc5kd" crossorigin="anonymous">
-</script>
-
 <script>
     let detallesDataTable;
     let dtDespachos = null;
@@ -262,11 +254,6 @@
     function iniciarDataTableDespachos() {
 
         dtDespachos = new DataTable('#dataTables-despacho', {
-            "bPaginate": true,
-            "bLengthChange": true,
-            "bFilter": true,
-            "bInfo": true,
-            "bAutoWidth": false,
             "serverSide": true,
             initComplete: function() {
                 $('.dt-search').append(`
@@ -302,8 +289,7 @@
                     ocultarAnimacion();
                 }
             },
-            "columns": [
-                {
+            "columns": [{
                     data: 'modo',
                     name: 'ev.modo',
                     className: "text-center letrapequeña"
@@ -450,12 +436,13 @@
                         let acciones = `<div class='btn-group' style='text-transform:capitalize;'><button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class='fa fa-bars'></i></button>
                                                         <ul class='dropdown-menu'>
                                                             <li><a class='dropdown-item' href='javascript:void(0);' onclick="verDetalles(${data.documento_id})" title='Modificar' ><b><i class='fa fa-eye'></i> Detalle</a></b></li>
-                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="imprimirEnvio(${data.documento_id},${data.id})" title='Imprimir' ><b><i class="fas fa-print"></i> Imprimir</a></b></li>
+                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="imprimirEnvio(${data.documento_id},${data.id})" title='Imprimir' ><b><i class="fa fa-print"></i> Imprimir</a></b></li>
                                                        `;
 
-                        if (data.estado == "PENDIENTE" && (data.modo === "VENTA" || data.modo === 'ATENCION')) {
+                        if (data.estado == "PENDIENTE" && (data.modo === "VENTA" || data.modo ===
+                                'ATENCION')) {
                             acciones += `<li class='dropdown-divider'></li>
-                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="despachar(${data.documento_id},${data.id})" title='Despachar' ><b><i class="fas fa-people-carry"></i> Despachar</a></b></li>
+                                                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="despachar(${data.documento_id},${data.id})" title='Despachar' ><b><i class="fa fa-people-carry"></i> Despachar</a></b></li>
                                                     </ul>
                                                     </div>`;
                         }
@@ -463,13 +450,13 @@
                         if (data.estado === 'PENDIENTE' && data.modo === 'RESERVA') {
                             acciones += `
                             <li class='dropdown-divider'></li>
-                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="reservar(${data.documento_id},${data.id})" title='Reservar' ><b><i class="fas fa-tape"></i> Reservar</a></b></li>
+                            <li><a class='dropdown-item' href='javascript:void(0);' onclick="reservar(${data.documento_id},${data.id})" title='Reservar' ><b><i class="fa fa-tape"></i> Reservar</a></b></li>
                             </ul></div>`;
                         }
 
                         if (data.estado == "RESERVADO") {
                             acciones += `<li class='dropdown-divider'></li>
-                                                <li><a class='dropdown-item' href='javascript:void(0);' onclick="despachar(${data.documento_id},${data.id})" title='Despachar' ><b><i class="fas fa-people-carry"></i> Despachar</a></b></li>
+                                                <li><a class='dropdown-item' href='javascript:void(0);' onclick="despachar(${data.documento_id},${data.id})" title='Despachar' ><b><i class="fa fa-people-carry"></i> Despachar</a></b></li>
                                                 </ul></div>`;
                         }
 

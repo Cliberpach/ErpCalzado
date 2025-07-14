@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout')
+@section('content')
 
 @section('almacenes-active', 'active')
 @section('traslados-active', 'active')
@@ -39,17 +40,11 @@
 
 @stop
 @push('styles')
-<!-- DataTable -->
-<link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
 @endpush
 
 @push('scripts')
-<!-- DataTable -->
-<script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 
 <script>
-
 $(document).ready(function() {
 
     // DataTables
@@ -74,34 +69,30 @@ $(document).ready(function() {
                 }
             }
         ],
-        "bPaginate": true,
-        "bLengthChange": true,
-        "bFilter": true,
-        "bInfo": true,
-        "bAutoWidth": false,
+        "responsive":true,
         "processing": true,
         "ajax": "{{ route('almacenes.traslados.getTraslados')}}",
         "order": [[0, 'desc']],
         "columns": [
             { data: 'id', className: "text-center", visible: false },
-            { 
-                data: 'simbolo', 
-                className: "text-center", 
+            {
+                data: 'simbolo',
+                className: "text-center",
                 render: function(data, type, row) {
                     return `<div style="width:100px;">
                                 <p style="margin:0;padding:0;font-weight:bold;">${data}</p>
-                            </div>`; 
+                            </div>`;
                 }
             },
             { data: 'guia',className: "text-center"},
             { data: 'almacen_origen_nombre',className: "text-center"},
             { data: 'almacen_destino_nombre',className: "text-center"},
             { data: 'sede_origen_direccion',className: "text-center"},
-            { data: 'sede_destino_direccion',className: "text-center"}, 
-            { data: 'observacion',className: "text-center"}, 
-            { data: 'fecha_registro',className: "text-center"}, 
-            { data: 'fecha_traslado',className: "text-center"}, 
-            { data: 'registrador_nombre',className: "text-center"}, 
+            { data: 'sede_destino_direccion',className: "text-center"},
+            { data: 'observacion',className: "text-center"},
+            { data: 'fecha_registro',className: "text-center"},
+            { data: 'fecha_traslado',className: "text-center"},
+            { data: 'registrador_nombre',className: "text-center"},
             {
                 data: 'estado',
                 className: "text-center",

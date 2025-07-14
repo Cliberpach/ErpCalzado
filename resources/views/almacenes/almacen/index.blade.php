@@ -21,7 +21,7 @@
             <i class="fa fa-plus-square"></i> Añadir nuevo
         </a>
     </div>
-    
+
 </div>
 
 
@@ -46,20 +46,14 @@
 
 @stop
 @push('styles')
-<!-- DataTable -->
-<link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
-
 <style>
     .my-swal {
         z-index: 3000 !important;
     }
 </style>
-@endpush 
+@endpush
 
 @push('scripts')
-<!-- DataTable -->
-<script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
 
 <script>
 
@@ -67,34 +61,6 @@
 
 
         $('.dataTables-almacenes').DataTable({
-            "dom": '<"html5buttons"B>lTfgitp',
-            "buttons": [
-                {
-                    extend:    'excelHtml5',
-                    text:      '<i class="fa fa-file-excel-o"></i> Excel',
-                    titleAttr: 'Excel',
-                    title: 'Tablas Generales'
-                },
-
-                {   
-                    titleAttr: 'Imprimir',
-                    extend: 'print',
-                    text:      '<i class="fa fa-print"></i> Imprimir',
-                    customize: function (win){
-                        $(win.document.body).addClass('white-bg');
-                        $(win.document.body).css('font-size', '10px');
-
-                        $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
-                }
-                }
-                ],
-            "bPaginate": true,
-            "bLengthChange": true,
-            "bFilter": true,
-            "bInfo": true,
-            "bAutoWidth": false,
             "processing":true,
             "serverSide":true,
             "ajax": '{{ route("getRepository")}}',
@@ -112,7 +78,7 @@
                     className:"text-center",
                     name: 'almacenes.descripcion',
                     render: function (data) {
-                        
+
                         return "<div class='btn-group'><button class='btn btn-warning btn-sm modificarDetalle' onclick='obtenerData("+data.id+")' type='button' title='Modificar'><i class='fa fa-edit'></i></button><a class='btn btn-danger btn-sm' href='#' onclick='eliminar("+data.id+")' title='Eliminar'><i class='fa fa-trash'></i></a></div>"
                     }
                 }
@@ -123,7 +89,7 @@
             },
             "order": [],
 
-           
+
 
         });
 
@@ -142,12 +108,12 @@
                 $('#descripcion_editar').val(value.descripcion);
                 $('#ubicacion_editar').val(value.ubicacion);
                 $('#simbolo_editar').val(value.simbolo);
-            }  
+            }
         });
 
         $('#modal_editar_almacen').modal('show');
 
-        
+
     }
 
     //Old Modal Editar
@@ -163,8 +129,8 @@
         $('#error-ubicacion').text('')
     }
 
-    $('#modal_editar_almacen').on('hidden.bs.modal', function(e) { 
-        limpiarError() 
+    $('#modal_editar_almacen').on('hidden.bs.modal', function(e) {
+        limpiarError()
     });
 
     //Old Modal Crear
@@ -179,7 +145,7 @@
         $('#error-ubicacion-guardar').text('')
     }
 
-    $('#modal_crear_almacen').on('hidden.bs.modal', function(e) { 
+    $('#modal_crear_almacen').on('hidden.bs.modal', function(e) {
         guardarError()
         $('#descripcion_guardar').val('')
         $('#ubicacion_guardar').val('')
@@ -221,7 +187,7 @@
 
             }
         })
-        
+
     }
 
 

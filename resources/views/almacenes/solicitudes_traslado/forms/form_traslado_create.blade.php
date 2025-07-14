@@ -17,7 +17,7 @@
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                           <span class="input-group-text" id="basic-addon1">
-                            <i class="fas fa-user-alt"></i>
+                            <i class="fa fa-user"></i>
                         </span>
                         </div>
                         <input value="{{Auth::user()->usuario}}" readonly name="registrador_nombre" id="registrador_nombre" type="text" class="form-control" placeholder="Registrador" aria-label="Username" aria-describedby="basic-addon1">
@@ -97,7 +97,7 @@
                     <h4 class=""><b>Seleccionar productos</b></h4>
                 </div>
                 <div class="panel-body">
-                  
+
                     <div class="col-lg-3 col-xs-12 mb-3">
                         <label class="required">Modelo</label>
                         <select id="modelo"
@@ -127,8 +127,8 @@
                                 id="btn_agregar_detalle" disabled> <i class="fa fa-plus"></i>
                                 AGREGAR</button>
                         </div>
-                    </div> 
-                   
+                    </div>
+
                 </div>
             </div>
         </div>

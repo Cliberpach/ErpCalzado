@@ -1,11 +1,11 @@
 <div class="modal fade" id="modal_detalles_doc" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content shadow rounded border-0">
-            
+
             {{-- Header --}}
             <div class="modal-header bg-secondary text-white">
                 <h5 class="modal-title mb-0">
-                    <i class="fas fa-info-circle mr-2"></i> DETALLE
+                    <i class="fa fa-info-circle mr-2"></i> DETALLE
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal" @click.prevent="Cerrar">
                     <span aria-hidden="true">&times;</span>
@@ -49,13 +49,13 @@
                                     </tr>
                                 </thead>
                                 <tbody class="text-center">
-                                    
+
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-               
+
             </div>
 
             {{-- Footer --}}
@@ -68,57 +68,51 @@
     </div>
 </div>
 
-
-
 @push('scripts')
-<script src="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.5/b-3.0.2/b-html5-3.0.2/b-print-3.0.2/date-1.5.2/r-3.0.2/sp-2.3.1/datatables.min.js"></script>
-
-<script>
-    function dataTableDetalles(){
-        return  new DataTable('#table-detalles-doc',{
-            "order": [
-                        [0, 'desc']
-            ],
-            buttons: [
-                    {
+    <script>
+        function dataTableDetalles() {
+            return new DataTable('#table-detalles-doc', {
+                "order": [
+                    [0, 'desc']
+                ],
+                buttons: [{
                         extend: 'excelHtml5',
-                        className: 'custom-button btn-check', 
+                        className: 'custom-button btn-check',
                         text: '<i class="fa fa-file-excel-o" style="font-size:15px;"></i> Excel',
                         title: 'ATENCIONES DEL PEDIDO'
                     },
                     {
                         extend: 'print',
-                        className: 'custom-button btn-check', 
+                        className: 'custom-button btn-check',
                         text: '<i class="fa fa-print"></i> Imprimir',
                         title: 'ATENCIONES DEL PEDIDO'
                     },
-                ], 
-            dom: '<"buttons-container"B><"search-length-container"lf>tp',
-            bProcessing: true,
-            language: {
-                    processing:     "Procesando datos...",
-                    search:         "BUSCAR: ",
-                    lengthMenu:    "MOSTRAR _MENU_ ITEMS",
-                    info:           "MOSTRANDO _START_ A _END_ DE _TOTAL_ ITEMS",
-                    infoEmpty:      "MOSTRANDO 0 ITEMS",
-                    infoFiltered:   "(FILTRADO de _MAX_ ITEMS)",
-                    infoPostFix:    "",
+                ],
+                dom: '<"buttons-container"B><"search-length-container"lf>tp',
+                bProcessing: true,
+                language: {
+                    processing: "Procesando datos...",
+                    search: "BUSCAR: ",
+                    lengthMenu: "MOSTRAR _MENU_ ITEMS",
+                    info: "MOSTRANDO _START_ A _END_ DE _TOTAL_ ITEMS",
+                    infoEmpty: "MOSTRANDO 0 ITEMS",
+                    infoFiltered: "(FILTRADO de _MAX_ ITEMS)",
+                    infoPostFix: "",
                     loadingRecords: "CARGA EN CURSO",
-                    zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
-                    emptyTable:     "NO HAY ITEMS DISPONIBLES",
+                    zeroRecords: "Aucun &eacute;l&eacute;ment &agrave; afficher",
+                    emptyTable: "NO HAY ITEMS DISPONIBLES",
                     paginate: {
-                        first:      "PRIMERO",
-                        previous:   "ANTERIOR",
-                        next:       "SIGUIENTE",
-                        last:       "ÚLTIMO"
+                        first: "PRIMERO",
+                        previous: "ANTERIOR",
+                        next: "SIGUIENTE",
+                        last: "ÚLTIMO"
                     },
                     aria: {
-                        sortAscending:  ": activer pour trier la colonne par ordre croissant",
+                        sortAscending: ": activer pour trier la colonne par ordre croissant",
                         sortDescending: ": activer pour trier la colonne par ordre décroissant"
                     }
-            }
-        });
-    }
-</script>
+                }
+            });
+        }
+    </script>
 @endpush
-
