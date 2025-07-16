@@ -3,13 +3,14 @@
  * includes Vue and other libraries. It is a great starting point when
  * building robust, powerful web applications using Vue and Laravel.
  */
+import Vue from 'vue'
+window.Vue = Vue
 
 require('./bootstrap');
 import vSelect from 'vue-select';
 import ElementUI from 'element-ui'
 import Axios from 'axios'
 
-window.Vue = require('vue');
 var moment = require('moment');
 import lang from 'element-ui/lib/locale/lang/es'
 import locale from 'element-ui/lib/locale'

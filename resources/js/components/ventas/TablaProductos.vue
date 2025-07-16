@@ -130,15 +130,15 @@
         transform: scale(1);
       }
     }
-    
+
 </style>
 <template>
 
-    
+
     <div class="row">
-        
+
         <div class="col-lg-12">
-           
+
             <!-- PRIMER PANEL  -->
             <div class="panel panel-primary">
                 <div id="overlay" class="overlay">
@@ -182,7 +182,7 @@
                                 placeholder="Seleccionar">
                             </v-select>
                         </div>
-                    
+
 
                         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
                             <label class="required" style="font-weight: bold;">MODELO</label>
@@ -197,7 +197,7 @@
 
                         <div class="col-lg-12 col-md-3 col-sm-12 col-xs-12 mt-3" >
                             <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
-                            
+
                             <v-select
                                 v-model="productoSeleccionado"
                                 :options="productos"
@@ -209,7 +209,7 @@
                             </v-select>
                         </div>
 
-                        
+
                         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 mt-3" >
                             <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
                             <v-select
@@ -228,13 +228,13 @@
                                     </span>
                                 </div>
                                 <input v-model="buscarCodigoBarra" class="inputBarCode form-control" maxlength="8" type="text" placeholder="Escriba el código de barra" aria-label="Username" aria-describedby="basic-addon1">
-                            </div> 
+                            </div>
                         </div>
-                    
+
                         <input type="hidden" name="producto_id" id="producto_id">
                         <input type="hidden" name="producto_unidad" id="producto_unidad">
                         <input type="hidden" name="producto_json" id="producto_json">
-                       
+
                     </div>
                     <hr>
                     <div class="table-responsive">
@@ -254,7 +254,7 @@
                             <tbody>
                                 <tr v-for="pc in productosPorModelo.producto_colores" :key="`${pc.producto_id}${pc.color_id}`">
                                     <td>{{ pc.producto_nombre }} - {{ pc.color_nombre }}</td>
-                                   
+
                                     <template v-for="t in tallas">
                                         <td class="colorStockLogico">
                                             <span>
@@ -284,14 +284,14 @@
                             </tbody>
 
                             <tfoot>
-                            
+
                             </tfoot>
                         </table>
                     </div>
 
                     <div class="form-group row mt-1">
                         <div class="col-lg-2 col-xs-12">
-                            <button :disabled="deshabilitarBtnAgregar" 
+                            <button :disabled="deshabilitarBtnAgregar"
                             type="button" id="btn_agregar_detalle"
                             @click="agregarProducto"
                                 class="btn btn-warning btn-block">
@@ -299,7 +299,7 @@
                             </button>
                         </div>
                     </div>
-                      
+
                 </div>
             </div>
             <!-- FIN PRIMER PANEL -->
@@ -322,7 +322,7 @@
                                     <template v-for="t in tallas">
                                         <th class="text-center">{{ t.descripcion }}</th>
                                     </template>
-                                    
+
                                     <th class="text-center">P. VENTA</th>
                                     <th class="text-center">SUBTOTAL</th>
                                     <th class="text-center">DSCTO %</th>
@@ -354,7 +354,7 @@
                                         <td>{{ item.porcentaje_descuento!=0 ? item.precio_venta_nuevo : item.precio_venta }}</td>
                                         <td>{{ item.porcentaje_descuento !=0 ? item.subtotal_nuevo : item.subtotal }}</td>
                                         <td>
-                                            <input @input="validarDescuento(item.producto_id,item.color_id,$event)" type="text" 
+                                            <input @input="validarDescuento(item.producto_id,item.color_id,$event)" type="text"
                                             :value="item.porcentaje_descuento" style="width: 100px;" class="form-control">
                                         </td>
                                     </tr>
@@ -365,9 +365,9 @@
                                     </tr>
                                 </template>
                             </tbody>
-                        </table> 
+                        </table>
                     </div>
-                    
+
                         <div class="col-12 d-flex justify-content-end">
                             <div class="table-responsive">
                                 <table style="margin:0 0 0 auto;">
@@ -394,7 +394,7 @@
                                             <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
                                                 <div class="input-group">
                                                     <span class="input-group-text btn btn-light" id="basic-addon1"  @click.prevent="setDataEnvio">
-                                                        <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>                                                    
+                                                        <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>
                                                     </span>
                                                     <input style="width: 70px;" v-model="monto_envio" type="text" class="form-control" aria-label="PRECIO ENVÍO" aria-describedby="basic-addon1">
                                                 </div>
@@ -426,14 +426,14 @@
                                         </tr>
                                     </tfoot>
                                 </table>
-                            </div>    
+                            </div>
                         </div>
 
                 </div>
             </div>
             <!-- FIN SEGUNDO PANEL -->
 
-      
+
         <ModalEnvioVue :cliente="cliente" @addDataEnvio="addDataEnvio"/>
 
         </div>
@@ -448,9 +448,7 @@
 import ModalEnvioVue from "./ModalEnvio.vue";
 import { Empresa } from "../../interfaces/Empresa.js";
 import ModalCodigoPrecioMenorVue from './ModalCodigoPrecioMenor.vue';
-import { RedondearDecimales } from "../../helpers.js";
 import ModalEditaDetalleVue from "./ModalEditDetalle.vue";
-import TablaProductos from "./TablaProductos.vue";
 import axios from "axios";
 
 export default {
@@ -459,14 +457,13 @@ export default {
         ModalEnvioVue,
         ModalCodigoPrecioMenorVue,
         ModalEditaDetalleVue,
-        TablaProductos,
     },
     props: [
-    "fullaccessTable", 
-    "btnDisabled", 
+    "fullaccessTable",
+    "btnDisabled",
     "parametros",
     "productoTabla",
-    "TotalesObj", 
+    "TotalesObj",
     'idcotizacion',
     'modelos',
     'categorias',
@@ -534,10 +531,10 @@ export default {
             modalLote: false,
 
             //======== SELECT PRODUCTOS ========
-            loadingProductos: false,          
-            paginaActual: 1,      
-            perPage: 10,              
-            buscando: false          
+            loadingProductos: false,
+            paginaActual: 1,
+            perPage: 10,
+            buscando: false
         }
     },
     watch: {
@@ -548,9 +545,9 @@ export default {
 
                 if (!/^\d*\.?\d*$/.test(valor)) {
                     //========= PERMITIR ENTEROS Y DECIMALES ========
-                    valor   = valor.replace(/^0+/, '0'); 
+                    valor   = valor.replace(/^0+/, '0');
                     //======= ELIMINAR CARACTERES NO NUMÉRICOS, EXCEPTO EL PUNTO DECIMAL =======
-                    valor   = valor.replace(/[^\d.]/g, ''); 
+                    valor   = valor.replace(/[^\d.]/g, '');
                     //========= PERMITIR SOLO 1 PUNTO DECIMAL =====
                     valor   = valor.replace(/(\..*)\./g, '$1');
                     this.monto_envio = valor;
@@ -581,12 +578,12 @@ export default {
         monto_embalaje: {
             handler(value) {
                 let valor = value;
-             
+
                 if (!/^\d*\.?\d*$/.test(valor)) {
                     //========= PERMITIR ENTEROS Y DECIMALES ========
-                    valor   = valor.replace(/^0+/, '0'); 
+                    valor   = valor.replace(/^0+/, '0');
                     //======= ELIMINAR CARACTERES NO NUMÉRICOS, EXCEPTO EL PUNTO DECIMAL =======
-                     valor   = valor.replace(/[^\d.]/g, ''); 
+                     valor   = valor.replace(/[^\d.]/g, '');
                     //========= PERMITIR SOLO 1 PUNTO DECIMAL =====
                     valor   = valor.replace(/(\..*)\./g, '$1');
                     this.monto_embalaje = valor;
@@ -655,7 +652,7 @@ export default {
                     this.$parent.ocultarAnimacionVenta();
                     return;
                 }
-                
+
                 if(value.trim().length === 8){
                     this.getProductoBarCode(value);
                 }
@@ -691,11 +688,11 @@ export default {
                     //====== OBTENER COLORES Y TALLAS DEL PRODUCTO ======
                     this.getColoresTallas();
                 }
-            
+
             },
             deep: true,
         },
-       
+
         codigoPrecioMenor: {
             handler(value) {
                 this.estadoPrecioMenor = value.estado_precio_menor;
@@ -738,7 +735,7 @@ export default {
                 return;
             }
 
-            if (query.length > 2) { 
+            if (query.length > 2) {
 
                 this.loadingProductos   = true;
                 this.buscando           = true;
@@ -752,14 +749,14 @@ export default {
                         search: query,
                         page: this.paginaActual,
                         perPage: this.perPage,
-                        almacen_id: this.almacenSeleccionado,                  
+                        almacen_id: this.almacenSeleccionado,
                     }
                     });
 
                     console.log(response);
 
                     if(response.data.success){
-                        this.productos          = response.data.data.data;  
+                        this.productos          = response.data.data.data;
                         this.loadingProductos   = false;
                         this.buscando           = false;
                     }else{
@@ -773,7 +770,7 @@ export default {
                     this.buscando = false;
                 }
             }
-           
+
         },
         openModal(producto) {
            this.$parent.openModal(producto);
@@ -795,7 +792,7 @@ export default {
             $("#modal_envio").modal("show");
         },
         validarDescuento(producto_id,color_id,event){
-           
+
             //==== CONTROLANDO DE QUE EL VALOR SEA UN NÚMERO ====
             const valor = event.target.value;
 
@@ -809,7 +806,7 @@ export default {
             const regex = /^[0-9]+(\.[0-9]{0,2})?$/;
             //==== BORRAR CARACTER NO NUMÉRICO ====
             if (!regex.test(valor)) {
-                event.target.value = valor.slice(0, -1); 
+                event.target.value = valor.slice(0, -1);
                 return;
             }
 
@@ -821,10 +818,10 @@ export default {
                 event.target.value = 100;
                 porcentaje_desc = event.target.value;
             }
-            
+
             //==== CALCULAR DESCUENTO ====
             this.calcularDescuento(producto_id,color_id,porcentaje_desc)
-        
+
         },
         calcularDescuento(producto_id,color_id,porcentaje_descuento){
 
@@ -851,7 +848,7 @@ export default {
         },
        async eliminarCarrito(){
             if(this.carrito.length !== 0){
-                this.$parent.mostrarAnimacionVenta();            
+                this.$parent.mostrarAnimacionVenta();
                 try {
                     await this.axios.post(route('ventas.documento.devolver.cantidades'), {
                         carrito: JSON.stringify(this.carrito)
@@ -860,18 +857,18 @@ export default {
                     this.monto_subtotal=0;
                     this.monto_igv=0;
                     this.monto_total=0;
-                    await this.getColoresTallas();       
-                    this.$parent.ocultarAnimacionVenta();            
+                    await this.getColoresTallas();
+                    this.$parent.ocultarAnimacionVenta();
                     toastr.success('Detalle eliminado','Completado');
                 } catch (error) {
                     toastr.error('Ocurrio un error al eliminar el detalle','Error');
                 } finally{
-                    this.$parent.ocultarAnimacionVenta();            
+                    this.$parent.ocultarAnimacionVenta();
                 }
             }else{
                 toastr.warning('El detalle no tiene productos','Advertencia');
             }
-           
+
         },
         calcularMontos(){
             let subtotal            =   0;
@@ -883,7 +880,7 @@ export default {
             //==== RECORRIENDO CARRITO ====
             this.carrito.forEach((producto)=>{
                 if(producto.porcentaje_descuento === 0){
-                    subtotal    += producto.subtotal;   
+                    subtotal    += producto.subtotal;
                 }else{
                     subtotal    +=  parseFloat(producto.subtotal_nuevo);
                 }
@@ -898,7 +895,7 @@ export default {
             totalConIgv             =   subtotal + parseFloat(monto_embalaje_aux)+parseFloat(monto_envio_aux);
             totalSinIgv             =   totalConIgv/1.18
             igv                     =   totalConIgv-totalSinIgv;
-            
+
             this.monto_total_pagar  =   totalConIgv;
             this.monto_igv          =   igv;
             this.monto_total        =   totalSinIgv;
@@ -910,15 +907,15 @@ export default {
             const producto_id           =   inputCantidad.getAttribute('data-producto-id');
             const color_id              =   inputCantidad.getAttribute('data-color-id');
             const talla_id              =   inputCantidad.getAttribute('data-talla-id');
-            
-            try {  
+
+            try {
                 const url = `/get-stocklogico/${almacen_id}/${producto_id}/${color_id}/${talla_id}`;
                 const response = await axios.get(url);
                 if(response.data.message=='success'){
                     const stock_logico  =   response.data.data[0].stock_logico;
                     return stock_logico;
                 }
-                 
+
             } catch (error) {
                 toastr.error(`El producto no cuenta con registros en esa talla`,"Error");
                 event.target.value='';
@@ -927,11 +924,11 @@ export default {
             }
         },
         printTallaDetalle(talla_id,item){
-          
+
             const itemTalla =  item.tallas.find((t)=>  talla_id==t.talla_id);
             // console.log(itemTalla);
             const cantidad  =    itemTalla?itemTalla.cantidad:'';
-            
+
             return cantidad;
         },
         calcularSubTotal(){
@@ -990,13 +987,13 @@ export default {
             }
 
             //======== ANIMACIÓN =======
-            this.$parent.mostrarAnimacionVenta();       
-            
+            this.$parent.mostrarAnimacionVenta();
+
             //========= GET INPUTS TO PRODUCTS ARRAY ======
             const resInputProducts  =   this.getInputProductos();
 
             if(!resInputProducts.validacion){
-                this.$parent.ocultarAnimacionVenta();            
+                this.$parent.ocultarAnimacionVenta();
                 return;
             }
 
@@ -1006,11 +1003,11 @@ export default {
 
                 if(!res_actualizar_stock.data.success){
                     toastr.error(res_actualizar_stock.data.message,'ERROR EN EL SERVIDOR');
-                    this.$parent.ocultarAnimacionVenta();            
+                    this.$parent.ocultarAnimacionVenta();
                     return;
                 }
 
-                
+
                 //======== ACTIVAR LA DEVOLUCIÓN DE STOCK ======
                 this.asegurarCierre = 1;
                 toastr.success(res_actualizar_stock.data.message,'OPERACIÓN COMPLETADA');
@@ -1034,13 +1031,13 @@ export default {
                 })
 
                 console.log('CARRITO',this.carrito);
-               
+
 
             } catch (error) {
                 toastr.error(error,'ERROR AL AGREGAR PRODUCTO!!!');
             }
-           
-            this.$parent.ocultarAnimacionVenta();            
+
+            this.$parent.ocultarAnimacionVenta();
 
             console.log(this.asegurarCierre);
             console.log(this.carrito);
@@ -1050,14 +1047,14 @@ export default {
             const res   =   await axios.post(route('ventas.documento.validarStockVentas'),
                             {almacenId,lstInputProducts:JSON.stringify(lstInputProducts)});
 
-            return res;   
+            return res;
 
         },
         async actualizarStockLogicoVentas(almacenId,lstInputProducts){
-            
+
             //===== RESTAR STOCK LÓGICO ======
             const res  =   await axios.post(route('ventas.documento.actualizarStockAdd')
-                            ,{almacenId,lstInputProducts:JSON.stringify(lstInputProducts)});  
+                            ,{almacenId,lstInputProducts:JSON.stringify(lstInputProducts)});
 
             return res;
         },
@@ -1110,9 +1107,9 @@ export default {
                         console.log(`${productoModificar.producto_nombre} - ${productoModificar.color_nombre}`);
                         this.carrito[indiceExiste].tallas.push(objTallaProduct);
                         console.log(this.carrito);
-                                   
+
                     }
-                } 
+                }
 
             })
         },
@@ -1147,7 +1144,7 @@ export default {
                                 `YA FUE AGREGADO!! ${this.carrito[indiceProductoColor].producto_nombre}-${this.carrito[indiceProductoColor].color_nombre}-${this.carrito[indiceProductoColor].tallas[indiceTalla].talla_nombre}`
                             );
                             validacion = false;
-                            break; 
+                            break;
                         }
                     }
 
@@ -1173,8 +1170,8 @@ export default {
                     'cantidadAnterior'    :   cantidadAnterior,
                     'tallas'        :   producto.tallas,
                 });
-                
-                
+
+
             } catch (ex) {
 
             }
@@ -1204,7 +1201,7 @@ export default {
             e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
             this.validarCantidadInstantanea(e);
         },
-        
+
         async validarCantidadInstantanea(event) {
             const cantidadSolicitada    =   event.target.value;
             try {
@@ -1221,12 +1218,12 @@ export default {
                             event.target.classList.add('inputCantidadValido');
                             event.target.classList.remove('inputCantidadIncorrecto');
                             this.deshabilitarBtnAgregar =   false;
-                    }                    
+                    }
                 }else{
                     this.deshabilitarBtnAgregar =   false;
                     event.target.classList.remove('inputCantidadIncorrecto');
                     event.target.classList.remove('inputCantidadValido');
-                }   
+                }
             } catch (error) {
                 toastr.error(`El producto no cuenta con registros en esa talla`,"Error");
                 event.target.value='';
@@ -1239,7 +1236,7 @@ export default {
             const modelo_id                   =   this.modeloSeleccionado;
             const marca_id                    =   this.marcaSeleccionada;
             const categoria_id                =   this.categoriaSeleccionada;
-            
+
             if(modelo_id || marca_id || categoria_id){
                 try {
                     const res = await axios.get(route('ventas.documento.getProductos'), {
@@ -1248,7 +1245,7 @@ export default {
                             marca_id: marca_id,
                             categoria_id: categoria_id
                         }
-                    });   
+                    });
 
                     if(res.data.success){
                         this.productos                  =   res.data.productos;
@@ -1264,16 +1261,16 @@ export default {
                     //ocultarAnimacionCotizacion();
                     toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
                 }
-                
+
             }else{
                 //ocultarAnimacionCotizacion();
             }
         },
-        //======= OBTENER COLORES Y TALLAS POR PRODUCTO ======= 
-        async  getColoresTallas(){   
-            
+        //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
+        async  getColoresTallas(){
+
             //======= MOSTRAR ANIMACIÓN =======
-            this.$parent.mostrarAnimacionVenta();                     
+            this.$parent.mostrarAnimacionVenta();
             const producto_id   =   this.productoSeleccionado.producto_id;
             const almacen_id    =   this.almacenSeleccionado;
 
@@ -1309,7 +1306,7 @@ export default {
                     //ocultarAnimacionCotizacion();
                 }
             }
-            this.$parent.ocultarAnimacionVenta();            
+            this.$parent.ocultarAnimacionVenta();
         },
         printStockLogico(productoId, colorId, tallaId) {
             const stock = this.productosPorModelo.stocks.find(st => st.producto_id === productoId && st.color_id === colorId && st.talla_id === tallaId);
@@ -1321,13 +1318,13 @@ export default {
                 console.log('DEVOLVIENDO STOCK');
                 await this.axios.post(route('ventas.documento.devolverCantidades'), {
                     carrito: JSON.stringify(this.carrito),
-                }); 
+                });
                 this.ChangeAsegurarCierre();
             }
-                
+
         },
         async ObtenerCodigoPrecioMenor() {
-            
+
             try {
                 const { data } = await this.axios.get(route("consulta.ajax.getCodigoPrecioMenor"));
                 this.dataEmpresa = data;
@@ -1367,10 +1364,10 @@ export default {
             return res;
         },
         async EliminarItem(item, index) {
-           
+
             try {
                 toastr.clear();
-                this.$parent.mostrarAnimacionVenta();            
+                this.$parent.mostrarAnimacionVenta();
 
                 //==== devolvemos el stock logico separado ========
                 const res_delete    =   await this.actualizarStockDelete(item);
@@ -1387,13 +1384,13 @@ export default {
                 this.carrito.splice(index, 1);
                 //========= recalcular subtotal,igv,total =========
                 this.calcularMontos();
-               
+
                 //======= alerta ======================
-                this.$parent.ocultarAnimacionVenta();            
+                this.$parent.ocultarAnimacionVenta();
                 toastr.info('ITEM ELIMINADO',"CANTIDAD DEVUELTA");
             } catch (error) {
                 toastr.error(error,'ERROR EN LA PETICIÓN ELIMINAR ITEM!!!');
-            } 
+            }
         },
         ChangeAsegurarCierre() {
             this.asegurarCierre = 5;
@@ -1402,17 +1399,17 @@ export default {
         async getProductoBarCode(barcode){
             try {
                 toastr.clear();
-                this.$parent.mostrarAnimacionVenta();        
+                this.$parent.mostrarAnimacionVenta();
 
                 const res   =   await axios.get(route('ventas.documento.getProductoBarCode',{barcode}));
-                
+
                 if(res.data.success){  //====== PRODUCTO EXISTE ====
 
                     toastr.info('BUSCANDO PRODUCTO');
 
                     res.data.producto.cantidad  =   1;
 
-                    res.data.producto.almacen_id    =   this.almacenSeleccionado;  //======= AGREGAR ALMACEN ID ====== 
+                    res.data.producto.almacen_id    =   this.almacenSeleccionado;  //======= AGREGAR ALMACEN ID ======
                     const lstInputProducts          =   [res.data.producto];
                     let indiceProductoColor         =   -1;
                     let indiceTalla                 =   -1;
@@ -1462,7 +1459,7 @@ export default {
                         this.calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
                     })
 
-                    
+
                     toastr.info('AGREGADO AL DETALLE!!!',`${res.data.producto.producto_nombre} - ${res.data.producto.color_nombre} - ${res.data.producto.talla_nombre}
                                 PRECIO: ${res.data.producto.precio_venta}`,{timeOut:0});
 
@@ -1472,18 +1469,18 @@ export default {
             } catch (error) {
                 toastr.error(error,'ERROR EN LA PETICIÓN OBTENER PRODUCTO POR CÓDIGO DE BARRA');
             }finally{
-                this.$parent.ocultarAnimacionVenta();            
+                this.$parent.ocultarAnimacionVenta();
             }
         },
         async limpiarFormularioDetalle(){
-            this.$parent.mostrarAnimacionVenta();            
+            this.$parent.mostrarAnimacionVenta();
             await this.devolverCantidades();
             this.carrito                    =   [];
             this.productosPorModelo         =   [];
             this.productos                  =   [];
             this.productoSeleccionado       =   '';
             this.precioVentaSeleccionado    =   '';
-            this.$parent.ocultarAnimacionVenta();            
+            this.$parent.ocultarAnimacionVenta();
         }
 
     }

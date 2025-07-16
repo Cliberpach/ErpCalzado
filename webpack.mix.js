@@ -1,4 +1,5 @@
 const mix = require('laravel-mix');
+const path = require('path');
 
 /*
  |--------------------------------------------------------------------------
@@ -11,19 +12,25 @@ const mix = require('laravel-mix');
  |
  */
 
-mix.js('resources/js/app.js', 'public/js')
+mix.js('resources/js/app.js', 'public/js').vue()
     .sass('resources/sass/app.scss', 'public/css');
 
-mix.js('resources/js/appNotify.js', 'public/js')
+mix.js('resources/js/appNotify.js', 'public/js').vue()
     .sass('resources/sass/appNotify.scss', 'public/css');
-    mix.js('resources/js/appPages.js', 'public/js')
+
+mix.js('resources/js/appPages.js', 'public/js').vue()
     .sass('resources/sass/appPages.scss', 'public/css');
-    mix.js('resources/js/utilidades.js', 'public/js');
-    mix.webpackConfig({
+
+mix.js('resources/js/utilidades.js', 'public/js');
+
+mix.webpackConfig({
     resolve: {
         alias: {
             '@sass': path.resolve(__dirname, 'resources/sass'),
             'jquery': require.resolve('jquery')
+        },
+        fallback: {
+            os: require.resolve('os-browserify/browser')
         }
     }
 }).sourceMaps()
