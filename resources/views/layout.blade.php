@@ -70,6 +70,9 @@
     <link rel="stylesheet" href="/css/appNotify.css">
     @yield('vue-css')
 
+    <!-- DATATABLES -->
+    <link href="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/datatables.min.css" rel="stylesheet" integrity="sha384-57j+ilFSg5URotSQqwt2DpHtNkoi7sy+Qj1phKYVWmfSRDx3biVnhnx2mzJTEhu+" crossorigin="anonymous">
+
     <link href="/Inspinia/css/bootstrap.min.css" rel="stylesheet">
     <link href="/Inspinia/font-awesome/css/font-awesome.css" rel="stylesheet">
 
@@ -84,9 +87,6 @@
 
     <!-- Styles -->
     <link href="/css/style.css" rel="stylesheet">
-
-    <!-- DATATABLES -->
-    <link href="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/datatables.min.css" rel="stylesheet" integrity="sha384-57j+ilFSg5URotSQqwt2DpHtNkoi7sy+Qj1phKYVWmfSRDx3biVnhnx2mzJTEhu+" crossorigin="anonymous">
 
     <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 
@@ -407,7 +407,7 @@
             </div>
           --}}
 
-            {{-- <div class="loader-spinner">
+            <div class="loader-spinner">
                 <div class="centrado" id="onload">
                     <div class="loadingio-spinner-blocks-zcepr5tohl">
                         <div class="ldio-6fqlsp2qlpd">
@@ -423,7 +423,7 @@
                     </div>
 
                 </div>
-            </div> --}}
+            </div> 
 
             <div id="content-system" style="display:block;">
                 @yield('content')
@@ -669,10 +669,10 @@
             })
         }
         //Loader
-        // window.addEventListener("load",function(){
-        //     $('.loader-spinner').hide();
-        //     $("#content-system").css("display", "");
-        // })
+        window.addEventListener("load",function(){
+             $('.loader-spinner').hide();
+             $("#content-system").css("display", "");
+        })
 
         async function restaurarStock() {
             try {
