@@ -369,7 +369,7 @@
                         @endif
                     </ul>
                     <ul class="nav navbar-top-links navbar-right" id="appNotify">
-                        {{-- <notify-component></notify-component> --}}
+                        <notify-component></notify-component> 
                         <li>
                             <div style="display:flex;flex-direction:column;">
                                 <span class="m-r-sm text-muted welcome-message">
