@@ -74,7 +74,7 @@
     <link href="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/datatables.min.css" rel="stylesheet" integrity="sha384-57j+ilFSg5URotSQqwt2DpHtNkoi7sy+Qj1phKYVWmfSRDx3biVnhnx2mzJTEhu+" crossorigin="anonymous">
 
     <link href="/Inspinia/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/Inspinia/font-awesome/css/font-awesome.css" rel="stylesheet">
+    {{-- <link href="/Inspinia/font-awesome/css/font-awesome.css" rel="stylesheet"> --}}
 
     <link href="/Inspinia/css/animate.css" rel="stylesheet">
     <link href="/Inspinia/css/style.css" rel="stylesheet">
@@ -83,7 +83,7 @@
     <link href="/Inspinia/css/plugins/toastr/toastr.min.css" rel="stylesheet">
 
     <!-- FONTAWESOME 5.0 FREE -->
-    {{-- <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script> --}}
+    <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 
     <!-- Styles -->
     <link href="/css/style.css" rel="stylesheet">
@@ -423,7 +423,7 @@
                     </div>
 
                 </div>
-            </div> 
+            </div>
 
             <div id="content-system" style="display:block;">
                 @yield('content')
@@ -461,7 +461,7 @@
     <div class="position-fixed d-none"
         style="bottom:50px; top:auto; right:30px; left:auto; -webkit-box-shadow: 8px 8px 3px 0px rgba(0,0,0,0.75); -moz-box-shadow: 8px 8px 3px 0px rgba(0,0,0,0.75); box-shadow: 6px 6px 4px 0px rgba(0,0,0,0.75); border-radius: 50%;">
         <a class="d-sm-block" href="{{ route('configuracion.index') }}" target="_blank">
-            <img tag src="/img/config_.png" style="width: 50px">
+            {{-- <img tag src="/img/config_.png" style="width: 50px"> --}}
         </a>
     </div>
 
