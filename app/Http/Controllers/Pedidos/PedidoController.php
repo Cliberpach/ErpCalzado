@@ -1654,7 +1654,7 @@ array:23 [
         return  Excel::download(new PedidosExport($fecha_inicio, $fecha_fin, $estado), 'REPORTE-PEDIDOS' . '.xlsx');
     }
 
-    /*
+/*
 array:1 [
   "pedido_id" => 3
 ]
@@ -1677,10 +1677,10 @@ array:1 [
             }
 
             //===== OBTENIENDO EL TIPO DOC DEL CLIENTE =======
-            $cliente    =   DB::select('select
+            $cliente    =   DB::select('SELECT
                             c.tipo_documento
-                            from clientes as c
-                            where c.id = ?', [$pedido->cliente_id]);
+                            FROM clientes AS c
+                            WHERE c.id = ?', [$pedido->cliente_id]);
 
             if (count($cliente) === 0 || count($cliente) > 1) {
                 throw new \Exception('NO SE ENCONTRÓ EL CLIENTE EN LA BASE DE DATOS');

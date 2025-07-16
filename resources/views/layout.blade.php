@@ -67,8 +67,7 @@
         }
     </style>
 
-    <link rel="stylesheet" href="/css/appNotify.css">
-    @yield('vue-css')
+    <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 
     <!-- DATATABLES -->
     <link href="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/datatables.min.css" rel="stylesheet" integrity="sha384-57j+ilFSg5URotSQqwt2DpHtNkoi7sy+Qj1phKYVWmfSRDx3biVnhnx2mzJTEhu+" crossorigin="anonymous">
@@ -87,8 +86,6 @@
 
     <!-- Styles -->
     <link href="/css/style.css" rel="stylesheet">
-
-    <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 
     <style>
         .overlay_animacion {
@@ -314,6 +311,9 @@
         }
     </style>
 
+    <link rel="stylesheet" href="/css/appNotify.css">
+    @yield('vue-css')
+    
     @stack('styles')
 
     @routes

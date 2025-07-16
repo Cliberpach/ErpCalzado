@@ -1,4 +1,4 @@
-@extends('layout') 
+@extends('layout')
 @section('content')
 
 @section('pedidos-active', 'active')
@@ -21,7 +21,7 @@
       font-size: 24px;
       visibility:hidden;
     }
-    
+
     /*========== LOADER SPINNER =======*/
     .loader_pedidos_detalles {
         position: relative;
@@ -48,12 +48,12 @@
         border-radius: 50%;
         animation: ballStepUp 4s linear infinite;
       }
-    
+
     @keyframes pillerPushUp {
       0% , 40% , 100%{background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px}
       50% ,  90% {background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px}
     }
-    
+
     @keyframes ballStepUp {
       0% {transform: translate(0, 0)}
       5% {transform: translate(8px, -14px)}
@@ -75,8 +75,8 @@
       90% {transform: translate(0, -40px)}
       100% {transform: translate(0, 0);}
     }
-        
-        
+
+
 </style>
 
 <div class="row wrapper border-bottom white-bg page-heading">
@@ -104,8 +104,8 @@
     <div class="row mb-3">
         <div class="col-9">
             <div class="row">
-               
-              
+
+
 
             </div>
         </div>
@@ -144,17 +144,7 @@
 </div>
 @stop
 
-@push('styles')
-<!-- DataTable -->
-<link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-@endpush
-
 @push('scripts')
-<!-- DataTable -->
-<script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
 <script>
     const lstProgramaProduccion         =   [];
@@ -182,7 +172,7 @@
                     quitarProductoToProduccion(producto,checkProductoId);
                 }
                 pintarTableProgramacionProduccion();
-                
+
             }
         })
 
@@ -272,7 +262,7 @@
                     data: 'estado',
                     className: "text-center",
                     render: function(data) {
-                    
+
                         let etiquetaEstado =   "";
 
                         if(data === 'EN PROCESO'){
@@ -286,9 +276,9 @@
                         if(data === 'ANULADO'){
                             etiquetaEstado  =   `<span class="badge badge-danger">${data}</span>`;
                         }
-                       
+
                         return etiquetaEstado;
-                    
+
                     }
                 },
                 {
@@ -318,10 +308,10 @@
                                     </li>
                                 </ul>
                             </div>
-                                `;    
+                                `;
                         return options;
 
-                    
+
                     }
                 }
             ],
@@ -361,8 +351,8 @@
         }
     }
 
-   
-   
+
+
 </script>
 
 @endpush

@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout')
+@section('content')
 
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
@@ -107,10 +108,6 @@
 
 @stop
 @push('styles')
-<link
-    href="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.5/b-3.0.2/b-html5-3.0.2/b-print-3.0.2/date-1.5.2/r-3.0.2/sp-2.3.1/datatables.min.css"
-    rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 <style>
     .search-length-container {
         display: flex;
@@ -150,13 +147,6 @@
 @endpush
 
 @push('scripts')
-<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-<script
-    src="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.5/b-3.0.2/b-html5-3.0.2/b-print-3.0.2/date-1.5.2/r-3.0.2/sp-2.3.1/datatables.min.js">
-</script>
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
 <script>
     //======== DATATABLES ====
@@ -940,14 +930,13 @@
 
             if (res_cliente.data.success) {
 
-                const cliente_pedido = res_cliente.data.cliente;
-                const tipo_comprobante = cliente_pedido.tipo_documento === 'RUC' ? 'FACTURA' : 'BOLETA';
+                const cliente_pedido    = res_cliente.data.cliente;
+                const tipo_comprobante  = cliente_pedido.tipo_documento === 'RUC' ? 'FACTURA' : 'BOLETA';
 
                 let numero_documento = '99999999';
                 if (cliente_pedido.tipo_documento === 'RUC' || cliente_pedido.tipo_documento === 'DNI') {
                     numero_documento = cliente_pedido.documento;
                 }
-
 
                 Swal.fire({
                     title: `DESEA GENERAR UNA ${tipo_comprobante} PARA EL CLIENTE: ${cliente_pedido.nombre} CON DOCUMENTO ${cliente_pedido.tipo_documento}: ${numero_documento}`,

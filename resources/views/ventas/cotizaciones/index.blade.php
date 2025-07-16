@@ -49,11 +49,7 @@
         toastr.error('{{ Session::get('error') }}', 'Error');
     </script>
 @endif
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
 
@@ -69,25 +65,27 @@
         dtCotizaciones  =   new DataTable('#tbl_list_cotizaciones',{
             serverSide: true,
             processing: true,
+            responsive:true,
             ajax: {
                 url: urlGetCotizaciones,
                 type: 'GET',
             },
             order: [[0, 'desc']],
             columns: [
-                { data: 'id', name: 'id' ,visible:false},
+                { data: 'id', name: 'co.id' ,visible:false},
                 { data: 'simbolo', name: 'simbolo' },
                 { data: 'documento', name: 'documento' },
                 { data: 'pedido_id', name: 'pedido_id' },
-                { data: 'almacen_nombre', name: 'almacen_nombre' },
-                { data: 'cliente', name: 'cliente' },
-                { data: 'registrador_nombre', name: 'registrador_nombre' },
-                { data: 'created_at', name: 'created_at' },
-                { data: 'total_pagar', name: 'total_pagar' },
-                { data: 'estado', name: 'estado' },
+                { data: 'almacen_nombre', name: 'co.almacen_nombre' },
+                { data: 'cliente', name: 'co.cliente_nombre' },
+                { data: 'registrador_nombre', name: 'co.registrador_nombre' },
+                { data: 'created_at', name: 'co.created_at' },
+                { data: 'total_pagar', name: 'co.total_pagar',searchable:false },
+                { data: 'estado', name: 'co.estado' },
                 {
                     data: null,
                     className: "text-center",
+                    searchable:false,
                     render: function(data) {
                         //Ruta Detalle
                         var url_detalle = '{{ route('ventas.cotizacion.show', ':id') }}';

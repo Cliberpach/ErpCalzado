@@ -24,10 +24,10 @@ class CreateCotizacionesTable extends Migration
 
             $table->unsignedBigInteger('sede_id');
             $table->foreign('sede_id')->references('id')->on('empresa_sedes');
-            
+
             $table->unsignedInteger('cliente_id');
             $table->foreign('cliente_id')->references('id')->on('clientes');
-            
+
             $table->unsignedBigInteger('condicion_id');
             $table->foreign('condicion_id')->references('id')->on('condicions');
 
@@ -55,6 +55,9 @@ class CreateCotizacionesTable extends Migration
 
             $table->string('moneda');
 
+            $table->unsignedInteger('venta_id')->nullable();
+            $table->string('venta_serie',20)->nullable();
+            $table->string('venta_correlativo',20)->nullable();
 
             $table->enum('estado',['VIGENTE','ATENDIDA', 'ANULADO', 'VENCIDA'])->default('VIGENTE');
             $table->timestamps();

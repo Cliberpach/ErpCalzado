@@ -273,17 +273,7 @@
 </div>
 @stop
 
-@push('styles')
-<!-- DataTable -->
-<link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-@endpush
-
 @push('scripts')
-<!-- DataTable -->
-<script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
 <script>
     const lstProgramaProduccion = [];
@@ -482,7 +472,6 @@
                     }
                 }
             ],
-            "responsive": true,
             "bPaginate": true,
             "bLengthChange": true,
             "bFilter": true,
@@ -676,16 +665,6 @@
             "order": [
                 [1, "desc"]
             ],
-            "initComplete": function(settings, json) {
-                $('.dataTables_filter input').attr('placeholder', 'Buscar');
-            }
-        });
-
-        let label = $('.dataTables_filter label');
-        label.contents().first()[0].textContent = "Buscar código, producto, color, talla: ";
-        label.css({
-            'color': '#3f51b5',
-            'font-weight': 'bold'
         });
     }
 
