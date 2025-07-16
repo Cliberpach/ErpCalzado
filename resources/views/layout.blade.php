@@ -67,7 +67,7 @@
         }
     </style>
 
-    {{-- <link rel="stylesheet" href="/css/appNotify.css"> --}}
+    <link rel="stylesheet" href="/css/appNotify.css">
     @yield('vue-css')
 
     <!-- DATATABLES -->
