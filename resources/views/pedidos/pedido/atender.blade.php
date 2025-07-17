@@ -183,7 +183,7 @@
         <div class="col-12">
             @if (Session::has('pedido_facturado_atender'))
                 <div class="alert alert-primary alert-dismissible fade show" role="alert">
-                    {{ Session::get('pedido_facturado_atender') }}
+                    {!! Session::get('pedido_facturado_atender') !!}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -300,8 +300,6 @@
 
 @stop
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
 
 <style>
     .search-length-container {
@@ -314,7 +312,6 @@
         display: flex;
         justify-content: end;
     }
-
 
     .custom-button {
         background-color: #ffffff !important;
@@ -337,11 +334,6 @@
 @endpush
 
 @push('scripts')
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
     const tfootSubtotal = document.querySelector('.subtotal');
@@ -453,7 +445,7 @@
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
                 cancelButtonColor: "#d33",
-                confirmButtonText: "Sí, genera el documento!"
+                confirmButtonText: "Sí!"
             }).then(async (result) => {
                 if (result.isConfirmed) {
 
@@ -544,8 +536,8 @@
 
     //======== VERIFICAR SI EL PEDIDO FUE FACTURADO Y MOSTRAR MENSAJE PERSONALIZADO =======
     function comprobarFacturacion() {
-        const pedido = @json($pedido);
-        const montoTotal = parseFloat(inputTotalPagar.value);
+        const pedido        = @json($pedido);
+        const montoTotal    = parseFloat(inputTotalPagar.value);
 
         let message = "";
         if (pedido.facturado === "SI") {
@@ -553,10 +545,10 @@
             //======== EL SALDO CUBRE LA ATENCIÓN AÚN ========
             if (saldo_facturado >= montoTotal) {
                 message = `El saldo del pedido facturado de S/.${saldo_facturado} cubre la atención de S/.${montoTotal}.
-                Se generará la nota de venta como pagada.¿DESEA CONTINUAR?`;
+                Se generará el comprobante como pagado con anticipo.¿DESEA CONTINUAR?`;
             } else {
                 message = `El saldo del pedido facturado de S/.${saldo_facturado} NO CUBRE la atención de S/.${montoTotal}.
-                Se generará la nota de venta como pagada y un recibo de caja con el excedente.¿DESEA CONTINUAR?`;
+                Se generará el comprobante como pagado con anticipo parcial y un recibo de caja con el excedente.¿DESEA CONTINUAR?`;
             }
         }
 

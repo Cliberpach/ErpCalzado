@@ -1088,10 +1088,20 @@ array:27 [
 
             if($request->has('facturar') && $request->has('pedido_id')){
                 $documento->pedido_id   =   $request->get('pedido_id');
+                $documento->es_anticipo =   true;
             }
 
             if($request->has('facturado') && $request->get('facturado') === 'SI'){
                 $documento->estado_pago  =   'PAGADA';
+            }
+            if($request->get('anticipo_consumido_id')){
+                $documento->anticipo_consumido_id               =   $request->get('anticipo_consumido_id');
+                $documento->anticipo_monto_consumido            =   $request->get('anticipo_monto_consumido');
+                $documento->anticipo_monto_consumido_sin_igv    =   $request->get('anticipo_monto_consumido') / (($datos_validados->porcentaje_igv + 100)/100);
+
+                $doc_anticipo                   =   Documento::find($request->get('anticipo_consumido_id'));
+                $doc_anticipo->saldo_anticipo   -=  $request->get('anticipo_monto_consumido');
+                $doc_anticipo->update();
             }
 
             //======== EN CASO DE CONVERSIÓN DE DOCUMENTO =====

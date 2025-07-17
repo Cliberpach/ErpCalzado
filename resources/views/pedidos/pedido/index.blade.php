@@ -939,7 +939,7 @@
                 }
 
                 Swal.fire({
-                    title: `DESEA GENERAR UNA ${tipo_comprobante} PARA EL CLIENTE: ${cliente_pedido.nombre} CON DOCUMENTO ${cliente_pedido.tipo_documento}: ${numero_documento}`,
+                    title: `DESEA GENERAR UNA ${tipo_comprobante} ANTICIPO PARA EL CLIENTE: ${cliente_pedido.nombre} - ${cliente_pedido.tipo_documento}: ${numero_documento}`,
                     text: "Esta acción no genera despacho y es IRREVERSIBLE!",
                     icon: "warning",
                     showCancelButton: true,

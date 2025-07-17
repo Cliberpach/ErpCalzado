@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Ventas\Electronico;
 
-use App\Events\DocumentoNumeracion;
 use App\Events\DocumentoNumeracionContingencia;
 use App\Events\NotifySunatEvent;
 use App\Http\Controllers\Controller;
@@ -21,13 +20,11 @@ use Yajra\DataTables\Facades\DataTables;
 use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\DB;
 
-use Greenter\Model\Response\BillResult;
 use Greenter\Model\Sale\FormaPagos\FormaPagoContado;
 use Greenter\Model\Sale\Invoice;
 use Greenter\Model\Sale\SaleDetail;
 use Greenter\Model\Sale\Legend;
 use Greenter\Model\Client\Client;
-use Greenter\Model\Company\Company;
 use Greenter\Model\Company\Address;
 
 use Greenter\Ws\Services\SunatEndpoints;
@@ -137,7 +134,7 @@ class ComprobanteController extends Controller
                 "mtoPrecioUnitario" => (float) $documento->monto_embalaje,
             );
         }
-       
+
         if($documento->monto_envio!=0){
             $arrayProductos[] = array(
                 "codProducto" => 'PE01',
@@ -226,17 +223,17 @@ class ComprobanteController extends Controller
     }
 
     public function sunat_antiguo($id){
- 
+
     }
 
     public function sunat($id)
     {
-        
+
         try {
 
             //====== OBTENER EL DOCUMENTO DE VENTA =========
             $documento  =   Documento::findOrFail($id);
-        
+
 
                 $tipo_documento_cliente =   null;
                 $tipo_doc_facturacion   =   null;
@@ -257,7 +254,7 @@ class ComprobanteController extends Controller
 
                 //======== INSTANCIAR OBJETO FACTURA O BOLETA ========
                 $invoice = new Invoice();
-            
+
                 //====== CONSTRUIR CLIENTE =========
                 $client = new Client();
                 $client->setTipoDoc($tipo_documento_cliente)
@@ -267,7 +264,7 @@ class ComprobanteController extends Controller
                         ->setDireccion($documento->direccion_cliente))
                     ->setEmail($documento->clienteEntidad->correo_electronico)
                     ->setTelephone($documento->clienteEntidad->telefono_movil);
-                    
+
                 //======= CONSTRUIR FACTURA ENCABEZADO ======
                 $invoice
                     ->setUblVersion('2.1')
@@ -351,7 +348,7 @@ class ComprobanteController extends Controller
                         ->setValue($legenda)
                 ]);
 
-             
+
 
                 $see = $this->controlConfiguracionGreenter($util);
 
@@ -365,7 +362,7 @@ class ComprobanteController extends Controller
                     $documento->ruta_xml      =   'storage/greenter/boletas/xml/'.$invoice->getName().'.xml';
                 }
 
-                
+
                 //======== ENVÍO CORRECTO Y ACEPTADO ==========
                 if($res->isSuccess()){
                     //====== GUARDANDO RESPONSE ======
@@ -374,7 +371,7 @@ class ComprobanteController extends Controller
                     $documento->cdr_response_id             =   $cdr->getId();
                     $documento->cdr_response_code           =   $cdr->getCode();
                     $documento->cdr_response_reference      =   $cdr->getReference();
-                    
+
                     //========= GUARDANDO NOTES ======
                     $response_notes =   '';
                     foreach ($cdr->getNotes() as $note) {
@@ -382,7 +379,7 @@ class ComprobanteController extends Controller
                     }
                     $documento->cdr_response_notes   =   $response_notes;
 
-                 
+
                     $util->writeCdr($invoice, $res->getCdrZip(),$documento->tipo_venta_id,null);
                     if($documento->tipo_venta_id   ==  127){
                         $documento->ruta_cdr      =   'storage/greenter/facturas/cdr/'.$invoice->getName().'.zip';
@@ -396,22 +393,22 @@ class ComprobanteController extends Controller
                     if($cdr->getCode() != '0'){
                         $documento->regularize              =   '1';
                     }
-                    
-                    $documento->update(); 
+
+                    $documento->update();
 
                     return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
                 }else{
-                    
+
                     $documento->response_error_message  =   $res->getError()->getMessage();
                     $documento->response_error_code     =   $res->getError()->getCode();
                     $documento->regularize              =   '1';
-                    $documento->update(); 
+                    $documento->update();
 
                     /*
                     ================================================================
-                        ERROR 1033 
-                        El comprobante fue registrado previamente con otros datos 
-                        - Detalle: xxx.xxx.xxx value='ticket: 202413738761966 
+                        ERROR 1033
+                        El comprobante fue registrado previamente con otros datos
+                        - Detalle: xxx.xxx.xxx value='ticket: 202413738761966
                         error: El comprobante B001-1704 fue informado anteriormente'
 
                         ERROR 2223
@@ -424,7 +421,7 @@ class ComprobanteController extends Controller
                         $documento->response_error_code     =   $res->getError()->getCode();
                         $documento->regularize              =   '0';
                         $documento->sunat                   =   '1';
-                        $documento->update(); 
+                        $documento->update();
 
                         return response()->json(["success"   =>  false,
                         "message"   =>  "SE ACTUALIZÓ EL ESTADO DE LA BOLETA A ENVIADA",
@@ -443,7 +440,7 @@ class ComprobanteController extends Controller
                 }
 
         } catch (\Throwable $th) {
-            
+
             return response()->json(['success'=>false,
             "message"   =>  "ERROR EN EL SERVIDOR",
             "exception"=>$th->getMessage(),
@@ -452,13 +449,13 @@ class ComprobanteController extends Controller
             ]);
 
         }
-        
+
     }
 
-  
+
     public function controlConfiguracionGreenter($util){
         //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
-        $greenter_config    =   DB::select('select 
+        $greenter_config    =   DB::select('select
                                 gc.ruta_certificado,
                                 gc.id_api_guia_remision,
                                 gc.modo,
@@ -806,7 +803,7 @@ class ComprobanteController extends Controller
                 'empresa' => $empresa,
                 "legends" =>  $legends,
                 ])->setPaper('a4')->setWarnings(false);
-                
+
             Mail::send('ventas.documentos.mail.cliente_mail',compact("documento"), function ($mail) use ($pdf,$documento,$correo) {
                 $mail->to($correo);
                 $mail->subject($documento->nombreTipo());

@@ -837,35 +837,38 @@ array:11 [
                 });
             }
 
-            //======= SI EL PEDIDO YA FUE FACTURADO, PERMITIR SOLO ATENDER CON NOTAS DE VENTA ======
+            //======= SI EL PEDIDO YA FUE FACTURADO, PERMITIR SOLO ATENDER DE ACUERDO AL DOC DEL CLIENTE ======
             if ($pedido->facturado === 'SI') {
-                $tipoVentas = $tipoVentas->reject(function ($tipoVenta) {
-                    return $tipoVenta['id'] == 127;
-                });
-                $tipoVentas = $tipoVentas->reject(function ($tipoVenta) {
-                    return $tipoVenta['id'] == 128;
-                });
 
-
-                $doc_venta  =   DB::select(
-                    'select
-                                cd.*
-                                from cotizacion_documento as cd
-                                where
-                                cd.pedido_id = ?
-                                and cd.tipo_doc_venta_pedido = "FACTURACION"',
-                    [$pedido->id]
-                );
-
-                if (count($doc_venta) !== 1) {
+                $doc_venta  =   Documento::where('pedido_id',$pedido->id)->first();
+                if(!$doc_venta){
                     throw new Exception('NO SE ENCUENTRA EL DOC DE VENTA CON EL QUE SE FACTURÓ EL PEDIDO');
+                }
+
+                //======= ELIMINAR NOTAS DE VENTA =======
+                $tipoVentas = $tipoVentas->reject(function ($tipoVenta) {
+                    return $tipoVenta['id'] == 129;
+                });
+
+                //======== SI EL DOC ANTICIPO ES CON DNI, ENTONCES LOS CONSUMOS DEBEN SER BOLETAS ==========
+                if($doc_venta->tipo_documento_cliente === 'DNI'){
+                    $tipoVentas = $tipoVentas->reject(function ($tipoVenta) {
+                        return $tipoVenta['id'] == 127;
+                    });
+                }
+                //======= EN CASO SEA RUC, LOS CONSUMOS DEBEN SER FACTURAS =======
+                if($doc_venta->tipo_documento_cliente === 'RUC'){
+                    $tipoVentas = $tipoVentas->reject(function ($tipoVenta) {
+                        return $tipoVenta['id'] == 128;
+                    });
                 }
 
                 Session::flash(
                     'pedido_facturado_atender',
-                    'EL PEDIDO SOLO PODRÁ ATENDERSE CON NOTAS DE VENTA,PORQUE YA FUE FACTURADO CON EL DOC: '
-                        . $doc_venta[0]->serie . '-' . $doc_venta[0]->correlativo
+                    'EL PEDIDO SOLO PODRÁ ATENDERSE CON <strong>' . $doc_venta->tipo_venta_nombre . '</strong>,
+                    PORQUE YA FUE FACTURADO CON EL DOC: <strong>' . $doc_venta->serie . '-' . $doc_venta->correlativo . '</strong>'
                 );
+
             }
 
             $departamentos  =   departamentos();
@@ -1392,16 +1395,34 @@ array:23 [
 */
     public function generarDocumentoVenta(PedidoDocVentaRequest $request)
     {
+
         //========= GENERAR DOC VENTA ======
         $pedido_id              =   $request->get('pedido_id');
         $pedido                 =   Pedido::find($pedido_id);
 
         //====== SI EL PEDIDO YA FUE FACTURADO, EVITAMOS QUE SE CONTABILIZE LA ATENCIÓN EN LA CAJA ========
         if ($pedido->facturado === 'SI') {
+            $doc_anticipo       =   Documento::findOrFail($pedido->documento_venta_facturacion_id);
+            $monto_cubierto     =   (float)0;
+            $saldo_anticipo     =   (float)$doc_anticipo->saldo_anticipo;
+            $monto_pedido       =   (float)$request->get('monto_total_pagar');
+
+            if($saldo_anticipo >= $monto_pedido){
+                $monto_cubierto    =   $monto_pedido;
+            }else{
+                $monto_cubierto    =   $saldo_anticipo;
+            }
 
             $additionalData = [
-                'facturado'     =>  'SI',
+                'facturado'             =>  'SI',
             ];
+
+            if($monto_cubierto > 0){
+                $additionalData =   [
+                    'anticipo_consumido_id'     =>  $pedido->documento_venta_facturacion_id,
+                    'anticipo_monto_consumido'  =>  $monto_cubierto
+                ];
+            }
 
             $request->merge($additionalData);
         }
@@ -1683,7 +1704,7 @@ array:1 [
                             WHERE c.id = ?', [$pedido->cliente_id]);
 
             if (count($cliente) === 0 || count($cliente) > 1) {
-                throw new \Exception('NO SE ENCONTRÓ EL CLIENTE EN LA BASE DE DATOS');
+                throw new Exception('NO SE ENCONTRÓ EL CLIENTE EN LA BASE DE DATOS');
             }
 
             $cliente_tipo_documento =   $cliente[0]->tipo_documento;
