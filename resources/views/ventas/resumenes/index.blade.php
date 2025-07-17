@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout')
+@section('content')
 @section('ventas-active', 'active')
 @section('resumenes-active', 'active')
 
@@ -123,17 +124,10 @@
         z-index: 9999 !important;
     }
 </style>
-    <!-- DataTable -->
-    <link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/dist/toastr.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css">
 @endpush
 
 
 @push('scripts')
-<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-<script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
 <script>
@@ -324,6 +318,7 @@
 
         tableResumenes = new DataTable('#table-resumenes',
         {
+            processing:true,
             serverSide: true,
             ajax: {
                 url: getResumenesUrl,
@@ -440,7 +435,6 @@
                 infoEmpty:      "MOSTRANDO 0 RESÚMENES",
                 infoFiltered:   "(FILTRADO de _MAX_ RESÚMENES)",
                 infoPostFix:    "",
-                loadingRecords: "CARGA EN CURSO",
                 zeroRecords:    "Aucun &eacute;l&eacute;ment &agrave; afficher",
                 emptyTable:     "NO HAY RESÚMENES DISPONIBLES",
                 paginate: {

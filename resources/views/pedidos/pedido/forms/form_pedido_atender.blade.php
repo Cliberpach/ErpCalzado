@@ -76,13 +76,10 @@
                 <select id="cliente" name="cliente"
                     class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}" required
                     disabled>
-                    <option></option>
-                    @foreach ($clientes as $cliente)
-                        <option value="{{ $cliente->id }}" {{ old('cliente') == $cliente->id ? 'selected' : '' }}
-                            {{ $pedido->cliente_id == $cliente->id ? 'selected' : '' }}>
-                            {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
-                        </option>
-                    @endforeach
+                    <option value="{{ $cliente->id }}" {{ old('cliente') == $cliente->id ? 'selected' : '' }}
+                        {{ $pedido->cliente_id == $cliente->id ? 'selected' : '' }}>
+                        {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
+                    </option>
                 </select>
                 @if ($errors->has('cliente'))
                     <span class="invalid-feedback" role="alert">
@@ -139,9 +136,10 @@
         <div class="col-12 col-lg-3 col-md-3 mb-3">
             <div class="form-group">
                 <label class="required" style="font-weight: bold;">MODO</label>
-                <select onchange="cambiarModo(this.value);" id="modo" name="modo" class="select2_form form-control" required>
+                <select onchange="cambiarModo(this.value);" id="modo" name="modo"
+                    class="select2_form form-control" required>
                     <option></option>
-                    <option value="ATENCION" selected >ATENCION</option>
+                    <option value="ATENCION" selected>ATENCION</option>
                     <option value="RESERVA">RESERVA</option>
                 </select>
                 <p class="modo_error msgError" style="font-weight: bold;color:red;"></p>

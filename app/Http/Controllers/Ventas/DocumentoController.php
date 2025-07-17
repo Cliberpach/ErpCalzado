@@ -1076,6 +1076,14 @@ array:27 [
             $documento->porcentaje_descuento    =   $montos->porcentaje_descuento;
             $documento->moneda                  =   1;
 
+            //======== SUNAT ========
+            $documento->mto_oper_gravadas_sunat =   $montos->mtoOperGravadasSunat;
+            $documento->mto_igv_sunat           =   $montos->mtoIgvSunat;
+            $documento->total_impuestos_sunat   =   $montos->totalImpuestosSunat;
+            $documento->valor_venta_sunat       =   $montos->valorVentaSunat;
+            $documento->sub_total_sunat         =   $montos->subTotalSunat;
+            $documento->mto_imp_venta_sunat     =   $montos->mtoImpVentaSunat;
+
             //======= SERIE Y CORRELATIVO ======
             $documento->serie       =   $datos_correlativo->serie;
             $documento->correlativo =   $datos_correlativo->correlativo;
@@ -1086,22 +1094,27 @@ array:27 [
             $documento->almacen_id      =   $datos_validados->almacen->id;
             $documento->almacen_nombre  =   $datos_validados->almacen->descripcion;
 
+            //======== DOCS VENTA DE TIPO ANTICIPO ========
             if($request->has('facturar') && $request->has('pedido_id')){
                 $documento->pedido_id   =   $request->get('pedido_id');
                 $documento->es_anticipo =   true;
             }
 
+            //========= DOCS VENTA PAGADAS CON ANTICIPO PARCIAL O TOTAL ========
             if($request->has('facturado') && $request->get('facturado') === 'SI'){
                 $documento->estado_pago  =   'PAGADA';
             }
-            if($request->get('anticipo_consumido_id')){
-                $documento->anticipo_consumido_id               =   $request->get('anticipo_consumido_id');
-                $documento->anticipo_monto_consumido            =   $request->get('anticipo_monto_consumido');
-                $documento->anticipo_monto_consumido_sin_igv    =   $request->get('anticipo_monto_consumido') / (($datos_validados->porcentaje_igv + 100)/100);
 
+            if($request->get('anticipo_consumido_id')){
                 $doc_anticipo                   =   Documento::find($request->get('anticipo_consumido_id'));
                 $doc_anticipo->saldo_anticipo   -=  $request->get('anticipo_monto_consumido');
                 $doc_anticipo->update();
+
+                $documento->anticipo_consumido_id               =   $request->get('anticipo_consumido_id');
+                $documento->anticipo_monto_consumido            =   $request->get('anticipo_monto_consumido');
+                $documento->anticipo_monto_consumido_sin_igv    =   $request->get('anticipo_monto_consumido') / (($datos_validados->porcentaje_igv + 100)/100);
+                $documento->anticipo_consumido_serie            =   $doc_anticipo->serie;
+                $documento->anticipo_consumido_correlativo      =   $doc_anticipo->correlativo;
             }
 
             //======== EN CASO DE CONVERSIÓN DE DOCUMENTO =====
@@ -1388,7 +1401,7 @@ array:27 [
             'message'=>'DOCUMENTO VENTA REGISTRADO CON ÉXITO',
             'documento_id'=>$documento->id]);
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
             return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
         }
@@ -1409,7 +1422,6 @@ array:27 [
 */
     public static function calcularMontos($lstVenta,$datos_validados){
 
-        //$porcentaje_igv =   $datos_validados->porcentaje_igv;
         $monto_embalaje =   $datos_validados->monto_embalaje;
         $monto_envio    =   $datos_validados->monto_envio;
 
@@ -1421,7 +1433,7 @@ array:27 [
         $monto_igv          =   0.0;
         $monto_total_pagar  =   0.0;
         $monto_descuento    =   0;
-
+        $monto_anticipo     =   $datos_validados->anticipo_monto_consumido;
 
         foreach ($lstVenta as $producto) {
             foreach ($producto->tallas as $talla) {
@@ -1434,10 +1446,28 @@ array:27 [
             }
         }
 
-        $monto_total_pagar      =   $monto_subtotal+$monto_embalaje+$monto_envio;
+        $monto_total_pagar      =   $monto_subtotal + $monto_embalaje + $monto_envio - $monto_anticipo;
         $monto_total            =   $monto_total_pagar/1.18;
         $monto_igv              =   $monto_total_pagar-$monto_total;
         $porcentaje_descuento   =   ($monto_descuento*100)/($monto_total_pagar);
+
+        //========= CALCULAR LOS MONTOS DE SUNAT =========
+        if($monto_anticipo == 0){
+            $mtoOperGravadasSunat   =   (($monto_subtotal + $monto_embalaje + $monto_envio)/1.18);
+            $mtoIgvSunat            =   $mtoOperGravadasSunat * 0.18;
+            $totalImpuestosSunat    =   $mtoIgvSunat;
+            $valorVentaSunat        =   $mtoOperGravadasSunat;
+            $subTotalSunat          =   $mtoOperGravadasSunat + $mtoIgvSunat;
+            $mtoImpVentaSunat       =   $subTotalSunat;
+        }else{
+            $mtoOperGravadasSunat   =   ( ($monto_subtotal + $monto_embalaje + $monto_envio)/1.18) - ($monto_anticipo /1.18);
+            $mtoIgvSunat            =   $mtoOperGravadasSunat * 0.18;
+            $valorVentaSunat        =   ($monto_subtotal + $monto_embalaje + $monto_envio)/1.18;
+            $totalImpuestosSunat    =   $mtoIgvSunat;
+            $subTotalSunat          =   $valorVentaSunat + ($valorVentaSunat * 0.18);
+            $mtoImpVentaSunat       =   $subTotalSunat - ($monto_anticipo / 1.18);
+        }
+
 
         $montos =   (object) [
                         'monto_subtotal'        =>  $monto_subtotal,
@@ -1447,7 +1477,14 @@ array:27 [
                         'porcentaje_descuento'  =>  $porcentaje_descuento,
                         'monto_descuento'       =>  $monto_descuento,
                         'monto_embalaje'        =>  $monto_embalaje,
-                        'monto_envio'           =>  $monto_envio
+                        'monto_envio'           =>  $monto_envio,
+
+                        'mtoOperGravadasSunat'  =>  $mtoOperGravadasSunat,
+                        'mtoIgvSunat'           =>  $mtoIgvSunat,
+                        'totalImpuestosSunat'   =>  $totalImpuestosSunat,
+                        'valorVentaSunat'       =>  $valorVentaSunat,
+                        'subTotalSunat'         =>  $subTotalSunat,
+                        'mtoImpVentaSunat'      =>  $mtoImpVentaSunat
                     ];
 
         return $montos;
@@ -1578,19 +1615,22 @@ public static function getCorrelativo($tipo_comprobante,$sede_id){
         $almacen    =   Almacen::find($request->get('almacenSeleccionado'));
 
         $datos_validados    =   (object)[
-                                        'sede_id'               =>  $request->get('sede_id'),
-                                        'tipo_venta'            =>  $tipo_comprobante,
-                                        'condicion'             =>  $condicion,
-                                        'cliente'               =>  $cliente,
-                                        'porcentaje_igv'        =>  Empresa::find(1)->igv,
-                                        'almacen'               =>  $almacen,
-                                        'lstVenta'              =>  $lstVenta,
-                                        'monto_embalaje'        =>  $request->get('monto_embalaje'),
-                                        'monto_envio'           =>  $request->get('monto_envio'),
-                                        'empresa'               =>  Empresa::find(1),
-                                        'observacion'           =>  $request->get('observacion'),
-                                        'usuario'               =>  Auth::user(),
-                                        'caja_movimiento'       =>  $caja_movimiento[0]
+                                        'sede_id'                   =>  $request->get('sede_id'),
+                                        'tipo_venta'                =>  $tipo_comprobante,
+                                        'condicion'                 =>  $condicion,
+                                        'cliente'                   =>  $cliente,
+                                        'porcentaje_igv'            =>  Empresa::find(1)->igv,
+                                        'almacen'                   =>  $almacen,
+                                        'lstVenta'                  =>  $lstVenta,
+                                        'monto_embalaje'            =>  $request->get('monto_embalaje'),
+                                        'monto_envio'               =>  $request->get('monto_envio'),
+                                        'empresa'                   =>  Empresa::find(1),
+                                        'observacion'               =>  $request->get('observacion'),
+                                        'usuario'                   =>  Auth::user(),
+                                        'caja_movimiento'           =>  $caja_movimiento[0],
+
+                                        'anticipo_consumido_id'     =>  $request->get('anticipo_consumido_id')??null,
+                                        'anticipo_monto_consumido'  =>  $request->get('anticipo_monto_consumido')??0
                                         ];
 
         return  $datos_validados;
@@ -2460,19 +2500,15 @@ array:27 [
                                     from configuracion as c
                                     where c.slug = "MCB"')[0]->propiedad;
 
-
-            $qr                 =   self::qr_code($documento_id);
+            //$qr                 =   self::qr_code($documento_id);
 
             $empresa            =   Empresa::find(1);
             $sede               =   Sede::find($documento->sede_id);
 
-
             $pdf    =   PDF::loadview('ventas.documentos.impresion.comprobante_ticket', [
                             'documento'         =>  $documento,
                             'detalles'          =>  $detalles,
-                            'moneda'            =>  $documento->simboloMoneda(),
                             'empresa'           =>  $empresa,
-                            "legends"           =>  $documento->legenda,
                             'mostrar_cuentas'   =>  $mostrar_cuentas,
                             'sede'              =>  $sede
                         ])->setPaper([0, 0, 226.772, 651.95]);

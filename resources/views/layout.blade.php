@@ -70,7 +70,8 @@
     <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 
     <!-- DATATABLES -->
-    <link href="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/datatables.min.css" rel="stylesheet" integrity="sha384-57j+ilFSg5URotSQqwt2DpHtNkoi7sy+Qj1phKYVWmfSRDx3biVnhnx2mzJTEhu+" crossorigin="anonymous">
+    <link href="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/datatables.min.css" rel="stylesheet"
+        integrity="sha384-57j+ilFSg5URotSQqwt2DpHtNkoi7sy+Qj1phKYVWmfSRDx3biVnhnx2mzJTEhu+" crossorigin="anonymous">
 
     <link href="/Inspinia/css/bootstrap.min.css" rel="stylesheet">
     {{-- <link href="/Inspinia/font-awesome/css/font-awesome.css" rel="stylesheet"> --}}
@@ -313,7 +314,7 @@
 
     <link rel="stylesheet" href="/css/appNotify.css">
     @yield('vue-css')
-    
+
     @stack('styles')
 
     @routes
@@ -502,155 +503,47 @@
     <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
     <!-- Datatables -->
-    <script src="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/datatables.min.js" integrity="sha384-9m1/ul4UUfv6yoZjjPpf4EtIPDGd505EmvdZmpntp4ljXDaH5wT57N/Z2jXTXg2/" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/datatables.min.js"
+        integrity="sha384-9m1/ul4UUfv6yoZjjPpf4EtIPDGd505EmvdZmpntp4ljXDaH5wT57N/Z2jXTXg2/" crossorigin="anonymous">
+    </script>
 
     <script src="{{ asset('js/utils.js') }}"></script>
 
     @stack('scripts')
 
+
     <script>
-        @if (Session::has('success'))
-            toastr.success("{{ Session::get('success') }}")
-        @endif
-
-        @if (Session::has('GUIA_ENVIO_ESTADO'))
-            toastr.success("{{ Session::get('GUIA_ENVIO_ESTADO') }}")
-        @endif
-
-        @if (Session::has('GUIA_ID_SUNAT'))
-            toastr.success("{{ Session::get('GUIA_ID_SUNAT') }}")
-        @endif
-
-
-        //Mensaje de Session
-        @if (session('guardar') == 'success')
-            Swal.fire({
-                icon: 'success',
-                title: 'Guardado',
-                text: '¡Acción realizada satisfactoriamente!',
-                showConfirmButton: false,
-                timer: 1500
-            })
-        @endif
-
-        @if (session('eliminar') == 'success')
-            Swal.fire({
-                icon: 'success',
-                title: 'Eliminado',
-                text: '¡Acción realizada satisfactoriamente!',
-                showConfirmButton: false,
-                timer: 1500
-            })
-        @endif
-
-        @if (session('cerrada') == 'success')
-            Swal.fire({
-                icon: 'success',
-                title: 'Caja Chica Cerrada',
-                text: '¡Acción realizada satisfactoriamente!',
-                showConfirmButton: false,
-                timer: 1500
-            })
-        @endif
-
-        @if (session('modificar') == 'success')
-            Swal.fire({
-                icon: 'success',
-                title: 'Modificado',
-                text: '¡Acción realizada satisfactoriamente!',
-                showConfirmButton: false,
-                timer: 1500
-            })
-        @endif
-
-        @if (session('concretar') == 'success')
-            Swal.fire({
-                icon: 'success',
-                title: 'Concretada',
-                text: '¡Acción realizada satisfactoriamente!',
-                showConfirmButton: false,
-                timer: 1500
-            })
-        @endif
-
-        @if (session('enviar') == 'success')
-            Swal.fire({
-                icon: 'success',
-                title: 'Enviado',
-                text: '¡Acción realizada satisfactoriamente!',
-                showConfirmButton: false,
-                timer: 1500
-            })
-        @endif
-
-        @if (session('error_caja') == 'success')
+        @if (session('message_error'))
             Swal.fire({
                 icon: 'error',
-                title: 'Caja Chica',
-                text: '¡Caja Chica esta siendo utilizada en algun pago!',
-                showConfirmButton: false,
-                timer: 1500
-            })
+                title: 'Error',
+                text: '{{ session('message_error') }}',
+                confirmButtonText: 'OK',
+                showConfirmButton: true,
+                allowOutsideClick: false
+            });
         @endif
 
-        @if (session('exitosa') == 'success')
+        @if (session('message_success'))
             Swal.fire({
                 icon: 'success',
-                title: 'Acción Exitosa',
-                text: '¡Puede ingresar nuevo tipo de pago!',
-                showConfirmButton: false,
-                timer: 1500
-            })
+                title: 'Operación completada',
+                text: '{{ session('message_error') }}',
+                confirmButtonText: 'OK',
+                showConfirmButton: true,
+                allowOutsideClick: false
+            });
         @endif
 
-        @if (session('sunat_existe') == 'error')
+        @if (session('message_info'))
             Swal.fire({
-                icon: 'error',
-                title: 'Documento de Venta',
-                text: 'Existe un comprobante electronico',
-                showConfirmButton: false,
-                timer: 2500
-            })
-        @endif
-
-        @if (session('error_orden_produccion') == 'error')
-            Swal.fire({
-                icon: 'error',
-                title: 'Orden de Producción',
-                text: 'Falta la confirmación del Área de Producción',
-                showConfirmButton: false,
-                timer: 2500
-            })
-        @endif
-
-        @if (session('error_orden_almacen') == 'error')
-            Swal.fire({
-                icon: 'error',
-                title: 'Orden de Producción',
-                text: 'Falta la confirmación del Área de Almacen',
-                showConfirmButton: false,
-                timer: 2500
-            })
-        @endif
-
-        @if (session('error_orden_areas') == 'error')
-            Swal.fire({
-                icon: 'error',
-                title: 'Orden de Producción',
-                text: 'Falta la confirmación de las Áreas de Almacen y Producción',
-                showConfirmButton: false,
-                timer: 2500
-            })
-        @endif
-
-        @if (Session::has('toastrError'))
-            Swal.fire({
-                icon: 'error',
-                title: 'ERROR AL DESCARGAR LA BD',
-                text: "{{ Session::get('toastrError') }}",
-                showConfirmButton: false,
-                timer: 3000
-            })
+                icon: 'info',
+                title: 'Info',
+                text: '{{ session('message_error') }}',
+                confirmButtonText: 'OK',
+                showConfirmButton: true,
+                allowOutsideClick: false
+            });
         @endif
     </script>
 
@@ -669,9 +562,9 @@
             })
         }
         //Loader
-        window.addEventListener("load",function(){
-             $('.loader-spinner').hide();
-             $("#content-system").css("display", "");
+        window.addEventListener("load", function() {
+            $('.loader-spinner').hide();
+            $("#content-system").css("display", "");
         })
 
         async function restaurarStock() {

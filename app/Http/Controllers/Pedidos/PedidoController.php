@@ -617,8 +617,6 @@ array:11 [
 
     public function destroy($id)
     {
-        $pedido_id  =   $id;
-
         try {
             //==== ANULANDO PEDIDO ======
             $pedido         =   Pedido::find($id);
@@ -635,13 +633,8 @@ array:11 [
     {
         $pedido             = Pedido::findOrFail($id);
         $tallas             = Talla::all();
-        $igv                = '';
-        $tipo_moneda        = '';
         $detalles           = PedidoDetalle::where('pedido_id', $id)->get();
         $empresa            = Empresa::where('id', $pedido->empresa_id)->get()[0];
-
-        $paper_size         = array(0, 0, 360, 360);
-
         $detalles           = $this->formatearArrayDetalle($detalles);
 
         $vendedor_nombre    = $pedido->user_nombre;
@@ -662,12 +655,22 @@ array:11 [
         DB::beginTransaction();
 
         try {
+
             //======== OBTENIENDO ID DEL PEDIDO =========
             $pedido_id      =   $request->get('pedido_id');
-            //========= OBTENIENDO EL DETALLE DEL PEDIDO =====
-            $pedido         =   Pedido::find($pedido_id);
-            $pedido_detalle =   PedidoDetalle::where('pedido_id', $pedido_id)->get();
 
+            //========= OBTENIENDO EL DETALLE DEL PEDIDO =====
+            $pedido         =   Pedido::findOrFail($pedido_id);
+            $pedido_detalle =   PedidoDetalle::where('pedido_id', $pedido_id)->get();
+            $cliente        =   Cliente::findOrFail($pedido->cliente_id);
+
+            //========== EL DOCUMENTO IDENTIDAD DEL CLIENTE DEBE SER IGUAL AL DEL DOC VENTA ANTICIPO ========
+            if($pedido->facturado === 'SI'){
+                $doc_anticipo   =   Documento::findOrFail($pedido->documento_venta_facturacion_id);
+                if($doc_anticipo->documento_cliente != $cliente->documento){
+                    throw new Exception("EL DOCUMENTO IDENTIDAD DEL CLIENTE DEBE SER IGUAL AL QUE FIGURA EN EL DOC VENTA ANTICIPO");
+                }
+            }
 
             $atencion_detalle = [];
             foreach ($pedido_detalle as  $pedido_item) {
@@ -785,16 +788,7 @@ array:11 [
 
 
             $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
-            $clientes           =   Cliente::where('estado', 'ACTIVO')->get();
             $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
-
-            $vendedor_actual    =   DB::select('select
-                                    c.id from user_persona as up
-                                    inner join colaboradores  as c
-                                    on c.persona_id=up.persona_id
-                                    where up.user_id = ?', [Auth::id()]);
-
-            $vendedor_actual    =   $vendedor_actual ? $vendedor_actual[0]->id : null;
 
             $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
             $tallas             =   Talla::where('estado', 'ACTIVO')->get();
@@ -883,9 +877,8 @@ array:11 [
                 compact(
                     'atencion_detalle',
                     'empresas',
-                    'clientes',
+                    'cliente',
                     'pedido_detalle',
-                    'vendedor_actual',
                     'condiciones',
                     'tallas',
                     'pedido',
@@ -896,9 +889,10 @@ array:11 [
                     'registrador'
                 )
             );
-        } catch (\Throwable $th) {
+        }catch (Throwable $th) {
             DB::rollback();
-            dd($th->getMessage());
+            Session::flash('message_error',$th->getMessage());
+            return redirect()->route('pedidos.pedido.index');
         }
     }
 

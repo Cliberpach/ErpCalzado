@@ -15,7 +15,9 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         'App\Console\Commands\SendResumenes',
         'App\Console\Commands\StockCommand',
-        'App\Console\Commands\SendNotasCreditoCommand'
+        'App\Console\Commands\SendNotasCreditoCommand',
+        'App\Console\Commands\SendFacturas',
+        'App\Console\Commands\SendBoletasEspeciales'
     ];
 
     /**
@@ -31,7 +33,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('notas_credito:send')->dailyAt('23:00');
         $schedule->command('facturas:send')->dailyAt('23:10');
         $schedule->command('stock:send')->dailyAt('23:20');
-        $schedule->command('resumenes:send')->dailyAt('23:30');
+        $schedule->command('boletas-especiales:send')->dailyAt('23:30');
+        $schedule->command('resumenes:send')->dailyAt('23:40');
     }
 
     /**

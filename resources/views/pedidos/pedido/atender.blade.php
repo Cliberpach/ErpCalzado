@@ -544,10 +544,10 @@
             const saldo_facturado = parseFloat(pedido.saldo_facturado);
             //======== EL SALDO CUBRE LA ATENCIÓN AÚN ========
             if (saldo_facturado >= montoTotal) {
-                message = `El saldo del pedido facturado de S/.${saldo_facturado} cubre la atención de S/.${montoTotal}.
+                message = `El saldo de S/.${saldo_facturado} del pedido facturado   cubre la atención de S/.${montoTotal}.
                 Se generará el comprobante como pagado con anticipo.¿DESEA CONTINUAR?`;
             } else {
-                message = `El saldo del pedido facturado de S/.${saldo_facturado} NO CUBRE la atención de S/.${montoTotal}.
+                message = `El saldo de S/.${saldo_facturado} del pedido facturado  NO CUBRE la atención de S/.${montoTotal}.
                 Se generará el comprobante como pagado con anticipo parcial y un recibo de caja con el excedente.¿DESEA CONTINUAR?`;
             }
         }

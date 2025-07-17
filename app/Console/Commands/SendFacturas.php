@@ -2,8 +2,6 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Consultas\Ventas\AlertaController;
 use App\Http\Controllers\Ventas\Electronico\ComprobanteController;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;

@@ -264,6 +264,21 @@
                     </tr>
                 @endif
 
+                @if ($documento->anticipo_consumido_id)
+                    <tr>
+                        <td style="text-align: left">
+                            {{ 1 }}</td>
+                        <td style="text-align: left">NIU</td>
+                        <td style="text-align: left">
+                            {{ 'ANTICIPO: FACTURA NRO. '.$documento->anticipo_consumido_serie.'-'.$documento->anticipo_consumido_correlativo }}
+                        </td>
+                        <td style="text-align: left">{{ number_format($documento->anticipo_monto_consumido * -1, 2) }}</td>
+                        <td style="text-align: right">
+                            {{ number_format($documento->anticipo_monto_consumido * -1, 2) }}
+                        </td>
+                    </tr>
+                @endif
+
                 @if ($documento->monto_embalaje != 0)
                     <tr>
                         <td style="text-align: left">{{ number_format(1, 2) }}</td>
@@ -273,6 +288,7 @@
                         <td style="text-align: right">{{ number_format($documento->monto_embalaje, 2) }}</td>
                     </tr>
                 @endif
+
                 @if ($documento->monto_envio != 0)
                     <tr>
                         <td style="text-align: left">{{ number_format(1, 2) }}</td>

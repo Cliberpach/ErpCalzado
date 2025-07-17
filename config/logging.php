@@ -54,6 +54,12 @@ return [
             'level' => 'info',
         ],
 
+        'boletas_especiales' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/boletas_especiales.log'),
+            'level' => 'info',
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => ['single'],

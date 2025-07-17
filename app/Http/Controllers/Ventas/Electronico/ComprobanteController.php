@@ -32,6 +32,8 @@ use Greenter\Ws\Services\SunatEndpoints;
 use DateTime;
 use App\Greenter\Utils\Util;
 use App\Ventas\Cliente;
+use Greenter\Model\Sale\Charge;
+use Greenter\Model\Sale\Prepayment;
 
 class ComprobanteController extends Controller
 {
@@ -40,21 +42,22 @@ class ComprobanteController extends Controller
         return view('ventas.comprobantes.index');
     }
 
-    public function getVouchers(){
+    public function getVouchers()
+    {
 
-        $documentos = Documento::where('sunat',"1")->orderBy('id','DESC')->get();
+        $documentos = Documento::where('sunat', "1")->orderBy('id', 'DESC')->get();
 
         $coleccion = collect([]);
-        foreach($documentos as $documento){
+        foreach ($documentos as $documento) {
 
             $coleccion->push([
                 'id' => $documento->id,
-                'numero' => $documento->serie.'-'.$documento->correlativo,
+                'numero' => $documento->serie . '-' . $documento->correlativo,
                 'tipo_venta' => $documento->descripcionTipo(),
-                'cliente' => $documento->tipo_documento_cliente.': '.$documento->documento_cliente.' - '.$documento->cliente,
+                'cliente' => $documento->tipo_documento_cliente . ': ' . $documento->documento_cliente . ' - ' . $documento->cliente,
                 'empresa' => $documento->empresa,
-                'fecha_documento' =>  Carbon::parse($documento->fecha_documento)->format( 'd/m/Y'),
-                'total' => 'S/. '.number_format($documento->total, 2, '.', ''),
+                'fecha_documento' =>  Carbon::parse($documento->fecha_documento)->format('d/m/Y'),
+                'total' => 'S/. ' . number_format($documento->total, 2, '.', ''),
                 'ruta_comprobante_archivo' => $documento->ruta_comprobante_archivo,
                 'nombre_comprobante_archivo' => $documento->nombre_comprobante_archivo,
                 'sunat' => $documento->sunat,
@@ -69,7 +72,7 @@ class ComprobanteController extends Controller
         $convertir = $formatter->toInvoice($documento->total_pagar, 2, 'SOLES');
 
         //CREAR LEYENDA DEL COMPROBANTE
-        $arrayLeyenda = Array();
+        $arrayLeyenda = array();
         $arrayLeyenda[] = array(
             "code" => "1000",
             "value" => $convertir
@@ -79,17 +82,17 @@ class ComprobanteController extends Controller
 
     public function obtenerProductos($id)
     {
-        $detalles = Detalle::where('documento_id',$id)->where('eliminado', '0')->where('estado', 'ACTIVO')->get();
+        $detalles = Detalle::where('documento_id', $id)->where('eliminado', '0')->where('estado', 'ACTIVO')->get();
         $documento = Documento::findOrFail($id);
 
-        $arrayProductos = Array();
-        for($i = 0; $i < count($detalles); $i++){
+        $arrayProductos = array();
+        for ($i = 0; $i < count($detalles); $i++) {
 
             $arrayProductos[] = array(
                 "codProducto" => $detalles[$i]->codigo_producto,
                 "unidad" => $detalles[$i]->unidad,
                 // "descripcion"=> $detalles[$i]->nombre_producto.' - '.$detalles[$i]->codigo_lote,                "descripcion"=> $detalles[$i]->nombre_producto.' - '.$detalles[$i]->codigo_lote,
-                "descripcion"=> $detalles[$i]->nombre_producto.' - '.$detalles[$i]->nombre_color.' - '.$detalles[$i]->nombre_talla,
+                "descripcion" => $detalles[$i]->nombre_producto . ' - ' . $detalles[$i]->nombre_color . ' - ' . $detalles[$i]->nombre_talla,
                 "cantidad" => (float)$detalles[$i]->cantidad,
                 // "mtoValorUnitario" => (float)($detalles[$i]->precio_nuevo / 1.18),
                 "mtoValorUnitario" => (float)($detalles[$i]->precio_unitario_nuevo / 1.18),
@@ -110,8 +113,8 @@ class ComprobanteController extends Controller
         }
 
 
-          //======== agregando embalaje y envío como productos ===========
-          if($documento->monto_embalaje!=0){
+        //======== agregando embalaje y envío como productos ===========
+        if ($documento->monto_embalaje != 0) {
             $arrayProductos[] = array(
                 "codProducto" => 'PE00',
                 "unidad" => 'NIU',
@@ -135,7 +138,7 @@ class ComprobanteController extends Controller
             );
         }
 
-        if($documento->monto_envio!=0){
+        if ($documento->monto_envio != 0) {
             $arrayProductos[] = array(
                 "codProducto" => 'PE01',
                 "unidad" => 'NIU',
@@ -165,10 +168,9 @@ class ComprobanteController extends Controller
     public function obtenerCuotas($id)
     {
         $documento = Documento::find($id);
-        $arrayCuotas = Array();
+        $arrayCuotas = array();
         $condicion = Condicion::find($documento->condicion_id);
-        if(strtoupper($condicion->descripcion) == 'CREDITO' || strtoupper($condicion->descripcion) == 'CRÉDITO')
-        {
+        if (strtoupper($condicion->descripcion) == 'CREDITO' || strtoupper($condicion->descripcion) == 'CRÉDITO') {
             $arrayCuotas[] = array(
                 "moneda" => "PEN",
                 "monto" => (float)$documento->total,
@@ -197,7 +199,7 @@ class ComprobanteController extends Controller
         $date = strtotime($fecha);
         $fecha_emision = date('Y-m-d', $date);
         $hora_emision = date('H:i:s', $date);
-        $fecha = $fecha_emision.'T'.$hora_emision.'-05:00';
+        $fecha = $fecha_emision . 'T' . $hora_emision . '-05:00';
 
         return $fecha;
     }
@@ -207,7 +209,7 @@ class ComprobanteController extends Controller
         $date = strtotime($documento->fecha_documento);
         $fecha_emision = date('Y-m-d', $date);
         $hora_emision = date('H:i:s', $date);
-        $fecha = $fecha_emision.'T'.$hora_emision.'-05:00';
+        $fecha = $fecha_emision . 'T' . $hora_emision . '-05:00';
 
         return $fecha;
     }
@@ -217,14 +219,12 @@ class ComprobanteController extends Controller
         $date = strtotime($documento->fecha_vencimiento);
         $fecha_emision = date('Y-m-d', $date);
         $hora_emision = date('H:i:s', $date);
-        $fecha = $fecha_emision.'T'.$hora_emision.'-05:00';
+        $fecha = $fecha_emision . 'T' . $hora_emision . '-05:00';
 
         return $fecha;
     }
 
-    public function sunat_antiguo($id){
-
-    }
+    public function sunat_antiguo($id) {}
 
     public function sunat($id)
     {
@@ -235,113 +235,153 @@ class ComprobanteController extends Controller
             $documento  =   Documento::findOrFail($id);
 
 
-                $tipo_documento_cliente =   null;
-                $tipo_doc_facturacion   =   null;
+            $tipo_documento_cliente =   null;
+            $tipo_doc_facturacion   =   null;
 
-                if($documento->tipo_venta_id   ==  127){   //====== FACTURA ====
-                    $tipo_documento_cliente =   '6';    //======= RUC ====
-                    $tipo_doc_facturacion   =   '01';
-                }
-                if($documento->tipo_venta_id   ==  128){   //======== BOLETA =====
-                    $tipo_documento_cliente =   '1';    //====== DNI ======
-                    $tipo_doc_facturacion   =   '03';
-                }
+            if ($documento->tipo_venta_id   ==  127) {   //====== FACTURA ====
+                $tipo_documento_cliente =   '6';    //======= RUC ====
+                $tipo_doc_facturacion   =   '01';
+            }
+            if ($documento->tipo_venta_id   ==  128) {   //======== BOLETA =====
+                $tipo_documento_cliente =   '1';    //====== DNI ======
+                $tipo_doc_facturacion   =   '03';
+            }
 
-                $clienteBD  =  Cliente::find($documento->cliente_id);
+            $clienteBD  =  Cliente::find($documento->cliente_id);
 
-                //======= INSTANCIAMOS LA CLASE UTIL ========
-                $util = Util::getInstance();
+            //======= INSTANCIAMOS LA CLASE UTIL ========
+            $util = Util::getInstance();
 
-                //======== INSTANCIAR OBJETO FACTURA O BOLETA ========
-                $invoice = new Invoice();
+            //======== INSTANCIAR OBJETO FACTURA O BOLETA ========
+            $invoice = new Invoice();
 
-                //====== CONSTRUIR CLIENTE =========
-                $client = new Client();
-                $client->setTipoDoc($tipo_documento_cliente)
-                    ->setNumDoc($clienteBD->documento)
-                    ->setRznSocial($documento->cliente)
-                    ->setAddress((new Address())
-                        ->setDireccion($documento->direccion_cliente))
-                    ->setEmail($documento->clienteEntidad->correo_electronico)
-                    ->setTelephone($documento->clienteEntidad->telefono_movil);
+            //====== CONSTRUIR CLIENTE =========
+            $client = new Client();
+            $client->setTipoDoc($tipo_documento_cliente)
+                ->setNumDoc($clienteBD->documento)
+                ->setRznSocial($documento->cliente)
+                ->setAddress((new Address())
+                    ->setDireccion($documento->direccion_cliente))
+                ->setEmail($documento->clienteEntidad->correo_electronico)
+                ->setTelephone($documento->clienteEntidad->telefono_movil);
 
-                //======= CONSTRUIR FACTURA ENCABEZADO ======
+            //======= CONSTRUIR FACTURA ENCABEZADO ======
+            $invoice
+                ->setUblVersion('2.1')
+                ->setFecVencimiento(new DateTime($documento->fecha_vencimiento))
+                ->setTipoOperacion('0101')
+                ->setTipoDoc($tipo_doc_facturacion)
+                ->setSerie($documento->serie)
+                ->setCorrelativo($documento->correlativo)
+                ->setFechaEmision(new DateTime($documento->created_at))
+                ->setFormaPago(new FormaPagoContado())
+                ->setTipoMoneda('PEN')
+                ->setCompany($util->shared->getCompany($documento->sede_id))
+                ->setClient($client);
+
+
+            if (!$documento->anticipo_consumido_id) {
+
                 $invoice
-                    ->setUblVersion('2.1')
-                    ->setFecVencimiento(new DateTime($documento->fecha_vencimiento))
-                    ->setTipoOperacion('0101')
-                    ->setTipoDoc($tipo_doc_facturacion)
-                    ->setSerie($documento->serie)
-                    ->setCorrelativo($documento->correlativo)
-                    ->setFechaEmision(new DateTime($documento->created_at))
-                    ->setFormaPago(new FormaPagoContado())
-                    ->setTipoMoneda('PEN')
-                    ->setCompany($util->shared->getCompany($documento->sede_id))
-                    ->setClient($client)
-                    ->setMtoOperGravadas($documento->total)
-                    ->setMtoIGV($documento->total_igv)
-                    ->setTotalImpuestos($documento->total_igv)
-                    ->setValorVenta($documento->total)
-                    ->setSubTotal($documento->total_pagar)
-                    ->setMtoImpVenta($documento->total_pagar);
+                    ->setMtoOperGravadas($documento->mto_oper_gravadas_sunat) //======= MONTO VENDIDO SIN IMPUESTO =======
+                    ->setMtoIGV($documento->mto_igv_sunat) //======== IMPUESTO =======
+                    ->setTotalImpuestos($documento->total_impuestos_sunat) //======== IMPUESTO =======
+                    ->setValorVenta($documento->valor_venta_sunat) //========= MONTO VENDIDO SIN IMPUESTO ========
+                    ->setSubTotal($documento->sub_total_sunat) //========= MONTO VENDIDO + IMPUESTO =======
+                    ->setMtoImpVenta($documento->mto_imp_venta_sunat); //======= MONTO VENDIDO + IMPUESTO =========
+            } else {
 
-                //======== CONSTRUIR DETALLE FACTURA ========
-                $detalles   =   $documento->detalles;
-                $items      =   [];
+                $tipoDocRel =   $documento->anticipo_tipo_venta_id == '127' ? '02' : '03';
 
-                foreach ($detalles as $detalle) {
-                    $items[] = (new SaleDetail())
-                                ->setCodProducto($detalle->codigo_producto)
-                                ->setUnidad($detalle->unidad)
-                                ->setDescripcion($detalle->nombre_modelo.'-'.$detalle->nombre_producto.'-'.$detalle->nombre_color.'-'.$detalle->nombre_talla)
-                                ->setCantidad($detalle->cantidad)
-                                ->setMtoValorUnitario( (float)$detalle->precio_unitario_nuevo / 1.18)
-                                ->setMtoValorVenta(((float)$detalle->precio_unitario_nuevo / 1.18)*(float)$detalle->cantidad)
-                                ->setMtoBaseIgv(((float)$detalle->precio_unitario_nuevo / 1.18)*(float)$detalle->cantidad)
-                                ->setPorcentajeIgv(18)
-                                ->setIgv( (float)$detalle->cantidad * ( (float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18 ) )
-                                ->setTipAfeIgv('10') // Catalog: 07
-                                ->setTotalImpuestos((float)$detalle->cantidad * ( (float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18 ))
-                                ->setMtoPrecioUnitario($detalle->precio_unitario_nuevo);
-                }
+                //========= SUMATORIA DEL DETALLE CON IGV =======
+                // $subtotal       =   (float)$documento->sub_total + (float)$documento->monto_envio + (float)$documento->monto_embalaje;
+                // $imp_venta      =   (float)$subtotal - (float)$documento->anticipo_monto_consumido_sin_igv;
+                // $valor_venta    =   $subtotal / 1.18;
+                // $mtoOperGravada =   $valor_venta -  (float)$documento->anticipo_monto_consumido_sin_igv;
+                // $mtoIgv         =   $mtoOperGravada * 0.18;
+                // $totalImpuestos =   $mtoIgv;
 
-                //======= AGREGANDO EMBALAJE Y ENVÍO AL DETALLE =====
-                if($documento->monto_embalaje > 0){
-                    $items[] = (new SaleDetail())
+                $invoice
+                    ->setDescuentos([
+                        (
+                            new Charge())
+                            ->setCodTipo('04')
+                            ->setFactor(1)
+                            ->setMonto($documento->anticipo_monto_consumido_sin_igv) // anticipo sin igv
+                            ->setMontoBase($documento->anticipo_monto_consumido_sin_igv)
+                    ])
+                    ->setAnticipos([
+                        (new Prepayment())
+                            ->setTipoDocRel($tipoDocRel) // catalog. 12  02 facturas anticipo - 03 boletas anticipo
+                            ->setNroDocRel($documento->anticipo_consumido_serie . '-' . $documento->anticipo_consumido_correlativo)
+                            ->setTotal($documento->anticipo_monto_consumido_sin_igv)
+                    ])
+                    ->setMtoOperGravadas($documento->mto_oper_gravadas_sunat)
+                    ->setMtoIGV($documento->mto_igv_sunat)
+                    ->setTotalImpuestos($documento->total_impuestos_sunat)
+                    ->setValorVenta($documento->valor_venta_sunat)
+                    ->setSubTotal($documento->sub_total_sunat)
+                    ->setMtoImpVenta($documento->mto_imp_venta_sunat)
+                    ->setTotalAnticipos($documento->anticipo_monto_consumido_sin_igv);
+            }
+
+            //======== CONSTRUIR DETALLE FACTURA ========
+            $detalles   =   $documento->detalles;
+            $items      =   [];
+
+            foreach ($detalles as $detalle) {
+                $items[] = (new SaleDetail())
+                    ->setCodProducto($detalle->codigo_producto)
+                    ->setUnidad($detalle->unidad)
+                    ->setDescripcion($detalle->nombre_modelo . '-' . $detalle->nombre_producto . '-' . $detalle->nombre_color . '-' . $detalle->nombre_talla)
+                    ->setCantidad($detalle->cantidad)
+                    ->setMtoValorUnitario((float)$detalle->precio_unitario_nuevo / 1.18)
+                    ->setMtoValorVenta(((float)$detalle->precio_unitario_nuevo / 1.18) * (float)$detalle->cantidad)
+                    ->setMtoBaseIgv(((float)$detalle->precio_unitario_nuevo / 1.18) * (float)$detalle->cantidad)
+                    ->setPorcentajeIgv(18)
+                    ->setIgv((float)$detalle->cantidad * ((float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18))
+                    ->setTipAfeIgv('10') // Catalog: 07
+                    ->setTotalImpuestos((float)$detalle->cantidad * ((float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18))
+                    ->setMtoPrecioUnitario($detalle->precio_unitario_nuevo);
+            }
+
+            //======= AGREGANDO EMBALAJE Y ENVÍO AL DETALLE =====
+            if ($documento->monto_embalaje > 0) {
+                $items[] = (new SaleDetail())
                     ->setCodProducto('EMBALAJE')
                     ->setUnidad('NIU')
                     ->setDescripcion('EMBALAJE')
                     ->setCantidad(1)
-                    ->setMtoValorUnitario( (float)$documento->monto_embalaje / 1.18)
-                    ->setMtoValorVenta(((float)$documento->monto_embalaje / 1.18)*(float)1)
-                    ->setMtoBaseIgv(((float)$documento->monto_embalaje / 1.18)*(float)1)
+                    ->setMtoValorUnitario((float)$documento->monto_embalaje / 1.18)
+                    ->setMtoValorVenta(((float)$documento->monto_embalaje / 1.18) * (float)1)
+                    ->setMtoBaseIgv(((float)$documento->monto_embalaje / 1.18) * (float)1)
                     ->setPorcentajeIgv(18)
-                    ->setIgv( (float)1 * ( (float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18 ) )
+                    ->setIgv((float)1 * ((float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18))
                     ->setTipAfeIgv('10') // Catalog: 07
-                    ->setTotalImpuestos((float)1 * ( (float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18 ))
+                    ->setTotalImpuestos((float)1 * ((float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18))
                     ->setMtoPrecioUnitario($documento->monto_embalaje);
-                }
+            }
 
-                if($documento->monto_envio > 0){
-                    $items[] = (new SaleDetail())
+            if ($documento->monto_envio > 0) {
+                $items[] = (new SaleDetail())
                     ->setCodProducto('ENVIO')
                     ->setUnidad('NIU')
                     ->setDescripcion('ENVIO')
                     ->setCantidad(1)
-                    ->setMtoValorUnitario( (float)$documento->monto_envio / 1.18)
-                    ->setMtoValorVenta(((float)$documento->monto_envio / 1.18)*(float)1)
-                    ->setMtoBaseIgv(((float)$documento->monto_envio / 1.18)*(float)1)
+                    ->setMtoValorUnitario((float)$documento->monto_envio / 1.18)
+                    ->setMtoValorVenta(((float)$documento->monto_envio / 1.18) * (float)1)
+                    ->setMtoBaseIgv(((float)$documento->monto_envio / 1.18) * (float)1)
                     ->setPorcentajeIgv(18)
-                    ->setIgv( (float)1 * ( (float)$documento->monto_envio - (float)$documento->monto_envio / 1.18 ) )
+                    ->setIgv((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
                     ->setTipAfeIgv('10') // Catalog: 07
-                    ->setTotalImpuestos((float)1 * ( (float)$documento->monto_envio - (float)$documento->monto_envio / 1.18 ))
+                    ->setTotalImpuestos((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
                     ->setMtoPrecioUnitario($documento->monto_envio);
-                }
+            }
 
-                $formatter  = new NumeroALetras();
-                $legenda    = $formatter->toInvoice($documento->total_pagar, 2, 'SOLES');
+            $formatter  = new NumeroALetras();
+            $legenda    = $formatter->toInvoice($documento->total_pagar, 2, 'SOLES');
 
-                $invoice->setDetails($items)
+            $invoice->setDetails($items)
                 ->setLegends([
                     (new Legend())
                         ->setCode('1000')
@@ -350,61 +390,60 @@ class ComprobanteController extends Controller
 
 
 
-                $see = $this->controlConfiguracionGreenter($util);
+            $see = $this->controlConfiguracionGreenter($util);
 
-                $res = $see->send($invoice);
-                $util->writeXml($invoice, $see->getFactory()->getLastXml(),$documento->tipo_venta_id,null);
+            $res = $see->send($invoice);
+            $util->writeXml($invoice, $see->getFactory()->getLastXml(), $documento->tipo_venta_id, null);
 
-                if($documento->tipo_venta_id   ==  127){
-                    $documento->ruta_xml      =   'storage/greenter/facturas/xml/'.$invoice->getName().'.xml';
+            if ($documento->tipo_venta_id   ==  127) {
+                $documento->ruta_xml      =   'storage/greenter/facturas/xml/' . $invoice->getName() . '.xml';
+            }
+            if ($documento->tipo_venta_id   ==  128) {
+                $documento->ruta_xml      =   'storage/greenter/boletas/xml/' . $invoice->getName() . '.xml';
+            }
+      
+            //======== ENVÍO CORRECTO Y ACEPTADO ==========
+            if ($res->isSuccess()) {
+                //====== GUARDANDO RESPONSE ======
+                $cdr                                    =   $res->getCdrResponse();
+                $documento->cdr_response_description    =   $cdr->getDescription();
+                $documento->cdr_response_id             =   $cdr->getId();
+                $documento->cdr_response_code           =   $cdr->getCode();
+                $documento->cdr_response_reference      =   $cdr->getReference();
+
+                //========= GUARDANDO NOTES ======
+                $response_notes =   '';
+                foreach ($cdr->getNotes() as $note) {
+                    $response_notes .= '|' . $note . '|';
                 }
-                if($documento->tipo_venta_id   ==  128){
-                    $documento->ruta_xml      =   'storage/greenter/boletas/xml/'.$invoice->getName().'.xml';
+                $documento->cdr_response_notes   =   $response_notes;
+
+
+                $util->writeCdr($invoice, $res->getCdrZip(), $documento->tipo_venta_id, null);
+                if ($documento->tipo_venta_id   ==  127) {
+                    $documento->ruta_cdr      =   'storage/greenter/facturas/cdr/' . $invoice->getName() . '.zip';
+                }
+                if ($documento->tipo_venta_id   ==  128) {
+                    $documento->ruta_cdr      =   'storage/greenter/boletas/cdr/' . $invoice->getName() . '.zip';
                 }
 
+                $documento->sunat                       =   "1";
 
-                //======== ENVÍO CORRECTO Y ACEPTADO ==========
-                if($res->isSuccess()){
-                    //====== GUARDANDO RESPONSE ======
-                    $cdr                                    =   $res->getCdrResponse();
-                    $documento->cdr_response_description    =   $cdr->getDescription();
-                    $documento->cdr_response_id             =   $cdr->getId();
-                    $documento->cdr_response_code           =   $cdr->getCode();
-                    $documento->cdr_response_reference      =   $cdr->getReference();
-
-                    //========= GUARDANDO NOTES ======
-                    $response_notes =   '';
-                    foreach ($cdr->getNotes() as $note) {
-                         $response_notes.= '|'.$note.'|';
-                    }
-                    $documento->cdr_response_notes   =   $response_notes;
-
-
-                    $util->writeCdr($invoice, $res->getCdrZip(),$documento->tipo_venta_id,null);
-                    if($documento->tipo_venta_id   ==  127){
-                        $documento->ruta_cdr      =   'storage/greenter/facturas/cdr/'.$invoice->getName().'.zip';
-                    }
-                    if($documento->tipo_venta_id   ==  128){
-                        $documento->ruta_cdr      =   'storage/greenter/boletas/cdr/'.$invoice->getName().'.zip';
-                    }
-
-                    $documento->sunat                       =   "1";
-
-                    if($cdr->getCode() != '0'){
-                        $documento->regularize              =   '1';
-                    }
-
-                    $documento->update();
-
-                    return response()->json(["success"   =>  true,"message"=>$cdr->getDescription()]);
-                }else{
-
-                    $documento->response_error_message  =   $res->getError()->getMessage();
-                    $documento->response_error_code     =   $res->getError()->getCode();
+                if ($cdr->getCode() != '0') {
                     $documento->regularize              =   '1';
-                    $documento->update();
+                }
 
-                    /*
+                $documento->update();
+
+                return response()->json(["success"   =>  true, "message" => $cdr->getDescription()]);
+            } else {
+
+                $documento->response_error_message  =   $res->getError()->getMessage();
+                $documento->response_error_code     =   $res->getError()->getCode();
+                $documento->regularize              =   '1';
+                $documento->update();
+
+                /*
                     ================================================================
                         ERROR 1033
                         El comprobante fue registrado previamente con otros datos
@@ -416,44 +455,44 @@ class ComprobanteController extends Controller
                     ================================================================
                     */
 
-                    if($res->getError()->getCode() == 1033 || $res->getError()->getCode() == 2223){
-                        $documento->response_error_message  =   $res->getError()->getMessage();
-                        $documento->response_error_code     =   $res->getError()->getCode();
-                        $documento->regularize              =   '0';
-                        $documento->sunat                   =   '1';
-                        $documento->update();
+                if ($res->getError()->getCode() == 1033 || $res->getError()->getCode() == 2223) {
+                    $documento->response_error_message  =   $res->getError()->getMessage();
+                    $documento->response_error_code     =   $res->getError()->getCode();
+                    $documento->regularize              =   '0';
+                    $documento->sunat                   =   '1';
+                    $documento->update();
 
-                        return response()->json(["success"   =>  false,
+                    return response()->json([
+                        "success"   =>  false,
                         "message"   =>  "SE ACTUALIZÓ EL ESTADO DE LA BOLETA A ENVIADA",
                         "exception" =>  $res->getError()->getMessage(),
                         "code"      =>  $res->getError()->getCode(),
                         "doc_actualizado"   =>  $documento
-                        ]);
-                    }
-
-                    return response()->json([
-                    "success"   =>  false,
-                    "message"   =>  "ERROR AL ENVIAR A SUNAT",
-                    "exception" =>  "CÓDIGO: ".$res->getError()->getCode()." | DESCRIPCIÓN: ".$res->getError()->getMessage(),
-                    "code"      =>  $res->getError()->getCode() ]);
-
+                    ]);
                 }
 
+                return response()->json([
+                    "success"   =>  false,
+                    "message"   =>  "ERROR AL ENVIAR A SUNAT",
+                    "exception" =>  "CÓDIGO: " . $res->getError()->getCode() . " | DESCRIPCIÓN: " . $res->getError()->getMessage(),
+                    "code"      =>  $res->getError()->getCode()
+                ]);
+            }
         } catch (\Throwable $th) {
 
-            return response()->json(['success'=>false,
-            "message"   =>  "ERROR EN EL SERVIDOR",
-            "exception"=>$th->getMessage(),
-            'line' => $th->getLine(),
-            'file' => $th->getFile()
+            return response()->json([
+                'success' => false,
+                "message"   =>  "ERROR EN EL SERVIDOR",
+                "exception" => $th->getMessage(),
+                'line' => $th->getLine(),
+                'file' => $th->getFile()
             ]);
-
         }
-
     }
 
 
-    public function controlConfiguracionGreenter($util){
+    public function controlConfiguracionGreenter($util)
+    {
         //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
         $greenter_config    =   DB::select('select
                                 gc.ruta_certificado,
@@ -473,14 +512,14 @@ class ComprobanteController extends Controller
                                 where gc.empresa_id=1 and c.slug="AG"');
 
 
-        if(count($greenter_config) === 0){
+        if (count($greenter_config) === 0) {
             throw new Exception('NO SE ENCONTRÓ NINGUNA CONFIGURACIÓN PARA GREENTER');
         }
 
-        if(!$greenter_config[0]->sol_user){
+        if (!$greenter_config[0]->sol_user) {
             throw new Exception('DEBE ESTABLECER LA CREDENCIAL SOL_USER');
         }
-        if(!$greenter_config[0]->sol_pass){
+        if (!$greenter_config[0]->sol_pass) {
             throw new Exception('DEBE ESTABLECER LA CREDENCIAL SOL_PASS');
         }
         if ($greenter_config[0]->modo !== "BETA" && $greenter_config[0]->modo !== "PRODUCCION") {
@@ -488,17 +527,17 @@ class ComprobanteController extends Controller
         }
 
         $see    =   null;
-        if($greenter_config[0]->modo === "BETA"){
+        if ($greenter_config[0]->modo === "BETA") {
             //===== MODO BETA ======
-            $see = $util->getSee(SunatEndpoints::FE_BETA,$greenter_config[0]);
+            $see = $util->getSee(SunatEndpoints::FE_BETA, $greenter_config[0]);
         }
 
-        if($greenter_config[0]->modo === "PRODUCCION"){
+        if ($greenter_config[0]->modo === "PRODUCCION") {
             //===== MODO PRODUCCION ======
-            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION,$greenter_config[0]);
+            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION, $greenter_config[0]);
         }
 
-        if(!$see){
+        if (!$see) {
             throw new Exception('ERROR EN LA CONFIGURACIÓN DE GREENTER, SEE ES NULO');
         }
 
@@ -750,78 +789,67 @@ class ComprobanteController extends Controller
     public function cdr($id)
     {
 
-        try
-        {
+        try {
             $documento = Documento::findOrFail($id);
             $json_data = json_decode($documento->getRegularizeResponse, false);
-            if($documento->regularize == '1' && $json_data->code == '1033')
-            {
+            if ($documento->regularize == '1' && $json_data->code == '1033') {
                 $documento->regularize = '0';
                 $documento->sunat = '1';
                 $documento->update();
-                Session::flash('success','Documento de Venta regularizado con exito.');
-                return view('ventas.documentos.index',[
+                Session::flash('success', 'Documento de Venta regularizado con exito.');
+                return view('ventas.documentos.index', [
 
-                    'id_sunat' => $documento->serie.'-'.$documento->correlativo,
+                    'id_sunat' => $documento->serie . '-' . $documento->correlativo,
                     'descripcion_sunat' => 'CDR regularizado.',
                     'notas_sunat' => '',
                     'sunat_exito' => true
 
                 ])->with('sunat_exito', 'success');
-            }
-            else
-            {
-                Session::flash('error','Este documento tiene un error diferente al CDR, intentar enviar a sunat.');
+            } else {
+                Session::flash('error', 'Este documento tiene un error diferente al CDR, intentar enviar a sunat.');
                 return redirect()->route('ventas.documento.index')->with('sunat_existe', 'error');
             }
-        }
-        catch(Exception $e)
-        {
+        } catch (Exception $e) {
             Session::flash('error', 'No se puede conectar con el servidor, porfavor intentar nuevamente.'); //$e->getMessage()
             return redirect()->route('ventas.documento.index');
         }
-
     }
 
     public function email(Request $request)
     {
-        try
-        {
+        try {
             $id = $request->id;
             $correo = $request->correo;
             $documento = Documento::findOrFail($id);
-            $detalles = Detalle::where('documento_id',$id)->where('eliminado','0')->get();
+            $detalles = Detalle::where('documento_id', $id)->where('eliminado', '0')->get();
             $empresa = Empresa::first();
             $legends = self::obtenerLeyenda($documento);
-            $legends = json_encode($legends,true);
-            $legends = json_decode($legends,true);
+            $legends = json_encode($legends, true);
+            $legends = json_decode($legends, true);
 
-            $pdf = PDF::loadview('ventas.documentos.impresion.comprobante_normal',[
+            $pdf = PDF::loadview('ventas.documentos.impresion.comprobante_normal', [
                 'documento' => $documento,
                 'detalles' => $detalles,
                 'moneda' => $documento->simboloMoneda(),
                 'empresa' => $empresa,
                 "legends" =>  $legends,
-                ])->setPaper('a4')->setWarnings(false);
+            ])->setPaper('a4')->setWarnings(false);
 
-            Mail::send('ventas.documentos.mail.cliente_mail',compact("documento"), function ($mail) use ($pdf,$documento,$correo) {
+            Mail::send('ventas.documentos.mail.cliente_mail', compact("documento"), function ($mail) use ($pdf, $documento, $correo) {
                 $mail->to($correo);
                 $mail->subject($documento->nombreTipo());
-                $mail->attachdata($pdf->output(), $documento->serie.'-'.$documento->correlativo.'.pdf');
-                if($documento->tipo_venta_id != '129' && $documento->sunat == '1')
-                {
-                    $mail->attach(base_path().'/storage/app/public/cdr/R-'.$documento->serie.'-'.$documento->correlativo.'.zip');
+                $mail->attachdata($pdf->output(), $documento->serie . '-' . $documento->correlativo . '.pdf');
+                if ($documento->tipo_venta_id != '129' && $documento->sunat == '1') {
+                    $mail->attach(base_path() . '/storage/app/public/cdr/R-' . $documento->serie . '-' . $documento->correlativo . '.zip');
                 }
-                $mail->from('facturacion@siscomfac.com','SiScOmFaC');
+                $mail->from('facturacion@siscomfac.com', 'SiScOmFaC');
             });
 
             return response()->json([
                 'success' => true,
                 'message' => 'El correo se envio con exito.'
             ]);
-        }
-        catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'No se puede conectar con el servidor, porfavor intentar nuevamente.'
