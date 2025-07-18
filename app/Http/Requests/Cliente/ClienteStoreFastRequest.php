@@ -58,6 +58,7 @@ class ClienteStoreFastRequest extends FormRequest
             'distrito.required'         => 'El campo Distrito es obligatorio',
             'direccion.required'        => 'El campo direccion es obligatorio',
             'telefono_movil.required'   => 'El campo telefono movil es obligatorio',
+            'telefono_movil.numeric'    => 'El telefono móvil debe ser numérico',
             'activo.required'           => 'El campo Estado es obligatorio',
         ];
 
