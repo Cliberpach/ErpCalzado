@@ -4976,10 +4976,18 @@ array:12 [
             $documento->total                   =   $montos->monto_total;
             $documento->total_igv               =   $montos->monto_igv;
             $documento->total_pagar             =   $montos->monto_total_pagar;
-            //$documento->igv                     =   $datos_validados->empresa->igv;
+            //$documento->igv                   =   $datos_validados->empresa->igv;
             $documento->monto_descuento         =   $montos->monto_descuento;
             $documento->porcentaje_descuento    =   $montos->porcentaje_descuento;
-            //$documento->moneda                  =   1;
+            //$documento->moneda                =   1;
+
+            //======== SUNAT ========
+            $documento->mto_oper_gravadas_sunat =   $montos->mtoOperGravadasSunat;
+            $documento->mto_igv_sunat           =   $montos->mtoIgvSunat;
+            $documento->total_impuestos_sunat   =   $montos->totalImpuestosSunat;
+            $documento->valor_venta_sunat       =   $montos->valorVentaSunat;
+            $documento->sub_total_sunat         =   $montos->subTotalSunat;
+            $documento->mto_imp_venta_sunat     =   $montos->mtoImpVentaSunat;
 
             //======= LEGENDA ======
             $documento->legenda     =   $legenda;
@@ -4991,10 +4999,10 @@ array:12 [
             $documento->update();
 
             //======== OBTENER DETALLE ANTERIOR ========
-            $detalle_anterior   =   DB::select('select
+            $detalle_anterior   =   DB::select('SELECT
                                     cdd.*
-                                    from cotizacion_documento_detalles as cdd
-                                    where cdd.documento_id = ?',[$id]);
+                                    FROM cotizacion_documento_detalles AS cdd
+                                    WHERE cdd.documento_id = ?',[$id]);
 
             //======== DEVOLVER STOCKS =======
             foreach ($detalle_anterior as $da) {
@@ -5026,7 +5034,7 @@ array:12 [
                 foreach ($item->tallas as $talla) {
 
                     //====== COMPROBAR SI EXISTE EL PRODUCTO COLOR TALLA EN EL ALMACÉN =====
-                    $existe =   DB::select('select
+                    $existe =   DB::select('SELECT
                                 pct.stock,
                                 pct.stock_logico,
                                 p.nombre as producto_nombre,
