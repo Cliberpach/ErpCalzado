@@ -256,10 +256,8 @@
                         <td style="text-align: left">
                             {{ 'PAGO ANTICIPADO' }}
                         </td>
-                        <td style="text-align: left">{{ - }}</td>
-                        <td style="text-align: right">
-                            {{ - }}
-                        </td>
+                        <td style="text-align: left">-</td>
+                        <td style="text-align: right">-</td>
                     </tr>
                     @foreach ($detalles as $item)
                         @if ($documento->tipo_venta_id == 129)
