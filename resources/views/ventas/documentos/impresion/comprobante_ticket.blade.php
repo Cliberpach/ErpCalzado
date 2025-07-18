@@ -251,15 +251,14 @@
 
                 @if ($documento->es_anticipo)
                     <tr>
-                        <td style="text-align: left">
-                            {{ 1 }}</td>
+                        <td style="text-align: left">-</td>
                         <td style="text-align: left">NIU</td>
                         <td style="text-align: left">
                             {{ 'PAGO ANTICIPADO' }}
                         </td>
-                        <td style="text-align: left">{{ number_format($documento->total_pagar, 2) }}</td>
+                        <td style="text-align: left">{{ - }}</td>
                         <td style="text-align: right">
-                            {{ number_format($documento->total_pagar, 2) }}
+                            {{ - }}
                         </td>
                     </tr>
                     @foreach ($detalles as $item)
