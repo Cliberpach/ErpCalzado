@@ -289,6 +289,7 @@ class ComprobanteController extends Controller
                     ->setValorVenta($documento->valor_venta_sunat) //========= MONTO VENDIDO SIN IMPUESTO ========
                     ->setSubTotal($documento->sub_total_sunat) //========= MONTO VENDIDO + IMPUESTO =======
                     ->setMtoImpVenta($documento->mto_imp_venta_sunat); //======= MONTO VENDIDO + IMPUESTO =========
+
             } else {
 
                 $tipoDocRel =   $documento->anticipo_tipo_venta_id == '127' ? '02' : '03';
@@ -329,53 +330,74 @@ class ComprobanteController extends Controller
             $detalles   =   $documento->detalles;
             $items      =   [];
 
-            foreach ($detalles as $detalle) {
-                $items[] = (new SaleDetail())
-                    ->setCodProducto($detalle->codigo_producto)
-                    ->setUnidad($detalle->unidad)
-                    ->setDescripcion($detalle->nombre_modelo . '-' . $detalle->nombre_producto . '-' . $detalle->nombre_color . '-' . $detalle->nombre_talla)
-                    ->setCantidad($detalle->cantidad)
-                    ->setMtoValorUnitario((float)$detalle->precio_unitario_nuevo / 1.18)
-                    ->setMtoValorVenta(((float)$detalle->precio_unitario_nuevo / 1.18) * (float)$detalle->cantidad)
-                    ->setMtoBaseIgv(((float)$detalle->precio_unitario_nuevo / 1.18) * (float)$detalle->cantidad)
-                    ->setPorcentajeIgv(18)
-                    ->setIgv((float)$detalle->cantidad * ((float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18))
-                    ->setTipAfeIgv('10') // Catalog: 07
-                    ->setTotalImpuestos((float)$detalle->cantidad * ((float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18))
-                    ->setMtoPrecioUnitario($detalle->precio_unitario_nuevo);
-            }
+            //=========== SI NO ES FACTURA PAGO ANTICIPADO =========
+            if (!$documento->es_anticipo) {
 
-            //======= AGREGANDO EMBALAJE Y ENVÍO AL DETALLE =====
-            if ($documento->monto_embalaje > 0) {
-                $items[] = (new SaleDetail())
-                    ->setCodProducto('EMBALAJE')
-                    ->setUnidad('NIU')
-                    ->setDescripcion('EMBALAJE')
-                    ->setCantidad(1)
-                    ->setMtoValorUnitario((float)$documento->monto_embalaje / 1.18)
-                    ->setMtoValorVenta(((float)$documento->monto_embalaje / 1.18) * (float)1)
-                    ->setMtoBaseIgv(((float)$documento->monto_embalaje / 1.18) * (float)1)
-                    ->setPorcentajeIgv(18)
-                    ->setIgv((float)1 * ((float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18))
-                    ->setTipAfeIgv('10') // Catalog: 07
-                    ->setTotalImpuestos((float)1 * ((float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18))
-                    ->setMtoPrecioUnitario($documento->monto_embalaje);
-            }
+                foreach ($detalles as $detalle) {
+                    $items[] = (new SaleDetail())
+                        ->setCodProducto($detalle->codigo_producto)
+                        ->setUnidad($detalle->unidad)
+                        ->setDescripcion($detalle->nombre_modelo . '-' . $detalle->nombre_producto . '-' . $detalle->nombre_color . '-' . $detalle->nombre_talla)
+                        ->setCantidad($detalle->cantidad)
+                        ->setMtoValorUnitario((float)$detalle->precio_unitario_nuevo / 1.18)
+                        ->setMtoValorVenta(((float)$detalle->precio_unitario_nuevo / 1.18) * (float)$detalle->cantidad)
+                        ->setMtoBaseIgv(((float)$detalle->precio_unitario_nuevo / 1.18) * (float)$detalle->cantidad)
+                        ->setPorcentajeIgv(18)
+                        ->setIgv((float)$detalle->cantidad * ((float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18))
+                        ->setTipAfeIgv('10') // Catalog: 07
+                        ->setTotalImpuestos((float)$detalle->cantidad * ((float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18))
+                        ->setMtoPrecioUnitario($detalle->precio_unitario_nuevo);
+                }
 
-            if ($documento->monto_envio > 0) {
+                //======= AGREGANDO EMBALAJE Y ENVÍO AL DETALLE =====
+                if ($documento->monto_embalaje > 0) {
+                    $items[] = (new SaleDetail())
+                        ->setCodProducto('EMBALAJE')
+                        ->setUnidad('NIU')
+                        ->setDescripcion('EMBALAJE')
+                        ->setCantidad(1)
+                        ->setMtoValorUnitario((float)$documento->monto_embalaje / 1.18)
+                        ->setMtoValorVenta(((float)$documento->monto_embalaje / 1.18) * (float)1)
+                        ->setMtoBaseIgv(((float)$documento->monto_embalaje / 1.18) * (float)1)
+                        ->setPorcentajeIgv(18)
+                        ->setIgv((float)1 * ((float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18))
+                        ->setTipAfeIgv('10') // Catalog: 07
+                        ->setTotalImpuestos((float)1 * ((float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18))
+                        ->setMtoPrecioUnitario($documento->monto_embalaje);
+                }
+
+                if ($documento->monto_envio > 0) {
+                    $items[] = (new SaleDetail())
+                        ->setCodProducto('ENVIO')
+                        ->setUnidad('NIU')
+                        ->setDescripcion('ENVIO')
+                        ->setCantidad(1)
+                        ->setMtoValorUnitario((float)$documento->monto_envio / 1.18)
+                        ->setMtoValorVenta(((float)$documento->monto_envio / 1.18) * (float)1)
+                        ->setMtoBaseIgv(((float)$documento->monto_envio / 1.18) * (float)1)
+                        ->setPorcentajeIgv(18)
+                        ->setIgv((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
+                        ->setTipAfeIgv('10') // Catalog: 07
+                        ->setTotalImpuestos((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
+                        ->setMtoPrecioUnitario($documento->monto_envio);
+                }
+
+            }else{
+
                 $items[] = (new SaleDetail())
-                    ->setCodProducto('ENVIO')
-                    ->setUnidad('NIU')
-                    ->setDescripcion('ENVIO')
-                    ->setCantidad(1)
-                    ->setMtoValorUnitario((float)$documento->monto_envio / 1.18)
-                    ->setMtoValorVenta(((float)$documento->monto_envio / 1.18) * (float)1)
-                    ->setMtoBaseIgv(((float)$documento->monto_envio / 1.18) * (float)1)
-                    ->setPorcentajeIgv(18)
-                    ->setIgv((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
-                    ->setTipAfeIgv('10') // Catalog: 07
-                    ->setTotalImpuestos((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
-                    ->setMtoPrecioUnitario($documento->monto_envio);
+                        ->setCodProducto('PAGO ANTICIPADO')
+                        ->setUnidad('NIU')
+                        ->setDescripcion('PAGO ANTICIPADO')
+                        ->setCantidad(1)
+                        ->setMtoValorUnitario((float)$documento->mto_imp_venta_sunat / 1.18)
+                        ->setMtoValorVenta(((float)$documento->mto_imp_venta_sunat / 1.18) * (float)1)
+                        ->setMtoBaseIgv(((float)$documento->mto_imp_venta_sunat / 1.18) * (float)1)
+                        ->setPorcentajeIgv(18)
+                        ->setIgv((float)1 * ((float)$documento->mto_imp_venta_sunat - (float)$documento->mto_imp_venta_sunat / 1.18))
+                        ->setTipAfeIgv('10') // Catalog: 07
+                        ->setTotalImpuestos((float)1 * ((float)$documento->mto_imp_venta_sunat - (float)$documento->mto_imp_venta_sunat / 1.18))
+                        ->setMtoPrecioUnitario($documento->mto_imp_venta_sunat);
+
             }
 
             $formatter  = new NumeroALetras();
@@ -401,7 +423,7 @@ class ComprobanteController extends Controller
             if ($documento->tipo_venta_id   ==  128) {
                 $documento->ruta_xml      =   'storage/greenter/boletas/xml/' . $invoice->getName() . '.xml';
             }
-      
+
             //======== ENVÍO CORRECTO Y ACEPTADO ==========
             if ($res->isSuccess()) {
                 //====== GUARDANDO RESPONSE ======

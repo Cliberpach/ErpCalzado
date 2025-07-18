@@ -262,6 +262,34 @@
                             {{ number_format($documento->total_pagar, 2) }}
                         </td>
                     </tr>
+                    @foreach ($detalles as $item)
+                        @if ($documento->tipo_venta_id == 129)
+                            @if ($item->cantidad - $item->detalles->sum('cantidad') > 0)
+                                <tr>
+                                    <td style="text-align: left">
+                                        {{ number_format($item->cantidad - $item->detalles->sum('cantidad'), 2) }}</td>
+                                    <td style="text-align: left">{{ $item->unidad }}</td>
+                                    <td style="text-align: left">
+                                        {{ $item->nombre_producto . '-' . $item->nombre_modelo . '-' . $item->nombre_color . '-' . $item->nombre_talla }}
+                                    </td>
+                                    <td style="text-align: left">{{ number_format($item->precio_unitario, 2) }}</td>
+                                    <td style="text-align: right">
+                                        {{ number_format(($item->cantidad - $item->detalles->sum('cantidad')) * $item->precio_unitario, 2) }}
+                                    </td>
+                                </tr>
+                            @endif
+                        @else
+                            <tr>
+                                <td style="text-align: left">{{ number_format($item->cantidad, 2) }}</td>
+                                <td style="text-align: left">{{ $item->unidad }}</td>
+                                <td style="text-align: left">
+                                    {{ $item->nombre_producto . '-' . $item->nombre_modelo . '-' . $item->nombre_color . '-' . $item->nombre_talla }}
+                                </td>
+                                <td style="text-align: left">{{ number_format($item->precio_unitario, 2) }}</td>
+                                <td style="text-align: right">{{ number_format($item->importe, 2) }}</td>
+                            </tr>
+                        @endif
+                    @endforeach
                 @endif
 
                 @if ($documento->anticipo_consumido_id)
