@@ -121,13 +121,14 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-12 col-md-6">
-                                        <div class="form-group">
+                                        <div class="form-group mb-0">
                                             <label for="telefono_movil" class="required">Teléfono móvil</label>
                                             <input type="text" id="telefono_movil" name="telefono_movil"
                                                 class="form-control" onkeypress="return isNroPhone(event)" maxlength="9"
                                                 required v-model="formCliente.telefono_movil">
 
                                         </div>
+                                        <span style="color:red;" class="error_mdl_client_telefono_movil"></span>
                                     </div>
                                     <div class="col-12 col-md-6">
                                         <div class="form-group">
@@ -136,6 +137,7 @@
                                                 class="form-control" onkeypress="return isNroPhone(event)" maxlength="9"
                                                 v-model="formCliente.telefono_fijo">
                                         </div>
+                                        <span style="color:red;" class="error_mdl_client_telefono_fijo"></span>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-group">
@@ -143,6 +145,7 @@
                                             <input type="text" id="correo_electronico" name="correo_electronico"
                                                 class="form-control" v-model="formCliente.correo_electronico">
                                         </div>
+                                        <span style="color:red;" class="error_mdl_client_correo"></span>
                                     </div>
                                 </div>
                             </div>

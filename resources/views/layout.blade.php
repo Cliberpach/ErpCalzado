@@ -473,14 +473,12 @@
 
     {{-- <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script> --}}
 
-
-
     <!-- Mainly scripts -->
     <script src="/Inspinia/js/jquery-3.1.1.min.js"></script>
     <script src="/Inspinia/js/popper.min.js"></script>
     <script src="/Inspinia/js/bootstrap.js"></script>
     <script src="/Inspinia/js/plugins/metisMenu/jquery.metisMenu.js"></script>
-    {{-- <script src="/Inspinia/js/plugins/slimscroll/jquery.slimscroll.min.js"></script> --}}
+     <script src="/Inspinia/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
 
     <!-- Custom and plugin javascript -->
     <script src="/Inspinia/js/inspinia.js"></script>
