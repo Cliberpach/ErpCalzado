@@ -36,26 +36,18 @@
         </div>
     </div>
 </div>
-
-
 @stop
-@push('styles')
-@endpush
 
 @push('scripts')
-
 <script>
 $(document).ready(function() {
-
     // DataTables
     $('.dataTables-ingreso_mercaderia').DataTable({
-        "dom": '<"html5buttons"B>lTfgitp',
         "responsive":true,
         "processing": true,
+        "serverSide": true,
         "ajax": "{{ route('almacenes.nota_salidad.data')}}",
         "columns": [
-            //ingreso_mercaderia INTERNA
-            //{ data: 'id',className: "text-center"},
 
             { data: 'id',className: "text-center"},
             { data: 'registrador_nombre',className: "text-center"},
@@ -146,6 +138,5 @@ function eliminar(id) {
         }
     })
 }
-
 </script>
 @endpush

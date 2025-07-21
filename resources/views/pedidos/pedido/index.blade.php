@@ -558,7 +558,6 @@
 
     })
 
-
     $('#modal_pedido_detalles').on('show.bs.modal', async function(event) {
 
         var button = $(event.relatedTarget)

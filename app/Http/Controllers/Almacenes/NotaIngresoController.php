@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Almacenes;
 
 use App\Almacenes\Almacen;
 use App\Almacenes\CodigoBarra;
-use App\Almacenes\Color; 
-use App\Almacenes\Talla; 
-use App\Almacenes\Modelo; 
+use App\Almacenes\Color;
+use App\Almacenes\Talla;
+use App\Almacenes\Modelo;
 use App\Almacenes\DetalleNotaIngreso;
 use App\Almacenes\Kardex;
 use App\Almacenes\LoteProducto;
@@ -45,22 +45,38 @@ class NotaIngresoController extends Controller
      */
     public function index()
     {
-        $this->authorize('haveaccess','nota_ingreso.index');
-        return view('almacenes.nota_ingresos.index');
+        $this->authorize('haveaccess', 'nota_ingreso.index');
+        $almacenes  =   Almacen::where('sede_id',Auth::user()->sede_id)->where('estado','ACTIVO')->get();
+        return view('almacenes.nota_ingresos.index',compact('almacenes'));
     }
 
     public function gettable(Request $request)
     {
-        $data       =   DB::table("nota_ingreso as n")
-                        ->select('n.*',)
-                        ->where('n.estado', 'ACTIVO');
+        $filtro_almacen = $request->get('filtro_almacen');
+        $data   =   DB::table('nota_ingreso as n')
+                    ->leftJoin(DB::raw('(
+                        SELECT
+                            dni.nota_ingreso_id,
+                            SUBSTRING(
+                                GROUP_CONCAT(DISTINCT p.nombre ORDER BY p.nombre SEPARATOR ", "), 1, 200
+                            ) as cadena_detalles
+                        FROM detalle_nota_ingreso dni
+                        INNER JOIN productos p ON p.id = dni.producto_id
+                        GROUP BY dni.nota_ingreso_id
+                    ) as detalles'), 'detalles.nota_ingreso_id', '=', 'n.id')
+                    ->select('n.*', 'detalles.cadena_detalles')
+                    ->where('n.estado', 'ACTIVO');
+
+        if($filtro_almacen){
+            $data->where('n.almacen_destino_id', $filtro_almacen);
+        }
 
         //========= FILTRO POR ROLES ======
         $roles = DB::table('role_user as rl')
-        ->join('roles as r', 'r.id', '=', 'rl.role_id')
-        ->where('rl.user_id', Auth::user()->id)
-        ->pluck('r.name')
-        ->toArray(); 
+            ->join('roles as r', 'r.id', '=', 'rl.role_id')
+            ->where('rl.user_id', Auth::user()->id)
+            ->pluck('r.name')
+            ->toArray();
 
         //======== ADMIN PUEDE VER TODAS LAS NOTAS DE INGRESO DE SU SEDE =====
         if (in_array('ADMIN', $roles)) {
@@ -68,43 +84,7 @@ class NotaIngresoController extends Controller
         } else {
             //====== USUARIOS PUEDEN VER SUS PROPIAS NOTAS DE INGRESO ======
             $data->where('n.sede_id', Auth::user()->sede_id)
-            ->where('n.registrador_id', Auth::user()->id);
-        }
-
-        $data   =   $data->get();
-        
-
-        $detalles   =   DB::select('select distinct 
-                        p.nombre as producto_nombre,
-                        dni.nota_ingreso_id
-                        from detalle_nota_ingreso as dni 
-                        inner join productos as p on p.id = dni.producto_id');
-
-        foreach ($data as $notaIngreso) {
-            
-            $detallesFiltrados = array_filter($detalles, function($detalle) use ($notaIngreso) {
-                return $detalle->nota_ingreso_id == $notaIngreso->id;
-            });
-
-            $cadenaDetalles = '';
-            $caracteresAcumulados = 0;
-        
-            foreach ($detallesFiltrados as $detalle) {
-                $nombreProducto = $detalle->producto_nombre;
-                $longitudNombre = strlen($nombreProducto);
-        
-                // Verificar si agregar el nombre del producto superará los 200 caracteres
-                if ($caracteresAcumulados + $longitudNombre <= 200) {
-                    $cadenaDetalles .= $nombreProducto . ', ';
-                    $caracteresAcumulados += $longitudNombre;
-                } else {
-                    // Si supera los 200 caracteres, terminar el bucle
-                    break;
-                }
-            }
-
-            // Añadir la cadena de detalles como un nuevo campo en la nota de ingreso
-            $notaIngreso->cadena_detalles = rtrim($cadenaDetalles, ', '); // Eliminar la última coma
+                ->where('n.registrador_id', Auth::user()->id);
         }
 
         return DataTables::of($data)->make(true);
@@ -118,18 +98,17 @@ class NotaIngresoController extends Controller
     public function create()
     {
 
-        $this->authorize('haveaccess','nota_ingreso.index');
+        $this->authorize('haveaccess', 'nota_ingreso.index');
 
-        $modelos        =   Modelo::where('estado','ACTIVO')->get();
-        $tallas         =   Talla::where('estado','ACTIVO')->get();
-        $colores        =   Color::where('estado','ACTIVO')->get();
+        $modelos        =   Modelo::where('estado', 'ACTIVO')->get();
+        $tallas         =   Talla::where('estado', 'ACTIVO')->get();
+        $colores        =   Color::where('estado', 'ACTIVO')->get();
         $sede_id        =   Auth::user()->sede_id;
         $registrador    =   Auth::user();
 
-        $almacenes_destino  =   Almacen::where('estado','ACTIVO')   
-                                ->where('sede_id',$sede_id)
+        $almacenes_destino  =   Almacen::where('estado', 'ACTIVO')
+                                ->where('sede_id', $sede_id)
                                 ->get();
-
         return view('almacenes.nota_ingresos.create', [
             'modelos'   =>  $modelos,
             'colores'   =>  $colores,
@@ -139,8 +118,8 @@ class NotaIngresoController extends Controller
             'registrador'       =>  $registrador
         ]);
     }
-    
-/*
+
+    /*
 array:7 [
   "_token"              => "Ybnff0a5bpqfjqzZcjo6Mf45L6V3KkTMhVlNMJ5u"
   "generarAdhesivos"    => "NO"
@@ -152,21 +131,21 @@ array:7 [
   "sede_id"             => "1"
   "generarAdhesivos"    => "SI"
 ]
-*/ 
+*/
     public function store(Request $request)
     {
-        $this->authorize('haveaccess','nota_ingreso.index');
-             
+        $this->authorize('haveaccess', 'nota_ingreso.index');
+
         DB::beginTransaction();
 
         try {
 
             //======= OBTENIENDO ALMACÉN DESTINO =======
-            $almacen_destino    =   DB::select('select 
+            $almacen_destino    =   DB::select('select
                                     a.id,
                                     a.descripcion
                                     from almacenes as a
-                                    where a.id = ?',[$request->get('almacen_destino')])[0];
+                                    where a.id = ?', [$request->get('almacen_destino')])[0];
 
             $registrador        =   User::find($request->get('registrador_id'));
 
@@ -184,26 +163,26 @@ array:7 [
 
             foreach ($lstNi as $item) {
 
-                $producto_existe     =  DB::select('select 
+                $producto_existe     =  DB::select('select
                                         p.nombre as producto_nombre
                                         from productos as p
                                         where
                                         p.id = ?
-                                        and p.estado = "ACTIVO"',[$item->producto_id]);
+                                        and p.estado = "ACTIVO"', [$item->producto_id]);
 
-                $color_existe       =  DB::select('select 
+                $color_existe       =  DB::select('select
                                         c.descripcion as color_nombre
                                         from colores as c
                                         where
                                         c.id = ?
-                                        and c.estado = "ACTIVO"',[$item->color_id]);
+                                        and c.estado = "ACTIVO"', [$item->color_id]);
 
-                $talla_existe       =  DB::select('select 
+                $talla_existe       =  DB::select('select
                                         t.descripcion as talla_nombre
                                         from tallas as t
                                         where
                                         t.id = ?
-                                        and t.estado = "ACTIVO"',[$item->talla_id]);
+                                        and t.estado = "ACTIVO"', [$item->talla_id]);
 
                 $detalle                     =   new   DetalleNotaIngreso();
                 $detalle->nota_ingreso_id    =   $notaingreso->id;
@@ -214,58 +193,59 @@ array:7 [
                 $detalle->cantidad           =   $item->cantidad;
                 $detalle->almacen_nombre     =   $almacen_destino->descripcion;
                 $detalle->producto_nombre    =   $producto_existe[0]->producto_nombre;
-                $detalle->color_nombre       =   $color_existe[0]->color_nombre;  
-                $detalle->talla_nombre       =   $talla_existe[0]->talla_nombre;  
+                $detalle->color_nombre       =   $color_existe[0]->color_nombre;
+                $detalle->talla_nombre       =   $talla_existe[0]->talla_nombre;
                 $detalle->save();
 
                 //======== INGRESANDO STOCK EN ALMACÉN DESTINO =======
                 //=>COMPROBANDO SI EXISTE EL PRODUCTO COLOR TALLA
-                $producto_destino   =   DB::select('select 
-                                        pct.* 
+                $producto_destino   =   DB::select(
+                    'select
+                                        pct.*
                                         from producto_color_tallas as pct
-                                        where 
+                                        where
                                         pct.almacen_id  = ?
-                                        and pct.producto_id = ? 
-                                        and pct.color_id = ? 
+                                        and pct.producto_id = ?
+                                        and pct.color_id = ?
                                         and pct.talla_id = ?',
-                                        [
-                                            $request->get('almacen_destino'),
-                                            $item->producto_id,
-                                            $item->color_id,
-                                            $item->talla_id
-                                        ]);
+                    [
+                        $request->get('almacen_destino'),
+                        $item->producto_id,
+                        $item->color_id,
+                        $item->talla_id
+                    ]
+                );
 
-                 //======== TALLA EXISTE, INCREMENTAR STOCK =========
+                //======== TALLA EXISTE, INCREMENTAR STOCK =========
                 if (count($producto_destino) > 0) {
 
                     ProductoColorTalla::where('producto_id', $item->producto_id)
-                    ->where('color_id', $item->color_id)
-                    ->where('talla_id', $item->talla_id)
-                    ->where('almacen_id', $request->get('almacen_destino'))
-                    ->update([
-                        'stock'         =>  DB::raw("stock + $item->cantidad"),
-                        'stock_logico'  =>  DB::raw("stock_logico + $item->cantidad"),
-                        'estado'        =>  '1',  
-                    ]);
-
+                        ->where('color_id', $item->color_id)
+                        ->where('talla_id', $item->talla_id)
+                        ->where('almacen_id', $request->get('almacen_destino'))
+                        ->update([
+                            'stock'         =>  DB::raw("stock + $item->cantidad"),
+                            'stock_logico'  =>  DB::raw("stock_logico + $item->cantidad"),
+                            'estado'        =>  '1',
+                        ]);
                 } else {
 
                     //========= TALLA NO EXISTE =============
 
                     //======= VERIFICANDO EXISTENCIA DEL COLOR ======
                     $existeColor    =   ProductoColor::where('producto_id', $item->producto_id)
-                                            ->where('color_id', $item->color_id)
-                                            ->where('almacen_id',$request->get('almacen_destino'))
-                                            ->exists();
-                
+                        ->where('color_id', $item->color_id)
+                        ->where('almacen_id', $request->get('almacen_destino'))
+                        ->exists();
+
                     //======== COLOR NO EXISTE, REGISTRAR COLOR =======
-                    if(!$existeColor){
+                    if (!$existeColor) {
                         $producto_color                 =   new ProductoColor();
                         $producto_color->producto_id    =   $item->producto_id;
                         $producto_color->color_id       =   $item->color_id;
                         $producto_color->almacen_id     =   $request->get('almacen_destino');
-                        $producto_color->save(); 
-                    }  
+                        $producto_color->save();
+                    }
 
                     //====== REGISTRAR TALLA ============
                     $producto                   =   new ProductoColorTalla();
@@ -276,24 +256,27 @@ array:7 [
                     $producto->stock_logico     =   $item->cantidad;
                     $producto->almacen_id       =   $request->get('almacen_destino');
                     $producto->save();
-
-                }  
+                }
 
                 //========== REGISTRANDO EN KARDEX ========
                 //=========== OBTENIENDO PRODUCTO CON STOCK NUEVO ===========
-                $producto   =   DB::select('select 
-                                pct.* 
+                $producto   =   DB::select(
+                    'select
+                                pct.*
                                 from producto_color_tallas as pct
-                                where 
-                                pct.producto_id = ? 
-                                and pct.color_id = ? 
+                                where
+                                pct.producto_id = ?
+                                and pct.color_id = ?
                                 and pct.talla_id = ?
                                 and pct.almacen_id = ?',
-                                [$item->producto_id,
-                                $item->color_id,
-                                $item->talla_id,
-                                $request->get('almacen_destino')]);
-                        
+                    [
+                        $item->producto_id,
+                        $item->color_id,
+                        $item->talla_id,
+                        $request->get('almacen_destino')
+                    ]
+                );
+
                 //==================== KARDEX ==================
                 $kardex                     =   new Kardex();
                 $kardex->sede_id            =   $request->get('sede_id');
@@ -310,7 +293,7 @@ array:7 [
                 $kardex->importe            =   null;
                 $kardex->accion             =   'INGRESO';
                 $kardex->stock              =   $producto[0]->stock;
-                $kardex->numero_doc         =   'NI-'.$notaingreso->id;
+                $kardex->numero_doc         =   'NI-' . $notaingreso->id;
                 $kardex->documento_id       =   $notaingreso->id;
                 $kardex->registrador_id     =   $registrador->id;
                 $kardex->registrador_nombre =   $registrador->usuario;
@@ -328,20 +311,21 @@ array:7 [
 
             Session::flash('message_success', 'NOTA INGRESO REGISTRADA CON ÉXITO');
 
-            if($request->get('generarAdhesivos') === "SI"){
+            if ($request->get('generarAdhesivos') === "SI") {
                 Session::flash('generarAdhesivos', 'GENERANDO ADHESIVOS');
-                Session::flash('nota_id',$notaingreso->id);
+                Session::flash('nota_id', $notaingreso->id);
             }
 
             DB::commit();
-            return response()->json(['success'=>true,
-            'message'=>'NOTA INGRESO REGISTRADA CON ÉXITO','nota_id'=>$notaingreso->id]);
-      
+            return response()->json([
+                'success' => true,
+                'message' => 'NOTA INGRESO REGISTRADA CON ÉXITO',
+                'nota_id' => $notaingreso->id
+            ]);
         } catch (\Throwable $th) {
             DB::rollBack();
-            return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine()]);
         }
-      
     }
 
     public function storeFast(Request $request)
@@ -362,7 +346,7 @@ array:7 [
         $dolar_aux = json_decode($dolar_aux, true);
 
         $dolar = (float)$dolar_aux['original']['venta'];
-        $fecha_5 = date("Y-m-d",strtotime($fecha_hoy."+ 5 years"));
+        $fecha_5 = date("Y-m-d", strtotime($fecha_hoy . "+ 5 years"));
 
         $data = $request->all();
 
@@ -380,7 +364,7 @@ array:7 [
         $validator =  Validator::make($data, $rules, $message);
 
         if ($validator->fails()) {
-            Session::flash('error','Ingreso no creado porfavor llenar todos los datos.');
+            Session::flash('error', 'Ingreso no creado porfavor llenar todos los datos.');
             return redirect()->route('almacenes.producto.index')->with('guardar', 'error');
         }
 
@@ -404,14 +388,14 @@ array:7 [
 
         DetalleNotaIngreso::create([
             'nota_ingreso_id' => $nota->id,
-            'lote' => 'LT-'.$fecha_actual,
+            'lote' => 'LT-' . $fecha_actual,
             'cantidad' => $request->cantidad,
             'producto_id' => $request->producto_id,
             'fecha_vencimiento' => $fecha_5,
             'costo' => $costo_soles,
             'costo_soles' => $costo_soles,
             'costo_dolares' => $costo_dolares,
-            'valor_ingreso' => $request->costo ,
+            'valor_ingreso' => $request->costo,
         ]);
 
         //Registro de actividad
@@ -420,7 +404,7 @@ array:7 [
         crearRegistro($nota, $descripcion, $gestion);
 
 
-        Session::flash('success','Ingreso creado correctamente.');
+        Session::flash('success', 'Ingreso creado correctamente.');
         return redirect()->route('almacenes.producto.index')->with('guardar', 'success');
     }
 
@@ -443,7 +427,7 @@ array:7 [
      */
     public function edit($id)
     {
-        $this->authorize('haveaccess','nota_ingreso.index');
+        $this->authorize('haveaccess', 'nota_ingreso.index');
 
         $fecha_hoy = Carbon::now()->toDateString();
         $fecha = Carbon::createFromFormat('Y-m-d', $fecha_hoy);
@@ -451,8 +435,8 @@ array:7 [
         $fecha = str_replace(" ", "", $fecha);
         $fecha = str_replace(":", "", $fecha);
         $fecha_actual = Carbon::now();
-        $fecha_actual = date("d/m/Y",strtotime($fecha_actual));
-        $fecha_5 = date("Y-m-d",strtotime($fecha_hoy."+ 5 years"));
+        $fecha_actual = date("d/m/Y", strtotime($fecha_actual));
+        $fecha_5 = date("Y-m-d", strtotime($fecha_hoy . "+ 5 years"));
         $notaingreso = NotaIngreso::findOrFail($id);
         $data = array();
         $detallenotaingreso = DB::table('detalle_nota_ingreso')->where('nota_ingreso_id', $notaingreso->id)->get();
@@ -486,9 +470,9 @@ array:7 [
         $usuarios = User::get();
         $productos = Producto::where('estado', 'ACTIVO')->get();
         $monedas =  tipos_moneda();
-        $modelos = Modelo::where('estado','ACTIVO')->get();
-        $tallas = Talla::where('estado','ACTIVO')->get();
-        $colores =  Color::where('estado','ACTIVO')->get();
+        $modelos = Modelo::where('estado', 'ACTIVO')->get();
+        $tallas = Talla::where('estado', 'ACTIVO')->get();
+        $colores =  Color::where('estado', 'ACTIVO')->get();
 
         return view('almacenes.nota_ingresos.edit', [
             "fecha_hoy" => $fecha_hoy,
@@ -517,7 +501,7 @@ array:7 [
      */
     public function update(Request $request, $id)
     {
-        $this->authorize('haveaccess','nota_ingreso.index');
+        $this->authorize('haveaccess', 'nota_ingreso.index');
         $data = $request->all();
 
         $rules = [
@@ -542,10 +526,9 @@ array:7 [
         $notaingreso = NotaIngreso::findOrFail($id);
         $notaingreso->fecha = $request->get('fecha');
 
-        if($request->destino)
-        {
-             $destino = DB::table('tabladetalles')->where('id', $request->destino)->first();
-             $notaingreso->destino = $destino->descripcion;
+        if ($request->destino) {
+            $destino = DB::table('tabladetalles')->where('id', $request->destino)->first();
+            $notaingreso->destino = $destino->descripcion;
         }
 
         $dolar = (float)$notaingreso->dolar;
@@ -557,14 +540,11 @@ array:7 [
         $notaingreso->tipo_cambio = $dolar;
         $notaingreso->dolar = $dolar;
         $notaingreso->total = $request->get('monto_total');
-        if($request->get('moneda') == 'DOLARES')
-        {
+        if ($request->get('moneda') == 'DOLARES') {
             $notaingreso->total_soles = (float) $request->get('monto_total') * (float) $dolar;
 
             $notaingreso->total_dolares = (float) $request->get('monto_total');
-        }
-        else
-        {
+        } else {
             $notaingreso->total_soles = (float) $request->get('monto_total');
 
             $notaingreso->total_dolares = (float) $request->get('monto_total') / $dolar;
@@ -574,14 +554,11 @@ array:7 [
         $articulosJSON = $request->get('notadetalle_tabla');
         $notatabla = json_decode($articulosJSON[0]);
         foreach ($notatabla as $fila) {
-            if($request->get('moneda') == 'DOLARES')
-            {
+            if ($request->get('moneda') == 'DOLARES') {
                 $costo_soles = (float) $fila->costo * (float) $dolar;
 
                 $costo_dolares = (float) $fila->costo;
-            }
-            else
-            {
+            } else {
                 $costo_soles = (float) $fila->costo;
 
                 $costo_dolares = (float) $fila->costo / (float) $dolar;
@@ -635,7 +612,7 @@ array:7 [
      */
     public function destroy($id)
     {
-        $this->authorize('haveaccess','nota_ingreso.index');
+        $this->authorize('haveaccess', 'nota_ingreso.index');
         $notaingreso = NotaIngreso::findOrFail($id);
         $notaingreso->estado = "ANULADO";
         $notaingreso->save();
@@ -715,43 +692,47 @@ array:7 [
     }
 
 
-    public function getProductos($modelo_id,$almacen_id){
-        
+    public function getProductos($modelo_id, $almacen_id)
+    {
+
         try {
-            $productos  =   DB::select('select 
+            $productos  =   DB::select('select
                             p.nombre as producto_nombre,
                             c.descripcion as color_nombre,
-                            t.descripcion as talla_nombre, 
+                            t.descripcion as talla_nombre,
                             pct.stock,
                             pct.stock_logico,
-                            p.id as producto_id, 
+                            p.id as producto_id,
                             c.id as color_id,
-                            t.id as talla_id 
-                            from producto_colores as pc 
-                            inner join productos as p on p.id=pc.producto_id 
-                            inner join colores as c on c.id=pc.color_id 
-                            left join producto_color_tallas as pct on (pc.color_id=pct.color_id and pc.producto_id=pct.producto_id and pc.almacen_id = pct.almacen_id) 
-                            left join tallas as t on t.id = pct.talla_id 
-                            where 
-                            p.modelo_id = ? 
+                            t.id as talla_id
+                            from producto_colores as pc
+                            inner join productos as p on p.id=pc.producto_id
+                            inner join colores as c on c.id=pc.color_id
+                            left join producto_color_tallas as pct on (pc.color_id=pct.color_id and pc.producto_id=pct.producto_id and pc.almacen_id = pct.almacen_id)
+                            left join tallas as t on t.id = pct.talla_id
+                            where
+                            p.modelo_id = ?
                             and pc.almacen_id = ?
                             and p.estado="ACTIVO";
-                            ',[$modelo_id,$almacen_id]);
+                            ', [$modelo_id, $almacen_id]);
 
-            return response()->json(['success'=>true,'productos'=>$productos]);
+            return response()->json(['success' => true, 'productos' => $productos]);
         } catch (\Throwable $th) {
-            return response()->json(['success'=>false,'message'=>'ERROR AL OBTENER LOS PRODUCTOS EN EL SERVIDOR',
-            'exception'=>$th->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'ERROR AL OBTENER LOS PRODUCTOS EN EL SERVIDOR',
+                'exception' => $th->getMessage()
+            ]);
         }
-
     }
 
 
-    public function generarEtiquetas($nota_id){
+    public function generarEtiquetas($nota_id)
+    {
 
         try {
-        
-            $nota_detalle   =   DB::select('select 
+
+            $nota_detalle   =   DB::select('select
                                 p.nombre as producto_nombre,
                                 c.descripcion as color_nombre,
                                 t.descripcion as talla_nombre,
@@ -770,67 +751,71 @@ array:7 [
                                 inner join modelos as m on m.id = p.modelo_id
                                 inner join categorias as ca on ca.id = p.categoria_id
                                 left join codigos_barra as cb on (cb.producto_id = p.id and cb.color_id = c.id and cb.talla_id = t.id)
-                                where dni.nota_ingreso_id=?',[$nota_id]);
-            
+                                where dni.nota_ingreso_id=?', [$nota_id]);
+
             $empresa        =   Empresa::first();
-          
-            
+
+
             $width_in_points    = 300 * 72 / 25.4;  // Ancho en puntos 5cm = 50 mm
             $height_in_points   = 170 * 72 / 25.4; // Alto en puntos
-                                
+
             // Establecer el tamaño del papel
             $custom_paper = array(0, 0, $width_in_points, $height_in_points);
             $pdf = PDF::loadview('almacenes.productos.pdf.adhesivo', [
-                                    'nota_id'       =>  $nota_id,
-                                    'nota_detalle'  =>  $nota_detalle,
-                                    'empresa'       =>  $empresa
-                                    ])->setPaper($custom_paper)
-                                    ->setWarnings(false);
-                             
+                'nota_id'       =>  $nota_id,
+                'nota_detalle'  =>  $nota_detalle,
+                'empresa'       =>  $empresa
+            ])->setPaper($custom_paper)
+                ->setWarnings(false);
+
             return $pdf->stream('etiquetas.pdf');
         } catch (\Throwable $th) {
             dd($th->getMessage());
-            Session::flash('nota_ingreso_error_message','ERROR AL GENERAR LAS ETIQUETAS ADHESIVAS');
-            Session::flash('nota_ingreso_error_exception',$th->getMessage());
+            Session::flash('nota_ingreso_error_message', 'ERROR AL GENERAR LAS ETIQUETAS ADHESIVAS');
+            Session::flash('nota_ingreso_error_exception', $th->getMessage());
 
             return redirect()->route('almacenes.nota_ingreso.index');
         }
-       
     }
 
-    public function generarCodigoBarras($item){
+    public function generarCodigoBarras($item)
+    {
 
         //======= BUSCAR SI YA TIENE UN CÓDIGO GENERADO =======
-        $codigo_barra   =   DB::select('select 
-                            cb.* 
+        $codigo_barra   =   DB::select(
+            'select
+                            cb.*
                             from codigos_barra as cb
-                            where 
-                            cb.producto_id = ? 
-                            and cb.color_id = ? 
+                            where
+                            cb.producto_id = ?
+                            and cb.color_id = ?
                             and cb.talla_id = ?',
-                            [$item->producto_id,
-                            $item->color_id,
-                            $item->talla_id]);
-        
-        //======== SI EL PRODUCTO COLOR TALLA NO TIENE CÓDIGO DE BARRA ========
-        if(count($codigo_barra) === 0 ){
+            [
+                $item->producto_id,
+                $item->color_id,
+                $item->talla_id
+            ]
+        );
 
-        
+        //======== SI EL PRODUCTO COLOR TALLA NO TIENE CÓDIGO DE BARRA ========
+        if (count($codigo_barra) === 0) {
+
+
             //========= GENERAR IDENTIFICADOR ÚNICO PARA EL COD BARRAS ========
             $key            =   generarCodigo(8);
 
             //======== GENERAR IMG DEL COD BARRAS ========
             $generatorPNG   =   new \Picqer\Barcode\BarcodeGeneratorPNG();
             $code           =   $generatorPNG->getBarcode($key, $generatorPNG::TYPE_CODE_128);
-              
-            $name           =   $key.'.png';
-        
-            if(!file_exists(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'))) {
-                mkdir(storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'));
+
+            $name           =   $key . '.png';
+
+            if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'productos'))) {
+                mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'productos'));
             }
-        
-            $pathToFile = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'productos'.DIRECTORY_SEPARATOR.$name);
-        
+
+            $pathToFile = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'productos' . DIRECTORY_SEPARATOR . $name);
+
             file_put_contents($pathToFile, $code);
 
             //======== GUARDAR KEY Y RUTA IMG ========
@@ -841,9 +826,6 @@ array:7 [
             $codigoBarra->codigo_barras     = $key;
             $codigoBarra->ruta_cod_barras   = 'public/productos/' . $name;
             $codigoBarra->save();
-
         }
     }
-
-
 }

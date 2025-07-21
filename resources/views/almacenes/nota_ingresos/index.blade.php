@@ -26,10 +26,28 @@
 
     </div>
 </div>
-@include('almacenes.nota_ingresos.modalfile')
 
 <div class="wrapper wrapper-content animated fadeInRight">
     <div class="row">
+        <div class="col-lg-12 mb-3">
+            <div class="row">
+                <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                    <label style="font-weight: bold;" for="ALMACEN">ALMACÉN DESTINO</label>
+                    <select class="select2_form" name="filtro-almacen" id="filtro-almacen"
+                        onchange="$('.dataTables-ingreso_mercaderia').DataTable().ajax.reload();"
+                        data-placeholder="SELECCIONAR">
+                        <option>SELECCIONAR</option>
+                        @foreach ($almacenes as $almacen)
+                            <option
+                            @if ($almacen->tipo_almacen == 'PRINCIPAL')
+                                selected
+                            @endif
+                            value="{{ $almacen->id }}">{{ $almacen->descripcion }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
         <div class="col-lg-12">
             <div class="ibox ">
                 <div class="ibox-content">
@@ -48,14 +66,13 @@
 @endpush
 
 @push('scripts')
-
 <script>
-
     $(document).ready(function() {
 
+        iniciarSelect2();
+
         $('.dataTables-errores').DataTable({
-            "dom": '<"html5buttons"B>lTfgitp',
-            "responsive":true,
+            "responsive": true,
             "buttons": [],
             "bPaginate": true,
             "bLengthChange": true,
@@ -87,56 +104,52 @@
         });
 
         //============ DATATABLE NOTA INGRESO =========
+        const url = "{{ route('almacenes.nota_ingreso.data') }}";
         $('.dataTables-ingreso_mercaderia').DataTable({
-            "dom": '<"html5buttons"B>lTfgitp',
-            "responsive":true,
-            "buttons": [{
-                    extend: 'excelHtml5',
-                    text: '<i class="fa fa-file-excel-o"></i> Excel',
-                    titleAttr: 'Excel',
-                    title: 'Tablas Generales'
-                },
-                {
-                    titleAttr: 'Imprimir',
-                    extend: 'print',
-                    text: '<i class="fa fa-print"></i> Imprimir',
-                    customize: function(win) {
-                        $(win.document.body).addClass('white-bg');
-                        $(win.document.body).css('font-size', '10px');
-                        $(win.document.body).find('table')
-                            .addClass('compact')
-                            .css('font-size', 'inherit');
-                    }
-                }
-            ],
+            "serverSide": true,
+            "responsive": true,
             "processing": true,
-            "ajax": "{{ route('almacenes.nota_ingreso.data') }}",
+            ajax: {
+                url: url,
+                type: 'GET',
+                "data": function(d) {
+                    d.filtro_almacen = $('#filtro-almacen').val();
+                }
+            },
+            //"ajax": "{{ route('almacenes.nota_ingreso.data') }}",
             "columns": [
                 {
                     data: 'id',
+                    name: 'n.id',
                     className: "text-center"
                 },
                 {
                     data: 'registrador_nombre',
+                    name: 'n.registrador_nombre',
                     className: "text-center"
                 },
                 {
                     data: 'created_at',
+                    name: 'n.created_at',
                     className: "text-center"
                 },
                 {
                     data: 'almacen_destino_nombre',
+                    name: 'n.almacen_destino_nombre',
                     className: "text-center"
                 },
                 {
+                    searchable:false,
                     data: 'cadena_detalles',
                     className: "text-center"
                 },
                 {
+                    searchable: false,
                     data: 'observacion',
                     className: "text-center"
                 },
                 {
+                    searchable: false,
                     data: null,
                     className: "text-center",
                     render: function(data) {
@@ -195,5 +208,14 @@
         },
         buttonsStyling: false
     })
+
+
+    function iniciarSelect2() {
+        $(".select2_form").select2({
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            width: '100%',
+        });
+    }
 </script>
 @endpush
