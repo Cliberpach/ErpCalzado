@@ -6,15 +6,19 @@
                     <div class="ibox">
                         <div class="ibox-title">
                             <h5>
-                                <a style="color: #FDEBD0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a> DOC CON NOTA DE CRÉDITO 
-                                <a style="color: #EBDEF0;" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CONVERTIDO
-                                <a style="color:#E3E9FE" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CON CAMBIO DE TALLA
-                                <a style="color:#caffcc" href="javascript:void(0);"><i class="fa fa-square fa-2x"></i></a>DOC CON GUIA
+                                <a style="color: #FDEBD0;" href="javascript:void(0);"><i
+                                        class="fa fa-square fa-2x"></i></a> DOC CON NOTA DE CRÉDITO
+                                <a style="color: #EBDEF0;" href="javascript:void(0);"><i
+                                        class="fa fa-square fa-2x"></i></a>DOC CONVERTIDO
+                                <a style="color:#E3E9FE" href="javascript:void(0);"><i
+                                        class="fa fa-square fa-2x"></i></a>DOC CON CAMBIO DE TALLA
+                                <a style="color:#caffcc" href="javascript:void(0);"><i
+                                        class="fa fa-square fa-2x"></i></a>DOC CON GUIA
                             </h5>
                         </div>
                         <div class="ibox-content tables_wrapper">
                             <div class="row">
-                                
+
                                 <div class="col-md-3 form-group">
                                     <label for="">Desde:</label>
                                     <input type="date" id="fechaInicial" class="form-control form-control-sm"
@@ -38,7 +42,8 @@
                                 </div>
                                 <div class="col-md-12">
                                     <div class="table-responsive">
-                                        <table class="table table-index table-striped table-bordered table-hover"
+                                        <table id="dt-ventas"
+                                            class="table table-index table-striped table-bordered table-hover"
                                             style="text-transform: uppercase" ref="table-documentos">
                                             <thead class="">
                                                 <tr>
@@ -61,220 +66,8 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <template v-if="documentos.length > 0">
-                                                    <tr v-for="(item, index) in documentos" :key="index" :style="PintarRowTable(item)">
-                                                        <!-- <td class="letrapequeña text-center">
-                                                            <input v-if="item.cotizacion_venta" type="checkbox" disabled
-                                                                checked />
-                                                            <input v-else type="checkbox" disabled />
-                                                        </td> -->
-                                                        
-                                                        <td class="letrapequeña text-center">
-                                                            <span v-if="item.cotizacion_id" v-html="`<strong>CO-${item.cotizacion_id}</strong>`"></span>
-                                                        </td>
-
-                                                        <td class="letrapequeña text-center">
-                                                            {{ item.convert_de_serie }}
-                                                        </td>
-                                                        <td class="letrapequeña text-center">
-
-                                                            <p v-if="item.pedido_id" style="margin:0;padding:0;">{{ `PE-${item.pedido_id}` }}</p>
-                                                            <p v-if="item.pedido_id" style="margin:0;padding:0;">{{ item.tipo_doc_venta_pedido }}</p>
-                                                            <p v-if="!item.pedido_id" style="margin:0;padding:0;">{{ '-' }}</p>
-
-                                                        </td>
-                                                        <td class="letrapequeña text-center">
-                                                            {{ item.regularizado_de_serie }}
-                                                        </td>
-                                                        <td class="letrapequeña text-center">
-                                                            {{ item.numero_doc }}
-                                                        </td>
-                                                        <td class="letrapequeña text-center">
-                                                            {{ item.fecha_documento }}
-                                                        </td>
-                                                        <td class="letrapequeña text-center">
-                                                            {{ item.registrador_nombre }}
-                                                        </td>
-
-                                                        <td class="letrapequeña">
-                                                            <div class="text-truncate">
-                                                                {{ item.sede_nombre }}
-                                                            </div>
-                                                        </td>
-
-                                                        <td class="letrapequeña">
-                                                            <div class="text-truncate">
-                                                                {{ item.almacen_nombre }}
-                                                            </div>
-                                                        </td>
-
-                                                        <td class="letrapequeña">
-                                                            <div style="width:300px" class="text-truncate">
-                                                                {{ item.cliente }}
-                                                            </div>
-                                                        </td>
-                                                        <td class="letrapequeña text-center">{{ item.total_pagar }}</td>
-                                                        <!-- <td class="letrapequeña text-center">
-                                                            {{ item.dias > 4 ? 0 : 4 - item.dias }}
-                                                        </td> -->
-                                                        <td class="letrapequeña text-center">
-                                                            {{ item.condicion }}
-                                                        </td>
-                                                        <td class="letrapequeña text-center" v-html="estadoPago(item)">
-                                                        </td>
-                                                        <td class="letrapequeña text-center" v-html="estadoSunat(item)">
-                                                        </td>
-                                                        <td class="letrapequeña text-center">
-                                                            <div class="btn-group" role="group"
-                                                                aria-label="Second group">
-                                                                <button type="button" @click.prevent="ModalPdf(item)"
-                                                                    class="btn btn-dark" title="PDF">
-                                                                    <strong>PDF</strong>
-                                                                </button>
-                                                                <button type="button"
-                                                                    @click.prevent="xmlElectronico(item.id)"
-                                                                    class="btn btn-info" title="XML">
-                                                                    <strong>XML</strong>
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                        <td class="letrapequeña text-center">
 
 
-                                                                <b-dropdown  text="Primary" variant="success" class="m-2">
-                                                                    <template #button-content>
-                                                                        <i class="fas fa-th"></i>
-                                                                    </template>
-
-                                                                    <template v-if="item.sunat == '0' &&
-                                                                        item.tipo_venta != 129 &&
-                                                                        // dias(item) > 0 &&
-                                                                        item.estado == 'ACTIVO'">
-
-                                                                        <b-dropdown-item @click="enviarSunat(item.id, item.contingencia)">
-                                                                            <i class="fa fa-send"  style="color: #0065b3;"></i> Sunat
-                                                                        </b-dropdown-item>
-
-                                                                    </template>
-
-                                                                    <template v-if="
-                                                                        item.sunat_contingencia == '0' &&
-                                                                        item.tipo_venta != 129 &&
-                                                                        item.contingencia == '1'">
-
-                                                                        <b-dropdown-item @click="enviarSunat(item.id, item.contingencia)">
-                                                                            <i class="fa fa-send"  style="color: #0065b3;"></i> Sunat
-                                                                        </b-dropdown-item>
-
-                                                                    </template>
-                                                                    
-                                                                    <template v-if="(item.sunat == '1' ||
-                                                                        item.notas > 0 ||item.sunat_contingencia == '1') &&
-                                                                        item.tipo_venta != 129 && item.estado == 'ACTIVO' && item.estado_pago == 'PAGADA'">
-                                                                        <b-dropdown-item :href="routes(item.id, 'NOTAS')">
-                                                                            <i class="fa fa-file-o" style="color: #77600e;"></i> Notas
-                                                                        </b-dropdown-item>
-                                                                    </template>
-
-                                                                    <template v-if="item.sunat == '1' && item.notas == 0 && !item.guia_id && item.estado == 'ACTIVO'" >
-                                                                        <b-dropdown-item title="Guía Remisión" @click.prevent="guia(item.id)">
-                                                                            <i class="fa fa-file"></i> Guía
-                                                                        </b-dropdown-item>
-                                                                    </template>
-
-                                                                    <template v-if="(item.tipo_venta == 129 && item.condicion == 'CONTADO' 
-                                                                        && item.estado_pago == 'PAGADA' && item.estado == 'ACTIVO') ||
-                                                                        (item.tipo_venta == 129 &&
-                                                                        (item.condicion == 'CREDITO' ||
-                                                                        item.condicion == 'CRÉDITO'))">
-
-                                                                        <b-dropdown-item title="Nota de devolución" :href="routes(item.id, 'DEVO')">
-                                                                            <i class="fa fa-file-o"></i> Devoluciones
-                                                                        </b-dropdown-item>
-
-                                                                    </template>
-
-                                                                    
-                                                                    <template v-if="
-                                                                        item.estado_pago == 'PENDIENTE' 
-                                                                        && item.sunat == '0'
-                                                                        && !item.convert_en_id
-                                                                        && !item.convert_de_id
-                                                                        && !item.pedido_id
-                                                                        && item.notas == 0
-                                                                        && item.estado == 'ACTIVO'">
-                                                                        <b-dropdown-item title="Editar" :href="routes(item.id, 'EDITAR')">
-                                                                            <i class="fas fa-edit" style="color:chocolate;"></i> Editar
-                                                                        </b-dropdown-item>
-                                                                    </template>
-
-                                                                    <template v-if="item.notas == 0 && item.estado == 'ACTIVO' && !item.convert_en_id">
-                                                                        <b-dropdown-item title="Cambio de Talla" @click="cambiarTallas(item.id)">
-                                                                            <i class="fas fa-exchange-alt" style="color: #3307ab;"></i> Cambio de Talla
-                                                                        </b-dropdown-item>
-                                                                    </template>
-
-                                                                    <template v-if="item.tipo_venta == 129 && !item.convert_en_id && item.notas == 0 && item.estado == 'ACTIVO' && item.estado_pago == 'PAGADA'">
-                                                                        <b-dropdown-item title="Convertir" :href="routes(item.id, 'CONVERTIR')">
-                                                                            <i class="fas fa-file-invoice" style="color: blue;"></i> Convertir
-                                                                        </b-dropdown-item>
-                                                                    </template>
-
-                                                                    <template v-if="item.condicion == 'CONTADO' &&
-                                                                        item.estado_pago == 'PENDIENTE' &&
-                                                                        item.tipo_venta == '129' && item.estado == 'ACTIVO'">
-                                                                        <b-dropdown-item title="Pagar"  @click="Pagar(item)">
-                                                                            <i class="fa fa-money" style="color: #007502;"></i> Pagar
-                                                                        </b-dropdown-item>
-                                                                    </template>
-
-                                                                    <template v-if="item.condicion == 'CONTADO' &&
-                                                                        item.estado_pago == 'PENDIENTE' &&
-                                                                        item.tipo_venta != 129 &&
-                                                                        (item.convert_de_id == '' || item.convert_de_id == null) 
-                                                                        && item.estado == 'ACTIVO'">
-                                                                        <b-dropdown-item title="Pagar"  @click="Pagar(item)">
-                                                                            <i class="fa fa-money" style="color: #007502;"></i> Pagar
-                                                                        </b-dropdown-item>
-                                                                    </template>
-
-
-                                                                    <template v-if="item.regularize == '1' && item.sunat != '2' 
-                                                                    && item.cdr_response_code != '0' && item.estado == 'ACTIVO'
-                                                                    && item.tipo_venta != '129'
-                                                                    && item.estado == 'ACTIVO'">
-                                                                         <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="regularizarVenta(item)">
-                                                                            <i class="far fa-copy"></i> ANULAR Y REPLICAR
-                                                                        </b-dropdown-item>
-                                                                    </template>
-
-                                                                    <!-- <template v-if="dias(item) <= 0 && item.estado == 'ACTIVO' &&
-                                                                        item.tipo_venta != '129' && item.sunat == '0'">
-                                                                        <b-dropdown-item title="Crear nuevo doc venta con el mismo detalle"  @click.prevent="regularizarVenta(item.id)">
-                                                                            <i class="fa fa-exchange"></i> ANULAR
-                                                                        </b-dropdown-item>
-                                                                    </template> -->
-
-
-                                                                    <template v-if="item.estado_despacho !== 'DESPACHADO' && item.estado_despacho
-                                                                    && item.notas == 0 && item.estado == 'ACTIVO'">
-                                                                        <b-dropdown-item title="Editar datos despacho"  @click.prevent="setDataEnvio(item.id)">
-                                                                            <i class="fas fa-truck"></i> DESPACHO
-                                                                        </b-dropdown-item>
-                                                                    </template>
-                                                                
-                                                                </b-dropdown>
-                                                        </td>
-                                                    </tr>
-                                                </template>
-
-                                                <template v-if="!loading && documentos.length == 0">
-                                                    <tr>
-                                                        <td colspan="16" class="text-center">
-                                                            <strong class="font-bold">No hay datos</strong>
-                                                        </td>
-                                                    </tr>
-                                                </template>
                                             </tbody>
                                         </table>
                                     </div>
@@ -343,12 +136,14 @@
                 </div>
             </div>
         </div>
-        <ModalVentasVue :ventasPendientes="ventasPendientes" :imgDefault="imginicial" :modoPagos="modopagos" :cliente_id="cliente_id"/>
+        <ModalVentasVue :ventasPendientes="ventasPendientes" :imgDefault="imginicial" :modoPagos="modopagos"
+            :cliente_id="cliente_id" />
         <ModalPdfDownloadVue :pdfData.sync="pdfData" />
-        <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" ref="modalEnvioRef"/>
+        <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" ref="modalEnvioRef" />
     </div>
 </template>
 <script>
+
 import Vue from 'vue';
 import BootstrapVue from 'bootstrap-vue';
 Vue.use(BootstrapVue);
@@ -356,6 +151,18 @@ Vue.use(BootstrapVue);
 import ModalPdfDownloadVue from '../../../components/ventas/ModalPdfDownload.vue';
 import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
 import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
+
+import $ from 'jquery';
+import Popper from 'popper.js';
+window.$ = $;
+window.jQuery = $;
+window.Popper = Popper;
+import 'bootstrap'
+
+import 'bootstrap-vue/dist/bootstrap-vue.css'
+
+import 'datatables.net-bs4';
+import 'datatables.net-bs4/css/dataTables.bootstrap4.min.css';
 
 export default {
     name: "VentaLista",
@@ -380,14 +187,14 @@ export default {
             params: {
                 fechaInicial: this.$moment().format("YYYY-MM-DD"),
                 cliente: "",
-                numero_doc:"",
+                numero_doc: "",
                 tamanio: 10,
                 page: 1,
             },
             fechaInicial: this.$moment().format("YYYY-MM-DD"),
             cliente: "",
-            cliente_id:null,
-            numero_doc:"",
+            cliente_id: null,
+            numero_doc: "",
             ventasPendientes: [],
             loading: false,
             pdfData: null,
@@ -444,41 +251,41 @@ export default {
         }
     },
     async created() {
-        await this.Lista();
+        //await this.Lista();
     },
     methods: {
-        cambiarTallas(documento_id){
+        cambiarTallas(documento_id) {
             const url = route('venta.cambiarTallas.create', documento_id);
 
             window.location.href = url;
         },
-        async updateDataEnvio(data_envio){
+        async updateDataEnvio(data_envio) {
             try {
-                const res   =   await axios.post(route('ventas.despachos.updateDespacho'),data_envio);
+                const res = await axios.post(route('ventas.despachos.updateDespacho'), data_envio);
                 console.log(res);
             } catch (error) {
-                
+
             }
-           
+
         },
         async setDataEnvio(documento_id) {
             //========= TRAER LA DATA DE ENVÍO DEL DOCUMENTO ========
             try {
-                const res   =   await axios.get(route('ventas.despachos.getDespacho',documento_id));
+                const res = await axios.get(route('ventas.despachos.getDespacho', documento_id));
                 //console.log(res);
-                if(res.data.success){
+                if (res.data.success) {
                     //======= PASAR DATA DESPACHO AL MODAL ENVÍO =========
-                    this.$refs.modalEnvioRef.metodoHijo(res.data.despacho,documento_id);
+                    this.$refs.modalEnvioRef.metodoHijo(res.data.despacho, documento_id);
 
                     $("#modal_envio").modal("show");
 
-                }else{
-                    toastr.error(res.data.exception,res.data.message);
+                } else {
+                    toastr.error(res.data.exception, res.data.message);
                 }
             } catch (error) {
-                
+
             }
-            
+
         },
         async Lista() {
             try {
@@ -491,11 +298,11 @@ export default {
                 this.loading = false;
 
                 const { documentos, pagination, modos_pago } = data;
-                
+
                 this.modopagos = modos_pago;
                 this.documentos = documentos;
                 this.pagination = pagination;
-                
+
             } catch (ex) { }
         },
         estadoPago(data) {
@@ -537,37 +344,38 @@ export default {
             }
         },
         estadoSunat(data) {
-            let estado  =   ``;
+            let estado = ``;
 
-            if(data.sunat == '1' && data.cdr_response_code == '0'){
-                estado  =   `<span class='badge badge-primary' d-block>ACEPTADO</span>`;
+            if (data.sunat == '1' && data.cdr_response_code == '0') {
+                estado = `<span class='badge badge-primary' d-block>ACEPTADO</span>`;
             }
-            if(data.sunat == '1' && data.cdr_response_code != '0'){
-                estado  =   `<span class='badge badge-danger' d-block>RECHAZADO</span>`;
+            if (data.sunat == '1' && data.cdr_response_code != '0') {
+                estado = `<span class='badge badge-danger' d-block>RECHAZADO</span>`;
             }
-            if(data.sunat == '1' && data.cdr_response_code == 'EN ESPERA'){
-                estado  =   `<span class='badge badge-warning' d-block>ENVIADO</span>`;
+            if (data.sunat == '1' && data.cdr_response_code == 'EN ESPERA') {
+                estado = `<span class='badge badge-warning' d-block>ENVIADO</span>`;
             }
-            if(data.sunat == '2'){
-                estado  =   `<span class='badge badge-danger' d-block>NULA</span>`;
+            if (data.sunat == '2') {
+                estado = `<span class='badge badge-danger' d-block>NULA</span>`;
             }
-            if(data.sunat == '0'){
-                estado  =   `<span class='badge badge-success' d-block>REGISTRADO</span>`;
+            if (data.sunat == '0') {
+                estado = `<span class='badge badge-success' d-block>REGISTRADO</span>`;
             }
-            if(data.estado === 'ANULADO'){
-                estado  =   `<span class='badge badge-danger' d-block>ANULADO</span>`;
+            if (data.estado === 'ANULADO') {
+                estado = `<span class='badge badge-danger' d-block>ANULADO</span>`;
             }
-           
+
             return estado;
-          
+
         },
-        enviarSunat(id, contingencia) {
+        enviarSunat(id) {
+
             const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                confirmButton: "btn btn-success",
-                cancelButton: "btn btn-danger"
-            },
-            buttonsStyling: false
+                customClass: {
+                    confirmButton: "btn btn-success",
+                    cancelButton: "btn btn-danger"
+                },
+                buttonsStyling: false
             });
 
             Swal.fire({
@@ -585,49 +393,27 @@ export default {
                         const res = await axios.get(route('ventas.documento.sunat', id));
                         return res.data;
                     } catch (error) {
-                        const data  =   {success:false,message:"ERROR EN LA SOLICITUD",exception:error};   
+                        const data = { success: false, message: "ERROR EN LA SOLICITUD", exception: error };
                         return data;
                     }
                 }
             }).then((result) => {
-                
+
                 if (result.value && result.value.success) {
-
-                    //====== ACTUALIZAR DOCUMENTO EN FRONTEND ======
-                    const documento_index =   this.documentos.findIndex((d)=>{
-                        return  d.id == id;
-                    });
-                    if(documento_index !== -1){
-                        this.documentos[documento_index].sunat              =   '1';
-                        this.documentos[documento_index].cdr_response_code  =   '0';
-                    }
-
-                    toastr.success(result.value.message,'DOCUMENTO ENVIADO A SUNAT',{timeOut:5000});
-                } 
-
-                if(result.value && !result.value.success){
-
-                    //========== ERROR YA HA SIDO ENVIADO EL COMPROBANTE =======
-                    if(result.value.code == 1033){
-                        //====== ACTUALIZAR DOCUMENTO EN FRONTEND ======
-                        const documento_index =   this.documentos.findIndex((d)=>{
-                            return  d.id == id;
-                        });
-                        if(documento_index !== -1){
-                            this.documentos[documento_index].sunat          =   '1';
-                            this.documentos[documento_index].regularize     =   '0';
-
-                        }
-                    }
-
-                    toastr.error(result.value.exception,result.value.message,{timeOut:0});
+                    $('#dt-ventas').DataTable().ajax.reload(null, false);
+                    toastr.success(result.value.message, 'DOCUMENTO ENVIADO A SUNAT', { timeOut: 5000 });
                 }
 
-                if(result.dismiss === Swal.DismissReason.cancel) {
+                if (result.value && !result.value.success) {
+                    $('#dt-ventas').DataTable().ajax.reload(null, false);
+                    toastr.error(result.value.exception, result.value.message, { timeOut: 0 });
+                }
+
+                if (result.dismiss === Swal.DismissReason.cancel) {
                     swalWithBootstrapButtons.fire({
-                    title: "Operación cancelada",
-                    text: "No se realizaron acciones",
-                    icon: "error"
+                        title: "Operación cancelada",
+                        text: "No se realizaron acciones",
+                        icon: "error"
                     });
                 }
 
@@ -649,8 +435,8 @@ export default {
         Pagar(item) {
             try {
                 let timerInterval;
-                let clientes = [];
                 let me = this;
+
                 Swal.fire({
                     title: 'Cargando...',
                     icon: 'info',
@@ -662,35 +448,29 @@ export default {
                     didOpen: () => {
                         Swal.showLoading();
                         Swal.stopTimer();
-                        $.ajax({
-                            dataType: 'json',
-                            type: 'post',
-                            url: route('ventas.getDocumentClient'),
-                            data: {
-                                '_token': $('meta[name=csrf-token]').val(),
-                                'cliente_id': item.cliente_id,
-                                'condicion_id': item.condicion_id
-                            },
-                            success: function (response) {
-                                if (response.success) {
-                                    const { ventas }    =   response;
-                                    me.ventasPendientes =   ventas;
-                                    me.cliente_id       =   item.cliente_id;
-                                    $('#modal_ventas').modal('show');
 
-                                    // timerInterval = 0;
-                                    Swal.resumeTimer();
-                                    //console.log(colaboradores);
-                                } else {
-                                    Swal.resumeTimer();
-                                    // ventas = [];
-                                    // loadTable(ventas);
+                        // Axios con CSRF (Laravel ya lo configura si usas axios por defecto)
+                        axios.post(route('ventas.getDocumentClient'), {
+                            cliente_id: item.cliente_id,
+                            condicion_id: item.condicion_id
+                        })
+                            .then(response => {
+                                if (response.data.success) {
+                                    const { ventas } = response.data;
+                                    me.ventasPendientes = ventas;
+                                    me.cliente_id = item.cliente_id;
+                                    $('#modal_ventas').modal('show');
                                 }
-                            }
-                        });
+
+                                Swal.resumeTimer();
+                            })
+                            .catch(error => {
+                                console.error('Error al obtener documentos del cliente:', error);
+                                Swal.resumeTimer();
+                            });
                     },
                     willClose: () => {
-                        clearInterval(timerInterval)
+                        clearInterval(timerInterval);
                     }
                 });
             } catch (ex) {
@@ -699,31 +479,31 @@ export default {
         },
         guia(id) {
             Swal.fire({
-            title: 'Opción Guia de Remision',
-            text: "¿Seguro que desea crear una guia de remision?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: "#1ab394",
-            confirmButtonText: 'Si, Confirmar',
-            cancelButtonText: "No, Cancelar",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                //Ruta Guia
-                var url = route('ventas.documento.guiaCreate', {id});
-                $(location).attr('href', url);
+                title: 'Opción Guia de Remision',
+                text: "¿Seguro que desea crear una guia de remision?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: "#1ab394",
+                confirmButtonText: 'Si, Confirmar',
+                cancelButtonText: "No, Cancelar",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    //Ruta Guia
+                    var url = route('ventas.documento.guiaCreate', { id });
+                    $(location).attr('href', url);
 
-            } else if (
-                /* Read more about handling dismissals below */
-                result.dismiss === Swal.DismissReason.cancel
-            ) {
-                swalWithBootstrapButtons.fire(
-                    'Cancelado',
-                    'La Solicitud se ha cancelado.',
-                    'error'
-                )
+                } else if (
+                    /* Read more about handling dismissals below */
+                    result.dismiss === Swal.DismissReason.cancel
+                ) {
+                    swalWithBootstrapButtons.fire(
+                        'Cancelado',
+                        'La Solicitud se ha cancelado.',
+                        'error'
+                    )
 
-            }
-        })
+                }
+            })
         },
         routes(id, tipo) {
             switch (tipo) {
@@ -743,7 +523,7 @@ export default {
                     return route('ventas.documento.create');
                 }
                 case "CONVERTIR": {
-                    return route('ventas.documento.convertirCreate',{id});
+                    return route('ventas.documento.convertirCreate', { id });
                 }
             }
         },
@@ -789,33 +569,33 @@ export default {
         },
         PintarRowTable(aData) {
             if (aData.notas > 0) {
-                return {'background-color':"#FDEBD0"};
+                return { 'background-color': "#FDEBD0" };
             }
 
             if (aData.convert_en_id) {
-                return {'background-color':"#EBDEF0"}
+                return { 'background-color': "#EBDEF0" }
             }
 
-            if(aData.cambio_talla == '1'){
-                return {'background-color':"#E3E9FE"} 
+            if (aData.cambio_talla == '1') {
+                return { 'background-color': "#E3E9FE" }
             }
 
-            if(aData.guia_id){
-                return {'background-color':"#caffcc"} 
+            if (aData.guia_id) {
+                return { 'background-color': "#caffcc" }
             }
 
         },
-        async regularizarVenta(documento){
+        async regularizarVenta(documento) {
             toastr.clear();
 
             Swal.fire({
-            title: `ANULAR EL DOC ${documento.serie}-${documento.correlativo}`,
-            text: "SE GENERARÁ UN NUEVO DOC DE VENTA COMO REEMPLAZO!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "SÍ!"
+                title: `ANULAR EL DOC ${documento.serie}-${documento.correlativo}`,
+                text: "SE GENERARÁ UN NUEVO DOC DE VENTA COMO REEMPLAZO!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "SÍ!"
             }).then(async (result) => {
                 if (result.isConfirmed) {
 
@@ -832,36 +612,36 @@ export default {
 
                     try {
 
-                        const res   =   await axios.post(route('ventas.regularizarVenta'),{
-                            documento_id:documento.id
+                        const res = await axios.post(route('ventas.regularizarVenta'), {
+                            documento_id: documento.id
                         });
                         console.log(res);
 
-                        const success   =   res.data.success;
-                        if(success){
-                            const message       =   res.data.message;
+                        const success = res.data.success;
+                        if (success) {
+                            const message = res.data.message;
 
                             //======== ACTUALIZANDO LISTADO =====
                             this.Lista();
 
                             //========= RESPUESTA EXITOSA ======
-                            toastr.success(message,'OPERACIÓN COMPLETADA',{
-                                timeOut: 0, 
+                            toastr.success(message, 'OPERACIÓN COMPLETADA', {
+                                timeOut: 0,
                             });
 
-                            const url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id,size:80});
+                            const url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id, size: 80 });
                             window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
-                        }else{
+                        } else {
 
                             //========== MANEJANDO ERRORES DE VALIDACIÓN DEL REQUEST =====
-                            toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                            toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
 
                         }
                     } catch (error) {
-                        toastr.error(error,'ERROR EN LA PETICIÓN REGULARIZAR VENTA',{
-                                timeOut: 0, 
+                        toastr.error(error, 'ERROR EN LA PETICIÓN REGULARIZAR VENTA', {
+                            timeOut: 0,
                         });
-                    }finally{
+                    } finally {
                         Swal.close();
                     }
 
@@ -870,16 +650,359 @@ export default {
         }
     },
     mounted() {
-        
-    },
-    };
+        this.$nextTick(() => {
+            const vm = this;
+            $('#dt-ventas').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: route('ventas.getVentas'),
+                    type: 'GET'
+                },
+                createdRow: function (row, data, dataIndex) {
+                    $(row).addClass('letrapequeña');
+                },
+                initComplete: function () {
+                    $('.dropdown-toggle').dropdown();
+                },
+                columns: [
+                    { data: 'cotizacion_id', name: 'co.id', searchable: false },
+                    { data: 'convert_de_serie', name: 'cd.convert_de_serie', searchable: false },
+                    {
+                        searchable: false,
+                        data: null,
+                        name: 'cd.pedido_id',
+                        render: function (data, type, row) {
+                            if (row.pedido_id) {
+                                return `<p style="margin:0;">PE-${row.pedido_id}</p><p style="margin:0;">${row.tipo_doc_venta_pedido}</p>`;
+                            }
+                            return '-';
+                        }
+                    },
+                    { data: 'regularizado_de_serie', name: 'cd.regularizado_de_serie', searchable: false },
+                    { data: 'numero_doc', name: 'numero_doc' },
+                    { data: 'fecha_documento', name: 'cd.fecha_documento', searchable: false },
+                    { data: 'registrador_nombre', name: 'u.usuario', searchable: false },
+                    { data: 'sede_nombre', name: 'es.nombre', searchable: false },
+                    { data: 'almacen_nombre', name: 'cd.almacen_nombre' },
+                    { data: 'cliente', name: 'cd.cliente' },
+                    { data: 'total_pagar', name: 'cd.total_pagar', searchable: false },
+                    { data: 'condicion', name: 'condicions.descripcion', searchable: false },
+                    { data: 'estado_pago', name: 'cd.estado_pago', searchable: false },
+                    {
+                        searchable: false,
+                        data: 'sunat',
+                        name: 'cd.sunat',
+                        render: function (data, type, row) {
+                            let estado = '';
+
+                            if (row.estado === 'ANULADO') {
+                                estado = `<span class='badge badge-danger d-block'>ANULADO</span>`;
+                            } else if (data == '1' && row.cdr_response_code == '0') {
+                                estado = `<span class='badge badge-primary d-block'>ACEPTADO</span>`;
+                            } else if (data == '1' && row.cdr_response_code != '0' && row.cdr_response_code !== 'EN ESPERA') {
+                                estado = `<span class='badge badge-danger d-block'>RECHAZADO</span>`;
+                            } else if (data == '1' && row.cdr_response_code === 'EN ESPERA') {
+                                estado = `<span class='badge badge-warning d-block'>ENVIADO</span>`;
+                            } else if (data == '2') {
+                                estado = `<span class='badge badge-danger d-block'>NULA</span>`;
+                            } else if (data == '0') {
+                                estado = `<span class='badge badge-success d-block'>REGISTRADO</span>`;
+                            }
+
+                            return estado;
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        render: function (data, type, row) {
+                            return `
+                            <div class="btn-group" role="group">
+                                <button data-id="${row.id}"  class="btn btn-dark btn-sm btn-pdf" title="PDF">
+                                    <strong>PDF</strong>
+                                </button>
+                                <button class="btn btn-info btn-sm btn-xml" data-id="${row.id}" title="XML">
+                                    <strong>XML</strong>
+                                </button>
+                            </div>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        render: function (data, type, row) {
+
+                            let acciones = `
+                                                <div class="btn-group">
+                                                    <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                                        <i class="fas fa-th"></i>
+                                                    </button>
+                                                    <div class="dropdown-menu">
+                                                `;
+
+                            //======== ENVIAR SUNAT =========
+                            if (data.sunat == '0' && data.tipo_venta != "129" && data.estado == 'ACTIVO') {
+                                console.log('olas');
+                                acciones += `<a data-id="${row.id}" class="dropdown-item btn-enviar-sunat" href="javascript:void(0);">
+                                                <i class="fa fa-send" style="color: #0065b3;"></i> Sunat
+                                            </a>`;
+                            }
+
+                            //======= NOTAS CRÉDITO ========
+                            if (
+                                (row.sunat == '1' || row.notas > 0)
+                                && row.tipo_venta != "129"
+                                && row.estado == 'ACTIVO'
+                                && row.estado_pago == 'PAGADA'
+                            ) {
+                                acciones += `<a href="${vm.routes(row.id, 'NOTAS')}" class="dropdown-item">
+                                                <i class="fa fa-file-o" style="color: #77600e;"></i> Notas
+                                            </a>`;
+                            }
+
+                            //====== GUÍA REMISIÓN ========
+                            if (
+                                row.sunat == '1' &&
+                                row.notas == 0 &&
+                                !row.guia_id &&
+                                row.estado == 'ACTIVO'
+                            ) {
+                                acciones += `<a href="javascript:void(0);" class="dropdown-item btn-generar-guia" data-id="${row.id}" title="Guía Remisión">
+                                                <i class="fa fa-file"></i> Guía
+                                            </a>`;
+                            }
+
+                            //======== NOTA DEVOLUCIÓN ========
+                            if (
+                                row.tipo_venta == 129 &&
+                                (
+                                    (row.condicion == 'CONTADO' && row.estado_pago == 'PAGADA' && row.estado == 'ACTIVO') ||
+                                    (row.condicion == 'CREDITO' || row.condicion == 'CRÉDITO')
+                                )
+                            ) {
+                                acciones += `<a href="${vm.routes(row.id, 'DEVO')}" class="dropdown-item" title="Nota de devolución">
+                                                <i class="fa fa-file-o"></i> Devoluciones
+                                            </a>`;
+                            }
+
+                            //======== EDITAR DOCUMENTO ========
+                            if (
+                                row.estado_pago === 'PENDIENTE' &&
+                                row.sunat === '0' &&
+                                !row.convert_en_id &&
+                                !row.convert_de_id &&
+                                !row.pedido_id &&
+                                row.notas == 0 &&
+                                row.estado === 'ACTIVO'
+                            ) {
+                                acciones += `<a href="${vm.routes(row.id, 'EDITAR')}" class="dropdown-item" title="Editar">
+                                    <i class="fas fa-edit" style="color:chocolate;"></i> Editar
+                                </a>`;
+                            }
+
+                            //========= CAMBIO TALLA =======
+                            if (row.notas == 0 && row.estado === 'ACTIVO' && !row.convert_en_id) {
+                                acciones += `<a href="javascript:void(0);" data-id="${row.id}" class="dropdown-item btn-cambiar-talla" title="Cambio de Talla">
+                                    <i class="fas fa-exchange-alt" style="color: #3307ab;"></i> Cambio de Talla
+                                </a>`;
+                            }
+
+                            //========= CONVERTIR DOC VENTA ==========
+                            if (
+                                row.tipo_venta == 129 &&
+                                !row.convert_en_id &&
+                                row.notas == 0 &&
+                                row.estado === 'ACTIVO' &&
+                                row.estado_pago === 'PAGADA'
+                            ) {
+                                acciones += `<a href="${vm.routes(row.id, 'CONVERTIR')}" class="dropdown-item" title="Convertir">
+                                    <i class="fas fa-file-invoice" style="color: blue;"></i> Convertir
+                                </a>`;
+                            }
+
+
+                            // PAGAR - Contado, pendiente, tipo_venta 129, activo
+                            if (
+                                row.condicion === 'CONTADO' &&
+                                row.estado_pago === 'PENDIENTE' &&
+                                row.tipo_venta == '129' &&
+                                row.estado === 'ACTIVO'
+                            ) {
+                                acciones += `<a href="javascript:void(0);" class="dropdown-item btn-pagar" data-row='${JSON.stringify(row)}' title="Pagar">
+                                    <i class="fa fa-money" style="color: #007502;"></i> Pagar
+                                </a>`;
+                            }
+
+                            // PAGAR - Contado, pendiente, tipo_venta distinto de 129, sin convert_de_id, activo
+                            if (
+                                row.condicion === 'CONTADO' &&
+                                row.estado_pago === 'PENDIENTE' &&
+                                row.tipo_venta != '129' &&
+                                (!row.convert_de_id || row.convert_de_id === '') &&
+                                row.estado === 'ACTIVO'
+                            ) {
+                                acciones += `<a href="javascript:void(0);" class="dropdown-item btn-pagar" data-row='${JSON.stringify(row)}' title="Pagar">
+                                    <i class="fa fa-money" style="color: #007502;"></i> Pagar
+                                </a>`;
+                            }
+
+                            // REGULARIZAR - regularize = 1, sunat != 2, cdr != 0, activo, tipo_venta != 129
+                            if (
+                                row.regularize == '1' &&
+                                row.sunat != '2' &&
+                                row.cdr_response_code != '0' &&
+                                row.estado === 'ACTIVO' &&
+                                row.tipo_venta != '129'
+                            ) {
+                                acciones += `<a href="javascript:void(0);" class="dropdown-item btn-regularizar" data-row='${JSON.stringify(row)}' title="Anular y replicar">
+                                    <i class="far fa-copy"></i> ANULAR Y REPLICAR
+                                </a>`;
+                            }
+
+                            // DESPACHO - estado_despacho distinto de 'DESPACHADO', tiene valor, sin notas, activo
+                            if (
+                                row.estado_despacho &&
+                                row.estado_despacho !== 'DESPACHADO' &&
+                                row.notas == 0 &&
+                                row.estado === 'ACTIVO'
+                            ) {
+                                acciones += `<a href="javascript:void(0);" class="dropdown-item btn-despacho" data-id="${row.id}" title="Editar datos despacho">
+                                    <i class="fas fa-truck"></i> DESPACHO
+                                </a>`;
+                            }
+
+
+                            acciones += `</div></div>`;
+                            return acciones;
+                        }
+                    }
+                ],
+                rowCallback: (row, data, index) => {
+                    const color = this.PintarRowTable(data); 
+                    $(row).attr('style', color);
+                },
+                language: {
+                    processing: "Procesando...",
+                    search: "Buscar:",
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    info: "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    infoEmpty: "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    infoFiltered: "(filtrado de un total de _MAX_ registros)",
+                    infoPostFix: "",
+                    loadingRecords: "Cargando...",
+                    zeroRecords: "No se encontraron resultados",
+                    emptyTable: "Ningún dato disponible en esta tabla",
+                    paginate: {
+                        first: "Primero",
+                        previous: "Anterior",
+                        next: "Siguiente",
+                        last: "Último"
+                    },
+                    aria: {
+                        sortAscending: ": Activar para ordenar la columna de manera ascendente",
+                        sortDescending: ": Activar para ordenar la columna de manera descendente"
+                    },
+                    buttons: {
+                        copy: "Copiar",
+                        colvis: "Visibilidad",
+                        collection: "Colección",
+                        colvisRestore: "Restaurar visibilidad",
+                        copyKeys: "Presione ctrl o ⌘ + C para copiar los datos de la tabla al portapapeles.",
+                        copySuccess: {
+                            _: "%d filas copiadas",
+                            1: "1 fila copiada"
+                        },
+                        copyTitle: "Copiar al portapapeles",
+                        csv: "CSV",
+                        excel: "Excel",
+                        pageLength: {
+                            _: "Mostrar %d filas",
+                            '-1': "Mostrar todo"
+                        },
+                        pdf: "PDF",
+                        print: "Imprimir"
+                    },
+                    autoFill: {
+                        cancel: "Cancelar",
+                        fill: "Rellenar todas las celdas con",
+                        fillHorizontal: "Rellenar celdas horizontalmente",
+                        fillVertical: "Rellenar celdas verticalmente"
+                    },
+                    decimal: ",",
+                    thousands: ".",
+                    select: {
+                        rows: {
+                            _: "%d filas seleccionadas",
+                            0: "Haga clic en una fila para seleccionarla",
+                            1: "1 fila seleccionada"
+                        }
+                    }
+                }
+            });
+
+            // Delegación de evento para botón PDF
+            $('#dt-ventas tbody').on('click', '.btn-pdf', function () {
+                const id = $(this).data('id');
+                const rowData = $('#dt-ventas').DataTable().row($(this).closest('tr')).data();
+                vm.ModalPdf(rowData);
+            });
+
+            // Botón XML
+            $('#dt-ventas tbody').on('click', '.btn-xml', function () {
+                const id = $(this).data('id');
+                const rowData = $('#dt-ventas').DataTable().row($(this).closest('tr')).data();
+                vm.xmlElectronico(rowData.id); // Aquí puedes usar solo el ID o el row completo si lo necesitas
+            });
+
+            //========= BTN ENVIAR SUNAT ========
+            $(document).on('click', '.btn-enviar-sunat', function (e) {
+                e.preventDefault();
+                const id = $(this).data('id');
+                vm.enviarSunat(id);
+            });
+
+            //======== BTN GUIA ======
+            $(document).on('click', '.btn-generar-guia', function () {
+                const id = $(this).data('id');
+                vm.guia(id);
+            });
+
+            //======= BTN CAMBIAR TALLA ========
+            $(document).on('click', '.btn-cambiar-talla', function () {
+                const id = $(this).data('id');
+                vm.cambiarTallas(id);
+            });
+
+            $('#dt-ventas').on('click', '.btn-pagar', function () {
+                const row = $(this).data('row');
+                vm.Pagar(row);
+            });
+
+            $('#dt-ventas').on('click', '.btn-regularizar', function () {
+                const row = $(this).data('row');
+                vm.regularizarVenta(row);
+            });
+
+            $('#dt-ventas').on('click', '.btn-despacho', function () {
+                const id = $(this).data('id');
+                vm.setDataEnvio(id);
+            });
+
+
+        });
+    }
+};
 </script>
 <style>
-    .tables_wrapper table.table-index tbody td{
-        vertical-align:middle!important;
-    }
-    .dropdown-menu {
-        max-height: 100px; 
-        overflow-y: auto; 
-    }
+.tables_wrapper table.table-index tbody td {
+    vertical-align: middle !important;
+}
+
+.dropdown-menu {
+    max-height: 100px;
+    overflow-y: auto;
+}
 </style>

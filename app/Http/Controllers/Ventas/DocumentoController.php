@@ -42,17 +42,15 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 //CONVERTIR DE NUMEROS A LETRAS
 use App\Mantenimiento\Tabla\Detalle as TablaDetalle;
 
-
 use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
 use App\Almacenes\Modelo;
 use App\Almacenes\Color;
 use App\Almacenes\Conductor;
 use App\Classes\ValidatedDetail;
-
 use App\Almacenes\DetalleNotaIngreso;
 use App\Almacenes\NotaIngreso;
-
+use Yajra\DataTables\Facades\DataTables;
 use App\Almacenes\DetalleNotaSalidad;
 use App\Almacenes\Marca;
 use App\Almacenes\NotaSalidad;
@@ -65,6 +63,7 @@ use App\Http\Requests\Ventas\Guias\GuiaStoreRequest;
 use App\Mantenimiento\Sedes\Sede;
 use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Provincia;
+use App\Pos\ReciboCaja;
 use App\User;
 use Illuminate\Support\Facades\Response;
 use App\Ventas\CambioTalla;
@@ -90,6 +89,88 @@ class DocumentoController extends Controller
             'ventas.documentos.index',
             compact('departamentos', 'provincias', 'distritos', 'almacenes', 'registrador', 'sede')
         );
+    }
+
+    public function getVentas(Request $request)
+    {
+        $ventas = DB::table('cotizacion_documento as cd')
+            ->select(
+                'cd.regularizado_de_serie',
+                'cd.cdr_response_code',
+                'cd.guia_id',
+                'cd.convert_de_serie',
+                'cd.convert_en_id',
+                'cd.convert_de_id',
+                'co.id as cotizacion_id',
+                'u.usuario as registrador_nombre',
+                'es.nombre as sede_nombre',
+                'cd.almacen_nombre',
+                'cd.id',
+                'cd.tipo_venta_id as tipo_venta',
+                DB::raw('CONCAT(cd.serie, "-", cd.correlativo) as numero_doc'),
+                'cd.serie',
+                'cd.correlativo',
+                'cd.pedido_id',
+                'cd.tipo_doc_venta_pedido',
+                'cd.cliente',
+                'cd.empresa',
+                'cd.importe',
+                'cd.efectivo',
+                'cd.tipo_pago_id',
+                'cd.ruta_pago',
+                'cd.cliente_id',
+                'cd.convertir',
+                'cd.empresa_id',
+                'cd.cotizacion_venta',
+                'cd.fecha_documento',
+                'cd.estado_pago',
+                'cd.condicion_id',
+                'cd.sunat',
+                'cd.regularize',
+                'cd.contingencia',
+                'cd.sunat_contingencia',
+                'cd.documento_cliente',
+                'cd.estado',
+                'cd.cambio_talla',
+                'cd.total',
+                'cd.total_pagar',
+                DB::raw('DATEDIFF(NOW(), cd.fecha_documento) as dias'),
+                DB::raw('(SELECT COUNT(nota_electronica.id) FROM nota_electronica WHERE nota_electronica.documento_id = cd.id) as notas'),
+                'envios_ventas.estado AS estado_despacho',
+                'condicions.descripcion as condicion',
+                'clientes.correo_electronico as correo',
+                'clientes.telefono_movil as telefonoMovil'
+            )
+            ->leftJoin('envios_ventas', 'cd.id', '=', 'envios_ventas.documento_id')
+            ->leftJoin('condicions', 'cd.condicion_id', '=', 'condicions.id')
+            ->leftJoin('clientes', 'cd.cliente_id', '=', 'clientes.id')
+            ->leftJoin('empresa_sedes as es', 'es.id', 'cd.sede_id')
+            ->leftJoin('users as u', 'u.id', 'cd.user_id')
+            ->leftJoin('cotizaciones as co', 'co.id', 'cd.cotizacion_venta')
+            ->orderByDesc('cd.id');
+
+        //========= FILTRO POR ROLES ======
+        $roles = DB::table('role_user as rl')
+            ->join('roles as r', 'r.id', '=', 'rl.role_id')
+            ->where('rl.user_id', Auth::user()->id)
+            ->pluck('r.name')
+            ->toArray();
+
+        //======== ADMIN PUEDE VER TODAS LAS VENTAS DE SU SEDE =====
+        if (in_array('ADMIN', $roles)) {
+            $ventas->where('cd.sede_id', Auth::user()->sede_id);
+        } else {
+
+            //====== USUARIOS PUEDEN VER SUS PROPIAS VENTAS ======
+            $ventas->where('cd.sede_id', Auth::user()->sede_id)
+                ->where('cd.user_id', Auth::user()->id);
+        }
+
+        return DataTables::of($ventas)
+            ->filterColumn('numero_doc', function ($query, $keyword) {
+                $query->whereRaw("LOWER(CONCAT(cd.serie, '-', cd.correlativo)) like ?", ["%" . strtolower($keyword) . "%"]);
+            })
+            ->make(true);
     }
 
     public function indexAntiguo()
@@ -1011,11 +1092,10 @@ array:27 [
   "sede_id"                 => "1"
   "data_envio"              => "{"departamento":{"id":13,"nombre":"LA LIBERTAD","zona":"NORTE"},"provincia":{"id":1301,"text":"TRUJILLO"},"distrito":{"id":130101,"text":"TRUJILLO"},"tipo_envio":{"id":188,"descripcion":"AGENCIA"},"empresa_envio":{"id":2,"empresa":"EMTRAFESA","tipo_envio":"AGENCIA","estado":"ACTIVO","created_at":"2025-02-12 17:43:16","updated_at":"2025-02-12 17:43:16"},"sede_envio":{"id":2,"empresa_envio_id":2,"direccion":"AV TUPAC AMARU 123","departamento":"LA LIBERTAD","provincia":"TRUJILLO","distrito":"TRUJILLO","estado":"ACTIVO","created_at":"2025-02-12 17:45:21","updated_at":"2025-02-12 17:45:21"},"destinatario":{"tipo_documento":"DNI","nro_documento":"75563122","nombres":"ALTRUCAZ"},"direccion_entrega":"AV UNION 342","entrega_domicilio":true,"origen_venta":{"descripcion":"FACEBOOK"},"fecha_envio_propuesta":"2025-02-12","obs_rotulo":"OBS ROTULADO","obs_despacho":"OBS DESPACHADO","tipo_pago_envio":{"descripcion":"PAGAR ENVÍO"}}"
   "documento_convertido"    => 8150   //====== PRESENTE SOLO EN CONVERSIÓN =====
-
   "regularizar"             => "SI" "NO"
   "doc_regularizar_id"      => id
 
-  "modo" => "ATENCION" "RESERVA"
+  "modo"                    => "ATENCION" "RESERVA"
 ]
 */
     public function store(DocVentaStoreRequest $request)
@@ -1061,7 +1141,6 @@ array:27 [
             $documento->direccion_fiscal_empresa    = $datos_validados->empresa->direccion_fiscal;
             $documento->empresa_id                  = $datos_validados->empresa->id;
 
-
             //========= CLIENTE =======
             $documento->tipo_documento_cliente  = $datos_validados->cliente->tipo_documento;
             $documento->documento_cliente       = $datos_validados->cliente->documento;
@@ -1079,7 +1158,6 @@ array:27 [
 
             $documento->observacion = $request->get('observacion');
             $documento->user_id     = $datos_validados->usuario->id;
-
 
             //========= MONTOS Y MONEDA ========
             $documento->sub_total               =   $montos->monto_subtotal;
@@ -1108,17 +1186,26 @@ array:27 [
             $documento->legenda     =   $legenda;
 
             $documento->sede_id         =   $datos_validados->sede_id;
+
             $documento->almacen_id      =   $datos_validados->almacen->id;
             $documento->almacen_nombre  =   $datos_validados->almacen->descripcion;
 
             //======== DOCS VENTA DE TIPO ANTICIPO ========
             if ($request->has('facturar') && $request->has('pedido_id')) {
-                $documento->pedido_id   =   $request->get('pedido_id');
-                $documento->es_anticipo =   true;
+                $documento->pedido_id               =   $request->get('pedido_id');
+                $documento->es_anticipo             =   true;
+                $documento->tipo_doc_venta_pedido   =   "FACTURACIÓN";
+                $documento->pedido_id               =   $request->get('pedido_id');
+            }
+            if ($request->get('modo') === 'CONSUMO') {
+                $documento->pedido_id               =   $request->get('pedido_id');
             }
 
             //========= DOCS VENTA PAGADAS CON ANTICIPO PARCIAL O TOTAL ========
-            if ($request->has('facturado') && $request->get('facturado') === 'SI') {
+            if (
+                $request->get('facturado') === 'SI'
+                || $request->get('modo') === 'CONSUMO'
+            ) {
                 $documento->estado_pago  =   'PAGADA';
             }
 
@@ -1151,6 +1238,13 @@ array:27 [
             }
 
             $documento->modo    =   $request->get('modo') ?? 'VENTA';
+            if ($request->has('modo')) {
+                $documento->tipo_doc_venta_pedido   =   "ATENCION";
+                $documento->pedido_id               =   $request->get('pedido_id') ?? null;
+            }
+            if ($request->get('tipo_doc_venta_pedido')  === 'CONSUMO') {
+                $documento->tipo_doc_venta_pedido   =   "CONSUMO";
+            }
             $documento->save();
 
             foreach ($datos_validados->lstVenta as $item) {
@@ -1247,7 +1341,12 @@ array:27 [
                     $detalle->save();
 
                     //====== RESTAR STOCK SI NO ES CONVERSIÓN NI REGULARIZACIÓN =======
-                    if (!$request->has('documento_convertido') && !$request->has('regularizar') && !$request->has('facturar')) {
+                    if (
+                        !$request->has('documento_convertido')
+                        && !$request->has('regularizar')
+                        && !$request->has('facturar')
+                        && $request->get('modo') !== 'CONSUMO'
+                    ) {
 
                         //===== ACTUALIZANDO STOCK ===========
                         DB::update(
@@ -1305,7 +1404,12 @@ array:27 [
             $data_envio     =   json_decode($request->get('data_envio'));
 
             //========= HAY DATOS DE DESPACHO ======
-            if (!empty((array)$data_envio) && !$request->has('facturar') && !$request->has('documento_convertido')) {
+            if (
+                !empty((array)$data_envio)
+                && !$request->has('facturar')
+                && !$request->has('documento_convertido')
+                && $request->get('tipo_doc_venta_pedido') !== 'CONSUMO'
+            ) {
 
                 $envio_venta                        =   new EnvioVenta();
                 $envio_venta->documento_id          =   $documento->id;
@@ -1343,7 +1447,12 @@ array:27 [
             }
 
             //======= SIN DESPACHO ======
-            if (empty((array)$data_envio) && !$request->has('facturar') && !$request->has('documento_convertido')) {
+            if (
+                empty((array)$data_envio)
+                && !$request->has('facturar')
+                && !$request->has('documento_convertido')
+                && $request->get('tipo_doc_venta_pedido') !== 'CONSUMO'
+            ) {
 
                 //======== OBTENER EMPRESA ENVÍO =======
                 $empresa_envio                      =   DB::select('select ee.id,ee.empresa,ee.tipo_envio
@@ -1395,7 +1504,10 @@ array:27 [
             $movimiento_venta                   =   new DetalleMovimientoVentaCaja();
             $movimiento_venta->cdocumento_id    =   $documento->id;
             $movimiento_venta->mcaja_id         =   $datos_validados->caja_movimiento->movimiento_id;
-            if ($request->has('facturado') && $request->get('facturado') === 'SI') {
+            if (
+                $request->get('facturado') === 'SI'
+                || $request->get('tipo_doc_venta_pedido') == 'CONSUMO'
+            ) {
                 $movimiento_venta->cobrar       =   'NO';
             }
             $movimiento_venta->save();
@@ -1420,6 +1532,41 @@ array:27 [
                     'updated_at'             => Carbon::now()
                 ]);
 
+
+            if ($request->get('facturado') === 'SI' && $request->get('generar_recibo_caja') === 'SI') {
+
+                //======= OBTENIENDO MOVIMIENTO ID DEL COLABORADOR ======
+                $usuario    =   User::find($request->get('user_id'));
+
+                $movimiento =   DB::select(
+                    "SELECT
+                                        dmc.movimiento_id
+                                    FROM detalles_movimiento_caja AS dmc
+                                    WHERE
+                                        dmc.usuario_id = ?
+                                    AND dmc.fecha_salida IS NULL",
+                    [$usuario->colaborador_id]
+                );
+
+                if (count($movimiento) !== 1) {
+                    throw new Exception("ERROR AL OBTENER EL MOVIMIENTO DE CAJA DEL USUARIO DEL PEDIDO");
+                }
+
+                //====== GENERAR RECIBO DE CAJA DEL EXCEDENTE =====
+                $recibo_caja                    =   new ReciboCaja();
+                $recibo_caja->movimiento_id     =   $movimiento[0]->movimiento_id;
+                $recibo_caja->user_id           =   $request->get('user_id');
+                $recibo_caja->cliente_id        =   $request->get('cliente_id');
+                $recibo_caja->monto             =   $request->get('excedente');
+                $recibo_caja->saldo             =   0;
+                $recibo_caja->metodo_pago       =   "EFECTIVO";
+                $recibo_caja->estado_servicio   =   "CANJEADO";
+                $recibo_caja->observacion       =   "CREADO A PARTIR DEL EXCEDENTE DE " . "S/." . $request->get('excedente') .
+                    " PRESENTE EN LA ATENCIÓN " . $documento->serie . '-' . $documento->correlativo .
+                    " DEL PEDIDO PE-" .  $request->get('pedido_nro');
+                $recibo_caja->save();
+            }
+
             DB::commit();
 
             return response()->json([
@@ -1429,7 +1576,7 @@ array:27 [
             ]);
         } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(), 'file' => $th->getFile()]);
         }
     }
 
@@ -1647,7 +1794,7 @@ array:27 [
         $condicion      =   Condicion::find($condicion_id);
 
 
-        $almacen    =   Almacen::find($request->get('almacenSeleccionado'));
+        $almacen        =   Almacen::find($request->get('almacenSeleccionado'));
 
         $datos_validados    =   (object)[
             'sede_id'                   =>  $request->get('sede_id'),
@@ -3354,7 +3501,6 @@ array:27 [
     }
     public function sunat($id)
     {
-
         try {
             $documento = Documento::findOrFail($id);
 

@@ -1,18 +1,16 @@
 @extends('layout')
-@section('content')
 
+
+@section('content')
+    @include('ventas.documentos.modal-envio')
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
-@include('ventas.documentos.modal-envio')
-
-
 <style>
     .colorReadOnly {
         background-color: #e9ecef !important;
         cursor: not-allowed !important;
         opacity: 0.9;
     }
-
 
     .overlay_pedido {
         position: fixed;
@@ -300,7 +298,6 @@
 
 @stop
 @push('styles')
-
 <style>
     .search-length-container {
         display: flex;
@@ -334,7 +331,6 @@
 @endpush
 
 @push('scripts')
-
 <script>
     const tfootSubtotal = document.querySelector('.subtotal');
     const tfootEmbalaje = document.querySelector('.embalaje');
@@ -361,23 +357,10 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         mostrarAnimacionPedido();
+        cargarProductosPrevios();
+        pintarHistorialAtencionPedido();
 
         loadSelect2();
-        cargarProductosPrevios();
-
-        setUbicacionDepartamento(13, 'first');
-        await getTipoEnvios();
-
-        await getTiposPagoEnvio();
-
-        await getOrigenesVentas();
-
-        await getTipoDocumento();
-
-        const tipo_envio = $("#tipo_envio").select2('data')[0].text;
-        await getEmpresasEnvio(tipo_envio);
-
-        pintarHistorialAtencionPedido();
 
         events();
         eventsModalEnvio();
@@ -491,14 +474,14 @@
         document.querySelector('.btn-envio').addEventListener('click', () => {
             //======= COLCANDO EN MODAL ENVIO EL NOMBRE DEL CLIENTE =======
             const cliente_nombre = $("#cliente").find('option:selected').text();
-            console.log(cliente_nombre);
+            //console.log(cliente_nombre);
             const nroDocumento = cliente_nombre.split(':')[1].split('-')[0].trim();
             const cliente_nombre_recortado = cliente_nombre.split('-')[1].trim()
             const tipo_documento = cliente_nombre.split(':')[0];
 
-            console.log(cliente_nombre);
-            console.log(cliente_nombre_recortado);
-            console.log(nroDocumento);
+            // console.log(cliente_nombre);
+            // console.log(cliente_nombre_recortado);
+            // console.log(nroDocumento);
 
             if (tipo_documento === "DNI" || tipo_documento === "CARNET EXT.") {
                 //====== COLOCAR TEXTO DEL SPAN =====
@@ -536,8 +519,8 @@
 
     //======== VERIFICAR SI EL PEDIDO FUE FACTURADO Y MOSTRAR MENSAJE PERSONALIZADO =======
     function comprobarFacturacion() {
-        const pedido        = @json($pedido);
-        const montoTotal    = parseFloat(inputTotalPagar.value);
+        const pedido = @json($pedido);
+        const montoTotal = parseFloat(inputTotalPagar.value);
 
         let message = "";
         if (pedido.facturado === "SI") {
@@ -547,7 +530,8 @@
                 message = `El saldo de S/.${saldo_facturado} del pedido facturado   cubre la atención de S/.${montoTotal}.
                 Se generará el comprobante como pagado con anticipo.¿DESEA CONTINUAR?`;
             } else {
-                message = `El saldo de S/.${saldo_facturado} del pedido facturado  NO CUBRE la atención de S/.${montoTotal}.
+                message =
+                    `El saldo de S/.${saldo_facturado} del pedido facturado  NO CUBRE la atención de S/.${montoTotal}.
                 Se generará el comprobante como pagado con anticipo parcial y un recibo de caja con el excedente.¿DESEA CONTINUAR?`;
             }
         }
@@ -653,10 +637,9 @@
                         .replace(':id1', documento_id)
                         .replace(':size', 80);
 
-                    window.location.href = '{{ route('ventas.documento.index') }}';
-
                     window.open(url_open_pdf, 'Comprobante SISCOM',
                         'location=1, status=1, scrollbars=1,width=900, height=600');
+                    window.location.href = '{{ route('ventas.documento.index') }}';
                     //===> asegurar cierre ===
 
                 } else {

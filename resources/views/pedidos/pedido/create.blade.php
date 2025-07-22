@@ -5,7 +5,6 @@
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
 
-
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
         <h2 style="text-transform:uppercase"><b>Registrar Nuevo Pedido</b></h2>
@@ -679,8 +678,6 @@
                 bodyDetalleTable.innerHTML=fila;
         })
     }
-
-
 
     //========== OBTENER PRODUCTOS POR MODELO =========
     async function  getProductosByModelo(e){

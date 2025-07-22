@@ -228,7 +228,6 @@ class ComprobanteController extends Controller
 
     public function sunat($id)
     {
-
         try {
 
             //====== OBTENER EL DOCUMENTO DE VENTA =========
@@ -415,6 +414,7 @@ class ComprobanteController extends Controller
             $see = $this->controlConfiguracionGreenter($util);
 
             $res = $see->send($invoice);
+            
             $util->writeXml($invoice, $see->getFactory()->getLastXml(), $documento->tipo_venta_id, null);
 
             if ($documento->tipo_venta_id   ==  127) {

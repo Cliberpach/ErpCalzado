@@ -5,7 +5,6 @@
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
 
-
 <div class="overlay_cotizacion_create">
     <span class="loader_cotizacion_create"></span>
 </div>

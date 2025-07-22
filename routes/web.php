@@ -2,7 +2,7 @@
 
 use App\Events\NotifySunatEvent;
 use App\Http\Controllers\Almacenes\ConductorController;
-
+use App\Http\Controllers\Pedidos\PedidoController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -498,6 +498,7 @@ function(){
 
         Route::get('index', 'Ventas\DocumentoController@index')->name('ventas.documento.index');
         Route::get('index-antiguo', 'Ventas\DocumentoController@indexAntiguo')->name('ventas.documento.indexAntiguo');
+        Route::get('getVentas','Ventas\DocumentoController@getVentas')->name('ventas.getVentas');
         Route::get('getDocument','Ventas\DocumentoController@getDocument')->name('ventas.getDocument');
         Route::get('create', 'Ventas\DocumentoController@create')->name('ventas.documento.create');
         Route::post('create', 'Ventas\DocumentoController@getCreate')->name('ventas.documento.getCreate');
@@ -593,6 +594,9 @@ function(){
         Route::post('generar-doc-venta', 'Pedidos\PedidoController@generarDocumentoVenta')->name('pedidos.pedido.generarDocumentoVenta');
         Route::put('update/{id}', 'Pedidos\PedidoController@update')->name('pedidos.pedido.update');
 
+        Route::get('facturar-create/{id}',[PedidoController::class,'facturarCreate'])->name('pedidos.pedido.facturar-create');
+        Route::post('facturar-store/', 'Pedidos\PedidoController@facturarStore')->name('pedidos.pedido.facturar-store');
+
         Route::get('/getProductos/', 'Pedidos\PedidoController@getProductos')->name('pedidos.pedido.getProductos');
 
 
@@ -610,7 +614,6 @@ function(){
         Route::get('get-pedido-detalles/{pedido_id}','Pedidos\PedidoController@getPedidoDetalles')->name('pedidos.pedido.getPedidoDetalles');
         Route::post('devolver-stock-logico', 'Pedidos\PedidoController@devolverStockLogico')->name('pedidos.pedido.devolverStockLogico');
         Route::get('getExcel/{fecha_inicio?}/{fecha_fin?}/{estado?}', 'Pedidos\PedidoController@getExcel')->name('pedidos.pedido.getExcel');
-        Route::post('facturar/', 'Pedidos\PedidoController@facturar')->name('pedidos.pedido.facturar');
         Route::get('getCliente/{pedido_id}','Pedidos\PedidoController@getCliente')->name('pedidos.pedido.getCliente');
 
     });

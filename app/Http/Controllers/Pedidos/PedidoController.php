@@ -19,23 +19,27 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Session;
 use Barryvdh\DomPDF\Facade as PDF;
 use App\Ventas\Documento\Documento;
-use  App\Http\Controllers\Ventas\DocumentoController;
-use App\Ventas\Documento\Detalle;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Pedido\PedidosExport;
 use App\Http\Requests\Pedidos\Pedido\PedidoDocVentaRequest;
 use App\Http\Requests\Pedidos\Pedido\PedidoStoreRequest;
 use App\Http\Requests\Pedidos\Pedido\PedidoUpdateRequest;
-use App\Http\Requests\Ventas\DocVenta\DocVentaStoreRequest;
+use App\Http\Services\Pedidos\Pedidos\PedidoManager;
 use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Sedes\Sede;
-use App\Pos\ReciboCaja;
 use App\User;
 use Throwable;
 
 class PedidoController extends Controller
 {
+    private PedidoManager $s_pedido;
+
+    public function __construct()
+    {
+        $this->s_pedido =   new PedidoManager();
+    }
+
     public function index()
     {
         $roles = DB::table('role_user as rl')
@@ -45,7 +49,7 @@ class PedidoController extends Controller
             ->toArray();
 
         $isAdmin = in_array('ADMIN', $roles);
-        return view('pedidos.pedido.index',compact('isAdmin'));
+        return view('pedidos.pedido.index', compact('isAdmin'));
     }
 
     public function getTable(Request $request)
@@ -57,13 +61,10 @@ class PedidoController extends Controller
 
         $pedidos    =   Pedido::select(
             'pedidos.*',
-            'a.descripcion as almacen_nombre',
             DB::raw('CONCAT(pedidos.documento_venta_facturacion_serie, "-", pedidos.documento_venta_facturacion_correlativo) as documento_venta'),
             DB::raw('if(pedidos.cotizacion_id is null,"-",concat("CO-",pedidos.cotizacion_id)) as cotizacion_nro')
         )
-            ->join('almacenes as a', 'a.id', 'pedidos.almacen_id')
             ->where('pedidos.estado', '!=', 'ANULADO');
-
 
         if ($fecha_inicio) {
             $pedidos    =   $pedidos->where('fecha_registro', '>=', $fecha_inicio);
@@ -387,7 +388,6 @@ array:18 [
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();
 
-
         return view(
             'pedidos.pedido.edit',
             compact(
@@ -653,7 +653,6 @@ array:11 [
     public function atender(Request $request)
     {
         DB::beginTransaction();
-
         try {
 
             //======== OBTENIENDO ID DEL PEDIDO =========
@@ -665,9 +664,9 @@ array:11 [
             $cliente        =   Cliente::findOrFail($pedido->cliente_id);
 
             //========== EL DOCUMENTO IDENTIDAD DEL CLIENTE DEBE SER IGUAL AL DEL DOC VENTA ANTICIPO ========
-            if($pedido->facturado === 'SI'){
+            if ($pedido->facturado === 'SI') {
                 $doc_anticipo   =   Documento::findOrFail($pedido->documento_venta_facturacion_id);
-                if($doc_anticipo->documento_cliente != $cliente->documento){
+                if ($doc_anticipo->documento_cliente != $cliente->documento) {
                     throw new Exception("EL DOCUMENTO IDENTIDAD DEL CLIENTE DEBE SER IGUAL AL QUE FIGURA EN EL DOC VENTA ANTICIPO");
                 }
             }
@@ -786,83 +785,28 @@ array:11 [
                 $atencion_detalle[]     =   $atencion_item;
             }
 
-
             $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
             $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
 
             $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
             $tallas             =   Talla::where('estado', 'ACTIVO')->get();
-            $tipos_ventas       =   tipos_venta();
-            $tipoVentas         =   collect();
-
-            foreach ($tipos_ventas as $tipo) {
-                if (ifComprobanteSeleccionado($tipo->id) && ($tipo->tipo == 'VENTA' || $tipo->tipo == 'AMBOS')) {
-                    $tipoVentas->push([
-                        "id" => $tipo->id,
-                        "nombre" => $tipo->nombre,
-                    ]);
-                }
-            }
-
-            //======= DE ACUERDO AL TIPO CLIENTE ; LIMITAR LOS TIPOS DE VENTAS =====
-            //===== SI ES CLIENTE CON DNI, QUITAMOS LA FACTURA ======
-            $tipo_doc_cliente   =   $pedido->cliente->tipo_documento;
-            if ($tipo_doc_cliente === 'DNI') {
-                $tipoVentas = $tipoVentas->reject(function ($tipoVenta) {
-                    return $tipoVenta['id'] == 127;
-                });
-            }
-
-            //====== SI EL CLIENTE TIENE RUC, QUITAMOS LA BOLETA =======
-            if ($tipo_doc_cliente === 'RUC') {
-                $tipoVentas = $tipoVentas->reject(function ($tipoVenta) {
-                    return $tipoVenta['id'] == 128;
-                });
-            }
-
-            //====== SI EL CLIENTE NO TIENE DNI NI RUC ========
-            //======= PERMITIR SOLO NOTAS DE VENTA =======
-            if ($tipo_doc_cliente !== 'RUC' && $tipo_doc_cliente !== 'DNI') {
-                $tipoVentas = $tipoVentas->reject(function ($tipoVenta) {
-                    return $tipoVenta['id'] == 127;
-                });
-                $tipoVentas = $tipoVentas->reject(function ($tipoVenta) {
-                    return $tipoVenta['id'] == 128;
-                });
-            }
+            $tipoVentas         =   tipos_venta()
+                                    ->whereIn('id', [129])
+                                    ->where('estado', 'ACTIVO');
 
             //======= SI EL PEDIDO YA FUE FACTURADO, PERMITIR SOLO ATENDER DE ACUERDO AL DOC DEL CLIENTE ======
             if ($pedido->facturado === 'SI') {
 
-                $doc_venta  =   Documento::where('pedido_id',$pedido->id)->first();
-                if(!$doc_venta){
+                $doc_venta  =   Documento::where('pedido_id', $pedido->id)->first();
+                if (!$doc_venta) {
                     throw new Exception('NO SE ENCUENTRA EL DOC DE VENTA CON EL QUE SE FACTURÓ EL PEDIDO');
-                }
-
-                //======= ELIMINAR NOTAS DE VENTA =======
-                $tipoVentas = $tipoVentas->reject(function ($tipoVenta) {
-                    return $tipoVenta['id'] == 129;
-                });
-
-                //======== SI EL DOC ANTICIPO ES CON DNI, ENTONCES LOS CONSUMOS DEBEN SER BOLETAS ==========
-                if($doc_venta->tipo_documento_cliente === 'DNI'){
-                    $tipoVentas = $tipoVentas->reject(function ($tipoVenta) {
-                        return $tipoVenta['id'] == 127;
-                    });
-                }
-                //======= EN CASO SEA RUC, LOS CONSUMOS DEBEN SER FACTURAS =======
-                if($doc_venta->tipo_documento_cliente === 'RUC'){
-                    $tipoVentas = $tipoVentas->reject(function ($tipoVenta) {
-                        return $tipoVenta['id'] == 128;
-                    });
                 }
 
                 Session::flash(
                     'pedido_facturado_atender',
-                    'EL PEDIDO SOLO PODRÁ ATENDERSE CON <strong>' . $doc_venta->tipo_venta_nombre . '</strong>,
-                    PORQUE YA FUE FACTURADO CON EL DOC: <strong>' . $doc_venta->serie . '-' . $doc_venta->correlativo . '</strong>'
+                    'LOS PEDIDOS SOLO DEBEN ATENDERSE CON <strong>' . 'NOTA DE VENTA' . '</strong>,
+                    FACTURADO CON EL DOC: <strong>' . $doc_venta->serie . '-' . $doc_venta->correlativo . '</strong>'
                 );
-
             }
 
             $departamentos  =   departamentos();
@@ -871,6 +815,13 @@ array:11 [
             $sede           =   Sede::find($pedido->sede_id);
             $registrador    =   Colaborador::find(Auth::user()->colaborador_id);
 
+            $origenes_ventas    =   DB::select('SELECT
+                                    td.id,
+                                    td.descripcion
+                                    FROM tabladetalles AS td
+                                    WHERE
+                                    td.tabla_id="36"
+                                    AND td.estado="ACTIVO"');
             DB::commit();
             return view(
                 'pedidos.pedido.atender',
@@ -886,12 +837,13 @@ array:11 [
                     'departamentos',
                     'almacen',
                     'sede',
-                    'registrador'
+                    'registrador',
+                    'origenes_ventas'
                 )
             );
-        }catch (Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollback();
-            Session::flash('message_error',$th->getMessage());
+            Session::flash('message_error', $th->getMessage());
             return redirect()->route('pedidos.pedido.index');
         }
     }
@@ -962,7 +914,7 @@ array:11 [
                     $talla['talla_id']              =   $producto_color_talla->talla_id;
 
 
-                    $talla['cantidad']              =   $producto_color_talla->cantidad;
+                    $talla['cantidad']              =   (int)$producto_color_talla->cantidad;
                     $subtotal                       +=  $talla['cantidad'] * $producto['precio_unitario_nuevo'];
                     $cantidadTotal                  +=  $talla['cantidad'];
 
@@ -1285,7 +1237,7 @@ array:11 [
         return $productos_formateado;
     }
 
-    /*
+/*
 array:6 [
   "cantidad_atender_anterior" => 1
   "cantidad_atender_nueva" => 1
@@ -1389,210 +1341,22 @@ array:23 [
 */
     public function generarDocumentoVenta(PedidoDocVentaRequest $request)
     {
-
-        //========= GENERAR DOC VENTA ======
-        $pedido_id              =   $request->get('pedido_id');
-        $pedido                 =   Pedido::find($pedido_id);
-
-        //====== SI EL PEDIDO YA FUE FACTURADO, EVITAMOS QUE SE CONTABILIZE LA ATENCIÓN EN LA CAJA ========
-        if ($pedido->facturado === 'SI') {
-            $doc_anticipo       =   Documento::findOrFail($pedido->documento_venta_facturacion_id);
-            $monto_cubierto     =   (float)0;
-            $saldo_anticipo     =   (float)$doc_anticipo->saldo_anticipo;
-            $monto_pedido       =   (float)$request->get('monto_total_pagar');
-
-            if($saldo_anticipo >= $monto_pedido){
-                $monto_cubierto    =   $monto_pedido;
-            }else{
-                $monto_cubierto    =   $saldo_anticipo;
-            }
-
-            $additionalData = [
-                'facturado'             =>  'SI',
-            ];
-
-            if($monto_cubierto > 0){
-                $additionalData =   [
-                    'anticipo_consumido_id'     =>  $pedido->documento_venta_facturacion_id,
-                    'anticipo_monto_consumido'  =>  $monto_cubierto
-                ];
-            }
-
-            $request->merge($additionalData);
-        }
-
-        //====== DOC VENTA:  tipo_venta,almacenSeleccionado,condicion_id,cliente_id =====
-        $request->merge(
-            [
-                'almacenSeleccionado'   =>  $pedido->almacen_id,
-                'sede_id'               =>  $pedido->sede_id,
-                'modo'                  =>  $request->get('modo')
-            ]
-        );
-
-        $docVentaRequest        =   DocVentaStoreRequest::createFrom($request);
-        $documentoController    =   new DocumentoController();
-        $res                    =   $documentoController->store($docVentaRequest);
-        $jsonResponse           =   $res->getData();
-
-        if (!$jsonResponse->success) {
-            return $res;
-        }
-
-        //======= DOC VENTA GENERADO CON ÉXITO =======
         DB::beginTransaction();
         try {
 
-            $documento_id       =   $jsonResponse->documento_id;
-
-            //======= ACTUALIZANDO CANTIDAD ATENDIDA EN PEDIDO DETALLES ======
-            $productosJSON  = $request->get('productos_tabla');
-            $productos      = json_decode($productosJSON);
-
-            foreach ($productos as $producto) {
-                foreach ($producto->tallas as $talla) {
-
-                    DB::table('pedidos_detalles')
-                        ->where('pedido_id', $pedido_id)
-                        ->where('almacen_id', $pedido->almacen_id)
-                        ->where('producto_id', $producto->producto_id)
-                        ->where('color_id', $producto->color_id)
-                        ->where('talla_id', $talla->talla_id)
-                        ->update([
-                            'cantidad_pendiente'    => DB::raw('cantidad_pendiente  - ' . $talla->cantidad),
-                            'cantidad_atendida'     => DB::raw('cantidad_atendida   + ' . $talla->cantidad)
-                        ]);
-                }
-            }
-
-            //======= GRABANDO ATENCIÓN =====
-            DB::table('cotizacion_documento')
-                ->where('id', $documento_id)
-                ->update([
-                    'pedido_id'             =>  $pedido_id,
-                    'tipo_doc_venta_pedido' =>  "ATENCION",
-                    'updated_at'            =>  Carbon::now()
-                ]);
-
-
-            //======= CAMBIANDO ESTADO DEL PEDIDO =====
-            //===== CANTIDAD DE ITEMS QUE TIENE EL PEDIDO ======
-            $cant_items_pendientes_pedido       =   PedidoDetalle::where('pedido_id', $pedido_id)
-                ->where('cantidad_pendiente', '>', 0)
-                ->count('*');
-            $cant_items_atendidos_pedido        =   PedidoDetalle::where('pedido_id', $pedido_id)
-                ->where('cantidad_atendida', '>', 0)
-                ->count('*');
-
-            $pedido_actualizar                  =   Pedido::find($pedido_id);
-
-            if ($cant_items_pendientes_pedido === 0) {
-                $pedido_actualizar->estado      =   "FINALIZADO";
-            }
-
-            if ($cant_items_pendientes_pedido > 0 && $cant_items_atendidos_pedido > 0) {
-                $pedido_actualizar->estado      =   "ATENDIENDO";
-            }
-
-            if ($cant_items_atendidos_pedido === 0) {
-                $pedido_actualizar->estado      =   "PENDIENTE";
-            }
-
-            //======== VERIFICANDO SI EL PEDIDO ESTÁ FACTURADO ======
-            if ($pedido_actualizar->facturado === "SI") {
-
-                //===== SI EL SALDO FACTURADO ES MAYOR O IGUAL AL MONTO DE LA ATENCIÓN =====
-                if ($pedido_actualizar->saldo_facturado >= $request->get('monto_total_pagar')) {
-                    //====== NO GENERAR RECIBOS DE CAJA =======
-                    //====== DISMINUIR SALDO FACTURADO ========
-                    $pedido_actualizar->saldo_facturado -=  $request->get('monto_total_pagar');
-                } else {
-                    //===== SI EL SALDO FACTURADO ES MENOR AL MONTO DE LA ATENCIÓN ======
-
-                    //====== OBTENER EXCEDENTE =======
-                    $excedente  =   $request->get('monto_total_pagar') -    $pedido_actualizar->saldo_facturado;
-
-                    //======= OBTENIENDO MOVIMIENTO ID DEL COLABORADOR ======
-                    $usuario    =   User::find($pedido_actualizar->user_id);
-
-                    $movimiento =   DB::select(
-                        "select
-                                    dmc.movimiento_id
-                                    from detalles_movimiento_caja as dmc
-                                    where
-                                    dmc.usuario_id = ?
-                                    and dmc.fecha_salida is null",
-                        [$usuario->colaborador_id]
-                    );
-
-                    if (count($movimiento) !== 1) {
-                        throw new Exception("ERROR AL OBTENER EL MOVIMIENTO DE CAJA DEL USUARIO DEL PEDIDO");
-                    }
-
-                    $documento_venta    = Documento::find($documento_id);
-
-                    if (!$documento_venta) {
-                        throw new Exception("ERROR AL OBTENER EL DOCUMENTO DE VENTA DE LA ATENCIÓN PARA GENERAR EL RECIBO DE CAJA EXCEDENTE");
-                    }
-
-
-                    //====== GENERAR RECIBO DE CAJA DEL EXCEDENTE =====
-                    $recibo_caja                    =   new ReciboCaja();
-                    $recibo_caja->movimiento_id     =   $movimiento[0]->movimiento_id;
-                    $recibo_caja->user_id           =   $pedido_actualizar->user_id;
-                    $recibo_caja->cliente_id        =   $pedido_actualizar->cliente_id;
-                    $recibo_caja->monto             =   $excedente;
-                    $recibo_caja->saldo             =   0;
-                    $recibo_caja->metodo_pago       =   "EFECTIVO";
-                    $recibo_caja->estado_servicio   =   "CANJEADO";
-                    $recibo_caja->observacion       =   "CREADO A PARTIR DEL EXCEDENTE DE " . "S/." . $excedente .
-                        " PRESENTE EN LA ATENCIÓN " . $documento_venta->serie . '-' . $documento_venta->correlativo .
-                        " DEL PEDIDO PE-" . $pedido_actualizar->pedido_nro;
-                    $recibo_caja->save();
-
-                    //====== DISMINUIR SALDO FACTURADO ========
-                    $pedido_actualizar->saldo_facturado =  0;
-                }
-            }
-
-            $pedido_actualizar->save();
-
+            $res    =   $this->s_pedido->generarDocumentoVenta($request->toArray());
 
             DB::commit();
+
             return response()->json([
                 'success'       => true,
-                'documento_id'  => $documento_id,
-                'mensaje'       =>   'DOCUMENTO DE VENTA GENERADO - PEDIDO ACTUALIZADO'
+                'documento_id'  => $res,
+                'mensaje'       => 'DOCUMENTO DE VENTA GENERADO - PEDIDO ACTUALIZADO'
             ]);
+
         } catch (Throwable $th) {
-
-            //======== REVERTIR ACCIONES REALIZADAS EN PEDIDO CONTROLLER ======
             DB::rollBack();
-
-            //===== DEVOLVER STOCKS =======
-            $detalles_documento_venta    =   Detalle::where('documento_id', $documento_id)->get();
-
-            foreach ($detalles_documento_venta as $item) {
-                DB::table('producto_color_tallas')
-                    ->where('almacen_id', $pedido->almacen_id)
-                    ->where('producto_id', $item->producto_id)
-                    ->where('color_id', $item->color_id)
-                    ->where('talla_id', $item->talla_id)
-                    ->update([
-                        'stock'    => DB::raw('stock  + ' . $item->cantidad),
-                    ]);
-            }
-
-            //====== ELIMINAR DOC DE VENTA ====
-            DB::table('cotizacion_documento')
-                ->where('id', $documento_id)
-                ->delete();
-
-            return response()->json([
-                'success'   => false,
-                'mensaje'   => 'ERROR EN EL SERVIDOR, SI EL ERROR PERSISTE COMUNICARSE CON EL ADMINISTRADOR DEL SISTEMA',
-                'excepcion' => $th->getMessage(),
-            ]);
+            return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
         }
     }
 
@@ -1669,139 +1433,33 @@ array:23 [
         return  Excel::download(new PedidosExport($fecha_inicio, $fecha_fin, $estado), 'REPORTE-PEDIDOS' . '.xlsx');
     }
 
-/*
-array:1 [
-  "pedido_id" => 3
+    /*
+array:9 [
+  "_token" => "BUwUdTR0MfLCxd0DVA2zKRPDaN5yrlOm51d9wGAj"
+  "registrador" => "ADMINISTRADOR"
+  "fecha_registro" => "2025-07-21"
+  "almacen" => "CENTRAL"
+  "condicion_id" => "CONTADO"
+  "fecha_propuesta" => "2025-07-21"
+  "cliente" => "ZAYRA CECIBEL VILELA JARAMILLO DE QUISPE"
+  "comprobante" => "129"
+  "pedido_id" => "666"
 ]
 */
-    public function facturar(Request $request)
+    public function facturarStore(Request $request)
     {
-
         DB::beginTransaction();
         try {
-
-            //====== RECIBIENDO PEDIDO ID =====
-            $pedido_id      =   $request->get('pedido_id');
-            $pedido         =   Pedido::find($pedido_id);
-
-            if (!$pedido) {
-                throw new Exception('NO SE ENCONTRÓ EL PEDIDO EN LA BASE DE DATOS');
-            }
-            if ($pedido->estado !== 'PENDIENTE') {
-                throw new Exception("NO PUEDE FACTURARSE EL PEDIDO, SU ESTADO ES: " . $pedido->estado);
-            }
-
-            //===== OBTENIENDO EL TIPO DOC DEL CLIENTE =======
-            $cliente    =   DB::select('SELECT
-                            c.tipo_documento
-                            FROM clientes AS c
-                            WHERE c.id = ?', [$pedido->cliente_id]);
-
-            if (count($cliente) === 0 || count($cliente) > 1) {
-                throw new Exception('NO SE ENCONTRÓ EL CLIENTE EN LA BASE DE DATOS');
-            }
-
-            $cliente_tipo_documento =   $cliente[0]->tipo_documento;
-            $tipo_venta             =   null;
-            if ($cliente_tipo_documento === "RUC") {
-                $tipo_venta = 127;
-            }
-            if ($cliente_tipo_documento === "DNI") {
-                $tipo_venta = 128;
-            }
-
-            if ($cliente_tipo_documento !== "RUC" && $cliente_tipo_documento !== "DNI") {
-                throw new Exception("SE REQUIERE DNI O RUC PARA FACTURAR UN PEDIDO");
-            }
-
-            //======= OBTENIENDO DETALLE DEL PEDIDO ===========
-            $detalle_pedido     = PedidoDetalle::where('pedido_id', $pedido_id)->get();
-            $detalle_formateado = $this->formatearArrayDetalleObjetos($detalle_pedido);
-            $productos          = json_encode($detalle_formateado);
-
-            //======= AGREGANDO DATOS AL REQUEST =====
-            $additionalData = [
-                'empresa'                   =>  $pedido->empresa_id,
-                'tipo_venta'                =>  $tipo_venta,
-                'condicion_id'              =>  $pedido->condicion_id,
-                'fecha_vencimiento_campo'   =>  Carbon::now(),
-                'cliente_id'                =>  $pedido->cliente_id,
-                'igv'                       =>  "18",
-                "igv_check"                 =>  "on",
-                "efectivo"                  =>  "0",
-                "importe"                   =>  "0",
-                "empresa_id"                =>  $pedido->empresa_id,
-                "monto_sub_total"           =>  $pedido->sub_total,
-                "monto_embalaje"            =>  $pedido->monto_embalaje,
-                "monto_envio"               =>  $pedido->monto_envio,
-                "monto_total_igv"           =>  $pedido->total_igv,
-                "monto_descuento"           =>  $pedido->monto_descuento,
-                "monto_total"               =>  $pedido->total,
-                "monto_total_pagar"         =>  $pedido->total_pagar,
-                "data_envio"                =>  null,
-                "facturar"                  =>  'SI',
-                "productos_tabla"           =>  $productos,
-                "sede_id"                   =>  $pedido->sede_id,
-                "almacenSeleccionado"       =>  $pedido->almacen_id
-            ];
-
-            $request->merge($additionalData);
-
-            //======== GENERANDO DOC VENTA ======
-            $docVentaRequest        =   DocVentaStoreRequest::createFrom($request);
-
-            $documentoController    =   new DocumentoController();
-            $res                    =   $documentoController->store($docVentaRequest);
-            $jsonResponse           =   $res->getData();
-
-            //====== MANEJO DE RESPUESTA =========
-            $success_store_doc      =   $jsonResponse->success;
-
-            if ($success_store_doc) {
-
-                $doc_venta  =   DB::select(
-                    'select
-                                cd.serie,
-                                cd.correlativo,
-                                cd.total_pagar
-                                from cotizacion_documento as cd
-                                where cd.id = ?',
-                    [$jsonResponse->documento_id]
-                )[0];
-
-                //======== ACTUALIZANDO PEDIDO =======
-                $pedido->facturado                                  =   'SI';
-                $pedido->documento_venta_facturacion_id             =   $jsonResponse->documento_id;
-                $pedido->documento_venta_facturacion_serie          =   $doc_venta->serie;
-                $pedido->documento_venta_facturacion_correlativo    =   $doc_venta->correlativo;
-                $pedido->monto_facturado                            =   $doc_venta->total_pagar;
-                $pedido->saldo_facturado                            =   $doc_venta->total_pagar;
-                $pedido->save();
-
-                //====== ACTUALIZANDO DOC VENTA ======
-                DB::table('cotizacion_documento')
-                    ->where('id', $jsonResponse->documento_id)
-                    ->update([
-                        'pedido_id'                 =>  $pedido_id,
-                        'tipo_doc_venta_pedido'     => "FACTURACION",
-                        'updated_at'                => Carbon::now()
-                    ]);
-
-                DB::commit();
-
-                return response()->json(
-                    [
-                        'success'       =>  true,
-                        'message'       =>  'SE HA GENERADO EL DOCUMENTO DE VENTA ' . $doc_venta->serie . '-' . $doc_venta->correlativo,
-                        'documento_id'  =>  $jsonResponse->documento_id
-                    ]
-                );
-            } else {
-
-                DB::rollBack();
-                return response()->json(['success' => false, 'message' => $jsonResponse->message, 'line' => $jsonResponse->line]);
-            }
-        } catch (\Throwable $th) {
+            $doc_venta   =   $this->s_pedido->facturar($request->toArray());
+            DB::commit();
+            return response()->json(
+                [
+                    'success'       =>  true,
+                    'message'       =>  'SE HA GENERADO EL DOCUMENTO DE VENTA ' . $doc_venta->serie . '-' . $doc_venta->correlativo,
+                    'documento_id'  =>  $doc_venta->id
+                ]
+            );
+        } catch (Throwable $th) {
             DB::rollback();
             return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine()]);
         }
@@ -1966,6 +1624,50 @@ array:2 [
             ]);
         } catch (\Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
+    }
+
+    public function facturarCreate(int $id)
+    {
+        try {
+
+
+            $pedido                 = Pedido::findOrFail($id);
+            $registrador_nombre     = Auth::user()->usuario;
+
+            if ($pedido->facturado === 'SI') {
+                throw new Exception("ESTE PEDIDO PE-" . $id . ",YA FUE FACTURADO");
+            }
+
+            if ($pedido->user_id !== Auth::user()->id) {
+                throw new Exception("PEDIDO PE-" . $id . ",SOLO EL USUARIO QUE LO CREÓ PUEDE FACTURARLO");
+            }
+
+            $detalle            =   PedidoDetalle::where('pedido_id', $id)->get();
+            $detalle            =   $this->formatearArrayDetalleObjetos($detalle);
+
+            $tallas             =   Talla::where('estado', 'ACTIVO')->get();
+            $almacen            =   Almacen::findOrFail($pedido->almacen_id);
+            $condicion          =   Condicion::findOrFail($pedido->condicion_id);
+            $cliente            =   Cliente::findOrFail($pedido->cliente_id);
+
+            $tipos_ventas   =   tipos_venta()->whereIn('id', [127, 128, 129]);
+
+            //===== RETIRAR BOLETA =======
+            if ($cliente->tipo_documento === 'RUC') {
+                $tipos_ventas   =   $tipos_ventas->where('id', '<>', 128);
+            }
+            if ($cliente->tipo_documento === 'DNI') {
+                $tipos_ventas   =   $tipos_ventas->where('id', '<>', 127);
+            }
+
+            return view(
+                'pedidos.pedido.facturar',
+                compact('pedido', 'detalle', 'registrador_nombre', 'tallas', 'almacen', 'condicion', 'tipos_ventas')
+            );
+        } catch (Throwable $th) {
+            Session::flash('message_error', $th->getMessage());
+            return redirect()->route('pedidos.pedido.index');
         }
     }
 }

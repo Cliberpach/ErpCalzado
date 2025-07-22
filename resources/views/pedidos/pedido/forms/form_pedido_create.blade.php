@@ -1,5 +1,4 @@
-<form  method="POST" action=""
-id="form-pedido">
+<form  method="POST" action="" id="form-pedido">
 @csrf
 <div class="row">
 
@@ -85,7 +84,7 @@ id="form-pedido">
                  required>
                 <option></option>
                 @foreach ($clientes as $cliente)
-                    <option @if ($cliente->id == 1) selected @endif 
+                    <option @if ($cliente->id == 1) selected @endif
                     value="{{ $cliente->id }}">
                     {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
                     </option>

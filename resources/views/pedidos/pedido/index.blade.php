@@ -261,26 +261,26 @@
                 [0, 'desc']
             ],
 
-            buttons: [{
-                    text: '<a id="btn-excel-pedidos" href="javascript:void(0);"><i class="fa fa-file-excel-o"></i> Excel</a>',
-                    className: 'custom-button btn-hola',
-                    action: function(e, dt, node, config) {
-                        excelPedidos();
-                    }
-                },
-                {
-                    extend: 'pdf',
-                    className: 'custom-button btn-check',
-                    text: '<i class="fas fa-file-pdf"></i> Pdf',
-                    title: 'Pedidos'
-                },
-                {
-                    extend: 'print',
-                    className: 'custom-button btn-check',
-                    text: '<i class="fa fa-print"></i> Imprimir',
-                    title: 'Pedidos'
-                }
-            ],
+            // buttons: [{
+            //         text: '<a id="btn-excel-pedidos" href="javascript:void(0);"><i class="fa fa-file-excel-o"></i> Excel</a>',
+            //         className: 'custom-button btn-hola',
+            //         action: function(e, dt, node, config) {
+            //             excelPedidos();
+            //         }
+            //     },
+            //     {
+            //         extend: 'pdf',
+            //         className: 'custom-button btn-check',
+            //         text: '<i class="fas fa-file-pdf"></i> Pdf',
+            //         title: 'Pedidos'
+            //     },
+            //     {
+            //         extend: 'print',
+            //         className: 'custom-button btn-check',
+            //         text: '<i class="fa fa-print"></i> Imprimir',
+            //         title: 'Pedidos'
+            //     }
+            // ],
             dom: '<"buttons-container"B><"search-length-container"lf>tp',
             bProcessing: true,
             columns: [
@@ -346,16 +346,23 @@
                     searchable: false,
                     className: "text-center",
                     render: function(data, type, row) {
-                        let url_reporte = '{{ route('pedidos.pedido.reporte', ':id') }}';
-                        url_reporte = url_reporte.replace(':id', row.id);
+                        let url_reporte     = '{{ route('pedidos.pedido.reporte', ':id') }}';
+                        url_reporte         = url_reporte.replace(':id', row.id);
 
-                        const url_atender = '{{ route('pedidos.pedido.atender') }}';
+                        let url_facturar_create     =   '{{ route('pedidos.pedido.facturar-create', ':id') }}';
+                        url_facturar_create         =   url_facturar_create.replace(':id', row.id);
+
+                        const url_atender   = '{{ route('pedidos.pedido.atender') }}';
 
                         let accion_facturar = '';
 
                         if (!row.facturado && row.estado === 'PENDIENTE') {
-                            accion_facturar += `<li><a class='dropdown-item'  onclick="facturar(${row.id})" title='Facturar'><b><i class="fas fa-file-invoice-dollar"></i> Facturar</a></b></li>
-                                    <div class="dropdown-divider"></div>`;
+                            accion_facturar += `<li>
+                                                    <a class='dropdown-item' title='Facturar' href="${url_facturar_create}">
+                                                        <b><i class="fas fa-file-invoice-dollar"></i> Facturar </b>
+                                                    </a>
+                                                </li>
+                                                <div class="dropdown-divider"></div>`;
                         }
 
                         let acciones =
@@ -421,7 +428,7 @@
         });
 
 
-        document.querySelector('.dt-buttons').classList.add('btn-group');
+        // document.querySelector('.dt-buttons').classList.add('btn-group');
     }
 
 

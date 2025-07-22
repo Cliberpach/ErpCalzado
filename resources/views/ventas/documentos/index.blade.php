@@ -4,6 +4,8 @@
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
 
+@csrf
+
 <ventas-app
 :v_sede = "{{json_encode($sede)}}"
 :registrador = "{{json_encode($registrador)}}"
