@@ -89,7 +89,7 @@ class DocumentoController extends Controller
 
         return view(
             'ventas.documentos.index',
-            compact('departamentos', 'provincias', 'distritos', 'almacenes', 'registrador', 'sede','modos_pago')
+            compact('departamentos', 'provincias', 'distritos', 'almacenes', 'registrador', 'sede', 'modos_pago')
         );
     }
 
@@ -154,10 +154,10 @@ class DocumentoController extends Controller
             ->leftJoin('cotizaciones as co', 'co.id', 'cd.cotizacion_venta')
             ->orderByDesc('cd.id');
 
-        if($filtro_fecha_inicio){
+        if ($filtro_fecha_inicio) {
             $ventas->whereDate('cd.created_at', '>=', $filtro_fecha_inicio);
         }
-        if($filtro_fecha_fin){
+        if ($filtro_fecha_fin) {
             $ventas->whereDate('cd.created_at', '<=', $filtro_fecha_fin);
         }
 
@@ -882,6 +882,13 @@ class DocumentoController extends Controller
             }
 
             $tallas = Talla::all();
+            $origenes_ventas    =   DB::select('SELECT
+                                    td.id,
+                                    td.descripcion
+                                    FROM tabladetalles AS td
+                                    WHERE
+                                    td.tabla_id="36"
+                                    AND td.estado="ACTIVO"');
 
             return view('ventas.documentos.cotizacion_a_docventa.index', [
                 'cotizacion'    =>  $cotizacion,
@@ -896,6 +903,7 @@ class DocumentoController extends Controller
                 'tallas'        =>  $tallas,
                 'cantidadErrores'   =>  $cantidadErrores,
                 'departamentos'     =>  departamentos(),
+                'origenes_ventas' =>  $origenes_ventas,
             ]);
         }
 

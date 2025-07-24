@@ -1,4 +1,5 @@
-@extends('layout') @section('content')
+@extends('layout')
+@section('content')
 @include('ventas.documentos.modal-envio')
 
 @section('ventas-active', 'active')
@@ -6,7 +7,7 @@
 <style>
     .toastr-morado {
         background-color: #652e9b !important; /* Color morado */
-    }   
+    }
 </style>
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
@@ -140,7 +141,7 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                   
+
                                     <div class="col-12 col-md-6 select-required d-none">
                                         <div class="form-group">
                                             <label>Moneda:</label>
@@ -322,7 +323,7 @@
                         <input type="hidden" name="monto_total_igv" id="monto_total_igv" value="{{ $cotizacion->total_igv}}">
                         <input type="hidden" name="monto_total_pagar" id="monto_total_pagar" value="{{ $cotizacion->total_pagar }}">
 
-                        
+
                         <input type="hidden" name="cot_doc" id="cot_doc" value="SI">
 
 
@@ -425,7 +426,7 @@
                                                     <th class="text-center">P. UNITARIO</th>
                                                     <th class="text-center">DESCUENTO</th>
                                                     <th class="text-center">P. NUEVO</th>
-                                                    <th class="text-center">TOTAL</th> 
+                                                    <th class="text-center">TOTAL</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -450,7 +451,7 @@
                                                     <th class="text-center"><span id="total">@if (!empty($cotizacion)) {{ $cotizacion->total }} @else 0.0 @endif</span>
                                                     </th>
                                                 </tr>
-                                            </tfoot> 
+                                            </tfoot>
                                         </table>
                                     </div>  --}}
                                 </div>
@@ -496,20 +497,10 @@
 </div>
 
 
-{{-- @include('ventas.documentos.modal') --}}
-{{-- @include('ventas.documentos.modalLote')
-@include('ventas.documentos.modalCliente')
-@include('ventas.documentos.modalCodigo') --}}
+
 @stop
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css') }}"
-    rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/datapicker/datepicker3.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/daterangepicker/daterangepicker-bs3.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<!-- DataTable -->
-<link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/iCheck/custom.css' )}}" rel="stylesheet">
+
 <style>
     .my-swal {
         z-index: 3000 !important;
@@ -520,28 +511,12 @@
 @endpush
 
 @push('scripts')
-<!-- Data picker -->
-<script src="{{ asset('Inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
-<!-- Date range use moment.js same as full calendar plugin -->
-<script src="{{ asset('Inspinia/js/plugins/fullcalendar/moment.min.js') }}"></script>
-<!-- Date range picker -->
-<script src="{{ asset('Inspinia/js/plugins/daterangepicker/daterangepicker.js') }}"></script>
-<!-- Select2 -->
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-
-<!-- DataTable -->
-<script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
-<script src="{{ asset('Inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
-<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 
 <script>
     const productosPrevios           =   @json($detalle);
     const tallas            =   @json($tallas);
     const cotizacion        =   @json($cotizacion);
-    const cantidadErrores   =   @json($cantidadErrores);  
+    const cantidadErrores   =   @json($cantidadErrores);
 
     const tableDetalleBody  =   document.querySelector('#table-detalle tbody');
     const tableDetalleFoot  =   document.querySelector('#table-detalle tfoot');
@@ -607,9 +582,9 @@
             cargarProductos();
             let correcto = validarCampos();
 
-            // inputSubTotal.value     =   tfootSubtotal.textContent;   
+            // inputSubTotal.value     =   tfootSubtotal.textContent;
             // inputEmbalaje.value     =   tfootEmbalaje.value;
-            // inputEnvio.value        =   tfootEnvio.value;  
+            // inputEnvio.value        =   tfootEnvio.value;
             // inputTotal.value        =   tfootTotal.textContent;
             // inputIgv.value          =   tfootIgv.textContent;
             // inputTotalPagar.value   =   tfootTotalPagar.textContent;
@@ -678,9 +653,9 @@
                     $('#tipo_doc_destinatario').val(1).trigger('change');
                     document.querySelector('#nro_doc_destinatario').value   =   nroDocumento;
                     document.querySelector('#nombres_destinatario').value   =   cliente_nombre_recortado;
-                }                
+                }
             }
-         
+
             //========= ABRIR MODAL ENVÍO =======
             $("#modal_envio").modal("show");
         })
@@ -700,14 +675,14 @@
         productosPrevios.forEach((c)=>{
             if(c.tipo == "NO EXISTE EL PRODUCTO COLOR TALLA"){
                 toastr.error(`${c.producto_nombre} - ${c.color_nombre} - ${c.talla_nombre}`, 'No existe el producto', {
-                    timeOut: 0, 
+                    timeOut: 0,
                     extendedTimeOut: 0,
-                    toastClass: 'toastr-morado' 
-                }); 
+                    toastClass: 'toastr-morado'
+                });
             }
             if(c.tipo == "STOCK LOGICO INSUFICIENTE"){
                 toastr.error(`${c.producto_nombre} - ${c.color_nombre} - ${c.talla_nombre}`, 'Stock lógico insuficiente', {
-                    timeOut: 0, 
+                    timeOut: 0,
                     extendedTimeOut: 0,
                 });
             }
@@ -716,11 +691,11 @@
 
     //======= EVITAR DOBLE CLICK EN REGRESAR =========
     function regresarClick(event){
-            event.preventDefault(); 
+            event.preventDefault();
             var btnCancelar = document.getElementById("btn_cancelar");
-            if (!btnCancelar.classList.contains("disabled")) { 
-                btnCancelar.classList.add("disabled"); 
-                window.location.href = '{{ route('ventas.cotizacion.index') }}'; 
+            if (!btnCancelar.classList.contains("disabled")) {
+                btnCancelar.classList.add("disabled");
+                window.location.href = '{{ route('ventas.cotizacion.index') }}';
             }
     }
 
@@ -738,7 +713,7 @@
     //============ ENVIAR VENTA ===================
     async function enviarVenta() {
         try {
-            
+
             let response    = await axios.get("{{ route('Caja.movimiento.verificarestado') }}");
             let data        = response.data;
 
@@ -894,12 +869,12 @@
                 producto.color_id               =   d.color_id;
                 producto.talla_id               =   t.talla_id;
                 producto.cantidad               =   t.cantidad;
-                producto.precio_unitario        =   d.precio_venta;  
+                producto.precio_unitario        =   d.precio_venta;
                 producto.porcentaje_descuento   =   d.porcentaje_descuento;
                 producto.precio_unitario_nuevo  =   d.precio_venta_nuevo;
                 carritoFormateado.push(producto);
             })
-        })  
+        })
     }
 
     //==========    CARGAR PRODUCTOS AL FORM   =================
@@ -955,7 +930,7 @@
         const campos ={moneda,observacion,condicion_id,fecha_documento_campo,fecha_atencion_campo,
         fecha_vencimiento_campo,empresa_id,cliente_id,tipo_venta};
         console.log(campos);
-        
+
         if(clientes_global.length > 0)
         {
              let index = clientes_global.findIndex(cliente => cliente.id == cliente_id);
@@ -993,7 +968,7 @@
 
         //validación de fechas...
         const fechaDocumento    =   new Date(fecha_documento_campo);
-        const fechaVencimiento  =   new Date(fecha_vencimiento_campo);  
+        const fechaVencimiento  =   new Date(fecha_vencimiento_campo);
 
 
         if (fecha_documento_campo > fecha_vencimiento_campo) {
@@ -1022,7 +997,7 @@
     const pintarMontos = ()=>{
         tfootSubtotal.textContent   =   cotizacion.sub_total;
         tfootEmbalaje.value         =   cotizacion.monto_embalaje;
-        tfootEnvio.value            =   cotizacion.monto_envio;      
+        tfootEnvio.value            =   cotizacion.monto_envio;
         tfootTotal.textContent      =   cotizacion.total;
         tfootIgv.textContent        =   cotizacion.total_igv;
         tfootTotalPagar.textContent =   cotizacion.total_pagar;
@@ -1045,12 +1020,12 @@
 
             carrito.forEach((p)=>{
                 p.tallas.forEach((t)=>{
-                        subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad);   
+                        subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad);
                 })
-                
-                p.subtotal=subtotal; 
-                subtotal=0; 
-            })  
+
+                p.subtotal=subtotal;
+                subtotal=0;
+            })
     }
 
 
@@ -1106,7 +1081,7 @@
             }
         })
 
-      
+
         //===== CALCULAR SUBTOTAL POR FILA DEL DETALLE ======
         calcularSubTotal();
         reordenarCarrito();
@@ -1117,7 +1092,7 @@
             calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
         })
 
-        
+
     }
 
 
@@ -1140,8 +1115,8 @@
 
 
             //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
-            const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`); 
-            const detailSubtotal    =   document.querySelector(`.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);    
+            const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
+            const detailSubtotal    =   document.querySelector(`.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
 
             if(porcentaje_descuento !== 0){
                 detailPrecioVenta.textContent = producto_color_editar.precio_venta_nuevo;
@@ -1161,8 +1136,8 @@
 
         carrito.forEach((c)=>{
             htmlTallas=``;
-                fila+= `<tr>   
-                           
+                fila+= `<tr>
+
                             <th>${c.producto_nombre} - ${c.color_nombre}</th>`;
 
                 //tallas
@@ -1179,7 +1154,7 @@
                                             ${cantidad}
                                         </span>
                                     </td>
-                                    `; 
+                                    `;
                 })
 
                 htmlTallas+=`   <td style="text-align: right;">
@@ -1193,14 +1168,14 @@
                                     </span>
                                 </td>
                                 <td style="text-align: center;">
-                                    <input readonly data-producto-id="${c.producto_id}" data-color-id="${c.color_id}" 
+                                    <input readonly data-producto-id="${c.producto_id}" data-color-id="${c.color_id}"
                                     style="width:130px; margin: 0 auto;" value="${c.porcentaje_descuento}"
                                     class="form-control detailDescuento"></input>
                                 </td>
                             </tr>`;
 
                 fila+=htmlTallas;
-                tableDetalleBody.innerHTML=fila;            
+                tableDetalleBody.innerHTML=fila;
         })
     }
 
@@ -1221,22 +1196,22 @@
             });
     }
 
-   
+
 
     @if (!empty($errores))
         // $('#asegurarCierre').val(1);
         asegurarCierre = 1;
         @foreach ($errores as $error)
-            @if ($error->tipo == 'stocklogico') 
+            @if ($error->tipo == 'stocklogico')
                 toastr.error('La cantidad solicitada {{ $error->cantidad }} excede al stock del producto {{ $error->producto }}', 'Error', {
-                    timeOut: 0, 
-                    extendedTimeOut: 0 
-                });            
+                    timeOut: 0,
+                    extendedTimeOut: 0
+                });
             @elseif($error->tipo == 'producto_no_existe')
                 toastr.error('No existe stock para el producto: {{ $error->producto }}', 'Error',{
-                    timeOut: 0, 
-                    extendedTimeOut: 0 
-                });            
+                    timeOut: 0,
+                    extendedTimeOut: 0
+                });
             @endif
         @endforeach
     @endif

@@ -67,14 +67,14 @@ class ClienteController extends Controller
             }
             $cliente                        =   new Cliente($arrayDatos);
             $cliente->tipo_documento        =   $request->get('tipo_documento');
-    
+
             $cliente->documento             =   $request->get('documento');
             $cliente->tabladetalles_id      =   $request->input('tipo_cliente');
             $cliente->nombre                =   $request->get('nombre');
             $cliente->codigo                =   $request->get('codigo');
             $cliente->zona                  =   $request->get('zona');
             $cliente->nombre_comercial      =   $request->get('nombre_comercial');
-    
+
             $cliente->departamento_id       =   str_pad($request->get('departamento'), 2, "0", STR_PAD_LEFT);
             $cliente->provincia_id          =   str_pad($request->get('provincia'), 4, "0", STR_PAD_LEFT);
             $cliente->distrito_id           =   str_pad($request->get('distrito'), 6, "0", STR_PAD_LEFT);
@@ -83,35 +83,35 @@ class ClienteController extends Controller
             $cliente->telefono_movil        =   $request->get('telefono_movil');
             $cliente->telefono_fijo         =   $request->get('telefono_fijo');
             $cliente->activo                =   $request->get('activo');
-    
+
             $cliente->facebook              =   $request->get('facebook');
             $cliente->instagram             =   $request->get('instagram');
             $cliente->web                   =   $request->get('web');
-    
+
             $cliente->hora_inicio           =   $request->get('hora_inicio');
             $cliente->hora_termino          =   $request->get('hora_termino');
-    
-    
+
+
             $cliente->nombre_propietario    =   $request->get('nombre_propietario');
             $cliente->direccion_propietario =   $request->get('direccion_propietario');
-    
+
             if ($request->get('fecha_nacimiento_prop') != "-") {
                 $cliente->fecha_nacimiento_prop  = Carbon::createFromFormat('d/m/Y', $request->get('fecha_nacimiento_prop'))->format('Y-m-d');
             } else {
                 $cliente->fecha_nacimiento_prop  = NULL;
             }
-    
+
             $cliente->celular_propietario   =   $request->get('celular_propietario');
             $cliente->correo_propietario    =   $request->get('correo_propietario');
-    
+
             //Latitud y longitud
             $cliente->lat = $request->get('lat');
             $cliente->lng = $request->get('lng');
-    
+
             $cliente->agente_retencion  =   $request->get('retencion');
             $cliente->tasa_retencion    =   $request->get('tasa_retencion');
             $cliente->monto_mayor       =   $request->get('monto_mayor');
-    
+
             //Img Gps
             if ($request->hasFile('logo')) {
                 $file                   =   $request->file('logo');
@@ -119,14 +119,14 @@ class ClienteController extends Controller
                 $cliente->nombre_logo   =   $name;
                 $cliente->ruta_logo     =   $request->file('logo')->store('public/clientes/img');
             }
-    
+
             $cliente->save();
-    
+
             //Registro de actividad
             $descripcion    =   "SE AGREGÓ EL CLIENTE CON EL NOMBRE: " . $cliente->nombre;
             $gestion        =   "CLIENTES";
             crearRegistro($cliente, $descripcion, $gestion);
-    
+
             Session::flash('success', 'Cliente creado.');
             DB::commit();
             return redirect()->route('ventas.cliente.index')->with('guardar', 'success');
@@ -134,7 +134,7 @@ class ClienteController extends Controller
             DB::rollBack();
             dd($th->getMessage());
         }
-     
+
     }
     public function edit($id)
     {
@@ -160,11 +160,11 @@ class ClienteController extends Controller
             $cliente->tipo_documento        = $request->get('tipo_documento');
             $cliente->documento             = $request->get('documento');
             $cliente->nombre                = $request->get('nombre');
-    
+
             $cliente->codigo                = $request->get('codigo');
             $cliente->zona                  = $request->get('zona');
             $cliente->nombre_comercial      = $request->get('nombre_comercial');
-    
+
             $cliente->tabladetalles_id      = $request->input('tipo_cliente');
             $cliente->departamento_id       = str_pad($request->get('departamento'), 2, "0", STR_PAD_LEFT);
             $cliente->provincia_id          = str_pad($request->get('provincia'), 4, "0", STR_PAD_LEFT);
@@ -173,7 +173,7 @@ class ClienteController extends Controller
             $cliente->correo_electronico    = $request->get('correo_electronico');
             $cliente->telefono_movil        = $request->get('telefono_movil');
             $cliente->telefono_fijo         = $request->get('telefono_fijo');
-    
+
             $cliente->direccion_negocio     = $request->get('direccion_negocio');
             if ($request->get('fecha_aniversario') != "-") {
                 $cliente->fecha_aniversario = Carbon::createFromFormat('d/m/Y', $request->get('fecha_aniversario'))->format('Y-m-d');
@@ -183,33 +183,33 @@ class ClienteController extends Controller
             $cliente->facebook              = $request->get('facebook');
             $cliente->instagram             = $request->get('instagram');
             $cliente->web                   = $request->get('web');
-    
+
             $cliente->hora_inicio           = $request->get('hora_inicio');
             $cliente->hora_termino          = $request->get('hora_termino');
-    
-    
+
+
             $cliente->nombre_propietario    = $request->get('nombre_propietario');
             $cliente->direccion_propietario = $request->get('direccion_propietario');
-    
+
 
             if ($request->get('fecha_nacimiento_prop') != "-") {
                 $cliente->fecha_nacimiento_prop  = Carbon::createFromFormat('d/m/Y', $request->get('fecha_nacimiento_prop'))->format('Y-m-d');
             } else {
                 $cliente->fecha_nacimiento_prop  = NULL;
             }
-    
-    
+
+
             $cliente->celular_propietario   = $request->get('celular_propietario');
             $cliente->correo_propietario    = $request->get('correo_propietario');
-    
+
             //Latitud y longitud
             $cliente->lat                   = $request->get('lat');
             $cliente->lng                   = $request->get('lng');
-    
+
             $cliente->agente_retencion      = $request->get('retencion');
             $cliente->tasa_retencion        = $request->get('tasa_retencion');
             $cliente->monto_mayor           = $request->get('monto_mayor');
-    
+
             //Imagen cliente gps
             if ($request->hasFile('logo')) {
                 Storage::delete($cliente->ruta_logo);
@@ -219,12 +219,12 @@ class ClienteController extends Controller
                 $cliente->ruta_logo         = $request->file('logo')->store('public/clientes/img');
             }
             $cliente->update();
-    
+
             //Registro de actividad
             $descripcion    = "SE MODIFICÓ EL CLIENTE CON EL NOMBRE: " . $cliente->nombre;
             $gestion        = "CLIENTES";
             modificarRegistro($cliente, $descripcion, $gestion);
-    
+
             Session::flash('success', 'Cliente modificado.');
             DB::commit();
             return redirect()->route('ventas.cliente.index')->with('guardar', 'success');
@@ -232,7 +232,7 @@ class ClienteController extends Controller
             DB::rollBack();
             dd($th->getMessage());
         }
-       
+
     }
 
     public function show($id)
@@ -322,22 +322,22 @@ array:14 [
   "codigo_verificacion" => 9
   "activo" => "ACTIVO"
 ]
-*/ 
+*/
     public function storeFast(ClienteStoreFastRequest $request)
-    {    
+    {
         try{
             DB::beginTransaction();
-        
+
             $arrayDatos                     =   $request->all();
             $cliente                        =   new Cliente();
             $cliente->tipo_documento        =   $request->get('tipo_documento');
-    
+
             $cliente->documento             =   $request->get('documento');
             $cliente->tabladetalles_id      =   $request->input('tipo_cliente_id');
             $cliente->nombre                =   $request->get('nombre');
             $cliente->codigo                =   $request->get('codigo');
             $cliente->zona                  =   $request->get('zona');
-    
+
             $cliente->departamento_id       =   str_pad($request->get('departamento'), 2, "0", STR_PAD_LEFT);
             $cliente->provincia_id          =   str_pad($request->get('provincia'), 4, "0", STR_PAD_LEFT);
             $cliente->distrito_id           =   str_pad($request->get('distrito'), 6, "0", STR_PAD_LEFT);
@@ -346,9 +346,9 @@ array:14 [
             $cliente->telefono_movil        =   $request->get('telefono_movil');
             $cliente->telefono_fijo         =   $request->get('telefono_fijo');
             $cliente->activo                =   $request->get('activo');
-    
+
             $cliente->save();
-    
+
             //======= REGISTRO DE ACTIVIDAD ========
             $descripcion = "SE AGREGÓ EL CLIENTE CON EL NOMBRE: ". $cliente->nombre;
             $gestion = "CLIENTES";
@@ -363,7 +363,7 @@ array:14 [
                 'documento'         =>  $cliente->documento,
                 'nombre'            =>  $cliente->nombre
             ];
-           
+
 
             return response()->json([
                 'success'           =>  true,
@@ -384,9 +384,13 @@ array:14 [
     public function getCliente($tipo_documento,$nro_documento){
         try {
             //========== OBTENIENDO CLIENTE ==========
-            $cliente    =   DB::select('select * from clientes as c 
-                            where c.tipo_documento = ? and c.documento = ? and c.estado = "ACTIVO"',
-                        [$tipo_documento,$nro_documento]);
+            $cliente    =   DB::select('SELECT 
+                            c.*
+                            FROM clientes AS c
+                            WHERE c.tipo_documento = ?
+                            AND c.documento = ?
+                            AND c.estado = "ACTIVO"',
+                            [$tipo_documento,$nro_documento]);
 
             $message    =   '';
 
@@ -413,12 +417,12 @@ array:14 [
     public function getClientes(Request $request){
         try {
 
-        
+
             $search         =   $request->query('search'); // Palabra clave para la búsqueda
-            $page           =   $request->query('page', 1);  
+            $page           =   $request->query('page', 1);
             $cliente_id     =   $request->query(('cliente_id'));
 
-          
+
             $clientes   =   DB::table('clientes as c')
                             ->select(
                                 'c.id',
@@ -427,8 +431,8 @@ array:14 [
                                 'c.documento',
                                 'c.nombre',
                             )
-                            ->where(DB::raw('CONCAT(c.tipo_documento,":",c.documento,"-",c.nombre)'), 'LIKE', "%$search%") 
-                            ->where('c.estado','ACTIVO'); 
+                            ->where(DB::raw('CONCAT(c.tipo_documento,":",c.documento,"-",c.nombre)'), 'LIKE', "%$search%")
+                            ->where('c.estado','ACTIVO');
 
             if($cliente_id){
                 $clientes->where('c.id',$cliente_id);
@@ -440,7 +444,7 @@ array:14 [
                 'success'   => true,
                 'message'   => 'CLIENTES OBTENIDOS',
                 'clientes'  => $clientes->items(),
-                'more'      => $clientes->hasMorePages() 
+                'more'      => $clientes->hasMorePages()
             ]);
 
         } catch (\Throwable $th) {
