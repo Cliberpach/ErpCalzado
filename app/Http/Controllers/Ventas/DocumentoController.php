@@ -1548,6 +1548,8 @@ array:27 [
                 //======= OBTENIENDO MOVIMIENTO ID DEL COLABORADOR ======
                 $usuario    =   User::find($request->get('user_id'));
 
+                throw new Exception($request->get('user_id'));
+
                 $movimiento =   DB::select(
                     "SELECT
                                         dmc.movimiento_id
