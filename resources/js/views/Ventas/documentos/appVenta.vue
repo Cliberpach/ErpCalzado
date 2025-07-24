@@ -33,7 +33,7 @@
             </div>
         </div>
         <template v-if="ruta == 'index'">
-            <venta-lista :imginicial="imginicial" />
+            <venta-lista :imginicial="imginicial" :lst_modos_pago="this.lst_modos_pago" />
         </template>
         <template v-if="ruta == 'create'">
             <venta-create :ruta.sync="ruta"
@@ -60,7 +60,9 @@ export default {
         "lst_almacenes",
         "lst_departamentos_base",
         "lst_provincias_base",
-        "lst_distritos_base"],
+        "lst_distritos_base",
+        "lst_modos_pago"
+    ],
     components:{
     },
     data() {
@@ -86,6 +88,7 @@ export default {
     },
     created() {
         try {
+            console.log(this.lst_modos_pago)
 
             let url = location.href.split('/');
             let pathUrl = url[url.length - 1];

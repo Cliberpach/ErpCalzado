@@ -37,18 +37,6 @@
                                     </button>
                                 </div>
 
-                                <!--
-                                <div class="col-md-3">
-                                    <label for="" class="text-white">-</label>
-                                    <input type="text" placeholder="buscar serie-correlativo" id="numero_doc"
-                                        class="form-control form-control-sm" v-model="numero_doc" />
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label for="" class="text-white">-</label>
-                                    <input type="text" placeholder="buscar por cliente" id="cliente"
-                                        class="form-control form-control-sm" v-model="cliente" />
-                                </div> -->
 
                                 <div class="col-md-1 d-none">
                                     <label for="" class="text-white">-</label>
@@ -59,7 +47,7 @@
                                 <div class="col-md-12">
                                     <div class="table-responsive">
                                         <table id="dt-ventas"
-                                            class="table table-index table-striped table-bordered table-hover"
+                                            class="table table-index table-striped table-bordered table-hover nowrap"
                                             style="text-transform: uppercase" ref="table-documentos">
                                             <thead class="">
                                                 <tr>
@@ -67,18 +55,18 @@
                                                     <th class="text-center letrapequeña bg-white">CV</th>
                                                     <th class="text-center letrapequeña bg-white">PE</th>
                                                     <th class="text-center letrapequeña bg-white">CDR</th>
-                                                    <th class="text-center letrapequeña bg-white">DOC</th>
+                                                    <th data-priority="2" class="text-center letrapequeña bg-white">DOC</th>
                                                     <th class="text-center letrapequeña bg-white">FECHA</th>
                                                     <th class="text-center letrapequeña bg-white">REGISTRADOR</th>
                                                     <th class="text-center letrapequeña bg-white">SEDE</th>
                                                     <th class="text-center letrapequeña bg-white">ALMACÉN</th>
-                                                    <th class="text-center letrapequeña bg-white">CLIENTE</th>
+                                                    <th data-priority="3" class="text-center letrapequeña bg-white">CLIENTE</th>
                                                     <th class="text-center letrapequeña bg-white">MONTO</th>
                                                     <th class="text-center letrapequeña bg-white">CONDICION</th>
                                                     <th class="text-center letrapequeña bg-white">ESTADO</th>
                                                     <th class="text-center letrapequeña bg-white">SUNAT</th>
                                                     <th class="text-center letrapequeña bg-white">DESCARGAS</th>
-                                                    <th class="text-center letrapequeña bg-white">ACCIONES</th>
+                                                    <th data-priority="1" class="text-center letrapequeña bg-white">ACCIONES</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -87,72 +75,15 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div class="tables_processing card" v-if="loading">
-                                        <div style="width:100%;display:flex;justify-content:center">
-                                            <div>
-                                                <i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>
-                                            </div>
-                                        </div>
-                                        Cargando datos
-                                    </div>
                                 </div>
-                                <div class="col-md-12">
-                                    <nav>
-                                        <ul class="pagination">
-                                            <template v-if="pagination.currentPage > 1">
-                                                <li class="page-item">
-                                                    <a class="page-link" href="javascript:void(0)" rel="prev"
-                                                        @click.prevent="changePage(pagination.currentPage - 1)"
-                                                        aria-label="« Previous">‹</a>
-                                                </li>
-                                            </template>
-                                            <template v-else>
-                                                <li class="page-item disabled" aria-disabled="true"
-                                                    aria-label="« Previous">
-                                                    <span class="page-link" aria-hidden="true">‹</span>
-                                                </li>
-                                            </template>
 
-                                            <template v-for="(item, index) in pagesNumber">
-                                                <template v-if="item == isActive">
-                                                    <li class="page-item active" aria-current="page" :key="index">
-                                                        <span class="page-link">
-                                                            {{ item }}
-                                                        </span>
-                                                    </li>
-                                                </template>
-                                                <template v-else>
-                                                    <li class="page-item" :key="index">
-                                                        <a class="page-link" href="javascript:void(0)"
-                                                            @click.prevent="changePage(item)">
-                                                            {{ item }}
-                                                        </a>
-                                                    </li>
-                                                </template>
-                                            </template>
-
-                                            <template v-if="pagination.currentPage < pagination.lastPage">
-                                                <li class="page-item">
-                                                    <a class="page-link" href="javascript:void(0)"
-                                                        @click.prevent="changePage(pagination.currentPage + 1)"
-                                                        rel="next" aria-label="Next »">›</a>
-                                                </li>
-                                            </template>
-                                            <template v-else>
-                                                <li class="page-item disabled" aria-disabled="true" aria-label="Next »">
-                                                    <span class="page-link" aria-hidden="true">›</span>
-                                                </li>
-                                            </template>
-                                        </ul>
-                                    </nav>
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <ModalVentasVue :ventasPendientes="ventasPendientes" :imgDefault="imginicial" :modoPagos="modopagos"
+        <ModalVentasVue :ventasPendientes="ventasPendientes" :imgDefault="imginicial" :modoPagos="this.lst_modos_pago"
             :cliente_id="cliente_id" />
         <ModalPdfDownloadVue :pdfData.sync="pdfData" />
         <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" ref="modalEnvioRef" />
@@ -177,12 +108,13 @@ import 'bootstrap'
 
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
-import 'datatables.net-bs4';
-import 'datatables.net-bs4/css/dataTables.bootstrap4.min.css';
+import 'datatables.net-responsive-bs4';
+import 'datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css';
+
 
 export default {
     name: "VentaLista",
-    props: ["imginicial"],
+    props: ["imginicial","lst_modos_pago"],
     components: {
         ModalVentasVue,
         ModalPdfDownloadVue,
@@ -220,33 +152,6 @@ export default {
             modopagos: []
         };
     },
-    computed: {
-        isActive: function () {
-            return this.pagination.currentPage;
-        },
-        pagesNumber: function () {
-            if (!this.pagination.from) {
-                return [];
-            }
-            let from = this.pagination.currentPage - this.offset;
-            if (from < 1) {
-                from = 1;
-            }
-
-            let to = from + this.offset * 2;
-            if (to >= this.pagination.lastPage) {
-                to = this.pagination.lastPage;
-            }
-
-            let pageArray = [];
-            while (from <= to) {
-                pageArray.push(from);
-                from++;
-            }
-
-            return pageArray;
-        },
-    },
     watch: {
         params: {
             handler() {
@@ -254,10 +159,6 @@ export default {
             },
             deep: true,
         },
-        // fechaInicial(value) {
-        //     this.params.page = 1;
-        //     this.params.fechaInicial = value;
-        // },
         cliente(value) {
             this.params.cliente = value;
             this.params.page = 1;
@@ -270,7 +171,7 @@ export default {
         }
     },
     async created() {
-        //await this.Lista();
+
     },
     methods: {
         cambiarTallas(documento_id) {
@@ -687,10 +588,14 @@ export default {
                         d.fechaFin = vm.fechaFinal;
                     }
                 },
+                responsive:true,
                 createdRow: function (row, data, dataIndex) {
                     $(row).addClass('letrapequeña');
                 },
                 initComplete: function () {
+                    $('.dropdown-toggle').dropdown();
+                },
+                drawCallback: function () {
                     $('.dropdown-toggle').dropdown();
                 },
                 columns: [
@@ -773,7 +678,7 @@ export default {
 
                             //======== ENVIAR SUNAT =========
                             if (data.sunat == '0' && data.tipo_venta != "129" && data.estado == 'ACTIVO') {
-                                console.log('olas');
+
                                 acciones += `<a data-id="${row.id}" class="dropdown-item btn-enviar-sunat" href="javascript:void(0);">
                                                 <i class="fa fa-send" style="color: #0065b3;"></i> Sunat
                                             </a>`;
@@ -914,7 +819,7 @@ export default {
                 },
                 language: {
                     processing: "Procesando...",
-                    search: "Buscar:",
+                    search: "Buscar por doc, almacén, cliente:",
                     lengthMenu: "Mostrar _MENU_ registros",
                     info: "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
                     infoEmpty: "Mostrando registros del 0 al 0 de un total de 0 registros",
@@ -932,26 +837,6 @@ export default {
                     aria: {
                         sortAscending: ": Activar para ordenar la columna de manera ascendente",
                         sortDescending: ": Activar para ordenar la columna de manera descendente"
-                    },
-                    buttons: {
-                        copy: "Copiar",
-                        colvis: "Visibilidad",
-                        collection: "Colección",
-                        colvisRestore: "Restaurar visibilidad",
-                        copyKeys: "Presione ctrl o ⌘ + C para copiar los datos de la tabla al portapapeles.",
-                        copySuccess: {
-                            _: "%d filas copiadas",
-                            1: "1 fila copiada"
-                        },
-                        copyTitle: "Copiar al portapapeles",
-                        csv: "CSV",
-                        excel: "Excel",
-                        pageLength: {
-                            _: "Mostrar %d filas",
-                            '-1': "Mostrar todo"
-                        },
-                        pdf: "PDF",
-                        print: "Imprimir"
                     },
                     autoFill: {
                         cancel: "Cancelar",

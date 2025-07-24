@@ -82,12 +82,14 @@ class DocumentoController extends Controller
         $almacenes      =   Almacen::where('estado', 'ACTIVO')->where('tipo_almacen', 'PRINCIPAL')->get();
         $registrador    =   Auth::user();
         $sede           =   Sede::find($registrador->sede_id);
+        $modos_pago     =   modos_pago();
+
 
         //broadcast(new NotifySunatEvent($dato));
 
         return view(
             'ventas.documentos.index',
-            compact('departamentos', 'provincias', 'distritos', 'almacenes', 'registrador', 'sede')
+            compact('departamentos', 'provincias', 'distritos', 'almacenes', 'registrador', 'sede','modos_pago')
         );
     }
 
@@ -778,7 +780,6 @@ class DocumentoController extends Controller
 
     public function create(Request $request)
     {
-
         $this->authorize('haveaccess', 'documento_venta.index');
 
         $empresas       = Empresa::where('estado', 'ACTIVO')->get();

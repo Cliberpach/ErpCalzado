@@ -7,6 +7,7 @@
 @csrf
 
 <ventas-app
+:lst_modos_pago="{{ json_encode($modos_pago) }}"
 :v_sede = "{{json_encode($sede)}}"
 :registrador = "{{json_encode($registrador)}}"
 :lst_almacenes="{{ json_encode($almacenes) }}"
