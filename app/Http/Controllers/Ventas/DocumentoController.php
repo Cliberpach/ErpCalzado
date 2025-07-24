@@ -1548,20 +1548,18 @@ array:27 [
                 //======= OBTENIENDO MOVIMIENTO ID DEL COLABORADOR ======
                 $usuario    =   User::find($request->get('user_id'));
 
-                throw new Exception($request->get('user_id'));
-
                 $movimiento =   DB::select(
                     "SELECT
                                         dmc.movimiento_id
                                     FROM detalles_movimiento_caja AS dmc
                                     WHERE
-                                        dmc.usuario_id = ?
+                                        dmc.colaborador_id = ?
                                     AND dmc.fecha_salida IS NULL",
                     [$usuario->colaborador_id]
                 );
 
                 if (count($movimiento) !== 1) {
-                    throw new Exception("ERROR AL OBTENER EL MOVIMIENTO DE CAJA DEL USUARIO DEL PEDIDO");
+                    throw new Exception("ERROR AL OBTENER EL MOVIMIENTO DE CAJA DEL USUARIO");
                 }
 
                 //====== GENERAR RECIBO DE CAJA DEL EXCEDENTE =====
