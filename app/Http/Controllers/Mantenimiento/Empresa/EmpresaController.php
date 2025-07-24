@@ -323,7 +323,7 @@ class EmpresaController extends Controller
         // ini_set("net_buffer_length", 1000000);
         // ini_set("max_allowed_packet", 1000000000);
         $data = $request->all();
-       
+
         $rules = [
             'ruc' => ['required','numeric','min:11', Rule::unique('empresas','ruc')->where(function ($query) {
                         $query->whereIn('estado',["ACTIVO"]);
@@ -489,7 +489,6 @@ class EmpresaController extends Controller
                 }
             }
 
-
             $json_empresa = json_encode($empresa_facturacion);
             //ENCONTRAR ID DE LA API
             $facturacion = Facturacion::where('empresa_id',$empresa->id)->where('estado','ACTIVO')->first();
@@ -533,27 +532,14 @@ class EmpresaController extends Controller
 
         }
 
-        // else{
 
-        //     dd('sasa');
-        //     //ENCONTRAR SI EXISTE REGISTRA DE LA FACTURACION
-        //     $facturacion = Facturacion::where('empresa_id',$empresa->id)->where('estado','ACTIVO')->first();
-
-        //     if ($facturacion) {
-        //         //BORRAR REGISTRO DE LA API
-        //         $estado = borrarEmpresaapi($facturacion->fe_id);
-        //         $facturacion->estado = "ANULADO";
-        //         $facturacion->update();
-
-        //     }
-
-        // }
 
         //MODIFICAR NUMERACION DE FACTURACION DE LA EMPRESA
         event(new EmpresaModificada(
             $empresa,
             $data['numeracion_tabla'])
         );
+          
 
         $entidadesJSON = $request->get('entidades_tabla');
         $entidadtabla = json_decode($entidadesJSON[0]);
@@ -635,7 +621,7 @@ class EmpresaController extends Controller
             return "NO EXISTE";
         }
 
-        $tipo_comprobante   =   $resultado->descripcion;   
+        $tipo_comprobante   =   $resultado->descripcion;
         foreach ($tipos as $tipo) {
             //====== 130 N.E FACTURAS FF01 | 131 N.D | 201 N.E BOLETAS BB01 | 202 NOTA DEVOLUCION NN01 ========
             if ($tipo_comprobante === 'NOTA DE CRÉDITO FACTURA' || $tipo_comprobante === 'NOTA DE DEVOLUCIÓN' || $tipo_comprobante === 'NOTA DE CRÉDITO BOLETA' || $tipo_comprobante === "NOTA DE DÉBITO") {

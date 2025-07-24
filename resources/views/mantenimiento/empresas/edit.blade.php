@@ -208,21 +208,21 @@
                                                             </select>
                                                         </div>
 
-                                                       
+
                                                         <div class="form-group">
                                                                 <label class="required" for="provincia">Provincia</label>
                                                                 <select required class="select2_form" name="provincia" id="provincia" onchange="setUbicacionProvincia(this.value,'first')" >
-                                                                   
+
                                                                 </select>
                                                         </div>
 
                                                         <div class="form-group">
                                                             <label class="required" for="distrito">Distrito</label>
                                                             <select required class="select2_form" name="distrito" id="distrito">
-                                                               
+
                                                             </select>
                                                         </div>
-                                                  
+
 
                                                         <div class="form-group">
                                                             <label class="">Correo: </label>
@@ -714,13 +714,7 @@
 @stop
 
 @push('styles')
-<link href="{{asset('Inspinia/css/plugins/select2/select2.min.css')}}" rel="stylesheet">
 
-<!-- DataTable -->
-<link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
-
-<!-- iCheck -->
-<link href="{{asset('Inspinia/css/plugins/iCheck/custom.css')}}" rel="stylesheet">
 
 <style>
 .logo {
@@ -736,14 +730,6 @@
 @endpush
 
 @push('scripts')
-<script src="{{asset('Inspinia/js/plugins/select2/select2.full.min.js')}}"></script>
-
-<!-- DataTable -->
-<script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
-
-<!-- iCheck -->
-<script src="{{asset('Inspinia/js/plugins/iCheck/icheck.min.js')}}"></script>
-
 
 <script>
 
@@ -1529,10 +1515,10 @@
     }
 
     document.addEventListener('DOMContentLoaded',async ()=>{
-      
+
       await  setUbigeo();
 
-        
+
     })
 
     async function setUbigeo(){
@@ -1543,10 +1529,10 @@
         //======== DESACTIVAR EVENTS ONCHANGE TEMPORALMENTE ========
         $('#departamento').removeAttr('onchange');
         $('#provincia').removeAttr('onchange');
-     
+
 
         $('#departamento').val(departamento_id).trigger('change');
-         
+
 
         const provincias = await getProvincias(departamento_id);
         pintarProvincias(provincias,provincia_id);
@@ -1564,9 +1550,9 @@
     }
 
     async function setUbicacionDepartamento(dep_id,provincia_id){
-        
+
         const departamento_id   =   dep_id;
-      
+
         const provincias    =   await getProvincias(departamento_id,provincia_id);
         pintarProvincias(provincias,provincia_id);
     }
@@ -1578,7 +1564,7 @@
 
     }
 
-   
+
     //======= GET PROVINCIAS ==========
     async function getProvincias(departamento_id) {
             try {

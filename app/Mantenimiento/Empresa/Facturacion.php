@@ -22,8 +22,8 @@ class Facturacion extends Model
             'ruta_certificado_pem',
             'token_code',
             'fe_id',
-            'estado'
-
+            'estado',
+            'sede_id'
 
         ];
 
