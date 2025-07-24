@@ -312,78 +312,83 @@ class PedidoService
         //========= GENERAR DOCUMENTO VENTA DE CONSUMO EN CASO EL PEDIDO SE COMPLETÓ DE ATENDER =======
         if ($pedido_actualizar->estado === "FINALIZADO" && $pedido_actualizar->facturado === "SI") {
 
-            $docs_antenciones   =   Documento::where('pedido_id', $pedido_id)
-                ->where('tipo_doc_venta_pedido', 'ATENCION')
-                ->get();
+            $doc_anticipo           =   Documento::findOrFail($pedido->documento_venta_facturacion_id);
 
-            $monto_sub_total    =   0;
-            $monto_total_igv    =   0;
-            $monto_total        =   0;
-            $monto_embalaje     =   0;
-            $monto_envio        =   0;
-            $monto_total_pagar  =   0;
-            $monto_descuento    =   0;
+            if ($doc_anticipo->es_anticipo == '1') {
 
-            $productos_tabla    =   [];
+                $docs_antenciones   =   Documento::where('pedido_id', $pedido_id)
+                    ->where('tipo_doc_venta_pedido', 'ATENCION')
+                    ->get();
 
-            foreach ($docs_antenciones as $doc_atencion) {
-                $monto_sub_total    +=  $doc_atencion->sub_total;
-                $monto_total_igv    +=  $doc_atencion->total_igv;
-                $monto_total        +=  $doc_atencion->total;
-                $monto_embalaje     +=  $doc_atencion->monto_embalaje;
-                $monto_envio        +=  $doc_atencion->monto_envio;
-                $monto_total_pagar  +=  $doc_atencion->total_pagar;
-                $monto_descuento    +=  $doc_atencion->monto_descuento;
+                $monto_sub_total    =   0;
+                $monto_total_igv    =   0;
+                $monto_total        =   0;
+                $monto_embalaje     =   0;
+                $monto_envio        =   0;
+                $monto_total_pagar  =   0;
+                $monto_descuento    =   0;
 
-                $detalles   =   Detalle::where('documento_id', $doc_atencion->id)->get();
+                $productos_tabla    =   [];
 
-                foreach ($detalles as $d_item) {
-                    $item   =   (object)[
-                        'producto_id'           =>  $d_item->producto_id,
-                        'color_id'              =>  $d_item->color_id,
-                        'talla_id'              =>  $d_item->talla_id,
-                        'producto_nombre'       =>  $d_item->nombre_producto,
-                        'color_nombre'          =>  $d_item->nombre_color,
-                        'talla_nombre'          =>  $d_item->nombre_talla,
-                        'cantidad'              =>  $d_item->cantidad,
-                        'precio_venta'          =>  $d_item->precio_unitario,
-                        'monto_descuento'       =>  $d_item->monto_descuento,
-                        'porcentaje_descuento'  =>  $d_item->porcentaje_descuento,
-                        'precio_venta_nuevo'    =>  $d_item->precio_unitario_nuevo,
-                        'subtotal_nuevo'        =>  $d_item->importe_nuevo,
-                        'subtotal'              =>  $d_item->importe,
-                    ];
-                    $productos_tabla[] = $item;
+                foreach ($docs_antenciones as $doc_atencion) {
+                    $monto_sub_total    +=  $doc_atencion->sub_total;
+                    $monto_total_igv    +=  $doc_atencion->total_igv;
+                    $monto_total        +=  $doc_atencion->total;
+                    $monto_embalaje     +=  $doc_atencion->monto_embalaje;
+                    $monto_envio        +=  $doc_atencion->monto_envio;
+                    $monto_total_pagar  +=  $doc_atencion->total_pagar;
+                    $monto_descuento    +=  $doc_atencion->monto_descuento;
+
+                    $detalles   =   Detalle::where('documento_id', $doc_atencion->id)->get();
+
+                    foreach ($detalles as $d_item) {
+                        $item   =   (object)[
+                            'producto_id'           =>  $d_item->producto_id,
+                            'color_id'              =>  $d_item->color_id,
+                            'talla_id'              =>  $d_item->talla_id,
+                            'producto_nombre'       =>  $d_item->nombre_producto,
+                            'color_nombre'          =>  $d_item->nombre_color,
+                            'talla_nombre'          =>  $d_item->nombre_talla,
+                            'cantidad'              =>  $d_item->cantidad,
+                            'precio_venta'          =>  $d_item->precio_unitario,
+                            'monto_descuento'       =>  $d_item->monto_descuento,
+                            'porcentaje_descuento'  =>  $d_item->porcentaje_descuento,
+                            'precio_venta_nuevo'    =>  $d_item->precio_unitario_nuevo,
+                            'subtotal_nuevo'        =>  $d_item->importe_nuevo,
+                            'subtotal'              =>  $d_item->importe,
+                        ];
+                        $productos_tabla[] = $item;
+                    }
                 }
+
+                $productos_tabla = $this->agruparProductosConTallas($productos_tabla);
+
+                $datos_consumo  =   [
+                    'monto_sub_total'           =>  $monto_sub_total,
+                    'monto_embalaje'            =>  $monto_embalaje,
+                    'monto_envio'               =>  $monto_envio,
+                    'monto_total_igv'           =>  $monto_total_igv,
+                    'monto_descuento'           =>  $monto_descuento,
+                    'monto_total'               =>  $monto_total,
+                    'monto_total_pagar'         =>  $monto_total_pagar,
+                    'productos_tabla'           =>  json_encode($productos_tabla),
+                    'sede_id'                   =>  $pedido->sede_id,
+                    'almacenSeleccionado'       =>  $pedido->almacen_id,
+                    'tipo_doc_venta_pedido'     =>  'CONSUMO',
+                    'modo'                      =>  'CONSUMO',
+                    'tipo_venta'                =>  $tipo_venta,
+                    'cliente_id'                =>  $pedido->cliente_id,
+                    'condicion_id'              =>  "1-CONTADO",
+                    'pedido_id'                 =>  $pedido->id,
+                ];
+
+                $request_consumo        =   new Request($datos_consumo);
+                $request_venta_consumo  =   DocVentaStoreRequest::createFrom($request_consumo);
+
+                $documentoController    =   new DocumentoController();
+                $res_consumo            =   $documentoController->store($request_venta_consumo);
+                $res_json_consumo       =   $res_consumo->getData();
             }
-
-            $productos_tabla = $this->agruparProductosConTallas($productos_tabla);
-
-            $datos_consumo  =   [
-                'monto_sub_total'           =>  $monto_sub_total,
-                'monto_embalaje'            =>  $monto_embalaje,
-                'monto_envio'               =>  $monto_envio,
-                'monto_total_igv'           =>  $monto_total_igv,
-                'monto_descuento'           =>  $monto_descuento,
-                'monto_total'               =>  $monto_total,
-                'monto_total_pagar'         =>  $monto_total_pagar,
-                'productos_tabla'           =>  json_encode($productos_tabla),
-                'sede_id'                   =>  $pedido->sede_id,
-                'almacenSeleccionado'       =>  $pedido->almacen_id,
-                'tipo_doc_venta_pedido'     =>  'CONSUMO',
-                'modo'                      =>  'CONSUMO',
-                'tipo_venta'                =>  $tipo_venta,
-                'cliente_id'                =>  $pedido->cliente_id,
-                'condicion_id'              =>  "1-CONTADO",
-                'pedido_id'                 =>  $pedido->id,
-            ];
-
-            $request_consumo        =   new Request($datos_consumo);
-            $request_venta_consumo  =   DocVentaStoreRequest::createFrom($request_consumo);
-
-            $documentoController    =   new DocumentoController();
-            $res_consumo            =   $documentoController->store($request_venta_consumo);
-            $res_json_consumo       =   $res_consumo->getData();
         }
 
 
