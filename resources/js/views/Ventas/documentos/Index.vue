@@ -20,20 +20,36 @@
                             <div class="row">
 
                                 <div class="col-md-3 form-group">
-                                    <label for="">Desde:</label>
+                                    <label for="">Fecha Inicio:</label>
                                     <input type="date" id="fechaInicial" class="form-control form-control-sm"
                                         v-model="fechaInicial" />
                                 </div>
+
+                                <div class="col-md-3 form-group">
+                                    <label for="">Fecha Fin:</label>
+                                    <input type="date" id="fechaFinal" class="form-control form-control-sm"
+                                        v-model="fechaFinal" />
+                                </div>
+
+                                <div class="col-md-3 form-group d-flex align-items-end">
+                                    <button @click="filtrarDtVentas" class="btn btn-primary btn-sm w-100">
+                                        Filtrar
+                                    </button>
+                                </div>
+
+                                <!--
                                 <div class="col-md-3">
                                     <label for="" class="text-white">-</label>
                                     <input type="text" placeholder="buscar serie-correlativo" id="numero_doc"
                                         class="form-control form-control-sm" v-model="numero_doc" />
                                 </div>
+
                                 <div class="col-md-3">
                                     <label for="" class="text-white">-</label>
                                     <input type="text" placeholder="buscar por cliente" id="cliente"
                                         class="form-control form-control-sm" v-model="cliente" />
-                                </div>
+                                </div> -->
+
                                 <div class="col-md-1 d-none">
                                     <label for="" class="text-white">-</label>
                                     <button type="button" class="btn btn-primary btn-block" id="reload">
@@ -174,6 +190,7 @@ export default {
     },
     data() {
         return {
+            tabla: null,
             documentos: [],
             pagination: {
                 currentPage: 0,
@@ -186,12 +203,14 @@ export default {
             offset: 11,
             params: {
                 fechaInicial: this.$moment().format("YYYY-MM-DD"),
+                fechaFinal: this.$moment().format("YYYY-MM-DD"),
                 cliente: "",
                 numero_doc: "",
                 tamanio: 10,
                 page: 1,
             },
             fechaInicial: this.$moment().format("YYYY-MM-DD"),
+            fechaFinal: this.$moment().format("YYYY-MM-DD"),
             cliente: "",
             cliente_id: null,
             numero_doc: "",
@@ -235,10 +254,10 @@ export default {
             },
             deep: true,
         },
-        fechaInicial(value) {
-            this.params.page = 1;
-            this.params.fechaInicial = value;
-        },
+        // fechaInicial(value) {
+        //     this.params.page = 1;
+        //     this.params.fechaInicial = value;
+        // },
         cliente(value) {
             this.params.cliente = value;
             this.params.page = 1;
@@ -647,17 +666,26 @@ export default {
 
                 }
             });
+        },
+        filtrarDtVentas() {
+            if (this.tabla) {
+                this.tabla.ajax.reload();
+            }
         }
     },
     mounted() {
         this.$nextTick(() => {
             const vm = this;
-            $('#dt-ventas').DataTable({
+            vm.tabla = $('#dt-ventas').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
                     url: route('ventas.getVentas'),
-                    type: 'GET'
+                    type: 'GET',
+                    data: function (d) {
+                        d.fechaInicio = vm.fechaInicial;
+                        d.fechaFin = vm.fechaFinal;
+                    }
                 },
                 createdRow: function (row, data, dataIndex) {
                     $(row).addClass('letrapequeña');
@@ -881,7 +909,7 @@ export default {
                     }
                 ],
                 rowCallback: (row, data, index) => {
-                    const color = this.PintarRowTable(data); 
+                    const color = this.PintarRowTable(data);
                     $(row).attr('style', color);
                 },
                 language: {

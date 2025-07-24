@@ -93,6 +93,9 @@ class DocumentoController extends Controller
 
     public function getVentas(Request $request)
     {
+        $filtro_fecha_inicio    =   $request->get('fechaInicio');
+        $filtro_fecha_fin       =   $request->get('fechaFin');
+
         $ventas = DB::table('cotizacion_documento as cd')
             ->select(
                 'cd.regularizado_de_serie',
@@ -148,6 +151,13 @@ class DocumentoController extends Controller
             ->leftJoin('users as u', 'u.id', 'cd.user_id')
             ->leftJoin('cotizaciones as co', 'co.id', 'cd.cotizacion_venta')
             ->orderByDesc('cd.id');
+
+        if($filtro_fecha_inicio){
+            $ventas->whereDate('cd.created_at', '>=', $filtro_fecha_inicio);
+        }
+        if($filtro_fecha_fin){
+            $ventas->whereDate('cd.created_at', '<=', $filtro_fecha_fin);
+        }
 
         //========= FILTRO POR ROLES ======
         $roles = DB::table('role_user as rl')
