@@ -295,7 +295,7 @@ class PedidoService
 
         //========= DEFINIR TIPO VENTA PARA EL DOC CONSUMO =========
         $tipo_venta = null;
-        if ($pedido_actualizar->estado === 'FINALIZADO' && $pedido_actualizar->facturado === "SI"){
+        if ($pedido_actualizar->estado === 'FINALIZADO' && $pedido_actualizar->facturado === "SI") {
             $tipo_venta  = Documento::findOrFail($pedido->documento_venta_facturacion_id)->tipo_venta_id;
         }
 
@@ -311,6 +311,7 @@ class PedidoService
 
         //========= GENERAR DOCUMENTO VENTA DE CONSUMO EN CASO EL PEDIDO SE COMPLETÓ DE ATENDER =======
         if ($pedido_actualizar->estado === "FINALIZADO" && $pedido_actualizar->facturado === "SI") {
+
             $docs_antenciones   =   Documento::where('pedido_id', $pedido_id)
                 ->where('tipo_doc_venta_pedido', 'ATENCION')
                 ->get();
@@ -357,33 +358,34 @@ class PedidoService
             }
 
             $productos_tabla = $this->agruparProductosConTallas($productos_tabla);
+
+            $datos_consumo  =   [
+                'monto_sub_total'           =>  $monto_sub_total,
+                'monto_embalaje'            =>  $monto_embalaje,
+                'monto_envio'               =>  $monto_envio,
+                'monto_total_igv'           =>  $monto_total_igv,
+                'monto_descuento'           =>  $monto_descuento,
+                'monto_total'               =>  $monto_total,
+                'monto_total_pagar'         =>  $monto_total_pagar,
+                'productos_tabla'           =>  json_encode($productos_tabla),
+                'sede_id'                   =>  $pedido->sede_id,
+                'almacenSeleccionado'       =>  $pedido->almacen_id,
+                'tipo_doc_venta_pedido'     =>  'CONSUMO',
+                'modo'                      =>  'CONSUMO',
+                'tipo_venta'                =>  $tipo_venta,
+                'cliente_id'                =>  $pedido->cliente_id,
+                'condicion_id'              =>  "1-CONTADO",
+                'pedido_id'                 =>  $pedido->id,
+            ];
+
+            $request_consumo        =   new Request($datos_consumo);
+            $request_venta_consumo  =   DocVentaStoreRequest::createFrom($request_consumo);
+
+            $documentoController    =   new DocumentoController();
+            $res_consumo            =   $documentoController->store($request_venta_consumo);
+            $res_json_consumo       =   $res_consumo->getData();
         }
 
-        $datos_consumo  =   [
-            'monto_sub_total'           =>  $monto_sub_total,
-            'monto_embalaje'            =>  $monto_embalaje,
-            'monto_envio'               =>  $monto_envio,
-            'monto_total_igv'           =>  $monto_total_igv,
-            'monto_descuento'           =>  $monto_descuento,
-            'monto_total'               =>  $monto_total,
-            'monto_total_pagar'         =>  $monto_total_pagar,
-            'productos_tabla'           =>  json_encode($productos_tabla),
-            'sede_id'                   =>  $pedido->sede_id,
-            'almacenSeleccionado'       =>  $pedido->almacen_id,
-            'tipo_doc_venta_pedido'     =>  'CONSUMO',
-            'modo'                      =>  'CONSUMO',
-            'tipo_venta'                =>  $tipo_venta,
-            'cliente_id'                =>  $pedido->cliente_id,
-            'condicion_id'              =>  "1-CONTADO",
-            'pedido_id'                 =>  $pedido->id,
-        ];
-
-        $request_consumo        =   new Request($datos_consumo);
-        $request_venta_consumo  =   DocVentaStoreRequest::createFrom($request_consumo);
-
-        $documentoController    =   new DocumentoController();
-        $res_consumo            =   $documentoController->store($request_venta_consumo);
-        $res_json_consumo       =   $res_consumo->getData();
 
         return $jsonResponse->documento_id;
     }
