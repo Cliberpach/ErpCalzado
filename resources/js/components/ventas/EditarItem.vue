@@ -18,8 +18,8 @@
                             <tbody>
                                 <tr>
                                     <td v-for="cantidad_talla in cantidadPorTalla">
-                                        <input min="0" type="text" 
-                                        style="width: 60px;" 
+                                        <input min="0" type="text"
+                                        style="width: 60px;"
                                         class="form-control"
                                         v-model="cantidad_talla.cantidad"
                                         @input="cantidad_talla.cantidad = (/^[0-9]+$/.test(cantidad_talla.cantidad)) ? parseInt(cantidad_talla.cantidad) : 0">
@@ -40,9 +40,6 @@
 </template>
 
 <script>
-import { BIconTropicalStorm } from 'bootstrap-vue';
-
-
 export default {
     name: 'Modal',
     props: {
@@ -71,7 +68,7 @@ export default {
         },
         detalleVenta:{
             type: Array,
-            default: () => [], 
+            default: () => [],
         }
     },
     data(){
@@ -83,7 +80,7 @@ export default {
     methods: {
         getCantidadForTalla(tallaId) {
             const tallaEncontrada = this.tallasProducto.find(talla => talla.talla_id == tallaId);
-            return tallaEncontrada ? tallaEncontrada.cantidad : ''; 
+            return tallaEncontrada ? tallaEncontrada.cantidad : '';
         },
         closeModal() {
             this.setCantTallaOriginal();
@@ -95,7 +92,7 @@ export default {
             console.log('PRODUCTO EDITAR',this.productoEditar);
             console.log('CANTIDAD POR TALLA',this.cantidadPorTalla);
             console.log('PRODUCTOS TABLA',this.detalleVenta);
-            
+
             this.$parent.mostrarAnimacionVenta();
 
             const almacen_id    =   this.$parent.almacenSeleccionado;
@@ -143,7 +140,7 @@ export default {
 
             })
 
-            lstCantidadesEdit = lstCantidadesEdit.filter(ct => 
+            lstCantidadesEdit = lstCantidadesEdit.filter(ct =>
                 !(ct.cantidad_actual == '0' && ct.cantidad_anterior == '0') &&
                 !(ct.cantidad_actual == '' && ct.cantidad_anterior == '')
             );
@@ -181,7 +178,7 @@ export default {
             el.style.transform = 'scale(0.8)';
         },
         enter(el, done) {
-            el.offsetHeight; 
+            el.offsetHeight;
             el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
             el.style.opacity = 1;
             el.style.transform = 'scale(1)';
@@ -197,7 +194,7 @@ export default {
 
             //========== PREPARANDO CANT POR TALLA =======
             this.tallas.forEach((t)=>{
-                
+
                 const talla_find    =   this.tallasProducto.find((p)=>{
                     return p.talla_id == t.id;
                 })
@@ -220,7 +217,7 @@ export default {
             el.style.transform = 'scale(0.8)';
             done();
         },
-       
+
     },
 };
 </script>

@@ -30,6 +30,18 @@
  * Date: 2023-08-28T13:37Z
  */
 
+/*! Bootstrap 4 integration for DataTables' Responsive
+ * © SpryMedia Ltd - datatables.net/license
+ */
+
+/*! DataTables Bootstrap 4 integration
+ * © SpryMedia Ltd - datatables.net/license
+ */
+
+/*! Responsive 3.0.5
+ * © SpryMedia Ltd - datatables.net/license
+ */
+
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 
 /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */

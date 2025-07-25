@@ -410,11 +410,9 @@
 </template>
 <script>
 
+import 'datatables.net-responsive-bs4';
+import 'datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css';
 
-
-import Axios from "axios";
-import "datatables.net-bs4";
-import "datatables.net-buttons-bs4";
 export default {
     props: ["modospago"],
     data() {
@@ -458,7 +456,7 @@ export default {
         };
     },
     mounted() {
-        
+
         let $this = this;
         for(let i = 0; i < $this.modospago.length; i++)
         {
@@ -538,17 +536,17 @@ export default {
             $this.form_show.monto_venta     = data.total
             $this.form_show.venta_id        = data.id
 
-           
+
 
             //========= PARA LA IMAGEN 1 =======
             if(data.ruta_pago)
             {
                 let ruta    = data.ruta_pago;
-              
+
                ruta        = ruta.replace('public','');
                ruta        = '/storage'+ruta;
-               
-                
+
+
                 //======== CUADRO DONDE SE VISUALIZA LA IMAGEN =======
                 let imagenPrevisualizacion = document.querySelector("#modal_pago_show .imagen_update");
                 imagenPrevisualizacion.src = ruta;
@@ -568,15 +566,15 @@ export default {
             if(data.ruta_pago_2)
             {
                 let ruta    = data.ruta_pago_2;
-              
+
                ruta        = ruta.replace('public','');
                ruta        = '/storage'+ruta;
-               
-                
+
+
                 //========= INPUT FILE =======
                 let inputPrevisualizacion  = document.querySelector("#modal_pago_show .imagen_update_2");
                 inputPrevisualizacion.src = ruta;
-                
+
                 //======== COLOCANDO NOMBRE DE LA IMG EN EL LABEL =========
                 const imgName   = ruta.split('/').pop();
                 $('#modal_pago_show #imagen_txt_2').addClass("selected").html(imgName);
@@ -608,7 +606,7 @@ export default {
             $('#modal_pago_show').modal('show');
         });
 
-     
+
     },
     methods: {
         irHome: function() {
@@ -774,7 +772,7 @@ export default {
                                 cadena = cadena +
                                 "<button type='button' class='btn btn-sm btn-primary m-1 pagar' @click='fnPagar("+data+")' title='Pagar'><i class='fa fa-money'></i> Pagar</button>";
                             }
-                            
+
                             if (
                                 data.condicion == "CONTADO" &&
                                 data.estado == "PAGADA"

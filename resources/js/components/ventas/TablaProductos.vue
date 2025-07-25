@@ -443,13 +443,10 @@
 </template>
 <script>
 
-
-
 import ModalEnvioVue from "./ModalEnvio.vue";
 import { Empresa } from "../../interfaces/Empresa.js";
 import ModalCodigoPrecioMenorVue from './ModalCodigoPrecioMenor.vue';
 import ModalEditaDetalleVue from "./ModalEditDetalle.vue";
-import axios from "axios";
 
 export default {
     name: "TablaProductos",

@@ -91,26 +91,16 @@
 </template>
 <script>
 
-import Vue from 'vue';
-import BootstrapVue from 'bootstrap-vue';
-Vue.use(BootstrapVue);
 
 import ModalPdfDownloadVue from '../../../components/ventas/ModalPdfDownload.vue';
 import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
 import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
 
-import $ from 'jquery';
-import Popper from 'popper.js';
-window.$ = $;
-window.jQuery = $;
-window.Popper = Popper;
-import 'bootstrap'
-
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+// import 'bootstrap'
+// import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 import 'datatables.net-responsive-bs4';
 import 'datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css';
-
 
 export default {
     name: "VentaLista",

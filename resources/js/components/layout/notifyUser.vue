@@ -76,7 +76,7 @@
             <li v-for="(notify) in lstNotifyGuias" :key="notify.id">
                 <a href="#" class="dropdown-item" @click="locationGuias()">
                     <div class="content-alert">
-                        <i class="fa fa-envelope fa-fw text-danger"></i> Guia por enviar: 
+                        <i class="fa fa-envelope fa-fw text-danger"></i> Guia por enviar:
                         {{ notify.data.body.serie + '-' + notify.data.body.correlativo }}
                         <span class="float-right text-muted small">{{ notify.data.time }}</span>
                     </div>
@@ -116,9 +116,8 @@
     </li>
 </template>
 <script>
-import Axios from "axios";
-import "datatables.net-bs4";
-import "datatables.net-buttons-bs4";
+
+
 export default {
     data() {
         return {
@@ -133,7 +132,7 @@ export default {
     mounted() {
         let $this = this;
         $this.loadNotifications();
-        
+
         Echo.channel("notifySunat").listen("NotifySunatEvent", e => {
             console.log('llegue')
             $this.loadNotifications();
