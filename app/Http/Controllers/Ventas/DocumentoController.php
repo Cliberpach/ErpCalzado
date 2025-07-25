@@ -1119,7 +1119,6 @@ array:27 [
 */
     public function store(DocVentaStoreRequest $request)
     {
-
         $this->authorize('haveaccess', 'documento_venta.index');
         ini_set("max_execution_time", 60000);
 
@@ -1136,7 +1135,7 @@ array:27 [
 
             //========== CALCULAR MONTOS ======
             $montos =   DocumentoController::calcularMontos($datos_validados->lstVenta, $datos_validados);
-
+           
             //======== OBTENIENDO LEYENDA ======
             $legenda                =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
 
@@ -5093,7 +5092,7 @@ array:5 [
         ]);
     }
 
-    /*
+/*
 array:2 [
   "documento_id"    => "8150"
   "lstVenta"        => "[{"producto_id":565,"color_id":6,"producto_nombre":"KUSY","color_nombre":"NUDE CUERO","modelo_nombre":"KUSY","precio_venta":"45.00","porcentaje_descuento":"0.00","precio_venta_nuevo":"45.00","tallas":[{"talla_id":3,"cantidad":1,"talla_nombre":"37"}],"subtotal":45,"monto_descuento":0,"subtotal_nuevo":"45.00"},{"producto_id":610,"color_id":1,"producto_nombre":"SKYLA","color_nombre":"BLANCO CUERO","modelo_nombre":"SKYLA","precio_venta":"55.00","porcentaje_descuento":"0.00","precio_venta_nuevo":"55.00","tallas":[{"talla_id":3,"cantidad":1,"talla_nombre":"37"}],"subtotal":55,"monto_descuento":0,"subtotal_nuevo":"55.00"},{"producto_id":610,"color_id":6,"producto_nombre":"SKYLA","color_nombre":"NUDE CUERO","modelo_nombre":"SKYLA","precio_venta":"55.00","porcentaje_descuento":"0.00","precio_venta_nuevo":"55.00","tallas":[{"talla_id":3,"cantidad":1,"talla_nombre":"37"}],"subtotal":55,"monto_descuento":0,"subtotal_nuevo":"55.00"},{"producto_id":610,"color_id":45,"producto_nombre":"SKYLA","color_nombre":"BLANCO REPTIL","modelo_nombre":"SKYLA","precio_venta":"55.00","porcentaje_descuento":"0.00","precio_venta_nuevo":"55.00","tallas":[{"talla_id":1,"cantidad":1,"talla_nombre":"35"}],"subtotal":55,"monto_descuento":0,"subtotal_nuevo":"55.00"}]"
@@ -5139,10 +5138,12 @@ array:2 [
                     'condicion_id'          =>  $documento->condicion_id,
                     'productos_tabla'       =>  $request->get('lstVenta'),
                     'tipo_venta'            =>  $tipo_venta,
-                    'documento_convertido'  =>  $documento->id
+                    'documento_convertido'  =>  $documento->id,
+                    'monto_embalaje'       =>  $documento->monto_embalaje,
+                    'monto_envio'           =>  $documento->monto_envio,
                 ]
             );
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
 
