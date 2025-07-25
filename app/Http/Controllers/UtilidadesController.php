@@ -12,13 +12,14 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Luecano\NumeroALetras\NumeroALetras;
+use Throwable;
 
 class UtilidadesController extends Controller
 {
 
     public static function validarItem($item,$almacen_id){
 
-        $item_bd    =   DB::select('select 
+        $item_bd    =   DB::select('select
                         pct.producto_id,
                         pct.color_id,
                         pct.talla_id,
@@ -26,7 +27,7 @@ class UtilidadesController extends Controller
                         p.nombre as producto_nombre,
                         c.descripcion as color_nombre,
                         t.descripcion as talla_nombre,
-                        a.descripcion as almacen_nombre 
+                        a.descripcion as almacen_nombre
                         from producto_color_tallas as pct
                         inner join productos as p on p.id = pct.producto_id
                         inner join colores as c on c.id = pct.color_id
@@ -51,10 +52,10 @@ class UtilidadesController extends Controller
 
     public static function getStockItem($item){
 
-        $item_bd    =   DB::select('select 
+        $item_bd    =   DB::select('select
                         pct.stock
                         from producto_color_tallas as pct
-                        where 
+                        where
                         pct.producto_id = ?
                         and pct.color_id = ?
                         and pct.talla_id = ?
@@ -101,7 +102,7 @@ class UtilidadesController extends Controller
         ->update([
             'stock'         =>  DB::raw("stock - $cantidad"),
             'stock_logico'  =>  DB::raw("stock_logico - $cantidad"),
-            'estado'        =>  '1',  
+            'estado'        =>  '1',
         ]);
     }
 
@@ -113,14 +114,51 @@ class UtilidadesController extends Controller
         ->update([
             'stock'         =>  DB::raw("stock + $cantidad"),
             'stock_logico'  =>  DB::raw("stock_logico + $cantidad"),
-            'estado'        =>  '1',  
+            'estado'        =>  '1',
         ]);
     }
 
 
+/*
+{#1540
+  +"success": true
+  +"data": {#1537
+    +"success": true
+    +"data": {#1517
+      +"numero": "77777777"
+      +"nombre_completo": "ALVA LUJAN, LUIS DANIEL"
+      +"nombres": "LUIS DANIEL"
+      +"apellido_paterno": "ALVA"
+      +"apellido_materno": "LUJAN"
+      +"codigo_verificacion": 9
+      +"ubigeo_sunat": ""
+      +"ubigeo": array:3 [
+        0 => null
+        1 => null
+        2 => null
+      ]
+      +"direccion": ""
+    }
+    +"time": 0.041380882263184
+    +"source": "apiperu.dev"
+  }
+}
+
+------
+
+{#1540
+  +"success": true
+  +"data": {#1537
+    +"success": false
+    +"message": "No se encontraron registros"
+    +"time": 0.040093898773193
+    +"source": "apiperu.dev"
+  }
+}
+*/
     public static function apiDni($dni)
     {
-        
+
         try {
             $url = "https://apiperu.dev/api/dni/".$dni;
             $client = new \GuzzleHttp\Client(['verify'=>false]);
@@ -135,9 +173,9 @@ class UtilidadesController extends Controller
             $estado     =   $response->getStatusCode();
             $data       =   json_decode($response->getBody()->getContents());
 
-            
+
             return response()->json(['success'=>true,'data'=>$data]);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             return response()->json(['success'=>false,'data'=>$th->getMessage()]);
         }
 
@@ -145,7 +183,7 @@ class UtilidadesController extends Controller
 
     public static function apiRuc($ruc)
     {
-        
+
         try {
             $url = "https://apiperu.dev/api/ruc/".$ruc;
             $client = new \GuzzleHttp\Client(['verify'=>false]);
@@ -160,7 +198,7 @@ class UtilidadesController extends Controller
             $estado     =   $response->getStatusCode();
             $data       =   json_decode($response->getBody()->getContents());
 
-            
+
             return response()->json(['success'=>true,'data'=>$data]);
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'data'=>$th->getMessage()]);
@@ -173,7 +211,7 @@ class UtilidadesController extends Controller
         $montoFormateado    =   number_format($monto, 2, '.', '');
         $partes             =   explode('.', $montoFormateado);
         $parteEntera        =   $partes[0];
-        $decimales          =   $partes[1] ?? '00'; 
+        $decimales          =   $partes[1] ?? '00';
         $legend             =   'SON ' . $formatter->toWords((int)$parteEntera) . ' CON ' . $decimales . '/100 SOLES';
         return $legend;
     }
@@ -215,17 +253,17 @@ class UtilidadesController extends Controller
                     $talla=[];
                     $talla['talla_id']              =   $producto_color_talla->talla_id;
 
-                    
+
                     $talla['cantidad']              =   $producto_color_talla->cantidad;
                     $subtotal                       +=  $talla['cantidad']*$producto['precio_unitario_nuevo'];
                     $cantidadTotal                  +=  $talla['cantidad'];
-                   
+
                     $talla_nombre                   =   $producto_color_talla->talla_nombre?$producto_color_talla->talla_nombre:Talla::find($producto_color_talla->talla_id)->descripcion;
                     $talla['talla_nombre']          =   $talla_nombre;
-                    
+
                    array_push($tallas,(object)$talla);
                 }
-                
+
                 $producto['tallas']                 =   $tallas;
                 $producto['subtotal']               =   $subtotal;
                 $producto['cantidad_total']         =   $cantidadTotal;
@@ -255,12 +293,12 @@ class UtilidadesController extends Controller
                 $productoBD   =   Producto::find($detalle->producto_id);
                 $colorBD      =   Color::find($detalle->color_id);
                 $tallaBD      =   Talla::find($detalle->talla_id);
-                
+
                 $producto['producto_id']        = $detalle->producto_id;
                 $producto['color_id']           = $detalle->color_id;
                 $producto['producto_nombre']    = $detalle->producto_nombre?$detalle->producto_nombre:$productoBD->nombre;
                 $producto['color_nombre']       = $detalle->color_nombre?$detalle->color_nombre:$colorBD->descripcion;
-                
+
 
                 $tallas=[];
                 $subtotal=0.0;
@@ -273,7 +311,7 @@ class UtilidadesController extends Controller
                     $cantidadTotal          +=  $talla['cantidad'];
                    array_push($tallas,$talla);
                 }
-                
+
                 $producto['tallas']=$tallas;
                 $producto['subtotal']=$subtotal;
                 $producto['cantidad_total']=$cantidadTotal;
@@ -283,8 +321,5 @@ class UtilidadesController extends Controller
         }
         return $detalleFormateado;
     }
-   
-
-
 
 }

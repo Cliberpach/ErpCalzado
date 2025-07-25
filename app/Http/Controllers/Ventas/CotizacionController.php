@@ -106,7 +106,6 @@ class CotizacionController extends Controller
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();
 
-        $clientes           =   Cliente::where('estado', 'ACTIVO')->get();
         $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
         $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
         $categorias         =   Categoria::where('estado', 'ACTIVO')->get();
@@ -114,11 +113,11 @@ class CotizacionController extends Controller
         $tallas             =   Talla::where('estado', 'ACTIVO')->get();
 
         $registrador        =   DB::select(
-            'select
-                                u.*
-                                from users as u where u.id = ?',
-            [Auth::user()->id]
-        )[0];
+                                    'select
+                                                        u.*
+                                                        from users as u where u.id = ?',
+                                    [Auth::user()->id]
+                                )[0];
 
         $sede_id            =   Auth::user()->sede_id;
         $sede               =   Sede::find($sede_id);
@@ -131,7 +130,6 @@ class CotizacionController extends Controller
             compact(
                 'tallas',
                 'modelos',
-                'clientes',
                 'condiciones',
                 'tipos_documento',
                 'departamentos',
@@ -298,34 +296,31 @@ array:10 [
             return redirect()->back();
         }
 
-
         $tipos_documento    =   tipos_documento();
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();
 
         $cotizacion         =   Cotizacion::findOrFail($id);
         $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
-        $clientes           =   Cliente::where('estado', 'ACTIVO')->get();
         $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
         $detalles           =   CotizacionDetalle::where('cotizacion_id', $id)->where('estado', 'ACTIVO')
-            ->with('producto', 'color', 'talla')->get();
+                                ->with('producto', 'color', 'talla')->get();
 
         $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
         $categorias         =   Categoria::where('estado', 'ACTIVO')->get();
         $marcas             =   Marca::where('estado', 'ACTIVO')->get();
-        $tallas         =   Talla::where('estado', 'ACTIVO')->get();
-        $porcentaje_igv =   Empresa::find(1)->igv;
+        $tallas             =   Talla::where('estado', 'ACTIVO')->get();
+        $porcentaje_igv     =   Empresa::find(1)->igv;
 
-        $registrador    =   User::find($cotizacion->registrador_id);
-        $almacenes      =   Almacen::where('estado', 'ACTIVO')->where('tipo_almacen', 'PRINCIPAL')->get();
-        $sede_id        =   Auth::user()->sede_id;
-        $sede           =   Sede::find($sede_id);
-
+        $registrador        =   User::find($cotizacion->registrador_id);
+        $almacenes          =   Almacen::where('estado', 'ACTIVO')->where('tipo_almacen', 'PRINCIPAL')->get();
+        $sede_id            =   Auth::user()->sede_id;
+        $sede               =   Sede::find($sede_id);
+        $cliente            =   Cliente::findOrFail($cotizacion->cliente_id);
 
         return view('ventas.cotizaciones.edit', [
             'cotizacion'        =>  $cotizacion,
             'empresas'          =>  $empresas,
-            'clientes'          =>  $clientes,
             'condiciones'       =>  $condiciones,
             'detalles'          =>  $detalles,
             'modelos'           =>  $modelos,
@@ -339,7 +334,8 @@ array:10 [
             'registrador'       =>  $registrador,
             'almacenes'         =>  $almacenes,
             'sede_id'           =>  $sede_id,
-            'sede'              =>  $sede
+            'sede'              =>  $sede,
+            'cliente'           =>  $cliente,
         ]);
     }
 

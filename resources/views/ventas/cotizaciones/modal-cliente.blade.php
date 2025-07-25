@@ -3,7 +3,7 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="modal_cliente"  aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="modal_cliente" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" style="max-width: 60%;">
         <div class="modal-content">
             <div class="modal-header d-flex flex-column align-items-center justify-content-center position-relative">
@@ -366,14 +366,10 @@
     async function consultarDocumento() {
         try {
             //======= MOSTRAR OVERLAY =======
-            mostrarAnimacionModalCliente();
+            mostrarAnimacion();
 
-            const tipoDocumento = selectTipoDoc.options[selectTipoDoc.selectedIndex].textContent;
+            const tipoDocumento = selectTipoDoc.options[selectTipoDoc.selectedIndex].textContent.trim();
             const numeroDocumento = inputNroDoc.value;
-            console.log(tipoDocumento)
-            console.log(numeroDocumento);
-            console.log(numeroDocumento.trim().length)
-
 
             //========  VALIDACIÓN DEL NRO DOCUMENTO ==========
             if (tipoDocumento === 'DNI') {
@@ -410,8 +406,10 @@
 
             if (!existeCliente) {
                 //======= DNI = "6" =========
-                if (tipoDocumento === "DNI") {
+                if (tipoDocumento == "DNI") {
+                    console.log('consultando API DNI 1');
                     if (numeroDocumento.trim().length === 8) {
+                        console.log('consultando API DNI');
                         await consultarAPI(tipoDocumento, numeroDocumento);
                     } else {
                         console.log('el dni no tiene 8 digitos')
@@ -420,6 +418,7 @@
 
                     //======= RUC = "8" =========
                 } else if (tipoDocumento === "RUC") {
+
                     if (numeroDocumento.trim().length === 11) {
                         await consultarAPI(tipoDocumento, numeroDocumento);
                     } else {
@@ -429,9 +428,9 @@
             }
 
         } catch (ex) {
-            alert("Error en consultarDocumento" + ex);
+            toastr.error(ex, 'ERROR EN LA PETICIÓN CONSULTAR DOCUMENTO CLIENTE');
         } finally {
-            ocultarAnimacionModalCliente();
+            ocultarAnimacion();
         }
     }
 
@@ -594,7 +593,6 @@
 
             const res = await axios.post(route('ventas.cliente.storeFast'), formData);
 
-
             if (res.data.success) {
 
                 updateSelectClientes(res.data.cliente);
@@ -637,7 +635,6 @@
             .id, false, false);
         $('#cliente').append(newOption).trigger('change');
         $('#cliente').val(clienteNuevo.id).trigger('change');
-
     };
 
     //=========== CONTROLAR EL NRO DE DOCUMENTO ======

@@ -1,6 +1,6 @@
 @extends('layout')
 @section('content')
-@include('ventas.cotizaciones.modal-cliente')
+    @include('ventas.cotizaciones.modal-cliente')
 
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
@@ -9,7 +9,7 @@
 <div class="row wrapper border-bottom white-bg page-heading">
 
     <div class="col-lg-7 col-md-7">
-        <h2 style="text-transform:uppercase"><b>Modificar Pedido #{{$pedido->id}}</b></h2>
+        <h2 style="text-transform:uppercase"><b>Modificar Pedido #{{ $pedido->id }}</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{ route('home') }}">Panel de Control</a>
@@ -22,9 +22,9 @@
 
     <div class="col-lg-5 col-md-5 col-sm-12 col-xs-12 mb-3 mt-3 d-flex align-items-center justify-content-center">
         <div class="alert alert-warning alert-dismissible fade show m-0" role="alert">
-            <strong>Holy {{Auth::user()->usuario}}!</strong> Los pedidos ATENDIDOS no pueden cambiarse de almacén!!!
+            <strong>Holy {{ Auth::user()->usuario }}!</strong> Los pedidos ATENDIDOS no pueden cambiarse de almacén!!!
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
+                <span aria-hidden="true">&times;</span>
             </button>
         </div>
     </div>
@@ -38,7 +38,7 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-12">
-                           @include('pedidos.pedido.forms.form_pedido_edit')
+                            @include('pedidos.pedido.forms.form_pedido_edit')
                         </div>
                     </div>
                     <hr>
@@ -55,18 +55,17 @@
 
 
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
-                                                    <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
-                                                    <select
-                                                        id="producto"
-                                                        class=""
-                                                        onchange="getColoresTallas()" >
+                                                    <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA
+                                                        - MODELO - PRODUCTO</label>
+                                                    <select id="producto" class="" onchange="getColoresTallas()">
                                                         <option value=""></option>
                                                     </select>
                                                 </div>
 
 
                                                 <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                                                    <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
+                                                    <label class="required" style="font-weight: bold;">PRECIO
+                                                        VENTA</label>
                                                     <select id="precio_venta" class="select2_form form-control">
                                                     </select>
                                                 </div>
@@ -84,8 +83,8 @@
                                             <div class="form-group row mt-1">
                                                 <div class="col-lg-2 col-xs-12">
                                                     <button disabled type="button" id="btn_agregar_detalle"
-                                                        class="btn btn-warning btn-block"><i
-                                                          class="fa fa-plus"></i> AGREGAR</button>
+                                                        class="btn btn-warning btn-block"><i class="fa fa-plus"></i>
+                                                        AGREGAR</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -105,8 +104,10 @@
                                     <h5>
                                         <span>
                                             Pueden agregarse o retirarse productos del detalle, pero las cantidades
-                                            atendidas no podrán modificarse. Si desea modificar cantidades atendidas debe realizar
-                                            notas de crédito,devolución o cambios de talla sobre el documento venta de atención.
+                                            atendidas no podrán modificarse. Si desea modificar cantidades atendidas
+                                            debe realizar
+                                            notas de crédito,devolución o cambios de talla sobre el documento venta de
+                                            atención.
                                         </span>
                                     </h5>
                                 </div>
@@ -151,7 +152,8 @@
                                         <i class="fa fa-arrow-left"></i> Regresar
                                     </a>
 
-                                    <button type="submit" id="btn_grabar" form="formActualizarPedido" class="btn btn-w-m btn-primary">
+                                    <button type="submit" id="btn_grabar" form="formActualizarPedido"
+                                        class="btn btn-w-m btn-primary">
                                         <i class="fa fa-save"></i> Grabar
                                     </button>
                                 </div>
@@ -167,99 +169,99 @@
 @stop
 @push('styles')
 <style>
-.search-length-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.buttons-container{
-    display: flex;
-    justify-content:end;
-}
+    .search-length-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .buttons-container {
+        display: flex;
+        justify-content: end;
+    }
 
 
-.custom-button {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #dcdcdc !important;
-    border-radius: 5px;
-    padding: 8px 16px;
-    font-size: 14px;
-    margin: 8px 0px !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: background-color 3s, color 3s;
-}
+    .custom-button {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #dcdcdc !important;
+        border-radius: 5px;
+        padding: 8px 16px;
+        font-size: 14px;
+        margin: 8px 0px !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: background-color 3s, color 3s;
+    }
 
-.custom-button:hover {
-    background-color: #d7e9fb !important;
-    color: #000000 !important;
-    border-color: #d7e9fb !important;
-}
-
-
+    .custom-button:hover {
+        background-color: #d7e9fb !important;
+        color: #000000 !important;
+        border-color: #d7e9fb !important;
+    }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-    const tfootSubtotal         =   document.querySelector('.subtotal');
-    const tfootTotal            =   document.querySelector('.total');
-    const tfootIgv              =   document.querySelector('.igv');
-    const tfootTotalPagar       =   document.querySelector('.total-pagar');
-    const tfootDescuento        =   document.querySelector('.descuento');
-    const tfootEmbalaje         =   document.querySelector('.embalaje');
-    const tfootEnvio            =   document.querySelector('.envio');
+    const tfootSubtotal = document.querySelector('.subtotal');
+    const tfootTotal = document.querySelector('.total');
+    const tfootIgv = document.querySelector('.igv');
+    const tfootTotalPagar = document.querySelector('.total-pagar');
+    const tfootDescuento = document.querySelector('.descuento');
+    const tfootEmbalaje = document.querySelector('.embalaje');
+    const tfootEnvio = document.querySelector('.envio');
 
-    const amountsPedido         =   {
-                                        subtotal:0,
-                                        embalaje:0,
-                                        envio:0,
-                                        total:0,
-                                        igv:0,
-                                        totalPagar:0,
-                                        monto_descuento:0
-                                    }
+    const amountsPedido = {
+        subtotal: 0,
+        embalaje: 0,
+        envio: 0,
+        total: 0,
+        igv: 0,
+        totalPagar: 0,
+        monto_descuento: 0
+    }
 
 
-    let noEditTotal         =   0;
+    let noEditTotal = 0;
 
-    let pedidos_data_table  = null;
-    let carrito             =   [];
-    let dataTableStocksPedido   =   null;
+    let pedidos_data_table = null;
+    let carrito = [];
+    let dataTableStocksPedido = null;
 
-    document.addEventListener('DOMContentLoaded',()=>{
+    document.addEventListener('DOMContentLoaded', () => {
         loadSelect2();
         cargarProductosPrevios();
         pintarTablePedidoAtencionHistorial();
-        setUbicacionDepartamento(13,'first');
+        setUbicacionDepartamento(13, 'first');
         events();
         eventsCliente();
     })
 
-    function events(){
+    function events() {
         //====== ELIMINAR ITEM =========
-        document.addEventListener('click',async (e)=>{
-            if(e.target.classList.contains('delete-product')){
+        document.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('delete-product')) {
 
                 toastr.clear();
-                const productoId    =   e.target.getAttribute('data-producto');
-                const colorId       =   e.target.getAttribute('data-color');
+                const productoId = e.target.getAttribute('data-producto');
+                const colorId = e.target.getAttribute('data-color');
 
                 //======== OBTENIENDO TODOS LOS PRODUCTOS DE ESE PRODUCTOID Y COLORID =======
-                const lstProductos  =   [];
-                carrito.forEach((producto)=>{
-                    producto.tallas.forEach((talla)=>{
+                const lstProductos = [];
+                carrito.forEach((producto) => {
+                    producto.tallas.forEach((talla) => {
 
-                        if(producto.producto_id == productoId && producto.color_id == colorId){
-                            const item  =   {
-                                                producto_id:producto.producto_id,
-                                                color_id:producto.color_id,
-                                                talla_id:talla.talla_id,
-                                                producto_nombre:producto.producto_nombre,
-                                                color_nombre:producto.color_nombre,
-                                                talla_nombre:talla.talla_nombre,
-                                                cantidad:0
-                                            }
+                        if (producto.producto_id == productoId && producto.color_id ==
+                            colorId) {
+                            const item = {
+                                producto_id: producto.producto_id,
+                                color_id: producto.color_id,
+                                talla_id: talla.talla_id,
+                                producto_nombre: producto.producto_nombre,
+                                color_nombre: producto.color_nombre,
+                                talla_nombre: talla.talla_nombre,
+                                cantidad: 0
+                            }
                             lstProductos.push(item);
                         }
 
@@ -267,14 +269,14 @@
                 })
 
                 mostrarAnimacion();
-                const resValidacion             =   await validarCantAtendProductos(lstProductos);
-                if(!resValidacion){
+                const resValidacion = await validarCantAtendProductos(lstProductos);
+                if (!resValidacion) {
                     return;
                 }
 
-                const cantProductosEliminados   =   eliminarProducto(lstProductos);
+                const cantProductosEliminados = eliminarProducto(lstProductos);
 
-                if(cantProductosEliminados > 0){
+                if (cantProductosEliminados > 0) {
                     calcularSubTotal(carrito);
                     calcularMontos();
                     pintarDetallePedido(carrito);
@@ -282,7 +284,7 @@
                     loadCarrito();
 
                     toastr.info('SE ELIMINARON SOLO LOS PRODUCTOS CUYA CANTIDAD ATENDIDA NO SEA AFECTADA');
-                }else{
+                } else {
                     toastr.error('NO SE PUDO ELIMINAR NINGÚN PRODUCTO DE LA FILA');
                 }
 
@@ -292,11 +294,11 @@
         })
 
         //====== SUBMIT FORM PEDIDOS =======
-        document.querySelector('#formActualizarPedido').addEventListener('submit',(e)=>{
+        document.querySelector('#formActualizarPedido').addEventListener('submit', (e) => {
 
             e.preventDefault();
             //===== VALIDAR FECHA =====
-            const correcto =  validarDatosPedido();
+            const correcto = validarDatosPedido();
 
             if (correcto) {
                 actualizarPedido(e.target);
@@ -307,21 +309,21 @@
 
         //===== VALIDAR CONTENIDO DE INPUTS CANTIDAD ========
         //===== VALIDAR TFOOTS EMBALAJE Y ENVIO ======
-        document.addEventListener('input',(e)=>{
+        document.addEventListener('input', (e) => {
 
-            if(e.target.classList.contains('inputCantidad')){
+            if (e.target.classList.contains('inputCantidad')) {
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
             }
 
-            if(e.target.classList.contains('detailDescuento')){
+            if (e.target.classList.contains('detailDescuento')) {
                 //==== CONTROLANDO DE QUE EL VALOR SEA UN NÚMERO ====
                 const valor = event.target.value;
-                const producto_id   =   e.target.getAttribute('data-producto-id');
-                const color_id      =   e.target.getAttribute('data-color-id');
+                const producto_id = e.target.getAttribute('data-producto-id');
+                const color_id = e.target.getAttribute('data-color-id');
 
                 //==== SI EL INPUT ESTA VACÍO ====
-                if(valor.trim().length === 0){
-                    calcularDescuento(producto_id,color_id,0);
+                if (valor.trim().length === 0) {
+                    calcularDescuento(producto_id, color_id, 0);
                     return;
                 }
 
@@ -337,19 +339,20 @@
                 let porcentaje_desc = parseFloat(event.target.value);
 
                 //==== EL MÁXIMO DESCUENTO ES 100% ====
-                if(porcentaje_desc>100){
+                if (porcentaje_desc > 100) {
                     event.target.value = 100;
                     porcentaje_desc = event.target.value;
                 }
 
                 //==== CALCULAR DESCUENTO ====
-                calcularDescuento(producto_id,color_id,porcentaje_desc)
+                calcularDescuento(producto_id, color_id, porcentaje_desc)
             }
 
             //====== EMBALAJE Y ENVÍO =======
             if (e.target.classList.contains('embalaje') || e.target.classList.contains('envio')) {
                 // Eliminar ceros a la izquierda, excepto si es el único carácter en el campo o si es seguido por un punto decimal y al menos un dígito
-                e.target.value = e.target.value.replace(/^0+(?=\d)|(?<=\D)0+(?=\d)|(?<=\d)0+(?=\.)|^0+(?=[1-9])/g, '');
+                e.target.value = e.target.value.replace(
+                    /^0+(?=\d)|(?<=\D)0+(?=\d)|(?<=\d)0+(?=\.)|^0+(?=[1-9])/g, '');
 
                 // Evitar que el primer carácter sea un punto
                 e.target.value = e.target.value.replace(/^(\.)/, '');
@@ -364,19 +367,19 @@
             }
         })
 
-       //======== AGREGAR PRODUCTO AL DETALLE =====
-       document.querySelector('#btn_agregar_detalle').addEventListener('click',async ()=>{
+        //======== AGREGAR PRODUCTO AL DETALLE =====
+        document.querySelector('#btn_agregar_detalle').addEventListener('click', async () => {
 
             toastr.clear();
-            if(!$('#precio_venta').val()){
-                toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA','OPERACIÓN INCORRECTA');
+            if (!$('#precio_venta').val()) {
+                toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA', 'OPERACIÓN INCORRECTA');
                 return;
             }
 
-            const inputProductos    =   obtenerProductos();
-            res_validacion          =   await validarCantAtendProductos(inputProductos);
+            const inputProductos = obtenerProductos();
+            res_validacion = await validarCantAtendProductos(inputProductos);
 
-            if(!res_validacion){
+            if (!res_validacion) {
                 return;
             }
 
@@ -385,8 +388,8 @@
             calcularSubTotal(carrito);
             pintarDetallePedido(carrito);
             //===== RECALCULANDO DESCUENTOS Y MONTOS =====
-            carrito.forEach((c)=>{
-                calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+            carrito.forEach((c) => {
+                calcularDescuento(c.producto_id, c.color_id, c.porcentaje_descuento);
             })
             //===== RECALCULANDO MONTOS =====
             calcularMontos();
@@ -396,30 +399,30 @@
         })
     }
 
-    async function validarCantAtendProductos(inputProductos){
+    async function validarCantAtendProductos(inputProductos) {
         try {
             mostrarAnimacion();
-            const res   =   await axios.post(route('pedidos.pedido.validarCantidadAtendida'),{
-                pedido_id:@json($pedido->id),
-                lstProductos:JSON.stringify(inputProductos)
+            const res = await axios.post(route('pedidos.pedido.validarCantidadAtendida'), {
+                pedido_id: @json($pedido->id),
+                lstProductos: JSON.stringify(inputProductos)
             })
 
-            if(res.data.success){
-                toastr.info(res.data.message,'OPERACIÓN COMPLETADA');
-            }else{
-                toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+            if (res.data.success) {
+                toastr.info(res.data.message, 'OPERACIÓN COMPLETADA');
+            } else {
+                toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
             }
             return res.data.success;
         } catch (error) {
-            toastr.error(error,'ERROR AL VALIDAR CANTIDADES DE PRODUCTOS');
+            toastr.error(error, 'ERROR AL VALIDAR CANTIDADES DE PRODUCTOS');
             return false;
-        }finally{
+        } finally {
             ocultarAnimacion();
         }
     }
 
     //====== SELECT2 =======
-    function loadSelect2(){
+    function loadSelect2() {
         $(".select2_form").select2({
             placeholder: "SELECCIONAR",
             allowClear: true,
@@ -434,7 +437,7 @@
         });
 
         $('#producto').select2({
-            width:'100%',
+            width: '100%',
             placeholder: "Buscar producto...",
             allowClear: true,
             language: {
@@ -450,7 +453,7 @@
                 }
             },
             ajax: {
-                url: '{{route("pedidos.pedido.getProductos")}}',
+                url: '{{ route('pedidos.pedido.getProductos') }}',
                 dataType: 'json',
                 delay: 250,
                 data: function(params) {
@@ -460,10 +463,10 @@
                         page: params.page || 1
                     };
                 },
-                processResults: function(data,params) {
-                    if(data.success){
-                        params.page     =   params.page || 1;
-                        const productos =   data.productos;
+                processResults: function(data, params) {
+                    if (data.success) {
+                        params.page = params.page || 1;
+                        const productos = data.productos;
                         return {
                             results: productos.map(item => ({
                                 id: item.producto_id,
@@ -473,10 +476,10 @@
                                 more: data.more
                             }
                         };
-                    }else{
-                        toastr.error(data.message,'ERROR EN EL SERVIDOR');
+                    } else {
+                        toastr.error(data.message, 'ERROR EN EL SERVIDOR');
                         return {
-                            results:[]
+                            results: []
                         }
                     }
 
@@ -486,7 +489,68 @@
             minimumInputLength: 2,
             templateResult: function(data) {
                 if (data.loading) {
-                    return $('<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>');
+                    return $(
+                        '<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>'
+                        );
+                }
+                return data.text;
+            },
+        });
+        $('#cliente').select2({
+            width: '100%',
+            placeholder: "Buscar Cliente...",
+            allowClear: true,
+            language: {
+                inputTooShort: function(args) {
+                    var min = args.minimum;
+                    return "Por favor, ingrese " + min + " o más caracteres";
+                },
+                searching: function() {
+                    return "BUSCANDO...";
+                },
+                noResults: function() {
+                    return "No se encontraron clientes";
+                }
+            },
+            ajax: {
+                url: '{{ route('utilidades.getClientes') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        search: params.term,
+                        page: params.page || 1
+                    };
+                },
+                processResults: function(data, params) {
+                    if (data.success) {
+                        params.page = params.page || 1;
+                        const clientes = data.clientes;
+                        return {
+                            results: clientes.map(item => ({
+                                id: item.id,
+                                text: item.descripcion
+                            })),
+                            pagination: {
+                                more: data.more
+                            }
+                        };
+                    } else {
+                        toastr.error(data.message, 'ERROR EN EL SERVIDOR');
+                        return {
+                            results: []
+                        }
+                    }
+
+                },
+                cache: true
+            },
+            minimumInputLength: 2,
+            templateResult: function(data) {
+                if (data.loading) {
+                    return $(
+                        '<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>'
+                    );
                 }
                 return data.text;
             },
@@ -502,20 +566,20 @@
         buttonsStyling: false
     })
 
-    function obtenerProductos(){
+    function obtenerProductos() {
 
-        const lstProductos  =   [];
+        const lstProductos = [];
         const inputsCantidad = document.querySelectorAll('.inputCantidad');
 
-        inputsCantidad.forEach((inputCantidad)=>{
-            const producto      = formarProducto(inputCantidad);
+        inputsCantidad.forEach((inputCantidad) => {
+            const producto = formarProducto(inputCantidad);
             lstProductos.push(producto);
         })
         return lstProductos;
 
     }
 
-    function agregarProducto(){
+    function agregarProducto() {
         const inputsCantidad = document.querySelectorAll('.inputCantidad');
 
         for (const ic of inputsCantidad) {
@@ -523,31 +587,32 @@
             const cantidad = ic.value ? ic.value : null;
             if (cantidad) {
 
-                const producto      = formarProducto(ic);
-                const indiceExiste  = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+                const producto = formarProducto(ic);
+                const indiceExiste = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id ==
+                    producto.color_id);
 
                 //===== PRODUCTO NUEVO =====
                 if (indiceExiste == -1) {
-                                const objProduct = {
-                                    producto_id:            producto.producto_id,
-                                    color_id:               producto.color_id,
-                                    modelo_nombre:          producto.modelo_nombre,
-                                    producto_nombre:        producto.producto_nombre,
-                                    producto_codigo:        producto.producto_codigo,
-                                    color_nombre:           producto.color_nombre,
-                                    precio_venta:           producto.precio_venta,
-                                    monto_descuento:        0,
-                                    porcentaje_descuento:   0,
-                                    precio_venta_nuevo:     0,
-                                    subtotal_nuevo:         0,
-                                    tallas: [{
-                                        talla_id:           producto.talla_id,
-                                        talla_nombre:       producto.talla_nombre,
-                                        cantidad:           producto.cantidad
-                                    }]
-                                };
+                    const objProduct = {
+                        producto_id: producto.producto_id,
+                        color_id: producto.color_id,
+                        modelo_nombre: producto.modelo_nombre,
+                        producto_nombre: producto.producto_nombre,
+                        producto_codigo: producto.producto_codigo,
+                        color_nombre: producto.color_nombre,
+                        precio_venta: producto.precio_venta,
+                        monto_descuento: 0,
+                        porcentaje_descuento: 0,
+                        precio_venta_nuevo: 0,
+                        subtotal_nuevo: 0,
+                        tallas: [{
+                            talla_id: producto.talla_id,
+                            talla_nombre: producto.talla_nombre,
+                            cantidad: producto.cantidad
+                        }]
+                    };
 
-                                carrito.push(objProduct);
+                    carrito.push(objProduct);
                 } else {
                     const productoModificar = carrito[indiceExiste];
                     productoModificar.precio_venta = producto.precio_venta;
@@ -569,10 +634,12 @@
                 }
             } else {
                 const producto = formarProducto(ic);
-                const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+                const indiceProductoColor = carrito.findIndex(p => p.producto_id == producto.producto_id && p
+                    .color_id == producto.color_id);
 
                 if (indiceProductoColor !== -1) {
-                    const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto.talla_id);
+                    const indiceTalla = carrito[indiceProductoColor].tallas.findIndex(t => t.talla_id == producto
+                        .talla_id);
 
                     if (indiceTalla !== -1) {
                         const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
@@ -590,39 +657,40 @@
     }
 
     //======== ELIMINAR ITEM ========
-    const eliminarProducto = (lstProductosValidados)=>{
-        let productosEliminados =   0;
+    const eliminarProducto = (lstProductosValidados) => {
+        let productosEliminados = 0;
 
         //========= RECORRER LOS PRODUCTOS VALIDADOS ===========
-        lstProductosValidados.forEach((producto_validado)=>{
+        lstProductosValidados.forEach((producto_validado) => {
 
             //======= SI EL PRODUCTO ES VÁLIDO =======
             //if(producto_validado.validacion){
 
-                //========== ELIMINAR =========
-                const indiceProducto    =   carrito.findIndex((producto)=>{
-                    return producto.producto_id == producto_validado.producto_id && producto.color_id == producto_validado.color_id;
+            //========== ELIMINAR =========
+            const indiceProducto = carrito.findIndex((producto) => {
+                return producto.producto_id == producto_validado.producto_id && producto.color_id ==
+                    producto_validado.color_id;
+            })
+
+            if (indiceProducto !== -1) {
+                //========= OBTENIENDO TALLA ======
+                const indiceTalla = carrito[indiceProducto].tallas.findIndex((talla) => {
+                    return talla.talla_id == producto_validado.talla_id;
                 })
 
-                if(indiceProducto !== -1){
-                    //========= OBTENIENDO TALLA ======
-                    const indiceTalla   =   carrito[indiceProducto].tallas.findIndex((talla)=>{
-                        return talla.talla_id == producto_validado.talla_id;
-                    })
+                if (indiceTalla !== -1) {
+                    //======= ELIMINAR TALLA ========
+                    carrito[indiceProducto].tallas.splice(indiceTalla, 1);
 
-                    if(indiceTalla !== -1){
-                        //======= ELIMINAR TALLA ========
-                        carrito[indiceProducto].tallas.splice(indiceTalla,1);
+                    productosEliminados++;
 
-                        productosEliminados ++;
-
-                        //======= EN CASO EL PRODUCTO SE QUEDE SIN TALLAS, ELIMINAR PRODUCTO =======
-                        if(carrito[indiceProducto].tallas.length === 0){
-                            carrito.splice(indiceProducto,1);
-                        }
-
+                    //======= EN CASO EL PRODUCTO SE QUEDE SIN TALLAS, ELIMINAR PRODUCTO =======
+                    if (carrito[indiceProducto].tallas.length === 0) {
+                        carrito.splice(indiceProducto, 1);
                     }
+
                 }
+            }
             //}
 
         })
@@ -634,7 +702,7 @@
     function validarDatosPedido() {
         let enviar = true;
 
-        if(carrito.length === 0){
+        if (carrito.length === 0) {
             toastr.error('El detalle del pedido está vacío.', 'Error');
             enviar = false;
         }
@@ -643,64 +711,67 @@
     }
 
     //======= CARGAR PRODUCTOS ========
-    function setProductosForm(){
-        document.querySelector('#productos_tabla').value    =   JSON.stringify(carrito);
+    function setProductosForm() {
+        document.querySelector('#productos_tabla').value = JSON.stringify(carrito);
     }
 
     //=========== CALCULAR MONTOS =======
-    const calcularMontos = ()=>{
-        let subtotal    =   0;
-        let embalaje    =   tfootEmbalaje.value?parseFloat(tfootEmbalaje.value):0;
-        let envio       =   tfootEnvio.value?parseFloat(tfootEnvio.value):0;
-        let total       =   0;
-        let igv         =   0;
-        let total_pagar =   0;
-        let descuento   =   0;
+    const calcularMontos = () => {
+        let subtotal = 0;
+        let embalaje = tfootEmbalaje.value ? parseFloat(tfootEmbalaje.value) : 0;
+        let envio = tfootEnvio.value ? parseFloat(tfootEnvio.value) : 0;
+        let total = 0;
+        let igv = 0;
+        let total_pagar = 0;
+        let descuento = 0;
 
         //====== subtotal es la suma de todos los productos ======
-        carrito.forEach((c)=>{
-            if(c.porcentaje_descuento === 0){
-                subtotal    +=  parseFloat(c.subtotal);
-            }else{
-                subtotal    +=  parseFloat(c.subtotal_nuevo);
+        carrito.forEach((c) => {
+            if (c.porcentaje_descuento === 0) {
+                subtotal += parseFloat(c.subtotal);
+            } else {
+                subtotal += parseFloat(c.subtotal_nuevo);
             }
             descuento += parseFloat(c.monto_descuento);
         })
 
-        subtotal    +=  noEditTotal;
-        total_pagar =   subtotal + embalaje + envio;
-        total       =   total_pagar/1.18;
-        igv         =   total_pagar - total;
+        subtotal += noEditTotal;
+        total_pagar = subtotal + embalaje + envio;
+        total = total_pagar / 1.18;
+        igv = total_pagar - total;
 
-        tfootTotalPagar.textContent =   'S/. ' + total_pagar.toFixed(2);
-        tfootIgv.textContent        =   'S/. ' + igv.toFixed(2);
-        tfootTotal.textContent      =   'S/. ' + total.toFixed(2);
-        tfootSubtotal.textContent   =   'S/. ' + subtotal.toFixed(2);
-        tfootDescuento.textContent  =   'S/. ' + descuento.toFixed(2);
+        tfootTotalPagar.textContent = 'S/. ' + total_pagar.toFixed(2);
+        tfootIgv.textContent = 'S/. ' + igv.toFixed(2);
+        tfootTotal.textContent = 'S/. ' + total.toFixed(2);
+        tfootSubtotal.textContent = 'S/. ' + subtotal.toFixed(2);
+        tfootDescuento.textContent = 'S/. ' + descuento.toFixed(2);
 
-        amountsPedido.totalPagar        =   total_pagar.toFixed(2);
-        amountsPedido.igv               =   igv.toFixed(2);
-        amountsPedido.total             =   total.toFixed(2);
-        amountsPedido.embalaje          =   embalaje.toFixed(2);
-        amountsPedido.envio             =   envio.toFixed(2);
-        amountsPedido.subtotal          =   subtotal.toFixed(2);
-        amountsPedido.monto_descuento   =   descuento.toFixed(2);
+        amountsPedido.totalPagar = total_pagar.toFixed(2);
+        amountsPedido.igv = igv.toFixed(2);
+        amountsPedido.total = total.toFixed(2);
+        amountsPedido.embalaje = embalaje.toFixed(2);
+        amountsPedido.envio = envio.toFixed(2);
+        amountsPedido.subtotal = subtotal.toFixed(2);
+        amountsPedido.monto_descuento = descuento.toFixed(2);
     }
 
     //======== CALCULAR DESCUENTO ========
-    const calcularDescuento = (producto_id,color_id,porcentaje_descuento)=>{
-        const indiceExiste = carrito.findIndex((c)=>{
-            return c.producto_id==producto_id && c.color_id==color_id;
+    const calcularDescuento = (producto_id, color_id, porcentaje_descuento) => {
+        const indiceExiste = carrito.findIndex((c) => {
+            return c.producto_id == producto_id && c.color_id == color_id;
         })
 
-        if(indiceExiste !== -1){
-            const producto_color_editar =  carrito[indiceExiste];
+        if (indiceExiste !== -1) {
+            const producto_color_editar = carrito[indiceExiste];
 
             //===== APLICANDO DESCUENTO ======
-            producto_color_editar.porcentaje_descuento =    porcentaje_descuento;
-            producto_color_editar.monto_descuento      =    porcentaje_descuento === 0?0:producto_color_editar.subtotal*(porcentaje_descuento/100);
-            producto_color_editar.precio_venta_nuevo   =    porcentaje_descuento === 0?0:(producto_color_editar.precio_venta*(1-porcentaje_descuento/100)).toFixed(2);
-            producto_color_editar.subtotal_nuevo       =    porcentaje_descuento === 0?0:(producto_color_editar.subtotal*(1-porcentaje_descuento/100)).toFixed(2);
+            producto_color_editar.porcentaje_descuento = porcentaje_descuento;
+            producto_color_editar.monto_descuento = porcentaje_descuento === 0 ? 0 : producto_color_editar
+                .subtotal * (porcentaje_descuento / 100);
+            producto_color_editar.precio_venta_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar
+                .precio_venta * (1 - porcentaje_descuento / 100)).toFixed(2);
+            producto_color_editar.subtotal_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar
+                .subtotal * (1 - porcentaje_descuento / 100)).toFixed(2);
 
             carrito[indiceExiste] = producto_color_editar;
 
@@ -708,15 +779,17 @@
             calcularMontos();
 
             //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
-            const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
-            const detailSubtotal    =   document.querySelector(`.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
+            const detailPrecioVenta = document.querySelector(
+                `.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
+            const detailSubtotal = document.querySelector(
+                `.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
 
-            if(porcentaje_descuento !== 0){
+            if (porcentaje_descuento !== 0) {
                 detailPrecioVenta.textContent = producto_color_editar.precio_venta_nuevo;
-                detailSubtotal.textContent    = producto_color_editar.subtotal_nuevo;
-            }else{
-                detailPrecioVenta.textContent   =   producto_color_editar.precio_venta;
-                detailSubtotal.textContent      =   producto_color_editar.subtotal;
+                detailSubtotal.textContent = producto_color_editar.subtotal_nuevo;
+            } else {
+                detailPrecioVenta.textContent = producto_color_editar.precio_venta;
+                detailSubtotal.textContent = producto_color_editar.subtotal;
             }
 
         }
@@ -724,7 +797,7 @@
 
 
     //========= REORDENAR CARRITO =========
-    const reordenarCarrito= ()=>{
+    const reordenarCarrito = () => {
         carrito.sort(function(a, b) {
             if (a.producto_id === b.producto_id) {
                 return a.color_id - b.color_id;
@@ -734,15 +807,15 @@
         });
     }
 
-    function destruirDataTableStocks(){
-        if(dataTableStocksPedido){
+    function destruirDataTableStocks() {
+        if (dataTableStocksPedido) {
             dataTableStocksPedido.destroy();
-            dataTableStocksPedido   =   null;
+            dataTableStocksPedido = null;
         }
     }
 
-    function limpiarTableStocks(){
-        const   tableStocksBody     =   document.querySelector('#table-stocks-pedidos tbody');
+    function limpiarTableStocks() {
+        const tableStocksBody = document.querySelector('#table-stocks-pedidos tbody');
 
         while (tableStocksBody.firstChild) {
             tableStocksBody.removeChild(tableStocksBody.firstChild);
@@ -750,15 +823,15 @@
     }
 
     //====== CARGAR EL PRECIO DE VENTA ELEGIDO PARA EL PRODUCTO EN EL CARRITO ======
-    function loadPrecioVentaProductoCarrito(producto_id){
-        const producto_elegido_id   =   producto_id;
+    function loadPrecioVentaProductoCarrito(producto_id) {
+        const producto_elegido_id = producto_id;
         //===== LO BUSCAMOS EN EL CARRITO ======
-        const indiceProducto    =   carrito.findIndex((p)=>{
-            return p.producto_id    == producto_elegido_id;
+        const indiceProducto = carrito.findIndex((p) => {
+            return p.producto_id == producto_elegido_id;
         })
 
-        if(indiceProducto !== -1){
-            const itemProducto  =   carrito[indiceProducto];
+        if (indiceProducto !== -1) {
+            const itemProducto = carrito[indiceProducto];
             let targetValue;
             //==== UBICANDO PRECIO VENTA SELECCIONADO ======
             $('#precio_venta option').each(function() {
@@ -772,65 +845,76 @@
                 $('#precio_venta').val(targetValue).trigger('change');
                 console.log('precio venta fijado');
             }
-        }else{
+        } else {
             toastr.info('NO SE PUEDO FIJAR EL PRECIO DE VENTA PREVIO PARA EL PRODUCTO');
         }
 
     }
 
     //=========== FORMAR PRODUCTO =========
-    const formarProducto = (ic)=>{
-        const producto_id           = ic.getAttribute('data-producto-id');
-        const modelo_nombre         = $('#modelo').find('option:selected').text().trim();
-        const producto_nombre       = ic.getAttribute('data-producto-nombre');
-        const producto_codigo       = ic.getAttribute('data-producto-codigo');
-        const color_id              = ic.getAttribute('data-color-id');
-        const color_nombre          = ic.getAttribute('data-color-nombre');
-        const talla_id              = ic.getAttribute('data-talla-id');
-        const talla_nombre          = ic.getAttribute('data-talla-nombre');
-        const precio_venta          = $('#precio_venta').find('option:selected').text();
-        const cantidad              = ic.value?ic.value:0;
-        const subtotal              = 0;
-        const subtotal_nuevo        = 0;
-        const porcentaje_descuento  = 0;
-        const monto_descuento       = 0;
-        const precio_venta_nuevo    = 0;
+    const formarProducto = (ic) => {
+        const producto_id = ic.getAttribute('data-producto-id');
+        const modelo_nombre = $('#modelo').find('option:selected').text().trim();
+        const producto_nombre = ic.getAttribute('data-producto-nombre');
+        const producto_codigo = ic.getAttribute('data-producto-codigo');
+        const color_id = ic.getAttribute('data-color-id');
+        const color_nombre = ic.getAttribute('data-color-nombre');
+        const talla_id = ic.getAttribute('data-talla-id');
+        const talla_nombre = ic.getAttribute('data-talla-nombre');
+        const precio_venta = $('#precio_venta').find('option:selected').text();
+        const cantidad = ic.value ? ic.value : 0;
+        const subtotal = 0;
+        const subtotal_nuevo = 0;
+        const porcentaje_descuento = 0;
+        const monto_descuento = 0;
+        const precio_venta_nuevo = 0;
 
-        const producto = {producto_id,producto_nombre,producto_codigo,modelo_nombre,
-                            color_id,color_nombre,
-                            talla_id,talla_nombre,
-                            cantidad,precio_venta,
-                            subtotal,subtotal_nuevo,porcentaje_descuento,monto_descuento,precio_venta_nuevo
-                        };
+        const producto = {
+            producto_id,
+            producto_nombre,
+            producto_codigo,
+            modelo_nombre,
+            color_id,
+            color_nombre,
+            talla_id,
+            talla_nombre,
+            cantidad,
+            precio_venta,
+            subtotal,
+            subtotal_nuevo,
+            porcentaje_descuento,
+            monto_descuento,
+            precio_venta_nuevo
+        };
         return producto;
     }
 
 
     //======== CALCULAR SUBTOTAL POR PRODUCTO COLOR EN EL DETALLE ======
-    const calcularSubTotal=(productos)=>{
+    const calcularSubTotal = (productos) => {
         let subtotal = 0;
 
-        productos.forEach((p)=>{
-            p.tallas.forEach((t)=>{
-                    subtotal+= parseFloat(p.precio_venta)*parseFloat(t.cantidad);
+        productos.forEach((p) => {
+            p.tallas.forEach((t) => {
+                subtotal += parseFloat(p.precio_venta) * parseFloat(t.cantidad);
             })
 
-            p.subtotal=subtotal;
-            subtotal=0;
+            p.subtotal = subtotal;
+            subtotal = 0;
         })
     }
 
     //========= PINTAR DETALLE PEDIDO =======
-    function pintarDetallePedido(carrito){
-        let fila= ``;
-        let htmlTallas= ``;
-        const bodyDetalleTable  =   document.querySelector('#table-detalle-pedido tbody');
-        const tallas            =   @json($tallas);
+    function pintarDetallePedido(carrito) {
+        let fila = ``;
+        let htmlTallas = ``;
+        const bodyDetalleTable = document.querySelector('#table-detalle-pedido tbody');
+        const tallas = @json($tallas);
         clearTabla(bodyDetalleTable);
 
-        carrito.forEach((c)=>{
-            htmlTallas=``;
-                fila+= `<tr>
+        carrito.forEach((c) => {
+            htmlTallas = ``;
+            fila += `<tr>
                             <td>
                                 <i class="fas fa-trash-alt btn btn-danger delete-product"
                                 data-producto="${c.producto_id}" data-color="${c.color_id}">
@@ -842,17 +926,17 @@
                             <th>${c.color_nombre}</th>`;
 
 
-                //tallas
-                tallas.forEach((t)=>{
-                    let cantidad = c.tallas.filter((ct)=>{
-                        return t.id==ct.talla_id;
-                    });
-                    cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad='';
-                    htmlTallas += `<td>${cantidad}</td>`;
-                })
+            //tallas
+            tallas.forEach((t) => {
+                let cantidad = c.tallas.filter((ct) => {
+                    return t.id == ct.talla_id;
+                });
+                cantidad.length != 0 ? cantidad = cantidad[0].cantidad : cantidad = '';
+                htmlTallas += `<td>${cantidad}</td>`;
+            })
 
 
-                htmlTallas+=`   <td style="text-align: right;">
+            htmlTallas += `   <td style="text-align: right;">
                                     <div style="width:100px;">
                                         <span class="precio_venta_${c.producto_id}_${c.color_id}">
                                             ${c.porcentaje_descuento === 0? c.precio_venta:c.precio_venta_nuevo}
@@ -871,30 +955,30 @@
                                 </td>
                             </tr>`;
 
-                fila+=htmlTallas;
-                bodyDetalleTable.innerHTML=fila;
+            fila += htmlTallas;
+            bodyDetalleTable.innerHTML = fila;
         })
     }
 
     //======= PINTAR PRECIOS VENTA =======
-    function pintarPreciosVenta(producto_color_tallas){
+    function pintarPreciosVenta(producto_color_tallas) {
         //======= LIMPIAR SELECT2 DE PRODUCTOS ======
         $('#precio_venta').empty();
 
         //====== LLENAR =======
 
-        if(producto_color_tallas){
-            if(producto_color_tallas.precio_venta_1 != null){
+        if (producto_color_tallas) {
+            if (producto_color_tallas.precio_venta_1 != null) {
                 const option_1 = new Option(producto_color_tallas.precio_venta_1, 'precio_venta_1', false, false);
                 $('#precio_venta').append(option_1);
             }
 
-            if(producto_color_tallas.precio_venta_2 != null){
+            if (producto_color_tallas.precio_venta_2 != null) {
                 const option_2 = new Option(producto_color_tallas.precio_venta_2, 'precio_venta_2', false, false);
                 $('#precio_venta').append(option_2);
             }
 
-            if(producto_color_tallas.precio_venta_3 != null){
+            if (producto_color_tallas.precio_venta_3 != null) {
                 const option_3 = new Option(producto_color_tallas.precio_venta_3, 'precio_venta_3', false, false);
                 $('#precio_venta').append(option_3);
             }
@@ -905,22 +989,22 @@
     }
 
     //===== LIMPIAR INPUTS DEL TABLERO PRODUCTOS ======
-    function clearInputsCantidad(){
-        const inputsCantidad    =   document.querySelectorAll('.inputCantidad');
-        inputsCantidad.forEach((inputCantidad)=>{
-            inputCantidad.value =   '';
+    function clearInputsCantidad() {
+        const inputsCantidad = document.querySelectorAll('.inputCantidad');
+        inputsCantidad.forEach((inputCantidad) => {
+            inputCantidad.value = '';
         })
     }
 
     //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
-    function loadCarrito(){
+    function loadCarrito() {
 
-        carrito.forEach((c)=>{
-            c.tallas.forEach((talla)=>{
-                let llave   =   `#inputCantidad_${c.producto_id}_${c.color_id}_${talla.talla_id}`;
+        carrito.forEach((c) => {
+            c.tallas.forEach((talla) => {
+                let llave = `#inputCantidad_${c.producto_id}_${c.color_id}_${talla.talla_id}`;
                 const inputLoad = document.querySelector(llave);
                 console.log(inputLoad)
-                if(inputLoad){
+                if (inputLoad) {
                     inputLoad.value = talla.cantidad;
                 }
             })
@@ -929,29 +1013,32 @@
     }
 
     //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
-    async function getColoresTallas(){
+    async function getColoresTallas() {
         mostrarAnimacion();
-        const producto_id   =   $('#producto').val();
-        const almacen_id    =   $('#almacen').val();
-        if(producto_id && almacen_id){
+        const producto_id = $('#producto').val();
+        const almacen_id = $('#almacen').val();
+        if (producto_id && almacen_id) {
             try {
-                const res   =   await   axios.get(route('pedidos.pedido.getColoresTallas',{almacen_id,producto_id}));
-                if(res.data.success){
+                const res = await axios.get(route('pedidos.pedido.getColoresTallas', {
+                    almacen_id,
+                    producto_id
+                }));
+                if (res.data.success) {
                     destruirDataTableStocks();
                     pintarTableStocks(res.data.producto_color_tallas);
                     loadDataTableStocksPedido();
                     pintarPreciosVenta(res.data.producto_color_tallas);
                     loadCarrito();
                     loadPrecioVentaProductoCarrito(producto_id);
-                }else{
-                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                } else {
+                    toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
-                toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
-            }finally{
+                toastr.error(error, 'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
+            } finally {
                 ocultarAnimacion();
             }
-        }else{
+        } else {
             destruirDataTableStocks();
             limpiarTableStocks();
             loadDataTableStocksPedido();
@@ -961,11 +1048,11 @@
     }
 
     //======== PINTAR SELECT PRODUCTOS =======
-    function pintarSelectProductos(productos){
+    function pintarSelectProductos(productos) {
         //======= LIMPIAR SELECT2 DE PRODUCTOS ======
         $('#producto').empty();
 
-        if(productos.length === 0){
+        if (productos.length === 0) {
             ocultarAnimacion();
         }
 
@@ -980,32 +1067,32 @@
         $('#producto').trigger('change');
     }
 
-    async function  getProductosByModelo(e){
+    async function getProductosByModelo(e) {
         toastr.clear();
         mostrarAnimacion();
-        const bodyTableStocks   =   document.querySelector('#table-stocks-pedidos tbody');
-        const btnAgregarDetalle =   document.querySelector('#btn_agregar_detalle');
+        const bodyTableStocks = document.querySelector('#table-stocks-pedidos tbody');
+        const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle');
         clearTabla(bodyTableStocks);
 
-        const modelo_id                   =   e.value;
-        btnAgregarDetalle.disabled  =   true;
+        const modelo_id = e.value;
+        btnAgregarDetalle.disabled = true;
 
-        if(modelo_id){
+        if (modelo_id) {
             try {
-                const res       =   await axios.get(route('pedidos.pedido.getProductosByModelo', modelo_id));
-                if(res.data.success){
+                const res = await axios.get(route('pedidos.pedido.getProductosByModelo', modelo_id));
+                if (res.data.success) {
                     pintarSelectProductos(res.data.productos);
-                    toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
-                }else{
+                    toastr.info('PRODUCTOS CARGADOS', 'OPERACIÓN COMPLETADA');
+                } else {
                     ocultarAnimacion();
-                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
                 ocultarAnimacion();
-                toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
+                toastr.error(error, 'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
             }
 
-        }else{
+        } else {
             ocultarAnimacion();
         }
     }
@@ -1033,22 +1120,22 @@
         }
     }*/
 
-    const pintarTableStocks = (producto)=>{
+    const pintarTableStocks = (producto) => {
         let filas = ``;
-        const   tableStocksBody     =   document.querySelector('#table-stocks-pedidos tbody');
-        const   btnAgregarDetalle   =   document.querySelector('#btn_agregar_detalle')
+        const tableStocksBody = document.querySelector('#table-stocks-pedidos tbody');
+        const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle')
 
 
-        producto.colores.forEach((color)=>{
-            filas   +=  `  <tr>
+        producto.colores.forEach((color) => {
+            filas += `  <tr>
                             <th scope="row" data-producto=${producto.id} data-color=${color.id} >
                                 <div style="width:200px;">${producto.nombre}</div>
                             </th>
                             <th scope="row">${color.nombre}</th>
                         `;
 
-            color.tallas.forEach((talla)=>{
-                filas   +=  `<td style="background-color: rgb(210, 242, 242);">
+            color.tallas.forEach((talla) => {
+                filas += `<td style="background-color: rgb(210, 242, 242);">
                                         <p style="margin:0;width:20px;text-align:center;${talla.stock_logico != 0?'font-weight:bold':''};">${talla.stock_logico}</p>
                             </td>
                             <td width="8%">
@@ -1062,7 +1149,7 @@
                             </td>`;
             })
 
-            filas   +=  `</tr>`;
+            filas += `</tr>`;
 
         })
 
@@ -1071,8 +1158,8 @@
 
     }
 
-    function loadDataTableStocksPedido(){
-        dataTableStocksPedido =   new DataTable('#table-stocks-pedidos',{
+    function loadDataTableStocksPedido() {
+        dataTableStocksPedido = new DataTable('#table-stocks-pedidos', {
             language: {
                 "sEmptyTable": "No hay datos disponibles en la tabla",
                 "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
@@ -1086,14 +1173,14 @@
                 "sSearch": "Buscar:",
                 "sZeroRecords": "No se encontraron resultados",
                 "oPaginate": {
-                        "sFirst": "Primero",
-                        "sLast": "Último",
-                        "sNext": "Siguiente",
-                        "sPrevious": "Anterior"
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
                 },
                 "oAria": {
-                        "sSortAscending": ": activar para ordenar la columna de manera ascendente",
-                        "sSortDescending": ": activar para ordenar la columna de manera descendente"
+                    "sSortAscending": ": activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": activar para ordenar la columna de manera descendente"
                 }
             }
         });
@@ -1162,7 +1249,7 @@
     }*/
 
     //======== LIMPIAR TABLA PRODUCTOS ========
-    function clearTabla(bodyTable){
+    function clearTabla(bodyTable) {
         while (bodyTable.firstChild) {
             bodyTable.removeChild(bodyTable.firstChild);
         }
@@ -1170,49 +1257,50 @@
 
 
     //=========== CARGAR PRODUCTOS PREVIOS =======
-    const cargarProductosPrevios=()=>{
+    const cargarProductosPrevios = () => {
 
         //====== CARGANDO EMBALAJE Y ENVÍO PREVIO =======
-        tfootEmbalaje.value     =   @json($pedido->monto_embalaje);
-        tfootEnvio.value        =   @json($pedido->monto_envio);
+        tfootEmbalaje.value = @json($pedido->monto_embalaje);
+        tfootEnvio.value = @json($pedido->monto_envio);
 
-        const productosPrevios  =   @json($pedido_detalles);
+        const productosPrevios = @json($pedido_detalles);
 
         //====== CARGANDO CARRITO ======
         const producto_color_procesados = [];
 
-        productosPrevios.forEach((productoPrevio)=>{
-            const id    =   `${productoPrevio.producto_id}-${productoPrevio.color_id}`;
+        productosPrevios.forEach((productoPrevio) => {
+            const id = `${productoPrevio.producto_id}-${productoPrevio.color_id}`;
 
-            if(!producto_color_procesados.includes(id)){
-                const producto ={
-                    producto_id:            productoPrevio.producto_id,
-                    producto_nombre:        productoPrevio.producto_nombre,
-                    producto_codigo:        productoPrevio.producto_codigo,
-                    modelo_nombre:          productoPrevio.modelo_nombre,
-                    color_id:               productoPrevio.color_id,
-                    color_nombre:           productoPrevio.color_nombre,
-                    precio_venta:           productoPrevio.precio_unitario,
-                    subtotal:               0,
-                    subtotal_nuevo:         0,
-                    porcentaje_descuento:   parseFloat(productoPrevio.porcentaje_descuento),
-                    monto_descuento:        0,
-                    precio_venta_nuevo:     0,
-                    tallas:[]
+            if (!producto_color_procesados.includes(id)) {
+                const producto = {
+                    producto_id: productoPrevio.producto_id,
+                    producto_nombre: productoPrevio.producto_nombre,
+                    producto_codigo: productoPrevio.producto_codigo,
+                    modelo_nombre: productoPrevio.modelo_nombre,
+                    color_id: productoPrevio.color_id,
+                    color_nombre: productoPrevio.color_nombre,
+                    precio_venta: productoPrevio.precio_unitario,
+                    subtotal: 0,
+                    subtotal_nuevo: 0,
+                    porcentaje_descuento: parseFloat(productoPrevio.porcentaje_descuento),
+                    monto_descuento: 0,
+                    precio_venta_nuevo: 0,
+                    tallas: []
                 }
 
                 //==== BUSCANDO SUS TALLAS ====
-                const tallas = productosPrevios.filter((t)=>{
-                    return t.producto_id==productoPrevio.producto_id && t.color_id==productoPrevio.color_id;
+                const tallas = productosPrevios.filter((t) => {
+                    return t.producto_id == productoPrevio.producto_id && t.color_id ==
+                        productoPrevio.color_id;
                 })
 
-                if(tallas.length > 0){
+                if (tallas.length > 0) {
                     const producto_color_tallas = [];
-                    tallas.forEach((t)=>{
+                    tallas.forEach((t) => {
                         const talla = {
-                            talla_id:           t.talla_id,
-                            talla_nombre:       t.talla_nombre,
-                            cantidad:           parseInt(t.cantidad),
+                            talla_id: t.talla_id,
+                            talla_nombre: t.talla_nombre,
+                            cantidad: parseInt(t.cantidad),
                         }
                         producto_color_tallas.push(talla);
                     })
@@ -1230,8 +1318,8 @@
         //===== PINTANDO DETALLE ======
         pintarDetallePedido(carrito);
         //========= PINTAR DESCUENTOS Y CALCULARLOS ============
-        carrito.forEach((c)=>{
-            calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+        carrito.forEach((c) => {
+            calcularDescuento(c.producto_id, c.color_id, c.porcentaje_descuento);
         })
 
         //===== CALCULAR MONTOS Y PINTARLOS ======
@@ -1239,12 +1327,12 @@
 
     }
 
-    function pintarDetalleNoEditable(productosNoEditables){
-        const tbodyNoEditable   =   document.querySelector('#table-detalle-noeditable tbody');
-        let fila    =   ``;
-        let total   =   0;
-        productosNoEditables.forEach((p)=>{
-            fila    +=   `<tr>
+    function pintarDetalleNoEditable(productosNoEditables) {
+        const tbodyNoEditable = document.querySelector('#table-detalle-noeditable tbody');
+        let fila = ``;
+        let total = 0;
+        productosNoEditables.forEach((p) => {
+            fila += `<tr>
                                 <th scope="row">${p.producto_nombre}</th>
                                 <td>${p.color_nombre}</td>
                                 <td>${p.talla_nombre}</td>
@@ -1254,53 +1342,54 @@
                                 <td>${p.precio_unitario_nuevo}</td>
                                 <td>${p.importe_nuevo}</td>
                             </tr>`;
-            total   +=  parseFloat(p.importe_nuevo);
+            total += parseFloat(p.importe_nuevo);
         })
         tbodyNoEditable.innerHTML = fila;
 
-        noEditTotal =   parseFloat(total);
+        noEditTotal = parseFloat(total);
         const formattedTotal = 'S/ ' + total.toLocaleString('es-PE', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
-        document.querySelector('.total-pagar-noedit').textContent   =   formattedTotal;
+        document.querySelector('.total-pagar-noedit').textContent = formattedTotal;
     }
 
     //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
-    function setCantidadesTablero(){
-        carrito.forEach((c)=>{
-            c.tallas.forEach((t)=>{
-                const inputLoad = document.querySelector(`#inputCantidad_${c.producto_id}_${c.color_id}_${t.talla_id}`);
-                if(inputLoad){
+    function setCantidadesTablero() {
+        carrito.forEach((c) => {
+            c.tallas.forEach((t) => {
+                const inputLoad = document.querySelector(
+                    `#inputCantidad_${c.producto_id}_${c.color_id}_${t.talla_id}`);
+                if (inputLoad) {
                     inputLoad.value = t.cantidad;
                 }
             })
             //==== UBICANDO PRECIOS DE VENTA SELECCIONADOS ======
-            const selectPrecioVenta =   document.querySelector(`#precio-venta-${c.producto_id}`);
-            if(selectPrecioVenta){
-                selectPrecioVenta.value =   c.precio_venta;
+            const selectPrecioVenta = document.querySelector(`#precio-venta-${c.producto_id}`);
+            if (selectPrecioVenta) {
+                selectPrecioVenta.value = c.precio_venta;
             }
         })
     }
 
-    function limpiarSelectPreciosVenta(){
+    function limpiarSelectPreciosVenta() {
         $('#precio_venta').empty();
         $('#precio_venta').trigger('change');
     }
 
     //============= ABRIR MODAL CLIENTE =============
-    function openModalCliente(){
+    function openModalCliente() {
         $("#modal_cliente").modal("show");
     }
 
     //======= PINTAR TABLE PEDIDO ATENCIÓN HISTORIAL =======
-    function pintarTablePedidoAtencionHistorial(){
-        let filas               =   ``;
-        const tbody             =   document.querySelector('#table_pedido_atencion_historial tbody');
-        const pedido_detalles   =   @json($pedido_detalles);
+    function pintarTablePedidoAtencionHistorial() {
+        let filas = ``;
+        const tbody = document.querySelector('#table_pedido_atencion_historial tbody');
+        const pedido_detalles = @json($pedido_detalles);
 
-        pedido_detalles.forEach((producto)=>{
-            filas   +=  `<tr>
+        pedido_detalles.forEach((producto) => {
+            filas += `<tr>
                             <th>${producto.producto_nombre}</th>
                             <th>${producto.color_nombre}</th>
                             <th>${producto.talla_nombre}</th>
@@ -1312,16 +1401,16 @@
                         </tr>`;
         })
 
-        tbody.innerHTML =   filas;
+        tbody.innerHTML = filas;
     }
 
-    function actualizarPedido(formPedido){
+    function actualizarPedido(formPedido) {
 
         Swal.fire({
             title: 'Desea actualizar el pedido?',
             text: "Se realizarán cambios",
             icon: 'question',
-        showCancelButton: true,
+            showCancelButton: true,
             confirmButtonColor: "#1ab394",
             confirmButtonText: 'Si, Confirmar',
             cancelButtonText: "No, Cancelar",
@@ -1340,81 +1429,83 @@
                     }
                 });
 
-                    try {
-                        const formData      =   new FormData(formPedido);
-                        formData.append('lstPedido',JSON.stringify(carrito));
-                        formData.append('sede_id',@json($sede_id));
-                        formData.append('registrador_id',@json($registrador->id));
-                        formData.append('amountsPedido',JSON.stringify(amountsPedido));
+                try {
+                    const formData = new FormData(formPedido);
+                    formData.append('lstPedido', JSON.stringify(carrito));
+                    formData.append('sede_id', @json($sede_id));
+                    formData.append('registrador_id', @json($registrador->id));
+                    formData.append('amountsPedido', JSON.stringify(amountsPedido));
 
-                        /*
-                        const delay = new Promise(resolve => setTimeout(resolve, 10000));
-                        const request = axios.post(
-                            route('pedidos.pedido.update', { id: @json($pedido->id) }),
-                            formData,
-                            {
-                                headers: {
-                                    "X-HTTP-Method-Override": "PUT"
-                                }
+                    /*
+                    const delay = new Promise(resolve => setTimeout(resolve, 10000));
+                    const request = axios.post(
+                        route('pedidos.pedido.update', { id: @json($pedido->id) }),
+                        formData,
+                        {
+                            headers: {
+                                "X-HTTP-Method-Override": "PUT"
                             }
-                        );
-                        const [res] = await Promise.all([request, delay]);
-                        */
+                        }
+                    );
+                    const [res] = await Promise.all([request, delay]);
+                    */
 
 
 
-                        const res   =   await axios.post(route('pedidos.pedido.update',{id:@json($pedido->id)}),
-                        formData,{
+                    const res = await axios.post(route('pedidos.pedido.update', {
+                            id: @json($pedido->id)
+                        }),
+                        formData, {
                             headers: {
                                 "X-HTTP-Method-Override": "PUT"
                             }
                         });
 
 
-                        if(res.data.success){
-                            const routeIndex        =   "{{ route('pedidos.pedido.index') }}";
-                            toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
-                            window.location.href    =   routeIndex;
-                        }else{
-                            if('lstErroresValidacion' in res.data){
-                                pintarErroresValidacion(res.data.lstErroresValidacion);
-                                return;
-                            }
-                            toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    if (res.data.success) {
+                        const routeIndex = "{{ route('pedidos.pedido.index') }}";
+                        toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
+                        window.location.href = routeIndex;
+                    } else {
+                        if ('lstErroresValidacion' in res.data) {
+                            pintarErroresValidacion(res.data.lstErroresValidacion);
+                            return;
                         }
+                        toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                    }
 
-                    } catch (error) {
-                        if (error.response) {
-                            if (error.response.status === 422) {
-                                const errors = error.response.data.errors;
-                                pintarErroresValidacion(errors, 'error');
-                                Swal.close();
-                                toastr.error("ERRORES DE VALIDACIÓN!!!");
-                            } else {
-                                Swal.close();
-                                toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
-                            }
-                        } else if (error.request) {
+                } catch (error) {
+                    if (error.response) {
+                        if (error.response.status === 422) {
+                            const errors = error.response.data.errors;
+                            pintarErroresValidacion(errors, 'error');
                             Swal.close();
-                            toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
+                            toastr.error("ERRORES DE VALIDACIÓN!!!");
                         } else {
                             Swal.close();
-                            toastr.error(error.message, 'ERROR DESCONOCIDO');
+                            toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
                         }
+                    } else if (error.request) {
+                        Swal.close();
+                        toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.',
+                            'ERROR DE CONEXIÓN');
+                    } else {
+                        Swal.close();
+                        toastr.error(error.message, 'ERROR DESCONOCIDO');
                     }
+                }
 
 
             } else if (result.dismiss === Swal.DismissReason.cancel) {
 
                 swalWithBootstrapButtons.fire(
-                'Cancelado',
-                'La Solicitud se ha cancelado.',
-                'error'
+                    'Cancelado',
+                    'La Solicitud se ha cancelado.',
+                    'error'
                 )
 
             }
         })
     }
-
 </script>
 @endpush

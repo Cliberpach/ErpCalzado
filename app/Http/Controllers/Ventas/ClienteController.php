@@ -384,7 +384,7 @@ array:14 [
     public function getCliente($tipo_documento,$nro_documento){
         try {
             //========== OBTENIENDO CLIENTE ==========
-            $cliente    =   DB::select('SELECT 
+            $cliente    =   DB::select('SELECT
                             c.*
                             FROM clientes AS c
                             WHERE c.tipo_documento = ?

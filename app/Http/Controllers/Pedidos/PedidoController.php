@@ -123,7 +123,6 @@ class PedidoController extends Controller
     {
 
         $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
-        $clientes           =   Cliente::where('estado', 'ACTIVO')->get();
         $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
 
         $sede_id            =   Auth::user()->sede_id;
@@ -152,7 +151,6 @@ class PedidoController extends Controller
                 'almacenes',
                 'sede_id',
                 'empresas',
-                'clientes',
                 'condiciones',
                 'modelos',
                 'tallas',
@@ -342,7 +340,6 @@ array:18 [
     {
 
         $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
-        $clientes           =   Cliente::where('estado', 'ACTIVO')->get();
         $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
 
         //======= OBTENIENDO DATOS DEL PEDIDO ========
@@ -387,12 +384,13 @@ array:18 [
         $tipos_documento    =   tipos_documento();
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();
+        $cliente            =   Cliente::findOrFail($pedido->cliente_id);
 
         return view(
             'pedidos.pedido.edit',
             compact(
                 'empresas',
-                'clientes',
+                'cliente',
                 'almacenes',
                 'condiciones',
                 'modelos',

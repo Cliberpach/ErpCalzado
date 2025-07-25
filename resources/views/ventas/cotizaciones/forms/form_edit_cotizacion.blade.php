@@ -77,18 +77,13 @@
                     <div class="form-group">
                         <label for="cliente" class="required">Cliente</label>
                         <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">Registrar</button>
-                        <select id="cliente" name="cliente" class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}" required>
-                            <option></option>
-                            @foreach ($clientes as $cliente)
-                                <option @if ($cliente->id == 1) selected @endif value="{{ $cliente->id }}">
-                                    {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
-                                </option>
-                            @endforeach
-                        </select>                          
+                        <select id="cliente" name="cliente" class="select2_form form-control" required>
+                            <option id="{{$cliente->id}}">{{$cliente->tipo_documento.':'.$cliente->documento."-".$cliente->nombre}}</option>
+                        </select>
                     </div>
                 </div>
             </div>
         </div>
-       
+
     </div>
 </form>

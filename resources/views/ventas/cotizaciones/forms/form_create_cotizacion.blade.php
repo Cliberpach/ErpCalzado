@@ -1,6 +1,6 @@
 <form action="" method="POST" id="form-cotizacion">
     @csrf
-    
+
     <div class="row">
         <div class="col-12">
             <h4><b>Datos Generales</b></h4>
@@ -34,7 +34,7 @@
 
         <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
             <div class="form-group">
-                <label style="font-weight: bold;" class="required" for="condicion_id">ALMACÉN</label>
+                <label style="font-weight: bold;" class="required" for="almacen">ALMACÉN</label>
                 <select onchange="cambiarAlmacen(this.value)" id="almacen" name="almacen" class="select2_form form-control" required>
                     <option></option>
                     @foreach ($almacenes as $almacen)
@@ -58,7 +58,11 @@
                 <select id="condicion_id" name="condicion_id" class="select2_form form-control {{ $errors->has('condicion_id') ? ' is-invalid' : '' }}" required>
                     <option></option>
                     @foreach ($condiciones as $condicion)
-                        <option value="{{ $condicion->id }}">
+                        <option
+                        @if ($condicion->id == 1)
+                            selected
+                        @endif
+                        value="{{ $condicion->id }}">
                             {{ $condicion->descripcion }} {{ $condicion->dias > 0 ? $condicion->dias.' días' : '' }}
                         </option>
                     @endforeach
@@ -76,16 +80,11 @@
                         <button type="button" class="btn btn-outline btn-primary" onclick="openModalCliente()">Registrar</button>
                         <select id="cliente" name="cliente" class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}" required>
                             <option></option>
-                            @foreach ($clientes as $cliente)
-                                <option @if ($cliente->id == 1) selected @endif value="{{ $cliente->id }}">
-                                    {{ $cliente->getDocumento() }} - {{ $cliente->nombre }}
-                                </option>
-                            @endforeach
-                        </select>                          
+                        </select>
                     </div>
                 </div>
             </div>
         </div>
-       
+
     </div>
 </form>
