@@ -133,15 +133,15 @@ export default {
         let $this = this;
         $this.loadNotifications();
 
-        Echo.channel("notifySunat").listen("NotifySunatEvent", e => {
-            console.log('llegue')
-            $this.loadNotifications();
-        });
+        // Echo.channel("notifySunat").listen("NotifySunatEvent", e => {
+        //     console.log('llegue')
+        //     $this.loadNotifications();
+        // });
 
-        Echo.channel("ventasCaja").listen("VentasCajaEvent", e => {
-            console.log('llegue nueva venta',e)
-            $this.loadNotifications();
-        });
+        // Echo.channel("ventasCaja").listen("VentasCajaEvent", e => {
+        //     console.log('llegue nueva venta',e)
+        //     $this.loadNotifications();
+        // });
     },
     methods: {
         loadNotifications: async function () {

@@ -1,5 +1,6 @@
 const mix = require('laravel-mix');
 const path = require('path');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 /*
  |--------------------------------------------------------------------------
@@ -32,7 +33,10 @@ mix.webpackConfig({
         fallback: {
             os: require.resolve('os-browserify/browser')
         }
-    }
+    },
+    plugins: [
+        new BundleAnalyzerPlugin()
+    ]
 }).sourceMaps()
 
 mix.disableNotifications();

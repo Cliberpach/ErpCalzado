@@ -55,18 +55,21 @@
                                                     <th class="text-center letrapequeña bg-white">CV</th>
                                                     <th class="text-center letrapequeña bg-white">PE</th>
                                                     <th class="text-center letrapequeña bg-white">CDR</th>
-                                                    <th data-priority="2" class="text-center letrapequeña bg-white">DOC</th>
+                                                    <th data-priority="2" class="text-center letrapequeña bg-white">DOC
+                                                    </th>
                                                     <th class="text-center letrapequeña bg-white">FECHA</th>
                                                     <th class="text-center letrapequeña bg-white">REGISTRADOR</th>
                                                     <th class="text-center letrapequeña bg-white">SEDE</th>
                                                     <th class="text-center letrapequeña bg-white">ALMACÉN</th>
-                                                    <th data-priority="3" class="text-center letrapequeña bg-white">CLIENTE</th>
+                                                    <th data-priority="3" class="text-center letrapequeña bg-white">
+                                                        CLIENTE</th>
                                                     <th class="text-center letrapequeña bg-white">MONTO</th>
                                                     <th class="text-center letrapequeña bg-white">CONDICION</th>
                                                     <th class="text-center letrapequeña bg-white">ESTADO</th>
                                                     <th class="text-center letrapequeña bg-white">SUNAT</th>
                                                     <th class="text-center letrapequeña bg-white">DESCARGAS</th>
-                                                    <th data-priority="1" class="text-center letrapequeña bg-white">ACCIONES</th>
+                                                    <th data-priority="1" class="text-center letrapequeña bg-white">
+                                                        ACCIONES</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -93,24 +96,23 @@
 
 
 import ModalPdfDownloadVue from '../../../components/ventas/ModalPdfDownload.vue';
-import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
-import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
+// import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
+// import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
 
-// import 'bootstrap'
-// import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 import 'datatables.net-responsive-bs4';
 import 'datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css';
 
 export default {
     name: "VentaLista",
-    props: ["imginicial","lst_modos_pago"],
+    props: ["imginicial", "lst_modos_pago"],
     components: {
-        ModalVentasVue,
         ModalPdfDownloadVue,
-        ModalEnvioVue
+        ModalVentasVue: () => import('../../../components/ventas/ModalVentas.vue'),
+        ModalEnvioVue: () => import('../../../components/ventas/ModalEnvio.vue'),
     },
     data() {
+        const today = new Date().toISOString().slice(0, 10); 
         return {
             tabla: null,
             documentos: [],
@@ -124,15 +126,15 @@ export default {
             },
             offset: 11,
             params: {
-                fechaInicial: this.$moment().format("YYYY-MM-DD"),
-                fechaFinal: this.$moment().format("YYYY-MM-DD"),
+                fechaInicial: today,
+                fechaFinal: today,
                 cliente: "",
                 numero_doc: "",
                 tamanio: 10,
                 page: 1,
             },
-            fechaInicial: this.$moment().format("YYYY-MM-DD"),
-            fechaFinal: this.$moment().format("YYYY-MM-DD"),
+            fechaInicial: today,
+            fechaFinal: today,
             cliente: "",
             cliente_id: null,
             numero_doc: "",
@@ -578,7 +580,7 @@ export default {
                         d.fechaFin = vm.fechaFinal;
                     }
                 },
-                responsive:true,
+                responsive: true,
                 createdRow: function (row, data, dataIndex) {
                     $(row).addClass('letrapequeña');
                 },

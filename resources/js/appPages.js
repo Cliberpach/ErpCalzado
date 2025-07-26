@@ -4,26 +4,31 @@ import axios from 'axios';
 import Vue from 'vue';
 import VueAxios from "vue-axios";
 import vSelect from 'vue-select';
-import BootstrapVue from 'bootstrap-vue';
+import VentaCreate from './views/Ventas/documentos/create.vue';
+// import BootstrapVue from 'bootstrap-vue';
 
 window.Vue = require('vue');
-var moment = require('moment');
+// var moment = require('moment');
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 axios.defaults.headers.post["X-CSRF-TOKEN"] = $('meta[name=csrf-token]').attr("content");
 axios.defaults.headers.post["X-Requested-With"] = "XMLHttpRequest";
 axios.defaults.baseURL = location.origin;
 Vue.use(VueAxios, axios);
-Vue.prototype.$moment = moment;
-Vue.prototype.$fechaActual = moment().format("YYYY-MM-DD");
+// Vue.prototype.$moment = moment;
+// Vue.prototype.$fechaActual = moment().format("YYYY-MM-DD");
 
-Vue.use(BootstrapVue);
+const today = new Date();
+const pad = n => n.toString().padStart(2, '0');
+Vue.prototype.$fechaActual = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+// Vue.use(BootstrapVue);
 
 
 //modulos
 Vue.component("ventas-app", require("./views/Ventas/documentos/appVenta.vue").default);
 Vue.component("venta-lista", require("./views/Ventas/documentos/Index.vue").default);
 // Vue.component("venta-create", require("./views/Ventas/documentos/create.vue").default);
-Vue.component("venta-create", () => import("./views/Ventas/documentos/create.vue"));
+Vue.component("venta-create", VentaCreate);
 Vue.component('v-select', vSelect)
 
 const appPages = new Vue({
