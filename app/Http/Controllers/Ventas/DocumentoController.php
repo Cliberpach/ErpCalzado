@@ -1135,7 +1135,7 @@ array:27 [
 
             //========== CALCULAR MONTOS ======
             $montos =   DocumentoController::calcularMontos($datos_validados->lstVenta, $datos_validados);
-           
+
             //======== OBTENIENDO LEYENDA ======
             $legenda                =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
 
@@ -2421,17 +2421,17 @@ array:27 [
         $registrador    =   User::find($documento->user_id);
         $sede           =   Sede::find($documento->sede_id);
         $almacenes      =   Almacen::where('estado', 'ACTIVO')
-            ->where('tipo_almacen', 'PRINCIPAL')
-            ->get();
+                            ->where('tipo_almacen', 'PRINCIPAL')
+                            ->get();
 
         $cliente        =   DB::table('clientes as c')
-            ->select(
-                'c.id',
-                DB::raw('CONCAT(c.tipo_documento,":",c.documento,"-",c.nombre) as descripcion'),
-            )
-            ->where('c.id', $documento->cliente_id)
-            ->where('c.estado', 'ACTIVO')
-            ->get()[0];
+                            ->select(
+                                'c.id',
+                                DB::raw('CONCAT(c.tipo_documento,":",c.documento,"-",c.nombre) as descripcion'),
+                            )
+                            ->where('c.id', $documento->cliente_id)
+                            ->where('c.estado', 'ACTIVO')
+                            ->get()[0];
 
 
         $departamentos  =   Departamento::all();
@@ -2446,6 +2446,14 @@ array:27 [
                 $cont = $cont + 1;
             }
         }
+
+        $origenes_ventas    =   DB::select('SELECT
+                                    td.id,
+                                    td.descripcion
+                                    FROM tabladetalles AS td
+                                    WHERE
+                                    td.tabla_id="36"
+                                    AND td.estado="ACTIVO"');
 
 
 
@@ -2465,7 +2473,8 @@ array:27 [
             'cliente'           =>  $cliente,
             'tipos_documento'   =>  tipos_documento(),
             'tipo_clientes'     =>  tipo_clientes(),
-            'tipos_venta'       =>  $tipos_venta
+            'tipos_venta'       =>  $tipos_venta,
+            'origenes_ventas'   =>  $origenes_ventas,
         ]);
     }
 

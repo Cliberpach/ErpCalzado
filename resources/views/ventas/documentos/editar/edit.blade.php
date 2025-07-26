@@ -1,4 +1,4 @@
-@extends('layout') 
+@extends('layout')
 @section('content')
 
 
@@ -7,7 +7,7 @@
 
 @include('ventas.documentos.modal-envio')
 
-@include('ventas.cotizaciones.modal-cliente') 
+@include('ventas.cotizaciones.modal-cliente')
 
 
 <style>
@@ -142,7 +142,7 @@
         transform: scale(1);
       }
     }
-    
+
 </style>
 <div id="overlay" class="overlay">
     <div class="fulfilling-bouncing-circle-spinner">
@@ -177,9 +177,9 @@
                     <input type="hidden" id='asegurarCierre'>
 
                     @include('ventas.documentos.editar.forms.form_edit')
-                   
+
                     <hr>
-                  
+
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="panel panel-primary" id="panel_detalle">
@@ -198,7 +198,7 @@
 
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
                                         <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
-                                        <select 
+                                        <select
                                             id="producto"
                                             class=""
                                             onchange="getColoresTallas()" >
@@ -214,10 +214,10 @@
 
                                     <div class="col-12">
                                         <div class="table-responsive">
-                                            @include('ventas.documentos.editar.tables.tbl_stock') 
+                                            @include('ventas.documentos.editar.tables.tbl_stock')
                                         </div>
                                     </div>
-                                    
+
 
                                     <div class="col-lg-2 col-xs-12">
                                         <div class="form-group">
@@ -226,7 +226,7 @@
                                                 id="btn_agregar_detalle"> <i class="fa fa-plus"></i>
                                                 AGREGAR</button>
                                         </div>
-                                    </div> 
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -266,7 +266,7 @@
 
                         <div class="col-md-6 text-right">
 
-                      
+
                             <a onclick="regresarClick(event)" href="javascript:void(0)" id="btn_cancelar" class="btn btn-w-m btn-default">
                                 <i class="fa fa-arrow-left"></i> Regresar
                             </a>
@@ -285,10 +285,6 @@
 @stop
 
 @push('styles')
-
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
-
 <style>
     .my-swal {
         z-index: 3000 !important;
@@ -299,20 +295,11 @@
 @endpush
 
 @push('scripts')
-<!-- Select2 -->
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
-
-
-<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 <script>
 
-    const tableDetalleBody      =   document.querySelector('#table-detalle tbody');   
-    const tableStocksBody       =   document.querySelector('#table-stocks tbody');   
+    const tableDetalleBody      =   document.querySelector('#table-detalle tbody');
+    const tableStocksBody       =   document.querySelector('#table-stocks tbody');
     const detalles              =   @json($detalles);
     const tallasBD              =   @json($tallas);
     const documento             =   @json($documento);
@@ -354,7 +341,7 @@
         loadSelect2();
         cargarProductosPrevios();     //======== FORMATEAR DETALLE ==============
         asegurarCierre=1;
-       
+
         await getTipoEnvios();
         await getTiposPagoEnvio();
         await getOrigenesVentas();
@@ -363,7 +350,7 @@
         await getEmpresasEnvio(tipo_envio);
         setUbicacionDepartamento(13,'first');
         eventsModalEnvio();
-       
+
     })
 
     function events(){
@@ -378,7 +365,7 @@
                 toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA','OPERACIÓN INCORRECTA');
                 return;
             }
-            
+
             //======== ANIMACIÓN ======
             mostrarAnimacion();
             //======= LIMPIAR ALERTAS PREVIAS ======
@@ -403,7 +390,7 @@
 
             //========= PINTAR TABLA DETALLE VENTA =======
             pintarDetalle();
-            
+
             //===== RECALCULANDO DESCUENTOS, ESTO EDITA LA TABLA DETALLE VENTA TMB =====
             carrito.forEach((c)=>{
                 calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
@@ -464,7 +451,7 @@
                 const regex = /^[0-9]+(\.[0-9]{0,2})?$/;
                 //==== BORRAR CARACTER NO NUMÉRICO ====
                 if (!regex.test(valor)) {
-                    event.target.value = valor.slice(0, -1); 
+                    event.target.value = valor.slice(0, -1);
                     return;
                 }
 
@@ -504,7 +491,7 @@
             }
 
             actualizarVenta(e.target);
-       
+
         })
 
         //=========== MODAL DESPACHO =========
@@ -538,9 +525,9 @@
                     $('#tipo_doc_destinatario').val(1).trigger('change');
                     document.querySelector('#nro_doc_destinatario').value   =   nroDocumento;
                     document.querySelector('#nombres_destinatario').value   =   cliente_nombre_recortado;
-                }                
+                }
             }
-         
+
             //========= ABRIR MODAL ENVÍO =======
             $("#modal_envio").modal("show");
         })
@@ -556,9 +543,9 @@
         });
 
         $(".select2_modal_cliente").select2({
-            placeholder: "SELECCIONAR", 
-            allowClear: true,          
-            width: '100%'        
+            placeholder: "SELECCIONAR",
+            allowClear: true,
+            width: '100%'
         });
 
         $('#cliente').select2({
@@ -578,13 +565,13 @@
                 }
             },
             ajax: {
-                url: '{{route("utilidades.getClientes")}}', 
+                url: '{{route("utilidades.getClientes")}}',
                 dataType: 'json',
-                delay: 250, 
+                delay: 250,
                 data: function(params) {
                     return {
                         search: params.term,
-                        page: params.page || 1  
+                        page: params.page || 1
                     };
                 },
                 processResults: function(data,params) {
@@ -594,10 +581,10 @@
                         return {
                             results: clientes.map(item => ({
                                 id: item.id,
-                                text: item.descripcion 
+                                text: item.descripcion
                             })),
                             pagination: {
-                                more: data.more 
+                                more: data.more
                             }
                         };
                     }else{
@@ -606,7 +593,7 @@
                             results:[]
                         }
                     }
-                    
+
                 },
                 cache: true
             },
@@ -636,14 +623,14 @@
                 }
             },
             ajax: {
-                url: '{{route('utilidades.getProductosTodos')}}', 
+                url: '{{route('utilidades.getProductosTodos')}}',
                 dataType: 'json',
-                delay: 250, 
+                delay: 250,
                 data: function(params) {
                     return {
                         search: params.term,
                         almacen_id: $('#almacen').val(),
-                        page: params.page || 1  
+                        page: params.page || 1
                     };
                 },
                 processResults: function(data,params) {
@@ -653,10 +640,10 @@
                         return {
                             results: productos.map(item => ({
                                 id: item.producto_id,
-                                text: item.producto_completo 
+                                text: item.producto_completo
                             })),
                             pagination: {
-                                more: data.more 
+                                more: data.more
                             }
                         };
                     }else{
@@ -665,7 +652,7 @@
                             results:[]
                         }
                     }
-                    
+
                 },
                 cache: true
             },
@@ -700,23 +687,23 @@
 
                 fecha.setDate(fecha.getDate() + dias);
 
-                const nueva_fecha_vencimiento = fecha.toISOString().split('T')[0]; 
+                const nueva_fecha_vencimiento = fecha.toISOString().split('T')[0];
 
                 document.querySelector('#fecha_vencimiento').value = nueva_fecha_vencimiento;
-            } 
+            }
         }
     }
 
 
 
-  
 
-   
+
+
     function regresarClick(event){
-        event.preventDefault(); 
-        if (!event.target.classList.contains("disabled")) { 
-            event.target.classList.add("disabled"); 
-            window.location.href = '{{ route('ventas.documento.index') }}'; 
+        event.preventDefault();
+        if (!event.target.classList.contains("disabled")) {
+            event.target.classList.add("disabled");
+            window.location.href = '{{ route('ventas.documento.index') }}';
         }
     }
 
@@ -726,14 +713,14 @@
        //========== obteniendo producto_id color_id ======
        const producto_id    =   pc.getAttribute('data-producto');
        const color_id       =   pc.getAttribute('data-color');
-    
+
 
        //===== OBTENIENDO ITEM DEL CARRITO ========
         const item = carrito.filter((c)=>{
             return c.producto_id == producto_id && c.color_id == color_id;
         })
 
-    
+
         //=== FORMANDO OBJETO ====
          const producto = {
             producto_id    : producto_id,
@@ -755,7 +742,7 @@
         calcularMontos();
 
         toastr.success(`${item[0].producto_nombre} - ${item[0].color_nombre}`,'ELIMINADO DEL DETALLE');
-       
+
     }
 
     //========= VALIDAR TIPO DOC =======
@@ -773,7 +760,7 @@
     const pintarMontos = ()=>{
         tfootSubtotal.textContent   =   cotizacion.sub_total;
         tfootEmbalaje.value         =   cotizacion.monto_embalaje;
-        tfootEnvio.value            =   cotizacion.monto_envio;      
+        tfootEnvio.value            =   cotizacion.monto_envio;
         tfootTotal.textContent      =   cotizacion.total;
         tfootIgv.textContent        =   cotizacion.total_igv;
         tfootTotalPagar.textContent =   cotizacion.total_pagar;
@@ -798,7 +785,7 @@
         reverseButtons: true
         }).then(async (result) => {
         if (result.isConfirmed) {
-           
+
             try {
 
                 Swal.fire({
@@ -812,7 +799,7 @@
                     }
                 });
 
-                
+
                 const documento_id  =   @json($documento->id);
                 const formData      =   new FormData(formActualizarVenta);
                 formData.append('lstVenta',JSON.stringify(carrito));
@@ -858,7 +845,7 @@
                 } else {
                     toastr.error(error,'ERROR EN LA PETICIÓN ACTUALIZAR VENTA');
                     Swal.close();
-                }    
+                }
             }
 
         } else if (
@@ -1012,7 +999,7 @@
                             }
                         }
                     });
-                    
+
                 }
             }
         })
@@ -1028,12 +1015,12 @@
 
     }
 
-   
+
     //=========== AGREGAR PRODUCTOS AL CARRITO =============
     async function agregarProducto() {
 
         const inputsCantidad = document.querySelectorAll('.inputCantidad');
-            
+
         for (const ic of inputsCantidad) {
 
             const cantidad = ic.value ? ic.value : null;
@@ -1093,7 +1080,7 @@
                     if (indiceTalla !== -1) {
                         const cantidadAnterior = carrito[indiceProductoColor].tallas[indiceTalla].cantidad;
                         carrito[indiceProductoColor].tallas.splice(indiceTalla, 1);
-                            
+
                         const cantidadTallas = carrito[indiceProductoColor].tallas.length;
 
                         if (cantidadTallas == 0) {
@@ -1103,8 +1090,8 @@
                 }
             }
         }
-    
-       
+
+
     }
 
     //====== REORDENAR CARRITO =======
@@ -1130,15 +1117,15 @@
             const producto_id           =   inputCantidad.getAttribute('data-producto-id');
             const color_id              =   inputCantidad.getAttribute('data-color-id');
             const talla_id              =   inputCantidad.getAttribute('data-talla-id');
-            
-            try {  
+
+            try {
                 const url = `/get-stocklogico/${producto_id}/${color_id}/${talla_id}`;
                 const response = await axios.get(url);
                 if(response.data.message=='success'){
                     const stock_logico  =   response.data.data[0].stock_logico;
                     return stock_logico;
                 }
-                 
+
             } catch (error) {
                 toastr.error(`El producto no cuenta con registros en esa talla`,"Error");
                 event.target.value='';
@@ -1187,7 +1174,7 @@
             });
 
             console.log(res)
-                
+
         } catch (ex) {
 
         }
@@ -1270,7 +1257,7 @@
             descuento += parseFloat(c.monto_descuento);
         })
 
-        total_pagar =   subtotal + embalaje + envio;        
+        total_pagar =   subtotal + embalaje + envio;
         total       =   total_pagar/1.18;
         igv         =   total_pagar - total;
 
@@ -1333,7 +1320,7 @@
             }
         })
 
-      
+
         //===== CALCULAR SUBTOTAL POR FILA DEL DETALLE ======
         calcularSubTotal();
 
@@ -1345,7 +1332,7 @@
             calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
         })
 
-        
+
         //===== CALCULAR MONTOS Y PINTARLOS ======
         calcularMontos();
     }
@@ -1369,8 +1356,8 @@
 
 
             //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
-            const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`); 
-            const detailSubtotal    =   document.querySelector(`.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);    
+            const detailPrecioVenta =   document.querySelector(`.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
+            const detailSubtotal    =   document.querySelector(`.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
 
             if(porcentaje_descuento !== 0){
                 detailPrecioVenta.textContent = producto_color_editar.precio_venta_nuevo;
@@ -1411,13 +1398,13 @@
                 const option_2 = new Option(producto_color_tallas.precio_venta_2, 'precio_venta_2', false, false);
                 $('#precio_venta').append(option_2);
             }
-           
+
             if(producto_color_tallas.precio_venta_3 != null){
                 const option_3 = new Option(producto_color_tallas.precio_venta_3, 'precio_venta_3', false, false);
                 $('#precio_venta').append(option_3);
             }
         }
-       
+
         // Refrescar Select2
         $('#precio_venta').trigger('change');
     }
@@ -1428,7 +1415,7 @@
         const tableStocksBody = document.querySelector('#table-stocks tbody');
 
         producto.colores.forEach((color) => {
-            filas += `  
+            filas += `
                 <tr>
                     <th scope="row" data-producto=${producto.id} data-color=${color.id}>
                         <div style="width:200px;">${producto.nombre}</div>
@@ -1485,14 +1472,14 @@
 
         carrito.forEach((c)=>{
             htmlTallas=``;
-                fila+= `<tr>   
+                fila+= `<tr>
                             <td>
                                 <i class="fas fa-trash-alt btn btn-danger delete-product"
                                 data-producto="${c.producto_id}" data-color="${c.color_id}">
-                                </i>                            
+                                </i>
                             </td>
                             <th>${c.producto_nombre}</th>
-                            <th>${c.color_nombre}</th>    
+                            <th>${c.color_nombre}</th>
                         `;
 
                 //tallas
@@ -1503,9 +1490,9 @@
                     cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
 
                     if(cantidad == 0){
-                        htmlTallas += `<td></td>`; 
+                        htmlTallas += `<td></td>`;
                     }else{
-                        htmlTallas += `<td style="font-weight:bold;">${cantidad}</td>`; 
+                        htmlTallas += `<td style="font-weight:bold;">${cantidad}</td>`;
                     }
 
                 })
@@ -1522,20 +1509,20 @@
                                     </span>
                                 </td>
                                 <td style="text-align: center;">
-                                    <input data-producto-id="${c.producto_id}" data-color-id="${c.color_id}" 
+                                    <input data-producto-id="${c.producto_id}" data-color-id="${c.color_id}"
                                     style="width:130px; margin: 0 auto;" value="${c.porcentaje_descuento}"
                                     class="form-control detailDescuento"></input>
                                 </td>
                             </tr>`;
 
                 fila+=htmlTallas;
-                tableDetalleBody.innerHTML=fila;            
+                tableDetalleBody.innerHTML=fila;
         })
     }
 
     //======== LLENAR CANTIDADES PREVIAS AL TABLERO DE STOCKS =====
     function loadCantPrevias(){
-        
+
         carrito.forEach((p)=>{
             const select_precio_venta = document.querySelector(`#precio-venta-${p.producto_id}`);
             console.log('lad cant prev')
@@ -1551,10 +1538,10 @@
                 }
             })
         })
-    } 
+    }
 
     function cambiarAlmacen(almacen_id){
-        
+
         toastr.clear();
 
         mostrarAnimacion();
@@ -1600,8 +1587,8 @@
         await this.axios.post(route('consultas.ventas.documento.no.devolver.cantidades'), {
             detalles: JSON.stringify(detalles),
             carrito: JSON.stringify(carrito)
-        });  
-        
+        });
+
     }*/
 
 
