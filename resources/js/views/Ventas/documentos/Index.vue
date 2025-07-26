@@ -51,6 +51,7 @@
                                             style="text-transform: uppercase" ref="table-documentos">
                                             <thead class="">
                                                 <tr>
+                                                    <th class="text-center letrapequeña bg-white">#</th>
                                                     <th class="text-center letrapequeña bg-white">COT</th>
                                                     <th class="text-center letrapequeña bg-white">CV</th>
                                                     <th class="text-center letrapequeña bg-white">PE</th>
@@ -94,11 +95,9 @@
 </template>
 <script>
 
-
 import ModalPdfDownloadVue from '../../../components/ventas/ModalPdfDownload.vue';
-// import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
-// import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
-
+import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
+import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
 
 import 'datatables.net-responsive-bs4';
 import 'datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css';
@@ -108,11 +107,11 @@ export default {
     props: ["imginicial", "lst_modos_pago"],
     components: {
         ModalPdfDownloadVue,
-        ModalVentasVue: () => import('../../../components/ventas/ModalVentas.vue'),
-        ModalEnvioVue: () => import('../../../components/ventas/ModalEnvio.vue'),
+        ModalVentasVue,
+        ModalEnvioVue,
     },
     data() {
-        const today = new Date().toISOString().slice(0, 10); 
+        const today = new Date().toISOString().slice(0, 10);
         return {
             tabla: null,
             documentos: [],
@@ -157,8 +156,6 @@ export default {
         },
         numero_doc(value) {
             this.params.numero_doc = value;
-            console.log(value);
-            console.log(this.params);
             this.params.page = 1;
         }
     },
@@ -174,7 +171,6 @@ export default {
         async updateDataEnvio(data_envio) {
             try {
                 const res = await axios.post(route('ventas.despachos.updateDespacho'), data_envio);
-                console.log(res);
             } catch (error) {
 
             }
@@ -184,7 +180,6 @@ export default {
             //========= TRAER LA DATA DE ENVÍO DEL DOCUMENTO ========
             try {
                 const res = await axios.get(route('ventas.despachos.getDespacho', documento_id));
-                //console.log(res);
                 if (res.data.success) {
                     //======= PASAR DATA DESPACHO AL MODAL ENVÍO =========
                     this.$refs.modalEnvioRef.metodoHijo(res.data.despacho, documento_id);
@@ -477,7 +472,6 @@ export default {
         },
         ModalPdf(item) {
             this.pdfData = item;
-            console.log(item);
         },
         PintarRowTable(aData) {
             if (aData.notas > 0) {
@@ -527,7 +521,6 @@ export default {
                         const res = await axios.post(route('ventas.regularizarVenta'), {
                             documento_id: documento.id
                         });
-                        console.log(res);
 
                         const success = res.data.success;
                         if (success) {
@@ -564,7 +557,12 @@ export default {
             if (this.tabla) {
                 this.tabla.ajax.reload();
             }
+        },
+        getRowByIdVue(table, id) {
+            const allRows = table.rows().data().toArray();
+            return allRows.find(row => row.id == id);
         }
+
     },
     mounted() {
         this.$nextTick(() => {
@@ -591,6 +589,7 @@ export default {
                     $('.dropdown-toggle').dropdown();
                 },
                 columns: [
+                    { data: 'id', name: 'cd.id', searchable: false },
                     { data: 'cotizacion_id', name: 'co.id', searchable: false },
                     { data: 'convert_de_serie', name: 'cd.convert_de_serie', searchable: false },
                     {
@@ -848,11 +847,22 @@ export default {
                 }
             });
 
+            vm.tabla.on('draw', function () {
+                console.log(vm.tabla.rows().data().toArray());
+            });
+
             // Delegación de evento para botón PDF
             $('#dt-ventas tbody').on('click', '.btn-pdf', function () {
                 const id = $(this).data('id');
-                const rowData = $('#dt-ventas').DataTable().row($(this).closest('tr')).data();
-                vm.ModalPdf(rowData);
+                const rowData = vm.getRowByIdVue(vm.tabla, id);
+
+                console.log("Row Data:", rowData);
+
+                if (rowData) {
+                    vm.ModalPdf(rowData);
+                } else {
+                    console.warn("No se encontró la fila con id:", id);
+                }
             });
 
             // Botón XML

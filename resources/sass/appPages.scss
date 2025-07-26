@@ -1,4 +1,6 @@
 @import 'vue-toastr';
+@import "~vue-select/src/scss/vue-select.scss";
+
 table.table-ventaPendientes{
     td{
         vertical-align: middle!important;
@@ -37,12 +39,12 @@ form.formulario{
       border: none;
       height: 0;
     }
-  
+
     .vs__selected-options {
       // do not allow growing
       width: 0;
     }
-  
+
     .vs__selected {
       display: block;
       white-space: nowrap;
