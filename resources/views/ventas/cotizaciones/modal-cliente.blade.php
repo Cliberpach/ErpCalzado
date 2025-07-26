@@ -100,9 +100,9 @@
                                 <div class="col-12 col-md-6 mb-2">
                                     <div class="form-group m-0">
                                         <label class="required lbl_mdl_cliente"
-                                            for="departamento">DEPARTAMENTO</label>
-                                        <select required class="select2_modal_cliente" name="departamento"
-                                            id="departamento" onchange="setUbicacionDepartamento(this.value,'first')">
+                                            for="departamento_mdl_cliente">DEPARTAMENTO</label>
+                                        <select required class="select2_modal_cliente" name="departamento_mdl_cliente"
+                                            id="departamento_mdl_cliente" onchange="setUbicacionDepartamentoMdlCliente(this.value,'first')">
                                             @foreach ($departamentos as $departamento)
                                                 <option @if ($departamento->id == 13) selected @endif
                                                     value="{{ $departamento->id }}">{{ $departamento->nombre }}
@@ -115,9 +115,9 @@
                                 </div>
                                 <div class="col-12 col-md-6 mb-2">
                                     <div class="form-group m-0">
-                                        <label class="required lbl_mdl_cliente" for="provincia">PROVINCIA</label>
-                                        <select required class="select2_modal_cliente" name="provincia"
-                                            id="provincia" onchange="setUbicacionProvincia(this.value,'first')">
+                                        <label class="required lbl_mdl_cliente" for="provincia_mdl_cliente">PROVINCIA</label>
+                                        <select required class="select2_modal_cliente" name="provincia_mdl_cliente"
+                                            id="provincia_mdl_cliente" onchange="setUbicacionProvinciaMdlCliente(this.value,'first')">
 
                                         </select>
                                     </div>
@@ -127,9 +127,9 @@
                             <div class="row">
                                 <div class="col-12 col-md-6 mb-2">
                                     <div class="form-group m-0">
-                                        <label class="required lbl_mdl_cliente" for="distrito">DISTRITO</label>
-                                        <select required class="select2_modal_cliente" name="distrito"
-                                            id="distrito">
+                                        <label class="required lbl_mdl_cliente" for="distrito_mdl_cliente">DISTRITO</label>
+                                        <select required class="select2_modal_cliente" name="distrito_mdl_cliente"
+                                            id="distrito_mdl_cliente">
 
                                         </select>
                                     </div>
@@ -195,10 +195,9 @@
 </div>
 
 <script>
-    const spinner = document.querySelector('.sk-spinner');
     const selectTipoDoc = document.querySelector('#tipo_documento');
-    const selectProvincia = document.querySelector('#provincia');
-    const selectDistrito = document.querySelector('#distrito');
+    const selectProvincia = document.querySelector('#provincia_mdl_cliente');
+    const selectDistrito = document.querySelector('#distrito_mdl_cliente');
     const inputNroDoc = document.querySelector('#documento');
     const btnConsultarDoc = document.querySelector('#btn_consultar_doc');
     const inputZona = document.querySelector('#zona');
@@ -248,29 +247,28 @@
 
     }
 
-    async function setUbicacionDepartamento(dep_id, provincia_id) {
-
+    async function setUbicacionDepartamentoMdlCliente(dep_id, provincia_id) {
+        console.log(`departamento: ${dep_id}`);
         const departamento_id = dep_id;
         console.log(`provincia: ${provincia_id}`);
 
-        setZona(getZona(departamento_id));
+        setZonaMdlCliente(getZonaMdlCliente(departamento_id));
 
         mostrarAnimacionModalCliente();
-        const provincias = await getProvincias(departamento_id, provincia_id);
-        pintarProvincias(provincias, provincia_id);
-
+        const provincias = await getProvinciasMdlCliente(departamento_id, provincia_id);
+        pintarProvinciasMdlCliente(provincias, provincia_id);
 
     }
 
-    async function setUbicacionProvincia(prov_id, distrito_id) {
+    async function setUbicacionProvinciaMdlCliente(prov_id, distrito_id) {
         const provincia_id = prov_id;
 
-        const distritos = await getDistritos(provincia_id);
-        pintarDistritos(distritos, distrito_id);
+        const distritos = await getDistritosMdlCliente(provincia_id);
+        pintarDistritosMdlCliente(distritos, distrito_id);
         ocultarAnimacionModalCliente();
     }
 
-    function getZona(departamento_id) {
+    function getZonaMdlCliente(departamento_id) {
         const departamento = departamentos.filter((d) => {
             return d.id == departamento_id;
         })
@@ -278,12 +276,12 @@
         return departamento[0].zona;
     }
 
-    function setZona(zona_nombre) {
+    function setZonaMdlCliente(zona_nombre) {
         inputZona.value = zona_nombre;
     }
 
     //======= GET PROVINCIAS ==========
-    async function getProvincias(departamento_id) {
+    async function getProvinciasMdlCliente(departamento_id) {
         try {
 
             const {
@@ -304,7 +302,7 @@
     }
 
     //======== pintar provincias =========
-    function pintarProvincias(provincias, provincia_id) {
+    function pintarProvinciasMdlCliente(provincias, provincia_id) {
         let options = ``;
         provincias.forEach((provincia) => {
             options += `
@@ -318,12 +316,12 @@
         if (provincia_id == 'first') {
             $(selectProvincia).val($(selectProvincia).find('option').first().val()).trigger('change.select2');
         } else {
-            $("#provincia").val(provincia_id).trigger("change.select2");
+            $("#provincia_mdl_cliente").val(provincia_id).trigger("change.select2");
         }
     }
 
     //====== PINTAR DISTRITOS ========
-    async function getDistritos(provincia_id, distrito_id) {
+    async function getDistritosMdlCliente(provincia_id, distrito_id) {
         try {
             mostrarAnimacionModalCliente();
             const {
@@ -345,7 +343,7 @@
     }
 
     //======== PINTAR DISTRITOS =========
-    function pintarDistritos(distritos, distrito_id) {
+    function pintarDistritosMdlCliente(distritos, distrito_id) {
         let options = ``;
         distritos.forEach((distrito) => {
             options += `
@@ -358,7 +356,7 @@
             //====== seleccionar primera opción =======
             $(selectDistrito).val($(selectDistrito).find('option').first().val()).trigger('change.select2');
         } else {
-            $("#distrito").val(distrito_id).trigger("change.select2");
+            $("#distrito_mdl_cliente").val(distrito_id).trigger("change.select2");
         }
     }
 
@@ -509,21 +507,21 @@
         document.querySelector('#activo').value = data_ruc.estado;
 
         if (data_ruc.ubigeo[0] && data_ruc.ubigeo[1] && data_ruc.ubigeo[2]) {
-            document.querySelector('#departamento').onchange = null;
-            document.querySelector('#provincia').onchange = null;
+            document.querySelector('#departamento_mdl_cliente').onchange = null;
+            document.querySelector('#provincia_mdl_cliente').onchange = null;
 
-            $("#departamento").val(data_ruc.ubigeo[0]).trigger("change.select2");
-            setZona(getZona(data_ruc.ubigeo[0]));
-            const provincias = await getProvincias(data_ruc.ubigeo[0]);
-            pintarProvincias(provincias, data_ruc.ubigeo[1]);
-            const distritos = await getDistritos(data_ruc.ubigeo[1]);
-            pintarDistritos(distritos, data_ruc.ubigeo[2]);
+            $("#departamento_mdl_cliente").val(data_ruc.ubigeo[0]).trigger("change.select2");
+            setZonaMdlCliente(getZonaMdlCliente(data_ruc.ubigeo[0]));
+            const provincias = await getProvinciasMdlCliente(data_ruc.ubigeo[0]);
+            pintarProvinciasMdlCliente(provincias, data_ruc.ubigeo[1]);
+            const distritos = await getDistritosMdlCliente(data_ruc.ubigeo[1]);
+            pintarDistritosMdlCliente(distritos, data_ruc.ubigeo[2]);
 
-            document.querySelector('#departamento').onchange = function() {
-                setUbicacionDepartamento(this.value, 'first');
+            document.querySelector('#departamento_mdl_cliente').onchange = function() {
+                setUbicacionDepartamentoMdlCliente(this.value, 'first');
             };
-            document.querySelector('#provincia').onchange = function() {
-                setUbicacionProvincia(this.value, 'first');
+            document.querySelector('#provincia_mdl_cliente').onchange = function() {
+                setUbicacionProvinciaMdlCliente(this.value, 'first');
             };
 
 
@@ -564,8 +562,8 @@
 
     async function setUbigeoDefault() {
         //==== APAGAR EVENTS =====
-        const selectDepartamento = document.querySelector('#departamento');
-        const selectProvincia = document.querySelector('#provincia');
+        const selectDepartamento = document.querySelector('#departamento_mdl_cliente');
+        const selectProvincia = document.querySelector('#provincia_mdl_cliente');
 
         const onchangeDepartamento = selectDepartamento.onchange;
         const onchangeProvincia = selectProvincia.onchange;
@@ -574,8 +572,8 @@
         selectProvincia.onchange = null;
 
         const sede = @json($sede);
-        await setUbicacionDepartamento(sede.departamento_id, sede.provincia_id);
-        await setUbicacionProvincia(sede.provincia_id, sede.distrito_id);
+        await setUbicacionDepartamentoMdlCliente(sede.departamento_id, sede.provincia_id);
+        await setUbicacionProvinciaMdlCliente(sede.provincia_id, sede.distrito_id);
 
         selectDepartamento.onchange = onchangeDepartamento;
         selectProvincia.onchange = onchangeProvincia;

@@ -1,6 +1,4 @@
 @extends('layout')
-
-
 @section('content')
     @include('ventas.documentos.modal-envio')
 @section('pedidos-active', 'active')
