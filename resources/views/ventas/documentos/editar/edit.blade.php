@@ -344,7 +344,6 @@
 
         await getTipoEnvios();
         await getTiposPagoEnvio();
-        await getOrigenesVentas();
         await getTipoDocumento();
         const tipo_envio    =   $("#tipo_envio").select2('data')[0].text;
         await getEmpresasEnvio(tipo_envio);
