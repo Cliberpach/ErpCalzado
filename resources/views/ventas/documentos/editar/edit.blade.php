@@ -1,13 +1,13 @@
 @extends('layout')
 @section('content')
+@include('ventas.cotizaciones.modal-cliente')
+@include('ventas.documentos.modal-envio')
 
 
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
 
-@include('ventas.documentos.modal-envio')
 
-@include('ventas.cotizaciones.modal-cliente')
 
 
 <style>
@@ -342,12 +342,7 @@
         cargarProductosPrevios();     //======== FORMATEAR DETALLE ==============
         asegurarCierre=1;
 
-        await getTipoEnvios();
-        await getTiposPagoEnvio();
-        await getTipoDocumento();
-        const tipo_envio    =   $("#tipo_envio").select2('data')[0].text;
-        await getEmpresasEnvio(tipo_envio);
-        setUbicacionDepartamento(13,'first');
+        eventsCliente();
         eventsModalEnvio();
 
     })
