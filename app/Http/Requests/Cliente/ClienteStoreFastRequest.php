@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+
 class ClienteStoreFastRequest extends FormRequest
 {
     /**
@@ -27,8 +28,8 @@ class ClienteStoreFastRequest extends FormRequest
     {
         $rules = [
             'tipo_documento'    => 'required',
-            'documento'         => ['required','numeric', Rule::unique('clientes','documento')->where(function ($query) {
-                $query->whereIn('estado',["ACTIVO"]);
+            'documento'         => ['required', 'numeric', Rule::unique('clientes', 'documento')->where(function ($query) {
+                $query->whereIn('estado', ["ACTIVO"]);
             })],
             'nombre'            => 'required',
             'tipo_cliente_id'   => 'required',
@@ -45,7 +46,8 @@ class ClienteStoreFastRequest extends FormRequest
     }
 
 
-    public function messages(){
+    public function messages()
+    {
         $messages = [
             'tipo_documento.required'   => 'El campo Tipo de documento es obligatorio.',
             'tipo_cliente_id.required'  => 'El campo Tipo de cliente es obligatorio.',
@@ -65,6 +67,23 @@ class ClienteStoreFastRequest extends FormRequest
         return $messages;
     }
 
+    protected function prepareForValidation()
+    {
+        $data = $this->all();
+        $nuevo = [];
+
+        foreach ($data as $key => $value) {
+            if (str_ends_with($key, '_mdl_cliente')) {
+                // Elimina el sufijo
+                $nuevoKey = str_replace('_mdl_cliente', '', $key);
+                $nuevo[$nuevoKey] = $value;
+            }
+        }
+
+        $this->merge($nuevo);
+    }
+
+
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
@@ -73,5 +92,4 @@ class ClienteStoreFastRequest extends FormRequest
             'errors'    =>  $validator->errors()
         ], 422));
     }
-
 }

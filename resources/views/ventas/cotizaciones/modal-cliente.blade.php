@@ -40,8 +40,8 @@
                                         <label class="required lbl_mdl_cliente" for="documento">NRO. DOCUMENTO</label>
                                         <div class="input-group">
                                             <input type="text" id="documento" name="documento" class="form-control"
-                                                required maxlength="8" oninput="validarDocumento(this)">
-                                            <button id="btn_consultar_doc" onclick="consultarDocumento()" type="button"
+                                                required maxlength="8" oninput="validarDocumentoMdlCliente(this)">
+                                            <button id="btn_consultar_doc" onclick="consultarDocumentoMdlCliente()" type="button"
                                                 style="color:white" class="btn btn-primary">
                                                 <i class="fa fa-search"></i>
                                                 <span id="entidad"> </span>
@@ -184,7 +184,7 @@
                         marcados con asterisco (*) son obligatorios.</small>
                 </div>
                 <div class="col-md-6 text-right">
-                    <button id="btnGuardarCliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente"
+                    <button id="btnGuardarClienteMdlCliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente"
                         style="color:white;"><i class="fa fa-save"></i> Guardar</button>
                     <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"
                         @click.prevent="Cerrar"><i class="fa fa-times"></i> Cancelar</button>
@@ -213,7 +213,7 @@
 
         //======= LIMPIAR EL NRO DOC ======
         inputNroDoc.value = '';
-        document.querySelector('#btnGuardarCliente').disabled = true;
+        document.querySelector('#btnGuardarClienteMdlCliente').disabled = true;
 
         //======= SI NO SE ELIGE UN TIPO DE DOCUMENTO, SE DESHABILITA EL INPUT NRO Y EL BTN CONSULTAR =====
         if (tipoDocSimbolo.length === 0) {
@@ -361,7 +361,7 @@
     }
 
     //========= CONSULTAR DOCUMENTO ========
-    async function consultarDocumento() {
+    async function consultarDocumentoMdlCliente() {
         try {
             //======= MOSTRAR OVERLAY =======
             mostrarAnimacion();
@@ -408,7 +408,7 @@
                     console.log('consultando API DNI 1');
                     if (numeroDocumento.trim().length === 8) {
                         console.log('consultando API DNI');
-                        await consultarAPI(tipoDocumento, numeroDocumento);
+                        await consultarAPIMdlCliente(tipoDocumento, numeroDocumento);
                     } else {
                         console.log('el dni no tiene 8 digitos')
                         toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
@@ -418,7 +418,7 @@
                 } else if (tipoDocumento === "RUC") {
 
                     if (numeroDocumento.trim().length === 11) {
-                        await consultarAPI(tipoDocumento, numeroDocumento);
+                        await consultarAPIMdlCliente(tipoDocumento, numeroDocumento);
                     } else {
                         toastr.error('El RUC debe de contar con 11 dígitos', 'Error');
                     }
@@ -433,7 +433,7 @@
     }
 
     //======= CONSULTAR API =======
-    async function consultarAPI(tipo_documento, nro_documento) {
+    async function consultarAPIMdlCliente(tipo_documento, nro_documento) {
         try {
             mostrarAnimacionModalCliente();
             let tipoDoc = tipo_documento;
@@ -459,19 +459,19 @@
             if (data.success) {
                 //===== COLOCANDO NOMBRE EN EL INPUT DEL FORMULARIO ======
                 if (tipoDoc === "DNI") {
-                    setCamposDni(data);
+                    setCamposDniMdlCliente(data);
                 }
                 if (tipoDoc === "RUC") {
-                    setCamposRuc(data);
+                    setCamposRucMdlCliente(data);
                 }
             } else {
                 toastr.error(data.message, 'Error');
                 if (tipoDoc === "DNI") {
-                    clearCamposDni();
+                    clearCamposDniMdlCliente();
                     inputNroDoc.focus();
                 }
                 if (tipoDoc === "RUC") {
-                    clearCamposRuc();
+                    clearCamposRucMdlCliente();
                     inputNroDoc.focus();
                 }
             }
@@ -485,14 +485,14 @@
             // }
         } catch (ex) {
             this.loading = false;
-            alert("Error en consultarAPI" + ex);
+            alert("Error en consultarAPIMdlCliente" + ex);
         } finally {
             ocultarAnimacionModalCliente();
         }
     }
 
     //======== SET CAMPOS DNI =========
-    function setCamposDni(data) {
+    function setCamposDniMdlCliente(data) {
         const data_dni = data.data;
         document.querySelector('#nombre').value =
             `${data_dni.nombres} ${data_dni.apellido_paterno} ${data_dni.apellido_materno}`;
@@ -500,7 +500,7 @@
     }
 
     //====== SET CAMPOS RUC =====
-    async function setCamposRuc(data) {
+    async function setCamposRucMdlCliente(data) {
         const data_ruc = data.data;
         document.querySelector('#nombre').value = data_ruc.nombre_o_razon_social;
         document.querySelector('#direccion').value = data_ruc.direccion;
@@ -533,12 +533,12 @@
     }
 
     //====== CLEAR CAMPOS DNI =====
-    function clearCamposDni() {
+    function clearCamposDniMdlCliente() {
         document.querySelector('#nombre').value = '';
         document.querySelector('#activo').value = 'SIN VERIFICAR';
     }
 
-    function clearCamposRuc() {
+    function clearCamposRucMdlCliente() {
         document.querySelector('#nombre').value = '';
         document.querySelector('#activo').value = 'SIN VERIFICAR';
         document.querySelector('#direccion').value = '';
@@ -551,16 +551,16 @@
         formCliente.addEventListener('submit', (e) => {
             e.preventDefault();
 
-            guardarCliente();
+            guardarClienteMdlCliente();
         })
 
     }
 
     async function loadConfigMdlCliente() {
-        await setUbigeoDefault();
+        await setUbigeoDefaultMdlCliente();
     }
 
-    async function setUbigeoDefault() {
+    async function setUbigeoDefaultMdlCliente() {
         //==== APAGAR EVENTS =====
         const selectDepartamento = document.querySelector('#departamento_mdl_cliente');
         const selectProvincia = document.querySelector('#provincia_mdl_cliente');
@@ -580,7 +580,7 @@
     }
 
     //====== GUARDAR CLIENTE ======
-    async function guardarCliente() {
+    async function guardarClienteMdlCliente() {
         try {
             //======= MOSTRAR OVERLAY =======
             mostrarAnimacionModalCliente();
@@ -593,7 +593,7 @@
 
             if (res.data.success) {
 
-                updateSelectClientes(res.data.cliente);
+                updateSelectClientesMdlCliente(res.data.cliente);
                 toastr.success(res.data.message, 'OPERACION COMPLETADA');
                 formCliente.reset();
                 $("#modal_cliente").modal("hide");
@@ -607,7 +607,7 @@
             console.log(ex);
             if ('errors' in ex.response.data) {
                 //======= PINTAR ERRORES DE VALIDACIÓN =======
-                pintarErrores(ex.response.data.errors);
+                pintarErroresMdlCliente(ex.response.data.errors);
                 return;
             }
             toastr.error(ex, 'ERROR EN LA PETICIÓN REGISTRAR CLIENTE');
@@ -617,7 +617,7 @@
     }
 
     //======== PINTAR ERRORES DE VALIDACIÓN ======
-    function pintarErrores(msgErrors) {
+    function pintarErroresMdlCliente(msgErrors) {
         for (let key in msgErrors) {
             if (msgErrors.hasOwnProperty(key)) {
                 const propiedad = msgErrors[key];
@@ -627,7 +627,7 @@
         }
     }
 
-    const updateSelectClientes = (clienteNuevo) => {
+    const updateSelectClientesMdlCliente = (clienteNuevo) => {
         var newOption = new Option(
             `${clienteNuevo.tipo_documento}: ${clienteNuevo.documento} - ${clienteNuevo.nombre}`, clienteNuevo
             .id, false, false);
@@ -636,25 +636,25 @@
     };
 
     //=========== CONTROLAR EL NRO DE DOCUMENTO ======
-    function validarDocumento(input) {
+    function validarDocumentoMdlCliente(input) {
         const regex = /[^0-9]/g;
         input.value = input.value.replace(regex, '');
 
         const tipoDocumento = selectTipoDoc.options[selectTipoDoc.selectedIndex].textContent;
-        document.querySelector('#btnGuardarCliente').disabled = false;
+        document.querySelector('#btnGuardarClienteMdlCliente').disabled = false;
 
         if (tipoDocumento === 'DNI') {
             if (input.value.trim().length !== 8) {
-                document.querySelector('#btnGuardarCliente').disabled = true;
+                document.querySelector('#btnGuardarClienteMdlCliente').disabled = true;
             } else {
-                document.querySelector('#btnGuardarCliente').disabled = false;
+                document.querySelector('#btnGuardarClienteMdlCliente').disabled = false;
             }
         }
         if (tipoDocumento === 'RUC') {
             if (input.value.trim().length !== 11) {
-                document.querySelector('#btnGuardarCliente').disabled = true;
+                document.querySelector('#btnGuardarClienteMdlCliente').disabled = true;
             } else {
-                document.querySelector('#btnGuardarCliente').disabled = false;
+                document.querySelector('#btnGuardarClienteMdlCliente').disabled = false;
             }
         }
 
