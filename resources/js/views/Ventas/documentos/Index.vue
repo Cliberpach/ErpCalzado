@@ -298,6 +298,7 @@ export default {
                 preConfirm: async () => {
                     try {
                         const res = await axios.get(route('ventas.documento.sunat', id));
+                        console.log(res);
                         return res.data;
                     } catch (error) {
                         const data = { success: false, message: "ERROR EN LA SOLICITUD", exception: error };
@@ -307,12 +308,12 @@ export default {
             }).then((result) => {
 
                 if (result.value && result.value.success) {
-                    $('#dt-ventas').DataTable().ajax.reload(null, false);
                     toastr.success(result.value.message, 'DOCUMENTO ENVIADO A SUNAT', { timeOut: 5000 });
+                    this.tabla.ajax.reload(null, false);
                 }
 
                 if (result.value && !result.value.success) {
-                    $('#dt-ventas').DataTable().ajax.reload(null, false);
+                    this.tabla.ajax.reload(null, false);
                     toastr.error(result.value.exception, result.value.message, { timeOut: 0 });
                 }
 
@@ -661,7 +662,7 @@ export default {
 
                             let acciones = `
                                                 <div class="btn-group">
-                                                    <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                                                         <i class="fas fa-th"></i>
                                                     </button>
                                                     <div class="dropdown-menu">

@@ -294,13 +294,36 @@ class ComprobanteController extends Controller
                 $tipoDocRel =   $documento->anticipo_tipo_venta_id == '127' ? '02' : '03';
 
                 //========= SUMATORIA DEL DETALLE CON IGV =======
-                // $subtotal       =   (float)$documento->sub_total + (float)$documento->monto_envio + (float)$documento->monto_embalaje;
-                // $imp_venta      =   (float)$subtotal - (float)$documento->anticipo_monto_consumido_sin_igv;
-                // $valor_venta    =   $subtotal / 1.18;
-                // $mtoOperGravada =   $valor_venta -  (float)$documento->anticipo_monto_consumido_sin_igv;
-                // $mtoIgv         =   $mtoOperGravada * 0.18;
-                // $totalImpuestos =   $mtoIgv;
+                $anticipo_monto_consumido_sin_igv   =   $documento->anticipo_monto_consumido / 1.18;
 
+                $subtotal       =   (float)$documento->sub_total + (float)$documento->monto_envio + (float)$documento->monto_embalaje;
+                $imp_venta      =   (float)$subtotal - (float)$anticipo_monto_consumido_sin_igv;
+                $valor_venta    =   $subtotal / 1.18;
+                $mtoOperGravada =   $valor_venta -  (float)$anticipo_monto_consumido_sin_igv;
+                $mtoIgv         =   $mtoOperGravada * 0.18;
+                $totalImpuestos =   $mtoIgv;
+
+                /*dd([
+                    'subtotal_calculado' => $subtotal,
+                    'subtotal_sunat' => (float)$documento->sub_total_sunat,
+
+                    'imp_venta_calculado' => $imp_venta,
+                    'imp_venta_sunat' => (float)$documento->mto_imp_venta_sunat,
+
+                    'valor_venta_calculado' => $valor_venta,
+                    'valor_venta_sunat' => (float)$documento->valor_venta_sunat,
+
+                    'mtoOperGravada_calculado' => $mtoOperGravada,
+                    'mto_oper_gravadas_sunat' => (float)$documento->mto_oper_gravadas_sunat,
+
+                    'mtoIgv_calculado' => $mtoIgv,
+                    'mto_igv_sunat' => (float)$documento->mto_igv_sunat,
+
+                    'total_impuestos_calculado' => $totalImpuestos,
+                    'total_impuestos_sunat' => (float)$documento->total_impuestos_sunat,
+                ]);*/
+
+                /*
                 $invoice
                     ->setDescuentos([
                         (
@@ -323,6 +346,31 @@ class ComprobanteController extends Controller
                     ->setSubTotal($documento->sub_total_sunat)
                     ->setMtoImpVenta($documento->mto_imp_venta_sunat)
                     ->setTotalAnticipos($documento->anticipo_monto_consumido_sin_igv);
+                */
+
+                $invoice
+                    ->setDescuentos([
+                        (
+                            new Charge())
+                            ->setCodTipo('04')
+                            ->setFactor(1)
+                            ->setMonto($anticipo_monto_consumido_sin_igv) // anticipo sin igv
+                            ->setMontoBase($anticipo_monto_consumido_sin_igv)
+                    ])
+                    ->setAnticipos([
+                        (new Prepayment())
+                            ->setTipoDocRel($tipoDocRel) // catalog. 12  02 facturas anticipo - 03 boletas anticipo
+                            ->setNroDocRel($documento->anticipo_consumido_serie . '-' . $documento->anticipo_consumido_correlativo)
+                            ->setTotal($anticipo_monto_consumido_sin_igv)
+                    ])
+                    ->setMtoOperGravadas($mtoOperGravada)
+                    ->setMtoIGV($mtoIgv)
+                    ->setTotalImpuestos($totalImpuestos)
+                    ->setValorVenta($valor_venta)
+                    ->setSubTotal($subtotal)
+                    ->setMtoImpVenta($imp_venta)
+                    ->setTotalAnticipos($anticipo_monto_consumido_sin_igv);
+
             }
 
             //======== CONSTRUIR DETALLE FACTURA ========
@@ -399,6 +447,8 @@ class ComprobanteController extends Controller
 
             }
 
+
+
             $formatter  = new NumeroALetras();
             $legenda    = $formatter->toInvoice($documento->total_pagar, 2, 'SOLES');
 
@@ -410,11 +460,10 @@ class ComprobanteController extends Controller
                 ]);
 
 
-
             $see = $this->controlConfiguracionGreenter($util);
 
             $res = $see->send($invoice);
-            
+
             $util->writeXml($invoice, $see->getFactory()->getLastXml(), $documento->tipo_venta_id, null);
 
             if ($documento->tipo_venta_id   ==  127) {

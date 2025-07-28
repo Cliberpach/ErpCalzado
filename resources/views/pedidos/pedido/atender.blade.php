@@ -642,12 +642,7 @@
 
                 } else {
                     secureClosure = 1;
-                    const mensaje = res.data.mensaje;
-                    const excepcion = res.data.excepcion;
-                    toastr.error(`${excepcion}`, `${mensaje}`, {
-                        timeOut: 0,
-                        extendedTimeOut: 0
-                    });
+                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                     Swal.close();
                 }
 
