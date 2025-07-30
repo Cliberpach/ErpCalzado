@@ -476,21 +476,23 @@ export default {
         },
         PintarRowTable(aData) {
             if (aData.notas > 0) {
-                return { 'background-color': "#FDEBD0" };
+                console.log('notas detectadas')
+                return 'background-color: #FDEBD0;';
             }
 
             if (aData.convert_en_id) {
-                return { 'background-color': "#EBDEF0" }
+                return 'background-color: #EBDEF0;';
             }
 
             if (aData.cambio_talla == '1') {
-                return { 'background-color': "#E3E9FE" }
+                return 'background-color: #E3E9FE;';
             }
 
             if (aData.guia_id) {
-                return { 'background-color': "#caffcc" }
+                return 'background-color: #caffcc;';
             }
 
+            return '';
         },
         async regularizarVenta(documento) {
             toastr.clear();
@@ -582,6 +584,8 @@ export default {
                 responsive: true,
                 createdRow: function (row, data, dataIndex) {
                     $(row).addClass('letrapequeña');
+                    const color = vm.PintarRowTable(data);
+                    $(row).attr('style', color);
                 },
                 initComplete: function () {
                     $('.dropdown-toggle').dropdown();
@@ -683,7 +687,7 @@ export default {
                                 && row.estado == 'ACTIVO'
                                 && row.estado_pago == 'PAGADA'
                             ) {
-                                acciones += `<a href="${vm.routes(row.id, 'NOTAS')}" class="dropdown-item">
+                                acciones += `<a href="#" class="dropdown-item">
                                                 <i class="fa fa-file-o" style="color: #77600e;"></i> Notas
                                             </a>`;
                             }
@@ -708,7 +712,7 @@ export default {
                                     (row.condicion == 'CREDITO' || row.condicion == 'CRÉDITO')
                                 )
                             ) {
-                                acciones += `<a href="${vm.routes(row.id, 'DEVO')}" class="dropdown-item" title="Nota de devolución">
+                                acciones += `<a href="#" class="dropdown-item" title="Nota de devolución">
                                                 <i class="fa fa-file-o"></i> Devoluciones
                                             </a>`;
                             }
@@ -805,10 +809,6 @@ export default {
                         }
                     }
                 ],
-                rowCallback: (row, data, index) => {
-                    const color = this.PintarRowTable(data);
-                    $(row).attr('style', color);
-                },
                 language: {
                     processing: "Procesando...",
                     search: "Buscar por doc, almacén, cliente:",

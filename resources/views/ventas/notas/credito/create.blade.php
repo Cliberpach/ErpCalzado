@@ -1,4 +1,4 @@
-@extends('layout') 
+@extends('layout')
 @section('content')
 
 @section('ventas-active', 'active')
@@ -27,7 +27,7 @@
         </ol>
     </div>
     <div class="col-lg-2 col-md-12 col-sm-12 col-xs-12">
-        
+
      </div>
 </div>
 
@@ -362,36 +362,13 @@
 
 @stop
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/datapicker/datepicker3.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/daterangepicker/daterangepicker-bs3.css') }}" rel="stylesheet">
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-<!-- DataTable -->
-<link href="{{asset('Inspinia/css/plugins/dataTables/datatables.min.css')}}" rel="stylesheet">
-<!-- Ladda style -->
-<link href="{{asset('Inspinia/css/plugins/ladda/ladda-themeless.min.css')}}" rel="stylesheet">
-
 @endpush
 
 @push('scripts')
-<!-- Data picker -->
-<script src="{{ asset('Inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
-<!-- Date range use moment.js same as full calendar plugin -->
-<script src="{{ asset('Inspinia/js/plugins/fullcalendar/moment.min.js') }}"></script>
-<!-- Date range picker -->
-<script src="{{ asset('Inspinia/js/plugins/daterangepicker/daterangepicker.js') }}"></script>
-<!-- Select2 -->
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
-
-<!-- DataTable -->
-<script src="{{asset('Inspinia/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js')}}"></script>
-
  <!-- Ladda -->
  <script src="{{ asset('Inspinia/js/plugins/ladda/spin.min.js') }}"></script>
  <script src="{{ asset('Inspinia/js/plugins/ladda/ladda.min.js') }}"></script>
  <script src="{{ asset('Inspinia/js/plugins/ladda/ladda.jquery.min.js') }}"></script>
- <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
 
 <script>
     const bodyTablaDetalles     =   document.querySelector('#tbl-detalles tbody');
@@ -417,7 +394,7 @@
     const btnGuardar            =   document.querySelector('#btn_editar_detalle');
 
     const formDevolucion        =   document.querySelector('#enviar_documento');
-    
+
     let detalles        = null;
     let devoluciones    = [];
 
@@ -538,7 +515,7 @@
                     // $('#monto_igv').val(total_igv);
                     // $('#importe_venta').val(data[4]);
 
-                   
+
                     // $("#cantidad_devolver").attr({
                     //         "max": data[1],
                     //         "min": 1,
@@ -689,7 +666,7 @@
 
         total       =   parseFloat(inputMontoTotalDev.value);
         subtotal    =   total/1.18;
-        igv         =   total - subtotal; 
+        igv         =   total - subtotal;
 
 
         inputTotalIgvNuevo.value    =   igv;
@@ -703,7 +680,7 @@
             monto_total+=d.importe;
         })
 
-       
+
         const cod_motivo = $('#cod_motivo').val();
         if(cod_motivo == '01'){
             monto_total += {{$documento->monto_embalaje}} + {{$documento->monto_envio}};
@@ -713,13 +690,13 @@
 
     //======= ESTABLECER DATOS DEL ITEM EN EL MODAL EDIT ======
     function setValuesForm(item_){
-      
+
         //==== BUSCANDO ITEM EN DETALLES =====
         const item  =   detalles.filter((d)=>{
             return d.producto_id == item_.producto_id && d.color_id == item_.color_id  && d.talla_id == item_.talla_id;
         })
 
-       
+
 
         if(item.length>0){
             //====== BUSCANDO SI EL DETALLE TIENE DEVOLUCIÓN AGREGADA ====
@@ -749,7 +726,7 @@
         //==== buscando producto_nombre, color_nombre,modelo_nombre,codigo_producto =====
         const item  =   detalles.filter((d)=>{
             return d.producto_id == producto_id && d.color_id == color_id  && d.talla_id == talla_id;
-        }) 
+        })
 
         const item_devolver = {
             codigo_producto: item[0].codigo_producto,
@@ -894,7 +871,7 @@
 
         detalles.forEach((detalle)=>{
 
-            
+
             fila += `
                     <tr>
                         <th scope="row"></th>
@@ -904,14 +881,14 @@
                         <td>${(Math.round(detalle.importe_nuevo * 100) / 100).toFixed(2)}</td>
                         ${cod_motivo === '07' ?
                             `<td>
-                                
+
                                 <button data-producto-id="${detalle.producto_id}" data-color-id="${detalle.color_id}"
                                     data-talla-id="${detalle.talla_id}"
                                     id="editar" type="button" class="btn btn-sm btn-info btn-rounded btn-edit-item">
                                     <i class="fas fa-plus btn-edit-icon"></i>
                                 </button>
-                                
-                            </td>`: '' 
+
+                            </td>`: ''
                         }
                     </tr>
                     `;
@@ -938,7 +915,7 @@
                         ${cod_motivo === '07' ?
                             `<td>
                                 <i class="btn btn-danger fas fa-trash-alt btn-delete-devolucion" data-producto-id="${devolucion.producto_id}"
-                                data-color-id="${devolucion.color_id}" data-talla-id="${devolucion.talla_id}"></i>                            
+                                data-color-id="${devolucion.color_id}" data-talla-id="${devolucion.talla_id}"></i>
                             </td>`:''
                         }
                     </tr>

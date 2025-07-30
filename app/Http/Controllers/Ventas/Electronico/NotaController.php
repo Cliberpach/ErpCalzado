@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Ventas\Electronico;
 use App\Almacenes\Almacen;
 use App\Almacenes\Color;
 use App\Almacenes\Kardex;
-use App\Almacenes\LoteProducto;
 use App\Almacenes\Producto;
 use App\Almacenes\Talla;
 use App\Events\NotifySunatEvent;
@@ -28,18 +27,17 @@ use Yajra\DataTables\Facades\DataTables;
 use Barryvdh\DomPDF\Facade as PDF;
 use stdClass;
 
-use Greenter\Model\Response\BillResult;
 use Greenter\Model\Sale\Note;
 use Greenter\Model\Sale\SaleDetail;
 use Greenter\Model\Sale\Legend;
 use Greenter\Ws\Services\SunatEndpoints;
 
 use Greenter\Model\Client\Client;
-use Greenter\Model\Company\Company;
 use Greenter\Model\Company\Address;
 use App\Greenter\Utils\Util;
 use DateTime;
 use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class NotaController extends Controller
 {
@@ -49,8 +47,8 @@ class NotaController extends Controller
         broadcast(new NotifySunatEvent($dato));
         $documento          =    Documento::find($id);
 
-        $pedido_facturado   =   DB::select('select p.facturado 
-                                from pedidos as p 
+        $pedido_facturado   =   DB::select('select p.facturado
+                                from pedidos as p
                                 where p.id = ? and p.facturado = "SI"',[$documento->pedido_id]);
 
         if(count($pedido_facturado) === 0){
@@ -58,6 +56,8 @@ class NotaController extends Controller
         }else{
             $pedido_facturado = true;
         }
+
+        $pedido_facturado = false;
 
 
         return view('ventas.notas.index',compact('documento','pedido_facturado'));
@@ -67,8 +67,8 @@ class NotaController extends Controller
     {
         $documento          =   Documento::find($id);
         $nota_venta         =   true;
-        $pedido_facturado   =   DB::select('select p.facturado 
-                                from pedidos as p 
+        $pedido_facturado   =   DB::select('select p.facturado
+                                from pedidos as p
                                 where p.id = ? and p.facturado = "SI"',[$documento->pedido_id]);
 
         if(count($pedido_facturado) === 0){
@@ -124,7 +124,7 @@ class NotaController extends Controller
             return back();
         }
 
-        
+
         if($request->nota == '0')
         {
             if( $request->nota_venta)
@@ -177,7 +177,7 @@ class NotaController extends Controller
 
         //====== VERIFICANDO SI NOTAS DE CRÉDITO DEL TIPO DE DOCUMENTO ESTÁ ACTIVO EN LA EMPRESA =========
         $tipo_venta     =   $documento->tipo_venta_id;
-        $parametro      =   null; 
+        $parametro      =   null;
         $message        =   "";
 
         //===== 127:FACTURA | 128:BOLETA | 129:NOTA DE VENTA ======
@@ -203,7 +203,7 @@ class NotaController extends Controller
                     ->where('enf.estado','ACTIVO')
                     ->get();
 
-       
+
         return (object)["existe"=>$existe,"message"=>$message];
     }
 
@@ -219,7 +219,7 @@ class NotaController extends Controller
                 $item['codigo_producto']   =   $detalle->codigo_producto;
                 $item['producto_id']       =   $detalle->producto_id;
                 $item['color_id']          =   $detalle->color_id;
-                $item['talla_id']          =   $detalle->talla_id;   
+                $item['talla_id']          =   $detalle->talla_id;
                 $item['producto_nombre']   =   $detalle->nombre_producto;
                 $item['color_nombre']      =   $detalle->nombre_color;
                 $item['talla_nombre']      =   $detalle->nombre_talla;
@@ -306,10 +306,9 @@ class NotaController extends Controller
 
             }
 
-            
+
             $documento                  =   Documento::find($request->get('documento_id'));
 
-            $igv                        =   $documento->igv ? $documento->igv : 18;
 
             //============ CALCULAR CORRELATIVO =======
             $sede_id                    =   Auth::user()->sede_id;
@@ -359,30 +358,30 @@ class NotaController extends Controller
             $nota->almacen_nombre   =   $almacen->descripcion;
             $nota->save();
 
-     
+
             //Llenado de los articulos
             $productosJSON = $request->get('productos_tabla');
             $productotabla = json_decode($productosJSON);
 
             //========== PRODUCTOS PRESENTES EN LA NOTA DE CRÉDITO O DEVOLUCIÓN ===========
             foreach ($productotabla as $producto) {
-                
-                $detalle =  DB::select('select 
-                            cdd.id 
-                            from cotizacion_documento_detalles as cdd
-                            where 
-                            cdd.documento_id = ? 
-                            AND cdd.almacen_id = ?
-                            AND cdd.producto_id = ?  
-                            AND cdd.color_id = ?
-                            AND cdd.talla_id = ?',
-                            [
-                                $request->get('documento_id'),
-                                $documento->almacen_id,
-                                $producto->producto_id,
-                                $producto->color_id,
-                                $producto->talla_id
-                            ]);
+
+                $detalle    =   DB::select('SELECT
+                                cdd.id
+                                FROM cotizacion_documento_detalles AS cdd
+                                WHERE
+                                cdd.documento_id = ?
+                                AND cdd.almacen_id = ?
+                                AND cdd.producto_id = ?
+                                AND cdd.color_id = ?
+                                AND cdd.talla_id = ?',
+                                [
+                                    $request->get('documento_id'),
+                                    $documento->almacen_id,
+                                    $producto->producto_id,
+                                    $producto->color_id,
+                                    $producto->talla_id
+                                ]);
 
                 $nota_detalle                    = new NotaDetalle();
                 $nota_detalle->nota_id           = $nota->id;
@@ -405,41 +404,18 @@ class NotaController extends Controller
                 $nota_detalle->color_id          = $producto->color_id;
                 $nota_detalle->talla_id          = $producto->talla_id;
                 $nota_detalle->save();
-                            
 
-                /*NotaDetalle::create([
-                    'nota_id'           => $nota->id,
-                    'detalle_id'        => $detalle[0]->id,
-                    'codProducto'       => $producto->codigo_producto,
-                    'unidad'            => 'NIU',
-                    'descripcion'       => $producto->modelo_nombre.'-'.$producto->producto_nombre.'-'.$producto->color_nombre.'-'.$producto->talla_nombre,
-                    'cantidad'          => $producto->cantidad_devolver,
-                    'mtoBaseIgv'        => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver,
-                    'porcentajeIgv'     => 18,
-                    'igv'               => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad_devolver,
-                    'tipAfeIgv'         => 10,
-                    'totalImpuestos'    => ($producto->precio_unitario - ($producto->precio_unitario / (1 + ($documento->igv/100)) )) * $producto->cantidad_devolver,
-                    'mtoValorVenta'     => ($producto->precio_unitario / (1 + ($documento->igv/100))) * $producto->cantidad_devolver,
-                    'mtoValorUnitario'  =>  $producto->precio_unitario / (1 + ($documento->igv/100)),
-                    'mtoPrecioUnitario' =>  $producto->precio_unitario,
-                    'almacen_id'        =>  $almacen->id,
-                    'almacen_nombre'    =>  $almacen->descripcion,
-                    'producto_id'       =>  $producto->producto_id,
-                    'color_id'          =>  $producto->color_id,
-                    'talla_id'          =>  $producto->talla_id
-                ]);*/
 
-              
                 //========= 01:FACTURA 03:BOLETA =======
                 //======= PREGUNTAR SI EL DOC DE VENTA ESTÁ ASOCIADO A UN PEDIDO =====
-                if( $documento->pedido_id ){
+                /*if( $documento->pedido_id ){
 
                     //======== EN CASO SEA EL DOC VENTA DE LA FACTURACIÓN DE UN PEDIDO ========
                     //========= DOCS DE VENTA DE TIPO FACTURACIÓN DE PEDIDO NO RESTAN STOCK !!=========
                     if($documento->tipo_doc_venta_pedido === "FACTURACION"){
 
                         //======== OBTENER EL PRODUCTO DE LA NOTA ELECTRÓNICA EN EL DETALLE DEL PEDIDO ======
-                        $producto_en_pedido =   DB::select('select 
+                        $producto_en_pedido =   DB::select('select
                                                 pd.almacen_id,
                                                 pd.producto_id,
                                                 pd.color_id,
@@ -447,11 +423,11 @@ class NotaController extends Controller
                                                 pd.cantidad_atendida,
                                                 pd.cantidad_pendiente
                                                 from pedidos_detalles as pd
-                                                where 
-                                                pd.pedido_id = ? 
+                                                where
+                                                pd.pedido_id = ?
                                                 AND pd.almacen_id = ?
-                                                AND pd.producto_id = ? 
-                                                AND pd.color_id = ? 
+                                                AND pd.producto_id = ?
+                                                AND pd.color_id = ?
                                                 AND pd.talla_id = ?',
                                                 [
                                                     $documento->pedido_id,
@@ -461,11 +437,11 @@ class NotaController extends Controller
                                                     $producto->talla_id
                                                 ]);
 
-    
+
                         //====== COMPROBAR SI EL PRODUCTO ESTÁ PRESENTE EN EL DETALLE DEL PEDIDO =======
                         if(count($producto_en_pedido) === 1){
-                            
-                            $cantidad_reponer   =   0;   
+
+                            $cantidad_reponer   =   0;
 
                             //======= CASO I:  CANT DEVOLVER <= CANTIDAD PENDIENTE ======
                             if($producto->cantidad_devolver <= $producto_en_pedido[0]->cantidad_pendiente ){
@@ -498,7 +474,7 @@ class NotaController extends Controller
 
                                 //====== OBTENEMOS LO QUE FALTÓ BAJARLE A LA CANTIDAD PENDIENTE =====
                                 $cantidad_falta_disminuir   =   $producto->cantidad_devolver - $producto_en_pedido[0]->cantidad_pendiente;
-                                
+
                                 //======= FIJAMOS LA CANTIDAD A REPONER DE STOCK ======
                                 $cantidad_reponer           =   $cantidad_falta_disminuir;
 
@@ -525,15 +501,15 @@ class NotaController extends Controller
                                     'cantidad_repuesta'                 =>  DB::raw('cantidad_repuesta + ' . $cantidad_falta_disminuir),
                                     'cantidad_atendida_devuelta'        =>  DB::raw('cantidad_atendida_devuelta + ' . $cantidad_falta_disminuir),
                                     'cantidad_devuelta'                 =>  DB::raw('cantidad_devuelta + ' . $producto->cantidad_devolver),
-                                    'cantidad_pendiente_devuelta'       =>  DB::raw('cantidad_pendiente_devuelta + ' . $producto_en_pedido[0]->cantidad_pendiente),  
+                                    'cantidad_pendiente_devuelta'       =>  DB::raw('cantidad_pendiente_devuelta + ' . $producto_en_pedido[0]->cantidad_pendiente),
                                     'cantidad_pendiente'                =>  $nueva_cantidad_pendiente,
                                     'updated_at'                        =>  Carbon::now()
                                 ]);
 
                             }
 
-                        }                        
-                   
+                        }
+
                     }
 
 
@@ -542,9 +518,9 @@ class NotaController extends Controller
 
                         //========== TRABAJAR CON PURA CANTIDAD ATENDIDA ======
                         //======= DEBIDO A QUE EL PEDIDO PUEDE MODIFICARSE EN CASO SE REQUIERA BAJAR LAS CANTIDADES PENDIENTES ======
-                        
+
                         //======== OBTENER EL PRODUCTO DE LA NOTA ELECTRÓNICA EN EL DETALLE DEL PEDIDO ======
-                        $producto_en_pedido =   DB::select('select 
+                        $producto_en_pedido =   DB::select('select
                                                 pd.almacen_id,
                                                 pd.producto_id,
                                                 pd.color_id,
@@ -552,11 +528,11 @@ class NotaController extends Controller
                                                 pd.cantidad_atendida,
                                                 pd.cantidad_pendiente
                                                 from pedidos_detalles as pd
-                                                where 
-                                                pd.pedido_id = ? 
+                                                where
+                                                pd.pedido_id = ?
                                                 AND pd.almacen_id = ?
-                                                AND pd.producto_id = ? 
-                                                AND pd.color_id = ? 
+                                                AND pd.producto_id = ?
+                                                AND pd.color_id = ?
                                                 AND pd.talla_id = ?',
                                                 [
                                                     $documento->pedido_id,
@@ -594,7 +570,7 @@ class NotaController extends Controller
                                 'cantidad_devuelta'                 =>  DB::raw('cantidad_devuelta + ' . $producto->cantidad_devolver),
                                 'updated_at'                        =>  Carbon::now()
                             ]);
-                        
+
                         }
 
                     }
@@ -602,11 +578,11 @@ class NotaController extends Controller
                     //=========== GUARDAR EL PEDIDO ID EN LA NOTA ELECTRÓNICA PARA FÁCIL ACCESO ======
                     $nota->pedido_id    =   $documento->pedido_id;
                     $nota->update();
-                    
-                }
+
+                }*/
 
                 //======== SI EL DOC DE VENTA NO ESTÁ ASOCIADO A UN PEDIDO ========
-                if(!$documento->pedido_id){
+                /*if(!$documento->pedido_id){
 
                     //===== AUMENTAR EL STOCK LOGICO Y FISICO ====
                     DB::table('producto_color_tallas')
@@ -619,23 +595,23 @@ class NotaController extends Controller
                         'stock'           => DB::raw('stock + ' . $producto->cantidad_devolver)
                     ]);
 
-                }
+                }*/
+
+
 
                 if($request->cod_motivo == '01'){   //==== EN CASO DEVOLUCIÓN TOTAL ====
                     $documento->sunat = '2';
-                    $documento->update();    
+                    $documento->update();
                 }
 
                 //======== KARDEX =======
-                $producto_color_talla   =   DB::table('producto_color_tallas')
+                /*$producto_color_talla   =   DB::table('producto_color_tallas')
                                             ->where('almacen_id',$documento->almacen_id)
                                             ->where('producto_id', $producto->producto_id)
                                             ->where('color_id', $producto->color_id)
                                             ->where('talla_id', $producto->talla_id)
                                             ->first();
 
-
-                
 
                 $item_producto              =   Producto::find($producto->producto_id);
                 $item_color                 =   Color::find($producto->color_id);
@@ -663,6 +639,7 @@ class NotaController extends Controller
                 $kardex->fecha              =   $nota->fechaEmision;
                 $kardex->descripcion        =   'DEVOLUCIÓN';
                 $kardex->save();
+                */
 
                 $sumatoria           = NotaDetalle::where('detalle_id',$nota_detalle->detalle_id)->sum('cantidad');
                 $detalle_venta       = Detalle::findOrFail($nota_detalle->detalle_id);
@@ -671,49 +648,27 @@ class NotaController extends Controller
                     $detalle_venta->estado = 'ANULADO';
                     $detalle_venta->update();
                 }
-          
+
             }
 
             //========== ACTUALIZAR ESTADO FACTURACIÓN A INICIADA ======
             DB::table('empresa_numeracion_facturaciones')
-            ->where('empresa_id', Empresa::find(1)->id) 
-            ->where('sede_id', $sede_id) 
-            ->where('tipo_comprobante', $datos_correlativo->tipo_comprobante->id) 
-            ->where('emision_iniciada', '0') 
+            ->where('empresa_id', Empresa::find(1)->id)
+            ->where('sede_id', $sede_id)
+            ->where('tipo_comprobante', $datos_correlativo->tipo_comprobante->id)
+            ->where('emision_iniciada', '0')
             ->where('estado','ACTIVO')
             ->update([
                   'emision_iniciada'       => '1',
                   'updated_at'             => Carbon::now()
             ]);
-          
+
             //==== REGISTRO DE ACTIVIDAD ====
-            $descripcion = "SE AGREGÓ UNA NOTA DE DEBITO CON LA FECHA: ". Carbon::parse($nota->fechaEmision)->format('d/m/y');
-            $gestion = "NOTA DE DEBITO";
+            $descripcion = "SE AGREGÓ UNA NOTA DE CREDITO CON LA FECHA: ". Carbon::parse($nota->fechaEmision)->format('d/m/y');
+            $gestion = "NOTA DE CREDITO";
             crearRegistro($nota , $descripcion , $gestion);
 
-            //======== OBTENER CORRELATIVO ======
-            //$envio_prev = self::sunat_prev($nota->id,$documento->tipo_venta);
-            
-           
-            /*if(!$envio_prev['success']){
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'mensaje'=> $envio_prev['mensaje']
-                ]);
-            }else{
-                $nota->serie        =   $envio_prev['serie'];
-                $nota->correlativo  =   $envio_prev['correlativo'];
-                $nota->update();
 
-                //======= SI LA EMISIÓN NO HA INICIADO, ACTUALIZAR =======
-                if($envio_prev['model_numeracion']->emision_iniciada == 0){
-                    DB::table('empresa_numeracion_facturaciones')
-                    ->where('id', $envio_prev['model_numeracion']->id)
-                    ->update(['emision_iniciada' => '1']);
-                }
-            }*/
-            
             DB::commit();
 
             if(!isset($request->nota_venta))
@@ -735,10 +690,10 @@ class NotaController extends Controller
             ]);
 
         }
-        catch(\Throwable $e)
+        catch(Throwable $e)
         {
             DB::rollBack();
-           
+
             return response()->json([
                 'success' => false,
                 'mensaje'=> $e->getMessage(),
@@ -783,10 +738,10 @@ class NotaController extends Controller
 
             }
 
-            
+
 
             $documento = Documento::find($request->get('documento_id'));
-            
+
 
             $igv = $documento->igv ? $documento->igv : 18;
 
@@ -826,17 +781,17 @@ class NotaController extends Controller
             $nota->user_id = auth()->user()->id;
             $nota->save();
 
-     
+
             //Llenado de los articulos
             $productosJSON = $request->get('productos_tabla');
             $productotabla = json_decode($productosJSON);
 
-       
+
 
             foreach ($productotabla as $producto) {
-                
 
-                    $detalle =  DB::select('select cdd.id 
+
+                    $detalle =  DB::select('select cdd.id
                                 from cotizacion_documento_detalles as cdd
                                 where cdd.documento_id=? and cdd.producto_id=?  and cdd.color_id=?
                                 and cdd.talla_id=?',[
@@ -876,10 +831,10 @@ class NotaController extends Controller
                         'stock_logico' => DB::raw('stock_logico + ' . $producto->cantidad_devolver),
                         'stock' => DB::raw('stock + ' . $producto->cantidad_devolver)
                     ]);
-                
+
                 if($request->cod_motivo == '01'){   //==== EN CASO DEVOLUCIÓN TOTAL ====
                     $documento->sunat = '2';
-                    $documento->update();    
+                    $documento->update();
                 }
             //     if($request->cod_motivo != '01')
             //     {
@@ -948,17 +903,17 @@ class NotaController extends Controller
             //         $documento->update();
             //     }
             }
-          
+
             //==== REGISTRO DE ACTIVIDAD ====
             $descripcion = "SE AGREGÓ UNA NOTA DE DEBITO CON LA FECHA: ". Carbon::parse($nota->fechaEmision)->format('d/m/y');
             $gestion = "NOTA DE DEBITO";
             crearRegistro($nota , $descripcion , $gestion);
 
-          
+
             //======== OBTENER CORRELATIVO ======
             $envio_prev = self::sunat_prev($nota->id,$documento->tipo_venta);
-            
-           
+
+
             if(!$envio_prev['success']){
                 DB::rollBack();
                 return response()->json([
@@ -977,7 +932,7 @@ class NotaController extends Controller
                     ->update(['emision_iniciada' => '1']);
                 }
             }
-            
+
             DB::commit();
             if(!isset($request->nota_venta))
             {
@@ -1001,7 +956,7 @@ class NotaController extends Controller
         catch(\Throwable $e)
         {
             DB::rollBack();
-           
+
             return response()->json([
                 'success' => false,
                 'mensaje'=> $e->getMessage(),
@@ -1065,9 +1020,9 @@ class NotaController extends Controller
         $empresa    = Empresa::first();
         $detalles   = NotaDetalle::where('nota_id',$id)->get();
 
-        
 
-    
+
+
         $legends = self::obtenerLeyenda($nota);
         $legends = json_encode($legends,true);
         $legends = json_decode($legends,true);
@@ -1142,7 +1097,7 @@ class NotaController extends Controller
                                             from nota_electronica as ne
                                             where ne.serie=?
                                             order by ne.id desc',[$numeracion->serie]);
-                    
+
                     return $ultima_nota[0]->correlativo+1;
                 }
             }
@@ -1253,7 +1208,7 @@ class NotaController extends Controller
                                         where td.descripcion="NOTA DE CRÉDITO BOLETA"');
                 //====== NOTA CRÉDITO BOLETA BB01 =====
             }
-          
+
             //======== NOTAS DE VENTA ======
             if($tipo_venta == 129){
                 //====== NOTA DE DEVOLUCIÓN NN01 =====
@@ -1264,8 +1219,8 @@ class NotaController extends Controller
             if(count($tipo_comprobante)>0){
                 $numeracion = Numeracion::where('empresa_id',$nota->empresa_id)->where('estado','ACTIVO')
                 ->where('tipo_comprobante',$tipo_comprobante[0]->id)->first();
-            } 
-          
+            }
+
         }
 
         if ($numeracion) {
@@ -1282,21 +1237,21 @@ class NotaController extends Controller
                     'existe'        => false
                 ];
             }
-           
+
             $collection = collect($enviar);
             return  $collection;
         }
     }
 
     public function sunat($id){
-     
+
         try {
             $util       = Util::getInstance();
             $nota       = Nota::find($id);
             $documento  = Documento::find($nota->documento_id);
             $detalles   = NotaDetalle::where('nota_id',$id)->get();
-    
-    
+
+
             if(!$nota){
                 Session::flash('nota_credito_error', 'NO SE ENCONTRÓ LA NOTA DE CRÉDITO EN LA BASE DE DATOS');
                 return back();
@@ -1309,7 +1264,7 @@ class NotaController extends Controller
                 Session::flash('nota_credito_error', 'LA NOTA DE CRÉDITO NO TIENE DETALLES');
                 return back();
             }
-    
+
             $des_motivo =   '-';
             if($nota->codMotivo == '01'){
                 $des_motivo =   "ANULACION DE LA OPERACION";
@@ -1317,7 +1272,7 @@ class NotaController extends Controller
             if($nota->codMotivo == '07'){
                 $des_motivo =   "DEVOLUCION POR ITEM";
             }
-    
+
             //====== CONSTRUIR CLIENTE ======
             $client = (new Client())
             ->setTipoDoc($nota->cod_tipo_documento_cliente)
@@ -1325,7 +1280,7 @@ class NotaController extends Controller
             ->setRznSocial($nota->cliente)
             ->setAddress((new Address())
             ->setDireccion($nota->direccion_cliente));
-    
+
             //======== CONSTRUYENDO CABEZERA =====
             $note = new Note();
             $note
@@ -1345,8 +1300,8 @@ class NotaController extends Controller
                 ->setMtoIGV($nota->mtoIGV)
                 ->setTotalImpuestos($nota->totalImpuestos)
                 ->setMtoImpVenta($nota->mtoImpVenta);
-          
-            
+
+
             //====== CONSTRUYENDO DETALLE =====
             $items  =   [];
             foreach ($detalles as $detalle) {
@@ -1363,20 +1318,20 @@ class NotaController extends Controller
                     ->setMtoValorVenta($detalle->mtoValorVenta)
                     ->setMtoValorUnitario($detalle->mtoValorUnitario)
                     ->setMtoPrecioUnitario($detalle->mtoPrecioUnitario);
-                
+
                 $items[]    =   $item1;
             }
 
             //======= CONSTRUYENDO LEGENDA ======
             $legenda_nota    = 'SON'.' '. $nota->value;
-    
+
             $legend = new Legend();
             $legend->setCode('1000')
                 ->setValue($legenda_nota);
-    
+
             $note->setDetails($items)
                 ->setLegends([$legend]);
-    
+
             $see =   $this->controlConfiguracionGreenter($util);
             $res =   $see->send($note);
 
@@ -1389,10 +1344,10 @@ class NotaController extends Controller
                 $nota->ruta_xml      =   'storage/greenter/notas_credito_facturas/xml/'.$note->getName().'.xml';
             }
             $nota->nota_name        =   $note->getName();
-          
+
            //======== ENVÍO CORRECTO Y ACEPTADO ==========
            if($res->isSuccess()){
-               
+
                 //====== GUARDANDO RESPONSE ======
                 $cdr                                    =   $res->getCdrResponse();
                 $nota->cdr_response_id                  =   $cdr->getId();
@@ -1409,9 +1364,9 @@ class NotaController extends Controller
                 if($nota->tipDocAfectado == '01'){
                     $nota->ruta_cdr      =   'storage/greenter/notas_credito_facturas/cdr/'.$note->getName().'.zip';
                 }
-                
+
                 $nota->sunat                        =   "1";
-                $nota->update(); 
+                $nota->update();
 
                 Session::flash('nota_credito_sunat_success',$cdr->getDescription());
                 return back();
@@ -1420,7 +1375,7 @@ class NotaController extends Controller
                $nota->response_error_message  =   $res->getError()->getMessage();
                $nota->response_error_code     =   $res->getError()->getCode();
                $nota->regularize              =   '1';
-               $nota->update(); 
+               $nota->update();
 
                 //if($res->getError()->getCode() == 2223){
                 //  dd($res);
@@ -1430,18 +1385,18 @@ class NotaController extends Controller
                throw new Exception("ERROR AL ENVIAR FACTURA A SUNAT. "."CÓDIGO: ".$res->getError()->getCode()
                .",DESCRIPCIÓN: ".$res->getError()->getMessage());
            }
-           
-           
+
+
         } catch (\Throwable $th) {
             Session::flash('nota_credito_sunat_error',$th->getMessage());
             return back();
         }
-       
+
     }
 
     public function controlConfiguracionGreenter($util){
         //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
-        $greenter_config    =   DB::select('select 
+        $greenter_config    =   DB::select('select
                                 gc.ruta_certificado,
                                 gc.id_api_guia_remision,
                                 gc.modo,
@@ -1726,29 +1681,29 @@ class NotaController extends Controller
 
         //===== OBTENIENDO LA ÚLTIMA NOTA ELECTRÓNICA DE LA SEDE =======
         $ultima_nota =      DB::select('SELECT
-                            n.serie, 
-                            n.correlativo 
+                            n.serie,
+                            n.correlativo
                             FROM nota_electronica AS n
-                            WHERE n.sede_id = ? 
+                            WHERE n.sede_id = ?
                             AND n.tipDocAfectado = ?
-                            ORDER BY n.id DESC 
+                            ORDER BY n.id DESC
                             LIMIT 1',
                             [
                                 $sede_id,
                                 $tipDocAfectado
                             ]);
 
-        $tipo_comprobante   =   DB::select('select 
-                                td.* 
+        $tipo_comprobante   =   DB::select('select
+                                td.*
                                 from tabladetalles as td
                                 where
                                 td.tabla_id = 21
                                 AND td.parametro = ?',[$parametro])[0];
 
-        $serializacion  =   DB::select('select 
+        $serializacion  =   DB::select('select
                             enf.*
                             from empresa_numeracion_facturaciones as enf
-                            where 
+                            where
                             enf.empresa_id = ?
                             and enf.tipo_comprobante = ?
                             and enf.sede_id = ?',
@@ -1767,7 +1722,7 @@ class NotaController extends Controller
             //======= EN CASO YA EXISTAN NOTAS DE CREDITO DEL TYPE SALE ======
             $correlativo    =   $ultima_nota[0]->correlativo + 1;
             $serie          =   $ultima_nota[0]->serie;
-    
+
         }
 
 
