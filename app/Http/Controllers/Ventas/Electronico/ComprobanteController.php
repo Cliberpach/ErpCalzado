@@ -348,7 +348,7 @@ class ComprobanteController extends Controller
                     ->setTotalAnticipos($documento->anticipo_monto_consumido_sin_igv);
                 */
 
-                $invoice
+                /*$invoice
                     ->setDescuentos([
                         (
                             new Charge())
@@ -369,8 +369,30 @@ class ComprobanteController extends Controller
                     ->setValorVenta($valor_venta)
                     ->setSubTotal($subtotal)
                     ->setMtoImpVenta($imp_venta)
-                    ->setTotalAnticipos($anticipo_monto_consumido_sin_igv);
+                    ->setTotalAnticipos($anticipo_monto_consumido_sin_igv);*/
 
+                $invoice
+                    ->setDescuentos([
+                        (
+                            new Charge())
+                            ->setCodTipo('04')
+                            ->setFactor(1)
+                            ->setMonto(100) // anticipo sin igv
+                            ->setMontoBase(100)
+                    ])
+                    ->setMtoOperGravadas(100)
+                    ->setMtoIGV(18)
+                    ->setValorVenta(200)
+                    ->setTotalImpuestos(18)
+                    ->setSubTotal(236)
+                    ->setMtoImpVenta(136)
+                    ->setAnticipos([
+                        (new Prepayment())
+                            ->setTipoDocRel($tipoDocRel) // catalog. 12  02 facturas anticipo - 03 boletas anticipo
+                            ->setNroDocRel($documento->anticipo_consumido_serie . '-' . $documento->anticipo_consumido_correlativo)
+                            ->setTotal(100)
+                    ])
+                    ->setTotalAnticipos(100);
             }
 
             //======== CONSTRUIR DETALLE FACTURA ========
@@ -380,7 +402,24 @@ class ComprobanteController extends Controller
             //=========== SI NO ES FACTURA PAGO ANTICIPADO =========
             if (!$documento->es_anticipo) {
 
-                foreach ($detalles as $detalle) {
+                $detail = new SaleDetail();
+                $detail->setCodProducto('P001')
+                    ->setUnidad('NIU')
+                    ->setDescripcion('PROD 1')
+                    ->setCantidad(2)
+                    ->setMtoValorUnitario(100)
+                    ->setMtoValorVenta(200)
+                    ->setMtoBaseIgv(200)
+                    ->setPorcentajeIgv(18)
+                    ->setIgv(36)
+                    ->setTipAfeIgv('10')
+                    ->setTotalImpuestos(36)
+                    ->setMtoPrecioUnitario(118)
+                ;
+
+                $items[]    =   $detail;
+
+                /*foreach ($detalles as $detalle) {
                     $items[] = (new SaleDetail())
                         ->setCodProducto($detalle->codigo_producto)
                         ->setUnidad($detalle->unidad)
@@ -427,24 +466,22 @@ class ComprobanteController extends Controller
                         ->setTipAfeIgv('10') // Catalog: 07
                         ->setTotalImpuestos((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
                         ->setMtoPrecioUnitario($documento->monto_envio);
-                }
-
-            }else{
+                }*/
+            } else {
 
                 $items[] = (new SaleDetail())
-                        ->setCodProducto('PAGO ANTICIPADO')
-                        ->setUnidad('NIU')
-                        ->setDescripcion('PAGO ANTICIPADO')
-                        ->setCantidad(1)
-                        ->setMtoValorUnitario((float)$documento->mto_imp_venta_sunat / 1.18)
-                        ->setMtoValorVenta(((float)$documento->mto_imp_venta_sunat / 1.18) * (float)1)
-                        ->setMtoBaseIgv(((float)$documento->mto_imp_venta_sunat / 1.18) * (float)1)
-                        ->setPorcentajeIgv(18)
-                        ->setIgv((float)1 * ((float)$documento->mto_imp_venta_sunat - (float)$documento->mto_imp_venta_sunat / 1.18))
-                        ->setTipAfeIgv('10') // Catalog: 07
-                        ->setTotalImpuestos((float)1 * ((float)$documento->mto_imp_venta_sunat - (float)$documento->mto_imp_venta_sunat / 1.18))
-                        ->setMtoPrecioUnitario($documento->mto_imp_venta_sunat);
-
+                    ->setCodProducto('PAGO ANTICIPADO')
+                    ->setUnidad('NIU')
+                    ->setDescripcion('PAGO ANTICIPADO')
+                    ->setCantidad(1)
+                    ->setMtoValorUnitario((float)$documento->mto_imp_venta_sunat / 1.18)
+                    ->setMtoValorVenta(((float)$documento->mto_imp_venta_sunat / 1.18) * (float)1)
+                    ->setMtoBaseIgv(((float)$documento->mto_imp_venta_sunat / 1.18) * (float)1)
+                    ->setPorcentajeIgv(18)
+                    ->setIgv((float)1 * ((float)$documento->mto_imp_venta_sunat - (float)$documento->mto_imp_venta_sunat / 1.18))
+                    ->setTipAfeIgv('10') // Catalog: 07
+                    ->setTotalImpuestos((float)1 * ((float)$documento->mto_imp_venta_sunat - (float)$documento->mto_imp_venta_sunat / 1.18))
+                    ->setMtoPrecioUnitario($documento->mto_imp_venta_sunat);
             }
 
 
@@ -452,14 +489,22 @@ class ComprobanteController extends Controller
             $formatter  = new NumeroALetras();
             $legenda    = $formatter->toInvoice($documento->total_pagar, 2, 'SOLES');
 
-            $invoice->setDetails($items)
+            /*$invoice->setDetails($items)
                 ->setLegends([
                     (new Legend())
                         ->setCode('1000')
                         ->setValue($legenda)
+                ]);*/
+
+            $invoice->setDetails([$detail])
+                ->setLegends([
+                    (new Legend())
+                        ->setCode('1000')
+                        ->setValue('SON DOSCIENTOS TREINTA Y SEIS CON OO/100 SOLES')
                 ]);
 
-
+            dd($invoice);
+            
             $see = $this->controlConfiguracionGreenter($util);
 
             $res = $see->send($invoice);
