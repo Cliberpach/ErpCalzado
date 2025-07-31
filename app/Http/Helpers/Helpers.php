@@ -705,7 +705,7 @@ if (!function_exists('eliminarRegistro')) {
 //LOGUEO
 // GENERAR TOKEN
 if (!function_exists('obtenerTokenapi')) {
-    
+
     function obtenerTokenapi()
     {
 
@@ -717,7 +717,7 @@ if (!function_exists('obtenerTokenapi')) {
         // $usuario_sol = "SISCOMFA"; // Reemplaza esto con tu usuario SOL
         // $contraseña_sol = "Merry321"; // Reemplaza esto con tu contraseña SOL
 
-        
+
         // $body = [
         //       'grant_type' => 'password',
         //       'scope' => 'https://api-cpe.sunat.gob.pe',
@@ -728,33 +728,33 @@ if (!function_exists('obtenerTokenapi')) {
         // ];
 
         // try {
-           
+
         // // Realizar la solicitud POST
         //      $response = $client->post("https://api-seguridad.sunat.gob.pe/v1/clientessol/{$client_id}/oauth2/token/", [
         //          'form_params' => $body
         //      ]);
-        
+
         //      // Manejar la respuesta aquí
         //      $statusCode = $response->getStatusCode();
         //      $body = json_decode($response->getBody(), true);
         //      $token_sunat    = $body['access_token'] ;
         //      dd($token_sunat);
         //      return $token_sunat;
-             
+
         // } catch (Exception $e) {
         //      echo $e->getMessage();
         // }
 
         $parametro = Parametro::findOrFail(3);
-        
-        
+
+
         $response = Http::post('https://facturacion.apisperu.com/api/v1/auth/login', [
               'username' => "$parametro->usuario_proveedor",
               'password' => $parametro->contra_proveedor,
          ]);
 
          $estado = $response->getStatusCode();
-        
+
          if ($estado == '200') {
 
               $resultado = $response->getBody()->getContents();
@@ -1064,7 +1064,7 @@ if (!function_exists('pdfGuiaapi')) {
     function pdfGuiaapi($guia)
     {
 
-        
+
         $url = "https://facturacion.apisperu.com/api/v1/despatch/pdf";
 
         $client = new \GuzzleHttp\Client(['verify'=>false]);
@@ -1096,7 +1096,7 @@ if (!function_exists('pdfGuiaapi')) {
 if (!function_exists('enviarGuiaapi')) {
     function enviarGuiaapi($guia)
     {
-        
+
         $url = "https://facturacion.apisperu.com/api/v1/despatch/send";
         $client = new \GuzzleHttp\Client(['verify'=>false]);
         $token = obtenerTokenapi();
@@ -1109,7 +1109,7 @@ if (!function_exists('enviarGuiaapi')) {
                 ],
                 'body'    => $guia
             ]);
-        
+
             // Manejar la respuesta aquí
             dd($response->getBody()->getContents());
         } catch (RequestException $e) {
@@ -1117,7 +1117,7 @@ if (!function_exists('enviarGuiaapi')) {
         }
 
         $estado = $response->getStatusCode();
-        
+
         if ($estado == '200') {
             $resultado = $response->getBody()->getContents();
             json_decode($resultado);
@@ -1299,18 +1299,18 @@ if (!function_exists('movimientoUser')) {
             DE ESTA ENLAZAREMOS EL DOCUMENTO DE VENTA CON EL MOVIMIENTO CAJA RESPECTIVO =========
             */
 
-            /*===== 
-                OJ0: 
+            /*=====
+                OJ0:
                 MOVIMIENTO_CAJA: CONTIENE ID CAJA, CAJERO Y ESTADO (APERTURA Y CIERRE)
                 DETALLE_MOVIMIENTO_CAJA: CONTIENE  CAJERO Y SUS COLABORADORES(VENDEDORES)
             ======
             */
 
-            $movimiento =   DB::select('select 
-                            dmc.movimiento_id 
+            $movimiento =   DB::select('select
+                            dmc.movimiento_id
                             from detalles_movimiento_caja as dmc
-                            where 
-                            dmc.colaborador_id = ? 
+                            where
+                            dmc.colaborador_id = ?
                             and dmc.fecha_salida is null',
                             [Auth::user()->colaborador_id]);
 
@@ -1394,13 +1394,13 @@ if (!function_exists('cuadreMovimientoCajaIngresosVenta')) {
     {
         $totalIngresos = 0;
 
-       
+
         //====== BUSCAR LOS DOCUMENTOS VENTA QUE NO SE ENCUENTREN PAGADOS CON RECIBOS =========
         foreach ($movimiento->detalleMovimientoVentas as $item) {
-            if ($item->cobrar === 'SI' 
-            && $item->documento->condicion_id == 1 
-            && ifNoConvertido($item->documento->id) 
-            && $item->documento->estado_pago == 'PAGADA' 
+            if ($item->cobrar === 'SI'
+            && $item->documento->condicion_id == 1
+            && ifNoConvertido($item->documento->id)
+            && $item->documento->estado_pago == 'PAGADA'
             && $item->documento->tipo_pago_id !='4'
             && $item->documento->estado === 'ACTIVO') { // && $item->documento->sunat != '2'
                 $totalIngresos = $totalIngresos + ($item->documento->importe + $item->documento->efectivo);
@@ -1419,9 +1419,9 @@ if (!function_exists('cuadreMovimientoCajaIngresosRecibo')) {
     {
         $totalIngresos = 0;
         //======== OBTENER TODOS LOS RECIBOS DE DICHO MOVIMIENTO =========
-        $recibos        =   DB::select('select * from recibos_caja as rc 
+        $recibos        =   DB::select('select * from recibos_caja as rc
                             where rc.movimiento_id=? and rc.estado="ACTIVO"',[$movimiento->id]);
-    
+
 
         foreach ($recibos as $item) {
             $totalIngresos  +=  $item->monto;
@@ -1458,8 +1458,8 @@ if (!function_exists('cuadreMovimientoCajaIngresosVentaResum')) {
 
             foreach ($movimiento->detalleMovimientoVentas as $item) {
                 if (
-                    $item->documento->condicion_id == 1 
-                    && ifNoConvertido($item->documento->id) 
+                    $item->documento->condicion_id == 1
+                    && ifNoConvertido($item->documento->id)
                     && $item->documento->estado_pago == 'PAGADA'
                     && $item->documento->estado == 'ACTIVO'
                 ) { // && $item->documento->sunat != '2'
@@ -1474,8 +1474,8 @@ if (!function_exists('cuadreMovimientoCajaIngresosVentaResum')) {
             //======= INGRESO POR TIPO DE PAGO ESPECÍFICO =======
             foreach ($movimiento->detalleMovimientoVentas as $item) {
                 if (
-                    $item->documento->condicion_id == 1 
-                    && ifNoConvertido($item->documento->id) 
+                    $item->documento->condicion_id == 1
+                    && ifNoConvertido($item->documento->id)
                     && $item->documento->estado_pago == 'PAGADA'
                     && $item->documento->estado == 'ACTIVO'
                 ) { // && $item->documento->sunat != '2'
@@ -1522,7 +1522,7 @@ if (!function_exists('cuadreMovimientoCajaIngresosVentaResum')) {
 if (!function_exists('calcularTotalesRecibosCaja')) {
     function calcularTotalesRecibosCaja(MovimientoCaja $movimiento,$tipo_pago)
     {
-        $recibos    =   DB::select('select rc.monto,rc.metodo_pago,rc.estado 
+        $recibos    =   DB::select('select rc.monto,rc.metodo_pago,rc.estado
                         from recibos_caja as rc where rc.movimiento_id=?',[$movimiento->id]);
         $total      =   0;
         foreach ($recibos as $recibo) {
@@ -1543,7 +1543,7 @@ if (!function_exists('obtenerTotalIngresosPorTipoPago')) {
         $tipos_pago =   tipos_pago();
         //======= OBTENER LOS DOCUMENTOS DE VENTA ENLAZADOS AL MOVIMIENTO ======
         $docs_venta     =   $movimiento->detalleMovimientoVentas;
-        
+
         $res    =   [];
         //====== PARA CADA TIPO DE PAGO ======
         foreach ($tipos_pago as $tipo_pago) {
@@ -1552,15 +1552,15 @@ if (!function_exists('obtenerTotalIngresosPorTipoPago')) {
 
             //======= CALCULAR TOTAL INGRESOS ======
             foreach ($docs_venta as $doc_venta) {
-               
+
                 if($doc_venta->documento->tipo_pago_id == $tipo_pago->id && $doc_venta->documento->estado !== 'ANULADO'){
                     $resultado['monto_total_ingresos']  +=  $doc_venta->documento->importe;
                 }
             }
 
             $res[]  =   (object)$resultado;
-        } 
-        
+        }
+
         return $res;
     }
 }
@@ -1574,9 +1574,8 @@ if (!function_exists('cuadreMovimientoDevoluciones')) {
     {
         //$cuenta = TablaDetalle::find(165);
         //$cuenta_id = $cuenta->descripcion == 'DEVOLUCION' ? $cuenta->id : (TablaDetalle::where('descripcion','DEVOLUCION')->where('tabla_id',32)->first() ? TablaDetalle::where('descripcion','DEVOLUCION')->where('tabla_id',32)->first()->id : null);
-        
 
-        
+
         $totalEgresos = 0;
         // foreach ($movimiento->detalleMoviemientoEgresos as $key => $item) {
         //     if ($item->egreso->estado == "ACTIVO" && $item->egreso->cuenta_id == $cuenta_id) {
@@ -1692,7 +1691,7 @@ if (!function_exists('cuadreMovimientoCajaEgresosEgresoResum')) {
     function cuadreMovimientoCajaEgresosEgresoResum($movimiento,$tipo_pago)
     {
         $totalEgresos = 0;
-        
+
          //====== TIPO PAGO (4) => INGRESOS TOTALES SIN IMPORTAR EL TIPO DE PAGO =======
         if($tipo_pago == 4){
             foreach ($movimiento->detalleMoviemientoEgresos as $key => $item) {
@@ -2027,13 +2026,13 @@ if (!function_exists('generarCodigo')) {
     {
         $existe     =   true;
         while ($existe) {
-            
+
             $key        = '';
             // $pattern    = '1234567890abcdefghijklmnopqrstuvwxyz0987654321ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             $pattern    = '12345678900987654321ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             $max        = strlen($pattern)-1;
             for($i=0;$i < $longitud;$i++) $key .= $pattern[mt_rand(0,$max)];
-    
+
             $existe =   DB::table('codigos_barra')
                         ->whereRaw('UPPER(codigo_barras) = ?', [strtoupper($key)])
                         ->first();
@@ -2109,7 +2108,7 @@ if (!function_exists('ifNoConvertido')) {
     function ifNoConvertido($id)
     {
         $doc = DocumentoDocumento::find($id);
-        
+
         if($doc->convert_de_id){
             return false;
         }else{

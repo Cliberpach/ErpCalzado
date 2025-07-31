@@ -687,7 +687,7 @@ export default {
                                 && row.estado == 'ACTIVO'
                                 && row.estado_pago == 'PAGADA'
                             ) {
-                                acciones += `<a href="#" class="dropdown-item">
+                                acciones += `<a href="${vm.routes(row.id, 'NOTAS')}" class="dropdown-item">
                                                 <i class="fa fa-file-o" style="color: #77600e;"></i> Notas
                                             </a>`;
                             }
@@ -712,7 +712,7 @@ export default {
                                     (row.condicion == 'CREDITO' || row.condicion == 'CRÉDITO')
                                 )
                             ) {
-                                acciones += `<a href="#" class="dropdown-item" title="Nota de devolución">
+                                acciones += `<a href="${vm.routes(row.id, 'DEVO')}" class="dropdown-item" title="Nota de devolución">
                                                 <i class="fa fa-file-o"></i> Devoluciones
                                             </a>`;
                             }

@@ -1522,7 +1522,7 @@ array:27 [
             if (
                 $request->get('facturado') === 'SI'
                 || $request->get('tipo_doc_venta_pedido') == 'CONSUMO'
-            ) {
+            ){
                 $movimiento_venta->cobrar       =   'NO';
             }
             $movimiento_venta->save();

@@ -408,7 +408,7 @@ class NotaController extends Controller
 
                 //========= 01:FACTURA 03:BOLETA =======
                 //======= PREGUNTAR SI EL DOC DE VENTA ESTÁ ASOCIADO A UN PEDIDO =====
-                /*if( $documento->pedido_id ){
+                if( $documento->pedido_id ){
 
                     //======== EN CASO SEA EL DOC VENTA DE LA FACTURACIÓN DE UN PEDIDO ========
                     //========= DOCS DE VENTA DE TIPO FACTURACIÓN DE PEDIDO NO RESTAN STOCK !!=========
@@ -579,10 +579,10 @@ class NotaController extends Controller
                     $nota->pedido_id    =   $documento->pedido_id;
                     $nota->update();
 
-                }*/
+                }
 
                 //======== SI EL DOC DE VENTA NO ESTÁ ASOCIADO A UN PEDIDO ========
-                /*if(!$documento->pedido_id){
+                if(!$documento->pedido_id){
 
                     //===== AUMENTAR EL STOCK LOGICO Y FISICO ====
                     DB::table('producto_color_tallas')
@@ -595,7 +595,7 @@ class NotaController extends Controller
                         'stock'           => DB::raw('stock + ' . $producto->cantidad_devolver)
                     ]);
 
-                }*/
+                }
 
 
 
@@ -605,7 +605,7 @@ class NotaController extends Controller
                 }
 
                 //======== KARDEX =======
-                /*$producto_color_talla   =   DB::table('producto_color_tallas')
+                $producto_color_talla   =   DB::table('producto_color_tallas')
                                             ->where('almacen_id',$documento->almacen_id)
                                             ->where('producto_id', $producto->producto_id)
                                             ->where('color_id', $producto->color_id)
@@ -639,7 +639,7 @@ class NotaController extends Controller
                 $kardex->fecha              =   $nota->fechaEmision;
                 $kardex->descripcion        =   'DEVOLUCIÓN';
                 $kardex->save();
-                */
+
 
                 $sumatoria           = NotaDetalle::where('detalle_id',$nota_detalle->detalle_id)->sum('cantidad');
                 $detalle_venta       = Detalle::findOrFail($nota_detalle->detalle_id);
