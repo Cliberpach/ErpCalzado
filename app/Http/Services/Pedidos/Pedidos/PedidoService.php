@@ -222,9 +222,9 @@ class PedidoService
         $res_doc_atencion   =   $this->generarDocAtencion($request);
 
         //========= GENERAR DOCUMENTO VENTA DE CONSUMO EN CASO EL PEDIDO SE COMPLETÓ DE ATENDER =======
-        if ($pedido->estado === "FINALIZADO" && $pedido->facturado === "SI") {
-            $this->generarDocConsumo($pedido);
-        }
+        // if ($pedido->estado === "FINALIZADO" && $pedido->facturado === "SI") {
+        //     $this->generarDocConsumo($pedido);
+        // }
 
         return $res_doc_atencion->documento_id;
     }
