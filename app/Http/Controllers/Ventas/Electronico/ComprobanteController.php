@@ -34,6 +34,7 @@ use App\Greenter\Utils\Util;
 use App\Ventas\Cliente;
 use Greenter\Model\Sale\Charge;
 use Greenter\Model\Sale\Prepayment;
+use Throwable;
 
 class ComprobanteController extends Controller
 {
@@ -279,7 +280,7 @@ class ComprobanteController extends Controller
                 ->setClient($client);
 
 
-            if (!$documento->anticipo_consumido_id) {
+            //if (!$documento->anticipo_consumido_id) {
 
                 $invoice
                     ->setMtoOperGravadas($documento->mto_oper_gravadas_sunat) //======= MONTO VENDIDO SIN IMPUESTO =======
@@ -289,9 +290,9 @@ class ComprobanteController extends Controller
                     ->setSubTotal($documento->sub_total_sunat) //========= MONTO VENDIDO + IMPUESTO =======
                     ->setMtoImpVenta($documento->mto_imp_venta_sunat); //======= MONTO VENDIDO + IMPUESTO =========
 
-            } else {
+            //} else {
 
-                $tipoDocRel =   $documento->anticipo_tipo_venta_id == '127' ? '02' : '03';
+                /*$tipoDocRel =   $documento->anticipo_tipo_venta_id == '127' ? '02' : '03';
 
                 //========= SUMATORIA DEL DETALLE CON IGV =======
                 $anticipo_monto_consumido_sin_igv   =   $documento->anticipo_monto_consumido / 1.18;
@@ -301,7 +302,7 @@ class ComprobanteController extends Controller
                 $valor_venta    =   $subtotal / 1.18;
                 $mtoOperGravada =   $valor_venta -  (float)$anticipo_monto_consumido_sin_igv;
                 $mtoIgv         =   $mtoOperGravada * 0.18;
-                $totalImpuestos =   $mtoIgv;
+                $totalImpuestos =   $mtoIgv;*/
 
                 /*dd([
                     'subtotal_calculado' => $subtotal,
@@ -371,7 +372,7 @@ class ComprobanteController extends Controller
                     ->setMtoImpVenta($imp_venta)
                     ->setTotalAnticipos($anticipo_monto_consumido_sin_igv);*/
 
-                $invoice
+                /*$invoice
                     ->setDescuentos([
                         (
                             new Charge())
@@ -392,17 +393,17 @@ class ComprobanteController extends Controller
                             ->setNroDocRel($documento->anticipo_consumido_serie . '-' . $documento->anticipo_consumido_correlativo)
                             ->setTotal(100)
                     ])
-                    ->setTotalAnticipos(100);
-            }
+                    ->setTotalAnticipos(100);*/
+            //}
 
             //======== CONSTRUIR DETALLE FACTURA ========
             $detalles   =   $documento->detalles;
             $items      =   [];
 
             //=========== SI NO ES FACTURA PAGO ANTICIPADO =========
-            if (!$documento->es_anticipo) {
+            //if (!$documento->es_anticipo) {
 
-                $detail = new SaleDetail();
+                /*$detail = new SaleDetail();
                 $detail->setCodProducto('P001')
                     ->setUnidad('NIU')
                     ->setDescripcion('PROD 1')
@@ -415,11 +416,11 @@ class ComprobanteController extends Controller
                     ->setTipAfeIgv('10')
                     ->setTotalImpuestos(36)
                     ->setMtoPrecioUnitario(118)
-                ;
+                ;*/
 
-                $items[]    =   $detail;
+                //$items[]    =   $detail;
 
-                /*foreach ($detalles as $detalle) {
+                foreach ($detalles as $detalle) {
                     $items[] = (new SaleDetail())
                         ->setCodProducto($detalle->codigo_producto)
                         ->setUnidad($detalle->unidad)
@@ -466,9 +467,10 @@ class ComprobanteController extends Controller
                         ->setTipAfeIgv('10') // Catalog: 07
                         ->setTotalImpuestos((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
                         ->setMtoPrecioUnitario($documento->monto_envio);
-                }*/
-            } else {
+                }
+           // } else {
 
+                /*
                 $items[] = (new SaleDetail())
                     ->setCodProducto('PAGO ANTICIPADO')
                     ->setUnidad('NIU')
@@ -482,29 +484,28 @@ class ComprobanteController extends Controller
                     ->setTipAfeIgv('10') // Catalog: 07
                     ->setTotalImpuestos((float)1 * ((float)$documento->mto_imp_venta_sunat - (float)$documento->mto_imp_venta_sunat / 1.18))
                     ->setMtoPrecioUnitario($documento->mto_imp_venta_sunat);
-            }
+                */
+            //}
 
 
 
             $formatter  = new NumeroALetras();
             $legenda    = $formatter->toInvoice($documento->total_pagar, 2, 'SOLES');
 
-            /*$invoice->setDetails($items)
+            $invoice->setDetails($items)
                 ->setLegends([
                     (new Legend())
                         ->setCode('1000')
                         ->setValue($legenda)
-                ]);*/
-
-            $invoice->setDetails([$detail])
-                ->setLegends([
-                    (new Legend())
-                        ->setCode('1000')
-                        ->setValue('SON DOSCIENTOS TREINTA Y SEIS CON OO/100 SOLES')
                 ]);
 
-            dd($invoice);
-            
+            // $invoice->setDetails([$detail])
+            //     ->setLegends([
+            //         (new Legend())
+            //             ->setCode('1000')
+            //             ->setValue('SON DOSCIENTOS TREINTA Y SEIS CON OO/100 SOLES')
+            //     ]);
+
             $see = $this->controlConfiguracionGreenter($util);
 
             $res = $see->send($invoice);
@@ -594,7 +595,7 @@ class ComprobanteController extends Controller
                     "code"      =>  $res->getError()->getCode()
                 ]);
             }
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
 
             return response()->json([
                 'success' => false,
