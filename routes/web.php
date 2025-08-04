@@ -347,6 +347,7 @@ function(){
         Route::get('generarGuiaCreate/{traslado_id}', 'Almacenes\TrasladoController@generarGuiaCreate')->name('almacenes.traslados.generarGuiaCreate');
         Route::get('show/{id}', 'Almacenes\TrasladoController@show')->name('almacenes.traslados.show');
         Route::post('generarGuiaStore', 'Almacenes\TrasladoController@generarGuiaStore')->name('almacenes.traslados.generarGuiaStore');
+        Route::delete('anular-pendiente/{id}', 'Almacenes\TrasladoController@eliminarTrasladoPendiente')->name('almacenes.traslados.anularTrasladoPendiente');
 
     });
 

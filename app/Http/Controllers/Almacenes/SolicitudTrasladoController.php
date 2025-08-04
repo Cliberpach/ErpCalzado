@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use Barryvdh\DomPDF\Facade as PDF;
+use Throwable;
 
 class SolicitudTrasladoController extends Controller
 {
@@ -49,7 +50,7 @@ class SolicitudTrasladoController extends Controller
                             't.estado'
                         )
                         ->where('t.sede_destino_id',$sede_id)
-                        ->get();
+                        ->where('t.estado','<>','ANULADO');
 
         return DataTables::of($traslados)->make(true);
 
@@ -72,9 +73,9 @@ class SolicitudTrasladoController extends Controller
 array:1 [
   "traslado_id" => "1"
 ]
-*/ 
+*/
     public function confirmarStore(Request $request){
-        
+
         DB::beginTransaction();
         try {
 
@@ -91,7 +92,7 @@ array:1 [
                 throw new Exception("EL TRASLADO YA SE ENCUENTRA CON ESTADO ".$traslado->estado.'!!!');
             }
 
-            
+
             //======== INCREMENTANDO STOCK EN ALMACÉN DESTINO ========
             $detalle    =   TrasladoDetalle::where('traslado_id',$traslado->id)->get();
             if(count($detalle) === 0){
@@ -99,17 +100,17 @@ array:1 [
             }
 
             $almacen_destino    =   Almacen::find($traslado->almacen_destino_id);
-            
+
             foreach ($detalle as  $item) {
 
                 //====== VERIFICAR EXISTENCIA DEL PRODUCTO EN EL ALMACÉN DESTINO =====
-                $producto_destino   =   DB::select('select 
-                                        pct.* 
+                $producto_destino   =   DB::select('select
+                                        pct.*
                                         from producto_color_tallas as pct
-                                        where 
+                                        where
                                         pct.almacen_id  = ?
-                                        and pct.producto_id = ? 
-                                        and pct.color_id = ? 
+                                        and pct.producto_id = ?
+                                        and pct.color_id = ?
                                         and pct.talla_id = ?',
                                         [
                                             $traslado->almacen_destino_id,
@@ -128,7 +129,7 @@ array:1 [
                     ->update([
                     'stock'         =>  DB::raw("stock + $item->cantidad"),
                     'stock_logico'  =>  DB::raw("stock_logico + $item->cantidad"),
-                    'estado'        =>  '1',  
+                    'estado'        =>  '1',
                     ]);
 
                 } else {
@@ -147,8 +148,8 @@ array:1 [
                         $producto_color->producto_id    =   $item->producto_id;
                         $producto_color->color_id       =   $item->color_id;
                         $producto_color->almacen_id     =   $traslado->almacen_destino_id;
-                        $producto_color->save(); 
-                    }  
+                        $producto_color->save();
+                    }
 
                     //====== REGISTRAR TALLA ============
                     $producto                   =   new ProductoColorTalla();
@@ -160,23 +161,23 @@ array:1 [
                     $producto->almacen_id       =   $traslado->almacen_destino_id;
                     $producto->save();
 
-                }  
+                }
 
                  //========== REGISTRANDO EN KARDEX ========
                 //=========== OBTENIENDO PRODUCTO CON STOCK NUEVO ===========
-                $producto   =   DB::select('select 
-                                pct.* 
+                $producto   =   DB::select('select
+                                pct.*
                                 from producto_color_tallas as pct
-                                where 
-                                pct.producto_id = ? 
-                                and pct.color_id = ? 
+                                where
+                                pct.producto_id = ?
+                                and pct.color_id = ?
                                 and pct.talla_id = ?
                                 and pct.almacen_id = ?',
                                 [$item->producto_id,
                                 $item->color_id,
                                 $item->talla_id,
                                 $traslado->almacen_destino_id]);
-                        
+
                 //==================== KARDEX ==================
                 $kardex                     =   new Kardex();
                 $kardex->sede_id            =   $traslado->sede_destino_id;
@@ -212,15 +213,15 @@ array:1 [
             return response()->json(['success'=>true,'message'=>"TRASLADO RECIBIDO CON ÉXITO!!!"]);
 
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success'=>true,'message'=>$th->getMessage()]);
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
-         
+
     }
 
     public function show($traslado_id){
-      
+
         $detalle            =   TrasladoDetalle::where('traslado_id',$traslado_id)->get();
         $traslado           =   Traslado::find($traslado_id);
         $tallas             =   Talla::where('estado','ACTIVO')->get();
@@ -233,8 +234,8 @@ array:1 [
     public function generarEtiquetas($id){
 
         try {
-          
-            $traslado_detalle   =   DB::select('select 
+
+            $traslado_detalle   =   DB::select('select
                                     p.nombre as producto_nombre,
                                     c.descripcion as color_nombre,
                                     t.descripcion as talla_nombre,
@@ -256,13 +257,13 @@ array:1 [
                                     where td.traslado_id = ?',
                                     [$id]);
 
-            
+
             $empresa        =   Empresa::first();
-          
-            
+
+
             $width_in_points    = 300 * 72 / 25.4;  // Ancho en puntos 5cm = 50 mm
             $height_in_points   = 170 * 72 / 25.4; // Alto en puntos
-                                
+
             // Establecer el tamaño del papel
             $custom_paper = array(0, 0, $width_in_points, $height_in_points);
             $pdf = PDF::loadview('almacenes.productos.pdf.adhesivo', [
@@ -271,15 +272,15 @@ array:1 [
                                     'empresa'       =>  $empresa
                                     ])->setPaper($custom_paper)
                                     ->setWarnings(false);
-                             
+
             return $pdf->stream('etiquetas.pdf');
         } catch (\Throwable $th) {
             dd($th->getMessage());
-         
+
 
             return redirect()->route('almacenes.traslados.index');
         }
-       
+
     }
 
 }

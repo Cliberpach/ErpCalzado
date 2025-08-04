@@ -31,6 +31,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class TrasladoController extends Controller
 {
@@ -64,7 +65,7 @@ class TrasladoController extends Controller
                             't.guia_id'
                         )
                         ->where('t.sede_origen_id',$sede_id)
-                        ->get();
+                        ->where('t.estado','<>','ANULADO');
 
         return DataTables::of($traslados)->make(true);
 
@@ -78,12 +79,12 @@ class TrasladoController extends Controller
         $sede_id    =   Auth::user()->sede->id;
 
 
-        $almacen_principal_origen   =   Almacen::where('estado','ACTIVO') 
+        $almacen_principal_origen   =   Almacen::where('estado','ACTIVO')
                                         ->where('tipo_almacen','PRINCIPAL')
                                         ->where('sede_id',$sede_id)
                                         ->get();
 
-        $almacenes_principales_destino  =   Almacen::where('estado','ACTIVO')   
+        $almacenes_principales_destino  =   Almacen::where('estado','ACTIVO')
                                             ->where('tipo_almacen','PRINCIPAL')
                                             ->where('sede_id','<>',$sede_id)
                                             ->get();
@@ -95,7 +96,7 @@ class TrasladoController extends Controller
     }
 
     public function getProductosAlmacen($modelo_id,$almacen_origen_id){
-        
+
         $stocks =   DB::select('select p.id as producto_id, p.nombre as producto_nombre,
                     p.precio_venta_1,p.precio_venta_2,p.precio_venta_3,
                     pct.color_id,c.descripcion as color_name,
@@ -108,30 +109,30 @@ class TrasladoController extends Controller
                     on c.id = pct.color_id
                     inner join tallas as t
                     on t.id = pct.talla_id
-                    where p.modelo_id = ? 
+                    where p.modelo_id = ?
                     AND pct.almacen_id = ?
-                    AND c.estado="ACTIVO" 
+                    AND c.estado="ACTIVO"
                     AND t.estado="ACTIVO"
-                    AND p.estado="ACTIVO" 
+                    AND p.estado="ACTIVO"
                     order by p.id,c.id,t.id',[$modelo_id,$almacen_origen_id]);
 
-        $producto_colores = DB::select('select 
+        $producto_colores = DB::select('select
                             p.id as producto_id,p.nombre as producto_nombre,
                             c.id as color_id, c.descripcion as color_nombre,
                             p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
                             from producto_colores as pc
                             inner join productos as p on p.id = pc.producto_id
                             inner join colores as c on c.id = pc.color_id
-                            where 
-                            p.modelo_id = ? 
+                            where
+                            p.modelo_id = ?
                             AND pc.almacen_id = ?
-                            AND c.estado="ACTIVO" 
+                            AND c.estado="ACTIVO"
                             AND p.estado="ACTIVO"
                             group by p.id,p.nombre,c.id,c.descripcion,
                             p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
                             order by p.id,c.id',[$modelo_id,$almacen_origen_id]);
 
-        return response()->json(["message" => "success" , "stocks" => $stocks 
+        return response()->json(["message" => "success" , "stocks" => $stocks
             ,"producto_colores" => $producto_colores ]);
 
     }
@@ -141,10 +142,10 @@ class TrasladoController extends Controller
         try {
 
             $stock_logico   =   DB::select('
-                                    SELECT pct.stock_logico 
+                                    SELECT pct.stock_logico
                                     FROM producto_color_tallas as pct
-                                    WHERE 
-                                    pct.producto_id = ? 
+                                    WHERE
+                                    pct.producto_id = ?
                                     AND pct.color_id = ?
                                     AND pct.talla_id = ?
                                     AND pct.almacen_id = ?',
@@ -155,7 +156,7 @@ class TrasladoController extends Controller
             return response()->json(["message" => "success", "data" => $stock_logico]);
         } catch (\Exception $e) {
             return response()->json(["message" => "Error al obtener el stock", "error" => $e->getMessage()], 500);
-        }                    
+        }
     }
 
 
@@ -176,20 +177,20 @@ array:12 [
   "sede_id"                     => "14"
   "detalle"                     => "[{"producto_id":"503","producto_nombre":"PRODUCTO TEST SEDE CENTRAL","color_id":"30","color_nombre":"DORADO ESPEJO","talla_id":"2","talla_nombre":"36","cantidad":"1"},{"producto_id":"503","producto_nombre":"PRODUCTO TEST SEDE CENTRAL","color_id":"86","color_nombre":"PLATEADO BRILLO","talla_id":"2","talla_nombre":"36","cantidad":"2"}]"
 ]
-*/ 
+*/
     public function store(Request $request){
-     
+
         DB::beginTransaction();
-        try {   
+        try {
 
             $detalle        =   json_decode($request->get('detalle'));
 
-            $sede_destino   =   DB::select('select 
-                                a.sede_id 
+            $sede_destino   =   DB::select('select
+                                a.sede_id
                                 from almacenes as a
-                                where 
+                                where
                                 a.id = ?',[$request->get('almacen_destino')]);
-            
+
 
             //======== GRABANDO MAESTRO DEL TRASLADO ========
             $traslado                       =   new Traslado();
@@ -263,23 +264,23 @@ array:12 [
 
                 //======== DETALLE NOTA SALIDA =====
                /* DB::insert('INSERT INTO detalle_nota_salidad (nota_salidad_id, producto_id, cantidad, created_at, updated_at, color_id, talla_id) VALUES (?, ?, ?, ?, ?, ?, ?)', [
-                    $nota_salida->id, 
-                    $item->producto_id, 
-                    $item->cantidad, 
-                    Carbon::now(), 
-                    Carbon::now(), 
-                    $item->color_id, 
-                    $item->talla_id, 
+                    $nota_salida->id,
+                    $item->producto_id,
+                    $item->cantidad,
+                    Carbon::now(),
+                    Carbon::now(),
+                    $item->color_id,
+                    $item->talla_id,
                 ]);
 
                 //======= DETALLE NOTA DE INGRESO ===========
                 DB::insert('INSERT INTO detalle_nota_ingreso (nota_ingreso_id, producto_id, color_id, talla_id, cantidad, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)', [
-                    $nota_ingreso->id, 
-                    $item->producto_id, 
-                    $item->color_id, 
+                    $nota_ingreso->id,
+                    $item->producto_id,
+                    $item->color_id,
                     $item->talla_id,
-                    $item->cantidad, 
-                    Carbon::now(), 
+                    $item->cantidad,
+                    Carbon::now(),
                     Carbon::now()
                 ]);*/
 
@@ -324,6 +325,38 @@ array:12 [
         }
     }
 
+    public function eliminarTrasladoPendiente(int $traslado_id){
+        DB::beginTransaction();
+        try {
+
+            $traslado   =   Traslado::findOrFail($traslado_id);
+
+            if($traslado->estado !== 'PENDIENTE'){
+                throw new Exception("SOLO PUEDEN ANULARSE TRASLADOS PENDIENTES, EL ESTADO ACTUAL ES: ".$traslado->estado);
+            }
+
+            $detalle    =   TrasladoDetalle::where('traslado_id',$traslado_id)->get();
+
+            foreach ($detalle as $item) {
+                //====== DEVOLVER STOCK AL ORIGEN ========
+                UtilidadesController::sumarStockItem($item,$item->cantidad);
+            }
+
+            $traslado->anulacion_usuario_id     =   Auth::user()->id;
+            $traslado->anulacion_usuario_nombre =   Auth::user()->usuario;
+            $traslado->anulacion_fecha          =   Carbon::now();
+            $traslado->estado                   =   "ANULADO";
+            $traslado->update();
+
+            DB::commit();
+            return response()->json(['success'=>true,'message'=>'TRASLADO ANULADO, STOCK DEVUELTO AL ORIGEN']);
+
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+        }
+    }
+
     public function sumarStockDestino($item,$almacen_destino_id){
 
         //====== COMPROBANDO SI EXISTE EL PRODUCTO COLOR EN EL DESTINO =====
@@ -339,9 +372,9 @@ array:12 [
             $producto_color                 =   new ProductoColor();
             $producto_color->producto_id    =   $item->producto_id;
             $producto_color->color_id       =   $item->color_id;
-            $producto_color->almacen_id     =   $almacen_destino_id;  
-            $producto_color->save();  
-            
+            $producto_color->almacen_id     =   $almacen_destino_id;
+            $producto_color->save();
+
             $pct_destino                =   new ProductoColorTalla();
             $pct_destino->producto_id   =   $item->producto_id;
             $pct_destino->color_id      =   $item->color_id;
@@ -361,7 +394,7 @@ array:12 [
             ->update([
                  'stock'         =>  DB::raw("stock + $item->cantidad"),
                  'stock_logico'  =>  DB::raw("stock_logico + $item->cantidad"),
-                 'estado'        =>  '1',  
+                 'estado'        =>  '1',
             ]);
 
         }
@@ -374,7 +407,7 @@ array:12 [
                             'color_id'                      =>  $item_bd->color_id,
                             'talla_id'                      =>  $item_bd->talla_id,
                             'origen'                        =>  'TRASLADO',
-                            'numero_doc'                    =>  'TRASLADO-'.$traslado->id,  
+                            'numero_doc'                    =>  'TRASLADO-'.$traslado->id,
                             'fecha'                         =>  Carbon::now()->format('Y-m-d'),
                             'cantidad'                      =>  $cantidad,
                             'descripcion'                   =>  Auth::user()->usuario,
@@ -389,7 +422,7 @@ array:12 [
                             'producto_nombre'               =>  $item_bd->producto_nombre,
                             'color_nombre'                  =>  $item_bd->color_nombre,
                             'talla_nombre'                  =>  $item_bd->talla_nombre,
-                            'almacen_nombre'                =>  $item_bd->almacen_nombre 
+                            'almacen_nombre'                =>  $item_bd->almacen_nombre
                             ];
         return $kardex_datos;
     }
@@ -405,10 +438,10 @@ array:12 [
         compact('detalle','traslado','tallas','almacen_origen','almacen_destino'));
     }
 
-    
+
     public function generarGuiaCreate($traslado_id){
 
-        $traslado           =   Traslado::find($traslado_id);   
+        $traslado           =   Traslado::find($traslado_id);
         $almacen_traslado   =   Almacen::find($traslado->almacen_origen_id);
         $traslado_detalle   =   $this->formatearArrayDetalle(TrasladoDetalle::where('traslado_id',$traslado_id)->get());
 
@@ -428,24 +461,24 @@ array:12 [
         $empresas           =   Empresa::where('estado','ACTIVO')->get();
         $conductores        =   Conductor::where('estado','ACTIVO')->get();
         $vehiculos          =   Vehiculo::where('estado','ACTIVO')->get();
-      
+
         $clientes           =   Cliente::where('estado', 'ACTIVO')->get();
-        $tipos_documento    =   DB::select('select 
-                                td.* 
-                                from tabladetalles as td 
+        $tipos_documento    =   DB::select('select
+                                td.*
+                                from tabladetalles as td
                                 where td.tabla_id = 3');
 
         $sedes              =   Sede::where('estado','ACTIVO')
                                 ->where('id','<>',$sede_id)
                                 ->get();
 
-        $motivos_traslado   =   DB::select('select 
+        $motivos_traslado   =   DB::select('select
                                 td.*
                                 from tabladetalles as td
-                                where 
+                                where
                                 td.tabla_id = 34
                                 AND td.simbolo IN ("01","04")');
-                  
+
 
         return view('almacenes.traslados.guia.create',[
 
@@ -489,44 +522,44 @@ array:17 [
   "almacen"         => "1"
   "motivo_traslado" => "04"
 ]
-*/ 
+*/
     public function generarGuiaStore(GuiaStoreRequest $request){
 
         $lstGuia    =   $this->formatearArrayDetalle(TrasladoDetalle::where('traslado_id',$request->get('traslado_id'))->get());
         $traslado   =   Traslado::find($request->get('traslado_id'));
 
         $request->merge([
-            'lstGuia'       =>  json_encode($lstGuia),  
+            'lstGuia'       =>  json_encode($lstGuia),
             'sede_genera_guia'  =>  $request->get('sede_id'),
             'sede_usa_guia'     =>  $request->get('sede_id'),
             'sede_origen'   =>  $traslado->sede_origen_id,
             'sede_destino'  =>  $traslado->sede_destino_id,
             'traslado'      =>  $traslado->id
         ]);
-        
+
         $guia_controller        =   new GuiaController();
         $res                    =   $guia_controller->store($request);
-        $jsonResponse           =   $res->getData(); 
+        $jsonResponse           =   $res->getData();
 
         if(!$jsonResponse->success){
             return $res;
         }
-        
+
         DB::beginTransaction();
         try {
 
             $traslado->guia_id  =   $jsonResponse->id;
-            $traslado->update();   
+            $traslado->update();
 
             DB::commit();
 
             return $res;
-            
+
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json(['success'=>false,'message'=>$th->getMessage()]);
         }
-       
+
     }
 
     public function formatearArrayDetalle($detalles){
@@ -540,12 +573,12 @@ array:17 [
                 $producto_color_tallas = $detalles->filter(function ($detalleFiltro) use ($detalle) {
                     return $detalleFiltro->producto_id == $detalle->producto_id && $detalleFiltro->color_id == $detalle->color_id;
                 });
-                
+
                 $producto['producto_id']        = $detalle->producto_id;
                 $producto['color_id']           = $detalle->color_id;
                 $producto['producto_nombre']    = $detalle->producto_nombre;
                 $producto['color_nombre']       = $detalle->color_nombre;
-                
+
 
                 $tallas=[];
                 $subtotal=0.0;
@@ -558,7 +591,7 @@ array:17 [
                     $cantidadTotal          +=  $talla['cantidad'];
                    array_push($tallas,$talla);
                 }
-                
+
                 $producto['tallas']=$tallas;
                 $producto['subtotal']=$subtotal;
                 $producto['cantidad_total']=$cantidadTotal;
@@ -568,6 +601,6 @@ array:17 [
         }
         return $detalleFormateado;
     }
-   
+
 
 }

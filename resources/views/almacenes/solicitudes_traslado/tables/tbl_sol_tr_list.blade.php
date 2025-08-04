@@ -1,6 +1,7 @@
 <table id="tbl_sol_tr_list" class="table table-striped table-bordered table-hover" style="text-transform:uppercase">
     <thead>
         <tr>
+            <th class="text-center">ID</th>
             <th data-priority="2" class="text-center">#</th>
             <th data-priority="3" class="text-center">Almacén Origen</th>
             <th class="text-center">Almacén Destino</th>

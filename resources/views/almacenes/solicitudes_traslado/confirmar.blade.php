@@ -69,7 +69,7 @@
                                 <input value="{{$traslado->estado}}" readonly name="estado" id="estado" type="text" class="form-control" placeholder="Registrador" aria-label="Username" aria-describedby="basic-addon1">
                             </div>
                         </div>
-        
+
                         <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                             <label for="fecha_registro" style="font-weight:bold;" class="required">Fecha Registro</label>
                             <div class="input-group">
@@ -81,7 +81,7 @@
                                     value="{{$traslado->created_at}}">
                             </div>
                         </div>
-        
+
                         <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                             <label for="fecha_traslado" style="font-weight:bold;" class="required">Fecha Traslado</label>
                             <div class="input-group">
@@ -93,7 +93,7 @@
                                     value="{{$traslado->fecha_traslado}}">
                             </div>
                         </div>
-        
+
                         <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                             <label class="required" style="font-weight: bold;">Almacén Principal Origen</label>
                             <div class="input-group">
@@ -105,8 +105,8 @@
                                     value="{{$almacen_origen->descripcion}}">
                             </div>
                         </div>
-        
-                        
+
+
                         <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                             <label class="required" style="font-weight: bold;">Almacén Principal Destino</label>
                             <div class="input-group">
@@ -118,14 +118,14 @@
                                     value="{{$almacen_destino->descripcion}}">
                             </div>
                         </div>
-        
+
                         <div class="col-12 col-md-3">
                             <label style="font-weight: bold;">Observación</label>
                             <textarea readonly maxlength="200" type="text" name="observacion" rows="2" id="observacion" class="form-control" placeholder="Observación">{{$traslado->observacion}}</textarea>
                         </div>
                     </div>
-                 
-                        
+
+
                         <div class="row mt-3">
                             <div class="col-lg-12">
                                 <div class="panel panel-primary">
@@ -157,7 +157,7 @@
                                 <button class="btn btn-primary" id="btnConfirmar">CONFIRMAR</button>
                             </div>
                         </div>
-                  
+
                 </div>
             </div>
         </div>
@@ -186,7 +186,7 @@
 let dtTrasladosShow = null;
 
 document.addEventListener('DOMContentLoaded',()=>{
-    
+
     cargarSelect2();
     pintarDetalleTraslado();
     dtTrasladosShow =   iniciarDataTable('tbl_traslado_show');
@@ -218,20 +218,20 @@ function pintarDetalleTraslado() {
     detalles.forEach((d) => {
         if (!producto_color_procesado.includes(`${d.producto_id}-${d.color_id}`)) {
             let htmlTallas = ``;
-            
-            fila += `<tr>   
+
+            fila += `<tr>
                         <td style="font-weight:bold;">${d.producto_nombre} - ${d.color_nombre}</td>`;
 
             tallas.forEach((t) => {
 
                 let cantidad = detalles.filter((det) => {
-                    return det.producto_id == d.producto_id && 
-                           det.color_id == d.color_id && 
+                    return det.producto_id == d.producto_id &&
+                           det.color_id == d.color_id &&
                            t.id == det.talla_id;
                 });
 
                 cantidad.length != 0 ? cantidad = cantidad[0].cantidad : cantidad = '';
-                
+
                 htmlTallas += `<td>${cantidad}</td>`;
             });
 
@@ -263,13 +263,13 @@ function confirmarTraslado(){
         reverseButtons: true
         }).then(async (result) => {
         if (result.isConfirmed) {
-            
+
             Swal.fire({
                 title: 'Confirmando traslado y actualizando stocks...',
-                html: 'Por favor espere',  
-                allowOutsideClick: false, 
+                html: 'Por favor espere',
+                allowOutsideClick: false,
                 didOpen: () => {
-                    Swal.showLoading();  
+                    Swal.showLoading();
                 }
             });
 
@@ -285,6 +285,8 @@ function confirmarTraslado(){
                 }
             } catch (error) {
                 toastr.error(error,'ERROR EN LA PETICIÓN CONFIRMAR TRASLADO');
+            }finally{
+                Swal.close();
             }
 
 

@@ -29,15 +29,18 @@ class CreateTrasladosTable extends Migration
 
             $table->timestamps();
 
-            $table->enum('estado', ['PENDIENTE', 'RECIBIDO'])->default('PENDIENTE');
+            $table->enum('estado', ['PENDIENTE', 'RECIBIDO','ANULADO'])->default('PENDIENTE');
+            $table->unsignedInteger('anulacion_usuario_id')->nullable();
+            $table->string('anulacion_usuario_nombre',160)->nullable();
+            $table->dateTime('anulacion_fecha')->nullable();
 
-          
             $table->foreign('almacen_origen_id')->references('id')->on('almacenes');
             $table->foreign('almacen_destino_id')->references('id')->on('almacenes');
             $table->foreign('sede_origen_id')->references('id')->on('empresa_sedes');
             $table->foreign('sede_destino_id')->references('id')->on('empresa_sedes');
             $table->foreign('registrador_id')->references('id')->on('users');
             $table->foreign('aprobador_id')->references('id')->on('users');
+
         });
     }
 
