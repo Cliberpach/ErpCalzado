@@ -49,8 +49,7 @@ class SolicitudTrasladoController extends Controller
                             't.registrador_nombre',
                             't.estado'
                         )
-                        ->where('t.sede_destino_id',$sede_id)
-                        ->where('t.estado','<>','ANULADO');
+                        ->where('t.sede_destino_id',$sede_id);
 
         return DataTables::of($traslados)->make(true);
 

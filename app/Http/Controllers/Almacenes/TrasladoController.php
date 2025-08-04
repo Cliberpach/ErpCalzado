@@ -64,8 +64,7 @@ class TrasladoController extends Controller
                             't.estado',
                             't.guia_id'
                         )
-                        ->where('t.sede_origen_id',$sede_id)
-                        ->where('t.estado','<>','ANULADO');
+                        ->where('t.sede_origen_id',$sede_id);
 
         return DataTables::of($traslados)->make(true);
 
