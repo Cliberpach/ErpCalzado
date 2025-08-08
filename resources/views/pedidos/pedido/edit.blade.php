@@ -221,7 +221,6 @@
         monto_descuento: 0
     }
 
-
     let noEditTotal = 0;
 
     let pedidos_data_table = null;
@@ -232,7 +231,6 @@
         loadSelect2();
         cargarProductosPrevios();
         pintarTablePedidoAtencionHistorial();
-        setUbicacionDepartamento(13, 'first');
         events();
         eventsCliente();
     })
@@ -1435,6 +1433,7 @@
                     formData.append('sede_id', @json($sede_id));
                     formData.append('registrador_id', @json($registrador->id));
                     formData.append('amountsPedido', JSON.stringify(amountsPedido));
+                    formData.append('cliente',$('#cliente').val());
 
                     /*
                     const delay = new Promise(resolve => setTimeout(resolve, 10000));
@@ -1449,8 +1448,6 @@
                     );
                     const [res] = await Promise.all([request, delay]);
                     */
-
-
 
                     const res = await axios.post(route('pedidos.pedido.update', {
                             id: @json($pedido->id)
@@ -1479,22 +1476,19 @@
                         if (error.response.status === 422) {
                             const errors = error.response.data.errors;
                             pintarErroresValidacion(errors, 'error');
-                            Swal.close();
                             toastr.error("ERRORES DE VALIDACIÓN!!!");
                         } else {
-                            Swal.close();
                             toastr.error(error.response.data.message, 'ERROR EN EL SERVIDOR');
                         }
                     } else if (error.request) {
-                        Swal.close();
                         toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.',
                             'ERROR DE CONEXIÓN');
                     } else {
-                        Swal.close();
                         toastr.error(error.message, 'ERROR DESCONOCIDO');
                     }
+                }finally{
+                    Swal.close();
                 }
-
 
             } else if (result.dismiss === Swal.DismissReason.cancel) {
 

@@ -1232,7 +1232,7 @@
         carrito.forEach((p)=>{
             let cantidadTallas=0;
             p.tallas.forEach((t)=>{
-                cantidadTallas += t.cantidad;
+                cantidadTallas += parseFloat(t.cantidad);
             })
             p.subtotal=cantidadTallas* parseFloat(p.precio_venta);
         })

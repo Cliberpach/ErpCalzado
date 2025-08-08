@@ -425,8 +425,7 @@ array:11 [
     public function update(PedidoUpdateRequest $request, $id)
     {
         DB::beginTransaction();
-
-
+      
         try {
 
             $pedido         =   Pedido::find($id);

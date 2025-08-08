@@ -81,8 +81,8 @@
                     </button>
                 </label>
                 <select id="cliente" name="cliente"
-                    class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}" required>
-                    <option id="{{ $cliente->id }}">
+                    class="select2_form form-control" required>
+                    <option value="{{ $cliente->id }}">
                         {{ $cliente->tipo_documento . ':' . $cliente->documento . '-' . $cliente->nombre }}</option>
                 </select>
                 <span style="font-weight: bold;color:red;" class="fecha_propuesta_error msgError"></span>

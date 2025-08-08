@@ -31,10 +31,10 @@ class Kernel extends ConsoleKernel
         //$schedule->command('inspire')->hourly();
         //$schedule->command('test:create')->everyThreeHours();
         $schedule->command('notas_credito:send')->dailyAt('23:00');
-        // $schedule->command('facturas:send')->dailyAt('23:10');
+        $schedule->command('facturas:send')->dailyAt('23:10');
         $schedule->command('stock:send')->dailyAt('23:20');
         // $schedule->command('boletas-especiales:send')->dailyAt('23:30');
-        // $schedule->command('resumenes:send')->dailyAt('23:40');
+        $schedule->command('resumenes:send')->dailyAt('23:40');
     }
 
     /**

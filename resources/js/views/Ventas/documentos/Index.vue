@@ -110,8 +110,10 @@ export default {
         ModalVentasVue,
         ModalEnvioVue,
     },
-    data() {
-        const today = new Date().toISOString().slice(0, 10);
+   data() {
+    let today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset()); 
+    today = today.toISOString().slice(0, 10);
         return {
             tabla: null,
             documentos: [],
