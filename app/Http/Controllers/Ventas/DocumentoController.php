@@ -2215,23 +2215,24 @@ array:27 [
         try {
 
             $documento_id   =   $id;
-
             if (!$documento_id) {
                 throw new Exception("FALTA EL PARÁMETRO DOCUMENTO ID EN LA PETICIÓN!!!");
             }
 
-            $documento  =   Documento::find($documento_id);
+            $documento  =   Documento::findOrFail($documento_id);
             if (!$documento) {
                 throw new Exception("NO EXISTE EL DOC VENTA EN LA BD!!!");
             }
 
+            $qr     = self::qr_code($id);
+
             $detalles           =   Detalle::where('documento_id', $documento_id)->where('eliminado', '0')->get();
 
 
-            $mostrar_cuentas    =   DB::select('select
+            $mostrar_cuentas    =   DB::select('SELECT
                                     c.propiedad
-                                    from configuracion as c
-                                    where c.slug = "MCB"')[0]->propiedad;
+                                    FROM configuracion AS c
+                                    WHERE c.slug = "MCB"')[0]->propiedad;
 
             //$qr                 =   self::qr_code($documento_id);
 
