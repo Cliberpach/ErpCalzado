@@ -83,13 +83,21 @@ class DocumentoController extends Controller
         $registrador    =   Auth::user();
         $sede           =   Sede::find($registrador->sede_id);
         $modos_pago     =   modos_pago();
+        $condiciones    =   Condicion::where('estado', 'ACTIVO')->get();
 
 
         //broadcast(new NotifySunatEvent($dato));
 
         return view(
             'ventas.documentos.index',
-            compact('departamentos', 'provincias', 'distritos', 'almacenes', 'registrador', 'sede', 'modos_pago')
+            compact('departamentos',
+            'provincias',
+            'distritos',
+            'almacenes',
+            'registrador',
+            'sede',
+            'modos_pago',
+            'condiciones')
         );
     }
 
@@ -144,7 +152,8 @@ class DocumentoController extends Controller
                 'envios_ventas.estado AS estado_despacho',
                 'condicions.descripcion as condicion',
                 'clientes.correo_electronico as correo',
-                'clientes.telefono_movil as telefonoMovil'
+                'clientes.telefono_movil as telefonoMovil',
+                'cd.telefono'
             )
             ->leftJoin('envios_ventas', 'cd.id', '=', 'envios_ventas.documento_id')
             ->leftJoin('condicions', 'cd.condicion_id', '=', 'condicions.id')
@@ -195,113 +204,13 @@ class DocumentoController extends Controller
 
     public function getDocument(Request $request)
     {
-        $documentos = DB::table('cotizacion_documento as cd')
-            ->select(
-                'cd.regularizado_de_serie',
-                'cd.cdr_response_code',
-                'cd.guia_id',
-                'cd.convert_de_serie',
-                'cd.convert_en_id',
-                'cd.convert_de_id',
-                'co.id as cotizacion_id',
-                'u.usuario as registrador_nombre',
-                'es.nombre as sede_nombre',
-                'cd.almacen_nombre',
-                'cd.id',
-                'cd.tipo_venta_id as tipo_venta',
-                DB::raw('CONCAT(cd.serie, "-", cd.correlativo) as numero_doc'),
-                'cd.serie',
-                'cd.correlativo',
-                'cd.pedido_id',
-                'cd.tipo_doc_venta_pedido',
-                'cd.cliente',
-                'cd.empresa',
-                'cd.importe',
-                'cd.efectivo',
-                'cd.tipo_pago_id',
-                'cd.ruta_pago',
-                'cd.cliente_id',
-                'cd.convertir',
-                'cd.empresa_id',
-                'cd.cotizacion_venta',
-                'cd.fecha_documento',
-                'cd.estado_pago',
-                'cd.condicion_id',
-                'cd.sunat',
-                'cd.regularize',
-                'cd.contingencia',
-                'cd.sunat_contingencia',
-                'cd.documento_cliente',
-                'cd.estado',
-                'cd.cambio_talla',
-                'cd.total',
-                'cd.total_pagar',
-                DB::raw('DATEDIFF(NOW(), cd.fecha_documento) as dias'),
-                DB::raw('(SELECT COUNT(nota_electronica.id) FROM nota_electronica WHERE nota_electronica.documento_id = cd.id) as notas'),
-                'envios_ventas.estado AS estado_despacho',
-                'condicions.descripcion as condicion',
-                'clientes.correo_electronico as correo',
-                'clientes.telefono_movil as telefonoMovil'
-            )
-            ->leftJoin('envios_ventas', 'cd.id', '=', 'envios_ventas.documento_id')
-            ->leftJoin('condicions', 'cd.condicion_id', '=', 'condicions.id')
-            ->leftJoin('clientes', 'cd.cliente_id', '=', 'clientes.id')
-            ->leftJoin('empresa_sedes as es', 'es.id', 'cd.sede_id')
-            ->leftJoin('users as u', 'u.id', 'cd.user_id')
-            ->leftJoin('cotizaciones as co', 'co.id', 'cd.cotizacion_venta');
-        // ->where('cd.estado', '<>', 'ANULADO');
-
-        /*if (!PuntoVenta() && !FullAccess()) {
-            $documentos->where('cotizacion_documento.user_id', Auth::user()->id);
-        }*/
-
-        if ($request->has('fechaInicial')) {
-            $documentos->where('cd.fecha_documento', '>=', $request->get('fechaInicial'));
-        }
-
-        if ($request->has('cliente')) {
-            $cliente = $request->get('cliente');
-            if (is_numeric($cliente)) {
-                $documentos->where('cd.documento_cliente', 'LIKE', "%{$cliente}%");
-            } else {
-                $documentos->where('cd.cliente', 'LIKE', "%{$cliente}%");
-            }
-        }
-
-        if ($request->has('numero_doc')) {
-            $numero_doc = $request->get('numero_doc');
-            $documentos->where(DB::raw('CONCAT(cd.serie, "-", cd.correlativo)'), 'LIKE', "%{$numero_doc}%");
-        }
-
-        //========= FILTRO POR ROLES ======
-        $roles = DB::table('role_user as rl')
-            ->join('roles as r', 'r.id', '=', 'rl.role_id')
-            ->where('rl.user_id', Auth::user()->id)
-            ->pluck('r.name')
-            ->toArray();
-
-        //======== ADMIN PUEDE VER TODAS LAS VENTAS DE SU SEDE =====
-        if (in_array('ADMIN', $roles)) {
-            $documentos->where('cd.sede_id', Auth::user()->sede_id);
-        } else {
-
-            //====== USUARIOS PUEDEN VER SUS PROPIAS VENTAS ======
-            $documentos->where('cd.sede_id', Auth::user()->sede_id)
-                ->where('cd.user_id', Auth::user()->id);
-        }
-
-        $documentos = $documentos->orderBy('cd.id', 'desc')->paginate($request->tamanio);
+        $documentos = [];
 
         return response()->json([
             'pagination' => [
-                'currentPage' => $documentos->currentPage(),
-                'from' => $documentos->firstItem(),
-                'lastPage' => $documentos->lastPage(),
-                'perPage' => $documentos->perPage(),
-                'to' => $documentos->lastPage(),
-                'total' => $documentos->total(),
+
             ],
-            'documentos' => $documentos->items(),
+            'documentos' => null,
             'modos_pago' => modos_pago()
         ]);
     }
@@ -914,12 +823,15 @@ class DocumentoController extends Controller
                 'distritos'     =>  $distritos,
                 'almacenes'     =>  $almacenes,
                 'registrador'   =>  $registrador,
-                'sede'          =>  $sede
+                'sede'          =>  $sede,
+                'condiciones'   =>  $condiciones
             ]);
         }
     }
 
     public function ObtenerCotizacionForVenta(Request $request) {}
+
+
     public function getCreate(Request $request)
     {
         try {
@@ -928,19 +840,8 @@ class DocumentoController extends Controller
 
             $sede_id        =   Auth::user()->sede_id;
 
-            $almacenes          =   Almacen::where('estado', 'ACTIVO')->where('tipo_almacen', 'PRINCIPAL')->get();
-
-
             $empresas   =   Empresa::where('estado', 'ACTIVO')->get();
-            $clientes   =   Cliente::where('estado', 'ACTIVO')->get([
-                "id",
-                "tabladetalles_id",
-                "tipo_documento",
-                "documento",
-                "nombre"
-            ]);
-
-            $condiciones    =   Condicion::where('estado', 'ACTIVO')->get();
+          
             $fullaccess     =   false;
             $tipos_ventas   =   tipos_venta();
             $tipoVentaArray =   collect();
@@ -976,14 +877,9 @@ class DocumentoController extends Controller
             return response()->json([
                 "initData" => [
                     'empresas'      =>  $empresas,
-                    'clientes'      =>  $clientes,
-                    'condiciones'   =>  $condiciones,
                     'fullaccess'    =>  $fullaccess,
                     'vista'         =>  $vista,
                     "tipoVentas"    =>  $tipoVentaArray,
-                    "modelos"       =>  Modelo::where('estado', 'ACTIVO')->get(),
-                    "marcas"        =>  Marca::where('estado', 'ACTIVO')->get(),
-                    "categorias"    =>  Categoria::where('estado', 'ACTIVO')->get(),
                     "tallas"        =>  Talla::where('estado', 'ACTIVO')->get(),
                     'almacenes'     =>  [],
                     'sede_id'       =>  $sede_id,
@@ -993,7 +889,7 @@ class DocumentoController extends Controller
                 ],
                 "succes" => true
             ]);
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             return response()->json([
                 "success" => false,
                 "initData" => null
@@ -1140,7 +1036,9 @@ array:27 [
             $legenda                =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
 
             //====== GRABAR MAESTRO VENTA =====
-            $documento                      = new Documento();
+            $documento                      =   new Documento();
+
+            $documento->telefono            =   $datos_validados->telefono;
 
             //========= FECHAS ========
             $documento->fecha_documento     = Carbon::now()->toDateString();
@@ -1826,7 +1724,9 @@ array:27 [
             'caja_movimiento'           =>  $caja_movimiento[0],
 
             'anticipo_consumido_id'     =>  $request->get('anticipo_consumido_id') ?? null,
-            'anticipo_monto_consumido'  =>  $request->get('anticipo_monto_consumido') ?? 0
+            'anticipo_monto_consumido'  =>  $request->get('anticipo_monto_consumido') ?? 0,
+
+            'telefono'  =>  $request->get('telefono')??null
         ];
 
         return  $datos_validados;

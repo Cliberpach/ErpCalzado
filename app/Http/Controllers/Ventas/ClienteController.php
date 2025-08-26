@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Throwable;
 use Yajra\DataTables\Facades\DataTables;
 
 class ClienteController extends Controller
@@ -447,7 +448,7 @@ array:14 [
                 'more'      => $clientes->hasMorePages()
             ]);
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             return response()->json(['success'=>false,'message'=> $th->getMessage()]);
         }
     }

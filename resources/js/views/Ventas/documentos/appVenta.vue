@@ -41,6 +41,7 @@
             :registrador="this.registrador"
             :idcotizacion="idcotizacion"
             :lst_almacenes="this.lst_almacenes"
+            :lst_condiciones="this.lst_condiciones"
             :lst_departamentos_base="this.lst_departamentos_base"
             :lst_provincias_base="this.lst_provincias_base"
             :lst_distritos_base="this.lst_distritos_base"
@@ -58,6 +59,7 @@ export default {
         "v_sede",
         "registrador",
         "lst_almacenes",
+        "lst_condiciones",
         "lst_departamentos_base",
         "lst_provincias_base",
         "lst_distritos_base",

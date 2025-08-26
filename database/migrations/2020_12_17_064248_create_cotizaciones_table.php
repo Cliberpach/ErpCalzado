@@ -59,6 +59,8 @@ class CreateCotizacionesTable extends Migration
             $table->string('venta_serie',20)->nullable();
             $table->string('venta_correlativo',20)->nullable();
 
+            $table->string('telefono',20)->nullable();
+
             $table->enum('estado',['VIGENTE','ATENDIDA', 'ANULADO', 'VENCIDA'])->default('VIGENTE');
             $table->timestamps();
         });

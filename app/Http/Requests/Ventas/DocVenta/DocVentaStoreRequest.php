@@ -43,6 +43,12 @@ class DocVentaStoreRequest extends FormRequest
                 'required',
                 Rule::exists('clientes', 'id')->where('estado', 'ACTIVO'),
             ],
+
+            'telefono' => [
+                'nullable',
+                'digits_between:1,9',
+                'numeric',
+            ],
         ];
     }
 
@@ -65,6 +71,10 @@ class DocVentaStoreRequest extends FormRequest
 
             'cliente_id.required'           => 'El campo cliente es obligatorio.',
             'cliente_id.exists'             => 'El cliente seleccionado no es válido o no está activo.',
+
+
+            'telefono.numeric' => 'El teléfono debe contener solo números.',
+            'telefono.digits_between' => 'El teléfono no debe exceder los 9 dígitos.',
         ];
     }
 

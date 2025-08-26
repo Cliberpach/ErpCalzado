@@ -1216,6 +1216,7 @@
                         toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
                     } else {
                         toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                        Swal.close();
                     }
                 } catch (error) {
                     if (error.response) {
@@ -1236,6 +1237,8 @@
                         Swal.close();
                         toastr.error(error.message, 'ERROR DESCONOCIDO');
                     }
+                }finally{
+
                 }
 
             } else if (result.dismiss === Swal.DismissReason.cancel) {

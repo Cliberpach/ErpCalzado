@@ -6,6 +6,7 @@
             <th class="text-center">DOC</th>
             <th class="text-center">PEDIDO</th>
             <th class="text-center">ALMACÉN</th>
+            <th class="text-center">TELÉFONO</th>
             <th data-priority="3" class="text-center">CLIENTE</th>
             <th class="text-center">REGISTRADOR</th>
             <th class="text-center">FECHA</th>

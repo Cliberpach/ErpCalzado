@@ -11,7 +11,8 @@
 :lst_provincias_base="{{ json_encode($provincias) }}"
 :lst_distritos_base="{{ json_encode($distritos) }}"
 :registrador = "{{json_encode($registrador)}}"
-:imginicial="'{{ asset('img/default.png') }}'">
+:imginicial="'{{ asset('img/default.png') }}'"
+:lst_condiciones="{{ json_encode($condiciones) }}">
 </ventas-app>
 
 @stop

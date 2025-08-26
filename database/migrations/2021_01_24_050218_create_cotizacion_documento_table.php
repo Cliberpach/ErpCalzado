@@ -14,21 +14,23 @@ class CreateCotizacionDocumentoTable extends Migration
     public function up()
     {
         Schema::create('cotizacion_documento', function (Blueprint $table) {
-            
+
             $table->Increments('id');
+
+            $table->string('telefono',20)->nullable();
 
             //EMPRESA
             $table->BigInteger('ruc_empresa');
             $table->string('empresa');
             $table->mediumText('direccion_fiscal_empresa');
             $table->unsignedInteger('empresa_id'); //OBTENER NUMERACION DE LA EMPRESA
-            
+
             $table->unsignedInteger('almacen_id');
             $table->foreign('almacen_id')->references('id')->on('almacenes');
 
             $table->unsignedBigInteger('sede_id');
             $table->foreign('sede_id')->references('id')->on('empresa_sedes');
-            
+
             $table->string('almacen_nombre',160);
 
             //CLIENTE
@@ -89,7 +91,7 @@ class CreateCotizacionDocumentoTable extends Migration
 
             $table->BigInteger('cotizacion_venta')->nullable();
 
-            
+
             $table->unsignedInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
@@ -98,7 +100,7 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->enum('estado_pago',['PAGADA','PENDIENTE','ADELANTO','CONCRETADA','VIGENTE','DEVUELTO'])->default('PENDIENTE');
 
             $table->longText('legenda');
-            
+
             $table->enum('sunat',['0','1','2'])->default('0');
 
             $table->json('getCdrResponse')->nullable();

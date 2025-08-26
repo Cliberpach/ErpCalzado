@@ -77,6 +77,7 @@
                 { data: 'documento', name: 'documento' },
                 { data: 'pedido_id', name: 'pedido_id' },
                 { data: 'almacen_nombre', name: 'co.almacen_nombre' },
+                { data: 'telefono', name: 'co.telefono' },
                 { data: 'cliente', name: 'co.cliente_nombre' },
                 { data: 'registrador_nombre', name: 'co.registrador_nombre' },
                 { data: 'created_at', name: 'co.created_at' },

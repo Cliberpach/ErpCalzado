@@ -208,6 +208,20 @@
                                             </div>
 
                                             <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 select-required mb-3">
+                                                <label style="font-weight: bold;">TELÉFONO</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">
+                                                            <i class="fas fa-phone"></i>
+                                                        </span>
+                                                    </div>
+                                                    <input v-model="formCreate.telefono" type="text" maxlength="9"
+                                                        class="form-control" placeholder="Ingrese número de teléfono">
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                class="col-lg-6 col-md-6 col-sm-12 col-xs-12 select-required mb-3 d-none">
                                                 <div class="form-group">
                                                     <label style="font-weight: bold;">MONEDA</label>
                                                     <select id="moneda" name="moneda" class="select2_form form-control"
@@ -224,9 +238,9 @@
                                         <div class="row">
                                             <div class="col-12 col-md-6 select-required">
                                                 <div class="form-group">
-                                                    <label class="required">Condición</label>
-                                                    <v-select v-model="condicion_id" :options="initData.condiciones"
-                                                        :reduce="cn => `${cn.id}-${cn.descripcion}`" label="descripcion"
+                                                    <label class="required" style="font-weight:bold;">CONDICIÓN</label>
+                                                    <v-select v-model="condicion_id" :options="lst_condiciones"
+                                                        :reduce="cn => cn.id" label="descripcion"
                                                         placeholder="Seleccionar condición...">
                                                         <template v-slot:option="option">
                                                             {{ option.descripcion }}
@@ -257,12 +271,26 @@
                                         <div class="row align-items-end">
                                             <div class="col-12 col-md-8 select-required">
                                                 <div class="form-group">
-                                                    <label class="required">Cliente:
+                                                    <label class="required" style="font-weight: bold;">CLIENTE:
                                                         <button type="button" class="btn btn-outline btn-primary"
                                                             @click.prevent="NuevoCliente">
                                                             Registrar
                                                         </button>
                                                     </label>
+
+                                                    <v-select v-model="cliente_id" label="descripcion"
+                                                        :options="clientes" :reduce="cl => cl" :filterable="false"
+                                                        @search="onSearchCliente" @search:blur="resetClientes"
+                                                        placeholder="Buscar cliente...">
+                                                        <template v-slot:option="option">
+                                                            {{ option.descripcion }}
+                                                        </template>
+                                                        <template v-slot:selected-option="option">
+                                                            {{ option.descripcion }}
+                                                        </template>
+                                                    </v-select>
+
+                                                    <!--
                                                     <v-select v-model="cliente_id" :options="initData.clientes"
                                                         :reduce="cl => cl" label="cliente"
                                                         placeholder="Buscar clientes...">
@@ -270,6 +298,7 @@
                                                             {{ option.cliente }}
                                                         </template>
                                                     </v-select>
+                                                    -->
 
                                                 </div>
                                             </div>
@@ -361,6 +390,10 @@ export default {
             type: Array,
             default: []
         },
+        lst_condiciones: {
+            type: Array,
+            default: []
+        },
         registrador: {
             type: Object,
             default: []
@@ -380,7 +413,6 @@ export default {
             checkDespacho: false,
             checkEnvio: false,
             initData: {
-                clientes: [],
                 condiciones: [],
                 dolar: 0,
                 empresas: [],
@@ -399,7 +431,7 @@ export default {
                 fecha_atencion_campo: "",
                 fecha_vencimiento_campo: "",
                 tipo_venta: "",
-                condicion_id: "",
+                condicion_id: 1,
                 cliente_id: "",
                 tipo_pago_id: null,
                 efectivo: 0,
@@ -417,18 +449,12 @@ export default {
                 monto_total: 0,
                 tipo_cliente_documento: null,
                 moneda: "SOLES",
-                data_envio: JSON.stringify({})
+                data_envio: JSON.stringify({}),
+                telefono: null,
             },
             tipo_venta: "",
-            condicion_id: "",
-            cliente_id: {
-                cliente: "",
-                documento: "",
-                id: 0,
-                nombre: "",
-                tabladetalles_id: 0,
-                tipo_documento: ""
-            },
+            condicion_id: 1,
+
             loading: true,
             loadingClienteNew: false,
             paramsLotes: {
@@ -438,7 +464,32 @@ export default {
             FullaccessTable: false,
             productos_tabla: [],
             estadoFechaVenc: true,
-            disabledBtnProducto: true
+            disabledBtnProducto: true,
+
+            //======= SELECT CLIENTE SERVERSIDE =======
+            cliente_id: {
+                cliente: null,
+                documento: null,
+                id: null,
+                nombre: null,
+                tabladetalles_id: null,
+                tipo_documento: null,
+                descripcion: null
+            },
+
+            clientes: [{
+                cliente: 'VARIOS',
+                documento: 999999999,
+                id: 1,
+                nombre: 'CLIENTES VARIOS',
+                tabladetalles_id: 0,
+                tipo_documento: 'DNI',
+                descripcion: "DNI:99999999-CLIENTES VARIOS"
+            }],
+            search: '',
+            page: 1,
+            more: false,
+            searchTimeout: null,
         }
     },
     filters: {
@@ -467,33 +518,19 @@ export default {
             handler(value) {
                 const { tipoVentas, condiciones, clientes, empresas } = value;
                 this.FullaccessTable = value.fullaccess;
-                clientes.forEach(item => {
-                    item.cliente = `${item.tipo_documento}:${item.documento}-${item.nombre}`;
+
+                this.formCreate.empresa_id = empresas.length > 0 ? empresas[0].id : 0;
+                tipoVentas.forEach(item => {
+                    if (item.id == 129) {
+                        this.tipo_venta = item.id;
+                    }
                 });
 
-                if (!this.loadingClienteNew) {
-                    this.cliente_id = clientes[0];
-                    this.formCreate.empresa_id = empresas.length > 0 ? empresas[0].id : 0;
-                    tipoVentas.forEach(item => {
-                        if (item.id == 129) {
-                            this.tipo_venta = item.id;
-                        }
-                    });
-
-                    condiciones.forEach(item => {
-                        if (item.descripcion == "CONTADO") {
-                            this.condicion_id = `${item.id}-${item.descripcion}`;
-                        }
-                    });
-
-                    this.loadingClienteNew = false;
-                }
             },
             deep: true
         },
         tipo_venta(value) {
             this.formCreate.tipo_venta = value;
-            this.paramsLotes.tipocomprobante = value;
             if (value != 129) {
                 this.formCreate.fecha_documento_campo = this.$fechaActual;
             }
@@ -531,7 +568,6 @@ export default {
         cliente_id(value) {
             if (value) {
                 this.formCreate.cliente_id = value.id;
-                this.paramsLotes.tipo_cliente = value.tabladetalles_id;
                 this.disabledBtnProducto = false;
             } else {
                 this.formCreate.cliente_id = null;
@@ -540,7 +576,8 @@ export default {
         }
     },
     created() {
-        console.log('SEDE', this.v_sede);
+
+        this.cliente_id = this.clientes[0];
 
         //======= SELECCIONAR ALMACÉN PRINCIPAL DE LA SEDE DEL USUARIO ======
         this.lst_almacenes.forEach((a) => {
@@ -565,9 +602,41 @@ export default {
 
     },
     methods: {
-        cambiarAlmacen() {
-            alert('ola');
+
+        resetClientes() {
+            this.search = '';
+            this.page = 1;
+            this.clientes = [];
+            this.more = false;
         },
+
+        onSearchCliente(search, loading) {
+            this.search = search;
+
+            if (search.length < 3) {
+                this.resetClientes();
+                return;
+            }
+
+            if (this.searchTimeout) {
+                clearTimeout(this.searchTimeout);
+            }
+
+            this.searchTimeout = setTimeout(() => {
+                this.page = 1;
+                loading(true);
+
+                axios.get(route('utilidades.getClientes'), { params: { search, page: this.page } })
+                    .then(res => {
+                        this.clientes = res.data.clientes;
+                        this.more = res.data.more;
+                    })
+                    .finally(() => {
+                        loading(false);
+                    });
+            }, 1000);
+        },
+
         handleBeforeUnload(event) {
             this.$refs.tablaProductos?.devolverCantidades();
         },
@@ -608,6 +677,7 @@ export default {
         },
         async ObtenerData() {
             try {
+                //this.mostrarAnimacionVenta();
                 this.loading = true;
                 const { data } = await this.axios.post(route("ventas.documento.getCreate"));
                 const { success, initData } = data;
@@ -615,6 +685,8 @@ export default {
                 this.loading = false;
             } catch (ex) {
 
+            }finally{
+                //this.ocultarAnimacionVenta();
             }
         },
         Volver() {
@@ -629,7 +701,7 @@ export default {
         },
         formAddCliente(clienteNuevo) {
             this.loadingClienteNew = true;
-            this.initData.clientes.push(clienteNuevo);
+            this.clientes.push(clienteNuevo);
             this.cliente_id = clienteNuevo;
         },
         //======= OBTENIENDO CARRITO DEL COMPONENTE HIJO TablaProductos.vue ==========
@@ -749,7 +821,7 @@ export default {
                 let fecha_atencion_campo = this.formCreate.fecha_atencion_campo;
                 let fecha_vencimiento_campo = this.formCreate.fecha_vencimiento_campo;
                 let empresa_id = this.formCreate.empresa_id;
-                let cliente_id = this.formCreate.cliente_id;
+                let cliente_id = this.formCreate.cliente_id.id;
                 //===== 127:factura | 128:boleta | 129:nota_venta =========
                 let tipo_venta = this.formCreate.tipo_venta;
 
@@ -778,35 +850,27 @@ export default {
                     toastr.error('El campo fecha de vencimiento es requerido.');
                 }
 
-                if (this.initData.clientes.length > 0) {
-                    let index = this.initData.clientes.findIndex(cliente => Number(cliente.id) == Number(cliente_id));
-                    //======= si el cliente existe ==============
-                    if (index != undefined) {
-                        //========= obtenemos al cliente ===============
-                        let cliente = this.initData.clientes[index];
-                        //======== si el cliente existe =============
-                        //======== validación de tipo de comprobantes de venta ===========
-                        if (cliente != undefined) {
-                            if (convertFloat(tipo_venta) === 127 && cliente.tipo_documento != 'RUC') {
-                                correcto = false;
-                                toastr.error('El tipo de comprobante seleccionado requiere que el cliente tenga RUC.');
-                            }
-
-                            if (convertFloat(tipo_venta) === 128 && cliente.tipo_documento != 'DNI') {
-                                correcto = false;
-                                toastr.error('El tipo de comprobante seleccionado requiere que el cliente tenga DNI.');
-                            }
-                        }
-                        else {
-                            correcto = false;
-                            toastr.error('Ocurrió un error porfavor seleccionar nuevamente un cliente.');
-                        }
-                    }
-                    else {
+                //========= obtenemos al cliente ===============
+                let cliente = this.cliente_id;
+                //======== si el cliente existe =============
+                //======== validación de tipo de comprobantes de venta ===========
+                if (cliente.id) {
+                    if (convertFloat(tipo_venta) === 127 && cliente.tipo_documento != 'RUC') {
                         correcto = false;
-                        toastr.error('Ocurrió un error porfavor seleccionar nuevamente un cliente.');
+                        toastr.error('El tipo de comprobante seleccionado requiere que el cliente tenga RUC.');
+                    }
+
+                    if (convertFloat(tipo_venta) === 128 && cliente.tipo_documento != 'DNI') {
+                        correcto = false;
+                        toastr.error('El tipo de comprobante seleccionado requiere que el cliente tenga DNI.');
                     }
                 }
+                else {
+                    correcto = false;
+                    toastr.error('Ocurrió un error porfavor seleccionar nuevamente un cliente.');
+                }
+
+
                 return correcto;
             } catch (ex) {
                 alert("Validar campo" + ex);

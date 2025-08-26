@@ -58,6 +58,7 @@
                                                     <th class="text-center letrapequeña bg-white">CDR</th>
                                                     <th data-priority="2" class="text-center letrapequeña bg-white">DOC
                                                     </th>
+                                                    <th class="text-center letrapequeña bg-white">TEL</th>
                                                     <th class="text-center letrapequeña bg-white">FECHA</th>
                                                     <th class="text-center letrapequeña bg-white">REGISTRADOR</th>
                                                     <th class="text-center letrapequeña bg-white">SEDE</th>
@@ -110,10 +111,10 @@ export default {
         ModalVentasVue,
         ModalEnvioVue,
     },
-   data() {
-    let today = new Date();
-    today.setMinutes(today.getMinutes() - today.getTimezoneOffset()); 
-    today = today.toISOString().slice(0, 10);
+    data() {
+        let today = new Date();
+        today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+        today = today.toISOString().slice(0, 10);
         return {
             tabla: null,
             documentos: [],
@@ -612,6 +613,7 @@ export default {
                     },
                     { data: 'regularizado_de_serie', name: 'cd.regularizado_de_serie', searchable: false },
                     { data: 'numero_doc', name: 'numero_doc' },
+                    { data: 'telefono', name: 'cd.telefono' },
                     { data: 'fecha_documento', name: 'cd.fecha_documento', searchable: false },
                     { data: 'registrador_nombre', name: 'u.usuario', searchable: false },
                     { data: 'sede_nombre', name: 'es.nombre', searchable: false },
@@ -813,7 +815,7 @@ export default {
                 ],
                 language: {
                     processing: "Procesando...",
-                    search: "Buscar por doc, almacén, cliente:",
+                    search: "Buscar por doc, almacén, cliente,teléfono:",
                     lengthMenu: "Mostrar _MENU_ registros",
                     info: "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
                     infoEmpty: "Mostrando registros del 0 al 0 de un total de 0 registros",

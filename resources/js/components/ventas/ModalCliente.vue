@@ -11,16 +11,17 @@
                     <h4 class="modal-title">NUEVO CLIENTE</h4>
                     <small class="font-bold">Registrar</small>
                 </div>
-                <div class="modal-body content_cliente" :class="{'sk__loading':loading}">
+                <div class="modal-body content_cliente" :class="{ 'sk__loading': loading }">
                     <form id="frmCliente" class="formulario" @submit.prevent="Guardar">
                         <div class="row">
                             <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
                                 <div class="row">
                                     <div class="col-12 col-md-6">
                                         <div class="form-group mb-0">
-                                            <label class="required" style="font-weight: bold;" for="tipo_documento">Tipo de documento</label>
+                                            <label class="required" style="font-weight: bold;" for="tipo_documento">Tipo
+                                                de documento</label>
                                             <v-select v-model="tipo_documento" :options="tipoDocumentos"
-                                                :reduce="tp=>tp.simbolo" label="simbolo"></v-select>
+                                                :reduce="tp => tp.simbolo" label="simbolo"></v-select>
                                         </div>
                                         <span style="color:red;" class="error_mdl_client_tipo_documento"></span>
                                     </div>
@@ -33,11 +34,11 @@
                                                     :maxlength="maxlength" v-model="formCliente.documento" required
                                                     :disabled="(tipo_documento !== 'RUC' && tipo_documento !== 'DNI' &&
                                                         tipo_documento !== 'CARNET EXT.' && tipo_documento !== 'PASAPORTE'
-                                                        && tipo_documento !== 'P. NAC.')? true: false">
+                                                        && tipo_documento !== 'P. NAC.') ? true : false">
                                                 <span class="input-group-append">
                                                     <button type="button" style="color:white" class="btn btn-primary"
                                                         @click.prevent="consultarDocumento"
-                                                        :disabled="(tipo_documento == 'RUC' || tipo_documento=='DNI') ? false: true">
+                                                        :disabled="(tipo_documento == 'RUC' || tipo_documento == 'DNI') ? false : true">
                                                         <i class="fa fa-search"></i>
                                                         <span id="entidad">{{ entidad }}</span>
                                                     </button>
@@ -52,7 +53,7 @@
                                         <div class="form-group mb-0">
                                             <label class="required" for="tipo_cliente">Tipo Cliente</label>
                                             <v-select v-model="tipo_cliente_id" :options="tipoClientes"
-                                                :reduce="tc=>tc.id" label="descripcion"></v-select>
+                                                :reduce="tc => tc.id" label="descripcion"></v-select>
                                         </div>
                                         <span style="color:red;" class="error_mdl_client_tipo_cliente_id"></span>
                                     </div>
@@ -91,15 +92,15 @@
                                     <div class="col-12 col-md-6">
                                         <div class="form-group">
                                             <label class="required" for="departamento">Departamento</label>
-                                            <v-select v-model="departamento" :options="lst_departamentos_base" :reduce="d=>d"
-                                                label="nombre"></v-select>
+                                            <v-select v-model="departamento" :options="lst_departamentos_base"
+                                                :reduce="d => d" label="nombre"></v-select>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-6">
                                         <div class="form-group">
                                             <label class="required" for="provincia">Provincia</label>
-                                            <v-select v-model="provincia" :options="lstProvinciasFiltrado" :reduce="p=>p"
-                                                label="nombre"></v-select>
+                                            <v-select v-model="provincia" :options="lstProvinciasFiltrado"
+                                                :reduce="p => p" label="nombre"></v-select>
                                         </div>
                                     </div>
                                 </div>
@@ -107,7 +108,7 @@
                                     <div class="col-12 col-md-6">
                                         <div class="form-group">
                                             <label class="required" for="distrito">Distrito</label>
-                                            <v-select v-model="distrito" :options="lstDistritosFiltrado" :reduce="d=>d"
+                                            <v-select v-model="distrito" :options="lstDistritosFiltrado" :reduce="d => d"
                                                 label="nombre"></v-select>
                                         </div>
                                     </div>
@@ -151,7 +152,7 @@
                             </div>
                         </div>
                     </form>
-                    <div class="sk-spinner sk-spinner-wave" :class="{'hide-cliente':!loading}">
+                    <div class="sk-spinner sk-spinner-wave" :class="{ 'hide-cliente': !loading }">
                         <div class="sk-rect1"></div>
                         <div class="sk-rect2"></div>
                         <div class="sk-rect3"></div>
@@ -166,10 +167,11 @@
                             marcados con asterisco (*) son obligatorios.</small>
                     </div>
                     <div class="col-md-6 text-right">
-                        <button id="btn-guardar-cliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente" style="color:white;">
+                        <button id="btn-guardar-cliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente"
+                            style="color:white;">
                             <i class="fa fa-save"></i> Guardar</button>
-                        <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" @click.prevent="Cerrar"><i
-                                class="fa fa-times"></i> Cancelar</button>
+                        <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"
+                            @click.prevent="Cerrar"><i class="fa fa-times"></i> Cancelar</button>
                     </div>
                 </div>
             </div>
@@ -181,20 +183,20 @@
 export default {
     name: "ModalCliente",
     props: {
-        v_sede:{
-            default:null
+        v_sede: {
+            default: null
         },
-        lst_departamentos_base:{
-            type:Array,
-            default:[]
+        lst_departamentos_base: {
+            type: Array,
+            default: []
         },
-        lst_provincias_base:{
-            type:Array,
-            default:[]
+        lst_provincias_base: {
+            type: Array,
+            default: []
         },
-        lst_distritos_base:{
-            type:Array,
-            default:[]
+        lst_distritos_base: {
+            type: Array,
+            default: []
         }
     },
     data() {
@@ -272,13 +274,14 @@ export default {
             loadingProvincias: false,
             loadingDistritos: false,
             clienteNuevo: {
-                id:null,
-                tabladetalles_id:null,
-                tipo_documento:null,
-                documento:null,
-                nombre:null
-             },
-            maxlength:8
+                id: null,
+                tabladetalles_id: null,
+                tipo_documento: null,
+                documento: null,
+                nombre: null,
+                descripcion:null
+            },
+            maxlength: 8
         }
     },
     watch: {
@@ -291,56 +294,56 @@ export default {
         departamento: {
             handler(value) {
                 console.log('WATCH DEPART');
-                this.provincia                  =   null;
-                this.distrito                   =   null;
-                this.lstProvinciasFiltrado      =   [];
-                this.lstDistritosFiltrado       =   [];
-                this.formCliente.zona           =   value ? value.zona : "";
-                this.formCliente.departamento   =   value ? value.id : 0;
+                this.provincia = null;
+                this.distrito = null;
+                this.lstProvinciasFiltrado = [];
+                this.lstDistritosFiltrado = [];
+                this.formCliente.zona = value ? value.zona : "";
+                this.formCliente.departamento = value ? value.id : 0;
 
                 let departamento_id = value.id;
 
                 if (departamento_id) {
                     this.setLstProvinciasFiltradas(departamento_id);
-                    this.provincia                  =   this.lstProvinciasFiltrado[0];
-                    this.formCliente.departamento   =   value.id;
-                    this.formCliente.provincia      =   this.provincia.id;
+                    this.provincia = this.lstProvinciasFiltrado[0];
+                    this.formCliente.departamento = value.id;
+                    this.formCliente.provincia = this.provincia.id;
                 }
             },
             deep: true
         },
-        provincia(value){
+        provincia(value) {
             console.log('WATCH PROVINCIA');
-            let provincia_id            =   value.id;
-            this.distrito               =   null;
-            this.lstDistritosFiltrado   =   [];
+            let provincia_id = value.id;
+            this.distrito = null;
+            this.lstDistritosFiltrado = [];
 
-            if(provincia_id){
-               this.setLstDistritosFiltrados(provincia_id);
-               this.distrito                =   this.lstDistritosFiltrado[0];
-               this.formCliente.distrito    =   this.distrito.id;
+            if (provincia_id) {
+                this.setLstDistritosFiltrados(provincia_id);
+                this.distrito = this.lstDistritosFiltrado[0];
+                this.formCliente.distrito = this.distrito.id;
             }
         },
         tipo_documento(value) {
             //======= LIMPIAR EL NRO DE DOCUMENTO ======
-            this.formCliente.documento  =   '';
+            this.formCliente.documento = '';
             this.formCliente.tipo_documento = value;
 
             //====== EN CASO EL TIPO DOCUMENTO SEA VACÍO ===
-            if(!value){
-                this.entidad                    =   "Entidad";
+            if (!value) {
+                this.entidad = "Entidad";
                 return;
             }
 
-            this.formCliente.activo         = "SIN VERIFICAR";
+            this.formCliente.activo = "SIN VERIFICAR";
             this.entidad = value == "DNI" ? "Reniec" : (value == "RUC" ? "Sunat" : "Entidad");
 
-            if(value    ==  "DNI"){
+            if (value == "DNI") {
                 this.maxlength = 8;
             }
-            if(value  ==  "RUC"){
+            if (value == "RUC") {
                 this.maxlength = 11;
-            }else{
+            } else {
                 this.maxlength = 20;
             }
         },
@@ -388,25 +391,25 @@ export default {
             this.loadingProvincias = false;
             this.loadingDistritos = false;
             this.dataDNI.buscado = false;
-            this.dataRUC.buscado=false;
+            this.dataRUC.buscado = false;
         },
         dataDNI(value) {
             if (value.buscado) {
 
                 //========= COLOCANDO DATOS DEL CLIENTE =======
-                this.formCliente.codigo_verificacion    = this.dataDNI.codigo_verificacion == "-" || this.dataDNI.codigo_verificacion === null ? "" : this.dataDNI.codigo_verificacion;
-                this.formCliente.nombre                 = this.dataDNI.nombres + " " + this.dataDNI.apellido_paterno + " " + this.dataDNI.apellido_materno;
-                this.formCliente.direccion              = this.dataDNI.direccion_completa;
-                this.formCliente.activo                 = "ACTIVO";
+                this.formCliente.codigo_verificacion = this.dataDNI.codigo_verificacion == "-" || this.dataDNI.codigo_verificacion === null ? "" : this.dataDNI.codigo_verificacion;
+                this.formCliente.nombre = this.dataDNI.nombres + " " + this.dataDNI.apellido_paterno + " " + this.dataDNI.apellido_materno;
+                this.formCliente.direccion = this.dataDNI.direccion_completa;
+                this.formCliente.activo = "ACTIVO";
 
                 //======== COLOCANDO UBIGEO =======
-                const departamento_id   =   value.ubigeo[0];
-                const provincia_id      =   value.ubigeo[1];
-                const distrito_id       =   value.ubigeo[2];
+                const departamento_id = value.ubigeo[0];
+                const provincia_id = value.ubigeo[1];
+                const distrito_id = value.ubigeo[2];
 
-                if(departamento_id && provincia_id && distrito_id){
+                if (departamento_id && provincia_id && distrito_id) {
 
-                    this.departamento       =   this.lst_departamentos_base.find((d)=>{
+                    this.departamento = this.lst_departamentos_base.find((d) => {
                         return d.id == departamento_id;
                     })
 
@@ -421,23 +424,23 @@ export default {
                 }
             }
         },
-        dataRUC(value){
+        dataRUC(value) {
             if (value.buscado) {
 
-                let iddepart                            = value.ubigeo.length > 0 ? value.ubigeo[0] : 0;
-                this.formCliente.codigo_verificacion    = "";
-                this.formCliente.nombre                 = this.dataRUC.nombre_o_razon_social;
-                this.formCliente.direccion              = this.dataRUC.direccion;
-                this.formCliente.activo                 = "ACTIVO";
+                let iddepart = value.ubigeo.length > 0 ? value.ubigeo[0] : 0;
+                this.formCliente.codigo_verificacion = "";
+                this.formCliente.nombre = this.dataRUC.nombre_o_razon_social;
+                this.formCliente.direccion = this.dataRUC.direccion;
+                this.formCliente.activo = "ACTIVO";
 
                 //======== COLOCANDO UBIGEO =======
-                const departamento_id   =   value.ubigeo[0];
-                const provincia_id      =   value.ubigeo[1];
-                const distrito_id       =   value.ubigeo[2];
+                const departamento_id = value.ubigeo[0];
+                const provincia_id = value.ubigeo[1];
+                const distrito_id = value.ubigeo[2];
 
-                if(departamento_id && provincia_id && distrito_id){
+                if (departamento_id && provincia_id && distrito_id) {
 
-                    this.departamento       =   this.lst_departamentos_base.find((d)=>{
+                    this.departamento = this.lst_departamentos_base.find((d) => {
                         return d.id == departamento_id;
                     })
 
@@ -462,87 +465,89 @@ export default {
     },
     methods: {
 
-        loadUbigeoSede(){
+        loadUbigeoSede() {
             const departamento_sede = String(this.v_sede.departamento_id).padStart(2, '0');
-            const provincia_sede    = String(this.v_sede.provincia_id).padStart(4, '0');
-            const distrito_sede     = String(this.v_sede.distrito_id).padStart(6, '0');
+            const provincia_sede = String(this.v_sede.provincia_id).padStart(4, '0');
+            const distrito_sede = String(this.v_sede.distrito_id).padStart(6, '0');
 
 
-            const departamento_nombre   =   this.v_sede.departamento_nombre;
-            const provincia_nombre      =   this.v_sede.provincia_nombre;
-            const distrito_nombre       =   this.v_sede.distrito_nombre;
+            const departamento_nombre = this.v_sede.departamento_nombre;
+            const provincia_nombre = this.v_sede.provincia_nombre;
+            const distrito_nombre = this.v_sede.distrito_nombre;
 
 
-            this.departamento   =   { id: departamento_sede, nombre: departamento_nombre, zona: "NORTE" };
-            this.provincia      =   { id: provincia_sede, nombre: provincia_nombre};
+            this.departamento = { id: departamento_sede, nombre: departamento_nombre, zona: "NORTE" };
+            this.provincia = { id: provincia_sede, nombre: provincia_nombre };
 
             this.$nextTick(() => {
-                this.distrito       =   { id: distrito_sede, nombre: distrito_nombre};
+                this.distrito = { id: distrito_sede, nombre: distrito_nombre };
             });
         },
 
-        setLstProvinciasFiltradas(departamento_id){
-            departamento_id             = String(departamento_id).padStart(2, '0');
-            this.lstProvinciasFiltrado  = this.lst_provincias_base.filter(provincia => provincia.departamento_id == departamento_id);
+        setLstProvinciasFiltradas(departamento_id) {
+            departamento_id = String(departamento_id).padStart(2, '0');
+            this.lstProvinciasFiltrado = this.lst_provincias_base.filter(provincia => provincia.departamento_id == departamento_id);
 
         },
-        setLstDistritosFiltrados(provincia_id){
+        setLstDistritosFiltrados(provincia_id) {
             provincia_id = String(provincia_id).padStart(4, '0');
 
-            this.lstDistritosFiltrado      =   this.lst_distritos_base.filter((distrito)=>{
-                return  distrito.provincia_id == provincia_id;
+            this.lstDistritosFiltrado = this.lst_distritos_base.filter((distrito) => {
+                return distrito.provincia_id == provincia_id;
             })
         },
         async Guardar() {
             try {
                 this.clearErrores();
-                document.querySelector('#btn-guardar-cliente').disabled     =   true;
-                document.querySelector('#btn-guardar-cliente').innerHTML    =   `<i class="fa fa-save fa-spin"></i> Guardando...`;
+                document.querySelector('#btn-guardar-cliente').disabled = true;
+                document.querySelector('#btn-guardar-cliente').innerHTML = `<i class="fa fa-save fa-spin"></i> Guardando...`;
 
                 this.loading = true;
                 const res = await this.axios.post(route('ventas.cliente.storeFast'), this.formCliente);
 
-                if(res.data.success){
+                if (res.data.success) {
 
-                    this.clienteNuevo    =   res.data.cliente;
-
-                    this.$emit("newCliente",this.clienteNuevo);
+                    this.clienteNuevo = res.data.cliente;
+                    const descripcion = `${this.clienteNuevo.tipo_documento}:${this.clienteNuevo.documento}-${this.clienteNuevo.nombre}`;
+                    this.clienteNuevo.descripcion = descripcion;
+                   
+                    this.$emit("newCliente", this.clienteNuevo);
 
                     this.Cerrar();
-                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
+                    toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
                     $("#modal_cliente").modal("hide");
                     return;
-                }else{
-                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                } else {
+                    toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                 }
 
             } catch (ex) {
-                if('errors' in ex.response.data){
+                if ('errors' in ex.response.data) {
                     //======= PINTAR ERRORES DE VALIDACIÓN =======
                     this.pintarErrores(ex.response.data.errors);
                     return;
                 }
 
-                toastr.error(ex,'ERROR EN LA PETICIÓN CREAR CLIENTE');
-            }finally{
+                toastr.error(ex, 'ERROR EN LA PETICIÓN CREAR CLIENTE');
+            } finally {
                 this.loading = false;
-                document.querySelector('#btn-guardar-cliente').disabled     =   false;
-                document.querySelector('#btn-guardar-cliente').innerHTML    =   `<i class="fa fa-save"></i> Guardar`;
+                document.querySelector('#btn-guardar-cliente').disabled = false;
+                document.querySelector('#btn-guardar-cliente').innerHTML = `<i class="fa fa-save"></i> Guardar`;
             }
         },
-        pintarErrores(msgErrors){
+        pintarErrores(msgErrors) {
             for (let key in msgErrors) {
                 if (msgErrors.hasOwnProperty(key)) {
-                    const propiedad =   msgErrors[key];
-                    const message   =   propiedad[0];
-                    document.querySelector(`.error_mdl_client_${key}`).textContent    =   message;
+                    const propiedad = msgErrors[key];
+                    const message = propiedad[0];
+                    document.querySelector(`.error_mdl_client_${key}`).textContent = message;
                 }
             }
         },
-        clearErrores(){
+        clearErrores() {
             const elements = document.querySelectorAll('[class^="error_mdl_client_"]');
-            elements.forEach((span)=>{
-                span.textContent   =   '';
+            elements.forEach((span) => {
+                span.textContent = '';
             })
         },
         async getTipoDocumento() {
@@ -597,13 +602,13 @@ export default {
         },
         async consultarAPI() {
             try {
-                let tipoDoc     = this.tipo_documento;
-                let documento   = this.formCliente.documento;
-                let url         = tipoDoc == "DNI" ? route('getApidni', { dni: documento }) : route('getApiruc', { ruc: documento });
-                const res       = await this.axios.get(url);
+                let tipoDoc = this.tipo_documento;
+                let documento = this.formCliente.documento;
+                let url = tipoDoc == "DNI" ? route('getApidni', { dni: documento }) : route('getApiruc', { ruc: documento });
+                const res = await this.axios.get(url);
 
-                if(res.data.success){
-                    const data  =   res.data;
+                if (res.data.success) {
+                    const data = res.data;
                     if (tipoDoc == "DNI") {
                         this.CamposDNI(data);
                     }
@@ -611,10 +616,10 @@ export default {
                     if (tipoDoc == "RUC") {
                         this.CamposRUC(data);
                     }
-                }else{
+                } else {
                     document.querySelector('#documento').focus();
                     this.loading = false;
-                    toastr.error(res.data.message,'ERROR AL CONSULTAR '+tipoDoc);
+                    toastr.error(res.data.message, 'ERROR AL CONSULTAR ' + tipoDoc);
                 }
 
             } catch (ex) {
@@ -625,16 +630,16 @@ export default {
         CamposDNI(results) {
             const { success, data } = results;
             if (success) {
-                this.dataDNI            =   data;
-                this.dataDNI.buscado    =   true;
-                this.loading            =   false;
+                this.dataDNI = data;
+                this.dataDNI.buscado = true;
+                this.loading = false;
             } else {
 
             }
         },
         CamposRUC(results) {
             const { success, data } = results;
-            if(success){
+            if (success) {
                 this.dataRUC = data;
                 this.dataRUC.buscado = true;
                 this.loading = false;
@@ -642,11 +647,11 @@ export default {
 
         },
 
-        Cerrar(){
+        Cerrar() {
 
             this.loadUbigeoSede();
 
-            this.formCliente={
+            this.formCliente = {
                 tipo_documento: "DNI",
                 tipo_cliente_id: 121,
                 departamento: this.v_sede.departamento_id,
@@ -663,8 +668,8 @@ export default {
                 activo: "SIN VERIFICAR"
             }
 
-            this.tipo_documento     =   "DNI";
-            this.tipo_cliente_id    =   121;
+            this.tipo_documento = "DNI";
+            this.tipo_cliente_id = 121;
 
         }
     }

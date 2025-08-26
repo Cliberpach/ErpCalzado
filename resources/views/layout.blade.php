@@ -526,7 +526,7 @@
             Swal.fire({
                 icon: 'success',
                 title: 'Operación completada',
-                text: '{{ session('message_error') }}',
+                text: '{{ session('message_success') }}',
                 confirmButtonText: 'OK',
                 showConfirmButton: true,
                 allowOutsideClick: false
