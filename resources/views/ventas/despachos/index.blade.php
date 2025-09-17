@@ -55,36 +55,57 @@
         <div class="col-lg-12">
             <div class="ibox ">
                 <div class="ibox-content">
+
                     <div class="row mb-5">
-                        <div class="col-3">
+
+                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
                             <label for="filtroEstado" style="font-weight: bold;">ESTADO:</label>
-                            <select id="filtroEstado" class="form-control select2_form"
-                                onchange="dtDespachos.ajax.reload();">
+                            <select id="filtroEstado" class="form-control select2_form">
                                 <option value="PENDIENTE">PENDIENTE</option>
                                 <option value="RESERVADO">RESERVADO</option>
                                 <option value="DESPACHADO">DESPACHADO</option>
                             </select>
                         </div>
 
-                        <div class="col-3">
+                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
                             <label for="filtroCliente" style="font-weight: bold;">CLIENTE:</label>
                             <select class="select2_form" style="text-transform: uppercase; width:100%"
-                                name="filtroCliente" id="filtroCliente" required onchange="dtDespachos.ajax.reload();">
+                                name="filtroCliente" id="filtroCliente" required>
                                 <option value=""></option>
                             </select>
                         </div>
 
-                        <div class="col-3">
-                            <label for="filtroFechaInicio" style="font-weight: bold;">FEC INICIO:</label>
+                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+                            <label for="filtroFechaInicio" style="font-weight: bold;">FEC REGISTRO INICIO:</label>
                             <input value="<?php echo date('Y-m-d'); ?>" type="date" class="form form-control"
-                                id="filtroFechaInicio" onchange="filtrarDespachoFechaInic()">
+                                id="filtroFechaInicio">
                         </div>
-                        <div class="col-3">
-                            <label for="filtroFechaFin" style="font-weight: bold;">FEC FIN:</label>
+                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+                            <label for="filtroFechaFin" style="font-weight: bold;">FECHA REGISTRO FIN:</label>
                             <input value="<?php echo date('Y-m-d'); ?>" type="date" class="form form-control"
-                                id="filtroFechaFin" onchange="filtrarDespachoFechaFin()">
+                                id="filtroFechaFin">
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+                            <label for="filtroFechaDespachoInicio" style="font-weight: bold;">FEC DESPACHO INICIO:</label>
+                            <input value="<?php echo date('Y-m-d'); ?>" type="date" class="form form-control"
+                                id="filtroFechaDespachoInicio">
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+                            <label for="filtroFechaDespachoFin" style="font-weight: bold;">FECHA DESPACHO FIN:</label>
+                            <input value="<?php echo date('Y-m-d'); ?>" type="date" class="form form-control"
+                                id="filtroFechaDespachoFin">
                         </div>
                     </div>
+
+                    <div class="row mb-3">
+                        <div class="col-12 text-right">
+                            <button class="btn btn-primary" onclick="filtrarDespachos()">
+                                <i class="fa fa-search"></i> FILTRAR
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-auto d-flex align-items-center mr-3">
                             <i class="fa fa-square icono-pendiente"></i>
@@ -284,6 +305,8 @@
                     d.fecha_fin = $('#filtroFechaFin').val();
                     d.estado = $('#filtroEstado').val();
                     d.cliente_id = $('#filtroCliente').val();
+                    d.fecha_inicio_despacho = $('#filtroFechaDespachoInicio').val();
+                    d.fecha_fin_despacho = $('#filtroFechaDespachoFin').val();
                 },
                 "complete": function() {
                     ocultarAnimacion();
@@ -683,32 +706,16 @@
         }
     }
 
-
-    function filtrarDespachoFechaInic(fecha_inicio) {
-
+    function filtrarDespachos() {
+        toastr.clear();
         const fi = document.querySelector('#filtroFechaInicio').value;
         const ff = document.querySelector('#filtroFechaFin').value;
 
-        if ((fi.toString().trim().length > 0 && ff.toString().trim().length > 0) & (fi > ff)) {
-            document.querySelector('#filtroFechaInicio').value = '';
-            toastr.error('FECHA INICIO DEBE SER MENOR O IGUAL A FECHA FIN', 'ERROR FECHAS');
-            dtDespachos.ajax.reload();
-
-            return;
-        }
-
-        dtDespachos.ajax.reload();
-    }
-
-    function filtrarDespachoFechaFin(fecha_fin) {
-        const fi = document.querySelector('#filtroFechaInicio').value;
-        const ff = document.querySelector('#filtroFechaFin').value;
-
-        if ((fi.toString().trim().length > 0 && ff.toString().trim().length > 0) & (ff < fi)) {
-            document.querySelector('#filtroFechaFin').value = '';
-            toastr.error('FECHA FIN DEBE SER MAYOR O IGUAL A FECHA INICIO', 'ERROR FECHAS');
-            dtDespachos.ajax.reload();
-            return;
+        if (fi.trim().length > 0 && ff.trim().length > 0) {
+            if (fi > ff) {
+                toastr.error('FECHA INICIO DEBE SER MENOR O IGUAL A FECHA FIN', 'ERROR FECHAS');
+                return;
+            }
         }
 
         dtDespachos.ajax.reload();

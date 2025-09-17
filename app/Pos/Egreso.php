@@ -8,19 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Egreso extends Model
 {
     protected $table="egreso";
-    protected $fillable=[
-        'tipodocumento_id',
-        'cuenta_id',
-        'documento',
-        'descripcion',
-        'monto',
-        'importe',
-        'efectivo',
-        'tipo_pago_id',
-        'usuario',
-        'user_id',
-        'estado'
-    ];
+    protected $guarded=[''];
+
     public $timestamps=true;
     public function cuenta() {
         return $this->belongsTo(Detalle::class,'cuenta_id');

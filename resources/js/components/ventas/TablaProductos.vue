@@ -1,136 +1,151 @@
 <style>
-    .inputCantidadValido{
-        border-color:rgb(59, 63, 255) !important;
-    }
-    .inputCantidadIncorrecto{
-        border-color: red !important;
-    }
-    .inputCantidadColor{
-        border-color: rgb(48, 48, 88);
-    }
-    .colorStockLogico{
-        background-color: rgb(243, 248, 255);
-    }
+.inputCantidadValido {
+    border-color: rgb(59, 63, 255) !important;
+}
 
-    .overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-    }
+.inputCantidadIncorrecto {
+    border-color: red !important;
+}
 
-    .fulfilling-bouncing-circle-spinner, .fulfilling-bouncing-circle-spinner * {
-      box-sizing: border-box;
-    }
+.inputCantidadColor {
+    border-color: rgb(48, 48, 88);
+}
 
-    .fulfilling-bouncing-circle-spinner {
-      height: 60px;
-      width: 60px;
-      position: relative;
-      animation: fulfilling-bouncing-circle-spinner-animation infinite 4000ms ease;
-    }
+.colorStockLogico {
+    background-color: rgb(243, 248, 255);
+}
 
-    .fulfilling-bouncing-circle-spinner .orbit {
-      height: 60px;
-      width: 60px;
-      position: absolute;
-      top: 0;
-      left: 0;
-      border-radius: 50%;
-      border: calc(60px * 0.03) solid #ff1d5e;
-      animation: fulfilling-bouncing-circle-spinner-orbit-animation infinite 4000ms ease;
-    }
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
 
-    .fulfilling-bouncing-circle-spinner .circle {
-      height: 60px;
-      width: 60px;
-      color: #ff1d5e;
-      display: block;
-      border-radius: 50%;
-      position: relative;
-      border: calc(60px * 0.1) solid #ff1d5e;
-      animation: fulfilling-bouncing-circle-spinner-circle-animation infinite 4000ms ease;
-      transform: rotate(0deg) scale(1);
-    }
+.fulfilling-bouncing-circle-spinner,
+.fulfilling-bouncing-circle-spinner * {
+    box-sizing: border-box;
+}
 
-    @keyframes fulfilling-bouncing-circle-spinner-animation {
-      0% {
+.fulfilling-bouncing-circle-spinner {
+    height: 60px;
+    width: 60px;
+    position: relative;
+    animation: fulfilling-bouncing-circle-spinner-animation infinite 4000ms ease;
+}
+
+.fulfilling-bouncing-circle-spinner .orbit {
+    height: 60px;
+    width: 60px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    border: calc(60px * 0.03) solid #ff1d5e;
+    animation: fulfilling-bouncing-circle-spinner-orbit-animation infinite 4000ms ease;
+}
+
+.fulfilling-bouncing-circle-spinner .circle {
+    height: 60px;
+    width: 60px;
+    color: #ff1d5e;
+    display: block;
+    border-radius: 50%;
+    position: relative;
+    border: calc(60px * 0.1) solid #ff1d5e;
+    animation: fulfilling-bouncing-circle-spinner-circle-animation infinite 4000ms ease;
+    transform: rotate(0deg) scale(1);
+}
+
+@keyframes fulfilling-bouncing-circle-spinner-animation {
+    0% {
         transform: rotate(0deg);
-      }
+    }
 
-      100% {
+    100% {
         transform: rotate(360deg);
-      }
+    }
+}
+
+@keyframes fulfilling-bouncing-circle-spinner-orbit-animation {
+    0% {
+        transform: scale(1);
     }
 
-    @keyframes fulfilling-bouncing-circle-spinner-orbit-animation {
-      0% {
+    50% {
         transform: scale(1);
-      }
-      50% {
-        transform: scale(1);
-      }
-      62.5% {
-        transform: scale(0.8);
-      }
-      75% {
-        transform: scale(1);
-      }
-      87.5% {
-        transform: scale(0.8);
-      }
-      100% {
-        transform: scale(1);
-      }
     }
 
-    @keyframes fulfilling-bouncing-circle-spinner-circle-animation {
-      0% {
+    62.5% {
+        transform: scale(0.8);
+    }
+
+    75% {
+        transform: scale(1);
+    }
+
+    87.5% {
+        transform: scale(0.8);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes fulfilling-bouncing-circle-spinner-circle-animation {
+    0% {
         transform: scale(1);
         border-color: transparent;
         border-top-color: inherit;
-      }
-      16.7% {
+    }
+
+    16.7% {
         border-color: transparent;
         border-top-color: initial;
         border-right-color: initial;
-      }
-      33.4% {
+    }
+
+    33.4% {
         border-color: transparent;
         border-top-color: inherit;
         border-right-color: inherit;
         border-bottom-color: inherit;
-      }
-      50% {
+    }
+
+    50% {
         border-color: inherit;
         transform: scale(1);
-      }
-      62.5% {
+    }
+
+    62.5% {
         border-color: inherit;
         transform: scale(1.4);
-      }
-      75% {
+    }
+
+    75% {
         border-color: inherit;
         transform: scale(1);
         opacity: 1;
-      }
-      87.5% {
+    }
+
+    87.5% {
         border-color: inherit;
         transform: scale(1.4);
-      }
-      100% {
+    }
+
+    100% {
         border-color: transparent;
         border-top-color: inherit;
         transform: scale(1);
-      }
     }
-
+}
 </style>
 <template>
 
@@ -195,26 +210,19 @@
                             </v-select>
                         </div> -->
 
-                        <div class="col-lg-12 col-md-3 col-sm-12 col-xs-12 mt-3" >
-                            <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
+                        <div class="col-lg-12 col-md-3 col-sm-12 col-xs-12 mt-3">
+                            <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO -
+                                PRODUCTO</label>
 
-                            <v-select
-                                v-model="productoSeleccionado"
-                                :options="productos"
-                                label="producto_completo"
-                                placeholder="Seleccionar"
-                                @search="buscarProducto"
-                                :loading="loadingProductos"
-                                >
+                            <v-select v-model="productoSeleccionado" :options="productos" label="producto_completo"
+                                placeholder="Seleccionar" @search="buscarProducto" :loading="loadingProductos">
                             </v-select>
                         </div>
 
 
-                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 mt-3" >
+                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 mt-3">
                             <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
-                            <v-select
-                                v-model="precioVentaSeleccionado"
-                                :options="preciosVenta"
+                            <v-select v-model="precioVentaSeleccionado" :options="preciosVenta"
                                 placeholder="Seleccionar">
                             </v-select>
                         </div>
@@ -223,11 +231,13 @@
                             <label style="font-weight: bold;">CÓDIGO BARRA</label>
                             <div class="input-group mb-3">
                                 <div class="input-group-prepend">
-                                        <span class="input-group-text" id="basic-addon1">
-                                            <i class="fas fa-barcode"></i>
+                                    <span class="input-group-text" id="basic-addon1">
+                                        <i class="fas fa-barcode"></i>
                                     </span>
                                 </div>
-                                <input v-model="buscarCodigoBarra" class="inputBarCode form-control" maxlength="8" type="text" placeholder="Escriba el código de barra" aria-label="Username" aria-describedby="basic-addon1">
+                                <input v-model="buscarCodigoBarra" class="inputBarCode form-control" maxlength="8"
+                                    type="text" placeholder="Escriba el código de barra" aria-label="Username"
+                                    aria-describedby="basic-addon1">
                             </div>
                         </div>
 
@@ -243,7 +253,7 @@
                             <thead>
                                 <tr>
                                     <th>PRODUCTO</th>
-                                    <template  v-for="talla in tallas" >
+                                    <template v-for="talla in tallas">
                                         <th class="colorStockLogico">
                                             {{ talla.descripcion }}
                                         </th>
@@ -252,7 +262,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="pc in productosPorModelo.producto_colores" :key="`${pc.producto_id}${pc.color_id}`">
+                                <tr v-for="pc in productosPorModelo.producto_colores"
+                                    :key="`${pc.producto_id}${pc.color_id}`">
                                     <td>{{ pc.producto_nombre }} - {{ pc.color_nombre }}</td>
 
                                     <template v-for="t in tallas">
@@ -261,20 +272,15 @@
                                                 {{ printStockLogico(pc.producto_id, pc.color_id, t.id) }}
                                             </span>
                                         </td>
-                                        <td style="width: 5%;" v-if="printStockLogico(pc.producto_id, pc.color_id, t.id) > 0">
-                                            <input
-                                            type="text"
-                                            class="form-control inputCantidad inputCantidadColor"
-                                            :data-almacen-id="pc.almacen_id"
-                                            :data-producto-id="pc.producto_id"
-                                            :data-producto-nombre="pc.producto_nombre"
-                                            :data-color-nombre="pc.color_nombre"
-                                            :data-talla-nombre="t.descripcion"
-                                            :data-color-id="pc.color_id"
-                                            :data-talla-id="t.id"
-                                            @input="validarContenidoInput($event)"
-                                            :disabled="printStockLogico(pc.producto_id, pc.color_id, t.id) === 0"
-                                            />
+                                        <td style="width: 5%;"
+                                            v-if="printStockLogico(pc.producto_id, pc.color_id, t.id) > 0">
+                                            <input type="text" class="form-control inputCantidad inputCantidadColor"
+                                                :data-almacen-id="pc.almacen_id" :data-producto-id="pc.producto_id"
+                                                :data-producto-nombre="pc.producto_nombre"
+                                                :data-color-nombre="pc.color_nombre" :data-talla-nombre="t.descripcion"
+                                                :data-color-id="pc.color_id" :data-talla-id="t.id"
+                                                @input="validarContenidoInput($event)"
+                                                :disabled="printStockLogico(pc.producto_id, pc.color_id, t.id) === 0" />
                                         </td>
                                         <td v-else>
 
@@ -291,10 +297,8 @@
 
                     <div class="form-group row mt-1">
                         <div class="col-lg-2 col-xs-12">
-                            <button :disabled="deshabilitarBtnAgregar"
-                            type="button" id="btn_agregar_detalle"
-                            @click="agregarProducto"
-                                class="btn btn-warning btn-block">
+                            <button :disabled="deshabilitarBtnAgregar" type="button" id="btn_agregar_detalle"
+                                @click="agregarProducto" class="btn btn-warning btn-block">
                                 <i class="fa fa-plus"></i> AGREGAR
                             </button>
                         </div>
@@ -349,92 +353,127 @@
                                             </div>
                                         </td>
                                         <td v-for="t in tallas">
-                                            <p style="font-weight: bold;">{{ printTallaDetalle(t.id,item) }}</p>
+                                            <p style="font-weight: bold;">{{ printTallaDetalle(t.id, item) }}</p>
                                         </td>
-                                        <td>{{ item.porcentaje_descuento!=0 ? item.precio_venta_nuevo : item.precio_venta }}</td>
-                                        <td>{{ item.porcentaje_descuento !=0 ? item.subtotal_nuevo : item.subtotal }}</td>
+                                        <td>{{ item.porcentaje_descuento != 0 ? item.precio_venta_nuevo :
+                                            item.precio_venta }}</td>
+                                        <td>{{ item.porcentaje_descuento != 0 ? item.subtotal_nuevo : item.subtotal }}
+                                        </td>
                                         <td>
-                                            <input @input="validarDescuento(item.producto_id,item.color_id,$event)" type="text"
-                                            :value="item.porcentaje_descuento" style="width: 100px;" class="form-control">
+                                            <input @input="validarDescuento(item.producto_id, item.color_id, $event)"
+                                                type="text" :value="item.porcentaje_descuento" style="width: 100px;"
+                                                class="form-control">
                                         </td>
                                     </tr>
                                 </template>
                                 <template v-else>
                                     <tr>
-                                        <td :colspan="tallas.length + 5" class="text-center"><strong>No hay detalles</strong></td>
+                                        <td :colspan="tallas.length + 5" class="text-center"><strong>No hay
+                                                detalles</strong></td>
                                     </tr>
                                 </template>
                             </tbody>
                         </table>
                     </div>
 
-                        <div class="col-12 d-flex justify-content-end">
-                            <div class="table-responsive">
-                                <table style="margin:0 0 0 auto;">
-                                    <tfoot>
-                                        <tr>
-                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">SUBTOTAL:</td>
-                                            <td class="subtotal" colspan="1" style="font-weight: bold; text-align:end;">
-                                                {{ `S/. ${Number(monto_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">EMBALAJE:</td>
-                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
-                                                <div class="input-group">
-                                                    <span class="input-group-text" id="basic-addon1">
-                                                        <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M425.7 256c-16.9 0-32.8-9-41.4-23.4L320 126l-64.2 106.6c-8.7 14.5-24.6 23.5-41.5 23.5-4.5 0-9-.6-13.3-1.9L64 215v178c0 14.7 10 27.5 24.2 31l216.2 54.1c10.2 2.5 20.9 2.5 31 0L551.8 424c14.2-3.6 24.2-16.4 24.2-31V215l-137 39.1c-4.3 1.3-8.8 1.9-13.3 1.9zm212.6-112.2L586.8 41c-3.1-6.2-9.8-9.8-16.7-8.9L320 64l91.7 152.1c3.8 6.3 11.4 9.3 18.5 7.3l197.9-56.5c9.9-2.9 14.7-13.9 10.2-23.1zM53.2 41L1.7 143.8c-4.6 9.2 .3 20.2 10.1 23l197.9 56.5c7.1 2 14.7-1 18.5-7.3L320 64 69.8 32.1c-6.9-.8-13.5 2.7-16.6 8.9z"/></svg>
-                                                    </span>
-                                                    <input style="width: 70px;" v-model="monto_embalaje" type="text" class="form-control" aria-label="PRECIO DESPACHO" aria-describedby="basic-addon1">
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">ENVÍO:</td>
-                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
-                                                <div class="input-group">
-                                                    <span class="input-group-text btn btn-light" id="basic-addon1"  @click.prevent="setDataEnvio">
-                                                        <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>
-                                                    </span>
-                                                    <input style="width: 70px;" v-model="monto_envio" type="text" class="form-control" aria-label="PRECIO ENVÍO" aria-describedby="basic-addon1">
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">DESCUENTO:</td>
-                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
-                                                <span>{{ `S/. ${Number(monto_descuento).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}</span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">MONTO TOTAL:</td>
-                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
-                                                {{ `S/. ${Number(monto_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">IGV:</td>
-                                            <td class="igv" colspan="1" style="font-weight: bold; text-align:end;">
-                                                {{ `S/. ${Number(monto_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">MONTO TOTAL A PAGAR:</td>
-                                            <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
-                                                {{ `S/. ${Number(monto_total_pagar).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` }}
-                                            </td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
+                    <div class="col-12 d-flex justify-content-end">
+                        <div class="table-responsive">
+                            <table style="margin:0 0 0 auto;">
+                                <tfoot>
+                                    <tr>
+                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
+                                            SUBTOTAL:</td>
+                                        <td class="subtotal" colspan="1" style="font-weight: bold; text-align:end;">
+                                            {{ `S/. ${Number(monto_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,
+                                                ",")}` }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
+                                            EMBALAJE:</td>
+                                        <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                            <div class="input-group">
+                                                <span class="input-group-text" id="basic-addon1">
+                                                    <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 640 512">
+                                                        <!Font Awesome Free 6.5.1 by @fontawesome -
+                                                            https://fontawesome.com License -
+                                                            https://fontawesome.com/license/free Copyright 2024
+                                                            Fonticons, Inc.>
+                                                            <path
+                                                                d="M425.7 256c-16.9 0-32.8-9-41.4-23.4L320 126l-64.2 106.6c-8.7 14.5-24.6 23.5-41.5 23.5-4.5 0-9-.6-13.3-1.9L64 215v178c0 14.7 10 27.5 24.2 31l216.2 54.1c10.2 2.5 20.9 2.5 31 0L551.8 424c14.2-3.6 24.2-16.4 24.2-31V215l-137 39.1c-4.3 1.3-8.8 1.9-13.3 1.9zm212.6-112.2L586.8 41c-3.1-6.2-9.8-9.8-16.7-8.9L320 64l91.7 152.1c3.8 6.3 11.4 9.3 18.5 7.3l197.9-56.5c9.9-2.9 14.7-13.9 10.2-23.1zM53.2 41L1.7 143.8c-4.6 9.2 .3 20.2 10.1 23l197.9 56.5c7.1 2 14.7-1 18.5-7.3L320 64 69.8 32.1c-6.9-.8-13.5 2.7-16.6 8.9z" />
+                                                    </svg>
+                                                </span>
+                                                <input style="width: 70px;" v-model="monto_embalaje" type="text"
+                                                    class="form-control" aria-label="PRECIO DESPACHO"
+                                                    aria-describedby="basic-addon1">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
+                                            ENVÍO:</td>
+                                        <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                            <div class="input-group">
+                                                <span class="input-group-text btn"
+                                                    :class="hayDatosEnvio ? 'btn-success' : 'btn-light'"
+                                                    id="basic-addon1" @click.prevent="setDataEnvio">
+                                                    <i class="fas fa-truck"></i>
+                                                </span>
+                                                <input style="width: 70px;" v-model="monto_envio" type="text"
+                                                    class="form-control" aria-label="PRECIO ENVÍO"
+                                                    aria-describedby="basic-addon1">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
+                                            DESCUENTO:</td>
+                                        <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                            <span>{{ `S/.
+                                                ${Number(monto_descuento).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,
+                                                ",")}` }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
+                                            MONTO TOTAL:
+                                        </td>
+                                        <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                            {{ `S/. ${Number(monto_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,
+                                                ",")}` }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">IGV:
+                                        </td>
+                                        <td class="igv" colspan="1" style="font-weight: bold; text-align:end;">
+                                            {{ `S/. ${Number(monto_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,
+                                                ",")}` }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
+                                            MONTO TOTAL A
+                                            PAGAR:</td>
+                                        <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
+                                            {{ `S/.
+                                            ${Number(monto_total_pagar).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,
+                                                ",")}`
+                                            }}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
+                    </div>
 
                 </div>
             </div>
             <!-- FIN SEGUNDO PANEL -->
 
 
-        <ModalEnvioVue :cliente="cliente" @addDataEnvio="addDataEnvio"/>
+            <ModalEnvioVue :cliente="cliente" @addDataEnvio="addDataEnvio" @borrarDataEnvio="borrarDataEnvio" />
 
         </div>
         <!-- FIN COLUMNA -->
@@ -456,44 +495,46 @@ export default {
         ModalEditaDetalleVue,
     },
     props: [
-    "fullaccessTable",
-    "btnDisabled",
-    "parametros",
-    "productoTabla",
-    "TotalesObj",
-    'idcotizacion',
-    'modelos',
-    'categorias',
-    'marcas',
-    'tallas',
-    'cliente',
-    'almacenSeleccionado',
-    'lst_departamentos_base',
-    'lst_provincias_base',
-    'lst_distritos_base'],
+        "fullaccessTable",
+        "btnDisabled",
+        "parametros",
+        "productoTabla",
+        "TotalesObj",
+        'idcotizacion',
+        'modelos',
+        'categorias',
+        'marcas',
+        'tallas',
+        'cliente',
+        'almacenSeleccionado',
+        'lst_departamentos_base',
+        'lst_provincias_base',
+        'lst_distritos_base'],
     data() {
         return {
-            monto_embalaje:0,
-            monto_envio:0,
-            monto_descuento:0,
-            porcentaje_descuento_global:0,
-            descuentos:[],
-            flujo:[],
-            monto_subtotal:0,
-            monto_igv:0,
-            monto_total:0,
-            monto_total_pagar:0,
+            hayDatosEnvio: false,
+
+            monto_embalaje: 0,
+            monto_envio: 0,
+            monto_descuento: 0,
+            porcentaje_descuento_global: 0,
+            descuentos: [],
+            flujo: [],
+            monto_subtotal: 0,
+            monto_igv: 0,
+            monto_total: 0,
+            monto_total_pagar: 0,
             carrito: [],
             deshabilitarBtnAgregar: true,
             productosPorModelo: {},
-            modeloSeleccionado:null,
-            categoriaSeleccionada:null,
-            marcaSeleccionada:null,
-            productoSeleccionado:null,
-            precioVentaSeleccionado:null,
-            buscarCodigoBarra:null,
-            productos:[],
-            preciosVenta:[],
+            modeloSeleccionado: null,
+            categoriaSeleccionada: null,
+            marcaSeleccionada: null,
+            productoSeleccionado: null,
+            precioVentaSeleccionado: null,
+            buscarCodigoBarra: null,
+            productos: [],
+            preciosVenta: [],
             asegurarCierre: 5,
             formDetalles: {
                 producto_id: "",
@@ -542,11 +583,11 @@ export default {
 
                 if (!/^\d*\.?\d*$/.test(valor)) {
                     //========= PERMITIR ENTEROS Y DECIMALES ========
-                    valor   = valor.replace(/^0+/, '0');
+                    valor = valor.replace(/^0+/, '0');
                     //======= ELIMINAR CARACTERES NO NUMÉRICOS, EXCEPTO EL PUNTO DECIMAL =======
-                    valor   = valor.replace(/[^\d.]/g, '');
+                    valor = valor.replace(/[^\d.]/g, '');
                     //========= PERMITIR SOLO 1 PUNTO DECIMAL =====
-                    valor   = valor.replace(/(\..*)\./g, '$1');
+                    valor = valor.replace(/(\..*)\./g, '$1');
                     this.monto_envio = valor;
                     return;
                 }
@@ -554,8 +595,8 @@ export default {
                 //======== RECALCULAR MONTOS =======
                 this.calcularMontos();
 
-                const monto_embalaje_aux    =   this.monto_embalaje.length>0?this.monto_embalaje:0;
-                const monto_envio_aux       =   this.monto_envio.length>0?this.monto_envio:0;
+                const monto_embalaje_aux = this.monto_embalaje.length > 0 ? this.monto_embalaje : 0;
+                const monto_envio_aux = this.monto_envio.length > 0 ? this.monto_envio : 0;
                 const montos = {
                     monto_sub_total: parseFloat(this.monto_subtotal),
                     monto_total_igv: parseFloat(this.monto_igv),
@@ -566,8 +607,8 @@ export default {
                 };
 
                 this.$emit('addProductoDetalle', {
-                    detalles:   this.carrito,
-                    totales :   montos
+                    detalles: this.carrito,
+                    totales: montos
                 });
             },
             deep: true
@@ -578,11 +619,11 @@ export default {
 
                 if (!/^\d*\.?\d*$/.test(valor)) {
                     //========= PERMITIR ENTEROS Y DECIMALES ========
-                    valor   = valor.replace(/^0+/, '0');
+                    valor = valor.replace(/^0+/, '0');
                     //======= ELIMINAR CARACTERES NO NUMÉRICOS, EXCEPTO EL PUNTO DECIMAL =======
-                     valor   = valor.replace(/[^\d.]/g, '');
+                    valor = valor.replace(/[^\d.]/g, '');
                     //========= PERMITIR SOLO 1 PUNTO DECIMAL =====
-                    valor   = valor.replace(/(\..*)\./g, '$1');
+                    valor = valor.replace(/(\..*)\./g, '$1');
                     this.monto_embalaje = valor;
                     return;
                 }
@@ -590,8 +631,8 @@ export default {
                 //======== RECALCULAR MONTOS =======
                 this.calcularMontos();
 
-                const monto_embalaje_aux    =   this.monto_embalaje.length>0?this.monto_embalaje:0;
-                const monto_envio_aux    =   this.monto_envio.length>0?this.monto_envio:0;
+                const monto_embalaje_aux = this.monto_embalaje.length > 0 ? this.monto_embalaje : 0;
+                const monto_envio_aux = this.monto_envio.length > 0 ? this.monto_envio : 0;
                 const montos = {
                     monto_sub_total: parseFloat(this.monto_subtotal),
                     monto_total_igv: parseFloat(this.monto_igv),
@@ -602,19 +643,19 @@ export default {
                 };
 
                 this.$emit('addProductoDetalle', {
-                    detalles:   this.carrito,
-                    totales :   montos
+                    detalles: this.carrito,
+                    totales: montos
                 });
             },
             deep: true
         },
-        carrito:{
-            handler(value){
+        carrito: {
+            handler(value) {
 
                 console.log('WATCH CARRITO');
 
                 //======== si aún quedan items en el carrito , asegurar cierre será 1 =========
-                 if(this.carrito.length > 0){
+                if (this.carrito.length > 0) {
                     this.asegurarCierre = 1;
                 }
                 const montos = {
@@ -624,22 +665,22 @@ export default {
                     monto_embalaje: parseFloat(this.monto_embalaje),
                     monto_envio: parseFloat(this.monto_envio),
                     monto_total_pagar: parseFloat(this.monto_total_pagar),
-                    monto_descuento:parseFloat(this.monto_descuento)
+                    monto_descuento: parseFloat(this.monto_descuento)
                 };
 
                 this.$emit('addProductoDetalle', {
-                    detalles:   this.carrito,
-                    totales :   montos
+                    detalles: this.carrito,
+                    totales: montos
                 });
 
             },
             deep: true,
         },
-        buscarCodigoBarra:{
-            handler(value){
+        buscarCodigoBarra: {
+            handler(value) {
 
                 //======= VALIDAR QUE HAYA SELECCIONADO UN ALMACÉN PREVIAMENTE =======
-                if(!this.almacenSeleccionado){
+                if (!this.almacenSeleccionado) {
                     toastr.clear();
                     toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
                     //======= FOCUS AL VSELECT ALMACÉN ========
@@ -650,11 +691,11 @@ export default {
                     return;
                 }
 
-                if(value.trim().length === 8){
+                if (value.trim().length === 8) {
                     this.getProductoBarCode(value);
                 }
             },
-            deep:true,
+            deep: true,
         },
         modeloSeleccionado: {
             handler(value) {
@@ -679,9 +720,9 @@ export default {
         },
         productoSeleccionado: {
             handler(value) {
-                const producto_id   =   value.producto_id;
+                const producto_id = value.producto_id;
                 console.log('producto seleccionado');
-                if(producto_id){
+                if (producto_id) {
                     //====== OBTENER COLORES Y TALLAS DEL PRODUCTO ======
                     this.getColoresTallas();
                 }
@@ -722,9 +763,13 @@ export default {
 
     },
     methods: {
+        borrarDataEnvio() {
+            this.$emit('borrarDataEnvio');
+            this.hayDatosEnvio = false;
+        },
         async buscarProducto(query) {
             console.log('OLA');
-            if(!this.almacenSeleccionado){
+            if (!this.almacenSeleccionado) {
                 toastr.clear();
                 toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
                 //======= FOCUS AL VSELECT ALMACÉN ========
@@ -734,31 +779,31 @@ export default {
 
             if (query.length > 2) {
 
-                this.loadingProductos   = true;
-                this.buscando           = true;
+                this.loadingProductos = true;
+                this.buscando = true;
 
                 try {
                     toastr.clear();
                     const url = route('ventas.documento.getProductosVenta');
 
                     const response = await axios.get(url, {
-                    params: {
-                        search: query,
-                        page: this.paginaActual,
-                        perPage: this.perPage,
-                        almacen_id: this.almacenSeleccionado,
-                    }
+                        params: {
+                            search: query,
+                            page: this.paginaActual,
+                            perPage: this.perPage,
+                            almacen_id: this.almacenSeleccionado,
+                        }
                     });
 
                     console.log(response);
 
-                    if(response.data.success){
-                        this.productos          = response.data.data.data;
-                        this.loadingProductos   = false;
-                        this.buscando           = false;
-                    }else{
+                    if (response.data.success) {
+                        this.productos = response.data.data.data;
+                        this.loadingProductos = false;
+                        this.buscando = false;
+                    } else {
                         console.log(response.data.message)
-                        toastr.error(response.data.message,'ERROR EN EL SERVIDOR');
+                        toastr.error(response.data.message, 'ERROR EN EL SERVIDOR');
                     }
 
                 } catch (error) {
@@ -770,16 +815,17 @@ export default {
 
         },
         openModal(producto) {
-           this.$parent.openModal(producto);
+            this.$parent.openModal(producto);
         },
-        closeModal(){
+        closeModal() {
             this.$parent.closeModal(producto);
         },
         closeModal() {
             this.modalVisible = false;
             this.selectedProducto = null;
         },
-        addDataEnvio(value){
+        addDataEnvio(value) {
+            this.hayDatosEnvio = true;
             this.$emit('addDataEnvio', value);
         },
         NuevoCliente() {
@@ -788,14 +834,14 @@ export default {
         setDataEnvio() {
             $("#modal_envio").modal("show");
         },
-        validarDescuento(producto_id,color_id,event){
+        validarDescuento(producto_id, color_id, event) {
 
             //==== CONTROLANDO DE QUE EL VALOR SEA UN NÚMERO ====
             const valor = event.target.value;
 
             //==== SI EL INPUT ESTA VACÍO ====
-            if(valor.trim().length === 0){
-                this.calcularDescuento(producto_id,color_id,0);
+            if (valor.trim().length === 0) {
+                this.calcularDescuento(producto_id, color_id, 0);
                 return;
             }
 
@@ -811,29 +857,29 @@ export default {
             let porcentaje_desc = parseFloat(event.target.value);
 
             //==== EL MÁXIMO DESCUENTO ES 100% ====
-            if(porcentaje_desc>100){
+            if (porcentaje_desc > 100) {
                 event.target.value = 100;
                 porcentaje_desc = event.target.value;
             }
 
             //==== CALCULAR DESCUENTO ====
-            this.calcularDescuento(producto_id,color_id,porcentaje_desc)
+            this.calcularDescuento(producto_id, color_id, porcentaje_desc)
 
         },
-        calcularDescuento(producto_id,color_id,porcentaje_descuento){
+        calcularDescuento(producto_id, color_id, porcentaje_descuento) {
 
             //==== BUSCANDO PRODUCTO COLOR EN EL CARRITO ====
-            const indiceProductoColor   =   this.carrito.findIndex((producto)=>{
-                return producto.producto_id == producto_id && producto.color_id==color_id;
+            const indiceProductoColor = this.carrito.findIndex((producto) => {
+                return producto.producto_id == producto_id && producto.color_id == color_id;
             })
 
             const producto_color_editar = this.carrito[indiceProductoColor];
 
             //===== APLICANDO DESCUENTO ======
-            producto_color_editar.porcentaje_descuento =    porcentaje_descuento;
-            producto_color_editar.monto_descuento      =    porcentaje_descuento === 0?0:producto_color_editar.subtotal*(porcentaje_descuento/100);
-            producto_color_editar.precio_venta_nuevo   =    porcentaje_descuento === 0?0:(producto_color_editar.precio_venta*(1-porcentaje_descuento/100)).toFixed(2);
-            producto_color_editar.subtotal_nuevo        =   porcentaje_descuento === 0?0:(producto_color_editar.subtotal*(1-porcentaje_descuento/100)).toFixed(2);
+            producto_color_editar.porcentaje_descuento = porcentaje_descuento;
+            producto_color_editar.monto_descuento = porcentaje_descuento === 0 ? 0 : producto_color_editar.subtotal * (porcentaje_descuento / 100);
+            producto_color_editar.precio_venta_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar.precio_venta * (1 - porcentaje_descuento / 100)).toFixed(2);
+            producto_color_editar.subtotal_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar.subtotal * (1 - porcentaje_descuento / 100)).toFixed(2);
 
             this.carrito[indiceProductoColor] = producto_color_editar;
 
@@ -843,106 +889,106 @@ export default {
             console.log(this.carrito);
 
         },
-       async eliminarCarrito(){
-            if(this.carrito.length !== 0){
+        async eliminarCarrito() {
+            if (this.carrito.length !== 0) {
                 this.$parent.mostrarAnimacionVenta();
                 try {
                     await this.axios.post(route('ventas.documento.devolver.cantidades'), {
                         carrito: JSON.stringify(this.carrito)
                     })
                     this.carrito = [];
-                    this.monto_subtotal=0;
-                    this.monto_igv=0;
-                    this.monto_total=0;
+                    this.monto_subtotal = 0;
+                    this.monto_igv = 0;
+                    this.monto_total = 0;
                     await this.getColoresTallas();
                     this.$parent.ocultarAnimacionVenta();
-                    toastr.success('Detalle eliminado','Completado');
+                    toastr.success('Detalle eliminado', 'Completado');
                 } catch (error) {
-                    toastr.error('Ocurrio un error al eliminar el detalle','Error');
-                } finally{
+                    toastr.error('Ocurrio un error al eliminar el detalle', 'Error');
+                } finally {
                     this.$parent.ocultarAnimacionVenta();
                 }
-            }else{
-                toastr.warning('El detalle no tiene productos','Advertencia');
+            } else {
+                toastr.warning('El detalle no tiene productos', 'Advertencia');
             }
 
         },
-        calcularMontos(){
-            let subtotal            =   0;
-            let totalSinIgv         =   0;
-            let igv                 =   0;
-            let totalConIgv         =   0;
-            let descuento           =   0;
+        calcularMontos() {
+            let subtotal = 0;
+            let totalSinIgv = 0;
+            let igv = 0;
+            let totalConIgv = 0;
+            let descuento = 0;
 
             //==== RECORRIENDO CARRITO ====
-            this.carrito.forEach((producto)=>{
-                if(producto.porcentaje_descuento === 0){
-                    subtotal    += producto.subtotal;
-                }else{
-                    subtotal    +=  parseFloat(producto.subtotal_nuevo);
+            this.carrito.forEach((producto) => {
+                if (producto.porcentaje_descuento === 0) {
+                    subtotal += producto.subtotal;
+                } else {
+                    subtotal += parseFloat(producto.subtotal_nuevo);
                 }
                 descuento += parseFloat(producto.monto_descuento);
             })
 
             //========= PRECIO PRODUCTOS EN CARRITO + PRECIO EMBALAJE + PRECIO ENVÍO =============
             //====== PERMITIR BORRAR EL 0 DEL INPUT EMBALAJE, EVITAR ERROR DE VALOR NAN =======
-            const   monto_embalaje_aux  =   this.monto_embalaje.length>0? parseFloat(this.monto_embalaje):0;
-            const   monto_envio_aux     =   this.monto_envio.length>0? parseFloat(this.monto_envio):0;
+            const monto_embalaje_aux = this.monto_embalaje.length > 0 ? parseFloat(this.monto_embalaje) : 0;
+            const monto_envio_aux = this.monto_envio.length > 0 ? parseFloat(this.monto_envio) : 0;
 
-            totalConIgv             =   subtotal + parseFloat(monto_embalaje_aux)+parseFloat(monto_envio_aux);
-            totalSinIgv             =   totalConIgv/1.18
-            igv                     =   totalConIgv-totalSinIgv;
+            totalConIgv = subtotal + parseFloat(monto_embalaje_aux) + parseFloat(monto_envio_aux);
+            totalSinIgv = totalConIgv / 1.18
+            igv = totalConIgv - totalSinIgv;
 
-            this.monto_total_pagar  =   totalConIgv;
-            this.monto_igv          =   igv;
-            this.monto_total        =   totalSinIgv;
-            this.monto_subtotal     =   subtotal;
-            this.monto_descuento    =   descuento;
+            this.monto_total_pagar = totalConIgv;
+            this.monto_igv = igv;
+            this.monto_total = totalSinIgv;
+            this.monto_subtotal = subtotal;
+            this.monto_descuento = descuento;
         },
-        async getStockLogico(inputCantidad){
-            const almacen_id            =   inputCantidad.getAttribute('data-almacen-id');
-            const producto_id           =   inputCantidad.getAttribute('data-producto-id');
-            const color_id              =   inputCantidad.getAttribute('data-color-id');
-            const talla_id              =   inputCantidad.getAttribute('data-talla-id');
+        async getStockLogico(inputCantidad) {
+            const almacen_id = inputCantidad.getAttribute('data-almacen-id');
+            const producto_id = inputCantidad.getAttribute('data-producto-id');
+            const color_id = inputCantidad.getAttribute('data-color-id');
+            const talla_id = inputCantidad.getAttribute('data-talla-id');
 
             try {
                 const url = `/get-stocklogico/${almacen_id}/${producto_id}/${color_id}/${talla_id}`;
                 const response = await axios.get(url);
-                if(response.data.message=='success'){
-                    const stock_logico  =   response.data.data[0].stock_logico;
+                if (response.data.message == 'success') {
+                    const stock_logico = response.data.data[0].stock_logico;
                     return stock_logico;
                 }
 
             } catch (error) {
-                toastr.error(`El producto no cuenta con registros en esa talla`,"Error");
-                event.target.value='';
+                toastr.error(`El producto no cuenta con registros en esa talla`, "Error");
+                event.target.value = '';
                 console.error('Error al obtener stock logico:', error);
                 return null;
             }
         },
-        printTallaDetalle(talla_id,item){
+        printTallaDetalle(talla_id, item) {
 
-            const itemTalla =  item.tallas.find((t)=>  talla_id==t.talla_id);
+            const itemTalla = item.tallas.find((t) => talla_id == t.talla_id);
             // console.log(itemTalla);
-            const cantidad  =    itemTalla?itemTalla.cantidad:'';
+            const cantidad = itemTalla ? itemTalla.cantidad : '';
 
             return cantidad;
         },
-        calcularSubTotal(){
+        calcularSubTotal() {
             //======= calculando el subtotal de cada producto color =========
-           this.carrito.forEach((item,index)=>{
+            this.carrito.forEach((item, index) => {
                 const precio_venta = item.precio_venta;
                 //===== sumando las cantidades de todas las tallas que tiene el producto color ======
-                let subtotal=0;
-                item.tallas.forEach((talla)=>{
+                let subtotal = 0;
+                item.tallas.forEach((talla) => {
                     subtotal += (precio_venta * talla.cantidad);
                 })
                 //======= actualizamos el subtotal de ese producto_color
-                this.carrito[index].subtotal=subtotal;
-           })
+                this.carrito[index].subtotal = subtotal;
+            })
         },
-        reordenarCarrito(){
-            this.carrito.sort(function(a, b) {
+        reordenarCarrito() {
+            this.carrito.sort(function (a, b) {
                 if (a.producto_id === b.producto_id) {
                     return a.color_id - b.color_id;
                 } else {
@@ -950,15 +996,15 @@ export default {
                 }
             });
         },
-        async validarCantidadCarrito(inputCantidad){
-            const stockLogico           =   await  this.getStockLogico(inputCantidad);
-            const cantidadSolicitada    =   inputCantidad.value;
+        async validarCantidadCarrito(inputCantidad) {
+            const stockLogico = await this.getStockLogico(inputCantidad);
+            const cantidadSolicitada = inputCantidad.value;
             return stockLogico >= cantidadSolicitada;
         },
-        clearInputsCantidad(){
-            const inputsCantidad    =   document.querySelectorAll('.inputCantidad');
-            inputsCantidad.forEach((ic)=>{
-                ic.value    =   '';
+        clearInputsCantidad() {
+            const inputsCantidad = document.querySelectorAll('.inputCantidad');
+            inputsCantidad.forEach((ic) => {
+                ic.value = '';
             })
         },
         async agregarProducto() {
@@ -966,13 +1012,13 @@ export default {
             toastr.clear();
 
             //====== VALIDACIONES =======
-            if(!this.precioVentaSeleccionado){
+            if (!this.precioVentaSeleccionado) {
                 toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA!!!');
                 return;
             }
 
             //======= DEBE SELECCIONARSE UN ALMACÉN =======
-            if(!this.almacenSeleccionado){
+            if (!this.almacenSeleccionado) {
                 toastr.clear();
                 toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
                 //======= FOCUS AL VSELECT ALMACÉN ========
@@ -987,19 +1033,19 @@ export default {
             this.$parent.mostrarAnimacionVenta();
 
             //========= GET INPUTS TO PRODUCTS ARRAY ======
-            const resInputProducts  =   this.getInputProductos();
+            const resInputProducts = this.getInputProductos();
 
-            if(!resInputProducts.validacion){
+            if (!resInputProducts.validacion) {
                 this.$parent.ocultarAnimacionVenta();
                 return;
             }
 
             try {
 
-                const res_actualizar_stock    =   await this.actualizarStockLogicoVentas(this.almacenSeleccionado,resInputProducts.lstInputProducts);
+                const res_actualizar_stock = await this.actualizarStockLogicoVentas(this.almacenSeleccionado, resInputProducts.lstInputProducts);
 
-                if(!res_actualizar_stock.data.success){
-                    toastr.error(res_actualizar_stock.data.message,'ERROR EN EL SERVIDOR');
+                if (!res_actualizar_stock.data.success) {
+                    toastr.error(res_actualizar_stock.data.message, 'ERROR EN EL SERVIDOR');
                     this.$parent.ocultarAnimacionVenta();
                     return;
                 }
@@ -1007,7 +1053,7 @@ export default {
 
                 //======== ACTIVAR LA DEVOLUCIÓN DE STOCK ======
                 this.asegurarCierre = 1;
-                toastr.success(res_actualizar_stock.data.message,'OPERACIÓN COMPLETADA');
+                toastr.success(res_actualizar_stock.data.message, 'OPERACIÓN COMPLETADA');
 
                 //====== AGREGAR AL CARRITO =======
                 this.agregarCarrito(resInputProducts.lstInputProducts);
@@ -1023,15 +1069,15 @@ export default {
                 this.calcularMontos();
 
                 //===== RECALCULANDO DESCUENTOS =====
-                this.carrito.forEach((c)=>{
-                    this.calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+                this.carrito.forEach((c) => {
+                    this.calcularDescuento(c.producto_id, c.color_id, c.porcentaje_descuento);
                 })
 
-                console.log('CARRITO',this.carrito);
+                console.log('CARRITO', this.carrito);
 
 
             } catch (error) {
-                toastr.error(error,'ERROR AL AGREGAR PRODUCTO!!!');
+                toastr.error(error, 'ERROR AL AGREGAR PRODUCTO!!!');
             }
 
             this.$parent.ocultarAnimacionVenta();
@@ -1039,42 +1085,42 @@ export default {
             console.log(this.asegurarCierre);
             console.log(this.carrito);
         },
-        async validarStockVentas(almacenId,lstInputProducts){
+        async validarStockVentas(almacenId, lstInputProducts) {
 
-            const res   =   await axios.post(route('ventas.documento.validarStockVentas'),
-                            {almacenId,lstInputProducts:JSON.stringify(lstInputProducts)});
+            const res = await axios.post(route('ventas.documento.validarStockVentas'),
+                { almacenId, lstInputProducts: JSON.stringify(lstInputProducts) });
 
             return res;
 
         },
-        async actualizarStockLogicoVentas(almacenId,lstInputProducts){
+        async actualizarStockLogicoVentas(almacenId, lstInputProducts) {
 
             //===== RESTAR STOCK LÓGICO ======
-            const res  =   await axios.post(route('ventas.documento.actualizarStockAdd')
-                            ,{almacenId,lstInputProducts:JSON.stringify(lstInputProducts)});
+            const res = await axios.post(route('ventas.documento.actualizarStockAdd')
+                , { almacenId, lstInputProducts: JSON.stringify(lstInputProducts) });
 
             return res;
         },
-        agregarCarrito(lstInputProducts){
-            lstInputProducts.forEach((producto)=>{
+        agregarCarrito(lstInputProducts) {
+            lstInputProducts.forEach((producto) => {
 
                 //========= REVIZAR SI EXISTE EL PRODUCTO COLOR EN EL CARRITO ======
-                const indiceExiste  = this.carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
-                console.log('existe carrito',indiceExiste);
+                const indiceExiste = this.carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
+                console.log('existe carrito', indiceExiste);
                 //======= EN CASO EL PRODUCTO COLOR SEA NUEVO ======
                 if (indiceExiste == -1) {
 
                     const objProduct = {
-                        almacen_id:  producto.almacen_id,
+                        almacen_id: producto.almacen_id,
                         producto_id: producto.producto_id,
                         color_id: producto.color_id,
                         producto_nombre: producto.producto_nombre,
                         color_nombre: producto.color_nombre,
                         precio_venta: producto.precio_venta,
-                        monto_descuento:0,
-                        porcentaje_descuento:0,
-                        precio_venta_nuevo:0,
-                        subtotal_nuevo:0,
+                        monto_descuento: 0,
+                        porcentaje_descuento: 0,
+                        precio_venta_nuevo: 0,
+                        subtotal_nuevo: 0,
                         tallas: [{
                             talla_id: producto.talla_id,
                             talla_nombre: producto.talla_nombre,
@@ -1083,11 +1129,11 @@ export default {
                     };
 
                     this.carrito.push(objProduct);
-                }else{
+                } else {
 
                     //======== PRODUCTO COLOR EXISTE =========
-                    const productoModificar         = this.carrito[indiceExiste];
-                    productoModificar.precio_venta  = producto.precio_venta;
+                    const productoModificar = this.carrito[indiceExiste];
+                    productoModificar.precio_venta = producto.precio_venta;
 
                     //===== PREGUNTANDO SI EXISTE LA TALLA EN EL CARRITO ======
                     const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
@@ -1096,10 +1142,10 @@ export default {
                     if (indexTalla === -1) {
 
                         const objTallaProduct = {
-                                                    talla_id: producto.talla_id,
-                                                    talla_nombre: producto.talla_nombre,
-                                                    cantidad: producto.cantidad
-                                                };
+                            talla_id: producto.talla_id,
+                            talla_nombre: producto.talla_nombre,
+                            cantidad: producto.cantidad
+                        };
 
                         console.log(`${productoModificar.producto_nombre} - ${productoModificar.color_nombre}`);
                         this.carrito[indiceExiste].tallas.push(objTallaProduct);
@@ -1110,12 +1156,12 @@ export default {
 
             })
         },
-        getInputProductos(){
+        getInputProductos() {
 
             //========= OBTENER TODOS LOS INPUT CANTIDAD =======
-            const inputsCantidad    =   document.querySelectorAll('.inputCantidad');
-            const lstInputProducts  =   [];
-            let validacion          =   true;
+            const inputsCantidad = document.querySelectorAll('.inputCantidad');
+            const lstInputProducts = [];
+            let validacion = true;
 
             for (let i = 0; i < inputsCantidad.length; i++) {
                 const ic = inputsCantidad[i];
@@ -1149,23 +1195,23 @@ export default {
                 }
             }
 
-            return {validacion,lstInputProducts};
+            return { validacion, lstInputProducts };
 
         },
-        async actualizarStockLogico(producto,modo,cantidadAnterior){
+        async actualizarStockLogico(producto, modo, cantidadAnterior) {
 
-            modo=="eliminar"?this.asegurarCierre=0:this.asegurarCierre=1;
+            modo == "eliminar" ? this.asegurarCierre = 0 : this.asegurarCierre = 1;
 
             try {
                 await this.axios.post(route('ventas.documento.cantidad'), {
-                    'producto_id'   :   producto.producto_id,
-                    'color_id'      :   producto.color_id,
-                    'talla_id'      :   producto.talla_id,
-                    'cantidad'      :   producto.cantidad,
-                    'condicion'     :   this.asegurarCierre,
-                    'modo'          :   modo,
-                    'cantidadAnterior'    :   cantidadAnterior,
-                    'tallas'        :   producto.tallas,
+                    'producto_id': producto.producto_id,
+                    'color_id': producto.color_id,
+                    'talla_id': producto.talla_id,
+                    'cantidad': producto.cantidad,
+                    'condicion': this.asegurarCierre,
+                    'modo': modo,
+                    'cantidadAnterior': cantidadAnterior,
+                    'tallas': producto.tallas,
                 });
 
 
@@ -1173,68 +1219,70 @@ export default {
 
             }
         },
-        formarProducto(ic){
-            const almacen_id        = ic.getAttribute('data-almacen-id');
-            const producto_id       = ic.getAttribute('data-producto-id');
-            const producto_nombre   = ic.getAttribute('data-producto-nombre');
-            const color_id          = ic.getAttribute('data-color-id');
-            const color_nombre      = ic.getAttribute('data-color-nombre');
-            const talla_id          = ic.getAttribute('data-talla-id');
-            const talla_nombre      = ic.getAttribute('data-talla-nombre');
-            const precio_venta      = this.precioVentaSeleccionado;
-            const cantidad          = ic.value?ic.value:0;
+        formarProducto(ic) {
+            const almacen_id = ic.getAttribute('data-almacen-id');
+            const producto_id = ic.getAttribute('data-producto-id');
+            const producto_nombre = ic.getAttribute('data-producto-nombre');
+            const color_id = ic.getAttribute('data-color-id');
+            const color_nombre = ic.getAttribute('data-color-nombre');
+            const talla_id = ic.getAttribute('data-talla-id');
+            const talla_nombre = ic.getAttribute('data-talla-nombre');
+            const precio_venta = this.precioVentaSeleccionado;
+            const cantidad = ic.value ? ic.value : 0;
 
-            const monto_descuento           =   0.0;
-            const porcentaje_descuento      =   0.0;
-            const precio_venta_nuevo        =   0.0;
-            const subtotal_nuevo            =   0.0;
+            const monto_descuento = 0.0;
+            const porcentaje_descuento = 0.0;
+            const precio_venta_nuevo = 0.0;
+            const subtotal_nuevo = 0.0;
 
-            const producto  =   {almacen_id,producto_id,producto_nombre,color_id,color_nombre,
-                                talla_id,talla_nombre,cantidad,precio_venta,
-                                monto_descuento,porcentaje_descuento,precio_venta_nuevo,subtotal_nuevo};
+            const producto = {
+                almacen_id, producto_id, producto_nombre, color_id, color_nombre,
+                talla_id, talla_nombre, cantidad, precio_venta,
+                monto_descuento, porcentaje_descuento, precio_venta_nuevo, subtotal_nuevo
+            };
             return producto;
         },
-        validarContenidoInput(e){
+        validarContenidoInput(e) {
             e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
             this.validarCantidadInstantanea(e);
         },
 
         async validarCantidadInstantanea(event) {
-            const cantidadSolicitada    =   event.target.value;
+            const cantidadSolicitada = event.target.value;
             try {
-                if(cantidadSolicitada !== ''){
-                    const stock_logico  =  await this.getStockLogico(event.target);
-                    if(stock_logico < cantidadSolicitada){
-                            event.target.classList.add('inputCantidadIncorrecto');
-                            event.target.classList.remove('inputCantidadValido');
-                            event.target.focus();
-                            this.deshabilitarBtnAgregar =   true;
-                            toastr.error(`Cantidad solicitada: ${cantidadSolicitada}, debe ser menor o igual
-                            al stock lógico: ${stock_logico}`,"Error");
-                    }else{
-                            event.target.classList.add('inputCantidadValido');
-                            event.target.classList.remove('inputCantidadIncorrecto');
-                            this.deshabilitarBtnAgregar =   false;
+                if (cantidadSolicitada !== '') {
+                    const stock_logico = await this.getStockLogico(event.target);
+                    if (stock_logico < cantidadSolicitada) {
+                        event.target.classList.add('inputCantidadIncorrecto');
+                        event.target.classList.remove('inputCantidadValido');
+                        event.target.focus();
+                        this.deshabilitarBtnAgregar = true;
+                        toastr.error(`Cantidad solicitada: ${cantidadSolicitada}, debe ser menor o igual
+                            al stock lógico: ${stock_logico}`, "Error");
+                    } else {
+                        event.target.classList.add('inputCantidadValido');
+                        event.target.classList.remove('inputCantidadIncorrecto');
+                        this.deshabilitarBtnAgregar = false;
                     }
-                }else{
-                    this.deshabilitarBtnAgregar =   false;
+                } else {
+                    this.deshabilitarBtnAgregar = false;
                     event.target.classList.remove('inputCantidadIncorrecto');
                     event.target.classList.remove('inputCantidadValido');
                 }
             } catch (error) {
-                toastr.error(`El producto no cuenta con registros en esa talla`,"Error");
-                event.target.value='';
+                toastr.error(`El producto no cuenta con registros en esa talla`, "Error");
+                event.target.value = '';
                 console.error('Error al obtener stock logico:', error);
             }
         },
-        async  getProductos() {
+        async getProductos() {
             toastr.clear();
 
-            const modelo_id                   =   this.modeloSeleccionado;
-            const marca_id                    =   this.marcaSeleccionada;
-            const categoria_id                =   this.categoriaSeleccionada;
+            const modelo_id = this.modeloSeleccionado;
+            const marca_id = this.marcaSeleccionada;
+            const categoria_id = this.categoriaSeleccionada;
 
-            if(modelo_id || marca_id || categoria_id){
+            if (modelo_id || marca_id || categoria_id) {
                 try {
                     const res = await axios.get(route('ventas.documento.getProductos'), {
                         params: {
@@ -1244,40 +1292,40 @@ export default {
                         }
                     });
 
-                    if(res.data.success){
-                        this.productos                  =   res.data.productos;
-                        this.productoSeleccionado       = null;
-                        this.precioVentaSeleccionado    = null;
+                    if (res.data.success) {
+                        this.productos = res.data.productos;
+                        this.productoSeleccionado = null;
+                        this.precioVentaSeleccionado = null;
 
-                        toastr.info('PRODUCTOS CARGADOS','OPERACIÓN COMPLETADA');
-                    }else{
+                        toastr.info('PRODUCTOS CARGADOS', 'OPERACIÓN COMPLETADA');
+                    } else {
                         //ocultarAnimacionCotizacion();
-                        toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                        toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                     }
                 } catch (error) {
                     //ocultarAnimacionCotizacion();
-                    toastr.error(error,'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
+                    toastr.error(error, 'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
                 }
 
-            }else{
+            } else {
                 //ocultarAnimacionCotizacion();
             }
         },
         //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
-        async  getColoresTallas(){
+        async getColoresTallas() {
 
             //======= MOSTRAR ANIMACIÓN =======
             this.$parent.mostrarAnimacionVenta();
-            const producto_id   =   this.productoSeleccionado.producto_id;
-            const almacen_id    =   this.almacenSeleccionado;
+            const producto_id = this.productoSeleccionado.producto_id;
+            const almacen_id = this.almacenSeleccionado;
 
-            if(!producto_id){
+            if (!producto_id) {
                 this.$parent.ocultarAnimacionVenta();
                 return;
             }
 
-           //======= DEBE SELECCIONARSE UN ALMACÉN =======
-           if(!this.almacenSeleccionado){
+            //======= DEBE SELECCIONARSE UN ALMACÉN =======
+            if (!this.almacenSeleccionado) {
                 toastr.clear();
                 toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
                 //======= FOCUS AL VSELECT ALMACÉN ========
@@ -1288,18 +1336,18 @@ export default {
                 return;
             }
 
-            if(producto_id){
+            if (producto_id) {
                 try {
-                    const res   =   await   axios.get(route('ventas.documento.getColoresTallas',{almacen_id,producto_id}));
-                    if(res.data.success){
-                        this.productosPorModelo =   res.data;
-                        this.preciosVenta       =   res.data.precios_venta;
-                    }else{
-                        toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    const res = await axios.get(route('ventas.documento.getColoresTallas', { almacen_id, producto_id }));
+                    if (res.data.success) {
+                        this.productosPorModelo = res.data;
+                        this.preciosVenta = res.data.precios_venta;
+                    } else {
+                        toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                     }
                 } catch (error) {
-                    toastr.error(error,'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
-                }finally{
+                    toastr.error(error, 'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
+                } finally {
                     //ocultarAnimacionCotizacion();
                 }
             }
@@ -1310,8 +1358,8 @@ export default {
             return stock ? stock.stock_logico : 0;
         },
         async devolverCantidades() {
-            console.log('ASEGURAR CIERRE',this.asegurarCierre);
-            if(this.asegurarCierre == 1){
+            console.log('ASEGURAR CIERRE', this.asegurarCierre);
+            if (this.asegurarCierre == 1) {
                 console.log('DEVOLVIENDO STOCK');
                 await this.axios.post(route('ventas.documento.devolverCantidades'), {
                     carrito: JSON.stringify(this.carrito),
@@ -1349,14 +1397,14 @@ export default {
                 return item;
             }
         },
-        async actualizarStockDelete(producto){
-            const res   =   await   axios.post(route('ventas.documento.actualizarStockDelete'),
-                            {
-                                almacen_id:producto.almacen_id,
-                                producto_id:producto.producto_id,
-                                color_id:producto.color_id,
-                                tallas:JSON.stringify(producto.tallas)
-                            });
+        async actualizarStockDelete(producto) {
+            const res = await axios.post(route('ventas.documento.actualizarStockDelete'),
+                {
+                    almacen_id: producto.almacen_id,
+                    producto_id: producto.producto_id,
+                    color_id: producto.color_id,
+                    tallas: JSON.stringify(producto.tallas)
+                });
 
             return res;
         },
@@ -1367,10 +1415,10 @@ export default {
                 this.$parent.mostrarAnimacionVenta();
 
                 //==== devolvemos el stock logico separado ========
-                const res_delete    =   await this.actualizarStockDelete(item);
+                const res_delete = await this.actualizarStockDelete(item);
 
-                if(!res_delete.data.success){
-                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR AL DEVOLVER STOCK LÓGICO!!!');
+                if (!res_delete.data.success) {
+                    toastr.error(res.data.message, 'ERROR EN EL SERVIDOR AL DEVOLVER STOCK LÓGICO!!!');
                 }
 
                 //this.actualizarStockLogico(item, "eliminar");
@@ -1384,54 +1432,54 @@ export default {
 
                 //======= alerta ======================
                 this.$parent.ocultarAnimacionVenta();
-                toastr.info('ITEM ELIMINADO',"CANTIDAD DEVUELTA");
+                toastr.info('ITEM ELIMINADO', "CANTIDAD DEVUELTA");
             } catch (error) {
-                toastr.error(error,'ERROR EN LA PETICIÓN ELIMINAR ITEM!!!');
+                toastr.error(error, 'ERROR EN LA PETICIÓN ELIMINAR ITEM!!!');
             }
         },
         ChangeAsegurarCierre() {
             this.asegurarCierre = 5;
-            console.log('devuelto',this.asegurarCierre);
+            console.log('devuelto', this.asegurarCierre);
         },
-        async getProductoBarCode(barcode){
+        async getProductoBarCode(barcode) {
             try {
                 toastr.clear();
                 this.$parent.mostrarAnimacionVenta();
 
-                const res   =   await axios.get(route('ventas.documento.getProductoBarCode',{barcode}));
+                const res = await axios.get(route('ventas.documento.getProductoBarCode', { barcode }));
 
-                if(res.data.success){  //====== PRODUCTO EXISTE ====
+                if (res.data.success) {  //====== PRODUCTO EXISTE ====
 
                     toastr.info('BUSCANDO PRODUCTO');
 
-                    res.data.producto.cantidad  =   1;
+                    res.data.producto.cantidad = 1;
 
-                    res.data.producto.almacen_id    =   this.almacenSeleccionado;  //======= AGREGAR ALMACEN ID ======
-                    const lstInputProducts          =   [res.data.producto];
-                    let indiceProductoColor         =   -1;
-                    let indiceTalla                 =   -1;
+                    res.data.producto.almacen_id = this.almacenSeleccionado;  //======= AGREGAR ALMACEN ID ======
+                    const lstInputProducts = [res.data.producto];
+                    let indiceProductoColor = -1;
+                    let indiceTalla = -1;
 
                     //======= VALIDAR QUE EL PRODUCTO NO EXISTA EN EL DETALLE ======
                     indiceProductoColor = this.carrito.findIndex((c) => {
-                                                    return c.producto_id == res.data.producto.producto_id && c.color_id == res.data.producto.color_id;
-                                                });
+                        return c.producto_id == res.data.producto.producto_id && c.color_id == res.data.producto.color_id;
+                    });
 
                     if (indiceProductoColor !== -1) {
                         indiceTalla = this.carrito[indiceProductoColor].tallas.findIndex((t) => {
-                                                return t.talla_id == res.data.producto.talla_id;
-                                            });
+                            return t.talla_id == res.data.producto.talla_id;
+                        });
                     }
 
-                    if(indiceTalla !== -1){
-                        toastr.error(`${res.data.producto.producto_nombre}-${res.data.producto.color_nombre}-${res.data.producto.talla_nombre}`,'ERROR, YA EXISTE EN EL DETALLE!!!');
+                    if (indiceTalla !== -1) {
+                        toastr.error(`${res.data.producto.producto_nombre}-${res.data.producto.color_nombre}-${res.data.producto.talla_nombre}`, 'ERROR, YA EXISTE EN EL DETALLE!!!');
                         return;
                     }
 
                     //======= RESTAR STOCK LÓGICO ======
-                    const res_actualizar_stock  =   await this.actualizarStockLogicoVentas(this.almacenSeleccionado,lstInputProducts);
+                    const res_actualizar_stock = await this.actualizarStockLogicoVentas(this.almacenSeleccionado, lstInputProducts);
 
-                    if(!res_actualizar_stock.data.success){
-                        toastr.error(res_actualizar_stock.data.message,'ERROR EN EL SERVIDOR');
+                    if (!res_actualizar_stock.data.success) {
+                        toastr.error(res_actualizar_stock.data.message, 'ERROR EN EL SERVIDOR');
                         return;
                     }
 
@@ -1452,31 +1500,31 @@ export default {
                     this.calcularMontos();
 
                     //===== RECALCULANDO DESCUENTOS =====
-                    this.carrito.forEach((c)=>{
-                        this.calcularDescuento(c.producto_id,c.color_id,c.porcentaje_descuento);
+                    this.carrito.forEach((c) => {
+                        this.calcularDescuento(c.producto_id, c.color_id, c.porcentaje_descuento);
                     })
 
 
-                    toastr.info('AGREGADO AL DETALLE!!!',`${res.data.producto.producto_nombre} - ${res.data.producto.color_nombre} - ${res.data.producto.talla_nombre}
-                                PRECIO: ${res.data.producto.precio_venta}`,{timeOut:0});
+                    toastr.info('AGREGADO AL DETALLE!!!', `${res.data.producto.producto_nombre} - ${res.data.producto.color_nombre} - ${res.data.producto.talla_nombre}
+                                PRECIO: ${res.data.producto.precio_venta}`, { timeOut: 0 });
 
-                }else{
-                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                } else {
+                    toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
-                toastr.error(error,'ERROR EN LA PETICIÓN OBTENER PRODUCTO POR CÓDIGO DE BARRA');
-            }finally{
+                toastr.error(error, 'ERROR EN LA PETICIÓN OBTENER PRODUCTO POR CÓDIGO DE BARRA');
+            } finally {
                 this.$parent.ocultarAnimacionVenta();
             }
         },
-        async limpiarFormularioDetalle(){
+        async limpiarFormularioDetalle() {
             this.$parent.mostrarAnimacionVenta();
             await this.devolverCantidades();
-            this.carrito                    =   [];
-            this.productosPorModelo         =   [];
-            this.productos                  =   [];
-            this.productoSeleccionado       =   '';
-            this.precioVentaSeleccionado    =   '';
+            this.carrito = [];
+            this.productosPorModelo = [];
+            this.productos = [];
+            this.productoSeleccionado = '';
+            this.precioVentaSeleccionado = '';
             this.$parent.ocultarAnimacionVenta();
         }
 

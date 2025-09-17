@@ -42,7 +42,8 @@ class CotizacionController extends Controller
 {
     private CotizacionManager $s_cotizacion;
 
-    public function __construct(){
+    public function __construct()
+    {
         $this->s_cotizacion =   new CotizacionManager();
     }
 
@@ -117,11 +118,11 @@ class CotizacionController extends Controller
         $tallas             =   Talla::where('estado', 'ACTIVO')->get();
 
         $registrador        =   DB::select(
-                                    'select
+            'select
                                                         u.*
                                                         from users as u where u.id = ?',
-                                    [Auth::user()->id]
-                                )[0];
+            [Auth::user()->id]
+        )[0];
 
         $sede_id            =   Auth::user()->sede_id;
         $sede               =   Sede::find($sede_id);
@@ -206,7 +207,7 @@ array:10 [
         $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
         $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
         $detalles           =   CotizacionDetalle::where('cotizacion_id', $id)->where('estado', 'ACTIVO')
-                                ->with('producto', 'color', 'talla')->get();
+            ->with('producto', 'color', 'talla')->get();
 
         $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
         $categorias         =   Categoria::where('estado', 'ACTIVO')->get();
@@ -242,7 +243,7 @@ array:10 [
     }
 
 
-/*
+    /*
 array:11 [
   "_token"              => "tUfxjoYQNI8rXMfIXQtSNELqv4znU9yyUA5PT9hD"
   "registrador"         => "ADMINISTRADOR"
@@ -263,7 +264,7 @@ array:11 [
 
         try {
 
-            $cotizacion =   $this->s_cotizacion->update($request->toArray(),$id);
+            $cotizacion =   $this->s_cotizacion->update($request->toArray(), $id);
 
             //Registro de actividad
             $descripcion = "SE MODIFICÓ LA COTIZACION CON LA FECHA: " . Carbon::parse($cotizacion->fecha_documento)->format('d/m/y');
@@ -276,7 +277,7 @@ array:11 [
             return response()->json(['success' => true, 'message' => "COTIZACIÓN ACTUALIZADA"]);
         } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => $th->getMessage(),'line'=>$th->getLine(),'file'=>$th->getFile()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(), 'file' => $th->getFile()]);
         }
     }
 
@@ -844,193 +845,38 @@ array:10 [
         return redirect()->route('ventas.documento.create', ['cotizacion' => $id]);
     }
 
-    /*
-array:1 [
-  "cotizacion_id" => 18
+/*
+array:4 [
+  "_token" => "UjYzdBIkW5HpOS1iWrFQkt7jR9sHguuVJPHNrVJB"
+  "fecha_propuesta" => null
+  "observacion" => null
+  "cotizacion_id" => "6368"
 ]
 */
     public function generarPedido(Request $request)
     {
-
         DB::beginTransaction();
 
         try {
 
-            $cotizacion_id  =   $request->get('cotizacion_id');
+            $pedido =   $this->s_cotizacion->generarPedido($request->toArray());
 
-            if (!$cotizacion_id) {
-                throw new Exception("FALTA EL PARÁMETRO COTIZACIÓN ID EN LA PETICIÓN");
-            }
+            $message        =   "SE CONVIRTIÓ COTIZACIÓN N°". $request->get('cotizacion_id')." A PEDIDO N°".$pedido->id;
+            $descripcion    =   $message;
+            $gestion        =   "COTIZACIÓN A PEDIDO";
+            modificarRegistro($pedido, $descripcion, $gestion);
 
-            $cotizacion =   Cotizacion::findOrFail($cotizacion_id);
-            if (!$cotizacion) {
-                throw new Exception("LA COTIZACIÓN NO EXISTE");
-            }
-            if ($cotizacion->estado != 'VIGENTE') {
-                throw new Exception("LA COTIZACIÓN NO ESTÁ VIGENTE");
-            }
-
-            $pedido =   Pedido::find($cotizacion_id);
-            if ($pedido) {
-                throw new Exception("LA COTIZACIÓN YA FUE CONVERTIDA A PEDIDO");
-            }
-
-            //===== OBTENIENDO DETALLE DE LA COTIZACIÓN ===========
-
-            $detalle_cotizacion =   DB::select(
-                'select
-                                    cd.*
-                                    from cotizacion_detalles as cd
-                                    where
-                                    cd.cotizacion_id = ?
-                                    and cd.estado = "ACTIVO"',
-                [$cotizacion->id]
-            );
-
-            //======== CREAR PEDIDO =========
-            $pedido             =   new Pedido();
-            $pedido->cliente_id =   $cotizacion->cliente_id;
-
-            //======= OBTENIENDO NOMBRE DEL CLIENTE =======
-            $cliente    =   DB::select('select
-                            c.nombre
-                            from clientes as c
-                            where
-                            c.estado="ACTIVO"
-                            and c.id=?', [$cotizacion->cliente_id]);
-
-            $pedido->cliente_nombre =   $cliente[0]->nombre;
-            $pedido->empresa_id     =   $cotizacion->empresa_id;
-
-            //======== OBTENIENDO NOMBRE DE LA EMPRESA ========
-            $empresa    =   DB::select(
-                'select
-                            e.razon_social
-                            from empresas as e
-                            where
-                            e.estado="ACTIVO"
-                            and e.id = ?',
-                [$cotizacion->empresa_id]
-            );
-
-            $pedido->empresa_nombre =   $empresa[0]->razon_social;
-            $pedido->user_id        =   $cotizacion->registrador_id;
-
-            //====== OBTENIENDO NOMBRE DEL USUARIO =====
-            $usuario    =   DB::select(
-                'select
-                            u.usuario
-                            from users as u
-                            where
-                            u.estado = "ACTIVO"
-                            and u.id=?',
-                [$cotizacion->registrador_id]
-            );
-
-            $pedido->user_nombre    =   $usuario[0]->usuario;
-            $pedido->condicion_id   =   $cotizacion->condicion_id;
-            $pedido->moneda         =   $cotizacion->moneda;
-
-            //======= OBTENIENDO NRO DEL PEDIDO =======
-            $cantidad_pedidos   =   Pedido::count();
-            $pedido->pedido_nro =   $cantidad_pedidos + 1;
-
-            $pedido->sub_total              =   $cotizacion->sub_total;
-            $pedido->total                  =   $cotizacion->total;
-            $pedido->total_igv              =   $cotizacion->total_igv;
-            $pedido->total_pagar            =   $cotizacion->total_pagar;
-            $pedido->monto_embalaje         =   $cotizacion->monto_embalaje;
-            $pedido->monto_envio            =   $cotizacion->monto_envio;
-            $pedido->porcentaje_descuento   =   $cotizacion->porcentaje_descuento;
-            $pedido->monto_descuento        =   $cotizacion->monto_descuento;
-            $pedido->fecha_registro         =   Carbon::now()->format('Y-m-d');
-            $pedido->cotizacion_id          =   $cotizacion->id;
-            $pedido->sede_id                =   $cotizacion->sede_id;
-            $pedido->almacen_id             =   $cotizacion->almacen_id;
-            $pedido->save();
-
-            //=========== CREAR DETALLE DEL PEDIDO ========
-            foreach ($detalle_cotizacion as $item) {
-                $detalle_pedido                 =   new PedidoDetalle();
-                $detalle_pedido->pedido_id      =   $pedido->id;
-                $detalle_pedido->almacen_id     =   $cotizacion->almacen_id;
-                $detalle_pedido->producto_id    =   $item->producto_id;
-                $detalle_pedido->color_id       =   $item->color_id;
-                $detalle_pedido->talla_id       =   $item->talla_id;
-
-                //====== OBTENIENDO DATOS DEL PRODUCTO ======
-                $producto   =   DB::select(
-                    'select
-                                p.codigo,
-                                p.nombre,
-                                p.modelo_id
-                                from productos as p
-                                where
-                                p.id = ?',
-                    [$item->producto_id]
-                );
-
-                $detalle_pedido->producto_codigo = $producto[0]->codigo;
-                $detalle_pedido->unidad          = 'NIU';
-                $detalle_pedido->producto_nombre = $producto[0]->nombre;
-
-                //====== OBTENIENDO DATOS DEL COLOR =========
-                $color      =   DB::select(
-                    'select
-                                c.descripcion
-                                from colores as c
-                                where c.id = ?',
-                    [$item->color_id]
-                );
-
-                $detalle_pedido->color_nombre   =  $color[0]->descripcion;
-
-                //======= OBTENIENDO DATOS DE LA TALLA =======
-                $talla      =   DB::select(
-                    'select
-                                t.descripcion
-                                from tallas as t
-                                where t.id = ?',
-                    [$item->talla_id]
-                );
-
-                $detalle_pedido->talla_nombre   =   $talla[0]->descripcion;
-
-                //===== OBTENIENDO DATOS DEL MODELO ======
-                $modelo     =   DB::select(
-                    'select
-                                m.descripcion
-                                from modelos as m
-                                where m.id = ?',
-                    [$producto[0]->modelo_id]
-                );
-
-                $detalle_pedido->modelo_nombre = $modelo[0]->descripcion;
-
-                $detalle_pedido->cantidad               =   $item->cantidad;
-                $detalle_pedido->precio_unitario        =   $item->precio_unitario;
-                $detalle_pedido->importe                =   $item->importe;
-                $detalle_pedido->porcentaje_descuento   =   $item->porcentaje_descuento;
-                $detalle_pedido->precio_unitario_nuevo  =   $item->precio_unitario_nuevo;
-                $detalle_pedido->importe_nuevo          =   $item->importe_nuevo;
-                $detalle_pedido->monto_descuento        =   $item->monto_descuento;
-                $detalle_pedido->cantidad_atendida      =   0;
-                $detalle_pedido->cantidad_pendiente     =   $item->cantidad;
-                $detalle_pedido->save();
-            }
-
-            $cotizacion->pedido_id  =   $pedido->id;
-            $cotizacion->update();
+            Session::flash('message_success',$message);
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => "SE HA GENERADO EL PEDIDO N° " . $pedido->pedido_nro
+                'message' => "SE HA GENERADO EL PEDIDO N° " . $pedido->id
             ]);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
 
-            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(),'file'=>$th->getFile()]);
         }
     }
 
@@ -1271,9 +1117,42 @@ array:1 [
 
             DB::commit();
             return response()->json(['success' => true, 'message' => 'CANTIDAD DEVUELTA CON ÉXITO']);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
             return response()->json(['success' => false, $th->getMessage()]);
+        }
+    }
+
+    public function generarPedidoCreate(int $id)
+    {
+        try {
+
+            //======== VALIDAR ========
+            $cotizacion =   Cotizacion::findOrFail($id);
+            if (!$cotizacion) {
+                throw new Exception("NO EXISTE LA COTIZACIÓN EN LA BD");
+            }
+            if (Auth::user()->id !== $cotizacion->registrador_id) {
+                throw new Exception("EL USUARIO REGISTRADOR ES DIFERENTE AL DE LA COTIZACIÓN");
+            }
+            if (Auth::user()->sede_id !== $cotizacion->sede_id) {
+                throw new Exception("LA SEDE DEL USUARIO ES DIFERENTE AL DE LA COTIZACIÓN");
+            }
+            if ($cotizacion->pedido_id) {
+                throw new Exception("LA COTIZACIÓN YA FUE CONVERTIDA EN PEDIDO");
+            }
+
+            $detalles           =   CotizacionDetalle::where('cotizacion_id', $id)->where('estado', 'ACTIVO')
+                ->with('producto', 'color', 'talla')->get();
+
+            $condicion          =   Condicion::findOrFail($cotizacion->condicion_id);
+            $tallas             =   Talla::where('estado', 'ACTIVO')->get();
+            $porcentaje_igv     =   Empresa::find(1)->igv;
+
+            return view('ventas.cotizaciones.convert_to_pedido', compact('cotizacion', 'detalles', 'condicion', 'tallas', 'porcentaje_igv'));
+        } catch (Throwable $th) {
+            Session::flash('message_error', $th->getMessage());
+            return back();
         }
     }
 }

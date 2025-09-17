@@ -200,3 +200,7 @@ function getRowByIndex(dtTabla, index) {
 
     return data[index];
 }
+
+function formatoMoneda(valor) {
+    return parseFloat(valor).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}

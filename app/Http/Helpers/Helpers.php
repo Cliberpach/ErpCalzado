@@ -1306,12 +1306,16 @@ if (!function_exists('movimientoUser')) {
             ======
             */
 
-            $movimiento =   DB::select('select
-                            dmc.movimiento_id
-                            from detalles_movimiento_caja as dmc
-                            where
+             $movimiento =   DB::select('SELECT
+                            dmc.movimiento_id,
+                            c.nombre as caja_nombre,
+                            c.id as caja_id
+                            FROM detalles_movimiento_caja AS dmc
+                            INNER JOIN movimiento_caja AS mc ON mc.id = dmc.movimiento_id
+                            INNER JOIN caja AS c ON c.id = mc.caja_id
+                            WHERE
                             dmc.colaborador_id = ?
-                            and dmc.fecha_salida is null',
+                            AND dmc.fecha_salida IS NULL',
                             [Auth::user()->colaborador_id]);
 
             return  $movimiento;

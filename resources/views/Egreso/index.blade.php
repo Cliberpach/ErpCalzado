@@ -1,9 +1,10 @@
-@extends('layout') @section('content')
+@extends('layout')
+@section('content')
     {{-- @include('pos.caja_chica.edit') --}}
 @section('egreso-active', 'active')
 @section('caja-chica-active', 'active')
-@include('Egreso.create')
-@include('Egreso.edit')
+@include('Egreso.modals.mdl_create_egreso')
+@include('Egreso.modals.mdl_edit_egreso')
 @include('Egreso.modalImpreso')
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
@@ -19,8 +20,9 @@
         </ol>
     </div>
     <div class="col-lg-2 col-md-2">
-        <a class="btn btn-block btn-w-m btn-modal btn-primary m-t-md" href="#">
-            <i class="fa fa-plus-square"></i> Añadir nuevo
+        <a class="btn btn-block btn-w-m btn-modal btn-success m-t-md" href="javascript:void(0);"
+            onclick="openMdlCreateEgreso()">
+            <i class="fa fa-plus-square"></i> NUEVO
         </a>
     </div>
 </div>
@@ -30,20 +32,7 @@
             <div class="ibox ">
                 <div class="ibox-content">
                     <div class="table-responsive">
-                        <table class="table dataTables-cajas table-striped table-bordered table-hover"
-                            style="text-transform:uppercase">
-                            <thead>
-                                <tr>
-                                    <th class="text-center">ID</th>
-                                    <th class="text-center">DESCRIPCION</th>
-                                    <th class="text-center">TIPO DOCUMENTO</th>
-                                    <th class="text-center">DOCUMENTO</th>
-                                    <th class="text-center">MONTO</th>
-                                    <th class="text-center">FECHA</th>
-                                    <th class="text-center">ACCIONES</th>
-                                </tr>
-                            </thead>
-                        </table>
+                        @include('Egreso.tables.tbl_egresos_list')
                     </div>
                 </div>
             </div>
@@ -52,113 +41,167 @@
 </div>
 @stop
 @push('styles')
-<!-- DataTable -->
-<link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
 <link href="{{ asset('Inspinia/css/plugins/textSpinners/spinners.css') }}" rel="stylesheet">
 <style>
     .my-swal {
         z-index: 3000 !important;
     }
-
 </style>
 @endpush
 @push('scripts')
 <!-- DataTable -->
-<script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
-<script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
 <script>
-    $('.dataTables-cajas').DataTable({
-        "dom": '<"html5buttons"B>lTfgitp',
-        "buttons": [{
-                extend: 'excelHtml5',
-                text: '<i class="fa fa-file-excel-o"></i> Excel',
-                titleAttr: 'Excel',
-                title: 'Tablas Generales'
-            },
+    let dtEgresos = null;
 
-            {
-                titleAttr: 'Imprimir',
-                extend: 'print',
-                text: '<i class="fa fa-print"></i> Imprimir',
-                customize: function(win) {
-                    $(win.document.body).addClass('white-bg');
-                    $(win.document.body).css('font-size', '10px');
+    document.addEventListener('DOMContentLoaded', () => {
+        events();
+        iniciarDtEgresos();
+    })
 
-                    $(win.document.body).find('table')
-                        .addClass('compact')
-                        .css('font-size', 'inherit');
+    function events() {
+        eventsMdlCreateEgreso();
+        eventsMdlEditEgreso();
+    }
+
+    function iniciarDtEgresos() {
+
+        dtEgresos = new DataTable('#tbl_egresos_list', {
+            "buttons": [{
+                    extend: 'excelHtml5',
+                    text: '<i class="fa fa-file-excel-o"></i> Excel',
+                    titleAttr: 'Excel',
+                    title: 'Tablas Generales'
+                },
+
+                {
+                    titleAttr: 'Imprimir',
+                    extend: 'print',
+                    text: '<i class="fa fa-print"></i> Imprimir',
+                    customize: function(win) {
+                        $(win.document.body).addClass('white-bg');
+                        $(win.document.body).css('font-size', '10px');
+
+                        $(win.document.body).find('table')
+                            .addClass('compact')
+                            .css('font-size', 'inherit');
+                    }
                 }
-            }
-        ],
-        "bPaginate": true,
-        "bLengthChange": true,
-        "bFilter": true,
-        "bInfo": true,
-        "bAutoWidth": false,
-        "processing": true,
-        "serverSide": true,
-        "ajax": '{{ route('Egreso.getEgresos') }}',
-        "columns": [
-            //Caja chica
-            {
-                data: 'id',
-                className: "text-center",
-            },
-            {
-                data: 'descripcion',
-                className: "text-center"
-            },
-            {
-                data: 'tipoDocumento',
-                className: "text-center"
-            },
-            {
-                data: 'documento',
-                className: "text-center"
-            },
-            {
-                data: 'monto',
-                className: "text-center"
-            },
-            {
-                data: 'created_at',
-                className: "text-center"
-            },
-            {
-                data: null,
-                className: "text-center",
-                render: function(data) {
-                    //Ruta Detalle
-                    // var url_detalle = '{{ route('clientes.tienda.show', ':id') }}';
-                    // url_detalle = url_detalle.replace(':id',data.id);
+            ],
+            "bPaginate": true,
+            "bLengthChange": true,
+            "bFilter": true,
+            "bInfo": true,
+            "bAutoWidth": false,
+            "processing": true,
+            "serverSide": true,
+            "ajax": '{{ route('Egreso.getEgresos') }}',
+            "columns": [
+                {
+                    searchable: false,
+                    data: 'id',
+                    className: "text-center",
+                },
+                {
+                    searchable: false,
+                    data: 'cuenta_nombre',
+                    name: 'td2.descripcion',
+                    className: "text-center",
+                },
+                {
+                    searchable: false,
+                    data: 'descripcion',
+                    className: "text-center"
+                },
+                {
+                    searchable:false,
+                    data: 'tipoDocumento',
+                    name: 'td.descripcion',
+                    className: "text-center"
+                },
+                {
+                    data: 'documento',
+                    name: 'e.documento',
+                    className: "text-center"
+                },
+                {
+                    searchable: false,
+                    data: 'monto',
+                    className: "text-center"
+                },
+                {
+                    data: 'usuario',
+                    name: 'e.usuario',
+                    className: "text-center",
+                },
+                {
+                    data: 'created_at',
+                    name: 'e.created_at',
+                    className: "text-center"
+                },
+                {
+                    searchable: false,
+                    data: null,
+                    className: "text-center",
+                    render: function(data) {
 
-                    //Ruta Modificar
-                    var url_edit = '{{ route('clientes.tienda.edit', ':id') }}';
-                    url_edit = url_edit.replace(':id', data.id);
+                        //Ruta Modificar
+                        var url_edit = '{{ route('clientes.tienda.edit', ':id') }}';
+                        url_edit = url_edit.replace(':id', data.id);
 
+                        return `
+                            <div class="btn-group">
+                                <a class="btn btn-success btn-sm" style="color:white;" onclick="imprimir(${data.id})" title="Imprimir">
+                                    <i class="fa fa-file-pdf-o"></i>
+                                </a>
+                                <a class="btn btn-warning btn-sm" style="color:white;" onclick="openMdlEditEgreso(${data.id})" title="Modificar">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                <a class="btn btn-danger btn-sm" href="javascript:void(0);" onclick="eliminar(${data.id})" title="Eliminar">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                            </div>
+                        `;
 
-                    return "<div class='btn-group'>" +
-                        "<a class='btn btn-primary btn-sm' style='color:white;' onclick='imprimir(" +
-                        data.id + ")' title='Modificar'><i class='fa fa-file-pdf-o'></i></a>" +
-                        "<a class='btn btn-warning btn-sm' style='color:white;' onclick='editar(" + data
-                        .id + ")' title='Modificar'><i class='fa fa-edit'></i></a>" +
-                        "<a class='btn btn-danger btn-sm' href='#' onclick='eliminar(" + data.id +
-                        ")' title='Eliminar'><i class='fa fa-trash'></i></a></div>";
+                    }
                 }
-            }
+            ],
+            "language": {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "Ningún dato disponible en esta tabla",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sSearch": "Buscar por documento,usuario,fecha:",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                },
+                "buttons": {
+                    "copy": "Copiar",
+                    "colvis": "Visibilidad",
+                    "excel": "Excel",
+                    "pdf": "PDF",
+                    "print": "Imprimir"
+                }
+            },
+            "order": [
+                [0, "desc"]
+            ],
 
-        ],
-        "language": {
-            "url": "{{ asset('Spanish.json') }}"
-        },
-        "order": [
-            [0, "desc"]
-        ],
 
+        });
 
-
-    });
+    }
 
     function imprimir(id) {
 
@@ -166,31 +209,6 @@
         $("#modal_imprimir").modal("show");
         //  var url = "{{ route('Egreso.recibo', ':id') }}"
         // window.location.href= url.replace(":id", id)
-    }
-
-    function editar(id) {
-        axios.get("{{ route('Egreso.getEgreso') }}", {
-            params: {
-                id: id
-            }
-        }).then((value) => {
-            console.log(value)
-            var url = "{{ route('Egreso.update', ':id') }}"
-            url = url.replace(':id', id)
-            $("#frm_editar_egreso").attr('action', url);
-            $("#modal_editar_egreso #descripcion_editar").html(value.data.descripcion)
-            $("#modal_editar_egreso #importe_editar").val(value.data.importe)
-            $("#modal_editar_egreso #monto_editar").val(value.data.monto)
-            $("#modal_editar_egreso #efectivo_editar").val(value.data.efectivo)
-            $("#modal_editar_egreso #documento_editar").val(value.data.documento)
-            $("#modal_editar_egreso #cuenta_editar").val(value.data.cuenta_id).trigger('change');
-            $("#modal_editar_egreso #modo_pago_editar").val(value.data.tipo_pago_id).trigger('change');
-            //$("#modal_editar_egreso #tipo_documento_editar").val(value.data.tipodocumento_id).trigger('change');
-            $("#modal_editar_egreso").modal("show");
-        }).catch((value) => {
-
-        })
-
     }
 
     function eliminar(id) {
@@ -202,12 +220,34 @@
             confirmButtonColor: "#1ab394",
             confirmButtonText: 'Si, Confirmar',
             cancelButtonText: "No, Cancelar",
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                //Ruta Eliminar
-                var url_eliminar = '{{ route('Egreso.destroy', ':id') }}';
-                url_eliminar = url_eliminar.replace(':id', id);
-                $(location).attr('href', url_eliminar);
+
+                try {
+
+                    Swal.fire({
+                        title: 'Eliminando egreso...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    const res = await axios.post(route('Egreso.destroy', id));
+                    if (res.data.success) {
+                        dtEgresos.ajax.reload();
+                        toastr.success(res.data.message, 'OPERACIÓN COMPLETA');
+                    } else {
+                        toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                    }
+
+                } catch (error) {
+                    toastr.error(error, 'ERROR EN LA PETICIÓN ELIMINAR EGRESO');
+                } finally {
+                    Swal.close();
+                }
+
 
             } else if (
                 /* Read more about handling dismissals below */
@@ -221,19 +261,14 @@
             }
         })
     }
-    $(".btn-modal").click(function(e) {
-        e.preventDefault();
-        $("#modal_crear_egreso").modal("show");
-    });
 
 
-    @if(Session::has('egreso_error_mov'))
-            toastr.error('{{ Session::get('egreso_error_mov') }}', 'ERROR');
+    @if (Session::has('egreso_error_mov'))
+        toastr.error('{{ Session::get('egreso_error_mov') }}', 'ERROR');
     @endif
 
-    @if(Session::has('egreso_success'))
-            toastr.success('{{ Session::get('egreso_success') }}', 'OPERACIÓN COMPLETADA');
+    @if (Session::has('egreso_success'))
+        toastr.success('{{ Session::get('egreso_success') }}', 'OPERACIÓN COMPLETADA');
     @endif
-
 </script>
 @endpush

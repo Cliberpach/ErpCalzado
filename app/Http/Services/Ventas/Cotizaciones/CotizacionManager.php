@@ -3,6 +3,7 @@
 namespace App\Http\Services\Ventas\Cotizaciones;
 
 use App\Ventas\Cotizacion;
+use App\Ventas\Pedido;
 
 class CotizacionManager
 {
@@ -18,5 +19,9 @@ class CotizacionManager
 
     public function update(array $datos, int $id):Cotizacion{
         return $this->s_cotizacion->update($datos,$id);
+    }
+
+    public function generarPedido(array $datos):Pedido{
+        return $this->s_cotizacion->generarPedido($datos);
     }
 }

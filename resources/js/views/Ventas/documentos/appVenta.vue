@@ -28,7 +28,7 @@
             </div>
             <div class="col-lg-2 col-md-2" v-if="ruta == 'index'">
                 <button type="button" class="btn btn-block btn-w-m btn-primary m-t-md" @click.prevent="ruta = 'create'">
-                    <i class="fa fa-plus-square"></i> Añadir nuevo
+                    <i class="fa fa-plus-square"></i> NUEVO
                 </button>
             </div>
         </div>
@@ -45,6 +45,7 @@
             :lst_departamentos_base="this.lst_departamentos_base"
             :lst_provincias_base="this.lst_provincias_base"
             :lst_distritos_base="this.lst_distritos_base"
+            :lst_metodos_pago = "this.lst_modos_pago"
             />
         </template>
     </div>

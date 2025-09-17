@@ -19,8 +19,18 @@ use Illuminate\Support\Facades\DB;
 
 class PedidoService
 {
+    private PedidoRepository $s_repository;
 
-    public function __construct() {}
+    public function __construct() {
+        $this->s_repository =   new PedidoRepository();
+    }
+
+    public function storeFromCotizacion(array $datos):Pedido
+    {
+        $pedido =   $this->s_repository->insertarPedido($datos);
+        $this->s_repository->insertarDetallePedido($datos,$pedido);
+        return $pedido;
+    }
 
     public function facturar(array $datos): object
     {
@@ -300,8 +310,8 @@ class PedidoService
 
         if ($doc_anticipo->es_anticipo == '1') {
             $docs_antenciones   =   Documento::where('pedido_id', $pedido->id)
-                                    ->where('tipo_doc_venta_pedido', 'ATENCION')
-                                    ->get();
+                ->where('tipo_doc_venta_pedido', 'ATENCION')
+                ->get();
 
             $monto_sub_total    =   0;
             $monto_total_igv    =   0;
@@ -394,7 +404,6 @@ class PedidoService
             if (!$res_json_consumo->success) {
                 throw new Exception($res_json_consumo->message . ' en la línea ' . $res_json_consumo->line . ' del archivo ' . $res_json_consumo->file);
             }
-
         }
     }
 

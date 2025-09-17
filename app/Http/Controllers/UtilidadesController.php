@@ -322,4 +322,27 @@ class UtilidadesController extends Controller
         return $detalleFormateado;
     }
 
+     public function getCuentasPorMetodoPago(int $metodo_pago)
+    {
+        try {
+            $cuentas    =   DB::select('SELECT
+                            c.nro_cuenta,
+                            c.celular,
+                            c.banco_nombre,
+                            tpc.tipo_pago_id,
+                            tpc.cuenta_id,
+                            CONCAT(c.banco_nombre, " - ", c.nro_cuenta, " - ", c.celular) AS cuentaLabel
+                            FROM tipo_pago_cuentas as tpc
+                            INNER JOIN cuentas as c on c.id = tpc.cuenta_id
+                            INNER JOIN tipos_pago as tp on tp.id = tpc.tipo_pago_id
+                            WHERE c.estado = "ACTIVO"
+                            AND tp.estado = "ACTIVO"
+                            and tpc.tipo_pago_id = ?',[$metodo_pago]);
+
+            return response()->json(['success'=>true,'message'=>'CUENTAS OBTENIDAS','data'=>$cuentas]);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
+    }
+
 }

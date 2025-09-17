@@ -67,11 +67,12 @@
                                                         CLIENTE</th>
                                                     <th class="text-center letrapequeña bg-white">MONTO</th>
                                                     <th class="text-center letrapequeña bg-white">CONDICION</th>
-                                                    <th class="text-center letrapequeña bg-white">ESTADO</th>
+                                                    <th class="text-center letrapequeña bg-white">PAGO</th>
                                                     <th class="text-center letrapequeña bg-white">SUNAT</th>
+                                                    <th class="text-center letrapequeña bg-white">DESPACHO</th>
                                                     <th class="text-center letrapequeña bg-white">DESCARGAS</th>
                                                     <th data-priority="1" class="text-center letrapequeña bg-white">
-                                                        ACCIONES</th>
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -88,8 +89,8 @@
                 </div>
             </div>
         </div>
-        <ModalVentasVue :ventasPendientes="ventasPendientes" :imgDefault="imginicial" :modoPagos="this.lst_modos_pago"
-            :cliente_id="cliente_id" />
+        <ModalVentasVue @pago-registrado="recargarTabla" :ventasPendientes="ventasPendientes" :imgDefault="imginicial"
+            :modoPagos="this.lst_modos_pago" :cliente_id="cliente_id" />
         <ModalPdfDownloadVue :pdfData.sync="pdfData" />
         <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" ref="modalEnvioRef" />
     </div>
@@ -166,6 +167,11 @@ export default {
 
     },
     methods: {
+        recargarTabla() {
+            if (this.tabla) {
+                this.tabla.ajax.reload(null, false);
+            }
+        },
         cambiarTallas(documento_id) {
             const url = route('venta.cambiarTallas.create', documento_id);
 
@@ -173,15 +179,35 @@ export default {
         },
         async updateDataEnvio(data_envio) {
             try {
+
+                Swal.fire({
+                    title: 'Actualizando...',
+                    text: 'Por favor espere',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+
                 const res = await axios.post(route('ventas.despachos.updateDespacho'), data_envio);
+                if (res.data.success) {
+                    toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
+                    this.tabla.ajax.reload(null, false);
+                    this.$refs.modalEnvioRef.cerrarMdlEnvio()
+                } else {
+                    toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                }
+
             } catch (error) {
-
+                toastr.error(error, 'ERROR EN LA PETICIÓN ACTUALIZAR DATOS DE ENVÍO');
+            } finally {
+                Swal.close();
             }
-
         },
         async setDataEnvio(documento_id) {
             //========= TRAER LA DATA DE ENVÍO DEL DOCUMENTO ========
             try {
+
                 const res = await axios.get(route('ventas.despachos.getDespacho', documento_id));
                 if (res.data.success) {
                     //======= PASAR DATA DESPACHO AL MODAL ENVÍO =========
@@ -193,7 +219,7 @@ export default {
                     toastr.error(res.data.exception, res.data.message);
                 }
             } catch (error) {
-
+                toastr.error(error, 'ERROR EN LA PETICIÓN OBTENER DATOS DE ENVÍO');
             }
 
         },
@@ -621,7 +647,28 @@ export default {
                     { data: 'cliente', name: 'cd.cliente' },
                     { data: 'total_pagar', name: 'cd.total_pagar', searchable: false },
                     { data: 'condicion', name: 'condicions.descripcion', searchable: false },
-                    { data: 'estado_pago', name: 'cd.estado_pago', searchable: false },
+                    {
+                        data: 'estado_pago',
+                        name: 'cd.estado_pago',
+                        searchable: false,
+                        render: function (data, type, row) {
+                            let badgeClass = '';
+                            let label = data;
+
+                            switch (data) {
+                                case 'PAGADA':
+                                    badgeClass = 'badge badge-success';
+                                    break;
+                                case 'PENDIENTE':
+                                    badgeClass = 'badge badge-danger';
+                                    break;
+                                default:
+                                    badgeClass = 'badge badge-secondary';
+                            }
+
+                            return `<span class="${badgeClass}">${label}</span>`;
+                        }
+                    },
                     {
                         searchable: false,
                         data: 'sunat',
@@ -644,6 +691,34 @@ export default {
                             }
 
                             return estado;
+                        }
+                    },
+                    {
+                        data: 'estado_despacho',
+                        name: 'cd.estado_despacho',
+                        searchable: false,
+                        render: function (data, type, row) {
+                            let badgeClass = '';
+                            let label = data;
+
+                            switch (data) {
+                                case 'PENDIENTE':
+                                    badgeClass = 'badge badge-danger';
+                                    break;
+                                case 'EMBALADO':
+                                    badgeClass = 'badge badge-warning';
+                                    break;
+                                case 'DESPACHADO':
+                                    badgeClass = 'badge badge-success';
+                                    break;
+                                case 'S/D':
+                                    badgeClass = 'badge badge-secondary';
+                                    break;
+                                default:
+                                    badgeClass = 'badge badge-light';
+                            }
+
+                            return `<span class="${badgeClass}">${label}</span>`;
                         }
                     },
                     {

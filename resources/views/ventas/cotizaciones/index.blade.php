@@ -44,49 +44,84 @@
 
 
 
-@if(Session::has('error'))
-    <script>
-        toastr.error('{{ Session::get('error') }}', 'Error');
-    </script>
+@if (Session::has('error'))
+<script>
+    toastr.error('{{ Session::get('error') }}', 'Error');
+</script>
 @endif
 
 
 <script>
+    let dtCotizaciones = null;
 
-    let dtCotizaciones =    null;
-
-    document.addEventListener('DOMContentLoaded',()=>{
+    document.addEventListener('DOMContentLoaded', () => {
         iniciarDataTableCotizaciones();
     })
 
-    function iniciarDataTableCotizaciones(){
+    function iniciarDataTableCotizaciones() {
         const urlGetCotizaciones = '{{ route('ventas.cotizacion.getCotizaciones') }}';
 
-        dtCotizaciones  =   new DataTable('#tbl_list_cotizaciones',{
+        dtCotizaciones = new DataTable('#tbl_list_cotizaciones', {
             serverSide: true,
             processing: true,
-            responsive:true,
+            responsive: true,
             ajax: {
                 url: urlGetCotizaciones,
                 type: 'GET',
             },
-            order: [[0, 'desc']],
-            columns: [
-                { data: 'id', name: 'co.id' ,visible:false},
-                { data: 'simbolo', name: 'simbolo' },
-                { data: 'documento', name: 'documento' },
-                { data: 'pedido_id', name: 'pedido_id' },
-                { data: 'almacen_nombre', name: 'co.almacen_nombre' },
-                { data: 'telefono', name: 'co.telefono' },
-                { data: 'cliente', name: 'co.cliente_nombre' },
-                { data: 'registrador_nombre', name: 'co.registrador_nombre' },
-                { data: 'created_at', name: 'co.created_at' },
-                { data: 'total_pagar', name: 'co.total_pagar',searchable:false },
-                { data: 'estado', name: 'co.estado' },
+            order: [
+                [0, 'desc']
+            ],
+            columns: [{
+                    data: 'id',
+                    name: 'co.id',
+                    visible: false
+                },
+                {
+                    data: 'simbolo',
+                    name: 'simbolo'
+                },
+                {
+                    data: 'documento',
+                    name: 'documento'
+                },
+                {
+                    data: 'pedido_id',
+                    name: 'pedido_id'
+                },
+                {
+                    data: 'almacen_nombre',
+                    name: 'co.almacen_nombre'
+                },
+                {
+                    data: 'telefono',
+                    name: 'co.telefono'
+                },
+                {
+                    data: 'cliente',
+                    name: 'co.cliente_nombre'
+                },
+                {
+                    data: 'registrador_nombre',
+                    name: 'co.registrador_nombre'
+                },
+                {
+                    data: 'created_at',
+                    name: 'co.created_at'
+                },
+                {
+                    data: 'total_pagar',
+                    name: 'co.total_pagar',
+                    searchable: false
+                },
+                {
+                    data: 'estado',
+                    name: 'co.estado'
+                },
                 {
                     data: null,
                     className: "text-center",
-                    searchable:false,
+                    searchable: false,
                     render: function(data) {
                         //Ruta Detalle
                         var url_detalle = '{{ route('ventas.cotizacion.show', ':id') }}';
@@ -96,11 +131,11 @@
                         var url_editar = '{{ route('ventas.cotizacion.edit', ':id') }}';
                         url_editar = url_editar.replace(':id', data.id);
 
-                        var url_imprimir = '{{route("ventas.cotizacion.reporte", ":id")}}';
+                        var url_imprimir = '{{ route('ventas.cotizacion.reporte', ':id') }}';
                         url_imprimir = url_imprimir.replace(':id', data.id);
 
-                        let options =   "";
-                        options +=`
+                        let options = "";
+                        options += `
                             <div class='btn-group' style='text-transform:capitalize;'>
                                 <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
                                 <i class='fa fa-bars'></i>
@@ -113,8 +148,8 @@
                                 </li>
                                 `;
 
-                        if(data.pedido_id === '-' && data.documento === '-'){
-                            options +=  `<li>
+                        if (data.pedido_id === '-' && data.documento === '-') {
+                            options += `<li>
                                             <a class='dropdown-item' onclick='documento(${data.id})' title='Documento'>
                                             <b><i class='fa fa-file'></i> Documento</b>
                                             </a>
@@ -128,8 +163,8 @@
                                 <div class="dropdown-divider"></div>`;
                         }
 
-                       if(data.pedido_id === '-' && data.documento === '-'){
-                        options +=  `<li>
+                        if (data.pedido_id === '-' && data.documento === '-') {
+                            options += `<li>
                                         <a class='dropdown-item' href='${url_editar}' title='Modificar'>
                                         <b><i class='fa fa-edit'></i> Modificar</b>
                                         </a>
@@ -141,7 +176,7 @@
                                     </li>
                                     </ul>
                                     </div>`;
-                       }
+                        }
 
                         return options;
 
@@ -217,8 +252,8 @@
         }).then((result) => {
             if (result.isConfirmed) {
 
-                let url_concretar   = '{{ route('ventas.cotizacion.documento', ':id') }}';
-                url_concretar       = url_concretar.replace(':id', id);
+                let url_concretar = '{{ route('ventas.cotizacion.documento', ':id') }}';
+                url_concretar = url_concretar.replace(':id', id);
                 $(location).attr('href', url_concretar);
 
             } else if (
@@ -234,9 +269,8 @@
         })
     }
 
-
     //======== CONVERTIR COTIZACIÓN A PEDIDO =======
-    function pedido(cotizacion_id){
+    function pedido(cotizacion_id) {
         Swal.fire({
             title: `Convertir Cotización N° ${cotizacion_id} a Pedido`,
             text: ``,
@@ -257,10 +291,13 @@
                     }
                 });
 
-                try {
-                    const res   =   await axios.post(route('ventas.cotizacion.pedido'),
-                                        {cotizacion_id}
-                                    );
+
+                let url = "{{ route('ventas.cotizacion.generarPedidoCreate', ':id') }}";
+                url = url.replace(':id', cotizacion_id);
+                window.location.href = url;
+
+                /*try {
+                    const res   =   await axios.get(route('ventas.cotizacion.generarPedidoCreate',cotizacion_id));
 
                     if(res.data.success){
                         $('.dataTables-cotizacion').DataTable().ajax.reload();
@@ -270,7 +307,7 @@
                     toastr.error(res.data.message,'ERROR AL GENERAR EL PEDIDO');
                 }finally{
                     Swal.close();
-                }
+                }*/
 
             } else if (
                 /* Read more about handling dismissals below */
@@ -285,36 +322,33 @@
         })
     }
 
-
-
     @if (!empty($id))
         Swal.fire({
-        title: 'Documento de Venta duplicado',
-        text: "¿Desea anular el documento y crear uno nuevo?",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: "#1ab394",
-        confirmButtonText: 'Si, Confirmar',
-        cancelButtonText: "No, Cancelar",
+            title: 'Documento de Venta duplicado',
+            text: "¿Desea anular el documento y crear uno nuevo?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: "#1ab394",
+            confirmButtonText: 'Si, Confirmar',
+            cancelButtonText: "No, Cancelar",
         }).then((result) => {
-        if (result.isConfirmed) {
-        //Ruta Nuevo Documento
-        var url_nuevo = '{{ route('ventas.cotizacion.nuevodocumento', ':id') }}';
-        url_nuevo = url_nuevo.replace(':id', "{{ $id }}");
-        $(location).attr('href', url_nuevo);
+            if (result.isConfirmed) {
+                //Ruta Nuevo Documento
+                var url_nuevo = '{{ route('ventas.cotizacion.nuevodocumento', ':id') }}';
+                url_nuevo = url_nuevo.replace(':id', "{{ $id }}");
+                $(location).attr('href', url_nuevo);
 
 
-        } else if (
-        /* Read more about handling dismissals below */
-        result.dismiss === Swal.DismissReason.cancel
-        ) {
-        swalWithBootstrapButtons.fire(
-        'Cancelado',
-        'La Solicitud se ha cancelado.',
-        'error'
-        )
-        }
+            } else if (
+                /* Read more about handling dismissals below */
+                result.dismiss === Swal.DismissReason.cancel
+            ) {
+                swalWithBootstrapButtons.fire(
+                    'Cancelado',
+                    'La Solicitud se ha cancelado.',
+                    'error'
+                )
+            }
         })
     @endif
 </script>
-

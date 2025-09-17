@@ -48,7 +48,7 @@ Route::prefix('ventas')->group(function () {
         Route::get('documento/{id}', 'Ventas\CotizacionController@document')->name('ventas.cotizacion.documento');
         Route::get('/getProductoBarCode/{barcode}', 'Ventas\CotizacionController@getProductoBarCode')->name('ventas.cotizacion.getProductoBarCode');
 
-
+        Route::get('generar-pedido-create/{id}', 'Ventas\CotizacionController@generarPedidoCreate')->name('ventas.cotizacion.generarPedidoCreate');
         Route::post('pedido/', 'Ventas\CotizacionController@generarPedido')->name('ventas.cotizacion.pedido');
         Route::get('/getProductos', 'Ventas\CotizacionController@getProductos')->name('ventas.cotizacion.getProductos');
         Route::get('/getColoresTallas/{almacen_id}/{producto_id}', 'Ventas\CotizacionController@getColoresTallas')->name('ventas.cotizacion.getColoresTallas');

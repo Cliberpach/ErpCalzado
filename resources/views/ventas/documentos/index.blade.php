@@ -15,7 +15,8 @@
 :lst_provincias_base="{{ json_encode($provincias) }}"
 :lst_distritos_base="{{ json_encode($distritos) }}"
 :imginicial="'{{ asset('img/default.png') }}'"
-:lst_condiciones="{{ json_encode($condiciones) }}">
+:lst_condiciones="{{ json_encode($condiciones) }}"
+:lst_modos_pago="{{ json_encode($modos_pago) }}">
 </ventas-app>
 
 @stop

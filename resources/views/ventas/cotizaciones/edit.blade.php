@@ -4,8 +4,6 @@
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
 
-
-
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
         <h2 style="text-transform:uppercase"><b>MODIFICAR COTIZACIÓN # {{ $cotizacion->id }}</b></h2>
@@ -205,7 +203,6 @@
     const tfootIgv = document.querySelector('.igv');
     const tfootTotalPagar = document.querySelector('.total-pagar');
     const tfootDescuento = document.querySelector('.descuento');
-
 
     const amountsCotizacion = {
         subtotal: 0,
@@ -727,7 +724,6 @@
         amountsCotizacion.monto_descuento = descuento.toFixed(2);
     }
 
-
     const eliminarProducto = (productoId, colorId) => {
         carrito = carrito.filter((p) => {
             return !(p.producto_id == productoId && p.color_id == colorId);
@@ -789,7 +785,6 @@
         let filas = ``;
         let htmlTallas = ``;
 
-
         carrito.forEach((c) => {
             htmlTallas = ``;
             filas += `<tr>
@@ -834,8 +829,6 @@
         tableDetalleBody.innerHTML = filas;
 
     }
-
-
 
     function destruirDataTableDetalleCotizacion() {
         if (dataTableDetallesCotizacion) {
@@ -1080,7 +1073,6 @@
             }
         });
     }
-
 
     //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
     function loadCarrito() {

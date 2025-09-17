@@ -309,13 +309,86 @@
                             <hr>
 
                             <TablaProductos @addProductoDetalle="addProductoDetalle" @addDataEnvio="addDataEnvio"
-                                :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion"
-                                :btnDisabled="disabledBtnProducto" :parametros="paramsLotes" :modelos="initData.modelos"
-                                :categorias="initData.categorias" :marcas="initData.marcas" :tallas="initData.tallas"
+                                @borrarDataEnvio="borrarDataEnvio" :fullaccessTable="FullaccessTable"
+                                :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto"
+                                :parametros="paramsLotes" :modelos="initData.modelos" :categorias="initData.categorias"
+                                :marcas="initData.marcas" :tallas="initData.tallas"
                                 :precio_envio="formCreate.precio_envio" :precio_despacho="formCreate.precio_despacho"
                                 :cliente="cliente_id" :almacenSeleccionado="almacenSeleccionado" ref="tablaProductos" />
 
                             <div class="hr-line-dashed"></div>
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="panel panel-success">
+                                        <div class="panel-heading">
+                                            <h4 class=""><b>Datos de Pago</b></h4>
+                                        </div>
+                                        <div class="panel-body ibox-content">
+                                            <div class="row">
+                                                <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+                                                    <label style="font-weight: bold;">MÉTODO PAGO</label>
+                                                    <v-select v-model="metodoPagoId" :options="lst_metodos_pago"
+                                                        :reduce="a => a.id" label="descripcion"
+                                                        placeholder="Seleccionar" ref="selectMetodoPago">
+                                                    </v-select>
+                                                    <span class="metodoPagoId_error msgError"></span>
+                                                </div>
+                                                <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+                                                    <label style="font-weight: bold;">CUENTA</label>
+                                                    <v-select v-model="cuentaPagoId" :options="lstCuentas"
+                                                        :reduce="a => a.cuenta_id" label="cuentaLabel"
+                                                        placeholder="Seleccionar" ref="selectCuentaPago">
+                                                    </v-select>
+                                                    <span class="cuentaPagoId_error msgError"></span>
+                                                </div>
+                                                <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+                                                    <label style="font-weight: bold;">MONTO</label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text bg-light">
+                                                                <i class="fas fa-dollar-sign text-success"></i>
+                                                            </span>
+                                                        </div>
+                                                        <input v-model="montoPago" type="text" class="form-control"
+                                                            placeholder="Ingrese monto" @input="validarMontoPago"
+                                                            ref="inputMontoPago">
+                                                    </div>
+                                                    <span class="montoPago_error msgError"></span>
+                                                </div>
+                                                <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+                                                    <label style="font-weight: bold;">N° OPERACIÓN</label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text bg-light">
+                                                                <i class="fas fa-receipt text-primary"></i>
+                                                            </span>
+                                                        </div>
+                                                        <input v-model="nroOperacionPago" type="text"
+                                                            class="form-control" placeholder="Ingrese N° de operación"
+                                                            ref="inputNroOperacionPago">
+                                                    </div>
+                                                    <span class="nroOperacionPago_error msgError"></span>
+                                                </div>
+                                                <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+                                                    <label style="font-weight: bold;">FECHA</label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text bg-light">
+                                                                <i class="fas fa-calendar-alt text-warning"></i>
+                                                            </span>
+                                                        </div>
+                                                        <input v-model="fechaOperacionPago" type="date"
+                                                            class="form-control" ref="inputFechaOperacionPago">
+                                                    </div>
+                                                    <span class="fechaOperacionPago_error msgError"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="form-group row">
                                 <div class="col-md-6 text-left" style="color:#fcbc6c">
                                     <small>Los campos marcados con asterisco
@@ -398,6 +471,10 @@ export default {
             type: Object,
             default: []
         },
+        lst_metodos_pago: {
+            type: Array,
+            default: () => []
+        }
     },
     data() {
         return {
@@ -449,8 +526,15 @@ export default {
                 monto_total: 0,
                 tipo_cliente_documento: null,
                 moneda: "SOLES",
-                data_envio: JSON.stringify({}),
+                data_envio: null,
                 telefono: null,
+
+                metodoPagoId: null,
+                cuentaPagoId: null,
+                montoPago: null,
+                nroOperacionPago: null,
+                imgPago: null,
+                fechaOperacionPago: null
             },
             tipo_venta: "",
             condicion_id: 1,
@@ -490,6 +574,18 @@ export default {
             page: 1,
             more: false,
             searchTimeout: null,
+
+            //======= DATOS DE PAGO =======
+            lstCuentas: [],
+            metodoPagoId: null,
+            cuentaPagoId: null,
+            montoPago: null,
+            nroOperacionPago: null,
+            imgPago: null,
+            fechaOperacionPago: null,
+
+            //====== ADD =======
+            observacion: null
         }
     },
     filters: {
@@ -500,12 +596,18 @@ export default {
         }
     },
     watch: {
+        metodoPagoId: {
+            handler(value) {
+                if (value) {
+                    this.cuentaPagoId = null;
+                    this.getCuentasPorMetodoPago(value);
+                }
+            }
+        },
         almacenSeleccionado: {
             handler(value) {
-
                 //===== LIMPIAR FORMULARIO DETALLE ======
                 this.$refs.tablaProductos.limpiarFormularioDetalle();
-
             }
         },
         productos_tabla: {
@@ -602,7 +704,44 @@ export default {
 
     },
     methods: {
+        borrarDataEnvio() {
+            this.formCreate.data_envio = null;
+        },
+        async getCuentasPorMetodoPago(metodoPagoId) {
+            try {
+                this.mostrarAnimacionVenta();
+                const res = await this.axios.get(route('utilidades.getCuentasPorMetodoPago', metodoPagoId));
+                if (res.data.success) {
+                    toastr.info(res.data.message, 'OPERACIÓN COMPLETADA');
+                    this.lstCuentas = res.data.data;
+                } else {
+                    toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                toastr.error(error, 'ERROR EN LA PETICIÓN OBTENER CUENTAS POR MÉTODO DE PAGO');
+            } finally {
+                this.ocultarAnimacionVenta();
+            }
+        },
+        actualizarMontoPago(valor) {
+            this.montoPago = valor;
+        },
+        validarMontoPago(e) {
+            let valor = e.target.value;
 
+            // 1. Solo números y punto (elimina cualquier otro, incluido -)
+            valor = valor.replace(/[^0-9.]/g, '');
+
+            // 2. Solo permitir un único punto (quita los demás)
+            valor = valor.replace(/(\..*?)\./g, '$1');
+
+            // 3. Limitar a 2 decimales si existe punto
+            valor = valor.replace(/^(\d+)(\.\d{0,2})?.*$/, '$1$2');
+
+            e.target.value = valor;
+            this.montoPago = valor;
+
+        },
         resetClientes() {
             this.search = '';
             this.page = 1;
@@ -685,7 +824,7 @@ export default {
                 this.loading = false;
             } catch (ex) {
 
-            }finally{
+            } finally {
                 //this.ocultarAnimacionVenta();
             }
         },
@@ -714,12 +853,16 @@ export default {
         },
         Grabar() {
             try {
+
                 toastr.clear();
                 let correcto = this.validarCampos();
 
-                if (!correcto) {
-                    return;
-                }
+                if (!correcto) return;
+
+                const datosEnvio = this.formCreate.data_envio;
+                const descripcion = datosEnvio
+                    ? `<span class="text-success">📦 TIENE DATOS DE ENVÍO</span>`
+                    : `<span class="text-danger">❌ SIN DATOS DE ENVÍO</span>`;
 
                 const swalWithBootstrapButtons = Swal.mixin({
                     customClass: {
@@ -730,7 +873,7 @@ export default {
                 });
                 swalWithBootstrapButtons.fire({
                     title: "Desea generar el documento de venta?",
-                    text: "OPERACIÓN NO REVERSIBLE!",
+                    html: `${descripcion}`,
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonText: "SÍ!",
@@ -759,7 +902,6 @@ export default {
         },
         async EnviarVenta() {
 
-
             Swal.fire({
                 title: 'Registrando venta...',
                 text: 'Por favor, espera.',
@@ -770,6 +912,17 @@ export default {
             });
 
             try {
+
+                limpiarErroresValidacion('msgError');
+
+                this.formCreate.almacenSeleccionado = this.almacenSeleccionado;
+                this.formCreate.sede_id = this.initData.sede_id;
+                this.formCreate.metodoPagoId = this.metodoPagoId;
+                this.formCreate.cuentaPagoId = this.cuentaPagoId;
+                this.formCreate.montoPago = this.montoPago;
+                this.formCreate.nroOperacionPago = this.nroOperacionPago;
+                this.formCreate.fechaOperacionPago = this.fechaOperacionPago;
+                this.formCreate.observacion = this.observacion;
                 this.formCreate.almacenSeleccionado = this.almacenSeleccionado;
                 this.formCreate.sede_id = this.initData.sede_id;
 
@@ -793,7 +946,16 @@ export default {
                     Swal.close();
                 }
             } catch (error) {
-                toastr.error(error, 'ERROR EN LA PETICIÓN REGISTRAR VENTA');
+                const status = error.response?.status;
+                const errors = error.response?.data?.errors;
+
+                if (status === 422 && errors) {
+                    pintarErroresValidacion(errors, 'error');
+                } else if (status) {
+                    toastr.error(`Error ${status}: ${error.response?.data?.message || 'Ocurrió un problema'}`);
+                } else {
+                    toastr.error(error.message || 'Error de conexión con el servidor', 'ERROR');
+                }
                 Swal.close();
             }
 
@@ -809,73 +971,135 @@ export default {
             return enviar
         },
         validarCampos() {
-            try {
-                //====== variable para manejar la validación =========
-                let correcto = true;
-                //===== moneda por defecto soles ===========
-                let moneda = this.formCreate.moneda;
-                let observacion = this.formCreate.observacion;
-                //==== contado-credito ========
-                let condicion_id = this.formCreate.condicion_id;
-                let fecha_documento_campo = this.formCreate.fecha_documento_campo;
-                let fecha_atencion_campo = this.formCreate.fecha_atencion_campo;
-                let fecha_vencimiento_campo = this.formCreate.fecha_vencimiento_campo;
-                let empresa_id = this.formCreate.empresa_id;
-                let cliente_id = this.formCreate.cliente_id.id;
-                //===== 127:factura | 128:boleta | 129:nota_venta =========
-                let tipo_venta = this.formCreate.tipo_venta;
 
-                if (this.productos_tabla.length == 0) {
-                    toastr.error("El documento de venta debe tener almenos un producto vendido.");
-                    correcto = false;
-                }
-                if (moneda == null || moneda == '') {
-                    correcto = false;
-                    toastr.error('El campo moneda es requerido.');
-                }
-                if (condicion_id == null || condicion_id == '') {
-                    correcto = false;
-                    toastr.error('El campo condicion de pago es requerido.');
-                }
-                if (fecha_documento_campo == null || fecha_documento_campo == '') {
-                    correcto = false;
-                    toastr.error('El campo fecha de documento es requerido.');
-                }
-                if (fecha_atencion_campo == null || fecha_atencion_campo == '') {
-                    correcto = false;
-                    toastr.error('El campo fecha de atención es requerido.');
-                }
-                if (fecha_vencimiento_campo == null || fecha_vencimiento_campo == '') {
-                    correcto = false;
-                    toastr.error('El campo fecha de vencimiento es requerido.');
-                }
+            //====== variable para manejar la validación =========
+            let correcto = true;
+            //===== moneda por defecto soles ===========
+            let moneda = this.formCreate.moneda;
+            let observacion = this.formCreate.observacion;
+            //==== contado-credito ========
+            let condicion_id = this.formCreate.condicion_id;
+            let fecha_documento_campo = this.formCreate.fecha_documento_campo;
+            let fecha_atencion_campo = this.formCreate.fecha_atencion_campo;
+            let fecha_vencimiento_campo = this.formCreate.fecha_vencimiento_campo;
+            let empresa_id = this.formCreate.empresa_id;
+            let cliente_id = this.formCreate.cliente_id.id;
+            //===== 127:factura | 128:boleta | 129:nota_venta =========
+            let tipo_venta = this.formCreate.tipo_venta;
 
-                //========= obtenemos al cliente ===============
-                let cliente = this.cliente_id;
-                //======== si el cliente existe =============
-                //======== validación de tipo de comprobantes de venta ===========
-                if (cliente.id) {
-                    if (convertFloat(tipo_venta) === 127 && cliente.tipo_documento != 'RUC') {
-                        correcto = false;
-                        toastr.error('El tipo de comprobante seleccionado requiere que el cliente tenga RUC.');
-                    }
+            if (this.productos_tabla.length == 0) {
+                toastr.error("El documento de venta debe tener almenos un producto vendido.");
+                correcto = false;
+            }
+            if (moneda == null || moneda == '') {
+                correcto = false;
+                toastr.error('El campo moneda es requerido.');
+            }
+            if (condicion_id == null || condicion_id == '') {
+                correcto = false;
+                toastr.error('El campo condicion de pago es requerido.');
+            }
+            if (fecha_documento_campo == null || fecha_documento_campo == '') {
+                correcto = false;
+                toastr.error('El campo fecha de documento es requerido.');
+            }
+            if (fecha_atencion_campo == null || fecha_atencion_campo == '') {
+                correcto = false;
+                toastr.error('El campo fecha de atención es requerido.');
+            }
+            if (fecha_vencimiento_campo == null || fecha_vencimiento_campo == '') {
+                correcto = false;
+                toastr.error('El campo fecha de vencimiento es requerido.');
+            }
 
-                    if (convertFloat(tipo_venta) === 128 && cliente.tipo_documento != 'DNI') {
-                        correcto = false;
-                        toastr.error('El tipo de comprobante seleccionado requiere que el cliente tenga DNI.');
-                    }
-                }
-                else {
+            //========= obtenemos al cliente ===============
+            let cliente = this.cliente_id;
+            //======== si el cliente existe =============
+            //======== validación de tipo de comprobantes de venta ===========
+            if (cliente.id) {
+                if (convertFloat(tipo_venta) === 127 && cliente.tipo_documento != 'RUC') {
                     correcto = false;
-                    toastr.error('Ocurrió un error porfavor seleccionar nuevamente un cliente.');
+                    toastr.error('El tipo de comprobante seleccionado requiere que el cliente tenga RUC.');
                 }
 
+                if (convertFloat(tipo_venta) === 128 && cliente.tipo_documento != 'DNI') {
+                    correcto = false;
+                    toastr.error('El tipo de comprobante seleccionado requiere que el cliente tenga DNI.');
+                }
+            }
+            else {
+                correcto = false;
+                toastr.error('Ocurrió un error porfavor seleccionar nuevamente un cliente.');
+            }
 
-                return correcto;
-            } catch (ex) {
-                alert("Validar campo" + ex);
+
+            if (this.metodoPagoId == 1 && this.montoPago && this.fechaOperacionPago) {
+                correcto = this.validarDatosPago();
+            }
+
+            if (this.metodoPagoId != 1 && this.cuentaPagoId && this.montoPago && this.nroOperacionPago && this.fechaOperacionPago) {
+                correcto = this.validarDatosPago();
+            }
+
+
+            return correcto;
+
+        },
+        validarDatosPago() {
+
+            //====== VALIDAR PAGO ========
+            if (this.metodoPagoId != 1 && !this.cuentaPagoId) {
+                toastr.error('CUENTA PAGO ES OBLIGATORIA PARA ESTE MÉTODO DE PAGO');
+                this.$nextTick(() => {
+                    const select = this.$refs.selectCuentaPago;
+
+                    select.$el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    select.$refs.search.focus();
+
+                    select.open = true;
+                });
+
                 return false;
             }
+
+
+            if (parseFloat(this.montoPago) != parseFloat(this.formCreate.monto_total_pagar)) {
+                toastr.error('EL MONTO DE PAGO ES DIFERENTE AL TOTAL DE LA VENTA');
+                this.$nextTick(() => {
+                    const input = this.$refs.inputMontoPago;
+                    if (input) {
+                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        input.focus();
+                    }
+                });
+                return false;
+            }
+
+            if (!this.nroOperacionPago && this.metodoPagoId != 1) {
+                toastr.error('N° OPERACIÓN OBLIGATORIO PARA ESTE MÉTODO DE PAGO');
+                this.$nextTick(() => {
+                    const input = this.$refs.inputNroOperacionPago;
+                    if (input) {
+                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        input.focus();
+                    }
+                });
+                return false;
+            }
+
+            if (!this.fechaOperacionPago) {
+                toastr.error('FECHA OPERACIÓN OBLIGATORIO');
+                this.$nextTick(() => {
+                    const input = this.$refs.inputFechaOperacionPago;
+                    if (input) {
+                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        input.focus();
+                    }
+                });
+                return false;
+            }
+            return true;
         },
         async getTipoComprobante() {
             try {

@@ -12,7 +12,8 @@
 :lst_distritos_base="{{ json_encode($distritos) }}"
 :registrador = "{{json_encode($registrador)}}"
 :imginicial="'{{ asset('img/default.png') }}'"
-:lst_condiciones="{{ json_encode($condiciones) }}">
+:lst_condiciones="{{ json_encode($condiciones) }}"
+:lst_modos_pago="{{json_encode($metodos_pago)}}">
 </ventas-app>
 
 @stop

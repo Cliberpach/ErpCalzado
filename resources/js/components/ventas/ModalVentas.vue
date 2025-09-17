@@ -33,13 +33,13 @@
                                                 <td class="text-center letrapequeña">
                                                     <template
                                                         v-if="item.condicion == 'CONTADO' && item.estado == 'PENDIENTE' && item.tipo_venta_id == '129'">
-                                                        <button type='button' class='btn btn-sm btn-primary'
+                                                        <button type='button' class='btn btn-sm btn-success'
                                                             title='Pagar' @click.prevent="Pagar(item)"><i
                                                                 class='fa fa-money'></i> Pagar</button>
                                                     </template>
                                                     <template
                                                         v-if="item.condicion == 'CONTADO' && item.estado == 'PENDIENTE' && item.tipo_venta_id != 129 && (item.convertir == '' || item.convertir == null)">
-                                                        <button type='button' class='btn btn-sm btn-primary'
+                                                        <button type='button' class='btn btn-sm btn-success'
                                                             title='Pagar' @click.prevent="Pagar(item)"><i
                                                                 class='fa fa-money'></i> Pagar</button>
                                                     </template>
@@ -63,7 +63,7 @@
                 </div>
             </div>
         </div>
-        <ModalPagoVue :modoPagos="modoPagos" :imgDefault="imgDefault" :cuentas="cuentas" :pagos="formPago" 
+        <ModalPagoVue @pago-registrado="$emit('pago-registrado')" :modoPagos="modoPagos" :imgDefault="imgDefault" :cuentas="cuentas" :pagos="formPago"
         :cliente_id="cliente_id" :recibos_caja="recibos_caja" :saldoRecibosCaja="saldoRecibosCaja"/>
     </div>
 
@@ -164,8 +164,6 @@ export default {
                 return false;
             }
         }
-
-
     }
 }
 </script>

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Ventas;
 
 use App\Almacenes\Almacen;
-use App\Almacenes\Categoria;
 use stdClass;
 use Exception;
 use Carbon\Carbon;
@@ -14,9 +13,7 @@ use App\Ventas\ErrorVenta;
 use App\Ventas\EnvioVenta;
 use App\Almacenes\Producto;
 use Illuminate\Http\Request;
-use App\Almacenes\Kardex;
 use App\Almacenes\LoteProducto;
-use App\Events\VentasCajaEvent;
 use App\Events\NotifySunatEvent;
 use App\Mantenimiento\Condicion;
 use App\Ventas\RetencionDetalle;
@@ -27,12 +24,10 @@ use Illuminate\Support\Facades\DB;
 use App\Events\DocumentoNumeracion;
 use App\Ventas\Documento\Documento;
 use App\Http\Controllers\Controller;
-use App\Mantenimiento\Empresa\Banco;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Mantenimiento\Ubigeo\Distrito;
-use App\Pos\DetalleMovimientoVentaCaja;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Luecano\NumeroALetras\NumeroALetras;
@@ -52,18 +47,18 @@ use App\Almacenes\DetalleNotaIngreso;
 use App\Almacenes\NotaIngreso;
 use Yajra\DataTables\Facades\DataTables;
 use App\Almacenes\DetalleNotaSalidad;
-use App\Almacenes\Marca;
 use App\Almacenes\NotaSalidad;
 use App\Almacenes\ProductoColor;
 use App\Almacenes\Vehiculo;
 use App\Http\Controllers\UtilidadesController;
 use App\Http\Requests\Ventas\DocVenta\DocVentaStoreRequest;
 use App\Http\Requests\Ventas\DocVenta\DocVentaUpdateRequest;
+use App\Http\Requests\Ventas\DocVenta\StorePagoRequest;
 use App\Http\Requests\Ventas\Guias\GuiaStoreRequest;
+use App\Http\Services\Ventas\Ventas\VentaManager;
 use App\Mantenimiento\Sedes\Sede;
 use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Provincia;
-use App\Pos\ReciboCaja;
 use App\User;
 use Illuminate\Support\Facades\Response;
 use App\Ventas\CambioTalla;
@@ -71,6 +66,12 @@ use Throwable;
 
 class DocumentoController extends Controller
 {
+    private VentaManager $s_venta;
+
+    public function __construct(){
+        $this->s_venta  =   new VentaManager();
+    }
+
     public function index()
     {
         $this->authorize('haveaccess', 'documento_venta.index');
@@ -97,7 +98,8 @@ class DocumentoController extends Controller
             'registrador',
             'sede',
             'modos_pago',
-            'condiciones')
+            'condiciones'
+            )
         );
     }
 
@@ -115,7 +117,7 @@ class DocumentoController extends Controller
                 'cd.convert_en_id',
                 'cd.convert_de_id',
                 'co.id as cotizacion_id',
-                'u.usuario as registrador_nombre',
+                'cd.registrador_nombre',
                 'es.nombre as sede_nombre',
                 'cd.almacen_nombre',
                 'cd.id',
@@ -149,17 +151,15 @@ class DocumentoController extends Controller
                 'cd.total_pagar',
                 DB::raw('DATEDIFF(NOW(), cd.fecha_documento) as dias'),
                 DB::raw('(SELECT COUNT(nota_electronica.id) FROM nota_electronica WHERE nota_electronica.documento_id = cd.id) as notas'),
-                'envios_ventas.estado AS estado_despacho',
+                'cd.estado_despacho',
                 'condicions.descripcion as condicion',
                 'clientes.correo_electronico as correo',
                 'clientes.telefono_movil as telefonoMovil',
                 'cd.telefono'
             )
-            ->leftJoin('envios_ventas', 'cd.id', '=', 'envios_ventas.documento_id')
             ->leftJoin('condicions', 'cd.condicion_id', '=', 'condicions.id')
             ->leftJoin('clientes', 'cd.cliente_id', '=', 'clientes.id')
             ->leftJoin('empresa_sedes as es', 'es.id', 'cd.sede_id')
-            ->leftJoin('users as u', 'u.id', 'cd.user_id')
             ->leftJoin('cotizaciones as co', 'co.id', 'cd.cotizacion_venta')
             ->orderByDesc('cd.id');
 
@@ -406,181 +406,34 @@ class DocumentoController extends Controller
         }
     }
 
-    public function storePago(Request $request)
+       /*
+array:13 [
+  "_token" => "xy0jfLBVqsqymHoaqA8e8gOksObZKbFBObhnwfTE"
+  "venta_id" => "41"
+  "tipo_pago_id" => "3"
+  "monto_venta" => "108.00"
+  "efectivo" => "0"
+  "modo_pago" => "3-YAPE"
+  "importe" => "108.00"
+  "cuenta_id" => "7"
+  "nro_operacion" => "OP-123"
+  "fecha_pago" => "2025-08-13"
+  "hora_pago" => "15:18"
+  "url_imagen" => null
+  "url_imagen2" => null
+]
+*/
+    public function storePago(StorePagoRequest $request)
     {
         try {
             DB::beginTransaction();
-            $data = $request->all();
-
-            $rules = [
-                'tipo_pago_id'  => 'required',
-                'efectivo'      => 'required',
-                'importe'       => 'required',
-
-            ];
-
-            $message = [
-                'tipo_pago_id.required' => 'El campo modo de pago es obligatorio.',
-                'importe.required'      => 'El campo importe es obligatorio.',
-                'efectivo.required'     => 'El campo efectivo es obligatorio.',
-            ];
-
-            $validator = Validator::make($data, $rules, $message);
-
-            if ($validator->fails()) {
-                $clase = $validator->getMessageBag()->toArray();
-                $cadena = "";
-                foreach ($clase as $clave => $valor) {
-                    $cadena = $cadena . "$valor[0] ";
-                }
-
-                Session::flash('error', $cadena);
-                DB::rollBack();
-                return redirect()->route('ventas.documento.index');
-            }
-
-
-            $documento = Documento::find($request->venta_id);
-
-            $documento->tipo_pago_id        = $request->get('tipo_pago_id');
-            $documento->importe             = $request->get('importe');
-            $documento->efectivo            = $request->get('efectivo');
-            $documento->estado_pago         = 'PAGADA';
-            $documento->banco_empresa_id    = $request->get('cuenta_id');
-
-            if ($request->hasFile('imagen')) {
-                if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'))) {
-                    mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'));
-                }
-                $extension              =   $request->file('imagen')->getClientOriginalExtension();
-                $nombreImagenPago       =   $documento->serie . '-' . $documento->correlativo . '.' . $extension;
-                $documento->ruta_pago   =   $request->file('imagen')->storeAs('public/pagos', $nombreImagenPago);
-            }
-
-            if ($request->hasFile('imagen2')) {
-                if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'))) {
-                    mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'));
-                }
-                $extension              =   $request->file('imagen2')->getClientOriginalExtension();
-                $nombreImagenPago       =   $documento->serie . '-' . $documento->correlativo . '-2' . '.' . $extension;
-                $documento->ruta_pago_2   =   $request->file('imagen2')->storeAs('public/pagos', $nombreImagenPago);
-            }
-
-            $documento->update();
-
-            if ($documento->convertir) {
-                $doc_convertido                     = Documento::find($documento->convertir);
-                $doc_convertido->estado_pago        = $documento->estado_pago;
-                $doc_convertido->importe            = $documento->importe;
-                $doc_convertido->efectivo           = $documento->efectivo;
-                $doc_convertido->tipo_pago_id       = $documento->tipo_pago_id;
-                $doc_convertido->banco_empresa_id   = $documento->banco_empresa_id;
-                $doc_convertido->ruta_pago          = $documento->ruta_pago;
-                $doc_convertido->update();
-            }
-
-
-            //========== CANJEANDO RECIBOS DE CAJA ========
-            if ($request->get('modo_pago') === "4-RECIBO DE CAJA") {
-                //======== OBTENEMOS TODOS LOS RECIBOS DE CAJA DEL CLIENTE ==========
-                $recibos_caja_cliente   =   DB::select(
-                    'select * from recibos_caja as rc
-                                            where rc.cliente_id=? and rc.saldo>0
-                                            and rc.estado="ACTIVO"
-                                            and (rc.estado_servicio="LIBRE" or rc.estado_servicio="USANDO")
-                                            order by rc.created_at',
-                    [$documento->cliente_id]
-                );
-
-                $total_pendiente    =   $documento->total_pagar;
-
-                //========= RESTAMOS SALDO EN ORDEN ASC POR FECHA DE CREACIÓN =========
-                foreach ($recibos_caja_cliente as $recibo) {
-
-                    $saldo_recibo       =   $recibo->saldo;
-
-                    //======= SI EL TOTAL PENDIENTE >= SALDO DEL RECIBO CAJA ========
-                    if ($total_pendiente >= $saldo_recibo) {
-                        //======= GUARDAMOS SALDO ANTERIOR DEL RECIBO =======
-                        $saldo_anterior_recibo          =       $recibo->saldo;
-                        //======= CONSUMIR TODO EL SALDO DEL RECIBO ========
-                        $nuevo_saldo_recibo             =       0;
-                        //======= NUEVO ESTADO DEL RECIBO ========
-                        $nuevo_estado_servicio_recibo   =   'CANJEADO';
-                        //========= TOTAL PENDIENTE BAJA SEGÚN EL SALDO DEL RECIBO =========
-                        $total_pendiente                -=      $saldo_recibo;
-
-                        //======= ACTUALIZAMOS EL RECIBO ========
-                        DB::table('recibos_caja')
-                            ->where('id', $recibo->id)
-                            ->update([
-                                'saldo' => $nuevo_saldo_recibo,
-                                'estado_servicio' => $nuevo_estado_servicio_recibo,
-                                'updated_at' => now()
-                            ]);
-
-                        //========= GRABAMOS EL DETALLE DE USO DEL RECIBO ======
-                        DB::table('recibos_caja_detalle')
-                            ->insert([
-                                'recibo_id'    => $recibo->id,
-                                'documento_id' => $documento->id,
-                                'saldo_antes'  => $saldo_anterior_recibo,
-                                'monto_usado'  => $saldo_recibo,
-                                'saldo_despues' => $nuevo_saldo_recibo,
-                                'created_at'   => now(),
-                                'updated_at'   => now()
-                            ]);
-                    } else {
-                        //======= SI EL TOTAL PENDIENTE ES MENOR AL SALDO DEL RECIBO ========
-                        //======== SALDO ANTERIOR RECIBO =========
-                        $saldo_anterior_recibo          =   $recibo->saldo;
-                        //======== MONTO USADO ===========
-                        $monto_usado                    =   $total_pendiente;
-                        //======== CONSUMIR UNA PARTE DEL SALDO DEL RECIBO =======
-                        $nuevo_saldo_recibo             =   $recibo->saldo  -   $total_pendiente;
-                        //======== TOTAL PENDIENTE BAJA A 0 =======
-                        $total_pendiente                =   0;
-                        //======== ACTUALIZAR ESTADO DEL RECIBO =========
-                        $nuevo_estado_servicio_recibo   =   'USANDO';
-
-                        //======= ACTUALIZAMOS EL RECIBO ========
-                        DB::table('recibos_caja')
-                            ->where('id', $recibo->id)
-                            ->update([
-                                'saldo' => $nuevo_saldo_recibo,
-                                'estado_servicio' => $nuevo_estado_servicio_recibo,
-                                'updated_at' => now()
-                            ]);
-
-                        //========= GRABAMOS EL DETALLE DE USO DEL RECIBO ======
-                        DB::table('recibos_caja_detalle')
-                            ->insert([
-                                'recibo_id'   =>  $recibo->id,
-                                'documento_id'          =>  $documento->id,
-                                'saldo_antes'           =>  $saldo_anterior_recibo,
-                                'monto_usado'           =>  $monto_usado,
-                                'saldo_despues'         =>  $nuevo_saldo_recibo,
-                                'created_at'            =>  now(),
-                                'updated_at'            =>  now()
-                            ]);
-                    }
-
-                    //======== DETENER EL BUCLE SI EL TOTAL PENDIENTE ES 0 ========
-                    if ($total_pendiente === 0) {
-                        break;
-                    }
-                }
-            }
-
+            $this->s_venta->storePago($request->toArray());
 
             DB::commit();
-            Session::flash('success', 'Documento pagado con exito.');
-            return redirect()->route('ventas.documento.index');
-        } catch (Exception $e) {
+            return response()->json(['success' => true, 'message' => 'DOCUMENTO PAGADO CON ÉXITO']);
+        } catch (Throwable $th) {
             DB::rollBack();
-            dd($e->getMessage());
-            Session::flash('error', $e->getMessage());
-            return redirect()->route('ventas.documento.index');
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'file' => $th->getFile(), 'line' => $th->getLine()]);
         }
     }
 
@@ -680,11 +533,27 @@ class DocumentoController extends Controller
 
     public function getCuentas(Request $request)
     {
-        $cuentas = Banco::where('empresa_id', $request->empresa_id)->where('estado', 'ACTIVO')->get();
-        return response()->json([
-            'success' => true,
-            'cuentas' => $cuentas,
-        ]);
+        try {
+            $cuentas    =   DB::select('SELECT
+                            c.nro_cuenta,
+                            c.celular,
+                            c.banco_nombre,
+                            tpc.tipo_pago_id,
+                            tpc.cuenta_id,
+                            CONCAT(c.banco_nombre, " - ", c.nro_cuenta, " - ", c.celular) AS cuentaLabel
+                            FROM tipo_pago_cuentas as tpc
+                            INNER JOIN cuentas as c on c.id = tpc.cuenta_id
+                            INNER JOIN tipos_pago as tp on tp.id = tpc.tipo_pago_id
+                            WHERE c.estado = "ACTIVO"
+                            AND tp.estado = "ACTIVO"');
+
+            return response()->json([
+                'success' => true,
+                'cuentas' => $cuentas,
+            ]);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 
     public function create(Request $request)
@@ -824,7 +693,8 @@ class DocumentoController extends Controller
                 'almacenes'     =>  $almacenes,
                 'registrador'   =>  $registrador,
                 'sede'          =>  $sede,
-                'condiciones'   =>  $condiciones
+                'condiciones'   =>  $condiciones,
+                'metodos_pago'  =>  modos_pago()
             ]);
         }
     }
@@ -841,7 +711,7 @@ class DocumentoController extends Controller
             $sede_id        =   Auth::user()->sede_id;
 
             $empresas   =   Empresa::where('estado', 'ACTIVO')->get();
-          
+
             $fullaccess     =   false;
             $tipos_ventas   =   tipos_venta();
             $tipoVentaArray =   collect();
@@ -1021,464 +891,7 @@ array:27 [
         DB::beginTransaction();
         try {
 
-            //========= VALIDACIONES COMPLEJAS ======
-            $datos_validados    =   DocumentoController::validacionStore($request);
-
-            DocumentoController::comprobanteActivo($datos_validados->sede_id, $datos_validados->tipo_venta);
-
-            //======== OBTENER CORRELATIVO Y SERIE ======
-            $datos_correlativo  =   DocumentoController::getCorrelativo($datos_validados->tipo_venta, $datos_validados->sede_id);
-
-            //========== CALCULAR MONTOS ======
-            $montos =   DocumentoController::calcularMontos($datos_validados->lstVenta, $datos_validados);
-
-            //======== OBTENIENDO LEYENDA ======
-            $legenda                =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
-
-            //====== GRABAR MAESTRO VENTA =====
-            $documento                      =   new Documento();
-
-            $documento->telefono            =   $datos_validados->telefono;
-
-            //========= FECHAS ========
-            $documento->fecha_documento     = Carbon::now()->toDateString();
-            $documento->fecha_atencion      = Carbon::now()->toDateString();
-
-            if ($datos_validados->condicion->id != 1) {
-                $nro_dias                       = $datos_validados->condicion->dias;
-                $documento->fecha_vencimiento   = Carbon::now()->addDays($nro_dias)->toDateString();
-            } else {
-                $documento->fecha_vencimiento   = Carbon::now()->toDateString();
-            }
-
-            //======== EMPRESA ========
-            $documento->ruc_empresa                 = $datos_validados->empresa->ruc;
-            $documento->empresa                     = $datos_validados->empresa->razon_social;
-            $documento->direccion_fiscal_empresa    = $datos_validados->empresa->direccion_fiscal;
-            $documento->empresa_id                  = $datos_validados->empresa->id;
-
-            //========= CLIENTE =======
-            $documento->tipo_documento_cliente  = $datos_validados->cliente->tipo_documento;
-            $documento->documento_cliente       = $datos_validados->cliente->documento;
-            $documento->direccion_cliente       = $datos_validados->cliente->direccion;
-            $documento->cliente                 = $datos_validados->cliente->nombre;
-            $documento->cliente_id              = $datos_validados->cliente->id;
-
-            //======== TIPO VENTA ======
-            $documento->tipo_venta_id           = $datos_validados->tipo_venta->id;   //boleta,factura,nota_venta
-            $documento->tipo_venta_nombre       = $datos_validados->tipo_venta->descripcion;
-
-            //========= CONDICIÓN PAGO ======
-            $documento->condicion_id            = $datos_validados->condicion->id;
-
-
-            $documento->observacion = $request->get('observacion');
-            $documento->user_id     = $datos_validados->usuario->id;
-
-            //========= MONTOS Y MONEDA ========
-            $documento->sub_total               =   $montos->monto_subtotal;
-            $documento->monto_embalaje          =   $montos->monto_embalaje;
-            $documento->monto_envio             =   $montos->monto_envio;
-            $documento->total                   =   $montos->monto_total;
-            $documento->total_igv               =   $montos->monto_igv;
-            $documento->total_pagar             =   $montos->monto_total_pagar;
-            $documento->igv                     =   $datos_validados->empresa->igv;
-            $documento->monto_descuento         =   $montos->monto_descuento;
-            $documento->porcentaje_descuento    =   $montos->porcentaje_descuento;
-            $documento->moneda                  =   1;
-
-            //======== SUNAT ========
-            $documento->mto_oper_gravadas_sunat =   $montos->mtoOperGravadasSunat;
-            $documento->mto_igv_sunat           =   $montos->mtoIgvSunat;
-            $documento->total_impuestos_sunat   =   $montos->totalImpuestosSunat;
-            $documento->valor_venta_sunat       =   $montos->valorVentaSunat;
-            $documento->sub_total_sunat         =   $montos->subTotalSunat;
-            $documento->mto_imp_venta_sunat     =   $montos->mtoImpVentaSunat;
-
-            //======= SERIE Y CORRELATIVO ======
-            $documento->serie       =   $datos_correlativo->serie;
-            $documento->correlativo =   $datos_correlativo->correlativo;
-
-            $documento->legenda     =   $legenda;
-
-            $documento->sede_id         =   $datos_validados->sede_id;
-
-            $documento->almacen_id      =   $datos_validados->almacen->id;
-            $documento->almacen_nombre  =   $datos_validados->almacen->descripcion;
-
-            //======== DOCS VENTA DE TIPO ANTICIPO ========
-            if ($request->has('facturar') && $request->has('pedido_id')) {
-                $documento->pedido_id               =   $request->get('pedido_id');
-                $documento->es_anticipo             =   true;
-                $documento->tipo_doc_venta_pedido   =   "FACTURACIÓN";
-                $documento->pedido_id               =   $request->get('pedido_id');
-                $documento->saldo_anticipo          =   $montos->monto_total_pagar;
-            }
-            if ($request->get('modo') === 'CONSUMO') {
-                $documento->pedido_id               =   $request->get('pedido_id');
-            }
-
-            //========= DOCS VENTA PAGADAS CON ANTICIPO PARCIAL O TOTAL ========
-            if (
-                $request->get('facturado') === 'SI'
-                || $request->get('modo') === 'CONSUMO'
-            ) {
-                $documento->estado_pago  =   'PAGADA';
-            }
-
-            if ($request->get('anticipo_consumido_id')) {
-                $documento->anticipo_consumido_id               =   $request->get('anticipo_consumido_id');
-                $documento->anticipo_monto_consumido            =   $request->get('anticipo_monto_consumido');
-                $documento->anticipo_monto_consumido_sin_igv    =   $request->get('anticipo_monto_consumido') / (($datos_validados->porcentaje_igv + 100) / 100);
-                $documento->anticipo_consumido_serie            =   $request->get('doc_anticipo_serie');
-                $documento->anticipo_consumido_correlativo      =   $request->get('doc_anticipo_correlativo');
-            }
-
-            //======== EN CASO DE CONVERSIÓN DE DOCUMENTO =====
-            if ($request->has('documento_convertido')) {
-                $documento_convertido           =   Documento::find($request->get('documento_convertido'));
-                $documento->convert_de_id       =   $request->get('documento_convertido');
-                $documento->convert_de_serie    =   $documento_convertido->serie . '-' . $documento_convertido->correlativo;
-                $documento->estado_pago         =   'PAGADA';
-            }
-
-            //======= EN CASO DE REGULARIZACIÓN =====
-            if ($request->has('doc_regularizar_id')) {
-                $doc_regularizar                    =   Documento::find($request->get('doc_regularizar_id'));
-                $documento->regularizado_de_id      =   $doc_regularizar->id;
-                $documento->regularizado_de_serie   =   $doc_regularizar->serie . '-' . $doc_regularizar->correlativo;
-                $documento->estado_pago             =   'PAGADA';
-            }
-
-            $documento->modo    =   $request->get('modo') ?? 'VENTA';
-            if ($request->has('modo')) {
-                $documento->tipo_doc_venta_pedido   =   "ATENCION";
-                $documento->pedido_id               =   $request->get('pedido_id') ?? null;
-            }
-            if ($request->get('tipo_doc_venta_pedido')  === 'CONSUMO') {
-                $documento->tipo_doc_venta_pedido   =   "CONSUMO";
-            }
-            $documento->save();
-
-            foreach ($datos_validados->lstVenta as $item) {
-                foreach ($item->tallas as $talla) {
-
-                    /*======== EN CASO SEA UNA FACTURACIÓN DE PEDIDO Y EL PRODUCTO NO EXISTA ========
-                    ========= CREAMOS EL PRODUCTO COLOR TALLA CON STOCKS EN CERO ========*/
-                    if ($request->has('facturar')) {
-
-                        $item_pedido   =    DB::select(
-                            'select
-                                            pct.producto_id
-                                            from producto_color_tallas as pct
-                                            where
-                                            pct.almacen_id = ?
-                                            AND pct.producto_id = ?
-                                            AND pct.color_id = ?
-                                            AND pct.talla_id = ?',
-                            [
-                                $documento->almacen_id,
-                                $item->producto_id,
-                                $item->color_id,
-                                $talla->talla_id
-                            ]
-                        );
-
-                        if (count($item_pedido) === 0) {
-                            $nuevo_producto                 =   new ProductoColorTalla();
-                            $nuevo_producto->almacen_id     =   $documento->almacen_id;
-                            $nuevo_producto->producto_id    =   $item->producto_id;
-                            $nuevo_producto->color_id       =   $item->color_id;
-                            $nuevo_producto->talla_id       =   $talla->talla_id;
-                            $nuevo_producto->stock          =   0;
-                            $nuevo_producto->stock_logico   =   0;
-                            $nuevo_producto->save();
-                        }
-                    }
-
-                    //====== COMPROBAR SI EXISTE EL PRODUCTO COLOR TALLA EN EL ALMACÉN =====
-                    $existe =   DB::select(
-                        'select
-                                pct.*,
-                                p.nombre as producto_nombre,
-                                p.codigo as producto_codigo,
-                                c.descripcion as color_nombre,
-                                t.descripcion as talla_nombre,
-                                m.descripcion as modelo_nombre
-                                from producto_color_tallas as pct
-                                inner join productos as p on p.id = pct.producto_id
-                                inner join colores as c on c.id = pct.color_id
-                                inner join tallas as t on t.id = pct.talla_id
-                                inner join modelos as m on m.id = p.modelo_id
-                                where
-                                pct.almacen_id = ?
-                                AND pct.producto_id = ?
-                                AND pct.color_id = ?
-                                AND pct.talla_id = ?',
-                        [
-                            $datos_validados->almacen->id,
-                            $item->producto_id,
-                            $item->color_id,
-                            $talla->talla_id
-                        ]
-                    );
-
-                    if (count($existe) === 0) {
-                        throw new Exception($item->producto_nombre . '-' . $item->color_nombre . '-' . $talla->talla_nombre . ', NO EXISTE EN EL ALMACÉN!!!');
-                    }
-
-                    //========== GRABAR DETALLE VENTA =====
-                    $importe                =   floatval($talla->cantidad) * floatval($item->precio_venta);
-                    $precio_unitario        =   $item->porcentaje_descuento == 0 ? $item->precio_venta : $item->precio_venta_nuevo;
-
-                    $detalle                            =   new Detalle();
-                    $detalle->documento_id              =   $documento->id;
-                    $detalle->almacen_id                =   $datos_validados->almacen->id;
-                    $detalle->producto_id               =   $item->producto_id;
-                    $detalle->color_id                  =   $item->color_id;
-                    $detalle->talla_id                  =   $talla->talla_id;
-                    $detalle->almacen_nombre            =   $datos_validados->almacen->descripcion;
-                    $detalle->codigo_producto           =   $existe[0]->producto_codigo;
-                    $detalle->nombre_producto           =   $existe[0]->producto_nombre;
-                    $detalle->nombre_color              =   $existe[0]->color_nombre;
-                    $detalle->nombre_talla              =   $existe[0]->talla_nombre;
-                    $detalle->nombre_modelo             =   $existe[0]->modelo_nombre;
-                    $detalle->cantidad                  =   floatval($talla->cantidad);
-                    $detalle->precio_unitario           =   floatval($item->precio_venta);
-                    $detalle->importe                   =   $importe;
-                    $detalle->precio_unitario_nuevo     =   floatval($precio_unitario);
-                    $detalle->porcentaje_descuento      =   floatval($item->porcentaje_descuento);
-                    $detalle->monto_descuento           =   floatval($importe) * floatval($item->porcentaje_descuento) / 100;
-                    $detalle->importe_nuevo             =   floatval($precio_unitario) * floatval($talla->cantidad);
-                    $detalle->cantidad_sin_cambio       =   (int) $talla->cantidad;
-                    $detalle->save();
-
-                    //====== RESTAR STOCK SI NO ES CONVERSIÓN NI REGULARIZACIÓN =======
-                    if (
-                        !$request->has('documento_convertido')
-                        && !$request->has('regularizar')
-                        && !$request->has('facturar')
-                        && $request->get('modo') !== 'CONSUMO'
-                    ) {
-
-                        //===== ACTUALIZANDO STOCK ===========
-                        DB::update(
-                            'UPDATE producto_color_tallas
-                        SET stock = stock - ?
-                        WHERE
-                        almacen_id = ?
-                        AND producto_id = ?
-                        AND color_id = ?
-                        AND talla_id = ?',
-                            [
-                                $talla->cantidad,
-                                $datos_validados->almacen->id,
-                                $item->producto_id,
-                                $item->color_id,
-                                $talla->talla_id
-                            ]
-                        );
-
-                        $nuevo_stock    =    DB::table('producto_color_tallas')
-                            ->where('almacen_id', $datos_validados->almacen->id)
-                            ->where('producto_id', $item->producto_id)
-                            ->where('color_id', $item->color_id)
-                            ->where('talla_id', $talla->talla_id)
-                            ->value('stock');
-
-                        //======= KARDEX CON STOCK YA MODIFICADO =======
-                        $kardex                     =   new Kardex();
-                        $kardex->sede_id            =   $datos_validados->sede_id;
-                        $kardex->almacen_id         =   $datos_validados->almacen->id;
-                        $kardex->producto_id        =   $item->producto_id;
-                        $kardex->color_id           =   $item->color_id;
-                        $kardex->talla_id           =   $talla->talla_id;
-                        $kardex->almacen_nombre     =   $datos_validados->almacen->descripcion;
-                        $kardex->producto_nombre    =   $existe[0]->producto_nombre;
-                        $kardex->color_nombre       =   $existe[0]->color_nombre;
-                        $kardex->talla_nombre       =   $existe[0]->talla_nombre;
-                        $kardex->cantidad           =   $talla->cantidad;
-                        $kardex->precio             =   $precio_unitario;
-                        $kardex->importe            =   $detalle->importe_nuevo;
-                        $kardex->accion             =   'VENTA';
-                        $kardex->stock              =   $nuevo_stock;
-                        $kardex->numero_doc         =   $documento->serie . '-' . $documento->correlativo;
-                        $kardex->documento_id       =   $documento->id;
-                        $kardex->registrador_id     =   $documento->user_id;
-                        $kardex->registrador_nombre =   $datos_validados->usuario->usuario;
-                        $kardex->fecha              =   Carbon::today()->toDateString();
-                        $kardex->descripcion        =   mb_strtoupper($request->get('observacion'), 'UTF-8');
-                        $kardex->save();
-                    }
-                }
-            }
-
-            //========== GUARDAR DATOS DE DESPACHO =======
-            $data_envio     =   json_decode($request->get('data_envio'));
-
-            //========= HAY DATOS DE DESPACHO ======
-            if (
-                !empty((array)$data_envio)
-                && !$request->has('facturar')
-                && !$request->has('documento_convertido')
-                && $request->get('tipo_doc_venta_pedido') !== 'CONSUMO'
-            ) {
-
-                $envio_venta                        =   new EnvioVenta();
-                $envio_venta->documento_id          =   $documento->id;
-                $envio_venta->departamento          =   $data_envio->departamento->nombre;
-                $envio_venta->provincia             =   $data_envio->provincia->text;
-                $envio_venta->distrito              =   $data_envio->distrito->text;
-                $envio_venta->empresa_envio_id      =   $data_envio->empresa_envio->id;
-                $envio_venta->empresa_envio_nombre  =   $data_envio->empresa_envio->empresa;
-                $envio_venta->sede_envio_id         =   $data_envio->sede_envio->id;
-                $envio_venta->sede_envio_nombre     =   $data_envio->sede_envio->direccion;
-                $envio_venta->tipo_envio            =   $data_envio->tipo_envio->descripcion;
-                $envio_venta->destinatario_tipo_doc =   $data_envio->destinatario->tipo_documento;
-                $envio_venta->destinatario_nro_doc  =   $data_envio->destinatario->nro_documento;
-                $envio_venta->destinatario_nombre   =   $data_envio->destinatario->nombres;
-                $envio_venta->cliente_id            =   $documento->cliente_id;
-                $envio_venta->cliente_nombre        =   $documento->cliente;
-                $envio_venta->tipo_pago_envio       =   $data_envio->tipo_pago_envio->descripcion;
-                $envio_venta->monto_envio           =   $documento->monto_envio;
-                $envio_venta->entrega_domicilio     =   $data_envio->entrega_domicilio ? "SI" : "NO";
-                $envio_venta->direccion_entrega     =   $data_envio->direccion_entrega;
-                $envio_venta->documento_nro         =   $documento->serie . '-' . $documento->correlativo;
-                $envio_venta->fecha_envio_propuesta =   $data_envio->fecha_envio_propuesta;
-                $envio_venta->origen_venta          =   $data_envio->origen_venta->descripcion;
-                $envio_venta->obs_rotulo            =   $data_envio->obs_rotulo;
-                $envio_venta->obs_despacho          =   $data_envio->obs_despacho;
-                $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
-                $envio_venta->user_vendedor_id      =   $documento->user_id;
-                $envio_venta->user_vendedor_nombre  =   $documento->user->usuario;
-                $envio_venta->almacen_id            =   $documento->almacen_id;
-                $envio_venta->almacen_nombre        =   $documento->almacen_nombre;
-                $envio_venta->sede_id               =   $documento->sede_id;
-                $envio_venta->sede_despachadora_id  =   $datos_validados->almacen->sede_id;
-                $envio_venta->modo                  =   $request->get('modo') ?? 'VENTA';
-                $envio_venta->save();
-            }
-
-            //======= SIN DESPACHO ======
-            if (
-                empty((array)$data_envio)
-                && !$request->has('facturar')
-                && !$request->has('documento_convertido')
-                && $request->get('tipo_doc_venta_pedido') !== 'CONSUMO'
-            ) {
-
-                //======== OBTENER EMPRESA ENVÍO =======
-                $empresa_envio                      =   DB::select('select ee.id,ee.empresa,ee.tipo_envio
-                                                            from empresas_envio as ee')[0];
-
-                $sede_envio                         =   DB::select('select ees.id,ees.direccion
-                                                        from empresa_envio_sedes as ees
-                                                        where ees.empresa_envio_id=?', [$empresa_envio->id])[0];
-
-                $envio_venta                        =   new EnvioVenta();
-                $envio_venta->documento_id          =   $documento->id;
-                $envio_venta->departamento          =   "LA LIBERTAD";
-                $envio_venta->provincia             =   "TRUJILLO";
-                $envio_venta->distrito              =   "TRUJILLO";
-                $envio_venta->empresa_envio_id      =   $empresa_envio->id;
-                $envio_venta->empresa_envio_nombre  =   $empresa_envio->empresa;
-                $envio_venta->sede_envio_id         =   $sede_envio->id;
-                $envio_venta->sede_envio_nombre     =   $sede_envio->direccion;
-                $envio_venta->tipo_envio            =   $empresa_envio->tipo_envio;
-                $envio_venta->destinatario_tipo_doc =   $documento->tipo_documento_cliente;
-                $envio_venta->destinatario_nro_doc  =   $documento->documento_cliente;
-                $envio_venta->destinatario_nombre   =   $documento->cliente;
-                $envio_venta->cliente_id            =   $documento->cliente_id;
-                $envio_venta->cliente_nombre        =   $documento->cliente;
-                $envio_venta->tipo_pago_envio       =   "-";
-                $envio_venta->monto_envio           =   $documento->monto_envio;
-                $envio_venta->entrega_domicilio     =   "NO";
-                $envio_venta->direccion_entrega     =   null;
-                $envio_venta->documento_nro         =   $documento->serie . '-' . $documento->correlativo;
-                $envio_venta->fecha_envio_propuesta =   null;
-                $envio_venta->origen_venta          =   "WHATSAPP";
-                $envio_venta->obs_despacho          =   null;
-                $envio_venta->obs_rotulo            =   null;
-                $envio_venta->estado                =   'DESPACHADO';
-                $envio_venta->cliente_celular       =   $documento->clienteEntidad->telefono_movil;
-                $envio_venta->user_vendedor_id      =   $documento->user_id;
-                $envio_venta->user_vendedor_nombre  =   $documento->user->usuario;
-                $envio_venta->user_despachador_id   =   $documento->user_id;
-                $envio_venta->user_despachador_nombre   =   $documento->user->usuario;
-                $envio_venta->almacen_id            =   $documento->almacen_id;
-                $envio_venta->almacen_nombre        =   $documento->almacen_nombre;
-                $envio_venta->sede_id               =   $documento->sede_id;
-                $envio_venta->sede_despachadora_id  =   $datos_validados->almacen->sede_id;
-                $envio_venta->modo                  =   $request->get('modo') ?? 'VENTA';
-                $envio_venta->save();
-            }
-
-            //======== ASOCIAR LA VENTA CON EL MOVIMIENTO CAJA DEL COLABORADOR ====
-            $movimiento_venta                   =   new DetalleMovimientoVentaCaja();
-            $movimiento_venta->cdocumento_id    =   $documento->id;
-            $movimiento_venta->mcaja_id         =   $datos_validados->caja_movimiento->movimiento_id;
-            if (
-                $request->get('facturado') === 'SI'
-                || $request->get('tipo_doc_venta_pedido') == 'CONSUMO'
-            ){
-                $movimiento_venta->cobrar       =   'NO';
-            }
-            $movimiento_venta->save();
-
-            //======== EN CASO DE CONVERSIÓN DE DOCUMENTO =====
-            if ($request->has('documento_convertido')) {
-                $documento_convertido                       =   Documento::find($request->get('documento_convertido'));
-                $documento_convertido->convert_en_id        =   $documento->id;
-                $documento_convertido->convert_en_serie     =   $documento->serie . '-' . $documento->correlativo;
-                $documento_convertido->update();
-            }
-
-            //========== ACTUALIZAR ESTADO FACTURACIÓN A INICIADA ======
-            DB::table('empresa_numeracion_facturaciones')
-                ->where('empresa_id', Empresa::find(1)->id)
-                ->where('sede_id', $datos_validados->sede_id)
-                ->where('tipo_comprobante', $datos_validados->tipo_venta->id)
-                ->where('emision_iniciada', '0')
-                ->where('estado', 'ACTIVO')
-                ->update([
-                    'emision_iniciada'       => '1',
-                    'updated_at'             => Carbon::now()
-                ]);
-
-
-            /*if ($request->get('facturado') === 'SI' && $request->get('generar_recibo_caja') === 'SI') {
-
-                //======= OBTENIENDO MOVIMIENTO ID DEL COLABORADOR ======
-                $usuario    =   User::find($request->get('user_id'));
-
-                $movimiento =   DB::select(
-                    "SELECT
-                                        dmc.movimiento_id
-                                    FROM detalles_movimiento_caja AS dmc
-                                    WHERE
-                                        dmc.colaborador_id = ?
-                                    AND dmc.fecha_salida IS NULL",
-                    [$usuario->colaborador_id]
-                );
-
-                if (count($movimiento) !== 1) {
-                    throw new Exception("ERROR AL OBTENER EL MOVIMIENTO DE CAJA DEL USUARIO");
-                }
-
-                //====== GENERAR RECIBO DE CAJA DEL EXCEDENTE =====
-                $recibo_caja                    =   new ReciboCaja();
-                $recibo_caja->movimiento_id     =   $movimiento[0]->movimiento_id;
-                $recibo_caja->user_id           =   $request->get('user_id');
-                $recibo_caja->cliente_id        =   $request->get('cliente_id');
-                $recibo_caja->monto             =   $request->get('excedente');
-                $recibo_caja->saldo             =   0;
-                $recibo_caja->metodo_pago       =   "EFECTIVO";
-                $recibo_caja->estado_servicio   =   "CANJEADO";
-                $recibo_caja->observacion       =   "CREADO A PARTIR DEL EXCEDENTE DE " . "S/." . $request->get('excedente') .
-                    " PRESENTE EN LA ATENCIÓN " . $documento->serie . '-' . $documento->correlativo .
-                    " DEL PEDIDO PE-" .  $request->get('pedido_nro');
-                $recibo_caja->save();
-            }*/
+            $documento  =   $this->s_venta->registrar($request->toArray());
 
             DB::commit();
 
@@ -1508,7 +921,6 @@ array:27 [
 */
     public static function calcularMontos($lstVenta, $datos_validados)
     {
-
         $monto_embalaje =   $datos_validados->monto_embalaje;
         $monto_envio    =   $datos_validados->monto_envio;
 

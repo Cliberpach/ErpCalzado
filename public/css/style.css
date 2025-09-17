@@ -171,6 +171,17 @@ color: #fff;
 }
 
 
+.swal2-container {
+    z-index: 9999 !important;
+}
+
+.msgError{
+    color: red;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+
 
 
 

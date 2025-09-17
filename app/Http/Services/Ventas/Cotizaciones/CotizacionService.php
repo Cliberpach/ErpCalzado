@@ -3,19 +3,28 @@
 namespace App\Http\Services\Ventas\Cotizaciones;
 
 use App\Almacenes\Almacen;
+use App\Http\Services\Pedidos\Pedidos\PedidoService;
 use App\User;
 use App\Ventas\Cliente;
 use App\Ventas\Cotizacion;
+use App\Ventas\CotizacionDetalle;
+use App\Ventas\Pedido;
 
 class CotizacionService
 {
     private CalculosService $sc_calculos;
     private CotizacionRepository $s_repository;
+    private CotizacionValidacion $s_validaciones;
+    private PedidoService $s_pedido;
+    private CotizacionDTOS $s_dto;
 
     public function __construct()
     {
-        $this->sc_calculos  =   new CalculosService();
-        $this->s_repository =   new CotizacionRepository();
+        $this->sc_calculos      =   new CalculosService();
+        $this->s_repository     =   new CotizacionRepository();
+        $this->s_validaciones   =   new CotizacionValidacion();
+        $this->s_pedido         =   new PedidoService();
+        $this->s_dto            =   new CotizacionDTOS();
     }
 
     public function store(array $datos): Cotizacion
@@ -62,12 +71,30 @@ class CotizacionService
         $datos['montos']    =   $montos;
 
         //====== ACTUALIZAR ======
-        $cotizacion =   $this->s_repository->actualizarCotizacion($id,$datos);
+        $cotizacion =   $this->s_repository->actualizarCotizacion($id, $datos);
 
         //======== ELIMINAR DETALLE ANTERIOR ======
         $this->s_repository->eliminarDetalleCotizacion($id);
-        $this->s_repository->registrarDetalleCotizacion($lstCotizacion,$cotizacion);
+        $this->s_repository->registrarDetalleCotizacion($lstCotizacion, $cotizacion);
 
         return $cotizacion;
+    }
+
+    public function generarPedido(array $datos):Pedido
+    {
+        $datos      =   $this->s_validaciones->validacionGenerarPedido($datos);
+
+        $cotizacion =   $datos['cotizacion'];
+        $cliente    =   $datos['cliente'];
+
+
+        //======== CREAR PEDIDO =========
+        $dto    =   $this->s_dto->prepararDatosToPedido($datos);
+        $pedido =   $this->s_pedido->storeFromCotizacion($dto);
+
+        $cotizacion->pedido_id  =   $pedido->id;
+        $cotizacion->update();
+
+        return $pedido;
     }
 }
