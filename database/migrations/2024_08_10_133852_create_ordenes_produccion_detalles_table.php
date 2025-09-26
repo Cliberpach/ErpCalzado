@@ -33,18 +33,18 @@ class CreateOrdenesProduccionDetallesTable extends Migration
             $table->unsignedInteger('talla_id');
             $table->foreign('talla_id')->references('id')->on('tallas');
 
-            $table->string('modelo_nombre'); 
-            $table->string('producto_nombre'); 
-            $table->string('color_nombre'); 
-            $table->string('talla_nombre'); 
+            $table->string('modelo_nombre');
+            $table->string('producto_nombre');
+            $table->string('color_nombre');
+            $table->string('talla_nombre');
 
             $table->unsignedInteger('cantidad');
 
-            $table->primary(['orden_produccion_id']);
-            $table->unique(
+            $table->primary(
                 ['orden_produccion_id', 'pedido_id', 'modelo_id', 'producto_id', 'color_id', 'talla_id'],
-                'uq_orden_produccion_detalle'
+                'pk_orden_produccion_detalle'
             );
+
             $table->timestamps();
         });
     }
