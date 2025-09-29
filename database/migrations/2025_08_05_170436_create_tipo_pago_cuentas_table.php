@@ -21,6 +21,8 @@ class CreateTipoPagoCuentasTable extends Migration
             $table->unsignedBigInteger('cuenta_id');
             $table->foreign('cuenta_id')->references('id')->on('cuentas');
 
+            $table->primary(['tipo_pago_id', 'cuenta_id'], 'pk_tp_cta');
+
             $table->timestamps();
         });
     }
