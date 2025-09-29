@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 
-Route::prefix('ventas')->group(function () {
+Route::prefix('ventas')->middleware('auth')->group(function () {
 
     // Clientes
     Route::prefix('clientes')->group(function () {

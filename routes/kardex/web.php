@@ -4,7 +4,7 @@ use App\Http\Controllers\Kardex\KCuenta\KCuentaController;
 use App\Http\Controllers\Kardex\KStock\KStockController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('kardex')->group(function () {
+Route::prefix('kardex')->middleware('auth')->group(function () {
 
     // Consultas - Kardex - Producto
     Route::prefix('producto')->group(function () {

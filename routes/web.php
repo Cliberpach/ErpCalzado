@@ -323,8 +323,6 @@ Route::group(
             Route::get('show_dev/{id}', 'Compras\NotaController@show_dev')->name('compras.notas_dev.show');
         });
 
-
-
         //PEDIDOS-PEDIDOS
         Route::prefix('pedidos/pedidos')->group(function () {
             Route::get('index', 'Pedidos\PedidoController@index')->name('pedidos.pedido.index');

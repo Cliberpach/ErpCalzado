@@ -5,7 +5,7 @@ use App\Http\Controllers\Mantenimiento\TipoPago\TipoPagoController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::prefix('mantenimiento/')->group(function () {
+Route::prefix('mantenimiento/')->middleware('auth')->group(function () {
 
     Route::prefix('tipo_pago/')->group(function () {
         Route::get('index', 'Mantenimiento\TipoPago\TipoPagoController@index')->name('mantenimiento.tipo_pago.index');

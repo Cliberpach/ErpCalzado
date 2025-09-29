@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('cajas')->group(function () {
+Route::prefix('cajas')->middleware('auth')->group(function () {
 
     //Caja
     Route::prefix('cajas')->group(function () {
