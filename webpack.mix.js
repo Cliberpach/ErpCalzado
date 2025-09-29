@@ -14,7 +14,8 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
  */
 
 mix.js('resources/js/app.js', 'public/js').vue()
-    .sass('resources/sass/app.scss', 'public/css');
+    .sass('resources/sass/app.scss', 'public/css')
+    .sass('resources/sass/fontawesome.scss', 'public/css');
 
 mix.js('resources/js/appNotify.js', 'public/js').vue()
     .sass('resources/sass/appNotify.scss', 'public/css');
@@ -23,6 +24,12 @@ mix.js('resources/js/appPages.js', 'public/js').vue()
     .sass('resources/sass/appPages.scss', 'public/css');
 
 mix.js('resources/js/utilidades.js', 'public/js');
+
+mix.options({
+    processCssUrls: false
+});
+
+mix.copyDirectory('node_modules/@fortawesome/fontawesome-free/webfonts', 'public/webfonts');
 
 mix.webpackConfig({
     resolve: {
@@ -40,3 +47,7 @@ mix.webpackConfig({
 }).sourceMaps()
 
 mix.disableNotifications();
+
+if (mix.inProduction()) {
+    mix.version();
+}

@@ -311,10 +311,11 @@
             }
         }
     </style>
-
+    
+    <link href="{{ mix('css/fontawesome.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="/css/appNotify.css">
-    @yield('vue-css')
 
+    @yield('vue-css')
     @stack('styles')
 
     @routes
