@@ -311,6 +311,11 @@ export default {
         },
         async cliente(value) {
 
+            if (this.hayDatosEnvio) {
+                return;
+            }
+            console.log('WATCH CLIENTE', value);
+
             this.destinatario.nro_documento = "";
             this.destinatario.nombres = "";
 
@@ -321,6 +326,47 @@ export default {
                     this.destinatario.nombres = value.nombre;
                 }
             }
+
+            //======== COLOCAR DATA EN EL MODAL ========
+            this.departamento = null;
+            this.$nextTick(() => {
+                console.log('SET DEPARTAMENTO ID');
+                this.departamento = parseInt(value.departamento_id);
+            });
+
+            //=========== ESPERAR A QUE EL UBIGEO SE COLOQUE COMPLETAMENTE ==========
+            await Promise.all([
+                new Promise((resolve) => {
+                    this.$once('ubigeoCompletado', resolve);
+                })
+            ]);
+
+            console.log('SET PROVINCIA ID');
+            //====== SETTEAR PROVINCIA Y DISTRITO ======
+            this.provincia = null
+            this.$nextTick(() => {
+                this.provincia = parseInt(value.provincia_id)
+            })
+
+            //=========== ESPERAR A QUE EL UBIGEO SE COLOQUE COMPLETAMENTE ==========
+            await Promise.all([
+                new Promise((resolve) => {
+                    this.$once('ubigeoCompletado', resolve);
+                })
+            ]);
+
+            console.log('SET DISTRITO ID');
+            this.distrito = null
+            this.$nextTick(() => {
+                this.distrito = parseInt(value.distrito_id)
+            })
+            await Promise.all([
+                new Promise((resolve) => {
+                    this.$once('ubigeoCompletado', resolve);
+                })
+            ]);
+
+            this.tipo_envio = 188;
 
         },
         empresa_envio(value) {
@@ -423,7 +469,7 @@ export default {
             //======= LIMPIANDO SEDES =====
             this.sedes_envio = [];
             this.sede_envio = null;
-            this.$emit('settedDistrito');
+            this.$emit('ubigeoCompletado');
         },
         tipo_documento(value) {
             if (value) {
@@ -532,15 +578,17 @@ export default {
     },
     methods: {
         openMdlEnvio() {
-            if (!this.hayDatosEnvio) {
-                this.departamento = 15;
-            }
+            // if (!this.hayDatosEnvio) {
+            //     this.departamento = 15;
+            // }
             $("#modal_envio").modal("show");
         },
         async setDatosDefault() {
             this.loading = true;
         },
         async setDatosDespacho(despacho) {
+
+            console.log('============>SET DATOS DESPACHO', despacho);
 
             //======== COLOCAR DATA EN EL MODAL ========
             this.departamento = null;
@@ -552,7 +600,7 @@ export default {
             //=========== ESPERAR A QUE EL UBIGEO SE COLOQUE COMPLETAMENTE ==========
             await Promise.all([
                 new Promise((resolve) => {
-                    this.$once('settedDepartamento', resolve);
+                    this.$once('ubigeoCompletado', resolve);
                 })
             ]);
 
@@ -566,7 +614,7 @@ export default {
             //=========== ESPERAR A QUE EL UBIGEO SE COLOQUE COMPLETAMENTE ==========
             await Promise.all([
                 new Promise((resolve) => {
-                    this.$once('settedProvincia', resolve);
+                    this.$once('ubigeoCompletado', resolve);
                 })
             ]);
 
@@ -577,7 +625,7 @@ export default {
             })
             await Promise.all([
                 new Promise((resolve) => {
-                    this.$once('settedDistrito', resolve);
+                    this.$once('ubigeoCompletado', resolve);
                 })
             ]);
 
@@ -658,7 +706,7 @@ export default {
 
             if (!despacho) {
                 this.departamento = 15;
-                this.tipo_pago_envio = 197;
+                this.tipo_pago_envio = 196;
                 this.tipo_envio = 188;
                 this.mode = 'store';
                 toastr.warning('PODRÁ CREAR DATOS DE DESPACHO', 'EL DOCUMENTO NO TIENE DATOS DE DESPACHO');
@@ -779,9 +827,7 @@ export default {
                 const { error, message, provincias } = data;
                 this.Provincias = provincias;
                 this.loading = false;
-
-                this.$emit('settedDepartamento')
-                //this.provincia = parseInt(provincias[0].id);
+                this.provincia = parseInt(provincias[0].id);
 
             } catch (ex) {
                 toastr.error(ex, 'ERROR EN LA PETICIÓN OBTENER PROVINCIAS');
@@ -799,9 +845,8 @@ export default {
                 this.Distritos = distritos;
 
                 this.loading = false;
-                this.$emit('settedProvincia');
 
-                //this.distrito = parseInt(distritos[0].id);
+                this.distrito = parseInt(distritos[0].id);
 
             } catch (ex) {
                 toastr.error(ex, 'ERROR EN LA PETICIÓN OBTENER DISTRITOS');

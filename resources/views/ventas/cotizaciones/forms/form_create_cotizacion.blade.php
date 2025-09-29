@@ -73,9 +73,9 @@
                 <label for="cliente" class="required" style="font-weight: bold;">CLIENTE</label>
                 <button type="button" class="btn btn-outline btn-primary"
                     onclick="openModalCliente()">Registrar</button>
-                <select id="cliente" name="cliente"
+                <select id="cliente" name="cliente" onchange="elegirCliente()"
                     class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}" required>
-                    <option></option>
+                    <option value="{{$cliente->id}}">{{$cliente->tipo_documento.':'.$cliente->documento.'-'.$cliente->nombre}}</option>
                 </select>
             </div>
         </div>

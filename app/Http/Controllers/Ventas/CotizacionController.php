@@ -116,13 +116,9 @@ class CotizacionController extends Controller
         $categorias         =   Categoria::where('estado', 'ACTIVO')->get();
         $marcas             =   Marca::where('estado', 'ACTIVO')->get();
         $tallas             =   Talla::where('estado', 'ACTIVO')->get();
+        $cliente            =   Cliente::findOrFail(1);
 
-        $registrador        =   DB::select(
-            'select
-                                                        u.*
-                                                        from users as u where u.id = ?',
-            [Auth::user()->id]
-        )[0];
+        $registrador        =   Auth::user();
 
         $sede_id            =   Auth::user()->sede_id;
         $sede               =   Sede::find($sede_id);
@@ -145,7 +141,8 @@ class CotizacionController extends Controller
                 'almacenes',
                 'sede_id',
                 'porcentaje_igv',
-                'sede'
+                'sede',
+                'cliente'
             )
         );
     }

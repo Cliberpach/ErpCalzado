@@ -599,7 +599,11 @@
                         return {
                             results: clientes.map(item => ({
                                 id: item.id,
-                                text: item.descripcion
+                                text: item.descripcion,
+                                telefono: item.telefono_movil,
+                                departamento_id: item.departamento_id,
+                                provincia_id: item.provincia_id,
+                                distrito_id: item.distrito_id
                             })),
                             pagination: {
                                 more: data.more
@@ -622,7 +626,15 @@
                         '<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>'
                     );
                 }
-                return data.text;
+                const $option = $('<span>', {
+                        text: data.text
+                    }).attr('data-telefono', data.telefono || '').attr('data-departamento-id', data
+                        .departamento_id || '')
+                    .attr('data-provincia-id', data.provincia_id || '').attr('data-distrito-id', data
+                        .distrito_id || '');
+
+
+                return $option;
             },
         });
     }
@@ -1366,5 +1378,18 @@
         toastr.info('SE HA LIMPIADO EL FORMULARIO');
 
     }
+
+    function elegirCliente() {
+        const cliente_elegido = $('#cliente').select2('data')[0];
+        document.querySelector('#telefono').value = '';
+
+        if (cliente_elegido) {
+            if (cliente_elegido.id == 1) {
+                return;
+            }
+            document.querySelector('#telefono').value = cliente_elegido.telefono;
+        }
+    }
+
 </script>
 @endpush

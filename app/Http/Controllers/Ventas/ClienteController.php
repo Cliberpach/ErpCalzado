@@ -28,20 +28,20 @@ class ClienteController extends Controller
 
     public function getTable()
     {
-        $clientes = Cliente::where('estado','ACTIVO')->orderBy('clientes.id', 'desc')->get();
+        $clientes = Cliente::where('estado', 'ACTIVO')->orderBy('clientes.id', 'desc')->get();
         $coleccion = collect([]);
-        foreach($clientes as $cliente) {
+        foreach ($clientes as $cliente) {
             $coleccion->push([
                 'id' => $cliente->id,
                 'documento' => $cliente->getDocumento(),
-                'nombre' => ($cliente->tipo_documento == 'RUC') ? '-' : $cliente->nombre ,
+                'nombre' => ($cliente->tipo_documento == 'RUC') ? '-' : $cliente->nombre,
                 'razon_social' => ($cliente->tipo_documento == 'RUC') ? $cliente->nombre : '-',
                 'telefono_movil' => $cliente->telefono_movil,
                 'departamento' => $cliente->getDepartamento(),
                 'provincia' => $cliente->getProvincia(),
                 'distrito' => $cliente->getDistrito(),
                 'zona' => $cliente->getDepartamentoZona(),
-                ]);
+            ]);
         }
         return DataTables::of($coleccion)->toJson();
     }
@@ -50,7 +50,7 @@ class ClienteController extends Controller
     {
         $action = route('ventas.cliente.store');
         $cliente = new Cliente();
-        return view('ventas.clientes.create')->with(compact('action','cliente'));
+        return view('ventas.clientes.create')->with(compact('action', 'cliente'));
     }
 
     public function store(ClienteStoreRequest $request)
@@ -135,7 +135,6 @@ class ClienteController extends Controller
             DB::rollBack();
             dd($th->getMessage());
         }
-
     }
     public function edit($id)
     {
@@ -233,7 +232,6 @@ class ClienteController extends Controller
             DB::rollBack();
             dd($th->getMessage());
         }
-
     }
 
     public function show($id)
@@ -251,11 +249,11 @@ class ClienteController extends Controller
         $cliente->update();
 
         //Registro de actividad
-        $descripcion = "SE ELIMINÓ EL CLIENTE CON EL NOMBRE: ". $cliente->nombre;
+        $descripcion = "SE ELIMINÓ EL CLIENTE CON EL NOMBRE: " . $cliente->nombre;
         $gestion = "CLIENTES";
-        eliminarRegistro($cliente, $descripcion , $gestion);
+        eliminarRegistro($cliente, $descripcion, $gestion);
 
-        Session::flash('success','Cliente eliminado.');
+        Session::flash('success', 'Cliente eliminado.');
         return redirect()->route('ventas.cliente.index')->with('eliminar', 'success');
     }
 
@@ -306,7 +304,7 @@ class ClienteController extends Controller
         return $cliente;
     }
 
-/*
+    /*
 array:14 [
   "tipo_documento" => "DNI"
   "tipo_cliente_id" => 121
@@ -326,7 +324,7 @@ array:14 [
 */
     public function storeFast(ClienteStoreFastRequest $request)
     {
-        try{
+        try {
             DB::beginTransaction();
 
             $arrayDatos                     =   $request->all();
@@ -351,9 +349,9 @@ array:14 [
             $cliente->save();
 
             //======= REGISTRO DE ACTIVIDAD ========
-            $descripcion = "SE AGREGÓ EL CLIENTE CON EL NOMBRE: ". $cliente->nombre;
+            $descripcion = "SE AGREGÓ EL CLIENTE CON EL NOMBRE: " . $cliente->nombre;
             $gestion = "CLIENTES";
-            crearRegistro($cliente, $descripcion , $gestion);
+            crearRegistro($cliente, $descripcion, $gestion);
 
             DB::commit();
 
@@ -368,12 +366,10 @@ array:14 [
 
             return response()->json([
                 'success'           =>  true,
-                'message'           =>  'CLIENTE: '.$cliente->nombre.' ,REGISTRADO CON ÉXITO.',
+                'message'           =>  'CLIENTE: ' . $cliente->nombre . ' ,REGISTRADO CON ÉXITO.',
                 'cliente'           =>  $cliente_return,
             ]);
-        }
-        catch(Exception $e)
-        {
+        } catch (Exception $e) {
             DB::rollBack();
             return response()->json([
                 'success'   =>  false,
@@ -382,61 +378,66 @@ array:14 [
         }
     }
 
-    public function getCliente($tipo_documento,$nro_documento){
+    public function getCliente($tipo_documento, $nro_documento)
+    {
         try {
             //========== OBTENIENDO CLIENTE ==========
-            $cliente    =   DB::select('SELECT
+            $cliente    =   DB::select(
+                'SELECT
                             c.*
                             FROM clientes AS c
                             WHERE c.tipo_documento = ?
                             AND c.documento = ?
                             AND c.estado = "ACTIVO"',
-                            [$tipo_documento,$nro_documento]);
+                [$tipo_documento, $nro_documento]
+            );
 
             $message    =   '';
 
-            if(count($cliente) === 1){
-                $message    =   'EL '.$cliente[0]->tipo_documento.': ' . $cliente[0]->documento
-                .' YA SE ENCUENTRA REGISTRADO COMO CLIENTE';
+            if (count($cliente) === 1) {
+                $message    =   'EL ' . $cliente[0]->tipo_documento . ': ' . $cliente[0]->documento
+                    . ' YA SE ENCUENTRA REGISTRADO COMO CLIENTE';
             }
 
-            if(count($cliente) === 0){
-                $message    =   'EL '.$tipo_documento.': '.$nro_documento.' NO SE ENCUENTRA REGISTRADO';
+            if (count($cliente) === 0) {
+                $message    =   'EL ' . $tipo_documento . ': ' . $nro_documento . ' NO SE ENCUENTRA REGISTRADO';
             }
 
-            if(count($cliente) > 1){
+            if (count($cliente) > 1) {
                 throw new Exception('ERROR AL CONSULTAR CLIENTE EN LA EMPRESA');
             }
 
-            return response()->json(['success' => true , 'cliente' => $cliente , 'message' => $message]);
-
+            return response()->json(['success' => true, 'cliente' => $cliente, 'message' => $message]);
         } catch (\Throwable $th) {
-            return response()->json(['success' => false , 'message' => $th->getMessage()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
 
-    public function getClientes(Request $request){
+    public function getClientes(Request $request)
+    {
         try {
-
 
             $search         =   $request->query('search'); // Palabra clave para la búsqueda
             $page           =   $request->query('page', 1);
             $cliente_id     =   $request->query(('cliente_id'));
 
-
             $clientes   =   DB::table('clientes as c')
-                            ->select(
-                                'c.id',
-                                DB::raw('CONCAT(c.tipo_documento,":",c.documento,"-",c.nombre) as descripcion'),
-                                'c.tipo_documento',
-                                'c.documento',
-                                'c.nombre',
-                            )
-                            ->where(DB::raw('CONCAT(c.tipo_documento,":",c.documento,"-",c.nombre)'), 'LIKE', "%$search%")
-                            ->where('c.estado','ACTIVO');
+                ->select(
+                    'c.id',
+                    DB::raw('CONCAT(c.tipo_documento,":",c.documento,"-",c.nombre) as descripcion'),
+                    'c.tipo_documento',
+                    'c.documento',
+                    'c.nombre',
+                    'c.telefono_movil',
+                    'c.departamento_id',
+                    'c.provincia_id',
+                    'c.distrito_id'
+                )
+                ->where(DB::raw('CONCAT(c.tipo_documento,":",c.documento,"-",c.nombre)'), 'LIKE', "%$search%")
+                ->where('c.estado', 'ACTIVO');
 
-            if($cliente_id){
-                $clientes->where('c.id',$cliente_id);
+            if ($cliente_id) {
+                $clientes->where('c.id', $cliente_id);
             }
 
             $clientes   =   $clientes->paginate(10, ['*'], 'page', $page);
@@ -447,10 +448,8 @@ array:14 [
                 'clientes'  => $clientes->items(),
                 'more'      => $clientes->hasMorePages()
             ]);
-
         } catch (Throwable $th) {
-            return response()->json(['success'=>false,'message'=> $th->getMessage()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
-
 }

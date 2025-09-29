@@ -394,18 +394,6 @@
                 </nav>
             </div>
 
-            {{-- <div class="row" style="background-color:white;" id="row-loading-spinner">
-                <div class="col-12 d-flex align-items-center justify-content-center">
-                        <div class="scaling-squares-spinner" :style="spinnerStyle" id="loading-spinner">
-                            <div class="square"></div>
-                            <div class="square"></div>
-                            <div class="square"></div>
-                            <div class="square"></div>
-                        </div>
-                </div>
-            </div>
-          --}}
-
             <div class="loader-spinner">
                 <div class="centrado" id="onload">
                     <div class="loadingio-spinner-blocks-zcepr5tohl">
@@ -426,16 +414,7 @@
 
             <div id="content-system" style="display:block;">
                 @yield('content')
-                <div id="appTables"></div>
             </div>
-
-
-            {{-- <div id="content-system" style="display:block;">
-                @yield('content')
-                @if (!isset($kardex7668))
-                    <div id="appTables"></div>
-                @endif
-            </div> --}}
 
             <div class="footer">
                 <div class="float-right" onkeyup="return mayus(this)">
@@ -446,13 +425,6 @@
                 </div>
             </div>
 
-
-
-
-            {{-- <lottie-player src="{{asset('/lottiefile/OCCHcmMEMS.json')}}" background="transparent"
-            speed="1" style="height:200px;" loop autoplay>
-            </lottie-player> --}}
-
         </div>
 
     </div>
@@ -460,16 +432,12 @@
     <div class="position-fixed d-none"
         style="bottom:50px; top:auto; right:30px; left:auto; -webkit-box-shadow: 8px 8px 3px 0px rgba(0,0,0,0.75); -moz-box-shadow: 8px 8px 3px 0px rgba(0,0,0,0.75); box-shadow: 6px 6px 4px 0px rgba(0,0,0,0.75); border-radius: 50%;">
         <a class="d-sm-block" href="{{ route('configuracion.index') }}" target="_blank">
-            {{-- <img tag src="/img/config_.png" style="width: 50px"> --}}
         </a>
     </div>
-
 
     <script src="{{ '/js/appNotify.js?v=' . rand() }}"></script>
     @stack('scripts-vue-js')
     @yield('vue-js')
-
-    {{-- <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script> --}}
 
     <!-- Mainly scripts -->
     <script src="/Inspinia/js/jquery-3.1.1.min.js"></script>
@@ -506,7 +474,6 @@
     <script src="{{ asset('js/utils.js') }}"></script>
 
     @stack('scripts')
-
 
     <script>
         @if (session('message_error'))
@@ -560,7 +527,6 @@
         //Loader
         window.addEventListener("load", function() {
             $('.loader-spinner').hide();
-            $("#content-system").css("display", "");
         })
 
         async function restaurarStock() {
@@ -613,14 +579,6 @@
                 toastr.error(`${error.response.data.message}`, 'ERROR EN EL SERVIDOR');
             }
         }
-
-        /*setTimeout(() => {
-            //document.querySelector('#row-loading-spinner').style.display = "none";
-            $('.loader-spinner').hide();
-            $("#content-system").css("display", "");
-
-        }, 0);*/
-
 
         function mostrarAnimacion() {
             document.querySelector('.overlay_animacion').style.visibility = 'visible';

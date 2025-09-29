@@ -671,6 +671,7 @@ export default {
             if (value) {
                 this.formCreate.cliente_id = value.id;
                 this.disabledBtnProducto = false;
+                this.formCreate.telefono    =   value.telefono_movil;
             } else {
                 this.formCreate.cliente_id = null;
                 this.disabledBtnProducto = true;

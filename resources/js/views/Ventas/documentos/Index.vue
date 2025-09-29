@@ -792,7 +792,7 @@ export default {
                                 )
                             ) {
                                 acciones += `<a href="${vm.routes(row.id, 'DEVO')}" class="dropdown-item" title="Nota de devolución">
-                                                <i class="fa fa-file-o"></i> Devoluciones
+                                                <i class="fas fa-undo-alt"></i> Devoluciones
                                             </a>`;
                             }
 
