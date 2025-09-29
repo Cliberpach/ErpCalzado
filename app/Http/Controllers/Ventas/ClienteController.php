@@ -28,9 +28,28 @@ class ClienteController extends Controller
 
     public function getTable()
     {
-        $clientes = Cliente::where('estado', 'ACTIVO')->orderBy('clientes.id', 'desc')->get();
-        $coleccion = collect([]);
-        foreach ($clientes as $cliente) {
+        $clientes = DB::table('clientes as c')
+        ->join('departamentos as d','d.id','c.departamento_id')
+        ->join('provincias as p','p.id','c.provincia_id')
+        ->join('distritos as dis','dis.id','c.distrito_id')
+        ->select(
+            'c.id',
+            'c.tipo_documento',
+            'c.documento',
+            'c.nombre',
+            'c.telefono_movil',
+            'd.nombre as departamento',
+            'p.nombre as provincia',
+            'dis.nombre as distrito',
+            'c.provincia_id',
+            'c.distrito_id',
+            'c.zona',
+        )
+        ->where('c.estado', 'ACTIVO')
+        ->orderByDesc('c.id');
+
+        //$coleccion = collect([]);
+        /*foreach ($clientes as $cliente) {
             $coleccion->push([
                 'id' => $cliente->id,
                 'documento' => $cliente->getDocumento(),
@@ -42,8 +61,8 @@ class ClienteController extends Controller
                 'distrito' => $cliente->getDistrito(),
                 'zona' => $cliente->getDepartamentoZona(),
             ]);
-        }
-        return DataTables::of($coleccion)->toJson();
+        }*/
+        return DataTables::make($clientes)->toJson();
     }
 
     public function create()
