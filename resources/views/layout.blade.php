@@ -82,9 +82,6 @@
     <!-- Toastr style -->
     <link href="/Inspinia/css/plugins/toastr/toastr.min.css" rel="stylesheet">
 
-    <!-- FONTAWESOME 5.0 FREE -->
-    <script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-
     <!-- Styles -->
     <link href="/css/style.css" rel="stylesheet">
 
@@ -311,7 +308,7 @@
             }
         }
     </style>
-    
+
     <link href="{{ mix('css/fontawesome.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="/css/appNotify.css">
 
