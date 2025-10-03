@@ -401,10 +401,10 @@
                         }
 
                         let optionReciboCaja = ``;
-                        if (!row.facturado && row.estado === 'PENDIENTE') {
-                            optionReciboCaja +=
-                                `<li><a class='dropdown-item' href="javascript:void(0);" onclick="generarRecibo(${row.id})"  title='Recibo'><b><i class="fas fa-receipt"></i> Generar Recibo</a></b></li>`;
-                        }
+                        // if (!row.facturado && row.estado === 'PENDIENTE') {
+                        //     optionReciboCaja +=
+                        //         `<li><a class='dropdown-item' href="javascript:void(0);" onclick="generarRecibo(${row.id})"  title='Recibo'><b><i class="fas fa-receipt"></i> Generar Recibo</a></b></li>`;
+                        // }
 
                         acciones += `<li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_historial_atenciones"  title='Historial'><b><i class="fas fa-history"></i> Historial Atenciones</a></b></li>
                                         ${optionReciboCaja}</ul></div>`;
