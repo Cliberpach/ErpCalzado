@@ -17,9 +17,11 @@ use Throwable;
 class UtilidadesController extends Controller
 {
 
-    public static function validarItem($item,$almacen_id){
+    public static function validarItem($item, $almacen_id)
+    {
 
-        $item_bd    =   DB::select('select
+        $item_bd    =   DB::select(
+            'select
                         pct.producto_id,
                         pct.color_id,
                         pct.talla_id,
@@ -37,22 +39,27 @@ class UtilidadesController extends Controller
                         and pct.color_id = ?
                         and pct.talla_id = ?
                         and pct.almacen_id = ?',
-                        [$item->producto_id,
-                        $item->color_id,
-                        $item->talla_id,
-                        $almacen_id]);
+            [
+                $item->producto_id,
+                $item->color_id,
+                $item->talla_id,
+                $almacen_id
+            ]
+        );
 
-        if(count($item_bd) === 0){
+        if (count($item_bd) === 0) {
             throw new Exception("NO EXISTE EL PRODUCTO COLOR TALLA EN EL ALMACÉN ORIGEN
-            (".$item->producto_id."-".$item->color_id."-".$item->talla_id.")");
+            (" . $item->producto_id . "-" . $item->color_id . "-" . $item->talla_id . ")");
         }
 
         return $item_bd[0];
     }
 
-    public static function getStockItem($item){
+    public static function getStockItem($item)
+    {
 
-        $item_bd    =   DB::select('select
+        $item_bd    =   DB::select(
+            'select
                         pct.stock
                         from producto_color_tallas as pct
                         where
@@ -60,16 +67,19 @@ class UtilidadesController extends Controller
                         and pct.color_id = ?
                         and pct.talla_id = ?
                         and pct.almacen_id = ?',
-                        [$item->producto_id,
-                        $item->color_id,
-                        $item->talla_id,
-                        $item->almacen_id]);
+            [
+                $item->producto_id,
+                $item->color_id,
+                $item->talla_id,
+                $item->almacen_id
+            ]
+        );
 
         return $item_bd[0]->stock;
-
     }
 
-    public static function guardarItemKardex($item){
+    public static function guardarItemKardex($item)
+    {
         $kardex                             =   new Kardex();
         $kardex->producto_id                =   $item->producto_id;
         $kardex->color_id                   =   $item->color_id;
@@ -94,32 +104,34 @@ class UtilidadesController extends Controller
     }
 
 
-    public static function restarStockItem($item,$cantidad){
+    public static function restarStockItem($item, $cantidad)
+    {
         ProductoColorTalla::where('producto_id', $item->producto_id)
-        ->where('color_id', $item->color_id)
-        ->where('talla_id', $item->talla_id)
-        ->where('almacen_id', $item->almacen_id)
-        ->update([
-            'stock'         =>  DB::raw("stock - $cantidad"),
-            'stock_logico'  =>  DB::raw("stock_logico - $cantidad"),
-            'estado'        =>  '1',
-        ]);
+            ->where('color_id', $item->color_id)
+            ->where('talla_id', $item->talla_id)
+            ->where('almacen_id', $item->almacen_id)
+            ->update([
+                'stock'         =>  DB::raw("stock - $cantidad"),
+                'stock_logico'  =>  DB::raw("stock_logico - $cantidad"),
+                'estado'        =>  '1',
+            ]);
     }
 
-    public static function sumarStockItem($item,$cantidad){
+    public static function sumarStockItem($item, $cantidad)
+    {
         ProductoColorTalla::where('producto_id', $item->producto_id)
-        ->where('color_id', $item->color_id)
-        ->where('talla_id', $item->talla_id)
-        ->where('almacen_id', $item->almacen_id)
-        ->update([
-            'stock'         =>  DB::raw("stock + $cantidad"),
-            'stock_logico'  =>  DB::raw("stock_logico + $cantidad"),
-            'estado'        =>  '1',
-        ]);
+            ->where('color_id', $item->color_id)
+            ->where('talla_id', $item->talla_id)
+            ->where('almacen_id', $item->almacen_id)
+            ->update([
+                'stock'         =>  DB::raw("stock + $cantidad"),
+                'stock_logico'  =>  DB::raw("stock_logico + $cantidad"),
+                'estado'        =>  '1',
+            ]);
     }
 
 
-/*
+    /*
 {#1540
   +"success": true
   +"data": {#1537
@@ -160,53 +172,52 @@ class UtilidadesController extends Controller
     {
 
         try {
-            $url = "https://apiperu.dev/api/dni/".$dni;
-            $client = new \GuzzleHttp\Client(['verify'=>false]);
+            $url = "https://apiperu.dev/api/dni/" . $dni;
+            $client = new \GuzzleHttp\Client(['verify' => false]);
             $token = 'c36358c49922c564f035d4dc2ff3492fbcfd31ee561866960f75b79f7d645d7d';
             $response = $client->get($url, [
                 'headers' => [
-                            'Content-Type' => 'application/json',
-                            'Accept' => 'application/json',
-                            'Authorization' => "Bearer {$token}"
-                        ]
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'Authorization' => "Bearer {$token}"
+                ]
             ]);
             $estado     =   $response->getStatusCode();
             $data       =   json_decode($response->getBody()->getContents());
 
 
-            return response()->json(['success'=>true,'data'=>$data]);
+            return response()->json(['success' => true, 'data' => $data]);
         } catch (Throwable $th) {
-            return response()->json(['success'=>false,'data'=>$th->getMessage()]);
+            return response()->json(['success' => false, 'data' => $th->getMessage()]);
         }
-
     }
 
     public static function apiRuc($ruc)
     {
 
         try {
-            $url = "https://apiperu.dev/api/ruc/".$ruc;
-            $client = new \GuzzleHttp\Client(['verify'=>false]);
+            $url = "https://apiperu.dev/api/ruc/" . $ruc;
+            $client = new \GuzzleHttp\Client(['verify' => false]);
             $token = 'c36358c49922c564f035d4dc2ff3492fbcfd31ee561866960f75b79f7d645d7d';
             $response = $client->get($url, [
                 'headers' => [
-                            'Content-Type' => 'application/json',
-                            'Accept' => 'application/json',
-                            'Authorization' => "Bearer {$token}"
-                        ]
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'Authorization' => "Bearer {$token}"
+                ]
             ]);
             $estado     =   $response->getStatusCode();
             $data       =   json_decode($response->getBody()->getContents());
 
 
-            return response()->json(['success'=>true,'data'=>$data]);
+            return response()->json(['success' => true, 'data' => $data]);
         } catch (\Throwable $th) {
-            return response()->json(['success'=>false,'data'=>$th->getMessage()]);
+            return response()->json(['success' => false, 'data' => $th->getMessage()]);
         }
-
     }
 
-    public static function convertNumeroLetras($monto){
+    public static function convertNumeroLetras($monto)
+    {
         $formatter          =   new NumeroALetras();
         $montoFormateado    =   number_format($monto, 2, '.', '');
         $partes             =   explode('.', $montoFormateado);
@@ -216,21 +227,22 @@ class UtilidadesController extends Controller
         return $legend;
     }
 
-    public static function formatearArrayDetalleObjetos($detalles){
-        $detalleFormateado=[];
+    public static function formatearArrayDetalleObjetos($detalles)
+    {
+        $detalleFormateado = [];
         $productosProcesados = [];
         foreach ($detalles as $detalle) {
-            $cod   =   $detalle->producto_id.'-'.$detalle->color_id;
+            $cod   =   $detalle->producto_id . '-' . $detalle->color_id;
             if (!in_array($cod, $productosProcesados)) {
-                $producto=[];
+                $producto = [];
                 //======== obteniendo todas las detalle talla de ese producto_color =================
                 $producto_color_tallas = $detalles->filter(function ($detalleFiltro) use ($detalle) {
                     return $detalleFiltro->producto_id == $detalle->producto_id && $detalleFiltro->color_id == $detalle->color_id;
                 });
 
-                $producto_nombre    =   $detalle->producto_nombre?$detalle->producto_nombre:Producto::find($detalle->producto_id)->nombre;
-                $color_nombre       =   $detalle->color_nombre?$detalle->color_nombre:Color::find($detalle->color_id)->descripcion;
-                $modelo_nombre      =   $detalle->color_nombre?$detalle->color_nombre:Modelo::find(Producto::find($detalle->producto_id)->modelo_id)->descripcion;
+                $producto_nombre    =   $detalle->producto_nombre ? $detalle->producto_nombre : Producto::find($detalle->producto_id)->nombre;
+                $color_nombre       =   $detalle->color_nombre ? $detalle->color_nombre : Color::find($detalle->color_id)->descripcion;
+                $modelo_nombre      =   $detalle->color_nombre ? $detalle->color_nombre : Modelo::find(Producto::find($detalle->producto_id)->modelo_id)->descripcion;
 
                 $producto['producto_codigo']        =   $detalle->producto_codigo;
                 $producto['producto_id']            =   $detalle->producto_id;
@@ -248,42 +260,43 @@ class UtilidadesController extends Controller
                 $tallas             =   [];
                 $subtotal           =   0.0;
                 $subtotal_with_desc =   0.0;
-                $cantidadTotal=0;
+                $cantidadTotal = 0;
                 foreach ($producto_color_tallas as $producto_color_talla) {
-                    $talla=[];
+                    $talla = [];
                     $talla['talla_id']              =   $producto_color_talla->talla_id;
 
 
                     $talla['cantidad']              =   $producto_color_talla->cantidad;
-                    $subtotal                       +=  $talla['cantidad']*$producto['precio_unitario_nuevo'];
+                    $subtotal                       +=  $talla['cantidad'] * $producto['precio_unitario_nuevo'];
                     $cantidadTotal                  +=  $talla['cantidad'];
 
-                    $talla_nombre                   =   $producto_color_talla->talla_nombre?$producto_color_talla->talla_nombre:Talla::find($producto_color_talla->talla_id)->descripcion;
+                    $talla_nombre                   =   $producto_color_talla->talla_nombre ? $producto_color_talla->talla_nombre : Talla::find($producto_color_talla->talla_id)->descripcion;
                     $talla['talla_nombre']          =   $talla_nombre;
 
-                   array_push($tallas,(object)$talla);
+                    array_push($tallas, (object)$talla);
                 }
 
                 $producto['tallas']                 =   $tallas;
                 $producto['subtotal']               =   $subtotal;
                 $producto['cantidad_total']         =   $cantidadTotal;
-                array_push($detalleFormateado,(object)$producto);
-                $productosProcesados[] = $detalle->producto_id.'-'.$detalle->color_id;
+                array_push($detalleFormateado, (object)$producto);
+                $productosProcesados[] = $detalle->producto_id . '-' . $detalle->color_id;
             }
         }
         return $detalleFormateado;
     }
 
 
-    public static function formatearArrayDetalle($detalles){
+    public static function formatearArrayDetalle($detalles)
+    {
 
-        $detalleFormateado=[];
+        $detalleFormateado = [];
         $productosProcesados = [];
         foreach ($detalles as $detalle) {
 
-            $cod   =   $detalle->producto_id.'-'.$detalle->color_id;
+            $cod   =   $detalle->producto_id . '-' . $detalle->color_id;
             if (!in_array($cod, $productosProcesados)) {
-                $producto=[];
+                $producto = [];
 
                 //======== obteniendo todas las detalle talla de ese producto_color =================
                 $producto_color_tallas = $detalles->filter(function ($detalleFiltro) use ($detalle) {
@@ -296,33 +309,33 @@ class UtilidadesController extends Controller
 
                 $producto['producto_id']        = $detalle->producto_id;
                 $producto['color_id']           = $detalle->color_id;
-                $producto['producto_nombre']    = $detalle->producto_nombre?$detalle->producto_nombre:$productoBD->nombre;
-                $producto['color_nombre']       = $detalle->color_nombre?$detalle->color_nombre:$colorBD->descripcion;
+                $producto['producto_nombre']    = $detalle->producto_nombre ? $detalle->producto_nombre : $productoBD->nombre;
+                $producto['color_nombre']       = $detalle->color_nombre ? $detalle->color_nombre : $colorBD->descripcion;
 
 
-                $tallas=[];
-                $subtotal=0.0;
-                $cantidadTotal=0;
+                $tallas = [];
+                $subtotal = 0.0;
+                $cantidadTotal = 0;
                 foreach ($producto_color_tallas as $producto_color_talla) {
-                    $talla=[];
+                    $talla = [];
                     $talla['talla_id']      =   $producto_color_talla->talla_id;
                     $talla['cantidad']      =   (int)$producto_color_talla->cantidad;
-                    $talla['talla_nombre']  =   $producto_color_talla->talla_nombre?$producto_color_talla->talla_nombre:$tallaBD->descripcion;
+                    $talla['talla_nombre']  =   $producto_color_talla->talla_nombre ? $producto_color_talla->talla_nombre : $tallaBD->descripcion;
                     $cantidadTotal          +=  $talla['cantidad'];
-                   array_push($tallas,$talla);
+                    array_push($tallas, $talla);
                 }
 
-                $producto['tallas']=$tallas;
-                $producto['subtotal']=$subtotal;
-                $producto['cantidad_total']=$cantidadTotal;
-                array_push($detalleFormateado,$producto);
-                $productosProcesados[] = $detalle->producto_id.'-'.$detalle->color_id;
+                $producto['tallas'] = $tallas;
+                $producto['subtotal'] = $subtotal;
+                $producto['cantidad_total'] = $cantidadTotal;
+                array_push($detalleFormateado, $producto);
+                $productosProcesados[] = $detalle->producto_id . '-' . $detalle->color_id;
             }
         }
         return $detalleFormateado;
     }
 
-     public function getCuentasPorMetodoPago(int $metodo_pago)
+    public function getCuentasPorMetodoPago(int $metodo_pago)
     {
         try {
             $cuentas    =   DB::select('SELECT
@@ -337,12 +350,70 @@ class UtilidadesController extends Controller
                             INNER JOIN tipos_pago as tp on tp.id = tpc.tipo_pago_id
                             WHERE c.estado = "ACTIVO"
                             AND tp.estado = "ACTIVO"
-                            and tpc.tipo_pago_id = ?',[$metodo_pago]);
+                            and tpc.tipo_pago_id = ?', [$metodo_pago]);
 
-            return response()->json(['success'=>true,'message'=>'CUENTAS OBTENIDAS','data'=>$cuentas]);
+            return response()->json(['success' => true, 'message' => 'CUENTAS OBTENIDAS', 'data' => $cuentas]);
         } catch (Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
 
+    public static function getCuentas()
+    {
+        $cuentas    =   DB::select('SELECT
+                            c.nro_cuenta,
+                            c.celular,
+                            c.banco_nombre,
+                            tpc.tipo_pago_id,
+                            tpc.cuenta_id,
+                            CONCAT(c.banco_nombre, " - ", c.nro_cuenta, " - ", c.celular) AS cuentaLabel
+                            FROM tipo_pago_cuentas as tpc
+                            INNER JOIN cuentas as c on c.id = tpc.cuenta_id
+                            INNER JOIN tipos_pago as tp on tp.id = tpc.tipo_pago_id
+                            WHERE c.estado = "ACTIVO"
+                            AND tp.estado = "ACTIVO"');
+        return $cuentas;
+    }
+
+    public static function getOrigenesVentas()
+    {
+        $origenes_ventas    =   DB::select('SELECT
+                                    td.id,
+                                    td.descripcion
+                                    FROM tabladetalles AS td
+                                    WHERE
+                                    td.tabla_id="36"
+                                    AND td.estado="ACTIVO"');
+
+        return $origenes_ventas;
+    }
+
+    public static function getTiposPagoEnvio()
+    {
+        $tipos_pago_envio   =   DB::select('SELECT
+                                td.id,
+                                td.descripcion
+                                FROM tabladetalles AS td
+                                WHERE td.tabla_id="37"
+                                AND td.estado="ACTIVO" ');
+        return $tipos_pago_envio;
+    }
+
+    public static function getTiposEnvio()
+    {
+        $tipos_envio    =   DB::select('SELECT
+                            td.id,td.descripcion
+                            FROM tablas AS t
+                            INNER JOIN tabladetalles AS td ON t.id=td.tabla_id
+                            WHERE t.id=35
+                            AND td.estado="ACTIVO"');
+
+        return $tipos_envio;
+    }
+
+    public static function getTiposDocumento()
+    {
+        $tipos_documento = tipos_documento();
+        return $tipos_documento;
+    }
 }

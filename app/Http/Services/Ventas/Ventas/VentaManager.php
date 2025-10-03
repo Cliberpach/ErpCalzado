@@ -20,6 +20,10 @@ class VentaManager
         $this->s_venta->storePago($datos);
     }
 
+    public function getVoucherPdf(int $id,int $size):array{
+        return $this->s_venta->getVoucherPdf($id,$size);
+    }
+
     public function update(array $datos,int $id):Documento{
         return $this->s_venta->update($datos,$id);
     }

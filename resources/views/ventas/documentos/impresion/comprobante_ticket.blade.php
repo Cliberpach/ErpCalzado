@@ -295,9 +295,10 @@
                             {{ 1 }}</td>
                         <td style="text-align: left">NIU</td>
                         <td style="text-align: left">
-                            {{ 'ANTICIPO: FACTURA NRO. '.$documento->anticipo_consumido_serie.'-'.$documento->anticipo_consumido_correlativo }}
+                            {{ 'ANTICIPO: FACTURA NRO. ' . $documento->anticipo_consumido_serie . '-' . $documento->anticipo_consumido_correlativo }}
                         </td>
-                        <td style="text-align: left">{{ number_format($documento->anticipo_monto_consumido * -1, 2) }}</td>
+                        <td style="text-align: left">{{ number_format($documento->anticipo_monto_consumido * -1, 2) }}
+                        </td>
                         <td style="text-align: right">
                             {{ number_format($documento->anticipo_monto_consumido * -1, 2) }}
                         </td>
@@ -374,6 +375,82 @@
         </table>
         <br>
         <p class="p-0 m-0 text-uppercase text-cuerpo">{{ $documento->legenda }}</b></p>
+        <br>
+        @if ($documento->tipo_pago_nombre != 'EFECTIVO' && $documento->estado_pago == 'PAGADA')
+            <br>
+            <div class="informacion">
+                <table class="tbl-informacion">
+                    <tr>
+                        <td>FORMA PAGO</td>
+                        <td>:</td>
+                        <td class="text-uppercase">{{ $documento->pago_1_tipo_pago_nombre }}</td>
+                    </tr>
+                    <tr>
+                        <td>N° OPERACION</td>
+                        <td>:</td>
+                        <td class="text-uppercase">{{ $documento->pago_1_nro_operacion }}</td>
+                    </tr>
+                    <tr>
+                        <td>FECHA DE PAGO</td>
+                        <td>:</td>
+                        <td class="text-uppercase">{{ $documento->pago_1_fecha_operacion }}</td>
+                    </tr>
+                    <tr>
+                        <td>HORA DE PAGO</td>
+                        <td>:</td>
+                        <td class="text-uppercase">{{ $documento->pago_1_hora_operacion }}</td>
+                    </tr>
+                </table>
+            </div>
+        @endif
+        <br>
+        <div class="informacion">
+            @if ($despacho)
+                <table class="tbl-informacion">
+                    <tr>
+                        <td>AGENCIA</td>
+                        <td>:</td>
+                        <td class="text-uppercase">{{ $despacho->empresa_envio_nombre }}</td>
+                    </tr>
+                    <tr>
+                        <td>SEDE</td>
+                        <td>:</td>
+                        <td class="text-uppercase">{{ $despacho->sede_envio_nombre }}</td>
+                    </tr>
+                    <tr>
+                        <td>DIRECCIÓN</td>
+                        <td>:</td>
+                        <td class="text-uppercase">{{ $despacho->direccion_entrega }}</td>
+                    </tr>
+                    <tr>
+                        <td>DISTRITO</td>
+                        <td>:</td>
+                        <td class="text-uppercase">{{ $despacho->distrito }}</td>
+                    </tr>
+                    <tr>
+                        <td>PROVINCIA</td>
+                        <td>:</td>
+                        <td class="text-uppercase">{{ $despacho->provincia }}</td>
+                    </tr>
+                    <tr>
+                        <td>DEPARTAMENTO</td>
+                        <td>:</td>
+                        <td class="text-uppercase">{{ $despacho->departamento }}</td>
+                    </tr>
+                    <tr>
+                        <td>DESTINATARIO NOMBRE</td>
+                        <td>:</td>
+                        <td class="text-uppercase">{{ $despacho->destinatario_nombre }}</td>
+                    </tr>
+                    <tr>
+                        <td>DESTINATARIO DOC</td>
+                        <td>:</td>
+                        <td class="text-uppercase">
+                            {{ $despacho->destinatario_tipo_doc . '-' . $despacho->destinatario_nro_doc }}</td>
+                    </tr>
+                </table>
+            @endif
+        </div>
         <br>
         @if ($mostrar_cuentas === 'SI')
             <table class="tbl-qr">

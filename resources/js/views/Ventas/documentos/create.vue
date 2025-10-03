@@ -145,7 +145,7 @@
 
         <EditarItemVue :visible="modalVisible" :title="modalTitle" :tallas="initData.tallas"
             :tallasProducto="tallasProductoEdit" :productoEditar="productoEditar" :detalleVenta="productos_tabla"
-            @close="closeModal">
+            @update-producto="actualizarProducto" @close="closeModal">
         </EditarItemVue>
 
         <div class="overlay_venta">
@@ -309,10 +309,10 @@
                             <hr>
 
                             <TablaProductos @addProductoDetalle="addProductoDetalle" @addDataEnvio="addDataEnvio"
-                                @borrarDataEnvio="borrarDataEnvio" :fullaccessTable="FullaccessTable"
-                                :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto"
-                                :parametros="paramsLotes" :modelos="initData.modelos" :categorias="initData.categorias"
-                                :marcas="initData.marcas" :tallas="initData.tallas"
+                                @actualizarMontoPago="actualizarMontoPago" @borrarDataEnvio="borrarDataEnvio"
+                                :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion"
+                                :btnDisabled="disabledBtnProducto" :parametros="paramsLotes" :modelos="initData.modelos"
+                                :categorias="initData.categorias" :marcas="initData.marcas" :tallas="initData.tallas"
                                 :precio_envio="formCreate.precio_envio" :precio_despacho="formCreate.precio_despacho"
                                 :cliente="cliente_id" :almacenSeleccionado="almacenSeleccionado" ref="tablaProductos" />
 
@@ -671,7 +671,7 @@ export default {
             if (value) {
                 this.formCreate.cliente_id = value.id;
                 this.disabledBtnProducto = false;
-                this.formCreate.telefono    =   value.telefono_movil;
+                this.formCreate.telefono = value.telefono_movil;
             } else {
                 this.formCreate.cliente_id = null;
                 this.disabledBtnProducto = true;
@@ -689,8 +689,9 @@ export default {
             }
         })
 
+        this.metodoPagoId = 3;
+        this.fechaOperacionPago = new Date().toISOString().split('T')[0];
         window.addEventListener("beforeunload", this.handleBeforeUnload);
-
 
         this.formCreate.fecha_documento_campo = this.$fechaActual;
         this.formCreate.fecha_atencion_campo = this.$fechaActual;
@@ -705,6 +706,12 @@ export default {
 
     },
     methods: {
+        actualizarProducto(productoEditado) {
+            this.$refs.tablaProductos.actualizarItemCarrito(productoEditado);
+        },
+        actualizarMontoPago(valor) {
+            this.montoPago = valor;
+        },
         borrarDataEnvio() {
             this.formCreate.data_envio = null;
         },
@@ -780,12 +787,10 @@ export default {
         handleBeforeUnload(event) {
             this.$refs.tablaProductos?.devolverCantidades();
         },
-        openModal(producto) {
-            console.log('edit', producto.producto_nombre);
+        openMdlEditItem(producto) {
             this.modalVisible = true;
-            this.modalTitle = `EDITAR: ${producto.producto_nombre}-${producto.color_nombre}`;
             this.tallasProductoEdit = producto.tallas;
-            this.productoEditar = { producto_id: producto.producto_id, color_id: producto.color_id };
+            this.productoEditar = producto;
         },
         closeModal() {
             this.modalVisible = false;

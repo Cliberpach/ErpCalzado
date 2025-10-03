@@ -297,8 +297,8 @@
         const nombres           =   data.nombres;
         const apellidos         =   `${data.apellido_paterno} ${data.apellido_materno}`;
 
-        document.querySelector('#nombre').value         =   nombres;
-        document.querySelector('#apellido').value       =   apellidos;
+        document.querySelector('#nombres').value         =   nombres;
+        document.querySelector('#apellidos').value       =   apellidos;
 
     }
 

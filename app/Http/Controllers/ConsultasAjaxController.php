@@ -50,13 +50,13 @@ class ConsultasAjaxController extends Controller
             $_tipo_envio    =   Detalle::findOrFail($tipo_envio);
 
             $empresas_envio =   DB::select(
-                'SELECT
+                                    'SELECT
                                                     ee.*
                                                     FROM empresas_envio AS ee
                                                     WHERE ee.tipo_envio=?
                                                     AND ee.estado="ACTIVO"',
-                [$_tipo_envio->descripcion]
-            );
+                                    [$_tipo_envio->descripcion]
+                                );
 
             return response()->json(['success' => true, 'empresas_envio' => $empresas_envio]);
         } catch (Throwable $th) {

@@ -338,7 +338,7 @@
                                         <td class="text-center">
                                             <div class='btn-group'>
                                                 <button type="button" class='btn btn-sm btn-warning btn-edit'
-                                                    style='color:white' @click.prevent="openModal(item)">
+                                                    style='color:white' @click.prevent="openMdlEditItem(item)">
                                                     <i class='fa fa-edit'></i>
                                                 </button>
                                                 <button type="button" class='btn btn-sm btn-danger btn-delete'
@@ -355,9 +355,24 @@
                                         <td v-for="t in tallas">
                                             <p style="font-weight: bold;">{{ printTallaDetalle(t.id, item) }}</p>
                                         </td>
-                                        <td>{{ item.porcentaje_descuento != 0 ? item.precio_venta_nuevo :
-                                            item.precio_venta }}</td>
-                                        <td>{{ item.porcentaje_descuento != 0 ? item.subtotal_nuevo : item.subtotal }}
+                                        <td>
+                                            <div v-if="item.precio_venta !== item.precio_venta_nuevo">
+                                                <del style="color: gray;">{{ item.precio_venta.toFixed(2) }}</del><br>
+                                                <strong>{{ item.precio_venta_nuevo.toFixed(2) }}</strong>
+                                            </div>
+                                            <div v-else>
+                                                {{ item.precio_venta_nuevo.toFixed(2) }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div v-if="Number(item.subtotal) !== Number(item.subtotal_nuevo)">
+                                                <del style="color: gray;">{{ Number(item.subtotal).toFixed(2)
+                                                }}</del><br>
+                                                <strong>{{ Number(item.subtotal_nuevo).toFixed(2) }}</strong>
+                                            </div>
+                                            <div v-else>
+                                                {{ Number(item.subtotal_nuevo).toFixed(2) }}
+                                            </div>
                                         </td>
                                         <td>
                                             <input @input="validarDescuento(item.producto_id, item.color_id, $event)"
@@ -576,7 +591,12 @@ export default {
         }
     },
     watch: {
-
+        monto_total_pagar: {
+            handler(value) {
+                this.$emit('actualizarMontoPago', value);
+            },
+            deep: true
+        },
         monto_envio: {
             handler(value) {
                 let valor = value;
@@ -763,6 +783,21 @@ export default {
 
     },
     methods: {
+        actualizarItemCarrito(productoEditado) {
+            const indexProducto = this.carrito.findIndex((c) => {
+                return c.producto_id == productoEditado.producto_id && c.color_id == productoEditado.color_id;
+            })
+            if (indexProducto === -1) {
+                toastr.error('ERROR AL ACTUALIZAR PRODUCTO');
+                return;
+            }
+            if (productoEditado.tallas.length === 0) {
+                this.carrito.splice(indexProducto, 1);
+            } else {
+                this.$set(this.carrito, indexProducto, productoEditado);
+            }
+            this.calcularMontos();
+        },
         borrarDataEnvio() {
             this.$emit('borrarDataEnvio');
             this.hayDatosEnvio = false;
@@ -814,8 +849,8 @@ export default {
             }
 
         },
-        openModal(producto) {
-            this.$parent.openModal(producto);
+        openMdlEditItem(producto) {
+            this.$parent.openMdlEditItem(producto);
         },
         closeModal() {
             this.$parent.closeModal(producto);
@@ -877,16 +912,14 @@ export default {
 
             //===== APLICANDO DESCUENTO ======
             producto_color_editar.porcentaje_descuento = porcentaje_descuento;
-            producto_color_editar.monto_descuento = porcentaje_descuento === 0 ? 0 : producto_color_editar.subtotal * (porcentaje_descuento / 100);
-            producto_color_editar.precio_venta_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar.precio_venta * (1 - porcentaje_descuento / 100)).toFixed(2);
-            producto_color_editar.subtotal_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar.subtotal * (1 - porcentaje_descuento / 100)).toFixed(2);
+            producto_color_editar.monto_descuento = producto_color_editar.subtotal * (porcentaje_descuento / 100);
+            producto_color_editar.precio_venta_nuevo = (producto_color_editar.precio_venta * (1 - porcentaje_descuento / 100));
+            producto_color_editar.subtotal_nuevo = (producto_color_editar.subtotal * (1 - porcentaje_descuento / 100));
 
             this.carrito[indiceProductoColor] = producto_color_editar;
 
             //==== RECALCULANDO MONTOS ====
             this.calcularMontos();
-
-            console.log(this.carrito);
 
         },
         async eliminarCarrito() {
@@ -1050,7 +1083,6 @@ export default {
                     return;
                 }
 
-
                 //======== ACTIVAR LA DEVOLUCIÓN DE STOCK ======
                 this.asegurarCierre = 1;
                 toastr.success(res_actualizar_stock.data.message, 'OPERACIÓN COMPLETADA');
@@ -1074,7 +1106,6 @@ export default {
                 })
 
                 console.log('CARRITO', this.carrito);
-
 
             } catch (error) {
                 toastr.error(error, 'ERROR AL AGREGAR PRODUCTO!!!');
@@ -1106,7 +1137,7 @@ export default {
 
                 //========= REVIZAR SI EXISTE EL PRODUCTO COLOR EN EL CARRITO ======
                 const indiceExiste = this.carrito.findIndex(p => p.producto_id == producto.producto_id && p.color_id == producto.color_id);
-                console.log('existe carrito', indiceExiste);
+
                 //======= EN CASO EL PRODUCTO COLOR SEA NUEVO ======
                 if (indiceExiste == -1) {
 
@@ -1119,7 +1150,7 @@ export default {
                         precio_venta: producto.precio_venta,
                         monto_descuento: 0,
                         porcentaje_descuento: 0,
-                        precio_venta_nuevo: 0,
+                        precio_venta_nuevo: producto.precio_venta,
                         subtotal_nuevo: 0,
                         tallas: [{
                             talla_id: producto.talla_id,
@@ -1134,6 +1165,7 @@ export default {
                     //======== PRODUCTO COLOR EXISTE =========
                     const productoModificar = this.carrito[indiceExiste];
                     productoModificar.precio_venta = producto.precio_venta;
+                    productoModificar.precio_venta_nuevo = producto.precio_venta;
 
                     //===== PREGUNTANDO SI EXISTE LA TALLA EN EL CARRITO ======
                     const indexTalla = productoModificar.tallas.findIndex(t => t.talla_id == producto.talla_id);
@@ -1147,9 +1179,7 @@ export default {
                             cantidad: producto.cantidad
                         };
 
-                        console.log(`${productoModificar.producto_nombre} - ${productoModificar.color_nombre}`);
                         this.carrito[indiceExiste].tallas.push(objTallaProduct);
-                        console.log(this.carrito);
 
                     }
                 }
@@ -1227,12 +1257,12 @@ export default {
             const color_nombre = ic.getAttribute('data-color-nombre');
             const talla_id = ic.getAttribute('data-talla-id');
             const talla_nombre = ic.getAttribute('data-talla-nombre');
-            const precio_venta = this.precioVentaSeleccionado;
+            const precio_venta = parseFloat(this.precioVentaSeleccionado);
             const cantidad = ic.value ? ic.value : 0;
 
             const monto_descuento = 0.0;
             const porcentaje_descuento = 0.0;
-            const precio_venta_nuevo = 0.0;
+            const precio_venta_nuevo = parseFloat(this.precioVentaSeleccionado);
             const subtotal_nuevo = 0.0;
 
             const producto = {
@@ -1504,7 +1534,7 @@ export default {
                         this.calcularDescuento(c.producto_id, c.color_id, c.porcentaje_descuento);
                     })
 
-
+                    console.log('carrito',this.carrito);
                     toastr.info('AGREGADO AL DETALLE!!!', `${res.data.producto.producto_nombre} - ${res.data.producto.color_nombre} - ${res.data.producto.talla_nombre}
                                 PRECIO: ${res.data.producto.precio_venta}`, { timeOut: 0 });
 

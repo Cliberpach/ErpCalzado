@@ -7,7 +7,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+            <div class="modal-body">
                 <form id="frmEnvio" class="formulario">
                     <div class="row mb-3">
                         <div class="col-12 col-md-12">
@@ -24,8 +24,8 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-3 col-md-3">
-                            <label class="required" for="departamento">Departamento</label>
-                            <select class="select2_mdl_envio" name="departamento" id="departamento"
+                            <label style="font-weight: bold;" class="required" for="departamento">DEPARTAMENTO</label>
+                            <select class="" name="departamento" id="departamento"
                                 onchange="setUbicacionDepartamento(this.value,'first')">
                                 @foreach ($departamentos as $departamento)
                                     <option @if ($departamento->id == 13) selected @endif
@@ -34,21 +34,20 @@
                             </select>
                         </div>
                         <div class="col-3 col-md-3">
-                            <label class="required" for="provincia">Provincia</label>
-                            <select class="select2_mdl_envio form-control" name="provincia" id="provincia"
+                            <label style="font-weight: bold;" class="required" for="provincia">PROVINCIA</label>
+                            <select class="" name="provincia" id="provincia"
                                 onchange="setUbicacionProvincia(this.value,'first')">
                                 <option value="">Seleccionar</option>
                             </select>
                         </div>
                         <div class="col-3 col-md-3">
-                            <label class="required" for="distrito">Distrito</label>
-                            <select class="select2_mdl_envio form-control" name="distrito" id="distrito"
-                                onchange="setDistrito()">
+                            <label style="font-weight: bold;" class="required" for="distrito">DISTRITO</label>
+                            <select class="" name="distrito" id="distrito" onchange="setMdlDistrito()">
                                 <option value="">Seleccionar</option>
                             </select>
                         </div>
                         <div class="col-3 col-md-3">
-                            <label class="required" for="zona">Zona</label>
+                            <label class="required" style="font-weight: bold;" for="zona">ZONA</label>
                             <input type="text" id="zona" name="zona" class=" text-center form-control"
                                 readonly>
                         </div>
@@ -56,30 +55,36 @@
                     <div class="row mb-3">
                         <div class="col-4">
                             <label class="required" for="" style="font-weight: bold;">TIPO DE ENVÍO</label>
-                            <select name="tipo_envio" id="tipo_envio" class="form-control select2_mdl_envio"
+                            <select name="tipo_envio" id="tipo_envio" placeholder="Seleccionar"
                                 onchange="getEmpresasEnvio()">
-                                <option value="">Seleccionar</option>
+                                @foreach ($tipos_envio as $tipo_envio)
+                                    <option value="{{ $tipo_envio->id }}">{{ $tipo_envio->descripcion }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-4">
                             <label class="required" for="" style="font-weight: bold;">TIPO PAGO</label>
-                            <select name="tipo_pago_envio" id="tipo_pago_envio" class="form-control select2_mdl_envio">
-                                <option value="">Seleccionar</option>
+                            <select name="tipo_pago_envio" id="tipo_pago_envio" class="">
+                                @foreach ($tipos_pago_envio as $tipo_pago_envio)
+                                    <option value="{{ $tipo_pago_envio->id }}">{{ $tipo_pago_envio->descripcion }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
 
                     </div>
                     <div class="row mb-3">
                         <div class="col-4">
-                            <label class="required" for="vselectEmpresa" style="font-weight: bold;">EMPRESAS</label>
-                            <select name="empresa_envio" id="empresa_envio" class="form-control select2_mdl_envio"
+                            <label class="required" for="empresa_envio" style="font-weight: bold;">EMPRESAS</label>
+                            <select required name="empresa_envio" id="empresa_envio" placeholder="Seleccionar"
                                 onchange="getSedesEnvio()">
                                 <option value="">Seleccionar</option>
                             </select>
                         </div>
                         <div class="col-6">
                             <label class="required" for="" style="font-weight: bold;">SEDES</label>
-                            <select name="sede_envio" id="sede_envio" class="form-control select2_mdl_envio">
+                            <select required name="sede_envio" id="sede_envio" class="" placeholder="Seleccionar">
                             </select>
                         </div>
                     </div>
@@ -107,7 +112,7 @@
                         <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
                             <label class="required" for="origen_venta" style="font-weight: bold;">ORIGEN
                                 VENTA</label>
-                            <select name="origen_venta" id="origen_venta" class="form-control select2_mdl_envio">
+                            <select name="origen_venta" id="origen_venta" class="">
                                 @foreach ($origenes_ventas as $origen_venta)
                                     <option value="{{ $origen_venta->id }}">{{ $origen_venta->descripcion }}</option>
                                 @endforeach
@@ -124,7 +129,7 @@
                         </div>
                         <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
                             <label for="observaciones" style="font-weight: bold;">OBS DESPACHO</label>
-                            <textarea id="obs-despacho" name="obs-rotulo" class="form-control"></textarea>
+                            <textarea id="obs-despacho" name="obs-despacho" class="form-control"></textarea>
                         </div>
                     </div>
                     <hr>
@@ -132,9 +137,14 @@
                     <div class="row">
                         <div class="col-3">
                             <label class="required" for="tipo_doc_destinatario">TIPO DOCUMENTO</label>
-                            <select onchange="cambiarTipoDocDest(this.value)" class="form "
-                                name="tipo_doc_destinatario" id="tipo_doc_destinatario">
-
+                            <select onchange="cambiarTipoDocDest(this.value)" class=""
+                                name="tipo_doc_destinatario" id="tipo_doc_destinatario" placeholder="Seleccionar">
+                                @foreach ($tipos_documento as $tipo_documento)
+                                    @if ($tipo_documento->id == 6 || $tipo_documento->id == 7)
+                                        <option value="{{ $tipo_documento->id }}">{{ $tipo_documento->simbolo }}
+                                        </option>
+                                    @endif
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-4">
@@ -146,7 +156,7 @@
                                     required>
 
                                 <span class="input-group-append" id="btn-consultar-dni">
-                                    <button type="button" style="color:white" class="btn btn-primary"
+                                    <button type="button" style="color:white" class="btn btn-success"
                                         onclick="consultarDocumento()">
                                         <i class="fa fa-search"></i>
                                         <span id="entidad"> CONSULTAR</span>
@@ -163,7 +173,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                <button type="submit" form="frmEnvio" class="btn btn-primary">Guardar</button>
+                <button type="submit" form="frmEnvio" class="btn btn-success">Guardar</button>
             </div>
         </div>
     </div>
@@ -172,26 +182,85 @@
 <script>
     function eventsModalEnvio() {
 
+        //setUbicacionDepartamento(13, 'first');
         document.querySelector('#frmEnvio').addEventListener('submit', (e) => {
             e.preventDefault();
-            guardarEnvio();
+            guardarEnvio(e.target);
         });
 
-        $('#modal_envio').on('shown.bs.modal', async function() {
+    }
 
-            $('.select2_mdl_envio').select2({
-                placeholder: 'SELECCIONAR',
-                allowClear: true,
-                width: '100%',
-            });
+    function iniciarSelectsMdlEnvio() {
+        window.departamentoSelect = new TomSelect("#departamento", {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
 
-            setUbicacionDepartamento(13, 'first');
-            await getTipoEnvios();
-            await getTiposPagoEnvio();
-            await getTipoDocumento();
+        window.provinciaSelect = new TomSelect("#provincia", {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
 
-            //const tipo_envio = $("#tipo_envio").select2('data')[0].text;
-            // await getEmpresasEnvio(tipo_envio);
+        window.distritoSelect = new TomSelect("#distrito", {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
+
+        window.tipoEnvioSelect = new TomSelect("#tipo_envio", {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
+
+        window.tipoPagoEnvioSelect = new TomSelect("#tipo_pago_envio", {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
+
+        window.empresaEnvioSelect = new TomSelect("#empresa_envio", {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
+
+        window.sedeEnvioSelect = new TomSelect("#sede_envio", {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
+
+        window.origenVentaSelect = new TomSelect("#origen_venta", {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
+
+        window.tipoDocDestinatarioSelect = new TomSelect("#tipo_doc_destinatario", {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
         });
     }
 
@@ -199,11 +268,15 @@
     async function setUbicacionDepartamento(dep_id, provincia_id) {
 
         //====== LIMPIAR SEDES =======
-        $('#sede_envio').empty();
-        $('#sede_envio').val(null).trigger('change');
+        if (window.sedeEnvioSelect) {
+            window.sedeEnvioSelect.clear(); // Limpia selección
+            window.sedeEnvioSelect.clearOptions(); // Limpia opciones
+        }
 
-        //====== DESELECCIONAR EMPRESAS ENVIO ======
-        $('#empresa_envio').val(null).trigger('change');
+        //====== DESELECCIONAR EMPRESAS ENVÍO ======
+        if (window.empresaEnvioSelect) {
+            window.empresaEnvioSelect.clear(); // Solo limpia selección
+        }
 
         if (dep_id) {
             const departamento_id = dep_id;
@@ -215,43 +288,66 @@
         } else {
             //======= SI DEPARTAMENTO ES NULL ========
             //======= LIMPIAR PROVINCIAS ======
-            $('#provincia').empty();
-            $('#provincia').val(null).trigger('change');
+            if (window.provinciaSelect) {
+                window.provinciaSelect.destroy();
+            }
+            document.querySelector('#provincia').innerHTML = '';
+            window.provinciaSelect = new TomSelect('#provincia', {
+                options: [], // sin opciones por ahora
+                placeholder: 'SELECCIONAR',
+                allowEmptyOption: true
+            });
 
             //======== LIMPIAR DISTRITOS ======
-            $('#distrito').empty();
-            $('#distrito').val(null).trigger('change');
+            if (window.distritoSelect) {
+                window.distritoSelect.destroy();
+            }
+            document.querySelector('#distrito').innerHTML = '';
+            window.distritoSelect = new TomSelect('#distrito', {
+                options: [],
+                placeholder: 'SELECCIONAR',
+                allowEmptyOption: true
+            });
         }
 
     }
 
     async function setUbicacionProvincia(prov_id, distrito_id) {
         //====== LIMPIAR SEDES =======
-        $('#sede_envio').empty();
-        $('#sede_envio').val(null).trigger('change');
+        if (window.sedeEnvioSelect) {
+            window.sedeEnvioSelect.clear(); // Quitar selección
+            window.sedeEnvioSelect.clearOptions(); // Quitar opciones
+        }
 
-        //====== DESELECCIONAR EMPRESAS ENVIO ======
-        $('#empresa_envio').val(null).trigger('change');
+        //====== DESELECCIONAR EMPRESAS ENVÍO ======
+        if (window.empresaEnvioSelect) {
+            window.empresaEnvioSelect.clear();
+        }
 
         if (prov_id) {
             const provincia_id = prov_id;
             const distritos = await getDistritos(provincia_id);
-            pintarDistritos(distritos, distrito_id);
+            pintarDistritos(distritos, distrito_id); // Esta función también debe estar adaptada a Tom Select
         } else {
             //======= SI PROVINCIA ES NULL ========
-            //======== LIMPIAR DISTRITOS ======
-            $('#distrito').empty();
-            $('#distrito').val(null).trigger('change');
+            if (window.distritoSelect) {
+                window.distritoSelect.clear();
+                window.distritoSelect.clearOptions();
+            }
         }
     }
 
-    function setDistrito() {
+    function setMdlDistrito() {
         //====== LIMPIAR SEDES =======
-        $('#sede_envio').empty();
-        $('#sede_envio').val(null).trigger('change');
+        if (window.sedeEnvioSelect) {
+            window.sedeEnvioSelect.clear(); // Quitar selección
+            window.sedeEnvioSelect.clearOptions(); // Quitar todas las opciones
+        }
 
-        //====== DESELECCIONAR EMPRESAS ENVIO ======
-        $('#empresa_envio').val(null).trigger('change');
+        //====== DESELECCIONAR EMPRESAS ENVÍO ======
+        if (window.empresaEnvioSelect) {
+            window.empresaEnvioSelect.clear();
+        }
     }
 
     function getZona(departamento_id) {
@@ -290,13 +386,13 @@
             } = await this.axios.post(route('mantenimiento.ubigeo.provincias'), {
                 departamento_id
             });
+
             const {
                 error,
                 message,
                 provincias
             } = data;
-            // this.Provincias = provincias;
-            // this.loadingProvincias = true;
+
             return provincias;
         } catch (ex) {
 
@@ -307,24 +403,35 @@
 
     //======== pintar provincias =========
     function pintarProvincias(provincias, provincia_id) {
-        let options = ``;
-        const selectProvincia = document.querySelector('#provincia');
-
-        provincias.forEach((provincia) => {
-            options += `
-                <option ${provincia.id == provincia_id? 'selected':''} value="${provincia.id}">${provincia.text}</option>
-            `
-        })
-
-        selectProvincia.innerHTML = options;
-
-        //====== seleccionar primera opción =======
-        if (provincia_id == 'first') {
-            $(selectProvincia).val($(selectProvincia).find('option').first().val()).trigger('change.select2');
-        } else {
-            $("#provincia").val(provincia_id).trigger("change.select2");
+        if (window.provinciaSelect) {
+            window.provinciaSelect.destroy();
         }
+
+        let data = provincias.map(provincia => ({
+            value: provincia.id,
+            text: provincia.text
+        }));
+
+        window.provinciaSelect = new TomSelect("#provincia", {
+            options: data,
+            placeholder: "SELECCIONAR",
+            allowEmptyOption: true,
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
+
+        if (provincia_id === 'first' && data.length > 0) {
+            provinciaSelect.setValue(data[0].value);
+        } else if (provincia_id) {
+            provinciaSelect.setValue(provincia_id);
+        }
+
+        $(document).trigger("provinciasCargadas");
     }
+
 
     //====== PINTAR DISTRITOS ========
     async function getDistritos(provincia_id, distrito_id) {
@@ -339,8 +446,6 @@
                 message,
                 distritos
             } = data;
-            // this.Distritos = distritos;
-            // this.loadingDistritos = true;
             return distritos;
         } catch (ex) {
 
@@ -349,109 +454,45 @@
 
     //======== PINTAR DISTRITOS =========
     function pintarDistritos(distritos, distrito_id) {
-        let options = ``;
-        const selectDistrito = document.querySelector('#distrito');
-
-        distritos.forEach((distrito) => {
-            options += `
-                <option value="${distrito.id}">${distrito.text}</option>
-            `
-        })
-
-        selectDistrito.innerHTML = options;
-        if (distrito_id == 'first') {
-            //====== seleccionar primera opción =======
-            $(selectDistrito).val($(selectDistrito).find('option').first().val()).trigger('change.select2');
-        } else {
-            $("#distrito").val(distrito_id).trigger("change.select2");
+        if (window.distritoSelect) {
+            window.distritoSelect.destroy();
         }
-    }
 
+        let data = distritos.map((d) => ({
+            value: d.id,
+            text: d.text
+        }));
 
-    //======= CARGAR TIPOS DE ENVIO =======
-    async function getTipoEnvios() {
-        try {
-            const {
-                data
-            } = await this.axios.get(route("consulta.ajax.getTipoEnvios"));
-            console.log(data);
-            pintarTiposEnvio(data);
-            //console.log(data);
-        } catch (ex) {
-
-        }
-    }
-
-    //====== PINTAR TIPOS ENVIO =======
-    function pintarTiposEnvio(tipos_envio) {
-
-        const selectTiposEnvio = document.querySelector('#tipo_envio');
-
-        data = [];
-        tipos_envio.forEach((te) => {
-            data.push({
-                id: te.id,
-                text: te.descripcion
-            });
-        });
-
-        $("#tipo_envio").select2({
-            data: data,
+        window.distritoSelect = new TomSelect("#distrito", {
+            options: data,
             placeholder: "SELECCIONAR",
-            allowClear: true,
-            width: '100%',
-        })
-
-    }
-
-    //============ CARGAR TIPOS DE PAGO ENVÍO ========
-    async function getTiposPagoEnvio() {
-        try {
-            const {
-                data
-            } = await this.axios.get(route("consulta.ajax.getTiposPagoEnvio"));
-
-            if (data.success) {
-
-                pintarTiposPagoEnvio(data.tipos_pago_envio);
-            } else {
-                toastr.error(`${data.message} - ${data.exception}`, 'ERROR AL OBTENER TIPOS PAGO DE ENVÍO');
+            allowEmptyOption: true,
+            create: false,
+            maxItems: 1, // modo select normal
+            sortField: {
+                field: "text",
+                direction: "asc"
             }
-        } catch (error) {
-            toastr.error(error, 'ERROR EN EL SERVIDOR');
-        } finally {}
-    }
-
-    //========= PINTAR TIPOS PAGO ENVÍO ===========
-    function pintarTiposPagoEnvio(tipos_pago_envio) {
-
-        data = [];
-        tipos_pago_envio.forEach((tpe, index) => {
-            data.push({
-                id: index,
-                text: tpe.descripcion
-            });
         });
 
-        console.log(data);
+        if (distrito_id === 'first' && data.length > 0) {
+            window.distritoSelect.setValue(data[0].value);
+        } else if (distrito_id) {
+            window.distritoSelect.setValue(distrito_id);
+        }
 
-        $("#tipo_pago_envio").select2({
-            data: data,
-            placeholder: "SELECCIONAR",
-            allowClear: true,
-            width: '100%',
-        })
-
+        $(document).trigger("distritosCargados");
     }
 
     //========== CARGAR EMPRESAS ENVÍO ========
     async function getEmpresasEnvio() {
         mostrarAnimacion();
+
         //======= SI SE SELECCIONÓ ALGUN TIPO DE ENVÍO =====
-        if ($("#tipo_envio").select2('data').length > 0) {
+        if (window.tipoEnvioSelect && window.tipoEnvioSelect.getValue()) {
 
             //==== OBTENIENDO EL TIPO DE ENVÍO SELECCIONADO ====
-            const tipo_envio = $("#tipo_envio").select2('data')[0].text;
+            const tipo_envio = window.tipoEnvioSelect.getItem(window.tipoEnvioSelect.getValue()).innerText.trim();
 
             try {
                 const {
@@ -459,7 +500,6 @@
                 } = await this.axios.get(route("consulta.ajax.getEmpresasEnvio", tipo_envio));
 
                 if (data.success) {
-                    // this.empresas_envio  = data.empresas_envio;
                     pintarEmpresasEnvio(data.empresas_envio);
                     console.log(data);
                 } else {
@@ -474,64 +514,68 @@
         } else {
             //======= SI TIPO ENVÍO ES NULL ========
             //====== LIMPIAR EMPRESAS ENVÍO =======
-            $('#empresa_envio').empty();
-            $('#empresa_envio').val(null).trigger('change');
+            if (window.empresaEnvioSelect) {
+                window.empresaEnvioSelect.clear();
+                window.empresaEnvioSelect.clearOptions();
+            }
 
             //======= LIMPIAR SEDES ENVÍO ======
-            $('#sede_envio').empty();
-            $('#sede_envio').val(null).trigger('change');
+            if (window.sedeEnvioSelect) {
+                window.sedeEnvioSelect.clear();
+                window.sedeEnvioSelect.clearOptions();
+            }
+
             ocultarAnimacion();
         }
-
     }
+
 
     //========== PINTAR EMPRESAS ENVÍO =========
     function pintarEmpresasEnvio(empresas_envio) {
 
-        //========== REMOVER ITEMS SELECT2 ======
-        $('#empresa_envio').empty();
+        if (window.empresaEnvioSelect) {
+            window.empresaEnvioSelect.destroy();
+        }
 
+        let data = empresas_envio.map(ee => ({
+            value: ee.id,
+            text: ee.empresa
+        }));
 
-        data = [];
-        empresas_envio.forEach((ee) => {
-            data.push({
-                id: ee.id,
-                text: ee.empresa
-            });
+        window.empresaEnvioSelect = new TomSelect("#empresa_envio", {
+            options: data,
+            placeholder: "SELECCIONAR",
+            allowEmptyOption: true,
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
         });
 
-        console.log(data);
+        empresaEnvioSelect.clear();
 
-        $("#empresa_envio").select2({
-            data: data,
-            placeholder: "SELECCIONAR",
-            allowClear: true,
-            width: '100%',
-        })
-
-        //======= ESTABLECER SELECCION EN NULL =========
-        $('#empresa_envio').val(null).trigger('change');
-
+        $(document).trigger("empresasEnvioCargadas");
     }
+
 
 
     //=========== OBTENER SEDES ENVÍO =========
     async function getSedesEnvio() {
-
         mostrarAnimacion();
 
-        let empresaId = $('#empresa_envio').val();
-        if (!empresaId) {
+        if (!window.empresaEnvioSelect || !window.empresaEnvioSelect.getValue()) {
             //======= SI EMPRESA ENVÍO ES NULL ========
-            //======= LIMPIAR SEDES ENVÍO ======
-            $('#sede_envio').empty();
-            $('#sede_envio').val(null).trigger('change');
+            if (window.sedeEnvioSelect) {
+                window.sedeEnvioSelect.clear();
+                window.sedeEnvioSelect.clearOptions();
+            }
             ocultarAnimacion();
             return;
         }
 
         try {
-            const empresa_envio_id = $("#empresa_envio").select2('data')[0].id;
+            const empresa_envio_id = window.empresaEnvioSelect.getValue();
             let ubigeo = [];
 
             const departamento = {
@@ -547,10 +591,7 @@
                 text: $("#distrito").find('option:selected').text()
             };
 
-            ubigeo.push(departamento);
-            ubigeo.push(provincia);
-            ubigeo.push(distrito);
-
+            ubigeo.push(departamento, provincia, distrito);
             ubigeo = JSON.stringify(ubigeo);
 
             const {
@@ -571,37 +612,35 @@
         } finally {
             ocultarAnimacion();
         }
-
     }
 
 
     //========== PINTAR SEDES ENVÍO =========
     function pintarSedesEnvio(sedes_envio) {
+        if (window.sedeEnvioSelect) {
+            window.sedeEnvioSelect.destroy();
+        }
 
-        //========== REMOVER ITEMS SELECT2 ======
-        $('#sede_envio').empty();
+        let data = sedes_envio.map(se => ({
+            value: se.id,
+            text: se.direccion
+        }));
 
-        data = [];
-        sedes_envio.forEach((se) => {
-            data.push({
-                id: se.id,
-                text: se.direccion
-            });
+        window.sedeEnvioSelect = new TomSelect("#sede_envio", {
+            options: data,
+            placeholder: "SELECCIONAR",
+            allowEmptyOption: true,
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
         });
 
-        console.log(data);
-
-        $("#sede_envio").select2({
-            data: data,
-            placeholder: "SELECCIONAR",
-            allowClear: true,
-            width: '100%',
-        })
-
-        //======= ESTABLECER SELECCION EN NULL =========
-        $('#sede_envio').val(null).trigger('change');
-
+        sedeEnvioSelect.clear();
+        document.dispatchEvent(new Event("sedeEnvioCargada"));
     }
+
 
     //========= CHECK ENTREGA DOMICILIO =====
     function entregaDomicilio(value_check) {
@@ -666,49 +705,6 @@
         }
     }
 
-    async function getTipoDocumento() {
-        try {
-            const {
-                data
-            } = await this.axios.get(route("consulta.ajax.getTipoDocumentos"));
-
-            //======== SELECCIONAMOS DNI Y CARNET EXTRANJERÍA ======
-
-            const tipoDocumentosFilter = data.filter((td) => {
-                return td.id == 6 || td.id == 7;
-            })
-
-            pintarTiposDocumento(tipoDocumentosFilter);
-
-        } catch (ex) {
-
-        }
-    }
-
-    function pintarTiposDocumento(tipos_documento) {
-        data = [];
-        tipos_documento.forEach((td, index) => {
-            data.push({
-                id: index,
-                text: td.simbolo
-            });
-        });
-
-        $("#tipo_doc_destinatario").select2({
-            data: data,
-            placeholder: "SELECCIONAR",
-            allowClear: true,
-            width: '100%',
-        })
-
-        //=========== CONFIGURACIÓN VISTA ========
-        //const destinatario_tipo_doc  =   $("#tipo_doc_destinatario").find('option:selected').text();
-        // if(destinatario_tipo_doc === "CARNET EXT."){
-        //     document.querySelector('#btn-consultar-dni').style.display  =   'none';
-        // }
-        // document.querySelector('.span-tipo-doc-dest').textContent     =   destinatario_tipo_doc;
-    }
-
     function cambiarTipoDocDest(tipo_doc_dest) {
         document.querySelector('#nro_doc_destinatario').value = '';
 
@@ -729,7 +725,7 @@
 
     }
 
-    function guardarEnvio() {
+    function guardarEnvio(formDespacho) {
 
         if ($("#departamento").find('option:selected').text() === "") {
             toastr.error('SELECCIONE UN DEPARTAMENTO', "CAMPO OBLIGATORIO");

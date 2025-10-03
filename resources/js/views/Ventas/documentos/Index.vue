@@ -91,13 +91,13 @@
         </div>
         <ModalVentasVue @pago-registrado="recargarTabla" :ventasPendientes="ventasPendientes" :imgDefault="imginicial"
             :modoPagos="this.lst_modos_pago" :cliente_id="cliente_id" />
-        <ModalPdfDownloadVue :pdfData.sync="pdfData" />
+        <!-- <ModalPdfDownloadVue :pdfData.sync="pdfData" /> -->
         <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" ref="modalEnvioRef" />
     </div>
 </template>
 <script>
 
-import ModalPdfDownloadVue from '../../../components/ventas/ModalPdfDownload.vue';
+//import ModalPdfDownloadVue from '../../../components/ventas/ModalPdfDownload.vue';
 import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
 import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
 
@@ -108,7 +108,7 @@ export default {
     name: "VentaLista",
     props: ["imginicial", "lst_modos_pago"],
     components: {
-        ModalPdfDownloadVue,
+        //ModalPdfDownloadVue,
         ModalVentasVue,
         ModalEnvioVue,
     },
@@ -936,10 +936,10 @@ export default {
                 const id = $(this).data('id');
                 const rowData = vm.getRowByIdVue(vm.tabla, id);
 
-                console.log("Row Data:", rowData);
-
                 if (rowData) {
-                    vm.ModalPdf(rowData);
+                    var url = route('ventas.documento.comprobante', { id, size: 80 });
+                    window.open(url, "Comprobante SISCOM", "width=900, height=600");
+                    //vm.ModalPdf(rowData);
                 } else {
                     console.warn("No se encontró la fila con id:", id);
                 }

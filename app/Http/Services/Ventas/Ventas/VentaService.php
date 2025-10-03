@@ -8,7 +8,10 @@ use App\Http\Services\Kardex\Cuenta\KardexCuentaService;
 use App\Http\Services\Produccion\Orden\OrdenProduccionService;
 use App\Http\Services\Ventas\Despacho\DespachoService;
 use App\Mantenimiento\Empresa\Empresa;
+use App\Mantenimiento\Sedes\Sede;
 use App\Mantenimiento\TipoPago\TipoPago;
+use App\Ventas\CuentaCliente;
+use App\Ventas\DetalleCuentaCliente;
 use App\Ventas\Documento\Detalle;
 use App\Ventas\Documento\Documento;
 use App\Ventas\EnvioVenta;
@@ -16,6 +19,8 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\UploadedFile;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Barryvdh\DomPDF\Facade as PDF;
 
 class VentaService
 {
@@ -315,6 +320,7 @@ class VentaService
         $documento  =   $this->s_repository->actualizarVenta($datos_validados, $datos_validados->documento);
 
         $detalle_anterior   =   Detalle::where('documento_id', $id)->get();
+
         //======== DEVOLVER STOCKS =======
         foreach ($detalle_anterior as $da) {
             $this->s_pct->incrementarStocks($da->almacen_id, $da->producto_id, $da->color_id, $da->talla_id, $da->cantidad);
@@ -351,4 +357,117 @@ class VentaService
 
         return $documento;
     }
+
+      public function getVoucherPdf(int $id, int $size): array
+    {
+        $documento  =   Documento::findOrFail($id);
+
+        $this->qr_code($id);
+
+        $detalles           =   Detalle::where('documento_id', $id)->where('eliminado', '0')->get();
+
+        $mostrar_cuentas    =   DB::select('SELECT
+                                c.propiedad
+                                FROM configuracion AS c
+                                WHERE c.slug = "MCB"')[0]->propiedad;
+
+        $cuenta             =   CuentaCliente::where('cotizacion_documento_id', $id)->first();
+        $detalle_pago       =   [];
+        if ($cuenta) {
+            $detalle_pago = DetalleCuentaCliente::from('detalle_cuenta_cliente as dcc')
+                ->join('tipos_pago as tp', 'tp.id', '=', 'dcc.tipo_pago_id')
+                ->where('dcc.cuenta_cliente_id', $cuenta->id)
+                ->select(
+                    'dcc.*',
+                    'tp.descripcion as tipo_pago_nombre'
+                )
+                ->orderBy('dcc.created_at')
+                ->get();
+        }
+
+        $empresa            =   Empresa::find(1);
+        $sede               =   Sede::find($documento->sede_id);
+        $despacho           =   EnvioVenta::where('documento_id', $id)->first();
+
+        $pdf    =   Pdf::loadview('ventas.documentos.impresion.comprobante_ticket', [
+            'documento'         =>  $documento,
+            'detalles'          =>  $detalles,
+            'empresa'           =>  $empresa,
+            'mostrar_cuentas'   =>  $mostrar_cuentas,
+            'sede'              =>  $sede,
+            'despacho'          =>  $despacho,
+            'cuenta'            =>  $cuenta,
+            'detalle_pago'      =>  $detalle_pago
+        ])->setPaper([0, 0, 226.772, 651.95]);
+
+        if ($size == 80) {
+            $pdf    =   $pdf->setPaper([0, 0, 226.772, 651.95]);
+        }
+        if ($size == 100) {
+            $pdf    =   $pdf->setPaper('a4')->setWarnings(false);
+        }
+
+        return ['pdf' => $pdf, 'nombre' => $documento->serie . '-' . $documento->correlativo . '.pdf'];
+    }
+
+     public function qr_code(int $id): array
+    {
+
+        $documento = Documento::findOrFail($id);
+        $name_qr = '';
+
+        if ($documento->contingencia == '0') {
+            $name_qr = $documento->serie . "-" . $documento->correlativo . '.svg';
+        } else {
+            $name_qr = $documento->serie_contingencia . "-" . $documento->correlativo . '.svg';
+        }
+
+        //======= NOTA DE VENTA =====
+        if ($documento->tipo_venta_id == 129) {
+            $data_qr = $documento->ruc_empresa . '|' .        // RUC
+                '04' . '|' .                           // Tipo de Documento (04 para Nota de Venta)
+                ($documento->contingencia == '0' ? $documento->serie : $documento->serie_contingencia) . '|' . // SERIE
+                $documento->correlativo . '|' .        // NUMERO
+                (float) $documento->total_pagar . '|' .      // MTO TOTAL DEL COMPROBANTE
+                $documento->created_at; // FECHA DE EMISION
+        } else {
+
+            //========= BOLETA O FACTURA =======
+            $data_qr =  $documento->ruc_empresa . '|' .                // RUC
+                $documento->tipoDocumento() . '|' .            // TIPO DE DOCUMENTO
+                ($documento->contingencia == '0' ? $documento->serie : $documento->serie_contingencia) . '|' . // SERIE
+                $documento->correlativo . '|' .                // NUMERO
+                (float) $documento->total_igv . '|' .                                     // MTO TOTAL IGV
+                (float) $documento->total_pagar . '|' .              // MTO TOTAL DEL COMPROBANTE
+                $documento->created_at . '|' .  // FECHA DE EMISION
+                $documento->tipoDocumentoCliente() . '|' .     // TIPO DE DOCUMENTO ADQUIRENTE
+                $documento->documento_cliente;                 // NUMERO DE DOCUMENTO ADQUIRENTE
+
+        }
+
+
+        $miQr = QrCode::format('svg')
+            ->size(130)
+            ->backgroundColor(0, 0, 0)
+            ->color(255, 255, 255)
+            ->margin(1)
+            ->generate($data_qr);
+
+        $pathToFile_qr = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'qrs' . DIRECTORY_SEPARATOR . $name_qr);
+
+        // Crea el directorio si no existe
+        if (!file_exists(dirname($pathToFile_qr))) {
+            mkdir(dirname($pathToFile_qr), 0755, true);
+        }
+
+        // Guarda el QR en el archivo
+        file_put_contents($pathToFile_qr, $miQr);
+
+        // Actualiza la ruta del QR en la base de datos
+        $documento->ruta_qr = 'public/qrs/' . $name_qr;
+        $documento->update();
+
+        return array('success' => true, 'mensaje' => 'QR creado exitosamente');
+    }
+
 }

@@ -38,7 +38,9 @@ class KardexCuentaService
         $dto    =   $this->prepararDatosVenta($venta);
 
         $kardex_cuenta          =   KardexCuenta::where('venta_id', $venta->id)->first();
-        $kardex_cuenta->update($dto);
+        if($kardex_cuenta){
+            $kardex_cuenta->update($dto);
+        }
     }
 
     public function registrarDesdeEgreso(Egreso $egreso)
