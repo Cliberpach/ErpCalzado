@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Ventas;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Cuentas\Cliente\CuentaClientePagarRequest;
+use App\Http\Services\Cuentas\Cliente\CuentaManager;
+use App\Mantenimiento\Cuenta\Cuenta;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Ventas\Cliente;
 use App\Ventas\CuentaCliente;
@@ -13,20 +16,59 @@ use Yajra\DataTables\Facades\DataTables;
 use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Support\Facades\Session;
+use Throwable;
 
 class CuentaClienteController extends Controller
 {
-    public function index() {
-        $fecha_hoy = Carbon::now()->toDateString();
-        return view('ventas.cuentaCliente.index',compact('fecha_hoy'));
+
+    private CuentaManager $s_cuenta;
+
+    public function __construct()
+    {
+        $this->s_cuenta =   new CuentaManager();
     }
 
-    public function getTable() {
+    public function index()
+    {
+        $fecha_hoy = Carbon::now()->toDateString();
+        return view('ventas.cuentaCliente.index', compact('fecha_hoy'));
+    }
+
+    public function getTable(Request $request)
+    {
+
+        $cliente_id =   $request->get('cliente');
+        $estado     =   $request->get('estado');
+
+        $cuentas    =   DB::table('cuenta_cliente as cc')
+            ->join('cotizacion_documento as cd', 'cd.id', 'cc.cotizacion_documento_id')
+            ->select(
+                'cc.id',
+                'cc.numero_doc',
+                'cd.cliente',
+                'cc.fecha_doc',
+                'cc.monto',
+                'cc.acta',
+                'cc.saldo',
+                'cc.estado'
+            )
+            ->where('cc.estado', '<>', 'ANULADO');
+
+        if ($cliente_id) {
+            $cuentas->where('cd.cliente_id', $cliente_id);
+        }
+        if ($estado) {
+            $cuentas->where('cc.estado', $estado);
+        }
+
+        return DataTables::of($cuentas)->make(true);
+    }
+    /*public function getTable()
+    {
         $datos = array();
         $cuentaCliente = CuentaCliente::where('estado', '!=', 'ANULADO')->get();
         foreach ($cuentaCliente as $key => $value) {
-            $detalle_ultimo = DetalleCuentaCliente::where('cuenta_cliente_id',$value->id)->get()->last();
+            $detalle_ultimo = DetalleCuentaCliente::where('cuenta_cliente_id', $value->id)->get()->last();
 
             $total_pagar = $value->documento->total_pagar - $value->documento->notas->sum("mtoImpVenta");
 
@@ -34,19 +76,16 @@ class CuentaClienteController extends Controller
             $detalle_ultimo->saldo = $nuevo_monto;
             $detalle_ultimo->update();
 
-            if(!empty($detalle_ultimo))
-            {
-                if($detalle_ultimo->saldo == 0)
-                {
+            if (!empty($detalle_ultimo)) {
+                if ($detalle_ultimo->saldo == 0) {
                     $cuenta = CuentaCliente::find($value->id);
-                    $cuenta->saldo=0;
-                    $cuenta->estado='PAGADO';
+                    $cuenta->saldo = 0;
+                    $cuenta->estado = 'PAGADO';
                     $cuenta->update();
-                }
-                else{
+                } else {
                     $cuenta = CuentaCliente::find($value->id);
-                    $cuenta->saldo=$detalle_ultimo->saldo;
-                    $cuenta->estado='PENDIENTE';
+                    $cuenta->saldo = $detalle_ultimo->saldo;
+                    $cuenta->estado = 'PENDIENTE';
                     $cuenta->update();
                 }
             }
@@ -64,258 +103,108 @@ class CuentaClienteController extends Controller
 
             $cuenta_cliente = CuentaCliente::find($value->id);
 
-            array_push($datos,array(
-                "id"=>$cuenta_cliente->id,
-                "cliente"=>$cuenta_cliente->documento->clienteEntidad->nombre,
-                "numero_doc"=>$cuenta_cliente->documento->serie.' - '.$cuenta_cliente->documento->correlativo,
-                "fecha_doc"=>$cuenta_cliente->fecha_doc,
-                "monto"=>$cuenta_cliente->documento->total_pagar - $cuenta_cliente->documento->notas->sum("mtoImpVenta"),
-                "acta"=> number_format(round($acta, 2), 2),
-                "saldo"=>$cuenta_cliente->saldo,
-                "estado"=>$cuenta_cliente->estado
+            array_push($datos, array(
+                "id" => $cuenta_cliente->id,
+                "cliente" => $cuenta_cliente->documento->clienteEntidad->nombre,
+                "numero_doc" => $cuenta_cliente->documento->serie . ' - ' . $cuenta_cliente->documento->correlativo,
+                "fecha_doc" => $cuenta_cliente->fecha_doc,
+                "monto" => $cuenta_cliente->documento->total_pagar - $cuenta_cliente->documento->notas->sum("mtoImpVenta"),
+                "acta" => number_format(round($acta, 2), 2),
+                "saldo" => $cuenta_cliente->saldo,
+                "estado" => $cuenta_cliente->estado
             ));
         }
         return DataTables::of($datos)->toJson();
-    }
+    }*/
 
-    public function getDatos(Request $request) {
+    public function getDatos(int $id)
+    {
+        try {
 
-        $cuenta = CuentaCliente::findOrFail($request->id);
-        return array(
-            "id"=>$cuenta->id,
-            "cliente"=>$cuenta->documento->clienteEntidad->nombre,
-            "numero"=>$cuenta->documento->numero_doc,
-            "fecha"=>$cuenta->fecha_doc,
-            "monto"=>$cuenta->monto,
-            "acta"=>$cuenta->acta,
-            "saldo"=>$cuenta->saldo,
-            "estado"=>$cuenta->estado,
-            "detalle"=> $cuenta->detalles
-        );
+            $cuenta =   DB::table('cuenta_cliente as cc')
+                ->select(
+                    'cc.id',
+                    'cc.numero_doc',
+                    'cd.cliente',
+                    'cc.monto',
+                    'cc.saldo',
+                    'cc.estado',
+                    'cd.pedido_id'
+                )
+                ->join('cotizacion_documento as cd', 'cd.id', 'cc.cotizacion_documento_id')
+                ->where('cc.id', $id)
+                ->first();
+
+            if (!$cuenta) {
+                throw new Exception("CUENTA CLIENTE NO EXISTE EN LA BD");
+            }
+
+            $detalle    =   DetalleCuentaCliente::where('cuenta_cliente_id', $id)
+                ->orderByDesc('id')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'CUENTA CLIENTE OBTENIDA',
+                'data' => [
+                    'cuenta' => $cuenta,
+                    'detalle' => $detalle
+                ]
+            ]);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 
     public function consulta(Request $request)
     {
         $cuentas = DB::table('cuenta_cliente')
-        ->join('cotizacion_documento', 'cotizacion_documento.id', '=', 'cuenta_cliente.cotizacion_documento_id')
-        ->join('clientes', 'clientes.id', '=', 'cotizacion_documento.cliente_id')
-        ->when($request->get('cliente'), function ($query, $request) {
-            return $query->where('clientes.id', $request);
-        })
-        ->when($request->get('estado'), function ($query, $request) {
-            return $query->where('cuenta_cliente.estado',$request);
-        })
-        ->select(
-            'cuenta_cliente.*',
-            'clientes.nombre as cliente',
-            'cotizacion_documento.numero_doc as numero_doc',
-            'cotizacion_documento.created_at as fecha_doc',
-            'cotizacion_documento.total_pagar as monto'
-        )->get();
-            return $cuentas;
+            ->join('cotizacion_documento', 'cotizacion_documento.id', '=', 'cuenta_cliente.cotizacion_documento_id')
+            ->join('clientes', 'clientes.id', '=', 'cotizacion_documento.cliente_id')
+            ->when($request->get('cliente'), function ($query, $request) {
+                return $query->where('clientes.id', $request);
+            })
+            ->when($request->get('estado'), function ($query, $request) {
+                return $query->where('cuenta_cliente.estado', $request);
+            })
+            ->select(
+                'cuenta_cliente.*',
+                'clientes.nombre as cliente',
+                'cotizacion_documento.numero_doc as numero_doc',
+                'cotizacion_documento.created_at as fecha_doc',
+                'cotizacion_documento.total_pagar as monto'
+            )->get();
+        return $cuentas;
     }
 
-    public function detallePago(Request $request, $id)
+    /*
+array:10 [▼
+  "_token" => "5vHd7fo0eYMRYlOb0WBlabZmvvZDBLI3a2prGN3P"
+  "pago" => "TODO"
+  "fecha" => "2025-08-15"
+  "cantidad" => "23.00"
+  "observacion" => "test"
+  "efectivo_venta" => "23.00"
+  "modo_pago" => "4"
+  "cuenta" => "6"
+  "importe_venta" => "0"
+  "url_imagen" => null
+  "nro_operacion" => null
+  "modo_despacho" => "RESERVAR"
+]
+*/
+    public function detallePago(CuentaClientePagarRequest $request)
     {
         DB::beginTransaction();
-        $CuentaCliente = CuentaCliente::findOrFail($id);
-        if($request->pago == "A CUENTA")
-        {
-            $detallepago = new DetalleCuentaCliente();
-            $detallepago->cuenta_cliente_id = $CuentaCliente->id;
-            $detallepago->mcaja_id = movimientoUser()->id;
-            $detallepago->monto = $request->cantidad;
-            $detallepago->importe=$request->importe_venta;
-            $detallepago->efectivo=$request->efectivo_venta;
-            $detallepago->tipo_pago_id=$request->modo_pago;
-            $detallepago->observacion = $request->pago.' - '.$request->observacion;
-            $detallepago->fecha = $request->fecha;
-            $detallepago->save();
-
-            if($CuentaCliente->saldo - $request->cantidad < 0)
-            {
-                DB::rollBack();
-                Session::flash('error', 'Ocurrió un error, al parecer ingreso un monto superior al saldo.');
-                return redirect()->route('cuentaCliente.index');
-            }
-
-            $CuentaCliente->saldo = $CuentaCliente->saldo - $request->cantidad;
-
-            $CuentaCliente->update();
-
-            $detallepago->saldo = $CuentaCliente->saldo;
-            $detallepago->update();
-            
-
-            if($request->hasFile('imagen')){
-                $detallepago->ruta_imagen = $request->file('imagen')->store('public/cuenta/cobrar');
-                $detallepago->update();
-            }
-
-            if($CuentaCliente->saldo == 0)
-            {
-                $CuentaCliente->estado='PAGADO';
-                $CuentaCliente->save();
-            }
+        try {
+            $this->s_cuenta->pagar($request->toArray(), $request->get('id'));
+          
+            DB::commit();
+            return response()->json(['success' => true, 'message' => "PAGO REGISTRADO CON ÉXITO"]);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage(),'file'=>$th->getFile(),'line'=>$th->getLine()]);
         }
-        else{
-            if($CuentaCliente->saldo != $request->cantidad)
-            {
-                DB::rollBack();
-                Session::flash('error', 'Ocurrió un error, al parecer ingreso un monto diferente al saldo.');
-                return redirect()->route('cuentaCliente.index');
-            }
-
-            $detallepago = new DetalleCuentaCliente();
-            $detallepago->cuenta_cliente_id = $CuentaCliente->id;
-            $detallepago->mcaja_id = movimientoUser()->id;
-            $detallepago->monto = $request->cantidad;
-            $detallepago->importe=$request->importe_venta;
-            $detallepago->efectivo=$request->efectivo_venta;
-            $detallepago->tipo_pago_id=$request->modo_pago;
-            $detallepago->observacion = $request->pago.' - '.$request->observacion;
-            $detallepago->fecha = $request->fecha;
-            $detallepago->save();
-
-            if($CuentaCliente->saldo - $request->cantidad < 0)
-            {
-                DB::rollBack();
-                Session::flash('error', 'Ocurrió un error, al parecer ingreso un monto superior al saldo.');
-                return redirect()->route('cuentaCliente.index');
-            }
-
-            $CuentaCliente->saldo = $CuentaCliente->saldo - $request->cantidad;
-            $CuentaCliente->update();
-
-            $detallepago->saldo = $CuentaCliente->saldo;
-            $detallepago->update();
-
-            if($request->hasFile('imagen')){
-                $detallepago->ruta_imagen = $request->file('imagen')->store('public/cuenta/cobrar');
-                $detallepago->update();
-            }
-
-            if($CuentaCliente->saldo == 0)
-            {
-                $CuentaCliente->estado='PAGADO';
-                $CuentaCliente->save();
-            }
-        }
-
-        /*else{
-            $cliente = $CuentaCliente->documento->clienteEntidad;
-            $cuentasFaltantes = CuentaCliente::where('estado','PENDIENTE')->get();
-            $cantidadRecibida = $request->cantidad;
-            $cantidadRecibidaEfectivo=$request->efectivo_venta;
-            $cantidadRecibidaImporte=$request->importe_venta;
-            foreach ($cuentasFaltantes as $key => $cuenta) {
-                if($cuenta->documento->clienteEntidad->id == $cliente->id && $cantidadRecibida != 0)
-                {
-                    $detallepago = new DetalleCuentaCliente();
-                    $detallepago->mcaja_id = movimientoUser()->id;
-                    $detallepago->cuenta_cliente_id = $cuenta->id;
-                    $detallepago->monto = 0;
-                    $detallepago->observacion=$request->pago.' - '.$request->observacion;
-                    $detallepago->fecha = $request->fecha;
-                    $detallepago->tipo_pago_id=$request->modo_pago;
-                    $detallepago->save();
-                    if($cuenta->saldo > $cantidadRecibida)
-                    {
-                        if($cantidadRecibidaEfectivo == 0)
-                        {
-                            $detallepago->efectivo = 0;
-                            $detallepago->importe = $cantidadRecibidaImporte;
-                            $detallepago->monto = $cantidadRecibida;
-                            $cuenta->saldo = $cuenta->saldo - $cantidadRecibida;
-                            $cantidadRecibidaImporte = 0;
-
-                            $cantidadRecibida = $cantidadRecibidaEfectivo + $cantidadRecibidaImporte;
-                        }
-                        else
-                        {
-                            $detallepago->efectivo = $cantidadRecibidaEfectivo;
-                            $detallepago->importe = $cantidadRecibidaImporte;
-                            $detallepago->monto = $cantidadRecibida;
-                            $cuenta->saldo = $cuenta->saldo - $cantidadRecibida;
-                            $cantidadRecibidaEfectivo = 0;
-                            $cantidadRecibidaImporte = 0;
-
-                            $cantidadRecibida = $cantidadRecibidaEfectivo + $cantidadRecibidaImporte;
-                        }
-                    }
-                    else{
-                        if($cantidadRecibidaEfectivo == 0)
-                        {
-                            $importe = 0;
-                            if($cantidadRecibidaImporte > $cuenta->saldo)
-                            {
-                                $importe = $cantidadRecibidaImporte - $cuenta->saldo;
-                            }else
-                            {
-                                $importe = $cantidadRecibidaImporte;
-                            }
-
-                            $detallepago->efectivo  = $cantidadRecibidaEfectivo;
-                            $detallepago->importe = $cuenta->saldo;
-                            $detallepago->monto = $cuenta->saldo;
-                            $cantidadRecibidaImporte = $importe;
-                            $cantidadRecibida = $cantidadRecibidaEfectivo + $cantidadRecibidaImporte;
-
-                            $cuenta->update();
-                        }
-                        else
-                        {
-                            if($cantidadRecibidaImporte == 0)
-                            {
-                                $efectivo = 0;
-                                if($cantidadRecibidaEfectivo > $cuenta->saldo)
-                                {
-                                    $efectivo = $cantidadRecibidaEfectivo - $cuenta->saldo;
-                                }else
-                                {
-                                    $efectivo = $cantidadRecibidaEfectivo;
-                                }
-                                $detallepago->efectivo  = $efectivo;
-                                $detallepago->importe = $cantidadRecibidaImporte;
-                                $detallepago->monto = $cuenta->saldo;
-                                $cantidadRecibidaEfectivo = $cantidadRecibidaEfectivo - $efectivo;
-
-                                $cantidadRecibida = $cantidadRecibidaEfectivo + $cantidadRecibidaImporte;
-                            }
-                            else
-                            {
-                                $detallepago->efectivo = $cantidadRecibidaEfectivo;
-                                $detallepago->importe = $cuenta->saldo - $cantidadRecibidaEfectivo;
-                                $detallepago->monto = $detallepago->efectivo + $detallepago->importe;
-                                $cantidadRecibidaImporte =  $cantidadRecibidaImporte - ($cuenta->saldo - $cantidadRecibidaEfectivo);
-                                $cantidadRecibidaEfectivo = 0;
-                                $cantidadRecibida = $cantidadRecibidaEfectivo + $cantidadRecibidaImporte;
-                            }
-                        }
-                        $cuenta->saldo = 0;
-                    }
-
-                    $detallepago->update();
-                    if($request->hasFile('imagen')){
-                        $detallepago->ruta_imagen = $request->file('imagen')->store('public/cuenta/cobrar');
-                        $detallepago->update();
-                    }
-
-                    $cuenta->update();
-
-                    if($cuenta->saldo == 0)
-                    {
-                        $cuenta->estado='PAGADO';
-                        $cuenta->update();
-                    }
-                }
-            }
-
-        }*/
-
-        DB::commit();
-        Session::flash('success', 'Pago agregado correctamene');
-        return redirect()->route('cuentaCliente.index');
     }
 
     public function reporte($id)
@@ -323,13 +212,21 @@ class CuentaClienteController extends Controller
         $cuenta = CuentaCliente::findOrFail($id);
         $cliente = Cliente::find($cuenta->documento->cliente_id);
         $empresa = Empresa::first();
-        $pdf = PDF::loadview('ventas.documentos.impresion.detalle_cuenta',[
+        $cuentas_bancarias  =   Cuenta::where('estado', 'ACTIVO')->get();
+        $mostrar_cuentas    =   DB::select('SELECT
+                                c.propiedad
+                                FROM configuracion AS c
+                                WHERE c.slug = "MCB"')[0]->propiedad;
+
+        $pdf = PDF::loadview('ventas.documentos.impresion.detalle_cuenta', [
             'cuenta' => $cuenta,
             'detalles' => $cuenta->detalles,
             'cliente' => $cliente,
-            'empresa' => $empresa
-            ])->setPaper('a4');
-        return $pdf->stream('CUENTA-'.$cuenta->id.'.pdf');
+            'empresa' => $empresa,
+            'cuentas_bancarias' =>  $cuentas_bancarias,
+            'mostrar_cuentas'   =>  $mostrar_cuentas
+        ])->setPaper('a4');
+        return $pdf->stream('CUENTA-' . $cuenta->id . '.pdf');
     }
 
     public function detalle(Request $request)
@@ -338,28 +235,36 @@ class CuentaClienteController extends Controller
         $id = $request->id;
         //$cuentas = CuentaCliente::where('cliente_id',$request->id)->where('estado', $request->estado);
         $cuentas = DB::table('cuenta_cliente')
-        ->join('cotizacion_documento', 'cotizacion_documento.id', '=', 'cuenta_cliente.cotizacion_documento_id')
-        ->join('clientes', 'clientes.id', '=', 'cotizacion_documento.cliente_id')
-        ->select(
-            'cuenta_cliente.*',
-        )
-        ->where('cotizacion_documento.cliente_id',$id)
-        ->where('cuenta_cliente.estado',$estado)
-        ->get();
+            ->join('cotizacion_documento', 'cotizacion_documento.id', '=', 'cuenta_cliente.cotizacion_documento_id')
+            ->join('clientes', 'clientes.id', '=', 'cotizacion_documento.cliente_id')
+            ->select(
+                'cuenta_cliente.*',
+            )
+            ->where('cotizacion_documento.cliente_id', $id)
+            ->where('cuenta_cliente.estado', $estado)
+            ->get();
         $cliente = Cliente::find($request->id);
         $empresa = Empresa::first();
-        $pdf = PDF::loadview('ventas.documentos.impresion.detalle_cuenta_cliente',[
+        $cuentas_bancarias  =   Cuenta::where('estado', 'ACTIVO')->get();
+        $mostrar_cuentas    =   DB::select('SELECT
+                                c.propiedad
+                                FROM configuracion AS c
+                                WHERE c.slug = "MCB"')[0]->propiedad;
+
+        $pdf = PDF::loadview('ventas.documentos.impresion.detalle_cuenta_cliente', [
             'cuentas' => $cuentas,
             'cliente' => $cliente,
-            'empresa' => $empresa
-            ])->setPaper('a4');
-        return $pdf->stream('CUENTAS-'.$cliente->nombre_comercial.'.pdf');
+            'empresa' => $empresa,
+            'cuentas_bancarias' =>  $cuentas_bancarias,
+            'mostrar_cuentas'   =>  $mostrar_cuentas
+        ])->setPaper('a4');
+        return $pdf->stream('CUENTAS-' . $cliente->nombre_comercial . '.pdf');
     }
 
     public function imagen($id)
     {
         $detalle = DetalleCuentaCliente::find($id);
-        $ruta = storage_path().'/app/'.$detalle->ruta_imagen;
+        $ruta = storage_path() . '/app/' . $detalle->ruta_imagen;
         return response()->download($ruta);
     }
 }

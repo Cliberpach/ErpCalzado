@@ -22,6 +22,7 @@ use App\Ventas\Documento\Documento;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Pedido\PedidosExport;
+use App\Http\Controllers\UtilidadesController;
 use App\Http\Requests\Pedidos\Pedido\PedidoDocVentaRequest;
 use App\Http\Requests\Pedidos\Pedido\PedidoStoreRequest;
 use App\Http\Requests\Pedidos\Pedido\PedidoUpdateRequest;
@@ -58,13 +59,26 @@ class PedidoController extends Controller
         $fecha_fin      =   $request->get('fecha_fin');
         $pedido_estado  =   $request->get('pedido_estado');
         $cliente_id     =   $request->get('cliente_id');
+        $producto_id    =   $request->get('producto_id');
 
-        $pedidos    =   Pedido::select(
-            'pedidos.*',
-            DB::raw('CONCAT(pedidos.documento_venta_facturacion_serie, "-", pedidos.documento_venta_facturacion_correlativo) as documento_venta'),
-            DB::raw('if(pedidos.cotizacion_id is null,"-",concat("CO-",pedidos.cotizacion_id)) as cotizacion_nro')
-        )
-            ->where('pedidos.estado', '!=', 'ANULADO');
+        $pedidos        =   DB::table('pedidos as p')
+            ->select(
+                DB::raw('CONCAT("PE-", p.id) as codigo'),
+                'p.id',
+                'p.sede_id',
+                'p.almacen_nombre',
+                'p.telefono',
+                'p.cliente_nombre',
+                'p.total_pagar',
+                'p.user_nombre',
+                'p.estado',
+                'p.created_at',
+                'p.fecha_propuesta',
+                DB::raw('CONCAT(p.doc_venta_credito_serie, "-", p.doc_venta_credito_correlativo) as doc_credito'),
+                DB::raw('CONCAT(p.documento_venta_facturacion_serie, "-", p.documento_venta_facturacion_correlativo) as documento_venta'),
+                DB::raw('if(p.cotizacion_id is null,"-",concat("CO-",p.cotizacion_id)) as cotizacion_nro'),
+                'p.doc_venta_credito_estado_pago',
+            )->where('p.estado', '<>', 'ANULADO');
 
         if ($fecha_inicio) {
             $pedidos    =   $pedidos->where('fecha_registro', '>=', $fecha_inicio);
@@ -82,6 +96,15 @@ class PedidoController extends Controller
             $pedidos    =   $pedidos->where('pedidos.cliente_id', $cliente_id);
         }
 
+         if ($producto_id) {
+            $pedidos->whereExists(function ($q) use ($producto_id) {
+                $q->select(DB::raw(1))
+                    ->from('pedidos_detalles as pd')
+                    ->whereRaw('pd.pedido_id = p.id')
+                    ->where('pd.producto_id', $producto_id);
+            });
+        }
+
         $roles = DB::table('role_user as rl')
             ->join('roles as r', 'r.id', '=', 'rl.role_id')
             ->where('rl.user_id', Auth::user()->id)
@@ -90,23 +113,29 @@ class PedidoController extends Controller
 
         //======== ADMIN PUEDE VER TODOS LOS PEDIDOS DE SU SEDE =====
         if (in_array('ADMIN', $roles)) {
-            $pedidos->where('pedidos.sede_id', Auth::user()->sede_id);
+            $pedidos->where('p.sede_id', Auth::user()->sede_id);
         } else {
 
             //====== USUARIOS PUEDEN VER SOLO SUS PROPIOS PEDIDOS ======
-            $pedidos->where('pedidos.sede_id', Auth::user()->sede_id)
-                ->where('pedidos.user_id', Auth::user()->id);
+            $pedidos->where('p.sede_id', Auth::user()->sede_id)
+                ->where('p.user_id', Auth::user()->id);
         }
 
         $dataTable  =   DataTables::of($pedidos)
             ->filterColumn('cliente_nombre', function ($query, $keyword) {
-                $query->whereRaw('LOWER(pedidos.cliente_nombre) like ?', ["%" . strtolower($keyword) . "%"]);
+                $query->whereRaw('LOWER(p.cliente_nombre) like ?', ["%" . strtolower($keyword) . "%"]);
             })
             ->filterColumn('documento_venta', function ($query, $keyword) {
-                $query->whereRaw('LOWER(CONCAT(pedidos.documento_venta_facturacion_serie, "-", pedidos.documento_venta_facturacion_correlativo)) like ?', ["%" . strtolower($keyword) . "%"]);
+                $query->whereRaw('LOWER(CONCAT(p.documento_venta_facturacion_serie, "-", p.documento_venta_facturacion_correlativo)) like ?', ["%" . strtolower($keyword) . "%"]);
             })
             ->filterColumn('cotizacion_nro', function ($query, $keyword) {
-                $query->whereRaw('LOWER(IF(pedidos.cotizacion_id IS NULL,"-",concat("CO-",pedidos.cotizacion_id))) like ?', ["%" . strtolower($keyword) . "%"]);
+                $query->whereRaw('LOWER(IF(p.cotizacion_id IS NULL,"-",concat("CO-",p.cotizacion_id))) like ?', ["%" . strtolower($keyword) . "%"]);
+            })
+            ->filterColumn('codigo', function ($query, $keyword) {
+                $query->whereRaw('LOWER(CONCAT("PE-", p.id)) like ?', ["%" . strtolower($keyword) . "%"]);
+            })
+            ->filterColumn('doc_credito', function ($query, $keyword) {
+                $query->whereRaw('LOWER(CONCAT(p.doc_venta_credito_serie, "-", p.doc_venta_credito_correlativo)) like ?', ["%" . strtolower($keyword) . "%"]);
             });
 
         if (in_array('ADMIN', $roles)) {
@@ -130,20 +159,17 @@ class PedidoController extends Controller
 
         $almacenes          =   Almacen::where('estado', 'ACTIVO')->where('tipo_almacen', 'PRINCIPAL')->get();
 
-        $registrador        =   DB::select(
-            'select
-                                u.*
-                                from users as u where u.id = ?',
-            [Auth::user()->id]
-        )[0];
+        $registrador        =   Auth::user();
 
-        $modelos            = Modelo::where('estado', 'ACTIVO')->get();
-        $tallas             = Talla::where('estado', 'ACTIVO')->get();
+        $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
+        $tallas             =   Talla::where('estado', 'ACTIVO')->get();
 
+        $metodos_pago       =   tipos_pago();
         $tipos_documento    =   tipos_documento();
         $departamentos      =   departamentos();
         $tipo_clientes      =   tipo_clientes();
-
+        $cuentas            =   UtilidadesController::getCuentas();
+        $cliente_varios     =   Cliente::first();
 
         return view(
             'pedidos.pedido.create',
@@ -158,7 +184,10 @@ class PedidoController extends Controller
                 'departamentos',
                 'tipo_clientes',
                 'registrador',
-                'sede'
+                'sede',
+                'metodos_pago',
+                'cuentas',
+                'cliente_varios'
             )
         );
     }
@@ -192,106 +221,20 @@ array:18 [
         DB::beginTransaction();
         try {
 
-            $lstPedido          =   json_decode($request->get('lstPedido'));
-            $amountsPedido      =   json_decode($request->get('amountsPedido'));
-
-
-            //======= MANEJANDO MONTOS ========
-            $montos =   PedidoController::calcularMontos($lstPedido, $amountsPedido);
-
-            //======== REGISTRANDO PEDIDO =========
-            $pedido                     = new Pedido();
-            $pedido->cliente_id         = $request->get('cliente');
-
-            //======== BUSCANDO NOMBRE DEL CLIENTE =====//
-            $cliente    =   DB::select('select c.id,c.nombre,c.telefono_movil from clientes as c
-                            where c.id=?', [$request->get('cliente')]);
-
-            $pedido->cliente_nombre     =   $cliente[0]->nombre;
-            $pedido->cliente_telefono   =   $cliente[0]->telefono_movil;
-            //==========================================//
-
-            $pedido->empresa_id         =  1;
-
-            //======== BUSCANDO NOMBRE DE LA EMPRESA =====//
-            $empresa    =   DB::select('select e.id,e.razon_social from empresas as e
-                            where e.id=?', [1]);
-
-            $pedido->empresa_nombre     =   $empresa[0]->razon_social;
-            //==========================================//
-
-            $pedido->condicion_id       = $request->get('condicion_id');
-            $pedido->user_id            = $request->get('registrador_id');
-
-            //======== OBTENIENDO EL NOMBRE COMPLETO DEL USUARIO ===========
-            $pedido->user_nombre        = User::find($request->get('registrador_id'))->usuario;
-
-            //=============================================================
-            $pedido->moneda                 = 1;
-            $pedido->fecha_registro         = now()->toDateString();
-            $pedido->fecha_propuesta        = $request->get('fecha_propuesta');
-
-            $pedido->monto_embalaje         =   $montos->monto_embalaje;
-            $pedido->monto_envio            =   $montos->monto_envio;
-            $pedido->sub_total              =   $montos->monto_subtotal;
-            $pedido->total_igv              =   $montos->monto_igv;
-            $pedido->total                  =   $montos->monto_total;
-            $pedido->total_pagar            =   $montos->monto_total_pagar;
-            $pedido->monto_descuento        =   $montos->monto_descuento;
-            $pedido->porcentaje_descuento   =   $montos->porcentaje_descuento;
-
-            //======= CONTANDO PEDIDOS ======
-            $cantidad_pedidos   =   Pedido::count();
-            $pedido->pedido_nro =   $cantidad_pedidos + 1;
-
-            $pedido->sede_id    =   $request->get('sede_id');
-            $pedido->almacen_id =   $request->get('almacen');
-            $pedido->save();
-
-
-            //========== GRABAR DETALLE DEL PEDIDO ========
-            foreach ($lstPedido as $producto) {
-                foreach ($producto->tallas as  $talla) {
-                    //===== CALCULANDO MONTOS PARA EL DETALLE =====
-                    $importe        =   floatval($talla->cantidad) * floatval($producto->precio_venta);
-                    $precio_venta   =   $producto->porcentaje_descuento == 0 ? $producto->precio_venta : $producto->precio_venta_nuevo;
-
-                    PedidoDetalle::create([
-                        'almacen_id'                => $request->get('almacen'),
-                        'pedido_id'                 => $pedido->id,
-                        'producto_id'               => $producto->producto_id,
-                        'color_id'                  => $producto->color_id,
-                        'talla_id'                  => $talla->talla_id,
-                        'producto_codigo'           => $producto->producto_codigo,
-                        'producto_nombre'           => $producto->producto_nombre,
-                        'color_nombre'              => $producto->color_nombre,
-                        'talla_nombre'              => $talla->talla_nombre,
-                        'modelo_nombre'             => $producto->modelo_nombre,
-                        'cantidad'                  => $talla->cantidad,
-                        'cantidad_atendida'         => 0,
-                        'cantidad_pendiente'        => $talla->cantidad,
-                        'precio_unitario'           => $producto->precio_venta,
-                        'importe'                   => $importe,
-                        'porcentaje_descuento'      =>  floatval($producto->porcentaje_descuento),
-                        'precio_unitario_nuevo'     =>  floatval($precio_venta),
-                        'importe_nuevo'             =>  floatval($precio_venta) * floatval($talla->cantidad),
-                        'monto_descuento'           =>  floatval($importe) * floatval($producto->porcentaje_descuento) / 100,
-                    ]);
-                }
-            }
+            $res =   (object)$this->s_pedido->store($request->toArray());
 
             //====== REGISTRO DE ACTIVIDAD ========
-            $descripcion = "SE AGREGÓ EL PEDIDO CON LA FECHA: " . Carbon::parse($pedido->fecha_registro)->format('d/m/y');
+            $descripcion = "SE AGREGÓ EL PEDIDO CON LA FECHA: " . Carbon::parse($res->pedido->fecha_registro)->format('d/m/y');
             $gestion = "PEDIDO";
-            crearRegistro($pedido, $descripcion, $gestion);
+            crearRegistro($res->pedido, $descripcion, $gestion);
 
             DB::commit();
 
             Session::flash('success', 'Pedido creado.');
             return response()->json(['success' => true, 'message' => 'PEDIDO REGISTRADO CON ÉXITO']);
-        } catch (\Throwable  $th) {
+        } catch (Throwable  $th) {
             DB::rollback();
-            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(), 'file' => $th->getFile()]);
         }
     }
 
@@ -425,7 +368,7 @@ array:11 [
     public function update(PedidoUpdateRequest $request, $id)
     {
         DB::beginTransaction();
-      
+
         try {
 
             $pedido         =   Pedido::find($id);
@@ -788,8 +731,8 @@ array:11 [
             $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
             $tallas             =   Talla::where('estado', 'ACTIVO')->get();
             $tipoVentas         =   tipos_venta()
-                                    ->whereIn('id', [129])
-                                    ->where('estado', 'ACTIVO');
+                ->whereIn('id', [129])
+                ->where('estado', 'ACTIVO');
 
             //======= SI EL PEDIDO YA FUE FACTURADO, PERMITIR SOLO ATENDER DE ACUERDO AL DOC DEL CLIENTE ======
             if ($pedido->facturado === 'SI') {
@@ -1234,7 +1177,7 @@ array:11 [
         return $productos_formateado;
     }
 
-/*
+    /*
 array:6 [
   "cantidad_atender_anterior" => 1
   "cantidad_atender_nueva" => 1
@@ -1307,7 +1250,7 @@ array:6 [
         }
     }
 
-/*
+    /*
 array:23 [
   "_token" => "5MGXGnvyPqmaWivHZqfgugbvucN0v7DZj6Q0bkUX"
   "registrador" => "ADMIN"
@@ -1350,10 +1293,9 @@ array:23 [
                 'documento_id'  => $res,
                 'mensaje'       => 'DOCUMENTO DE VENTA GENERADO - PEDIDO ACTUALIZADO'
             ]);
-
         } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine()]);
         }
     }
 

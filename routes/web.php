@@ -407,27 +407,6 @@ Route::group(
             Route::get('sunat/{id}/{type_response?}', 'Ventas\Electronico\NotaController@sunat')->name('ventas.notas.sunat');
         });
 
-        Route::prefix('cuentaProveedor')->group(function () {
-            Route::get('index', 'Compras\CuentaProveedorController@index')->name('cuentaProveedor.index');
-            Route::get('getTable', 'Compras\CuentaProveedorController@getTable')->name('cuentaProveedor.getTable');
-            Route::get('getDatos', 'Compras\CuentaProveedorController@getDatos')->name('cuentaProveedor.getDatos');
-            Route::post('detallePago', 'Compras\CuentaProveedorController@detallePago')->name('cuentaProveedor.detallePago');
-            Route::get('consulta', 'Compras\CuentaProveedorController@consulta')->name('cuentaProveedor.consulta');
-            Route::get('reporte/{id}', 'Compras\CuentaProveedorController@reporte')->name('cuentaProveedor.reporte');
-            Route::get('imagen/{id}', 'Compras\CuentaProveedorController@imagen')->name('cuentaProveedor.imagen');
-        });
-
-        Route::prefix('cuentaCliente')->group(function () {
-            Route::get('index', 'Ventas\CuentaClienteController@index')->name('cuentaCliente.index');
-            Route::get('getTable', 'Ventas\CuentaClienteController@getTable')->name('cuentaCliente.getTable');
-            Route::get('getDatos', 'Ventas\CuentaClienteController@getDatos')->name('cuentaCliente.getDatos');
-            Route::post('detallePago/{id}', 'Ventas\CuentaClienteController@detallePago')->name('cuentaCliente.detallePago');
-            Route::get('detalle', 'Ventas\CuentaClienteController@detalle')->name('cuentaCliente.detalle');
-            Route::get('consulta', 'Ventas\CuentaClienteController@consulta')->name('cuentaCliente.consulta');
-            Route::get('reporte/{id}', 'Ventas\CuentaClienteController@reporte')->name('cuentaCliente.reporte');
-            Route::get('imagen/{id}', 'Ventas\CuentaClienteController@imagen')->name('cuentaCliente.imagen');
-        });
-
         Route::prefix('modeloExcel')->group(function () {
             Route::get('cliente', 'ModeloExcelController@cliente')->name('ModeloExcel.cliente');
             Route::get('categoria', 'ModeloExcelController@categoria')->name('ModeloExcel.categoria');
@@ -705,6 +684,7 @@ require __DIR__ . '/ventas/web.php';
 require __DIR__ . '/mantenimiento/web.php';
 require __DIR__ . '/kardex/web.php';
 require __DIR__ . '/cajas/web.php';
+require __DIR__ . '/cuentas/web.php';
 
 
 Route::get('ventas/documentos/comprobante/{id}/{size}', 'Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');
@@ -740,6 +720,7 @@ Route::get('/get-producto-by-modelo/{modelo_id}', 'Almacenes\ProductoController@
 Route::get('/get-stocklogico/{almacen_id}/{producto_id}/{color_id}/{talla_id}', 'Almacenes\ProductoController@getStockLogico');
 
 Route::prefix('utilidades')->group(function () {
+    Route::get('getProductos', 'UtilidadesController@getProductos')->name('utilidades.getProductos');
     Route::get('getClientes', 'Ventas\ClienteController@getClientes')->name('utilidades.getClientes');
     Route::get('getProductosTodos', 'Almacenes\ProductoController@getProductosTodos')->name('utilidades.getProductosTodos');
     Route::get('getProductosConStock', 'Almacenes\ProductoController@getProductosConStock')->name('utilidades.getProductosConStock');

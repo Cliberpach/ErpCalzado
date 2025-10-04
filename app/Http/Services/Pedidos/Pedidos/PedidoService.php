@@ -4,31 +4,106 @@ namespace App\Http\Services\Pedidos\Pedidos;
 
 use App\Http\Controllers\Ventas\DocumentoController;
 use App\Http\Requests\Ventas\DocVenta\DocVentaStoreRequest;
-use App\User;
+use App\Http\Services\Ventas\Ventas\VentaService;
+use App\Mantenimiento\Empresa\Empresa;
 use App\Ventas\Cliente;
 use App\Ventas\Documento\Detalle;
 use App\Ventas\Documento\Documento;
 use App\Ventas\Pedido;
 use App\Ventas\PedidoDetalle;
 use Carbon\Carbon;
-use Dom\Document;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PedidoService
 {
+    private VentaService $s_venta;
+    private CalculosService $s_calculos;
     private PedidoRepository $s_repository;
 
-    public function __construct() {
+    public function __construct()
+    {
+        $this->s_repository =   new PedidoRepository();
+        $this->s_venta      =   new VentaService();
+        $this->s_calculos   =   new CalculosService();
         $this->s_repository =   new PedidoRepository();
     }
 
-    public function storeFromCotizacion(array $datos):Pedido
+    public function store(array $datos): array
+    {
+        $lstPedido          =   json_decode($datos['lstPedido']);
+        $amountsPedido      =   json_decode($datos['amountsPedido']);
+
+        //======= MANEJANDO MONTOS ========
+        $montos =   $this->s_calculos->calcularMontos($lstPedido, $amountsPedido);
+
+        //======== BUSCANDO NOMBRE DEL CLIENTE =====//
+        $cliente    =   Cliente::findOrFail($datos['cliente']);
+
+        //======== BUSCANDO NOMBRE DE LA EMPRESA =====//
+        $empresa    =   Empresa::findOrFail(1);
+        $datos['cliente']   =   $cliente;
+        $datos['empresa']   =   $empresa;
+        $datos['montos']    =   $montos;
+        $datos['lstPedido'] =   $lstPedido;
+
+        //======== REGISTRANDO PEDIDO =========
+        $pedido =   $this->s_repository->insertarPedido($datos);
+
+        //========== GRABAR DETALLE DEL PEDIDO ========
+        $this->s_repository->insertarDetallePedido($datos, $pedido);
+
+        //======= CREAR EL TICKET A CREDITO CON EL MONTO TOTAL DEL PEDIDO ======
+        $venta_credito  =   $this->generarVentaCredito($pedido, $datos);
+
+        return ['pedido' => $pedido, 'venta_credito' => $venta_credito];
+    }
+
+    public function generarVentaCredito(Pedido $pedido, array $datos): Documento
+    {
+        $detalle_pedido     = PedidoDetalle::where('pedido_id', $pedido->id)->where('tipo', 'PRODUCTO')->get();
+        $detalle_formateado = $this->formatearArrayDetalleObjetos($detalle_pedido);
+        $productos          = json_encode($detalle_formateado);
+
+        $datos_venta    =   [
+            'condicion_id'      =>  "2",
+            'tipo_venta'        =>  "129",
+            'tipo_pago_id'      =>  null,
+            'efectivo'          =>  0,
+            'importe'           =>  0,
+            'empresa_id'        =>  1,
+            'observacion'       =>  'GENERADO A PARTIR DEL PEDIDO ' . $pedido->id,
+            'igv'               =>  18,
+            'igv_check'         =>  true,
+            'productos_tabla'   =>  $productos,
+            "monto_sub_total"           =>  $pedido->sub_total,
+            "monto_embalaje"            =>  $pedido->monto_embalaje,
+            "monto_envio"               =>  $pedido->monto_envio,
+            "monto_total_igv"           =>  $pedido->total_igv,
+            "monto_descuento"           =>  $pedido->monto_descuento,
+            "monto_total"               =>  $pedido->total,
+            "monto_total_pagar"         =>  $pedido->total_pagar,
+            "sede_id"                   =>  $pedido->sede_id,
+            "almacenSeleccionado"       =>  $pedido->almacen_id,
+            'cliente_id'                =>  $pedido->cliente_id,
+
+            'pedido_id'                 =>  $pedido->id,
+            'ticket_credito'            =>  'SI',
+            //'data_envio'              =>  $datos['data_envio'],
+            //'modo'                    =>  $datos['modo_despacho']
+        ];
+
+        $venta_credito  =   $this->s_venta->registrar($datos_venta);
+        $this->s_repository->enlazarPedidoVentaCredito($pedido, $venta_credito);
+        return $venta_credito;
+    }
+
+
+    public function storeFromCotizacion(array $datos): Pedido
     {
         $pedido =   $this->s_repository->insertarPedido($datos);
-        $this->s_repository->insertarDetallePedido($datos,$pedido);
+        $this->s_repository->insertarDetallePedido($datos, $pedido);
         return $pedido;
     }
 
@@ -100,48 +175,19 @@ class PedidoService
             "pedido_id"                 =>  $pedido->id,
         ];
 
-        $request_base = Request::create(
-            route('pedidos.pedido.facturar-store'),
-            'POST',
-            $additionalData
-        );
-
         //======== GENERANDO DOC VENTA ======
-        $docVentaRequest        =   DocVentaStoreRequest::createFrom($request_base);
-
-        $documentoController    =   new DocumentoController();
-        $res                    =   $documentoController->store($docVentaRequest);
-        $jsonResponse           =   $res->getData();
-
-        //====== MANEJO DE RESPUESTA =========
-        $success_store_doc      =   $jsonResponse->success;
-
-        //======= ERROR AL CREAR DOC FACTURACIÓN =======
-        if (!$success_store_doc) {
-            throw new Exception($jsonResponse->message);
-        }
-
-        $doc_venta  =   DB::select(
-            'SELECT
-                            cd.id,
-                            cd.serie,
-                            cd.correlativo,
-                            cd.total_pagar
-                            FROM cotizacion_documento AS cd
-                            WHERE cd.id = ?',
-            [$jsonResponse->documento_id]
-        )[0];
+        $venta  =   $this->s_venta->registrar($additionalData);
 
         //======== ACTUALIZANDO PEDIDO =======
         $pedido->facturado                                  =   'SI';
-        $pedido->documento_venta_facturacion_id             =   $jsonResponse->documento_id;
-        $pedido->documento_venta_facturacion_serie          =   $doc_venta->serie;
-        $pedido->documento_venta_facturacion_correlativo    =   $doc_venta->correlativo;
-        $pedido->monto_facturado                            =   $doc_venta->total_pagar;
-        $pedido->saldo_facturado                            =   $doc_venta->total_pagar;
+        $pedido->documento_venta_facturacion_id             =   $venta->id;
+        $pedido->documento_venta_facturacion_serie          =   $venta->serie;
+        $pedido->documento_venta_facturacion_correlativo    =   $venta->correlativo;
+        $pedido->monto_facturado                            =   $venta->total_pagar;
+        $pedido->saldo_facturado                            =   $venta->total_pagar;
         $pedido->save();
 
-        return $doc_venta;
+        return $venta;
     }
 
     public static function formatearArrayDetalleObjetos($detalles)

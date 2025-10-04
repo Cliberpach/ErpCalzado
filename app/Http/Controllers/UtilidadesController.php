@@ -416,4 +416,38 @@ class UtilidadesController extends Controller
         $tipos_documento = tipos_documento();
         return $tipos_documento;
     }
+
+    public function getProductos(Request $request)
+    {
+        try {
+
+
+            $search         =   $request->query('search'); // Palabra clave para la búsqueda
+            $page           =   $request->query('page', 1);
+            $producto_id    =   $request->query(('producto_id'));
+
+            $productos   =   DB::table('productos as p')
+                ->select(
+                    'p.id',
+                    'p.nombre as descripcion',
+                )
+                ->where('p.nombre', 'LIKE', "%$search%")
+                ->where('p.estado', 'ACTIVO');
+
+            if ($producto_id) {
+                $productos->where('p.id', $producto_id);
+            }
+
+            $productos   =   $productos->paginate(10, ['*'], 'page', $page);
+
+            return response()->json([
+                'success'   => true,
+                'message'   => 'PRODUCTOS OBTENIDOS',
+                'productos'  => $productos->items(),
+                'more'      => $productos->hasMorePages()
+            ]);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
+    }
 }

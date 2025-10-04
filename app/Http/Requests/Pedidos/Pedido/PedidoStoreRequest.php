@@ -16,6 +16,13 @@ class PedidoStoreRequest extends FormRequest
         return true;
     }
 
+    public function prepareForValidation()
+    {
+        $this->merge([
+            'condicion_id' => $this->condicion_id ?? 2,
+        ]);
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -53,7 +60,7 @@ class PedidoStoreRequest extends FormRequest
         ];
     }
 
-       /**
+    /**
      * Handle a failed validation attempt.
      *
      * @param \Illuminate\Contracts\Validation\Validator $validator

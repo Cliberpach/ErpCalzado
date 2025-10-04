@@ -33,77 +33,6 @@
                         </div>
                     </div>
                     <hr>
-
-                    <div class="row">
-                        <div class="col-lg-12 col-xs-12">
-                            <div class="panel panel-primary">
-                                <div class="panel-heading">
-                                    <h4><b>SELECCIONAR PRODUCTOS</b></h4>
-                                </div>
-                                <div class="panel-body">
-                                    <div class="row">
-                                        <div class="col-lg-12">
-
-                                            <div class="form-group row">
-
-                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
-                                                    <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA
-                                                        - MODELO - PRODUCTO</label>
-                                                    <select id="producto" class="" onchange="getColoresTallas()">
-                                                        <option value=""></option>
-                                                    </select>
-                                                </div>
-
-                                                <div class="col-12"></div>
-                                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                                                    <label class="required" style="font-weight: bold;">PRECIO
-                                                        VENTA</label>
-                                                    <select id="precio_venta" class="select2_form form-control">
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group row mt-3">
-                                                <div class="col-lg-12">
-                                                    <div class="table-responsive">
-                                                        @include('pedidos.pedido.tables.table_pedido_stocks')
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group row mt-1">
-                                                <div class="col-lg-2 col-xs-12">
-                                                    <button disabled type="button" id="btn_agregar_detalle"
-                                                        class="btn btn-warning btn-block"><i class="fa fa-plus"></i>
-                                                        AGREGAR</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="panel panel-primary">
-                                <div class="panel-heading">
-                                    <h4><b>Detalle del Pedido</b></h4>
-                                </div>
-                                <div class="panel-body">
-                                    <div class="table-responsive">
-                                        @include('pedidos.pedido.tables.table_pedido_detalle')
-                                    </div>
-                                </div>
-                                <div class="panel-footer panel-primary">
-                                    <div class="table-responsive">
-                                        @include('pedidos.pedido.tables.table_montos_atender')
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="hr-line-dashed"></div>
                     <div class="row">
                         <div class="col-lg-12">
@@ -204,6 +133,9 @@
 
     function events() {
 
+        document.getElementById('img_pago_1').addEventListener('change', (e) => {
+            accionImgPago1(e);
+        });
 
         //====== ELIMINAR ITEM =========
         document.addEventListener('click', (e) => {
@@ -228,7 +160,6 @@
 
         })
 
-
         //===== VALIDAR CONTENIDO DE INPUTS CANTIDAD ========
         //===== VALIDAR TFOOTS EMBALAJE Y ENVIO ======
         document.addEventListener('input', (e) => {
@@ -246,6 +177,7 @@
                 //==== SI EL INPUT ESTA VACÍO ====
                 if (valor.trim().length === 0) {
                     calcularDescuento(producto_id, color_id, 0);
+                    calcularMontos();
                     return;
                 }
 
@@ -267,7 +199,8 @@
                 }
 
                 //==== CALCULAR DESCUENTO ====
-                calcularDescuento(producto_id, color_id, porcentaje_desc)
+                calcularDescuento(producto_id, color_id, porcentaje_desc);
+                calcularMontos();
             }
 
             //====== EMBALAJE Y ENVÍO =======
@@ -291,29 +224,7 @@
 
         //======== AGREGAR PRODUCTO AL DETALLE =====
         document.querySelector('#btn_agregar_detalle').addEventListener('click', () => {
-
-            if (!$('#precio_venta').val()) {
-                toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA', 'OPERACIÓN INCORRECTA');
-                return;
-            }
-
-            mostrarAnimacion();
-            toastr.clear();
-
-            agregarProducto();
-            reordenarCarrito();
-            calcularSubTotal();
-            pintarDetallePedido(carrito);
-            //===== RECALCULANDO DESCUENTOS Y MONTOS =====
-            carrito.forEach((c) => {
-                calcularDescuento(c.producto_id, c.color_id, c.porcentaje_descuento);
-            })
-            //===== RECALCULANDO MONTOS =====
-            calcularMontos();
-
-            toastr.info('PRODUCTO AGREGADO');
-            ocultarAnimacion();
-
+            accionAgregarDetalle();
         })
     }
 
@@ -388,11 +299,12 @@
                 if (data.loading) {
                     return $(
                         '<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>'
-                        );
+                    );
                 }
                 return data.text;
             },
         });
+
         $('#cliente').select2({
             width: '100%',
             placeholder: "Buscar Cliente...",
@@ -426,7 +338,11 @@
                         return {
                             results: clientes.map(item => ({
                                 id: item.id,
-                                text: item.descripcion
+                                text: item.descripcion,
+                                telefono: item.telefono_movil,
+                                departamento_id: item.departamento_id,
+                                provincia_id: item.provincia_id,
+                                distrito_id: item.distrito_id
                             })),
                             pagination: {
                                 more: data.more
@@ -449,9 +365,45 @@
                         '<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>'
                     );
                 }
-                return data.text;
+                const $option = $('<span>', {
+                        text: data.text
+                    }).attr('data-telefono', data.telefono || '').attr('data-departamento-id', data
+                        .departamento_id || '')
+                    .attr('data-provincia-id', data.provincia_id || '').attr('data-distrito-id', data
+                        .distrito_id || '');
+
+
+                return $option;
             },
         });
+    }
+
+    function accionAgregarDetalle() {
+        if (!$('#precio_venta').val()) {
+            toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA', 'OPERACIÓN INCORRECTA');
+            return;
+        }
+
+        mostrarAnimacion();
+        toastr.clear();
+
+        agregarProducto();
+        reordenarCarrito();
+        calcularSubTotal();
+        limpiarTabla('table-detalle-pedido');
+        pintarDetallePedido(carrito);
+
+        //===== RECALCULANDO DESCUENTOS Y MONTOS =====
+        carrito.forEach((c) => {
+            calcularDescuento(c.producto_id, c.color_id, c.porcentaje_descuento);
+        })
+
+        //===== RECALCULANDO MONTOS =====
+        calcularMontos();
+
+        toastr.info('PRODUCTO AGREGADO');
+        ocultarAnimacion();
+
     }
 
     //========= SWAL ======
@@ -469,7 +421,6 @@
             return !(p.producto_id == productoId && p.color_id == colorId);
         })
     }
-
 
     //===== LIMPIAR INPUTS DEL TABLERO PRODUCTOS ======
     function clearInputsCantidad() {
@@ -503,7 +454,7 @@
                         precio_venta: producto.precio_venta,
                         monto_descuento: 0,
                         porcentaje_descuento: 0,
-                        precio_venta_nuevo: 0,
+                        precio_venta_nuevo: producto.precio_venta_nuevo,
                         subtotal_nuevo: 0,
                         tallas: [{
                             talla_id: producto.talla_id,
@@ -569,11 +520,7 @@
 
         //====== subtotal es la suma de todos los productos ======
         carrito.forEach((c) => {
-            if (c.porcentaje_descuento === 0) {
-                subtotal += parseFloat(c.subtotal);
-            } else {
-                subtotal += parseFloat(c.subtotal_nuevo);
-            }
+            subtotal += parseFloat(c.subtotal_nuevo);
             descuento += parseFloat(c.monto_descuento);
         })
 
@@ -596,7 +543,6 @@
         amountsPedido.monto_descuento = descuento.toFixed(2);
     }
 
-
     //======== CALCULAR DESCUENTO ========
     const calcularDescuento = (producto_id, color_id, porcentaje_descuento) => {
         const indiceExiste = carrito.findIndex((c) => {
@@ -607,18 +553,15 @@
             const producto_color_editar = carrito[indiceExiste];
 
             //===== APLICANDO DESCUENTO ======
-            producto_color_editar.porcentaje_descuento = porcentaje_descuento;
+            producto_color_editar.porcentaje_descuento = parseFloat(porcentaje_descuento);
             producto_color_editar.monto_descuento = porcentaje_descuento === 0 ? 0 : producto_color_editar
                 .subtotal * (porcentaje_descuento / 100);
-            producto_color_editar.precio_venta_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar
-                .precio_venta * (1 - porcentaje_descuento / 100)).toFixed(2);
-            producto_color_editar.subtotal_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar
-                .subtotal * (1 - porcentaje_descuento / 100)).toFixed(2);
+            producto_color_editar.precio_venta_nuevo = porcentaje_descuento === 0 ? producto_color_editar
+                .precio_venta : (producto_color_editar.precio_venta * (1 - porcentaje_descuento / 100));
+            producto_color_editar.subtotal_nuevo = porcentaje_descuento === 0 ? producto_color_editar.subtotal : (
+                producto_color_editar.subtotal * (1 - porcentaje_descuento / 100));
 
             carrito[indiceExiste] = producto_color_editar;
-
-            //==== RECALCULANDO MONTOS ====
-            calcularMontos();
 
             //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
             const detailPrecioVenta = document.querySelector(
@@ -626,17 +569,11 @@
             const detailSubtotal = document.querySelector(
                 `.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
 
-            if (porcentaje_descuento !== 0) {
-                detailPrecioVenta.textContent = producto_color_editar.precio_venta_nuevo;
-                detailSubtotal.textContent = producto_color_editar.subtotal_nuevo;
-            } else {
-                detailPrecioVenta.textContent = producto_color_editar.precio_venta;
-                detailSubtotal.textContent = producto_color_editar.subtotal;
-            }
+            detailPrecioVenta.textContent = formatoMoneda(producto_color_editar.precio_venta_nuevo);
+            detailSubtotal.textContent = formatoMoneda(producto_color_editar.subtotal_nuevo);
 
         }
     }
-
 
     //========= REORDENAR CARRITO =========
     const reordenarCarrito = () => {
@@ -659,13 +596,13 @@
         const color_nombre = ic.getAttribute('data-color-nombre');
         const talla_id = ic.getAttribute('data-talla-id');
         const talla_nombre = ic.getAttribute('data-talla-nombre');
-        const precio_venta = $('#precio_venta').find('option:selected').text();
+        const precio_venta = parseFloat($('#precio_venta').find('option:selected').text());
         const cantidad = ic.value ? ic.value : 0;
         const subtotal = 0;
         const subtotal_nuevo = 0;
         const porcentaje_descuento = 0;
         const monto_descuento = 0;
-        const precio_venta_nuevo = 0;
+        const precio_venta_nuevo = parseFloat($('#precio_venta').find('option:selected').text());
 
         const producto = {
             producto_id,
@@ -708,7 +645,6 @@
         let htmlTallas = ``;
         const bodyDetalleTable = document.querySelector('#table-detalle-pedido tbody');
         const tallas = @json($tallas);
-        clearTabla(bodyDetalleTable);
 
         carrito.forEach((c) => {
             htmlTallas = ``;
@@ -764,7 +700,7 @@
         mostrarAnimacion();
         const bodyTableStocks = document.querySelector('#table-stocks-pedidos tbody');
         const btnAgregarDetalle = document.querySelector('#btn_agregar_detalle');
-        clearTabla(bodyTableStocks);
+        limpiarTabla('table-stocks-pedidos');
 
         const modelo_id = e.value;
         btnAgregarDetalle.disabled = true;
@@ -994,13 +930,6 @@
 
     }
 
-    //======== LIMPIAR TABLA PRODUCTOS ========
-    function clearTabla(bodyTable) {
-        while (bodyTable.firstChild) {
-            bodyTable.removeChild(bodyTable.firstChild);
-        }
-    }
-
     //======= LLENAR INPUTS CON CANTIDADES EXISTENTES EN EL CARRITO =========
     function setCantidadesTablero() {
         carrito.forEach((c) => {
@@ -1156,6 +1085,77 @@
         ocultarAnimacion();
         toastr.info('SE HA LIMPIADO EL FORMULARIO');
 
+    }
+
+    function cambiarMetodoPago1(metodoPagoId) {
+        const cuentasBD = @json($cuentas);
+        let cuentasFiltradas = cuentasBD.filter(c => c.tipo_pago_id == metodoPagoId);
+        pintarCuentas(cuentasFiltradas);
+    }
+
+    function pintarCuentas(lstCuentas) {
+        let selectCuentas = $('#cuenta_1');
+        selectCuentas.empty();
+        lstCuentas.forEach(cuenta => {
+            selectCuentas.append(
+                $('<option>', {
+                    value: cuenta.cuenta_id,
+                    text: cuenta.cuentaLabel
+                })
+            );
+        });
+        selectCuentas.trigger('change.select2');
+    }
+
+    function accionImgPago1(e) {
+        const file = e.target.files[0];
+        const label = e.target.nextElementSibling;
+        const preview = document.getElementById('previewImage1');
+        const defaultImage = "{{ asset('img/default.png') }}";
+
+        if (file) {
+            const validTypes = ['image/jpeg', 'image/png'];
+            const maxSize = 2 * 1024 * 1024; // 2MB
+
+            if (!validTypes.includes(file.type)) {
+                toastr.error('Solo se permiten imágenes JPG, JPEG o PNG.');
+                input.value = '';
+                label.textContent = 'Imagen';
+                preview.src = defaultImage;
+                return;
+            }
+
+            if (file.size > maxSize) {
+                toastr.error('El tamaño máximo permitido es de 2 MB.');
+                input.value = '';
+                label.textContent = 'Imagen';
+                preview.src = defaultImage;
+                return;
+            }
+
+            label.textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        } else {
+            label.textContent = 'Imagen';
+            preview.src = defaultImage;
+        }
+    }
+
+    function elegirCliente() {
+        const cliente_elegido = $('#cliente').select2('data')[0];
+        document.querySelector('#telefono').value = '';
+
+        if (cliente_elegido) {
+            if (cliente_elegido.id == 1) {
+                return;
+            }
+            document.querySelector('#telefono').value = cliente_elegido.telefono;
+        }
     }
 </script>
 @endpush

@@ -40,8 +40,8 @@ class CreatePedidosTable extends Migration
             $table->unsignedDecimal('total', 15, 2);
             $table->unsignedDecimal('total_igv', 15, 2);
             $table->unsignedDecimal('total_pagar', 15, 2);
-            $table->unsignedDecimal('monto_embalaje',15,2)->nullable();
-            $table->unsignedDecimal('monto_envio',15,2)->nullable();
+            $table->unsignedDecimal('monto_embalaje', 15, 2)->nullable();
+            $table->unsignedDecimal('monto_envio', 15, 2)->nullable();
 
             $table->unsignedDecimal('porcentaje_descuento', 15, 2)->nullable();
             $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
@@ -51,24 +51,32 @@ class CreatePedidosTable extends Migration
             $table->unsignedInteger('cotizacion_id')->nullable();
             $table->foreign('cotizacion_id')->references('id')->on('cotizaciones')->onDelete('cascade');
             $table->date('fecha_propuesta')->nullable();
-            $table->string('cliente_telefono',20)->nullable();
-            $table->string('facturado',2)->nullable();
-            $table->unsignedDecimal('monto_facturado',15,2)->nullable();
-            $table->unsignedDecimal('saldo_facturado',15,2)->nullable();
+            $table->string('cliente_telefono', 20)->nullable();
+            $table->string('facturado', 2)->nullable();
+            $table->unsignedDecimal('monto_facturado', 15, 2)->nullable();
+            $table->unsignedDecimal('saldo_facturado', 15, 2)->nullable();
 
             $table->unsignedInteger('documento_venta_facturacion_id ');
             $table->foreign('documento_venta_facturacion_id ')->references('id')->on('cotizacion_documento');
-            
-            $table->string('documento_venta_facturacion_serie',100)->nullable();
-            $table->string('documento_venta_facturacion_correlativo',100)->nullable();
-            
-            $table->enum('estado', ['PENDIENTE', 'ATENDIENDO','FINALIZADO','ANULADO'])->default('PENDIENTE');
+
+            $table->string('documento_venta_facturacion_serie', 100)->nullable();
+            $table->string('documento_venta_facturacion_correlativo', 100)->nullable();
+
+            $table->enum('estado', ['PENDIENTE', 'ATENDIENDO', 'FINALIZADO', 'ANULADO'])->default('PENDIENTE');
             $table->timestamps();
 
             $table->foreign('cliente_id')->references('id')->on('clientes');
             $table->foreign('empresa_id')->references('id')->on('empresas');
             $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('condicion_id')->references('id')->on('condicions');
+
+            //======= DOC VENTA CRÉDITO ========
+            $table->unsignedBigInteger('doc_venta_credito_id')->nullable();
+            $table->string('doc_venta_credito_serie', 20)->nullable();
+            $table->unsignedBigInteger('doc_venta_credito_correlativo')->nullable();
+            $table->enum('doc_venta_credito_estado_pago', ['PENDIENTE', 'PAGADO'])->default('PENDIENTE');
+            $table->unsignedDecimal('doc_venta_credito_monto_pagado', 15, 6)->nullable();
+            $table->unsignedDecimal('doc_venta_credito_saldo', 15, 6)->nullable();
         });
     }
 

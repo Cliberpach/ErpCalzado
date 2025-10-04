@@ -1,4 +1,4 @@
-<div class="modal inmodal" id="modal_detalle" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="modal_detalle" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content animated bounceInRight">
             <div class="modal-header">
@@ -10,159 +10,11 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" name="cuenta_cliente_id" id="cuenta_cliente_id">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="row align-items-end">
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="" class="required">Cliente</label>
-                                    <input type="text" name="cliente" id="cliente"
-                                        class="form-control form-control-sm" disabled>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="" class="required">Numero</label>
-                                    <input type="text" name="numero" id="numero"
-                                        class="form-control form-control-sm" disabled>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="" class="required">Monto</label>
-                                    <input type="text" name="monto" id="monto" class="form-control form-control-sm"
-                                        disabled>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="" class="required">Saldo</label>
-                                    <input type="text" name="saldo" id="saldo" class="form-control form-control-sm"
-                                        disabled>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                     <label for="" class="required">Estado</label>
-                                     <input type="text" name="estado" id="estado"
-                                         class="form-control form-control-sm" disabled>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <a class="btn btn-danger" id="btn-detalle" target="_blank"><i class="fa fa-file-pdf-o"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row justify-content-center">
-                            <div class="col-12" style="zoom: 85%;">
-                                <div class="table-responsive">
-                                    <table class="table dataTables-detalle table-striped table-bordered table-hover"
-                                        style="text-transform:uppercase">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center">Fecha</th>
-                                                <th class="text-center">Observacion</th>
-                                                <th class="text-center">Monto</th>
-                                                <th class="text-center">Im&aacute;gen</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <form id="frmDetalle" method="POST" enctype="multipart/form-data">
-                            {{csrf_field()}}
-                            <div class="row">
-                                <div class="col-12 col-md-6">
-                                    <div class="form-group">
-                                        <label for="" class="required">Pago</label>
-                                        <select name="pago" id="pago" class="form-control select2_form" required onchange="tipoPago(this)">
-                                            <option value="A CUENTA">A CUENTA</option>
-                                            <option value="TODO">TODO</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="" class="required">Fecha</label>
-                                        <input type="date" name="fecha" id="fecha" class="form-control" value="{{$fecha_hoy}}" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="" class="required">Cantidad</label>
-                                        <input type="number" min="1" name="cantidad" id="cantidad" value="0.00" class="form-control" onkeypress="return filterFloat(event, this);" readonly required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="">Observacion</label>
-                                        <textarea name="observacion" id="observacion" cols="30" rows="3"
-                                        class="form-control"></textarea>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    <div class="form-group">
-                                        <label class="col-form-label required">Efectivo</label>
-                                        <input type="text" value="0.00" class="form-control" id="efectivo_venta"
-                                            onkeypress="return filterFloat(event, this);" onkeyup="changeEfectivo()"
-                                            name="efectivo_venta" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="col-form-label required">Modo de pago</label>
-                                        <select name="modo_pago" id="modo_pago" class="select2_form form-control"
-                                            onchange="changeModoPago(this)" required>
-                                            <option></option>
-                                            @foreach (modos_pago() as $modo)
-                                                <option value="{{ $modo->id }}">
-                                                    {{ $modo->descripcion }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="col-form-label required">Importe</label>
-                                        <input type="text" class="form-control" id="importe_venta" value="0.00"
-                                            onkeypress="return filterFloat(event, this);" onkeyup="changeImporte()"
-                                            name="importe_venta" required>
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="form-group">
-                                        <label id="imagen_label">Imagen:</label>
-
-                                        <div class="custom-file">
-                                            <input id="imagen" type="file" name="imagen" class="custom-file-input"   accept="image/*">
-
-                                            <label for="imagen" id="imagen_txt"
-                                                class="custom-file-label selected">Seleccionar</label>
-
-                                            <div class="invalid-feedback"><b><span id="error-imagen"></span></b></div>
-
-                                        </div>
-                                    </div>
-                                    <div class="form-group row justify-content-center">
-                                        <div class="col-6 align-content-center">
-                                            <div class="row justify-content-end">
-                                                <a href="javascript:void(0);" id="limpiar_imagen">
-                                                    <span class="badge badge-danger">x</span>
-                                                </a>
-                                            </div>
-                                            <div class="row justify-content-center">
-                                                <p>
-                                                    <img class="imagen" src="{{asset('img/default.png')}}"
-                                                        alt="">
-                                                    <input id="url_imagen" name="url_imagen" type="hidden" value="">
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
+                @include('ventas.cuentaCliente.forms.form_pagar')
             </div>
             <div class="modal-footer">
                 <div class="col-md-6 text-right">
-                    <button type="submit" class="btn btn-primary btn-sm" id="btn_guardar_detalle" form="frmDetalle">
+                    <button type="submit" class="btn btn-success btn-sm" id="btn_guardar_detalle" form="frmDetalle">
                         Guardar
                     </button>
                     <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i
@@ -173,93 +25,161 @@
     </div>
 </div>
 @push('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap4.min.css">
     <style>
         .imagen {
             width: 200px;
             height: 200px;
             border-radius: 10%;
         }
-
     </style>
 @endpush
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
     <script>
-        $("#frmDetalle").submit(function(e) {
-            e.preventDefault();
-            var pago                = $("#modal_detalle #pago").val();
-            var fecha               = $("#modal_detalle #fecha").val();
-            var cantidad            = parseFloat($("#modal_detalle #cantidad").val());
-            var observacion         = $("#modal_detalle #observacion").val();
-            var saldo               = parseFloat($("#modal_detalle #saldo").val());
-            var id_cuenta_cliente   = $("#modal_detalle #cuenta_cliente_id").val();
+        const parametrosMdlPagar = {
+            id: null
+        };
 
-            var efectivo_venta = $("#efectivo_venta").val();
-            var importe_venta = $("#importe_venta").val();
-            var cantidad = parseFloat(efectivo_venta) + parseFloat(importe_venta);
-            var modo_pago = $("#modo_pago").val();
+        function eventsMdlPagar() {
+            document.querySelector('#frmDetalle').addEventListener('submit', (e) => {
+                e.preventDefault();
+                storePago(e.target);
+            })
 
-            let correcto = true;
-            if (pago.length == 0 || fecha.length == 0 || fecha.length == 0 || cantidad.length == 0) {
-                correcto = false;
-                toastr.error('Ingrese todo los datos');
-            }
+            $('#modal_detalle').on('hidden.bs.modal', function(e) {
+                limpiarMdlPagar();
+            });
 
-            if(cantidad == 0 || cantidad < 0)
-            {
-                correcto = false;
-                toastr.error('El monto de pago debe ser mayor a 0.');
-            }
+        }
 
-            if(correcto) {
-                if (saldo == 0) {
-                    toastr.error("Ya esta cancelado");
-                } else {
-                    var enviar = true;
-                    if (pago == "TODO") {
+        async function openMdlPagar(cuentaId) {
+            parametrosMdlPagar.id = cuentaId;
 
-                        /*if (cantidad < saldo || cantidad == saldo) {
-                            toastr.error("El monto a pagar, no cumple para el pago a varias cuentas")
-                            enviar = false
-                        }*/
-                        if (cantidad != saldo) {
-                            toastr.error("El monto a pagar, no cumple para el pago de todo el saldo: " + saldo)
-                            enviar = false
-                        }
-                    } else {
-                        /*if (cantidad > saldo) {
-                            toastr.error('El tipo de pago se puede hacer a varios, seleccione de nuevo');
-                            enviar = false;
-                        }*/
-                        if (cantidad > saldo) {
-                            toastr.error('La cantidad a pagar excede el saldo: ' + saldo);
-                            enviar = false;
-                        }
-                    }
+            mostrarAnimacion();
+            const data = await getCuentaCliente(cuentaId);
+            if (!data) return;
+            pintarCuentaCliente(data.cuenta);
+            pintarDetallePago(data.detalle)
+            $("#btn-detalle").attr('href', '/cuentas/cuentaCliente/reporte/' + cuentaId)
+            $('#modal_detalle').modal('show');
+            ocultarAnimacion();
+        }
 
-                    axios.get("{{ route('Caja.movimiento.verificarestado') }}").then((value) => {
-                        let data = value.data
-                        if (!data.success) {
-                             toastr.error(data.mensaje);
-                        }  else {
-                            if (enviar) {
-                                $('#btn_guardar_detalle').attr('disabled',true);
-                                $('#btn_guardar_detalle').html('Cargando <span class="loading bullet"></span> ');
-                                this.submit();
-                            }
-                        }
-                    })
+        async function getCuentaCliente(cuentaId) {
+            try {
+                const res = await axios.get(route('cuentaCliente.getDatos', {
+                    id: cuentaId
+                }));
+                if (!res.data.success) {
+                    toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                    return null;
                 }
+                return res.data.data;
+            } catch (error) {
+                toastr.error(error, 'ERROR EN LA PETICIÓN OBTENER CUENTA CLIENTE');
+                return null;
             }
+        }
 
-        });
+        function pintarCuentaCliente(cuenta) {
+            document.querySelector('#cliente').value = cuenta.cliente;
+            document.querySelector('#numero').value = cuenta.numero_doc;
+            document.querySelector('#monto').value = cuenta.monto;
+            document.querySelector('#saldo').value = cuenta.saldo;
+            document.querySelector('#estado').value = cuenta.estado;
+            document.querySelector('#pedido_nro').value = `PE-${cuenta.pedido_id}`;
+        }
+
+        function pintarDetallePago(detalle) {
+            var table = $(".dataTables-detalle").DataTable();
+            table.clear().draw();
+            detalle.forEach((value, index, array) => {
+                if (value.ruta_imagen) {
+                    table.row.add([
+                        value.fecha,
+                        value.observacion,
+                        value.monto,
+                        '<a class="btn btn-primary btn-xs" href="/cuentaCliente/imagen/' +
+                        value.id + '"><i class="fa fa-download"></i></a>'
+                    ]).draw(false);
+                } else {
+                    table.row.add([
+                        value.fecha,
+                        value.observacion,
+                        value.monto,
+                        '-'
+                    ]).draw(false);
+                }
+            })
+        }
+
+        function storePago(formPagar) {
+            Swal.fire({
+                title: '¿Confirmar pago?',
+                text: "¿Estás seguro de realizar este pago?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, pagar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        limpiarErroresValidacion('msgError');
+                        Swal.fire({
+                            title: 'Procesando pago...',
+                            text: 'Por favor espera',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        const formData = new FormData(formPagar);
+                        formData.append('id', parametrosMdlPagar.id);
+                        const res = await axios.post(route('cuentaCliente.detallePago'), formData);
+                        if (res.data.success) {
+                            toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
+                            dtCuentasCliente.ajax.reload(null, false);
+                            $('#modal_detalle').modal('hide');
+                        } else {
+                            toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                        }
+                    } catch (error) {
+                        if (error.response) {
+                            if (error.response.status === 422) {
+                                const errors = error.response.data.errors;
+                                pintarErroresValidacion(errors, 'error');
+                                toastr.error('Errores de validación encontrados.', 'ERROR DE VALIDACIÓN');
+                            }
+                        } else if (error.request) {
+                            toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.',
+                                'ERROR DE CONEXIÓN');
+                        } else {
+                            toastr.error(error.message, 'ERROR EN LA PETICIÓN PAGAR CUENTA');
+                        }
+                    } finally {
+                        Swal.close();
+                    }
+                }
+            });
+        }
 
         /* Limpiar imagen */
         $('#limpiar_imagen').click(function() {
-            $('.imagen').attr("src", "{{asset('img/default.png')}}")
+            limpiarImagen();
+        })
+
+        function limpiarImagen() {
+            $('.imagen').attr("src", "{{ asset('img/default.png') }}")
             var fileName = "Seleccionar"
             $('.custom-file-label').addClass("selected").html(fileName);
             $('#imagen').val('')
-        })
+        }
 
         $('#imagen').on('change', function() {
             var fileInput = document.getElementById('imagen');
@@ -276,56 +196,159 @@
                 $(this).next('.custom-file-label').addClass("selected").html(fileName);
             } else {
                 toastr.error('Extensión inválida, formatos admitidos (.jpg . jpeg . png)', 'Error');
-                $('.imagen').attr("src", "{{asset('img/default.png')}}")
+                $('.imagen').attr("src", "{{ asset('img/default.png') }}")
             }
         });
 
-        function changeModoPago(b)
-        {
-            if(b.value == 1) {
-                    $("#efectivo_venta").attr('readonly',false)
-                    $("#importe_venta").attr('readonly',true)
-                    $("#importe_venta").val(0.00)
-                    changeEfectivo()
-            }
-            else{
-                $("#efectivo_venta").attr('readonly',false)
-                $("#importe_venta").attr('readonly',false)
+        async function changeModoPago(b) {
+
+            //======= EFECTIVO ========
+            if (b.value == 1) {
+                $("#efectivo_venta").attr('readonly', false)
+                $("#importe_venta").attr('readonly', true)
+                $("#importe_venta").val(0.00)
+                changeEfectivo()
+            } else { //======= OTRO MÉT PAGO ========
+                $("#efectivo_venta").attr('readonly', false)
+                $("#importe_venta").attr('readonly', false)
+                $("#efectivo_venta").val(0.00)
             }
 
-            if(document.querySelector('#pago').value == "TODO"){
-                document.querySelector('#efectivo_venta').readOnly      =   true;
-            }
+            mostrarAnimacion();
+            toastr.clear();
+            const cuentas = await getCuentasPorMetodoPago(b.value);
+            if (!cuentas) return;
+            pintarCuentas(cuentas);
+            ocultarAnimacion();
         }
 
-        function changeEfectivo()
-        {
+        function pintarCuentas(cuentas) {
+            if (window.cuentaSelect) {
+                window.cuentaSelect.destroy();
+            }
+            window.cuentaSelect = new TomSelect("#cuenta", {
+                options: cuentas.map(c => ({
+                    value: c.cuenta_id,
+                    text: c.cuentaLabel
+                })),
+                placeholder: "SELECCIONAR",
+                allowEmptyOption: true,
+                create: false,
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                },
+                plugins: ['clear_button']
+            });
+        }
+
+        function changeEfectivo() {
             let efectivo = convertFloat($('#efectivo_venta').val());
             let importe = convertFloat($('#importe_venta').val());
             let suma = efectivo + importe;
             $('#cantidad').val(suma.toFixed(2))
         }
 
-        function changeImporte()
-        {
+        function changeImporte() {
             let efectivo = convertFloat($('#efectivo_venta').val());
             let importe = convertFloat($('#importe_venta').val());
             let suma = efectivo + importe;
             $('#cantidad').val(suma.toFixed(2));
         }
 
-        function tipoPago(tipoPago){
-            const tipo_pago =   tipoPago.value;
-            if(tipo_pago == "TODO"){
-                const saldo =   document.querySelector('#saldo').value;
-                document.querySelector('#efectivo_venta').value         =   saldo;
-                document.querySelector('#efectivo_venta').readOnly      =   true;
-                document.querySelector('#cantidad').value               =   saldo;      
+        function tipoPago(tipoPago) {
+            const tipo_pago = tipoPago.value;
+            if (tipo_pago == "TODO") {
+                const saldo = document.querySelector('#saldo').value;
+                const modoPagoId = document.querySelector('#modo_pago').value;
+                if (modoPagoId == 1) {
+                    document.querySelector('#efectivo_venta').value = saldo;
+                } else {
+                    document.querySelector('#importe_venta').value = saldo;
+                }
+                document.querySelector('#cantidad').value = saldo;
             }
-            if(tipo_pago == "A CUENTA"){
-                document.querySelector('#efectivo_venta').value         =   "0.00";
-                document.querySelector('#efectivo_venta').readOnly      = false;
+            if (tipo_pago == "A CUENTA") {
+                document.querySelector('#efectivo_venta').value = 0;
+                document.querySelector('#importe_venta').value = 0;
+                document.querySelector('#cantidad').value = 0;
             }
+        }
+
+        function iniciarSelectsMdlPagar() {
+            window.pagoSelect = new TomSelect("#pago", {
+                placeholder: "SELECCIONAR",
+                allowEmptyOption: true,
+                create: false,
+                maxOptions: null,
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                }
+            });
+
+            window.modoPagoSelect = new TomSelect("#modo_pago", {
+                placeholder: "SELECCIONAR",
+                allowEmptyOption: false,
+                create: false,
+                maxOptions: null,
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                }
+            });
+
+            window.cuentaSelect = new TomSelect("#cuenta", {
+                placeholder: "SELECCIONAR",
+                allowEmptyOption: false,
+                create: false,
+                maxOptions: null,
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                }
+            });
+
+            // window.mododDespachoSelect = new TomSelect("#modo_despacho", {
+            //     placeholder: "SELECCIONAR",
+            //     allowEmptyOption: false,
+            //     create: false,
+            //     maxOptions: null,
+            //     sortField: {
+            //         field: "text",
+            //         direction: "asc"
+            //     }
+            // });
+        }
+
+        async function getCuentasPorMetodoPago(metodoPagoId) {
+            try {
+                const res = await axios.get(route('utilidades.getCuentasPorMetodoPago', {
+                    metodo_pago: metodoPagoId
+                }));
+                if (!res.data.success) {
+                    toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                    return null;
+                }
+                toastr.info(res.data.message, 'OPERACIÓN COMPLETADA');
+                return res.data.data;
+            } catch (error) {
+                toastr.error(error, 'ERROR EN LA PETICIÓ OBTENER CUENTAS POR MÉTODO DE PAGO');
+                return null;
+            }
+        }
+
+        function limpiarMdlPagar() {
+            document.querySelector('#cliente').value = '';
+            document.querySelector('#numero').value = '';
+            document.querySelector('#monto').value = '';
+            document.querySelector('#saldo').value = '';
+            document.querySelector('#estado').value = '';
+            document.querySelector('#observacion').value = '';
+            document.querySelector('#nro_operacion').value = '';
+            window.pagoSelect.setValue("A CUENTA");
+            window.modoPagoSelect.setValue(3);
+            limpiarImagen();
         }
     </script>
 @endpush

@@ -3,8 +3,12 @@
 namespace App\Http\Services\Ventas\Ventas;
 
 use App\Almacenes\Almacen;
+use App\Almacenes\Color;
 use App\Almacenes\Kardex;
+use App\Almacenes\Modelo;
+use App\Almacenes\Producto;
 use App\Almacenes\ProductoColorTalla;
+use App\Almacenes\Talla;
 use App\Mantenimiento\MetodoEntrega\EmpresaEnvioSede;
 use App\Mantenimiento\MetodoEntrega\MetodoEntrega;
 use App\Mantenimiento\Tabla\Detalle as TablaDetalle;
@@ -368,6 +372,66 @@ class VentaRepository
                 }
             }
         }
+
+        if ($documento->monto_embalaje != 0 && $documento->monto_embalaje) {
+            $producto_embalaje                  =   Producto::where('tipo', 'FICTICIO')->where('nombre', 'EMBALAJE')->first();
+            $color_ficticio                     =   Color::where('tipo', 'FICTICIO')->where('descripcion', 'SERVICIO')->first();
+            $talla_ficticio                     =   Talla::where('tipo', 'FICTICIO')->where('descripcion', 'SERVICIO')->first();
+            $modelo_ficticio                    =   Modelo::where('tipo', 'FICTICIO')->where('descripcion', 'SERVICIO')->first();
+
+            $detalle                            =   new Detalle();
+            $detalle->documento_id              =   $documento->id;
+            $detalle->almacen_id                =   $datos_validados->almacen->id;
+            $detalle->producto_id               =   $producto_embalaje->id;
+            $detalle->color_id                  =   $color_ficticio->id;
+            $detalle->talla_id                  =   $talla_ficticio->id;
+            $detalle->almacen_nombre            =   $datos_validados->almacen->descripcion;
+            $detalle->codigo_producto           =   'EMBALAJE';
+            $detalle->nombre_producto           =   $producto_embalaje->nombre;
+            $detalle->nombre_color              =   $color_ficticio->descripcion;
+            $detalle->nombre_talla              =   $talla_ficticio->descripcion;
+            $detalle->nombre_modelo             =   $modelo_ficticio->descripcion;
+            $detalle->cantidad                  =   1;
+            $detalle->precio_unitario           =   $documento->monto_embalaje;
+            $detalle->importe                   =   $documento->monto_embalaje;
+            $detalle->precio_unitario_nuevo     =   $documento->monto_embalaje;
+            $detalle->porcentaje_descuento      =   0;
+            $detalle->monto_descuento           =   0;
+            $detalle->importe_nuevo             =   $documento->monto_embalaje;
+            $detalle->cantidad_sin_cambio       =   1;
+            $detalle->tipo                      =   'SERVICIO';
+            $detalle->save();
+        }
+
+        if ($documento->monto_envio != 0 && $documento->monto_envio) {
+            $producto_embalaje                  =   Producto::where('tipo', 'FICTICIO')->where('nombre', 'ENVIO')->first();
+            $color_ficticio                     =   Color::where('tipo', 'FICTICIO')->where('descripcion', 'SERVICIO')->first();
+            $talla_ficticio                     =   Talla::where('tipo', 'FICTICIO')->where('descripcion', 'SERVICIO')->first();
+            $modelo_ficticio                    =   Modelo::where('tipo', 'FICTICIO')->where('descripcion', 'SERVICIO')->first();
+
+            $detalle                            =   new Detalle();
+            $detalle->documento_id              =   $documento->id;
+            $detalle->almacen_id                =   $datos_validados->almacen->id;
+            $detalle->producto_id               =   $producto_embalaje->id;
+            $detalle->color_id                  =   $color_ficticio->id;
+            $detalle->talla_id                  =   $talla_ficticio->id;
+            $detalle->almacen_nombre            =   $datos_validados->almacen->descripcion;
+            $detalle->codigo_producto           =   'ENVIO';
+            $detalle->nombre_producto           =   $producto_embalaje->nombre;
+            $detalle->nombre_color              =   $color_ficticio->descripcion;
+            $detalle->nombre_talla              =   $talla_ficticio->descripcion;
+            $detalle->nombre_modelo             =   $modelo_ficticio->descripcion;
+            $detalle->cantidad                  =   1;
+            $detalle->precio_unitario           =   $documento->monto_envio;
+            $detalle->importe                   =   $documento->monto_envio;
+            $detalle->precio_unitario_nuevo     =   $documento->monto_envio;
+            $detalle->porcentaje_descuento      =   0;
+            $detalle->monto_descuento           =   0;
+            $detalle->importe_nuevo             =   $documento->monto_envio;
+            $detalle->cantidad_sin_cambio       =   1;
+            $detalle->tipo                      =   'SERVICIO';
+            $detalle->save();
+        }
     }
 
     public function insertarDespacho(Documento $venta, object $data_envio, object $datos_validados)
@@ -378,7 +442,7 @@ class VentaRepository
             && !$datos_validados->facturar
             && !$datos_validados->documento_convertido
             && $datos_validados->tipo_doc_venta_pedido !== 'CONSUMO'
-        ){
+        ) {
 
             $departamento_id = str_pad($data_envio->departamento, 2, '0', STR_PAD_LEFT);
             $provincia_id    = str_pad($data_envio->provincia, 4, '0', STR_PAD_LEFT);

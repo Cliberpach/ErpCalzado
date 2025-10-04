@@ -65,7 +65,12 @@
                         id="filtroCliente" required onchange="pedidos_data_table.ajax.reload();">
                     </select>
                 </div>
-
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-12 col-xs-12 mb-2">
+                    <label for="filtroProducto" style="font-weight: bold;">PRODUCTO:</label>
+                    <select class="select2_form" style="text-transform: uppercase; width:100%" name="filtroProducto"
+                        id="filtroProducto" required onchange="pedidos_data_table.ajax.reload();">
+                    </select>
+                </div>
             </div>
         </div>
         <div class="col-3 d-flex align-items-end justify-content-end">
@@ -78,26 +83,7 @@
             <div class="ibox ">
                 <div class="ibox-content">
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered table-hover" id="pedidos_table"
-                            style="text-transform:uppercase" width="100%">
-                            <thead>
-                                <tr>
-                                    <th class="text-center">ID</th>
-                                    <th class="text-center">FACTURADO</th>
-                                    <th class="text-center">COT</th>
-                                    <th class="text-center">ALMACEN</th>
-                                    <th class="text-center">CLIENTE</th>
-                                    <th class="text-center">FECHA</th>
-                                    <th class="text-center">TOTAL</th>
-                                    <th class="text-center">USUARIO</th>
-                                    <th class="text-center">ESTADO</th>
-                                    <th class="text-center">ACCIONES</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                            </tbody>
-                        </table>
+                        @include('pedidos.pedido.tables.tbl_list_pedidos')
                     </div>
                 </div>
             </div>
@@ -147,7 +133,6 @@
 @endpush
 
 @push('scripts')
-
 <script>
     //======== DATATABLES ====
     let pedidos_data_table = null;
@@ -240,6 +225,65 @@
                 return data.text;
             },
         });
+        $('#filtroProducto').select2({
+            width: '100%',
+            placeholder: "Buscar Producto...",
+            allowClear: true,
+            language: {
+                inputTooShort: function(args) {
+                    var min = args.minimum;
+                    return "Por favor, ingrese " + min + " o más caracteres";
+                },
+                searching: function() {
+                    return "BUSCANDO...";
+                },
+                noResults: function() {
+                    return "No se encontraron productos";
+                }
+            },
+            ajax: {
+                url: '{{ route('utilidades.getProductos') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        search: params.term,
+                        page: params.page || 1
+                    };
+                },
+                processResults: function(data, params) {
+                    if (data.success) {
+                        params.page = params.page || 1;
+                        const productos = data.productos;
+                        return {
+                            results: productos.map(item => ({
+                                id: item.id,
+                                text: item.descripcion
+                            })),
+                            pagination: {
+                                more: data.more
+                            }
+                        };
+                    } else {
+                        toastr.error(data.message, 'ERROR EN EL SERVIDOR');
+                        return {
+                            results: []
+                        }
+                    }
+
+                },
+                cache: true
+            },
+            minimumInputLength: 2,
+            templateResult: function(data) {
+                if (data.loading) {
+                    return $(
+                        '<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>'
+                    );
+                }
+                return data.text;
+            },
+        });
     }
 
     function loadDataTable() {
@@ -255,6 +299,7 @@
                     d.fecha_fin = $('#filtroFechaFin').val();
                     d.pedido_estado = $('#pedido_estado').val();
                     d.cliente_id = $('#filtroCliente').val();
+                    d.producto_id = $('#filtroProducto').val();
                 }
             },
             "order": [
@@ -283,9 +328,21 @@
             // ],
             dom: '<"buttons-container"B><"search-length-container"lf>tp',
             bProcessing: true,
-            columns: [
-                {
+            columns: [{
                     data: 'id',
+                    searchable: false,
+                    visible: false
+                },
+                {
+                    data: 'codigo',
+                    name: 'codigo',
+                    render: function(data, type, row) {
+                        return '<strong>' + data + '</strong>';
+                    }
+                },
+                {
+                    data: 'doc_credito',
+                    name: 'doc_credito',
                     searchable: true
                 },
                 {
@@ -342,17 +399,30 @@
                     }
                 },
                 {
+                    data: 'doc_venta_credito_estado_pago',
+                    searchable: false,
+                    className: "text-center",
+                    render: function(data, type, row) {
+                        if (data === 'PENDIENTE') {
+                            return '<span class="badge badge-danger">PENDIENTE</span>';
+                        } else if (data === 'PAGADO') {
+                            return '<span class="badge badge-success">PAGADO</span>';
+                        }
+                    }
+                },
+                {
                     data: null,
                     searchable: false,
                     className: "text-center",
                     render: function(data, type, row) {
-                        let url_reporte     = '{{ route('pedidos.pedido.reporte', ':id') }}';
-                        url_reporte         = url_reporte.replace(':id', row.id);
+                        let url_reporte = '{{ route('pedidos.pedido.reporte', ':id') }}';
+                        url_reporte = url_reporte.replace(':id', row.id);
 
-                        let url_facturar_create     =   '{{ route('pedidos.pedido.facturar-create', ':id') }}';
-                        url_facturar_create         =   url_facturar_create.replace(':id', row.id);
+                        let url_facturar_create =
+                            '{{ route('pedidos.pedido.facturar-create', ':id') }}';
+                        url_facturar_create = url_facturar_create.replace(':id', row.id);
 
-                        const url_atender   = '{{ route('pedidos.pedido.atender') }}';
+                        const url_atender = '{{ route('pedidos.pedido.atender') }}';
 
                         let accion_facturar = '';
 
@@ -370,7 +440,7 @@
                                 <button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class="fas fa-bars"></i></button>
                                 <ul class='dropdown-menu dropdown-menu-up'>
                                     ${accion_facturar}
-                                    <li><a class='dropdown-item'  target='_blank' href="${url_reporte}" title='PDF'><b><i class='fa fa-file-pdf-o'></i> Pdf</a></b></li>`;
+                                    <li><a class='dropdown-item'  target='_blank' href="${url_reporte}" title='PDF'><b><i class="fas fa-file-pdf"></i> Pdf</a></b></li>`;
 
 
 
@@ -936,8 +1006,8 @@
 
             if (res_cliente.data.success) {
 
-                const cliente_pedido    = res_cliente.data.cliente;
-                const tipo_comprobante  = cliente_pedido.tipo_documento === 'RUC' ? 'FACTURA' : 'BOLETA';
+                const cliente_pedido = res_cliente.data.cliente;
+                const tipo_comprobante = cliente_pedido.tipo_documento === 'RUC' ? 'FACTURA' : 'BOLETA';
 
                 let numero_documento = '99999999';
                 if (cliente_pedido.tipo_documento === 'RUC' || cliente_pedido.tipo_documento === 'DNI') {
