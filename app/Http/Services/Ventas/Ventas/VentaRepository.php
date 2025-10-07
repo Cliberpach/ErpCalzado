@@ -729,4 +729,13 @@ class VentaRepository
             [$venta_id]
         );
     }
+
+    public function insertarVentaAnticipo(array $dto): Documento
+    {
+        return Documento::create($dto);
+    }
+
+    public function insertarDetalleVentaAnticipo(array $dto){
+        Detalle::create($dto);
+    }
 }

@@ -6,10 +6,13 @@ use App\Almacenes\Almacen;
 use App\Mantenimiento\Condicion;
 use App\Mantenimiento\Cuenta\Cuenta;
 use App\Mantenimiento\Empresa\Empresa;
+use App\Mantenimiento\Tabla\Detalle;
 use App\Mantenimiento\TipoPago\TipoPago;
+use App\Pos\Caja;
 use App\User;
 use App\Ventas\Cliente;
 use App\Ventas\Documento\Documento;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -245,5 +248,47 @@ class VentaValidacion
             'tipo_pago_1'               =>  $tipo_pago_1,
             'cuenta_pago_1'             =>  $cuenta_pago_1
         ];
+    }
+
+    public function validacionVentaAnticipo(array $datos): object
+    {
+        $cliente            =   Cliente::findOrFail($datos['cliente_id']);
+        $tipo_comprobante   =   Detalle::findOrFail($datos['tipo_comprobante_id']);
+        if (trim($cliente->tipo_documento) !== 'RUC' && $tipo_comprobante->id == 127) {
+            throw new Exception("SOLO SE PUEDE EMITIR FACTURA PARA CLIENTES CON RUC");
+        }
+        if (trim($cliente->tipo_documento) != 'DNI' && $tipo_comprobante->id == 128) {
+            throw new Exception("SOLO SE PUEDE EMITIR BOLETA PARA CLIENTES CON DNI");
+        }
+
+        $datos['cliente']               =   $cliente;
+        $datos['tipo_comprobante']      =   $tipo_comprobante;
+        $caja                           =   Caja::findOrFail($datos['caja_id']);
+        $condicion_pago                 =   Condicion::findOrFail(1);
+
+        //======== CAJA =========
+        $datos['caja_id']               =   $caja->id;
+        $datos['caja_nombre']           =   $caja->nombre;
+
+        //======= FECHAS ========
+        $datos['fecha_documento']       =   Carbon::now()->toDateString();
+        $datos['fecha_atencion']        =   Carbon::now()->toDateString();
+
+        //======== CONDICIÓN ========
+        $datos['condicion_id']          =   $condicion_pago->id;
+        $datos['condicion_pago_nombre'] =   $condicion_pago->descripcion;
+        $datos['fecha_vencimiento']     =   Carbon::now()->addDays($condicion_pago->dias)->toDateString();
+
+        //======== EMPRESA ===========
+        $empresa                =   Empresa::find(1);
+        $datos['ruc_empresa']   =   $empresa->ruc;
+        $datos['empresa']       =   $empresa->razon_social;
+        $datos['direccion_fiscal_empresa']  =   $empresa->direccion_fiscal;
+        $datos['empresa_id']                =   $empresa->id;
+        $datos['igv']                       =   $empresa->igv;
+
+        $datos['almacen']       =   Almacen::findOrFail(1);
+
+        return (object)$datos;
     }
 }

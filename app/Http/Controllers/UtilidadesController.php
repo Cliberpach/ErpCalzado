@@ -450,4 +450,13 @@ class UtilidadesController extends Controller
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
+
+    public static function getTipoComprobantes(){
+        $tipo_comprobantes   =   DB::table('tabladetalles as td')
+            ->select('td.*')
+            ->where('td.tabla_id', 21)
+            ->whereIn('td.id', [127, 128])
+            ->get();
+        return $tipo_comprobantes;
+    }
 }

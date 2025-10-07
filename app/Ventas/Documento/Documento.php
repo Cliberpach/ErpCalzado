@@ -13,8 +13,127 @@ use Illuminate\Support\Facades\DB;
 class Documento extends Model
 {
     protected $table = 'cotizacion_documento';
-    protected $guarded = [''];
-
+    protected $fillable = [
+        'sede_id',
+        'almacen_id',
+        'almacen_nombre',
+        'tipo_venta_nombre',
+        'legenda',
+        'ruc_empresa',
+        'empresa',
+        'direccion_fiscal_empresa',
+        'empresa_id',
+        'tipo_documento_cliente',
+        'documento_cliente',
+        'direccion_cliente',
+        'cliente',
+        'cliente_id',
+        'fecha_documento',
+        'fecha_vencimiento',
+        'fecha_atencion',
+        'tipo_venta_id',
+        'sub_total',
+        'total_igv',
+        'total',
+        'tipo_pago_id',
+        'efectivo',
+        'importe',
+        'condicion_id',
+        'ruta_xml',
+        'ruta_qr',
+        'hash',
+        'ruta_pago',
+        'banco_empresa_id',
+        'igv_check',
+        'igv',
+        'moneda',
+        'numero_doc',
+        'cotizacion_venta',
+        'user_id',
+        'observacion',
+        'estado',
+        'estado_pago',
+        'sunat',
+        'getCdrResponse',
+        'getRegularizeResponse',
+        'regularize',
+        'correlativo',
+        'serie',
+        'ruta_comprobante_archivo',
+        'nombre_comprobante_archivo',
+        'convertir',
+        'contingencia',
+        'correlativo_contingencia',
+        'serie_contingencia',
+        'sunat_contingencia',
+        'getCdrResponse_contingencia',
+        'getRegularizeResponse_contingencia',
+        'created_at',
+        'updated_at',
+        'monto_embalaje',
+        'monto_envio',
+        'total_pagar',
+        'porcentaje_descuento',
+        'monto_descuento',
+        'ruta_pago_2',
+        'cdr_response_description',
+        'cdr_response_code',
+        'cdr_response_id',
+        'response_error_message',
+        'response_error_code',
+        'cambio_talla',
+        'ruta_cdr',
+        'cdr_response_notes',
+        'cdr_response_reference',
+        'pedido_id',
+        'tipo_doc_venta_pedido',
+        'resumen_id',
+        'convert_de_id',
+        'convert_de_serie',
+        'convert_en_id',
+        'convert_en_serie',
+        'guia_id',
+        'regularizado_en_id',
+        'regularizado_de_id',
+        'regularizado_en_serie',
+        'regularizado_de_serie',
+        'modo',
+        'es_anticipo',
+        'saldo_anticipo',
+        'anticipo_consumido_id',
+        'anticipo_monto_consumido',
+        'anticipo_monto_consumido_sin_igv',
+        'anticipo_consumido_serie',
+        'anticipo_consumido_correlativo',
+        'anticipo_tipo_venta_id',
+        'mto_oper_gravadas_sunat',
+        'mto_igv_sunat',
+        'total_impuestos_sunat',
+        'valor_venta_sunat',
+        'sub_total_sunat',
+        'mto_imp_venta_sunat',
+        'telefono',
+        'pago_1_cuenta_id',
+        'pago_1_banco_nombre',
+        'pago_1_nro_cuenta',
+        'pago_1_cci',
+        'pago_1_celular',
+        'pago_1_titular',
+        'pago_1_moneda',
+        'pago_1_fecha_operacion',
+        'pago_1_hora_operacion',
+        'pago_1_tipo_pago_nombre',
+        'pago_1_nro_operacion',
+        'pago_1_monto',
+        'pago_1_tipo_pago_id',
+        'despacho_id',
+        'estado_despacho',
+        'caja_id',
+        'caja_movimiento_id',
+        'caja_nombre',
+        'condicion_pago_nombre',
+        'registrador_nombre',
+    ];
 
     public function retencion()
     {
@@ -76,30 +195,30 @@ class Documento extends Model
             return strval($venta->nombre);
     }
 
-    public function doc_convertido():string
+    public function doc_convertido(): string
     {
         $documento_convertido_id        =   $this->convertir;
         $doc_convertido                 =   DB::select('select cd.serie,cd.correlativo
                                             from cotizacion_documento as cd
-                                            where id=?',[$documento_convertido_id]);
+                                            where id=?', [$documento_convertido_id]);
 
-        if(count($doc_convertido)>0){
-            return $doc_convertido[0]->serie.'-'.$doc_convertido[0]->correlativo;
-        }else{
+        if (count($doc_convertido) > 0) {
+            return $doc_convertido[0]->serie . '-' . $doc_convertido[0]->correlativo;
+        } else {
             return "-";
         }
     }
 
-    public function usuario():string
+    public function usuario(): string
     {
         $usuario_id         =   $this->user_id;
         $usuario            =   DB::select('select u.usuario as usuario_nombre
                                 from users as u
-                                where u.id=?',[$usuario_id]);
+                                where u.id=?', [$usuario_id]);
 
-        if(count($usuario)>0){
+        if (count($usuario) > 0) {
             return $usuario[0]->usuario_nombre;
-        }else{
+        } else {
             return "-";
         }
     }

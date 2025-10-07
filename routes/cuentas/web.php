@@ -23,5 +23,6 @@ Route::prefix('cuentas')->group(function () {
         Route::get('consulta', 'Ventas\CuentaClienteController@consulta')->name('cuentaCliente.consulta');
         Route::get('reporte/{id}', 'Ventas\CuentaClienteController@reporte')->name('cuentaCliente.reporte');
         Route::get('imagen/{id}', 'Ventas\CuentaClienteController@imagen')->name('cuentaCliente.imagen');
+        Route::post('generar-comprobante', 'Ventas\CuentaClienteController@generarComprobantePago')->name('cuentaCliente.generarComprobantePago');
     });
 });

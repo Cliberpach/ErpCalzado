@@ -3895,7 +3895,6 @@ array:5 [
             $tipo_comprobante   =    $tipo_comprobante->where('td.parametro', "F")->get();
         }
 
-
         return view('ventas.documentos.convertir.index', [
             'documento'         =>  $documento,
             'detalles'          =>  $detalles,

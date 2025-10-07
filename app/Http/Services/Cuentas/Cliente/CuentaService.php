@@ -70,5 +70,26 @@ class CuentaService
         $this->s_crepository->eliminarPorVentaId($id);
     }
 
+    public function generarComprobantePago(array $datos):Documento{
+
+        $datos  =   $this->s_cvalidacion->validacionGenerarComprobante($datos);
+        
+        $dto    =   [
+            'cliente_id'            =>  $datos['cliente'],
+            'monto'                 =>  $datos['pago']->monto,
+            'tipo_comprobante_id'   =>  $datos['tipo_comprobante'],
+            'sede_id'               =>  $datos['sede'],
+            'caja_movimiento_id'    =>  $datos['caja_movimiento_id'],
+            'caja_id'               =>  $datos['caja_id'],
+            'observacion'           =>  $datos['observacion'],
+            'pedido_id'             =>  $datos['pedido_id']
+        ];
+
+        $venta  =   $this->s_venta->generarVentaAnticipo($dto);
+        $this->s_crepository->enlazarPagoComprobante($venta,$datos['pago_id']);
+
+        return $venta;
+    }
+
 }
 

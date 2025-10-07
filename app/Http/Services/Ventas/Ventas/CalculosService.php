@@ -2,8 +2,6 @@
 
 namespace App\Http\Services\Ventas\Ventas;
 
-use Exception;
-
 class CalculosService
 {
 
@@ -77,6 +75,40 @@ class CalculosService
             'monto_descuento'       =>  $monto_descuento,
             'monto_embalaje'        =>  $monto_embalaje,
             'monto_envio'           =>  $monto_envio,
+
+            'mtoOperGravadasSunat'  =>  $mtoOperGravadasSunat,
+            'mtoIgvSunat'           =>  $mtoIgvSunat,
+            'totalImpuestosSunat'   =>  $totalImpuestosSunat,
+            'valorVentaSunat'       =>  $valorVentaSunat,
+            'subTotalSunat'         =>  $subTotalSunat,
+            'mtoImpVentaSunat'      =>  $mtoImpVentaSunat
+        ];
+
+        return $montos;
+    }
+
+    public function calcularMontosDeTotal(float $monto)
+    {
+        $monto_total_pagar      =   $monto;
+        $monto_total            =   $monto_total_pagar / 1.18;
+        $monto_igv              =   $monto_total_pagar - $monto_total;
+
+        $mtoOperGravadasSunat   =   ($monto_total_pagar / 1.18);
+        $mtoIgvSunat            =   $mtoOperGravadasSunat * 0.18;
+        $totalImpuestosSunat    =   $mtoIgvSunat;
+        $valorVentaSunat        =   $mtoOperGravadasSunat;
+        $subTotalSunat          =   $mtoOperGravadasSunat + $mtoIgvSunat;
+        $mtoImpVentaSunat       =   $subTotalSunat;
+
+           $montos =   (object) [
+            'monto_subtotal'        =>  $monto_total_pagar,
+            'monto_total_pagar'     =>  $monto_total_pagar,
+            'monto_total'           =>  $monto_total,
+            'monto_igv'             =>  $monto_igv,
+            'monto_embalaje'        =>  0,
+            'monto_envio'           =>  0,
+            'monto_descuento'       =>  0,
+            'porcentaje_descuento'  =>  0,
 
             'mtoOperGravadasSunat'  =>  $mtoOperGravadasSunat,
             'mtoIgvSunat'           =>  $mtoIgvSunat,

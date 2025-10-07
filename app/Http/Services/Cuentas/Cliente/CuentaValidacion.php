@@ -2,7 +2,12 @@
 
 namespace App\Http\Services\Cuentas\Cliente;
 
+use App\Mantenimiento\Tabla\Detalle;
+use App\Pos\MovimientoCaja;
+use App\Ventas\Cliente;
+use App\Ventas\DetalleCuentaCliente;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class CuentaValidacion
 {
@@ -34,5 +39,32 @@ class CuentaValidacion
                 throw new Exception('Ocurrió un error, al parecer ingreso un monto diferente al saldo.');
             }
         }
+    }
+
+    public function validacionGenerarComprobante(array $datos):array{
+        $pago   =   DetalleCuentaCliente::findOrFail($datos['pago_id']);
+        if(!$pago){
+            throw new Exception("NO EXISTE EL PAGO EN LA BD");
+        }
+        if($pago->comprobante_id){
+            throw new Exception("EL PAGO YA TIENE COMPROBANTE GENERADO: ".$pago->comprobante_nro);
+        }
+
+        $venta_cuenta   =   DB::select(
+                                'SELECT cd.sede_id,cd.pedido_id
+                                FROM cuenta_cliente AS cc
+                                INNER JOIN cotizacion_documento AS cd ON cd.id = cc.cotizacion_documento_id
+                                WHERE cc.id = ?',[$pago->cuenta_cliente_id]
+                            )[0];
+
+        $caja_movimiento   =    MovimientoCaja::findOrFail($pago->mcaja_id);
+
+        $datos['pago']                  =   $pago;
+        $datos['sede']                  =   $venta_cuenta->sede_id;
+        $datos['pedido_id']             =   $venta_cuenta->pedido_id;
+        $datos['caja_movimiento_id']    =   $caja_movimiento->id;
+        $datos['caja_id']               =   $caja_movimiento->caja_id;
+
+        return $datos;
     }
 }

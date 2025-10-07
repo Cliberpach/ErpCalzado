@@ -12,4 +12,5 @@
                 <th class="text-center">ACCIONES</th>
             </tr>
         </thead>
+        <tbody></tbody>
     </table>

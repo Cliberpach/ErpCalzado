@@ -21,8 +21,6 @@ class ReservaController extends Controller
         return view('ventas.reservas.index');
     }
 
-
-
     public function getTable(Request $request)
     {
         $fecha_inicio   =   $request->get('fecha_inicio');

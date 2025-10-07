@@ -3,7 +3,10 @@
 
 @section('cuentas-active', 'active')
 @section('cuenta-cliente-active', 'active')
-@include('ventas.cuentaCliente.modalDetalle')
+
+@include('ventas.cuentaCliente.modals.mdl_pagar')
+@include('ventas.cuentaCliente.modals.mdl_generar_comprobante')
+
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
         <h2 style="text-transform:uppercase"><b>Lista de Cuentas Clientes</b></h2>
@@ -92,17 +95,64 @@
 @endpush
 @push('scripts')
 <script>
-    let dtCuentasCliente = null;
+    let dtCuentasCliente    = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         iniciarDtCuentasCliente();
+        iniciarClienteSelect();
         events();
         setDatosDefault();
     })
 
     function events() {
         eventsMdlPagar();
+        eventsGenerarComprobante();
         iniciarSelectsMdlPagar();
+    }
+
+    function iniciarClienteSelect() {
+        window.clienteSelect = new TomSelect('#cliente', {
+            valueField: 'id',
+            labelField: 'text',
+            searchField: 'text',
+            load: function(query, callback) {
+                if (!query.length || query.length < 2) {
+                    return callback(); // mínimo 2 caracteres
+                }
+                fetch("{{ route('utilidades.getClientes') }}?search=" + encodeURIComponent(query))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const clientes = data.clientes.map(item => ({
+                                id: item.id,
+                                text: item.descripcion
+                            }));
+                            callback(clientes);
+                        } else {
+                            toastr.error(data.message, 'ERROR EN EL SERVIDOR');
+                            callback();
+                        }
+                    })
+                    .catch(() => {
+                        toastr.error("Error al obtener clientes", "ERROR");
+                        callback();
+                    });
+            },
+            render: {
+                option: function(item, escape) {
+                    return `<div>${escape(item.text)}</div>`;
+                },
+                item: function(item, escape) {
+                    return `<div>${escape(item.text)}</div>`;
+                },
+                no_results: function(data, escape) {
+                    return `<div class="no-results">No se encontraron clientes</div>`;
+                },
+                loading: function(data, escape) {
+                    return `<div><i class="fa fa-spinner fa-spin text-primary"></i> Buscando...</div>`;
+                }
+            },
+        });
     }
 
     function iniciarDtCuentasCliente() {
@@ -193,38 +243,6 @@
         allowClear: true,
         height: '200px',
         width: '100%',
-    });
-
-
-
-
-    //------------------------------
-    $('.dataTables-detalle').DataTable({
-        "bPaginate": false,
-        "bLengthChange": true,
-        "bFilter": true,
-        "bInfo": false,
-        "bAutoWidth": false,
-        "processing": true,
-        "language": {
-            "url": "{{ asset('Spanish.json') }}"
-        },
-        "order": [
-            [0, "desc"]
-        ],
-        'aoColumns': [{
-                sClass: 'text-center'
-            },
-            {
-                sClass: 'text-center'
-            },
-            {
-                sClass: 'text-center'
-            },
-            {
-                sClass: 'text-center'
-            }
-        ],
     });
 
     $("#btn_buscar").on('click', function() {

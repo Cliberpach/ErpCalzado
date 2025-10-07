@@ -2,6 +2,8 @@
 
 namespace App\Http\Services\Cuentas\Cliente;
 
+use App\Ventas\Documento\Documento;
+
 class CuentaManager
 {
     private CuentaService $s_cuenta;
@@ -16,9 +18,12 @@ class CuentaManager
         $this->s_cuenta->pagar($datos, $cuenta_id);
     }
 
-
     public function decrementarSaldo(int $cuenta_id, float $monto)
     {
         $this->s_cuenta->decrementarSaldo($cuenta_id, $monto);
+    }
+
+    public function generarComprobantePago(array $datos):Documento{
+        return $this->s_cuenta->generarComprobantePago($datos);
     }
 }

@@ -3,14 +3,14 @@
         <div class="row align-items-end">
 
             <div class="col-md-12 mb-3">
-                <label for="cliente" class="required font-weight-bold">CLIENTE</label>
+                <label for="cliente_text" class="required font-weight-bold">CLIENTE</label>
                 <div class="input-group input-group-sm">
                     <div class="input-group-prepend">
                         <span class="input-group-text bg-light">
                             <i class="fa fa-user text-primary"></i>
                         </span>
                     </div>
-                    <input type="text" name="cliente" id="cliente" class="form-control" disabled>
+                    <input type="text" name="cliente_text" id="cliente_text" class="form-control" disabled>
                 </div>
             </div>
 
@@ -42,13 +42,13 @@
                 </div>
             </div>
 
-
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="monto" class="required font-weight-bold">MONTO</label>
                     <div class="input-group input-group-sm">
                         <div class="input-group-prepend">
-                            <span class="input-group-text"><i class="fa fa-money text-success"></i></span>
+                            <span class="input-group-text"><i class="fas fa-money-bill text-success"></i>
+                            </span>
                         </div>
                         <input type="text" name="monto" id="monto" class="form-control" disabled>
                     </div>
@@ -89,23 +89,16 @@
         </div>
 
         <div class="row justify-content-center">
-            <div class="col-12" style="zoom: 85%;">
+            <div class="col-12">
+                <label class="font-weight-bold d-block mb-2" style="font-size: 0.95rem;">DETALLE PAGO</label>
                 <div class="table-responsive">
-                    <table class="table dataTables-detalle table-striped table-bordered table-hover"
-                        style="text-transform:uppercase">
-                        <thead>
-                            <tr>
-                                <th class="text-center">Fecha</th>
-                                <th class="text-center">Observacion</th>
-                                <th class="text-center">Monto</th>
-                                <th class="text-center">Im&aacute;gen</th>
-                            </tr>
-                        </thead>
-                    </table>
+                    @include('ventas.cuentaCliente.tables.tbl_detalle_pagos')
                 </div>
             </div>
         </div>
+
     </div>
+
     <div class="col-md-6">
         <form id="frmDetalle" method="POST" enctype="multipart/form-data">
             {{ csrf_field() }}

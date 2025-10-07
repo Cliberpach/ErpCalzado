@@ -133,7 +133,7 @@
     'nota_ingreso.index', 'nota_salida.index', 'solicitudes_traslado.index', 'traslados.index', 'vehiculos.index',
     'conductores.index']])
     <li class="@yield('almacenes-active')">
-        <a href="#"><i class="fa fa-bar-chart-o"></i> <span class="nav-label">Almacén</span><span
+        <a href="#"><i class="fas fa-boxes"></i> <span class="nav-label">Almacén</span><span
                 class="fa arrow"></span></a>
         <ul class="nav nav-second-level collapse">
             @can('haveaccess', 'almacen.index')
@@ -184,7 +184,7 @@
 
 @can('restore', [Auth::user(), ['cuenta_proveedor.index', 'cuenta_cliente.index']])
     <li class="@yield('cuentas-active')">
-        <a href="#"><i class="fa fa-money"></i> <span class="nav-label">Cuentas </span><span
+        <a href="#"><i class="fas fa-money-bill"></i> <span class="nav-label">Cuentas </span><span
                 class="fa arrow"></span></a>
         <ul class="nav nav-second-level collapse">
             @can('haveaccess', 'cuenta_proveedor.index')
@@ -300,7 +300,7 @@
     'reporte_nota_salida.index', 'reporte_nota_ingreso.index', 'reporte_cuenta_cobrar.index', 'reporte_cuenta_pagar.index',
     'reporte_stock_valorizado.index']])
     <li class="@yield('reporte-active')">
-        <a href="#"><i class="fa fa-money"></i> <span class="nav-label">Reportes </span><span
+        <a href="#"><i class="fas fa-chart-bar"></i> <span class="nav-label">Reportes </span><span
                 class="fa arrow"></span></a>
         <ul class="nav nav-second-level collapse">
             @can('haveaccess', 'reporte_cajadiaria.index')
@@ -334,8 +334,6 @@
         </ul>
     </li>
 @endcan
-
-
 
 @can('restore', [Auth::user(), ['kardex_proveedor.index', 'kardex_cliente.index', 'kardex_producto.index',
     'kardex_salida.index', 'kardex_venta.index','kardex_cuenta.index']])

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Ventas;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\UtilidadesController;
+use App\Http\Requests\Cuentas\Cliente\CuentaClienteComprobanteRequest;
 use App\Http\Requests\Cuentas\Cliente\CuentaClientePagarRequest;
 use App\Http\Services\Cuentas\Cliente\CuentaManager;
 use App\Mantenimiento\Cuenta\Cuenta;
@@ -31,7 +33,8 @@ class CuentaClienteController extends Controller
     public function index()
     {
         $fecha_hoy = Carbon::now()->toDateString();
-        return view('ventas.cuentaCliente.index', compact('fecha_hoy'));
+        $tipo_comprobantes  =   UtilidadesController::getTipoComprobantes();
+        return view('ventas.cuentaCliente.index', compact('fecha_hoy', 'tipo_comprobantes'));
     }
 
     public function getTable(Request $request)
@@ -129,7 +132,8 @@ class CuentaClienteController extends Controller
                     'cc.monto',
                     'cc.saldo',
                     'cc.estado',
-                    'cd.pedido_id'
+                    'cd.pedido_id',
+                    'cd.cliente_id'
                 )
                 ->join('cotizacion_documento as cd', 'cd.id', 'cc.cotizacion_documento_id')
                 ->where('cc.id', $id)
@@ -198,12 +202,12 @@ array:10 [▼
         DB::beginTransaction();
         try {
             $this->s_cuenta->pagar($request->toArray(), $request->get('id'));
-          
+
             DB::commit();
             return response()->json(['success' => true, 'message' => "PAGO REGISTRADO CON ÉXITO"]);
         } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => $th->getMessage(),'file'=>$th->getFile(),'line'=>$th->getLine()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'file' => $th->getFile(), 'line' => $th->getLine()]);
         }
     }
 
@@ -266,5 +270,38 @@ array:10 [▼
         $detalle = DetalleCuentaCliente::find($id);
         $ruta = storage_path() . '/app/' . $detalle->ruta_imagen;
         return response()->download($ruta);
+    }
+
+    /*
+array:4 [
+  "cliente" => "1281"
+  "tipo_comprobante" => "127"
+  "observacion" => "test"
+  "pago_id" => "null"
+]
+*/
+    public function generarComprobantePago(CuentaClienteComprobanteRequest $request)
+    {
+        DB::beginTransaction();
+        try {
+
+            $venta  =   $this->s_cuenta->generarComprobantePago($request->toArray());
+
+            $url_pdf = route('ventas.documento.comprobante', [
+                'id' => $venta->id,
+                'size' => 80
+            ]);
+
+            //====== REGISTRO DE ACTIVIDAD ========
+            $descripcion = "SE GENERÓ EL COMPROBANTE DEL PAGO: " . Carbon::parse($venta->created_at)->format('d/m/y');
+            $gestion = "COMPROBANTE PAGO CLIENTE";
+            crearRegistro($venta, $descripcion, $gestion);
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'COMPROBANTE ANTICIPO GENERADO CON ÉXITO', 'url_pdf' => $url_pdf]);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'file' => $th->getFile(), 'line' => $th->getLine()]);
+        }
     }
 }

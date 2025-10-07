@@ -96,7 +96,7 @@ class PedidoController extends Controller
             $pedidos    =   $pedidos->where('pedidos.cliente_id', $cliente_id);
         }
 
-         if ($producto_id) {
+        if ($producto_id) {
             $pedidos->whereExists(function ($q) use ($producto_id) {
                 $q->select(DB::raw(1))
                     ->from('pedidos_detalles as pd')

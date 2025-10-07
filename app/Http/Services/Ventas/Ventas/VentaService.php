@@ -32,6 +32,7 @@ class VentaService
     private ProductoColorTallaService $s_pct;
     private OrdenProduccionService $s_orden_produccion;
     private KardexCuentaService $s_kardex_cuenta;
+    private VentaDto $s_venta_dto;
 
     public function __construct()
     {
@@ -43,6 +44,7 @@ class VentaService
         $this->s_pct            =   new ProductoColorTallaService();
         $this->s_orden_produccion   =   new OrdenProduccionService();
         $this->s_kardex_cuenta      =   new KardexCuentaService();
+        $this->s_venta_dto          =   new VentaDto();
     }
 
     public function registrar(array $datos): Documento
@@ -90,7 +92,7 @@ class VentaService
         }
 
         //======= DESPACHO ======
-        $data_envio =   $datos['data_envio']??null;
+        $data_envio =   $datos['data_envio'] ?? null;
         if ($data_envio) {
             $data_envio = json_decode($datos['data_envio']);
 
@@ -358,7 +360,7 @@ class VentaService
         return $documento;
     }
 
-      public function getVoucherPdf(int $id, int $size): array
+    public function getVoucherPdf(int $id, int $size): array
     {
         $documento  =   Documento::findOrFail($id);
 
@@ -410,7 +412,7 @@ class VentaService
         return ['pdf' => $pdf, 'nombre' => $documento->serie . '-' . $documento->correlativo . '.pdf'];
     }
 
-     public function qr_code(int $id): array
+    public function qr_code(int $id): array
     {
 
         $documento = Documento::findOrFail($id);
@@ -470,4 +472,37 @@ class VentaService
         return array('success' => true, 'mensaje' => 'QR creado exitosamente');
     }
 
+    public function generarVentaAnticipo(array $datos):Documento
+    {
+        //========= VALIDACIÓN ANTICIPO =========
+        $datos_validados  =   $this->s_validacion->validacionVentaAnticipo($datos);
+
+        //======== COMPROBANTE ACTIVO =========
+        $this->s_validacion->comprobanteActivo($datos_validados->sede_id, $datos_validados->tipo_comprobante);
+
+        //======== OBTENER CORRELATIVO Y SERIE =======
+        $datos_correlativo  =   $this->s_correlativo->getCorrelativo($datos_validados->tipo_comprobante, $datos_validados->sede_id);
+
+        //========= CALCULAR MONTOS =========
+        $montos             =   $this->s_calculos->calcularMontosDeTotal(floatval($datos_validados->monto));
+
+        //======== OBTENIENDO LEYENDA =======
+        $legenda                =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
+
+        $datos_validados->datos_correlativo     =   $datos_correlativo;
+        $datos_validados->montos                =   $montos;
+        $datos_validados->legenda               =   $legenda;
+
+        //=========== OBTENER DTO ===========
+        $dto    =   $this->s_venta_dto->prepararDtoFromAnticipo($datos_validados);
+
+        //======= INSERTAR VENTA =======
+        $venta  =   $this->s_repository->insertarVentaAnticipo($dto);
+
+        //========= INSERTAR DETALLE VENTA ========
+        $dto_detalle    =   $this->s_venta_dto->prepararDtoDetalleFromAnticipo($venta);
+        $this->s_repository->insertarDetalleVentaAnticipo($dto_detalle);
+
+        return $venta;
+    }
 }

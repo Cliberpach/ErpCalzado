@@ -39,8 +39,11 @@
 
     <script>
         const parametrosMdlPagar = {
-            id: null
+            id: null,
+            clienteId: null
         };
+
+        let dtDetallePago = null;
 
         function eventsMdlPagar() {
             document.querySelector('#frmDetalle').addEventListener('submit', (e) => {
@@ -60,8 +63,14 @@
             mostrarAnimacion();
             const data = await getCuentaCliente(cuentaId);
             if (!data) return;
+            parametrosMdlPagar.clienteId = data.cuenta.cliente_id;
             pintarCuentaCliente(data.cuenta);
-            pintarDetallePago(data.detalle)
+
+            destruirDataTable(dtDetallePago);
+            limpiarTabla('dataTables-detalle')
+            pintarDetallePago(data.detalle);
+            dtDetallePago = iniciarDataTable('dataTables-detalle');
+
             $("#btn-detalle").attr('href', '/cuentas/cuentaCliente/reporte/' + cuentaId)
             $('#modal_detalle').modal('show');
             ocultarAnimacion();
@@ -84,7 +93,7 @@
         }
 
         function pintarCuentaCliente(cuenta) {
-            document.querySelector('#cliente').value = cuenta.cliente;
+            document.querySelector('#cliente_text').value = cuenta.cliente;
             document.querySelector('#numero').value = cuenta.numero_doc;
             document.querySelector('#monto').value = cuenta.monto;
             document.querySelector('#saldo').value = cuenta.saldo;
@@ -93,26 +102,51 @@
         }
 
         function pintarDetallePago(detalle) {
-            var table = $(".dataTables-detalle").DataTable();
-            table.clear().draw();
-            detalle.forEach((value, index, array) => {
-                if (value.ruta_imagen) {
-                    table.row.add([
-                        value.fecha,
-                        value.observacion,
-                        value.monto,
-                        '<a class="btn btn-primary btn-xs" href="/cuentaCliente/imagen/' +
-                        value.id + '"><i class="fa fa-download"></i></a>'
-                    ]).draw(false);
-                } else {
-                    table.row.add([
-                        value.fecha,
-                        value.observacion,
-                        value.monto,
-                        '-'
-                    ]).draw(false);
+            const tbody = document.querySelector('#dataTables-detalle tbody');
+
+            detalle.forEach((value) => {
+                let acciones = `
+                    <div class="dropdown">
+                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenu${value.id}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenu${value.id}">
+                `;
+
+                if (!value.comprobante_id) {
+                    acciones += `
+                        <a class="dropdown-item" href="javascript:void(0);" onclick="openMdlComprobante(${value.id});">
+                            <i class="fas fa-file-invoice"></i> Generar comprobante
+                        </a>
+                    `;
                 }
-            })
+                if (value.comprobante_id) {
+                    const url_open_pdf = route("ventas.documento.comprobante", { id: value.comprobante_id, size: 80 });
+                    acciones += `
+                        <a class="dropdown-item" href="${url_open_pdf}">
+                            <i class="fas fa-file-pdf text-danger"></i> Ver comprobante
+                        </a>
+                    `;
+                }
+
+                let botonImagen = value.ruta_imagen ?
+                    `<a class="btn btn-primary btn-xs" href="/cuentaCliente/imagen/${value.id}">
+                        <i class="fas fa-download"></i>
+                    </a>` :'-';
+
+                let fila = `
+                    <tr>
+                        <td>${value.fecha ?? ''}</td>
+                        <td>${value.observacion ?? ''}</td>
+                        <td>${value.monto ?? ''}</td>
+                        <td>${botonImagen}</td>
+                        <td>${value.comprobante_nro??''}</td>
+                        <td>${acciones}</td>
+                    </tr>
+                `;
+
+                tbody.innerHTML += fila;
+            });
         }
 
         function storePago(formPagar) {

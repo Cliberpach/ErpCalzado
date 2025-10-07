@@ -1,5 +1,5 @@
 /* EcoValle */
-.required:after {
+.required_field:after {
     color: #ff9d32;
     content: ' *';
     display: inline;

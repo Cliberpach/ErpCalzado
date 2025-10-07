@@ -4,6 +4,7 @@ namespace App\Http\Services\Cuentas\Cliente;
 
 use App\Ventas\CuentaCliente;
 use App\Ventas\DetalleCuentaCliente;
+use App\Ventas\Documento\Documento;
 
 class CuentaRepository
 {
@@ -49,5 +50,12 @@ class CuentaRepository
         $cuenta             =   CuentaCliente::where('cotizacion_documento_id',$id)->first();
         $cuenta->estado     =   'ANULADO';
         $cuenta->update();
+    }
+
+    public function enlazarPagoComprobante(Documento $venta,int $pago_id){
+        $pago   =   DetalleCuentaCliente::findOrFail($pago_id);
+        $pago->comprobante_id       =   $venta->id;
+        $pago->comprobante_nro      =   $venta->serie.'-'.$venta->correlativo;
+        $pago->update();
     }
 }
