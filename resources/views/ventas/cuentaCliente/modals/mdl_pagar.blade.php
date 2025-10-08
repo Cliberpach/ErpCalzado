@@ -121,9 +121,12 @@
                     `;
                 }
                 if (value.comprobante_id) {
-                    const url_open_pdf = route("ventas.documento.comprobante", { id: value.comprobante_id, size: 80 });
+                    const url_open_pdf = route("ventas.documento.comprobante", {
+                        id: value.comprobante_id,
+                        size: 80
+                    });
                     acciones += `
-                        <a class="dropdown-item" href="${url_open_pdf}">
+                        <a class="dropdown-item" href="${url_open_pdf}" target="_blank">
                             <i class="fas fa-file-pdf text-danger"></i> Ver comprobante
                         </a>
                     `;
@@ -132,7 +135,7 @@
                 let botonImagen = value.ruta_imagen ?
                     `<a class="btn btn-primary btn-xs" href="/cuentaCliente/imagen/${value.id}">
                         <i class="fas fa-download"></i>
-                    </a>` :'-';
+                    </a>` : '-';
 
                 let fila = `
                     <tr>

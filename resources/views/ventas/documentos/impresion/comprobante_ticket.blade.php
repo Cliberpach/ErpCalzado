@@ -259,7 +259,7 @@
                         <td style="text-align: left">-</td>
                         <td style="text-align: right">-</td>
                     </tr>
-                    @foreach ($detalles as $item)
+                    {{-- @foreach ($detalles as $item)
                         @if ($documento->tipo_venta_id == 129)
                             @if ($item->cantidad - $item->detalles->sum('cantidad') > 0)
                                 <tr>
@@ -286,7 +286,7 @@
                                 <td style="text-align: right">{{ number_format($item->importe, 2) }}</td>
                             </tr>
                         @endif
-                    @endforeach
+                    @endforeach --}}
                 @endif
 
                 @if ($documento->anticipo_consumido_id)

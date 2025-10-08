@@ -299,7 +299,8 @@
                 }
 
                 //==== CALCULAR DESCUENTO ====
-                calcularDescuento(producto_id, color_id, porcentaje_desc)
+                calcularDescuento(producto_id, color_id, porcentaje_desc);
+                calcularMontos();
             }
 
             //======== INPUT BARCODE ======
@@ -356,10 +357,7 @@
 
             toastr.clear();
             mostrarAnimacionCotizacion();
-            // if(!$('#modelo').val()){
-            //     toastr.error('DEBE SELECCIONAR UN MODELO','OPERACIÓN INCORRECTA');
-            //     return;
-            // }
+
             if (!$('#producto').val()) {
                 toastr.error('DEBE SELECCIONAR UN PRODUCTO', 'OPERACIÓN INCORRECTA');
                 ocultarAnimacionCotizacion();
@@ -420,7 +418,7 @@
                         precio_venta: producto.precio_venta,
                         monto_descuento: 0,
                         porcentaje_descuento: 0,
-                        precio_venta_nuevo: 0,
+                        precio_venta_nuevo: producto.precio_venta,
                         subtotal_nuevo: 0,
                         tallas: [{
                             talla_id: producto.talla_id,
@@ -477,6 +475,8 @@
 
     function loadDataTableStocksCotizacion() {
         dataTableStocksCotizacion = new DataTable('#table-stocks', {
+            pageLength: 100,
+            lengthChange: false,
             language: {
                 "sEmptyTable": "No hay datos disponibles en la tabla",
                 "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
@@ -505,6 +505,8 @@
 
     function loadDataTableDetallesCotizacion() {
         dataTableDetallesCotizacion = new DataTable('#table-detalle', {
+            pageLength: 100, // 👈 Mostrar 100 por defecto
+            lengthChange: false, // 👈 Oculta el combo "Mostrar X entradas"
             language: {
                 "sEmptyTable": "No hay datos disponibles en la tabla",
                 "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
@@ -643,17 +645,15 @@
     function formatearDetalle() {
         carritoFormateado.length = 0;
         carrito.forEach((d) => {
-            console.log('producto_color')
             d.tallas.forEach((t) => {
-                console.log('talla')
                 const producto = {};
                 producto.producto_id = d.producto_id;
                 producto.color_id = d.color_id;
                 producto.talla_id = t.talla_id;
                 producto.cantidad = t.cantidad;
                 producto.precio_venta = d.precio_venta;
-                producto.porcentaje_descuento = d.porcentaje_descuento;
-                producto.precio_venta_nuevo = d.precio_venta_nuevo;
+                producto.porcentaje_descuento   = d.porcentaje_descuento;
+                producto.precio_venta_nuevo     =   d.precio_venta_nuevo;
                 carritoFormateado.push(producto);
             })
         })
@@ -669,19 +669,15 @@
             const producto_color_editar = carrito[indiceExiste];
 
             //===== APLICANDO DESCUENTO ======
-            producto_color_editar.porcentaje_descuento = porcentaje_descuento;
+            producto_color_editar.porcentaje_descuento = parseFloat(porcentaje_descuento);
             producto_color_editar.monto_descuento = porcentaje_descuento === 0 ? 0 : producto_color_editar
                 .subtotal * (porcentaje_descuento / 100);
             producto_color_editar.precio_venta_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar
-                .precio_venta * (1 - porcentaje_descuento / 100)).toFixed(2);
+                .precio_venta * (1 - porcentaje_descuento / 100));
             producto_color_editar.subtotal_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar
-                .subtotal * (1 - porcentaje_descuento / 100)).toFixed(2);
-
+                .subtotal * (1 - porcentaje_descuento / 100));
 
             carrito[indiceExiste] = producto_color_editar;
-
-            //==== RECALCULANDO MONTOS ====
-            calcularMontos();
 
             //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
             const detailPrecioVenta = document.querySelector(
@@ -689,13 +685,8 @@
             const detailSubtotal = document.querySelector(
                 `.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
 
-            if (porcentaje_descuento !== 0) {
-                detailPrecioVenta.textContent = producto_color_editar.precio_venta_nuevo;
-                detailSubtotal.textContent = producto_color_editar.subtotal_nuevo;
-            } else {
-                detailPrecioVenta.textContent = producto_color_editar.precio_venta;
-                detailSubtotal.textContent = producto_color_editar.subtotal;
-            }
+            detailPrecioVenta.textContent = formatoMoneda(producto_color_editar.precio_venta_nuevo);
+            detailSubtotal.textContent = formatoMoneda(producto_color_editar.subtotal_nuevo);
 
         }
     }
@@ -752,14 +743,18 @@
     //======== CALCULAR SUBTOTAL POR PRODUCTO COLOR EN EL DETALLE ======
     const calcularSubTotal = () => {
         let subtotal = 0;
+        let subtotal_nuevo = 0;
 
         carrito.forEach((p) => {
             p.tallas.forEach((t) => {
                 subtotal += parseFloat(p.precio_venta) * parseFloat(t.cantidad);
+                subtotal_nuevo += parseFloat(p.precio_venta_nuevo) * parseFloat(t.cantidad);
             })
 
             p.subtotal = subtotal;
+            p.subtotal_nuevo = subtotal_nuevo;
             subtotal = 0;
+            subtotal_nuevo = 0;
         })
     }
 
@@ -780,13 +775,13 @@
         const color_nombre = ic.getAttribute('data-color-nombre');
         const talla_id = ic.getAttribute('data-talla-id');
         const talla_nombre = ic.getAttribute('data-talla-nombre');
-        const precio_venta = $('#precio_venta').find('option:selected').text();
-        const cantidad = ic.value ? ic.value : 0;
+        const precio_venta = parseFloat($('#precio_venta').find('option:selected').text());
+        const cantidad = ic.value ? parseInt(ic.value) : 0;
         const subtotal = 0;
         const subtotal_nuevo = 0;
         const porcentaje_descuento = 0;
         const monto_descuento = 0;
-        const precio_venta_nuevo = 0;
+        const precio_venta_nuevo = parseFloat($('#precio_venta').find('option:selected').text());
 
         const producto = {
             producto_id,
@@ -1390,6 +1385,5 @@
             document.querySelector('#telefono').value = cliente_elegido.telefono;
         }
     }
-
 </script>
 @endpush

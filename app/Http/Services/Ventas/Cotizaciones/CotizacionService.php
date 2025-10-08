@@ -4,9 +4,9 @@ namespace App\Http\Services\Ventas\Cotizaciones;
 
 use App\Almacenes\Almacen;
 use App\Http\Services\Pedidos\Pedidos\PedidoService;
+use App\Models\Ventas\Cotizacion\Cotizacion;
 use App\User;
 use App\Ventas\Cliente;
-use App\Ventas\Cotizacion;
 use App\Ventas\CotizacionDetalle;
 use App\Ventas\Pedido;
 
@@ -29,27 +29,23 @@ class CotizacionService
 
     public function store(array $datos): Cotizacion
     {
-        $lstCotizacion      =   json_decode($datos['lstCotizacion']);
-        $montos_cotizacion  =   json_decode($datos['montos_cotizacion']);
-
-        $almacen                =   Almacen::find($datos['almacen']);
-        $registrador            =   User::find($datos['registrador_id']);
-        $cliente                =   Cliente::findOrFail($datos['cliente']);
-        $datos['cliente']       =   $cliente;
-        $datos['lstCotizacion'] =   $lstCotizacion;
-        $datos['almacen']       =   $almacen;
-        $datos['registrador']   =   $registrador;
+        $lstCotizacion              =   json_decode($datos['lstCotizacion']);
+        $montos_cotizacion          =   json_decode($datos['montos_cotizacion']);
+        $datos['montos_cotizacion'] =   $montos_cotizacion;
 
         //======= CALCULANDO MONTOS ========
-        $montos =   $this->sc_calculos->calcularMontos($datos);
+        $montos             =   $this->sc_calculos->calcularMontos($datos);
         $datos['montos']    =   $montos;
 
+        $dto    =   $this->s_dto->prepararDtoStore($datos);
+
         //======== REGISTRANDO MAESTRO COTIZACIÓN ======
-        $cotizacion =   $this->s_repository->registrarCotizacion($datos);
+        $cotizacion =   $this->s_repository->registrarCotizacion($dto);
 
         //======= REGISTRO DETALLE DE LA COTIZACIÓN =====
         $this->s_repository->registrarDetalleCotizacion($lstCotizacion, $cotizacion);
 
+        dd($cotizacion);
         return $cotizacion;
     }
 

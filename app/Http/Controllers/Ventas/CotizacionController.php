@@ -181,9 +181,9 @@ array:10 [
             Session::flash('message_success', 'COTIZACIÓN REGISTRADA CON ÉXITO');
             DB::commit();
             return response()->json(['success' => true, 'message' => "COTIZACIÓN REGISTRADA CON ÉXITO"]);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(),'file'=>$th->getFile()]);
         }
     }
 
