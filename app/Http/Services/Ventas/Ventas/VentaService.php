@@ -93,9 +93,9 @@ class VentaService
 
         //======= DESPACHO ======
         $data_envio =   $datos['data_envio'] ?? null;
+
         if ($data_envio) {
             $data_envio = json_decode($datos['data_envio']);
-
             $this->s_repository->insertarDespacho($venta, $data_envio, $datos_validados);
         }
 
