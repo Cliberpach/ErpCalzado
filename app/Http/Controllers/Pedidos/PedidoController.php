@@ -30,6 +30,8 @@ use App\Http\Services\Pedidos\Pedidos\PedidoManager;
 use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Sedes\Sede;
 use App\User;
+use App\Ventas\CuentaCliente;
+use App\Ventas\DetalleCuentaCliente;
 use Throwable;
 
 class PedidoController extends Controller
@@ -571,21 +573,38 @@ array:11 [
 
     public function report($id)
     {
-        $pedido             = Pedido::findOrFail($id);
-        $tallas             = Talla::all();
-        $detalles           = PedidoDetalle::where('pedido_id', $id)->get();
-        $empresa            = Empresa::where('id', $pedido->empresa_id)->get()[0];
-        $detalles           = $this->formatearArrayDetalle($detalles);
+        $pedido             =   Pedido::findOrFail($id);
+        $tallas             =   Talla::all();
+        $detalles           =   PedidoDetalle::where('pedido_id', $id)->get();
+        $empresa            =   Empresa::where('id', $pedido->empresa_id)->get()[0];
+        $detalles           =   $this->formatearArrayDetalle($detalles);
+        $documento          =   Documento::findOrFail($pedido->doc_venta_credito_id);
+
+        $cuenta             =   CuentaCliente::where('cotizacion_documento_id', $pedido->doc_venta_credito_id)->first();
+        $detalle_pago       =   [];
+        if ($cuenta) {
+            $detalle_pago = DetalleCuentaCliente::from('detalle_cuenta_cliente as dcc')
+                ->join('tipos_pago as tp', 'tp.id', '=', 'dcc.tipo_pago_id')
+                ->where('dcc.cuenta_cliente_id', $cuenta->id)
+                ->select(
+                    'dcc.*',
+                    'tp.descripcion as tipo_pago_nombre'
+                )
+                ->orderBy('dcc.created_at')
+                ->get();
+        }
 
         $vendedor_nombre    = $pedido->user_nombre;
 
-
         $pdf = PDF::loadview('pedidos.pedido.reportes.detalle', [
-            'pedido'            => $pedido,
-            'detalles'          => $detalles,
-            'empresa'           => $empresa,
-            'tallas'            => $tallas,
-            'vendedor_nombre'   => $vendedor_nombre
+            'pedido'            =>  $pedido,
+            'detalles'          =>  $detalles,
+            'empresa'           =>  $empresa,
+            'tallas'            =>  $tallas,
+            'vendedor_nombre'   =>  $vendedor_nombre,
+            'documento'         =>  $documento,
+            'cuenta'            =>  $cuenta,
+            'detalle_pago'      =>  $detalle_pago
         ])->setPaper('a4')->setWarnings(false);
         return $pdf->stream('CO-' . $pedido->pedido_nro . '.pdf');
     }

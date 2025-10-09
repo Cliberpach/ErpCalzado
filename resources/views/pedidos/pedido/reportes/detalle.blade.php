@@ -1,219 +1,289 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>PEDIDO</title>
-        <link rel="icon" href="{{ base_path() . '/img/siscom.ico' }}" />
-        <style>
-            body {
-                font-family: Arial, Helvetica, sans-serif;
-                color: black;
-            }
 
-            .cabecera{
-                width: 100%;
-                position: relative;
-                height: 100px;
-                max-height: 150px;
-            }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{ 'PE-' . $pedido->id }}</title>
+    <link rel="icon" href="{{ base_path() . '/img/siscom.ico' }}" />
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: black;
+        }
 
-            .logo {
-                width: 30%;
-                position: absolute;
-                left: 0%;
-            }
+        .cabecera {
+            width: 100%;
+            position: relative;
+            height: 100px;
+            max-height: 150px;
+        }
 
-            .logo .logo-img
-            {
-                position: relative;
-                width: 95%;
-                margin-right: 5%;
-                height: 90px;
-            }
+        .logo {
+            width: 30%;
+            position: absolute;
+            left: 0%;
+        }
 
-            .img-fluid {
-                width: 100%;
-                height: 100%;
-            }
+        .logo .logo-img {
+            position: relative;
+            width: 95%;
+            margin-right: 5%;
+            height: 90px;
+        }
 
-            .empresa {
-                width: 40%;
-                position: absolute;
-                left: 30%;
-            }
+        .img-fluid {
+            width: 100%;
+            height: 100%;
+        }
 
-            .empresa .empresa-info {
-                position: relative;
-                width: 100%;
-            }
+        .empresa {
+            width: 40%;
+            position: absolute;
+            left: 30%;
+        }
 
-            .nombre-empresa {
-                font-size: 16px;
-            }
+        .empresa .empresa-info {
+            position: relative;
+            width: 100%;
+        }
 
-            .ruc-empresa {
-                font-size: 15px;
-            }
+        .nombre-empresa {
+            font-size: 16px;
+        }
 
-            .direccion-empresa {
-                font-size: 12px;
-            }
+        .ruc-empresa {
+            font-size: 15px;
+        }
 
-            .text-info-empresa {
-                font-size: 12px;
-            }
+        .direccion-empresa {
+            font-size: 12px;
+        }
 
-            .comprobante {
-                width: 30%;
-                position: absolute;
-                left: 70%;
-            }
+        .text-info-empresa {
+            font-size: 12px;
+        }
 
-            .comprobante .comprobante-info {
-                position: relative;
-                width: 100%;
-                display: flex;
-                align-content: center;
-                align-items: center;
-                text-align: center;
-            }
+        .comprobante {
+            width: 30%;
+            position: absolute;
+            left: 70%;
+        }
 
-            .numero-cotizacion {
-                margin: 1px;
-                padding-top: 20px;
-                padding-bottom: 20px;
-                border: 2px solid #52BE80;
-                font-size: 14px;
-            }
+        .comprobante .comprobante-info {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-content: center;
+            align-items: center;
+            text-align: center;
+        }
 
-            .nombre-cotizacion{
-                margin-top: 5px;
-                margin-bottom: 5px;
-                margin-left: 0px;
-                margin-right: 0px;
-                width: 100%;
-                background-color: #7DCEA0 ;
-            }
+        .numero-cotizacion {
+            margin: 1px;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            border: 2px solid #52BE80;
+            font-size: 14px;
+        }
 
-            .logos-empresas {
-                width: 100%;
-                height: 105px;
-            }
+        .nombre-cotizacion {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            margin-left: 0px;
+            margin-right: 0px;
+            width: 100%;
+            background-color: #7DCEA0;
+        }
 
-            .img-logo {
-                width: 95%;
-                height: 100px;
-            }
+        .logos-empresas {
+            width: 100%;
+            height: 105px;
+        }
 
-            .logo-empresa {
-                width: 14.2%;
-                float: left;
-            }
+        .img-logo {
+            width: 95%;
+            height: 100px;
+        }
 
-            .informacion{
-                width: 100%;
-                position: relative;
-                border: 2px solid #52BE80;
-            }
+        .logo-empresa {
+            width: 14.2%;
+            float: left;
+        }
 
-            .tbl-informacion {
-                width: 100%;
-                font-size: 12px;
-            }
+        .informacion {
+            width: 100%;
+            position: relative;
+            border: 2px solid #52BE80;
+        }
 
-            .cuerpo{
-                width: 100%;
-                position: relative;
-                /* border: 1px solid red; */
+        .tbl-informacion {
+            width: 100%;
+            font-size: 12px;
+        }
 
-            }
+        .cuerpo {
+            width: 100%;
+            position: relative;
+            /* border: 1px solid red; */
 
-            .tbl-detalles {
-                width: 100%;
-                font-size: 12px;
-            }
+        }
 
-            .tbl-detalles thead{
-                border-top: 2px solid #52BE80;
-                border-left: 2px solid #52BE80;
-                border-right: 2px solid #52BE80;
-            }
+        .tbl-detalles {
+            width: 100%;
+            font-size: 12px;
+        }
 
-            .tbl-detalles tbody{
-                border-top: 2px solid #52BE80;
-                border-bottom: 2px solid #52BE80;
-                border-left: 2px solid #52BE80;
-                border-right: 2px solid #52BE80;
-            }
+        .tbl-detalles thead {
+            border-top: 2px solid #52BE80;
+            border-left: 2px solid #52BE80;
+            border-right: 2px solid #52BE80;
+        }
 
-            .info-total-qr {
-                position: relative;
-                width: 100%;
-            }
+        .tbl-detalles tbody {
+            border-top: 2px solid #52BE80;
+            border-bottom: 2px solid #52BE80;
+            border-left: 2px solid #52BE80;
+            border-right: 2px solid #52BE80;
+        }
 
-            .tbl-total {
-                width: 100%;
-                border: 2px solid #229954;
-            }
+        .info-total-qr {
+            position: relative;
+            width: 100%;
+        }
 
-            .qr-img {
-                margin-top: 15px;
-            }
+        .tbl-total {
+            width: 100%;
+            border: 2px solid #229954;
+        }
 
-            .text-cuerpo{
-                font-size: 12px
-            }
+        .qr-img {
+            margin-top: 15px;
+        }
 
-            .tbl-qr {
-                width: 100%;
-            }
-            /*---------------------------------------------*/
+        .text-cuerpo {
+            font-size: 12px
+        }
 
-            .m-0{
-                margin:0;
-            }
+        .tbl-qr {
+            width: 100%;
+        }
 
-            .text-uppercase {
-                text-transform: uppercase;
-            }
+        /*---------------------------------------------*/
 
-            .p-0{
-                padding:0;
-            }
-        </style>
-    </head>
+        .m-0 {
+            margin: 0;
+        }
 
-    <body>
-        <div class="cabecera">
-            <div class="logo">
-                <div class="logo-img">
-                    <img src="{{ base_path() . '/storage/app/'.$empresa->ruta_logo }}" class="img-fluid">
-                </div>
+        .text-uppercase {
+            text-transform: uppercase;
+        }
+
+        .p-0 {
+            padding: 0;
+        }
+
+        /* TBL CRÉDITO */
+        .tbl-info-credito {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12px;
+            margin-bottom: 8px;
+            background-color: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        /* Bordes y espaciado */
+        .tbl-info-credito th,
+        .tbl-info-credito td {
+            border: 1px solid #ddd;
+            padding: 6px 10px;
+        }
+
+        /* Encabezados */
+        .tbl-info-credito th {
+            background-color: #f5f6f8;
+            color: #333;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        /* Celdas */
+        .tbl-info-credito td {
+            color: #444;
+        }
+
+        /* Filas alternadas */
+        .tbl-info-credito tr:nth-child(even) td {
+            background-color: #fafafa;
+        }
+
+        /* Hover de filas */
+        .tbl-info-credito tr:hover td {
+            background-color: #eef6ff;
+        }
+
+        /* Título superior */
+        .tbl-info-credito th[colspan] {
+            background-color: #1e88e5;
+            color: #fff;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: none;
+            letter-spacing: 0.5px;
+        }
+
+        /* Bordes exteriores del contenedor */
+        .div-info-credito {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 8px;
+            background-color: #fdfdfd;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="cabecera">
+        <div class="logo">
+            <div class="logo-img">
+                <img src="{{ base_path() . '/storage/app/' . $empresa->ruta_logo }}" class="img-fluid">
             </div>
-            <div class="empresa">
-                <div class="empresa-info">
-                    <p class="m-0 p-0 text-uppercase nombre-empresa">{{ DB::table('empresas')->count() == 0 ? 'SISCOM ' : DB::table('empresas')->first()->razon_social }}</p>
-                    <p class="m-0 p-0 text-uppercase direccion-empresa">{{ DB::table('empresas')->count() == 0 ? '- ' : DB::table('empresas')->first()->direccion_fiscal }}</p>
+        </div>
+        <div class="empresa">
+            <div class="empresa-info">
+                <p class="m-0 p-0 text-uppercase nombre-empresa">
+                    {{ DB::table('empresas')->count() == 0 ? 'SISCOM ' : DB::table('empresas')->first()->razon_social }}
+                </p>
+                <p class="m-0 p-0 text-uppercase direccion-empresa">
+                    {{ DB::table('empresas')->count() == 0 ? '- ' : DB::table('empresas')->first()->direccion_fiscal }}
+                </p>
 
-                    <p class="m-0 p-0 text-info-empresa">Central telefónica: {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->telefono }}</p>
-                    <p class="m-0 p-0 text-info-empresa">Email: {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->correo }}</p>
-                </div>
+                <p class="m-0 p-0 text-info-empresa">Central telefónica:
+                    {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->telefono }}</p>
+                <p class="m-0 p-0 text-info-empresa">Email:
+                    {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->correo }}</p>
             </div>
-            <div class="comprobante">
-                <div class="comprobante-info">
-                    <div class="numero-cotizacion">
-                        <p class="m-0 p-0 text-uppercase ruc-empresa">RUC {{ DB::table('empresas')->count() == 0 ? '- ' : DB::table('empresas')->first()->ruc }}</p>
-                        <div class="nombre-cotizacion">
-                            <p class="m-0 p-0 text-uppercase">PEDIDO</p>
-                        </div>
-                        <p class="m-0 p-0 text-uppercase">{{ 'PE-'.$pedido->id}}</p>
+        </div>
+        <div class="comprobante">
+            <div class="comprobante-info">
+                <div class="numero-cotizacion">
+                    <p class="m-0 p-0 text-uppercase ruc-empresa">RUC
+                        {{ DB::table('empresas')->count() == 0 ? '- ' : DB::table('empresas')->first()->ruc }}</p>
+                    <div class="nombre-cotizacion">
+                        <p class="m-0 p-0 text-uppercase">PEDIDO</p>
                     </div>
+                    <p class="m-0 p-0 text-uppercase">{{ 'PE-' . $pedido->id }}</p>
                 </div>
             </div>
-        </div><br>
-        @if ($empresa->condicion == 1)
+        </div>
+    </div><br>
+    @if ($empresa->condicion == 1)
         <div class="logos-empresas">
             <div class="logo-empresa">
                 <img src="{{ public_path() . '/img/cifarelli_1.jpg' }}" class="img-logo">
@@ -237,164 +307,219 @@
                 <img src="{{ public_path() . '/img/llaves.jpg' }}" class="img-logo">
             </div>
         </div><br>
-        @endif
-        <div class="informacion">
-            <table class="tbl-informacion">
-                <tbody style="padding-top: 5px; padding-bottom: 5px;">
-                    <tr>
-                        <td style="padding-left: 5px;">FECHA DE DOCUMENTO</td>
-                        <td>:</td>
-                        <td>{{ getFechaFormato( $pedido->fecha_registro ,'d/m/Y')}}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding-left: 5px;">FECHA DE ATENCION</td>
-                        <td>:</td>
-                        <td>{{ getFechaFormato( $pedido->fecha_registro ,'d/m/Y')}}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding-left: 5px;">FECHA PROPUESTA</td>
-                        <td>:</td>
-                        <td>{{ getFechaFormato( $pedido->fecha_propuesta ,'d/m/Y')}}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding-left: 5px;">CLIENTE</td>
-                        <td>:</td>
-                        <td>{{ $pedido->cliente_nombre }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding-left: 5px;" class="text-uppercase">{{ $pedido->cliente->tipo_documento }}</td>
-                        <td>:</td>
-                        <td>{{ $pedido->cliente->documento }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding-left: 5px;">DIRECCIÓN</td>
-                        <td>:</td>
-                        <td>{{ $pedido->cliente->direccion }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding-left: 5px;">CORREO</td>
-                        <td>:</td>
-                        <td class="text-uppercase">{{ $pedido->cliente->correo_electronico }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding-left: 5px;">TELEFONO</td>
-                        <td>:</td>
-                        <td class="text-uppercase">{{ $pedido->cliente->telefono_movil }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding-left: 5px;">ATENDIDO POR</td>
-                        <td>:</td>
-                        <td>{{ $vendedor_nombre }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div><br>
-        <div class="cuerpo">
-            <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
-                <thead>
-                    <tr >
-                        {{-- <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">CANT</th>
+    @endif
+    <div class="informacion">
+        <table class="tbl-informacion">
+            <tbody style="padding-top: 5px; padding-bottom: 5px;">
+                <tr>
+                    <td style="padding-left: 5px;">FECHA DE DOCUMENTO</td>
+                    <td>:</td>
+                    <td>{{ getFechaFormato($pedido->fecha_registro, 'd/m/Y') }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 5px;">FECHA DE ATENCION</td>
+                    <td>:</td>
+                    <td>{{ getFechaFormato($pedido->fecha_registro, 'd/m/Y') }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 5px;">FECHA PROPUESTA</td>
+                    <td>:</td>
+                    <td>{{ getFechaFormato($pedido->fecha_propuesta, 'd/m/Y') }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 5px;">CLIENTE</td>
+                    <td>:</td>
+                    <td>{{ $pedido->cliente_nombre }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 5px;" class="text-uppercase">{{ $pedido->cliente->tipo_documento }}</td>
+                    <td>:</td>
+                    <td>{{ $pedido->cliente->documento }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 5px;">DIRECCIÓN</td>
+                    <td>:</td>
+                    <td>{{ $pedido->cliente->direccion }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 5px;">CORREO</td>
+                    <td>:</td>
+                    <td class="text-uppercase">{{ $pedido->cliente->correo_electronico }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 5px;">TELEFONO</td>
+                    <td>:</td>
+                    <td class="text-uppercase">{{ $pedido->cliente->telefono_movil }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 5px;">ATENDIDO POR</td>
+                    <td>:</td>
+                    <td>{{ $vendedor_nombre }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div><br>
+    <div class="cuerpo">
+        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    {{-- <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">CANT</th>
                         <th style="text-align: center;border-right: 2px solid #52BE80; width: 10%;">UM</th>
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">DESCRIPCIÓN</th>
                         <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">P. UNIT.</th>
                         <th style="text-align: right; width: 10%;">TOTAL</th> --}}
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 6%;">CANT</th>
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 20%;">PRODUCTO</th>
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 40%;">DESCRIPCIÓN
-                            <span>[TALLA/CANT]</span>
-                        </th>
-                        {{-- @foreach ($tallas as $talla)
+                    <th style="text-align: center; border-right: 2px solid #52BE80; width: 6%;">CANT</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80; width: 20%;">PRODUCTO</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80; width: 40%;">DESCRIPCIÓN
+                        <span>[TALLA/CANT]</span>
+                    </th>
+                    {{-- @foreach ($tallas as $talla)
                             <th style="text-align: center; border-right: 2px solid #52BE80; width: 60%;">{{$talla->descripcion}}</th>
                         @endforeach --}}
 
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">P. UNIT.</th>
-                        <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">TOTAL</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                        $cantidadTotal     = 0;
-                        $cantidadTotalDesc = 0;
-                    @endphp
-                    @foreach($detalles as $item)
-                        <tr>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ $item['cantidad_total'] }}</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">{{ $item['producto_codigo'].' - '.$item['modelo_nombre'].' - '.$item['producto_nombre'].' - '.$item['color_nombre'] }}</td>
-                            @php
-                                $tallas = $item['tallas'];
-                                $descripcion = '';
-                            @endphp
-                            @foreach ($tallas as $talla)
-                                @php
-                                    $descripcion .= '[' . $talla['talla_nombre'] . '/' . intval($talla['cantidad']) . ']';
-                                @endphp
-                            @endforeach
-
-                            <td style="text-align: center; border-right: 2px solid #52BE80">{{ $descripcion }}</td>
-
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['precio_unitario_nuevo'], 2, ',', '.') }}</td>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($item['subtotal'], 2, ',', '.') }}</td>
-
-                            @php
-                                $cantidadTotal+=$item['cantidad_total'];
-                            @endphp
-                        </tr>
-                    @endforeach
-                    @if($pedido->monto_embalaje!=0)
-                        @php
-                            $cantidadTotal+=1;
-                        @endphp
-                        <tr>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">1</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">EMBALAJE</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">-</td>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($pedido->monto_embalaje, 2, ',', '.') }}</td>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($pedido->monto_embalaje, 2, ',', '.') }}</td>
-                        </tr>
-                    @endif
-                    @if($pedido->monto_envio!=0)
-                        @php
-                            $cantidadTotal+=1;
-                        @endphp
-                        <tr>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">1</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">ENVÍO</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">-</td>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($pedido->monto_envio, 2, ',', '.') }}</td>
-                            <td style="text-align: right; border-right: 2px solid #52BE80">{{ number_format($pedido->monto_envio, 2, ',', '.') }}</td>
-                        </tr>
-                    @endif
-                </tbody>
-                <tfoot>
+                    <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">P. UNIT.</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80; width: 10%;">TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $cantidadTotal = 0;
+                    $cantidadTotalDesc = 0;
+                @endphp
+                @foreach ($detalles as $item)
                     <tr>
-                        <td style="text-align: right; border: 2px solid #52BE80;">{{$cantidadTotal}}</td>
+                        <td style="text-align: right; border-right: 2px solid #52BE80">{{ $item['cantidad_total'] }}
+                        </td>
+                        <td style="text-align: center; border-right: 2px solid #52BE80">
+                            {{ $item['producto_codigo'] . ' - ' . $item['modelo_nombre'] . ' - ' . $item['producto_nombre'] . ' - ' . $item['color_nombre'] }}
+                        </td>
+                        @php
+                            $tallas = $item['tallas'];
+                            $descripcion = '';
+                        @endphp
+                        @foreach ($tallas as $talla)
+                            @php
+                                $descripcion .= '[' . $talla['talla_nombre'] . '/' . intval($talla['cantidad']) . ']';
+                            @endphp
+                        @endforeach
 
-                        <td></td>
-                        <td></td>
-                        <td ></td>
+                        <td style="text-align: center; border-right: 2px solid #52BE80">{{ $descripcion }}</td>
 
-                        {{-- <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($cotizacion->total_pagar + $cotizacion->monto_descuento, 2) }}</td> --}}
-                        <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($pedido->total_pagar, 2) }}</td>
+                        <td style="text-align: right; border-right: 2px solid #52BE80">
+                            {{ number_format($item['precio_unitario_nuevo'], 2, ',', '.') }}</td>
+                        <td style="text-align: right; border-right: 2px solid #52BE80">
+                            {{ number_format($item['subtotal'], 2, ',', '.') }}</td>
 
+                        @php
+                            $cantidadTotal += $item['cantidad_total'];
+                        @endphp
                     </tr>
-                </tfoot>
-            </table>
-        </div><br>
-        <div class="info-total-qr">
-            <table class="tbl-qr">
+                @endforeach
+                @if ($pedido->monto_embalaje != 0)
+                    @php
+                        $cantidadTotal += 1;
+                    @endphp
+                    <tr>
+                        <td style="text-align: right; border-right: 2px solid #52BE80">1</td>
+                        <td style="text-align: center; border-right: 2px solid #52BE80">EMBALAJE</td>
+                        <td style="text-align: center; border-right: 2px solid #52BE80">-</td>
+                        <td style="text-align: right; border-right: 2px solid #52BE80">
+                            {{ number_format($pedido->monto_embalaje, 2, ',', '.') }}</td>
+                        <td style="text-align: right; border-right: 2px solid #52BE80">
+                            {{ number_format($pedido->monto_embalaje, 2, ',', '.') }}</td>
+                    </tr>
+                @endif
+                @if ($pedido->monto_envio != 0)
+                    @php
+                        $cantidadTotal += 1;
+                    @endphp
+                    <tr>
+                        <td style="text-align: right; border-right: 2px solid #52BE80">1</td>
+                        <td style="text-align: center; border-right: 2px solid #52BE80">ENVÍO</td>
+                        <td style="text-align: center; border-right: 2px solid #52BE80">-</td>
+                        <td style="text-align: right; border-right: 2px solid #52BE80">
+                            {{ number_format($pedido->monto_envio, 2, ',', '.') }}</td>
+                        <td style="text-align: right; border-right: 2px solid #52BE80">
+                            {{ number_format($pedido->monto_envio, 2, ',', '.') }}</td>
+                    </tr>
+                @endif
+            </tbody>
+            <tfoot>
                 <tr>
-                    <td style="width: 60%">
-                        <table class="tbl-qr">
-                            <tr>
-                                <td>
-                                    @foreach($empresa->bancos as $banco)
-                                        <p class="m-0 p-0 text-cuerpo"><b class="text-uppercase">{{ $banco->descripcion}}</b> {{ $banco->tipo_moneda}} <b>N°: </b> {{ $banco->num_cuenta}} <b>CCI:</b> {{ $banco->cci}}</p>
-                                    @endforeach
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    {{-- <td style="width: 40%;">
+                    <td style="text-align: right; border: 2px solid #52BE80;">{{ $cantidadTotal }}</td>
+
+                    <td></td>
+                    <td></td>
+                    <td></td>
+
+                    {{-- <td  style="text-align: right; border: 2px solid #52BE80;">{{number_format($cotizacion->total_pagar + $cotizacion->monto_descuento, 2) }}</td> --}}
+                    <td style="text-align: right; border: 2px solid #52BE80;">
+                        {{ number_format($pedido->total_pagar, 2) }}</td>
+
+                </tr>
+            </tfoot>
+        </table>
+    </div><br>
+
+    @if ($cuenta)
+        <br>
+        <div class="div-info-credito">
+            <table class="tbl-info-credito">
+                <tr>
+                    <th colspan="3">Información del crédito</th>
+                </tr>
+                <tr>
+                    <td>Monto neto pendiente de pago</td>
+                    <td>:</td>
+                    <td>S/. {{ number_format($cuenta->saldo, 2, '.', ',') }}</td>
+                </tr>
+                <tr>
+                    <td>Total de cuotas</td>
+                    <td>:</td>
+                    <td>{{ $detalle_pago->count() }}</td>
+                </tr>
+            </table>
+
+            <table class="tbl-info-credito">
+                <tr>
+                    <th>N° Cuota</th>
+                    <th>Fec. Pago</th>
+                    <th>Mét. Pago</th>
+                    <th>N° OP</th>
+                    <th>Acta</th>
+                </tr>
+
+                @foreach ($detalle_pago as $pago)
+                    <tr>
+                        <td>{{ $loop->iteration }}</td>
+                        <td>{{ $pago->fecha }}</td>
+                        <td>{{ $pago->tipo_pago_nombre }}</td>
+                        <td>{{ $pago->nro_operacion }}</td>
+                        <td>{{ number_format($pago->importe, 2, ',', '.') }}</td>
+                    </tr>
+                @endforeach
+            </table>
+        </div>
+    @endif
+
+    <div class="info-total-qr">
+        <table class="tbl-qr">
+            <tr>
+                <td style="width: 60%">
+                    <table class="tbl-qr">
+                        <tr>
+                            <td>
+                                @foreach ($empresa->bancos as $banco)
+                                    <p class="m-0 p-0 text-cuerpo"><b
+                                            class="text-uppercase">{{ $banco->descripcion }}</b>
+                                        {{ $banco->tipo_moneda }} <b>N°: </b> {{ $banco->num_cuenta }} <b>CCI:</b>
+                                        {{ $banco->cci }}</p>
+                                @endforeach
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                {{-- <td style="width: 40%;">
                         <table class="tbl-total text-uppercase">
                             <tr>
                                 <td style="text-align:left; padding: 5px;"><p class="p-0 m-0">SUBTOTAL: S/.</p></td>
@@ -410,8 +535,9 @@
                             </tr>
                         </table>
                     </td> --}}
-                </tr>
-            </table>
-        </div>
-    </body>
+            </tr>
+        </table>
+    </div>
+</body>
+
 </html>

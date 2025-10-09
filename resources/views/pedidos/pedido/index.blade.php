@@ -426,14 +426,14 @@
 
                         let accion_facturar = '';
 
-                        if (!row.facturado && row.estado === 'PENDIENTE') {
+                        /*if (!row.facturado && row.estado === 'PENDIENTE') {
                             accion_facturar += `<li>
                                                     <a class='dropdown-item' title='Facturar' href="${url_facturar_create}">
                                                         <b><i class="fas fa-file-invoice-dollar"></i> Facturar </b>
                                                     </a>
                                                 </li>
                                                 <div class="dropdown-divider"></div>`;
-                        }
+                        }*/
 
                         let acciones =
                             `<div class="btn-group" style="text-transform:capitalize;">

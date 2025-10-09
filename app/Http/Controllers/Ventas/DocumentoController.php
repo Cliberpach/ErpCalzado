@@ -989,66 +989,6 @@ array:27 [
         return $montos;
     }
 
-
-    /*
-{#1844 // app\Http\Controllers\Ventas\RegistroVentaController.php:174
-  +"correlativo": 1
-  +"serie": "B001"
-}
-*/
-    public static function getCorrelativo($tipo_comprobante, $sede_id)
-    {
-
-        $correlativo        =   null;
-        $serie              =   null;
-
-        //======= CONTABILIZANDO SI HAY DOCUMENTOS DE VENTA EMITIDOS PARA EL TYPE SALE ======
-        $ultima_venta =   DB::select(
-            'SELECT cd.correlativo
-                        FROM cotizacion_documento AS cd
-                        WHERE cd.sede_id = ?
-                        AND cd.tipo_venta_id = ?
-                        ORDER BY cd.id DESC
-                        LIMIT 1',
-            [
-                $sede_id,
-                $tipo_comprobante->id
-            ]
-        );
-
-
-        $serializacion     =   DB::select(
-            'select
-                            enf.*
-                            from empresa_numeracion_facturaciones as enf
-                            where
-                            enf.empresa_id = ?
-                            and enf.tipo_comprobante = ?
-                            and enf.sede_id = ?',
-            [
-                Empresa::find(1)->id,
-                $tipo_comprobante->id,
-                $sede_id
-            ]
-        )[0];
-
-
-        //==== NO EXISTE UNA ÚLTIMA VENTA DE ESE TIPO DE COMPROBANTE =====
-        if (count($ultima_venta) === 0) {
-
-            //====== INICIAR DESDE EL STARTING NUMBER =======
-            $correlativo        =   $serializacion->numero_iniciar;
-            $serie              =   $serializacion->serie;
-        } else {
-
-            //======= EN CASO YA EXISTAN DOCUMENTOS DE VENTA DEL TYPE SALE ======
-            $correlativo        =   $ultima_venta[0]->correlativo  +   1;
-            $serie              =   $serializacion->serie;
-        }
-
-        return (object)['correlativo' => $correlativo, 'serie' => $serie];
-    }
-
     public static function comprobanteActivo($sede_id, $tipo_comprobante)
     {
 
@@ -1063,85 +1003,6 @@ array:27 [
         if (count($existe) === 0) {
             throw new Exception($tipo_comprobante->descripcion . ', NO ESTÁ ACTIVO EN LA EMPRESA!!!');
         }
-    }
-
-    public static function validacionStore($request)
-    {
-        //========= VALIDAR LA SEDE ========
-        if (!$request->get('sede_id')) {
-            throw new Exception("FALTA EL PARÁMETRO SEDE EN LA PETICIÓN!!!");
-        }
-
-        $sede   =   DB::select(
-            'SELECT
-                                es.*
-                                FROM empresa_sedes AS es
-                                WHERE
-                                es.id = ?
-                                AND es.estado = "ACTIVO"',
-            [$request->get('sede_id')]
-        );
-
-        if (count($sede) === 0) {
-            throw new Exception("NO EXISTE LA SEDE EN LA BD!!!");
-        }
-
-        //======== VALIDAR DETALLE VENTA ======
-        $lstVenta   =   json_decode($request->get('productos_tabla'));
-        if (count($lstVenta) === 0) {
-            throw new Exception("EL DETALLE DE LA VENTA ESTÁ VACÍO!!!");
-        }
-
-        //========= VALIDANDO SI EL USUARIO ESTÁ EN UNA CAJA ABIERTA =======
-        $caja_movimiento           =   movimientoUser();
-
-        if (count($caja_movimiento) == 0) {
-            throw new Exception("DEBES FORMAR PARTE DE UNA CAJA ABIERTA!!!");
-        }
-
-        //========= VALIDANDO TIPO COMPROBANTE ========
-        $cliente            =   Cliente::find($request->get('cliente_id'));
-        $tipo_comprobante   =   DB::select('select
-                                td.*
-                                from tabladetalles as td
-                                where td.id = ?', [$request->get('tipo_venta')])[0];
-
-        if ($cliente->tipo_documento !== 'RUC' && $tipo_comprobante->simbolo === '01') {
-            throw new Exception("SE REQUIERE RUC PARA GENERAR FACTURA ELECTRÓNICA!!!");
-        }
-        if ($cliente->tipo_documento !== 'DNI' && $tipo_comprobante->simbolo === '03') {
-            throw new Exception("SE REQUIERE DNI PARA GENERAR BOLETA ELECTRÓNICA!!!");
-        }
-
-        //====== CONDICIÓN PAGO =======
-        $condicion_id   =   explode('-', $request->get('condicion_id'), 2)[0];
-        $condicion      =   Condicion::find($condicion_id);
-
-
-        $almacen        =   Almacen::find($request->get('almacenSeleccionado'));
-
-        $datos_validados    =   (object)[
-            'sede_id'                   =>  $request->get('sede_id'),
-            'tipo_venta'                =>  $tipo_comprobante,
-            'condicion'                 =>  $condicion,
-            'cliente'                   =>  $cliente,
-            'porcentaje_igv'            =>  Empresa::find(1)->igv,
-            'almacen'                   =>  $almacen,
-            'lstVenta'                  =>  $lstVenta,
-            'monto_embalaje'            =>  $request->get('monto_embalaje'),
-            'monto_envio'               =>  $request->get('monto_envio'),
-            'empresa'                   =>  Empresa::find(1),
-            'observacion'               =>  $request->get('observacion'),
-            'usuario'                   =>  Auth::user(),
-            'caja_movimiento'           =>  $caja_movimiento[0],
-
-            'anticipo_consumido_id'     =>  $request->get('anticipo_consumido_id') ?? null,
-            'anticipo_monto_consumido'  =>  $request->get('anticipo_monto_consumido') ?? 0,
-
-            'telefono'  =>  $request->get('telefono') ?? null
-        ];
-
-        return  $datos_validados;
     }
 
     public function generarComprobanteRetencion($id)
@@ -1246,29 +1107,19 @@ array:27 [
         $tallas         =   Talla::where('estado', 'ACTIVO')->get();
         $modelos        =   Modelo::where('estado', 'ACTIVO')->get();
         $documento      =   Documento::findOrFail($id);
-        $detalles       =   Detalle::where('documento_id', $id)->where('estado', 'ACTIVO')->with(['lote', 'lote.producto'])->get();
+        $detalles       =   Detalle::where('documento_id', $id)->where('estado', 'ACTIVO')->where('tipo','PRODUCTO')->get();
         $condiciones    =   Condicion::where('estado', 'ACTIVO')->get();
         $tipos_venta    =   tipos_venta()->whereIn('parametro', ['F', 'B', 'N']);
         $metodos_pago   =   tipos_pago();
         $envio_venta    =   EnvioVenta::where('documento_id', $id)->first();
-
+       
         $fullaccess     =   false;
 
         $registrador    =   User::find($documento->user_id);
         $sede           =   Sede::find($documento->sede_id);
-        $almacenes      =   Almacen::where('estado', 'ACTIVO')
-            ->where('tipo_almacen', 'PRINCIPAL')
-            ->get();
+        $almacenes      =   Almacen::where('estado', 'ACTIVO')->where('tipo_almacen', 'PRINCIPAL')->get();
 
-        $cliente        =   DB::table('clientes as c')
-            ->select(
-                'c.id',
-                DB::raw('CONCAT(c.tipo_documento,":",c.documento,"-",c.nombre) as descripcion'),
-            )
-            ->where('c.id', $documento->cliente_id)
-            ->where('c.estado', 'ACTIVO')
-            ->get()[0];
-
+        $cliente        =   Cliente::findOrFail($documento->cliente_id);
 
         $departamentos  =   Departamento::all();
 

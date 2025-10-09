@@ -118,8 +118,11 @@
             <button type="button" class="btn btn-outline btn-primary"
                 onclick="openModalCliente()">Registrar</button>
             <select id="cliente" name="cliente" class="" required>
-                <option></option>
-                <option value="{{ $cliente->id }}" selected>{{ $cliente->descripcion }}</option>
+                <option value="{{ $cliente->id }}" data-telefono="{{ $cliente->telefono_movil }}"
+                    data-departamento-id="{{ $cliente->departamento_id }}"
+                    data-provincia-id="{{ $cliente->provincia_id }}" data-distrito-id="{{ $cliente->distrito_id }}">
+                    {{ $cliente->tipo_documento . ':' . $cliente->documento . '-' . $cliente->nombre }}
+                </option>
             </select>
             <span style="font-weight: bold;color:red;" class="cliente_error msgError"></span>
         </div>

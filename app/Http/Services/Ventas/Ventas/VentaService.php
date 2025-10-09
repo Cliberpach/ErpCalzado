@@ -338,12 +338,12 @@ class VentaService
         }
 
         $datos_envio    =   json_decode($datos['data_envio']);
-        $tiene_envio    =   EnvioVenta::where('documento_id', $id)->select('id')->first();
+        $tiene_envio    =   EnvioVenta::where('documento_id', $id)->select('id','estado')->first();
 
         if (!$datos_envio) {
             return $documento;
         }
-
+       
         //========= SI YA TENÍA ENVÍO ACTUALIZAMOS ========
         $datos_envio                    =   (array)$datos_envio;
         $datos_envio['documento_id']    =   $id;

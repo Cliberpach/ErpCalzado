@@ -1,12 +1,12 @@
 
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded', () => {
     eventsUtils();
 })
 
-function eventsUtils(){
+function eventsUtils() {
 
-    document.addEventListener('input',(e)=>{
-        if(e.target.classList.contains('inputDecimalPositivo')){
+    document.addEventListener('input', (e) => {
+        if (e.target.classList.contains('inputDecimalPositivo')) {
 
             const input = e.target;
 
@@ -111,70 +111,78 @@ function eventsUtils(){
 
 
 //======= LIMPIAR ERRORES DE VALIDACIÓN ========
-function limpiarErroresValidacion(error_class){
-    const lstTagErrors    =   document.querySelectorAll(`.${error_class}`);
-    lstTagErrors.forEach((tag)=>{
-        tag.textContent    =   '';
+function limpiarErroresValidacion(error_class) {
+    const lstTagErrors = document.querySelectorAll(`.${error_class}`);
+    lstTagErrors.forEach((tag) => {
+        tag.textContent = '';
     })
 }
 
 
-function pintarErroresValidacion(objValidationErrors,suffix){
+function pintarErroresValidacion(objValidationErrors, suffix) {
 
     for (let clave in objValidationErrors) {
-        const pError        =   document.querySelector(`.${clave}_${suffix}`);
-        pError.textContent  =   objValidationErrors[clave][0];
+        const pError = document.querySelector(`.${clave}_${suffix}`);
+        pError.textContent = objValidationErrors[clave][0];
     }
 
 }
 
 //========= LIMPIAR UNA TABLA =======
 function limpiarTabla(idTabla) {
-    const tbody =   document.querySelector(`#${idTabla} tbody`);
+    const tbody = document.querySelector(`#${idTabla} tbody`);
     while (tbody.firstChild) {
         tbody.removeChild(tbody.firstChild);
     }
 }
 
-function destruirDataTable(dtTable){
-    if(dtTable){
+function destruirDataTable(dtTable) {
+    if (dtTable) {
         dtTable.destroy();
-        dtTable =   null;
+        dtTable = null;
     }
 }
 
-function iniciarDataTable(idTabla) {
+function iniciarDataTable(idTabla, options = {}) {
+
+    const {
+        lengthChange = true,
+        pageLength = 10
+    } = options;
+
     dtGenerico = new DataTable(`#${idTabla}`, {
         language: {
-            processing:     "Procesando...",
-            search:         "Buscar: ",
-            lengthMenu:     "Mostrar _MENU_ elementos",
-            info:           "Mostrando _START_ a _END_ de _TOTAL_ elementos",
-            infoEmpty:      "Mostrando 0 elementos",
-            infoFiltered:   "(filtrado de _MAX_ elementos)",
-            infoPostFix:    "",
+            processing: "Procesando...",
+            search: "Buscar: ",
+            lengthMenu: "Mostrar _MENU_ elementos",
+            info: "Mostrando _START_ a _END_ de _TOTAL_ elementos",
+            infoEmpty: "Mostrando 0 elementos",
+            infoFiltered: "(filtrado de _MAX_ elementos)",
+            infoPostFix: "",
             loadingRecords: "Cargando...",
-            zeroRecords:    "No se encontraron registros",
-            emptyTable:     "No hay datos disponibles",
+            zeroRecords: "No se encontraron registros",
+            emptyTable: "No hay datos disponibles",
             paginate: {
-                first:      "Primero",
-                previous:   "Anterior",
-                next:       "Siguiente",
-                last:       "Último"
+                first: "Primero",
+                previous: "Anterior",
+                next: "Siguiente",
+                last: "Último"
             },
             aria: {
-                sortAscending:  ": activar para ordenar la columna de manera ascendente",
+                sortAscending: ": activar para ordenar la columna de manera ascendente",
                 sortDescending: ": activar para ordenar la columna de manera descendente"
             }
-        }
+        },
+        pageLength,
+        lengthChange
     });
 
     return dtGenerico;
 }
 
 //=========== OBTENER FILA POR EL ID DE UN DATATABLE =========
-function getRowById(dtTabla,registro_id) {
-    let data    = dtTabla.rows().data();
+function getRowById(dtTabla, registro_id) {
+    let data = dtTabla.rows().data();
     console.log("Data:", data); // Para depuración
     let rowData = null;
 
