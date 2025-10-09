@@ -755,13 +755,13 @@ array:11 [
             $sede           =   Sede::find($pedido->sede_id);
             $registrador    =   Colaborador::find(Auth::user()->colaborador_id);
 
-            $origenes_ventas    =   DB::select('SELECT
-                                    td.id,
-                                    td.descripcion
-                                    FROM tabladetalles AS td
-                                    WHERE
-                                    td.tabla_id="36"
-                                    AND td.estado="ACTIVO"');
+            $origenes_ventas    =   UtilidadesController::getOrigenesVentas();
+            $tipos_pago_envio   =   UtilidadesController::getTiposPagoEnvio();
+
+            $tipos_envio        =   UtilidadesController::getTiposEnvio();
+            $tipos_documento    =   UtilidadesController::getTiposDocumento();
+            $cuentas            =   UtilidadesController::getCuentas();
+
             DB::commit();
             return view(
                 'pedidos.pedido.atender',
@@ -778,7 +778,11 @@ array:11 [
                     'almacen',
                     'sede',
                     'registrador',
-                    'origenes_ventas'
+                    'origenes_ventas',
+                    'tipos_pago_envio',
+                    'tipos_envio',
+                    'tipos_documento',
+                    'cuentas'
                 )
             );
         } catch (Throwable $th) {

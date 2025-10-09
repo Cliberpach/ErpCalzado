@@ -304,26 +304,6 @@
                         </td>
                     </tr>
                 @endif
-
-                @if ($documento->monto_embalaje != 0)
-                    <tr>
-                        <td style="text-align: left">{{ number_format(1, 2) }}</td>
-                        <td style="text-align: left">NIU</td>
-                        <td style="text-align: left">EMBALAJE</td>
-                        <td style="text-align: left">{{ number_format($documento->monto_embalaje, 2) }}</td>
-                        <td style="text-align: right">{{ number_format($documento->monto_embalaje, 2) }}</td>
-                    </tr>
-                @endif
-
-                @if ($documento->monto_envio != 0)
-                    <tr>
-                        <td style="text-align: left">{{ number_format(1, 2) }}</td>
-                        <td style="text-align: left">NIU</td>
-                        <td style="text-align: left">ENVÍO</td>
-                        <td style="text-align: left">{{ number_format($documento->monto_envio, 2) }}</td>
-                        <td style="text-align: right">{{ number_format($documento->monto_envio, 2) }}</td>
-                    </tr>
-                @endif
             </tbody>
             <tfoot>
                 @if ($documento->tipo_venta_id != 129)

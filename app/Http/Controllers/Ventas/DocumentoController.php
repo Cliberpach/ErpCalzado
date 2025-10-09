@@ -1290,7 +1290,6 @@ array:27 [
         $tipos_documento    =   UtilidadesController::getTiposDocumento();
         $cuentas            =   UtilidadesController::getCuentas();
 
-
         return view('ventas.documentos.editar.edit', [
             'documento'         =>  $documento,
             'detalles'          =>  $detalles,
