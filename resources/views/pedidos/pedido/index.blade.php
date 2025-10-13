@@ -455,6 +455,17 @@
                                 `<li><a class='dropdown-item' onclick="eliminarPedido(${row.id})"  title='FINALIZAR'><b><i class='fa fa-trash'></i> Finalizar</a></b></li>`;
                         }
 
+                        if (row.estado == 'FINALIZADO' && row.doc_venta_credito_estado_pago ===
+                            'PAGADO' && !row.doc_venta_consumo_id) {
+                            acciones +=
+                                `<li>
+                                    <a class="dropdown-item" onclick="generarComprobanteConsumo(${row.id})" title="Comprobante Consumo">
+                                        <b><i class="fa fa-file-invoice-dollar text-success"></i> Comprobante Consumo</b>
+                                    </a>
+                                </li>
+                                `;
+                        }
+
                         acciones += `<li><a class='dropdown-item' data-toggle="modal" data-pedido-id="${row.id}" data-target="#modal_pedido_detalles"  title='Detalles'><b><i class="fas fa-info-circle"></i> Detalles</a></b></li>
                                 <div class="dropdown-divider"></div>`;
 
@@ -885,6 +896,64 @@
             });
 
         }
+    }
+
+    async function generarComprobanteConsumo(pedido_id) {
+
+        //======== VALIDAR ESTADO DEL PEDIDO ======
+        const pedido = getRowById(pedidos_data_table, pedido_id);
+
+        let html = `PEDIDO #${pedido.id}`;
+
+        Swal.fire({
+            title: `Desea generar el comprobante consumo?`,
+            html: html,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "SÍ, FINALIZAR EL PEDIDO!"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+
+                try {
+
+                    Swal.fire({
+                        title: 'Generado comprobante consumo...',
+                        html: 'Por favor espera',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    const formData = new FormData();
+                    formData.append('pedido_id', pedido_id);
+
+                    const res = await axios.post(route('pedidos.pedido.generarComprobanteConsumo'),
+                        formData);
+
+                    if (res.data.success) {
+
+                        window.open(res.data.url_pdf, 'Comprobante SISCOM',
+                            'location=1, status=1, scrollbars=1,width=900, height=600');
+                        pedidos_data_table.ajax.reload();
+                        //===== ALERTA ======
+                        toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
+
+                    } else {
+                        toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                    }
+                } catch (error) {
+                    toastr.error(error, 'ERROR EN LA PETICIÓN GENERAR COMPROBANTE CONSUMO');
+                } finally {
+                    Swal.close();
+                }
+
+            }
+        });
+
+
     }
 
     function controlFechas(target) {

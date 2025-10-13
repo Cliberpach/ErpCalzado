@@ -227,7 +227,7 @@ class ComprobanteController extends Controller
 
     public function sunat_antiguo($id) {}
 
-    public function sunat($id)
+    public function sunat_old($id)
     {
         try {
 
@@ -282,17 +282,17 @@ class ComprobanteController extends Controller
 
             //if (!$documento->anticipo_consumido_id) {
 
-                $invoice
-                    ->setMtoOperGravadas($documento->mto_oper_gravadas_sunat) //======= MONTO VENDIDO SIN IMPUESTO =======
-                    ->setMtoIGV($documento->mto_igv_sunat) //======== IMPUESTO =======
-                    ->setTotalImpuestos($documento->total_impuestos_sunat) //======== IMPUESTO =======
-                    ->setValorVenta($documento->valor_venta_sunat) //========= MONTO VENDIDO SIN IMPUESTO ========
-                    ->setSubTotal($documento->sub_total_sunat) //========= MONTO VENDIDO + IMPUESTO =======
-                    ->setMtoImpVenta($documento->mto_imp_venta_sunat); //======= MONTO VENDIDO + IMPUESTO =========
+            $invoice
+                ->setMtoOperGravadas($documento->mto_oper_gravadas_sunat) //======= MONTO VENDIDO SIN IMPUESTO =======
+                ->setMtoIGV($documento->mto_igv_sunat) //======== IMPUESTO =======
+                ->setTotalImpuestos($documento->total_impuestos_sunat) //======== IMPUESTO =======
+                ->setValorVenta($documento->valor_venta_sunat) //========= MONTO VENDIDO SIN IMPUESTO ========
+                ->setSubTotal($documento->sub_total_sunat) //========= MONTO VENDIDO + IMPUESTO =======
+                ->setMtoImpVenta($documento->mto_imp_venta_sunat); //======= MONTO VENDIDO + IMPUESTO =========
 
             //} else {
 
-                /*$tipoDocRel =   $documento->anticipo_tipo_venta_id == '127' ? '02' : '03';
+            /*$tipoDocRel =   $documento->anticipo_tipo_venta_id == '127' ? '02' : '03';
 
                 //========= SUMATORIA DEL DETALLE CON IGV =======
                 $anticipo_monto_consumido_sin_igv   =   $documento->anticipo_monto_consumido / 1.18;
@@ -304,7 +304,7 @@ class ComprobanteController extends Controller
                 $mtoIgv         =   $mtoOperGravada * 0.18;
                 $totalImpuestos =   $mtoIgv;*/
 
-                /*dd([
+            /*dd([
                     'subtotal_calculado' => $subtotal,
                     'subtotal_sunat' => (float)$documento->sub_total_sunat,
 
@@ -324,7 +324,7 @@ class ComprobanteController extends Controller
                     'total_impuestos_sunat' => (float)$documento->total_impuestos_sunat,
                 ]);*/
 
-                /*
+            /*
                 $invoice
                     ->setDescuentos([
                         (
@@ -349,7 +349,7 @@ class ComprobanteController extends Controller
                     ->setTotalAnticipos($documento->anticipo_monto_consumido_sin_igv);
                 */
 
-                /*$invoice
+            /*$invoice
                     ->setDescuentos([
                         (
                             new Charge())
@@ -372,7 +372,7 @@ class ComprobanteController extends Controller
                     ->setMtoImpVenta($imp_venta)
                     ->setTotalAnticipos($anticipo_monto_consumido_sin_igv);*/
 
-                /*$invoice
+            /*$invoice
                     ->setDescuentos([
                         (
                             new Charge())
@@ -403,7 +403,7 @@ class ComprobanteController extends Controller
             //=========== SI NO ES FACTURA PAGO ANTICIPADO =========
             //if (!$documento->es_anticipo) {
 
-                /*$detail = new SaleDetail();
+            /*$detail = new SaleDetail();
                 $detail->setCodProducto('P001')
                     ->setUnidad('NIU')
                     ->setDescripcion('PROD 1')
@@ -418,59 +418,59 @@ class ComprobanteController extends Controller
                     ->setMtoPrecioUnitario(118)
                 ;*/
 
-                //$items[]    =   $detail;
+            //$items[]    =   $detail;
 
-                foreach ($detalles as $detalle) {
-                    $items[] = (new SaleDetail())
-                        ->setCodProducto($detalle->codigo_producto)
-                        ->setUnidad($detalle->unidad)
-                        ->setDescripcion($detalle->nombre_modelo . '-' . $detalle->nombre_producto . '-' . $detalle->nombre_color . '-' . $detalle->nombre_talla)
-                        ->setCantidad($detalle->cantidad)
-                        ->setMtoValorUnitario((float)$detalle->precio_unitario_nuevo / 1.18)
-                        ->setMtoValorVenta(((float)$detalle->precio_unitario_nuevo / 1.18) * (float)$detalle->cantidad)
-                        ->setMtoBaseIgv(((float)$detalle->precio_unitario_nuevo / 1.18) * (float)$detalle->cantidad)
-                        ->setPorcentajeIgv(18)
-                        ->setIgv((float)$detalle->cantidad * ((float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18))
-                        ->setTipAfeIgv('10') // Catalog: 07
-                        ->setTotalImpuestos((float)$detalle->cantidad * ((float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18))
-                        ->setMtoPrecioUnitario($detalle->precio_unitario_nuevo);
-                }
+            foreach ($detalles as $detalle) {
+                $items[] = (new SaleDetail())
+                    ->setCodProducto($detalle->codigo_producto)
+                    ->setUnidad($detalle->unidad)
+                    ->setDescripcion($detalle->nombre_modelo . '-' . $detalle->nombre_producto . '-' . $detalle->nombre_color . '-' . $detalle->nombre_talla)
+                    ->setCantidad($detalle->cantidad)
+                    ->setMtoValorUnitario((float)$detalle->precio_unitario_nuevo / 1.18)
+                    ->setMtoValorVenta(((float)$detalle->precio_unitario_nuevo / 1.18) * (float)$detalle->cantidad)
+                    ->setMtoBaseIgv(((float)$detalle->precio_unitario_nuevo / 1.18) * (float)$detalle->cantidad)
+                    ->setPorcentajeIgv(18)
+                    ->setIgv((float)$detalle->cantidad * ((float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18))
+                    ->setTipAfeIgv('10') // Catalog: 07
+                    ->setTotalImpuestos((float)$detalle->cantidad * ((float)$detalle->precio_unitario_nuevo - (float)$detalle->precio_unitario_nuevo / 1.18))
+                    ->setMtoPrecioUnitario($detalle->precio_unitario_nuevo);
+            }
 
-                //======= AGREGANDO EMBALAJE Y ENVÍO AL DETALLE =====
-                if ($documento->monto_embalaje > 0) {
-                    $items[] = (new SaleDetail())
-                        ->setCodProducto('EMBALAJE')
-                        ->setUnidad('NIU')
-                        ->setDescripcion('EMBALAJE')
-                        ->setCantidad(1)
-                        ->setMtoValorUnitario((float)$documento->monto_embalaje / 1.18)
-                        ->setMtoValorVenta(((float)$documento->monto_embalaje / 1.18) * (float)1)
-                        ->setMtoBaseIgv(((float)$documento->monto_embalaje / 1.18) * (float)1)
-                        ->setPorcentajeIgv(18)
-                        ->setIgv((float)1 * ((float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18))
-                        ->setTipAfeIgv('10') // Catalog: 07
-                        ->setTotalImpuestos((float)1 * ((float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18))
-                        ->setMtoPrecioUnitario($documento->monto_embalaje);
-                }
+            //======= AGREGANDO EMBALAJE Y ENVÍO AL DETALLE =====
+            if ($documento->monto_embalaje > 0) {
+                $items[] = (new SaleDetail())
+                    ->setCodProducto('EMBALAJE')
+                    ->setUnidad('NIU')
+                    ->setDescripcion('EMBALAJE')
+                    ->setCantidad(1)
+                    ->setMtoValorUnitario((float)$documento->monto_embalaje / 1.18)
+                    ->setMtoValorVenta(((float)$documento->monto_embalaje / 1.18) * (float)1)
+                    ->setMtoBaseIgv(((float)$documento->monto_embalaje / 1.18) * (float)1)
+                    ->setPorcentajeIgv(18)
+                    ->setIgv((float)1 * ((float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18))
+                    ->setTipAfeIgv('10') // Catalog: 07
+                    ->setTotalImpuestos((float)1 * ((float)$documento->monto_embalaje - (float)$documento->monto_embalaje / 1.18))
+                    ->setMtoPrecioUnitario($documento->monto_embalaje);
+            }
 
-                if ($documento->monto_envio > 0) {
-                    $items[] = (new SaleDetail())
-                        ->setCodProducto('ENVIO')
-                        ->setUnidad('NIU')
-                        ->setDescripcion('ENVIO')
-                        ->setCantidad(1)
-                        ->setMtoValorUnitario((float)$documento->monto_envio / 1.18)
-                        ->setMtoValorVenta(((float)$documento->monto_envio / 1.18) * (float)1)
-                        ->setMtoBaseIgv(((float)$documento->monto_envio / 1.18) * (float)1)
-                        ->setPorcentajeIgv(18)
-                        ->setIgv((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
-                        ->setTipAfeIgv('10') // Catalog: 07
-                        ->setTotalImpuestos((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
-                        ->setMtoPrecioUnitario($documento->monto_envio);
-                }
-           // } else {
+            if ($documento->monto_envio > 0) {
+                $items[] = (new SaleDetail())
+                    ->setCodProducto('ENVIO')
+                    ->setUnidad('NIU')
+                    ->setDescripcion('ENVIO')
+                    ->setCantidad(1)
+                    ->setMtoValorUnitario((float)$documento->monto_envio / 1.18)
+                    ->setMtoValorVenta(((float)$documento->monto_envio / 1.18) * (float)1)
+                    ->setMtoBaseIgv(((float)$documento->monto_envio / 1.18) * (float)1)
+                    ->setPorcentajeIgv(18)
+                    ->setIgv((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
+                    ->setTipAfeIgv('10') // Catalog: 07
+                    ->setTotalImpuestos((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
+                    ->setMtoPrecioUnitario($documento->monto_envio);
+            }
+            // } else {
 
-                /*
+            /*
                 $items[] = (new SaleDetail())
                     ->setCodProducto('PAGO ANTICIPADO')
                     ->setUnidad('NIU')
@@ -607,6 +607,195 @@ class ComprobanteController extends Controller
         }
     }
 
+    public function sunat($id)
+    {
+        try {
+
+            //====== OBTENER EL DOCUMENTO DE VENTA =========
+            $documento  =   Documento::findOrFail($id);
+
+
+            $tipo_documento_cliente =   null;
+            $tipo_doc_facturacion   =   null;
+
+            if ($documento->tipo_venta_id   ==  127) {   //====== FACTURA ====
+                $tipo_documento_cliente =   '6';    //======= RUC ====
+                $tipo_doc_facturacion   =   '01';
+            }
+            if ($documento->tipo_venta_id   ==  128) {   //======== BOLETA =====
+                $tipo_documento_cliente =   '1';    //====== DNI ======
+                $tipo_doc_facturacion   =   '03';
+            }
+
+            $clienteBD  =  Cliente::find($documento->cliente_id);
+
+            //======= INSTANCIAMOS LA CLASE UTIL ========
+            $util = Util::getInstance();
+
+            $invoice = new Invoice();
+
+            $invoice
+                ->setUblVersion('2.1')
+                ->setTipoOperacion('0101')
+                ->setTipoDoc('01') // FACTURA
+                ->setSerie('F001')
+                ->setCorrelativo('200')
+                ->setFechaEmision(new DateTime())
+                ->setFormaPago(new FormaPagoContado())
+                ->setTipoMoneda('PEN')
+                ->setCompany($util->shared->getCompany(1))
+                ->setClient($util->shared->getClient())
+
+                // ======= TOTALES ORIGINALES (sin restar anticipo) =======
+                ->setMtoOperGravadas(100.00)
+                ->setMtoIGV(18.00)
+                ->setTotalImpuestos(18.00)
+                ->setValorVenta(100.00)
+                ->setSubTotal(118.00)
+                ->setMtoImpVenta(0.00) // Total final luego del descuento por anticipo
+
+                // ======= ANTICIPO REFERENCIADO =======
+                ->setAnticipos([
+                    (new Prepayment())
+                        ->setTipoDocRel('02') // tipo de documento del anticipo
+                        ->setNroDocRel('F001-100')
+                        ->setTotal(118.00)
+                ])
+                ->setTotalAnticipos(118.00)
+
+                // ======= DESCUENTO GLOBAL POR ANTICIPO =======
+                ->setDescuentos([
+                    (new Charge())
+                        ->setCodTipo('04')   // Descuento por anticipo (SUNAT)
+                        ->setMonto(118.00)   // Monto del anticipo
+                    // 👇 NO uses setMontoBase ni setFactor
+                ]);
+
+            // ======= DETALLE GRAVADO =======
+            $detail = (new SaleDetail())
+                ->setCodProducto('ANTICIPO')
+                ->setUnidad('NIU')
+                ->setDescripcion('APLICACIÓN TOTAL DE ANTICIPO')
+                ->setCantidad(1)
+                ->setMtoValorUnitario(100.00)
+                ->setMtoValorVenta(100.00)
+                ->setMtoBaseIgv(100.00)
+                ->setPorcentajeIgv(18)
+                ->setIgv(18.00)
+                ->setTipAfeIgv('10') // gravado IGV
+                ->setTotalImpuestos(18.00)
+                ->setMtoPrecioUnitario(118.00);
+
+            $invoice->setDetails([$detail]);
+
+            $invoice->setLegends([
+                (new Legend())
+                    ->setCode('1000')
+                    ->setValue('SON CERO CON 00/100 SOLES')
+            ]);
+
+            $see = $this->controlConfiguracionGreenter($util);
+
+            $res = $see->send($invoice);
+
+            dd($res);
+
+            $util->writeXml($invoice, $see->getFactory()->getLastXml(), $documento->tipo_venta_id, null);
+
+            if ($documento->tipo_venta_id   ==  127) {
+                $documento->ruta_xml      =   'storage/greenter/facturas/xml/' . $invoice->getName() . '.xml';
+            }
+            if ($documento->tipo_venta_id   ==  128) {
+                $documento->ruta_xml      =   'storage/greenter/boletas/xml/' . $invoice->getName() . '.xml';
+            }
+
+            //======== ENVÍO CORRECTO Y ACEPTADO ==========
+            if ($res->isSuccess()) {
+                //====== GUARDANDO RESPONSE ======
+                $cdr                                    =   $res->getCdrResponse();
+                $documento->cdr_response_description    =   $cdr->getDescription();
+                $documento->cdr_response_id             =   $cdr->getId();
+                $documento->cdr_response_code           =   $cdr->getCode();
+                $documento->cdr_response_reference      =   $cdr->getReference();
+
+                //========= GUARDANDO NOTES ======
+                $response_notes =   '';
+                foreach ($cdr->getNotes() as $note) {
+                    $response_notes .= '|' . $note . '|';
+                }
+                $documento->cdr_response_notes   =   $response_notes;
+
+
+                $util->writeCdr($invoice, $res->getCdrZip(), $documento->tipo_venta_id, null);
+                if ($documento->tipo_venta_id   ==  127) {
+                    $documento->ruta_cdr      =   'storage/greenter/facturas/cdr/' . $invoice->getName() . '.zip';
+                }
+                if ($documento->tipo_venta_id   ==  128) {
+                    $documento->ruta_cdr      =   'storage/greenter/boletas/cdr/' . $invoice->getName() . '.zip';
+                }
+
+                $documento->sunat                       =   "1";
+
+                if ($cdr->getCode() != '0') {
+                    $documento->regularize              =   '1';
+                }
+
+                $documento->update();
+
+                return response()->json(["success"   =>  true, "message" => $cdr->getDescription()]);
+            } else {
+
+                $documento->response_error_message  =   $res->getError()->getMessage();
+                $documento->response_error_code     =   $res->getError()->getCode();
+                $documento->regularize              =   '1';
+                $documento->update();
+
+                /*
+                    ================================================================
+                        ERROR 1033
+                        El comprobante fue registrado previamente con otros datos
+                        - Detalle: xxx.xxx.xxx value='ticket: 202413738761966
+                        error: El comprobante B001-1704 fue informado anteriormente'
+
+                        ERROR 2223
+                        El documento ya fue informado
+                    ================================================================
+                    */
+
+                if ($res->getError()->getCode() == 1033 || $res->getError()->getCode() == 2223) {
+                    $documento->response_error_message  =   $res->getError()->getMessage();
+                    $documento->response_error_code     =   $res->getError()->getCode();
+                    $documento->regularize              =   '0';
+                    $documento->sunat                   =   '1';
+                    $documento->update();
+
+                    return response()->json([
+                        "success"   =>  false,
+                        "message"   =>  "SE ACTUALIZÓ EL ESTADO DE LA BOLETA A ENVIADA",
+                        "exception" =>  $res->getError()->getMessage(),
+                        "code"      =>  $res->getError()->getCode(),
+                        "doc_actualizado"   =>  $documento
+                    ]);
+                }
+
+                return response()->json([
+                    "success"   =>  false,
+                    "message"   =>  "ERROR AL ENVIAR A SUNAT",
+                    "exception" =>  "CÓDIGO: " . $res->getError()->getCode() . " | DESCRIPCIÓN: " . $res->getError()->getMessage(),
+                    "code"      =>  $res->getError()->getCode()
+                ]);
+            }
+        } catch (Throwable $th) {
+
+            return response()->json([
+                'success' => false,
+                "message"   =>  "ERROR EN EL SERVIDOR",
+                "exception" => $th->getMessage(),
+                'line' => $th->getLine(),
+                'file' => $th->getFile()
+            ]);
+        }
+    }
 
     public function controlConfiguracionGreenter($util)
     {

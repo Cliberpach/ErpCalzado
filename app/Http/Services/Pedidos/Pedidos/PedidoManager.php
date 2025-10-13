@@ -2,6 +2,7 @@
 
 namespace App\Http\Services\Pedidos\Pedidos;
 
+use App\Ventas\Documento\Documento;
 use App\Ventas\Pedido;
 
 class PedidoManager
@@ -22,5 +23,9 @@ class PedidoManager
 
     public function generarDocumentoVenta(array $datos):int {
         return $this->s_pedido->generarDocumentoVenta($datos);
+    }
+
+    public function generarComprobanteConsumo(array $datos):Documento{
+        return $this->s_pedido->generarComprobanteConsumo($datos);
     }
 }

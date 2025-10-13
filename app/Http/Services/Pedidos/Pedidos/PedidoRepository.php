@@ -173,4 +173,13 @@ class PedidoRepository
         $pedido->doc_venta_credito_saldo        =   $pedido->total_pagar;
         $pedido->update();
     }
+
+    public function enlazarPedidoComprobanteConsumo( Documento $venta_consumo,int $pedido_id)
+    {
+        $pedido                           =   Pedido::findOrFail($pedido_id);
+        $pedido->doc_venta_consumo_id           =   $venta_consumo->id;
+        $pedido->doc_venta_consumo_serie        =   $venta_consumo->serie;
+        $pedido->doc_venta_consumo_correlativo  =   $venta_consumo->correlativo;
+        $pedido->update();
+    }
 }

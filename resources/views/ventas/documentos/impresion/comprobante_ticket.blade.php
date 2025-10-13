@@ -192,7 +192,7 @@
             </tr>
             @if ($documento->observacion)
                 <tr>
-                    <td>PLACA</td>
+                    <td>OBS</td>
                     <td>:</td>
                     <td class="text-uppercase">{{ $documento->observacion }}</td>
                 </tr>
@@ -219,34 +219,73 @@
             <tbody>
 
                 @if (!$documento->es_anticipo)
-                    @foreach ($detalles as $item)
-                        @if ($documento->tipo_venta_id == 129)
-                            @if ($item->cantidad - $item->detalles->sum('cantidad') > 0)
+
+                    @if ($documento->tipo_doc_venta_pedido === 'CONSUMO')
+                        @foreach ($detalles as $item)
+                            @if ($documento->tipo_venta_id == 129)
+                                @if ($item->cantidad - $item->detalles->sum('cantidad') > 0)
+                                    <tr>
+                                        <td style="text-align: left">
+                                            {{ number_format($item->cantidad - $item->detalles->sum('cantidad'), 2) }}
+                                        </td>
+                                        <td style="text-align: left">{{ $item->unidad }}</td>
+                                        <td style="text-align: left">
+                                            {{ $item->nombre_producto . '-' . $item->nombre_modelo . '-' . $item->nombre_color . '-' . $item->nombre_talla }}
+                                        </td>
+                                        <td style="text-align: left">{{ number_format($item->precio_unitario, 2) }}
+                                        </td>
+                                        <td style="text-align: right">
+                                            {{ number_format(($item->cantidad - $item->detalles->sum('cantidad')) * $item->precio_unitario, 2) }}
+                                        </td>
+                                    </tr>
+                                @endif
+                            @else
                                 <tr>
+                                    <td style="text-align: left">{{ number_format($item->cantidad, 2) }}</td>
+                                    <td style="text-align: left">{{ $item->unidad }}</td>
                                     <td style="text-align: left">
-                                        {{ number_format($item->cantidad - $item->detalles->sum('cantidad'), 2) }}</td>
+                                        {{ $item->nombre_producto }}
+                                    </td>
+                                    <td style="text-align: left">{{ number_format($item->precio_unitario, 2) }}</td>
+                                    <td style="text-align: right">{{ number_format($item->importe, 2) }}</td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    @endif
+
+                    @if (!$documento->tipo_doc_venta_pedido)
+                        @foreach ($detalles as $item)
+                            @if ($documento->tipo_venta_id == 129)
+                                @if ($item->cantidad - $item->detalles->sum('cantidad') > 0)
+                                    <tr>
+                                        <td style="text-align: left">
+                                            {{ number_format($item->cantidad - $item->detalles->sum('cantidad'), 2) }}
+                                        </td>
+                                        <td style="text-align: left">{{ $item->unidad }}</td>
+                                        <td style="text-align: left">
+                                            {{ $item->nombre_producto . '-' . $item->nombre_modelo . '-' . $item->nombre_color . '-' . $item->nombre_talla }}
+                                        </td>
+                                        <td style="text-align: left">{{ number_format($item->precio_unitario, 2) }}
+                                        </td>
+                                        <td style="text-align: right">
+                                            {{ number_format(($item->cantidad - $item->detalles->sum('cantidad')) * $item->precio_unitario, 2) }}
+                                        </td>
+                                    </tr>
+                                @endif
+                            @else
+                                <tr>
+                                    <td style="text-align: left">{{ number_format($item->cantidad, 2) }}</td>
                                     <td style="text-align: left">{{ $item->unidad }}</td>
                                     <td style="text-align: left">
                                         {{ $item->nombre_producto . '-' . $item->nombre_modelo . '-' . $item->nombre_color . '-' . $item->nombre_talla }}
                                     </td>
                                     <td style="text-align: left">{{ number_format($item->precio_unitario, 2) }}</td>
-                                    <td style="text-align: right">
-                                        {{ number_format(($item->cantidad - $item->detalles->sum('cantidad')) * $item->precio_unitario, 2) }}
-                                    </td>
+                                    <td style="text-align: right">{{ number_format($item->importe, 2) }}</td>
                                 </tr>
                             @endif
-                        @else
-                            <tr>
-                                <td style="text-align: left">{{ number_format($item->cantidad, 2) }}</td>
-                                <td style="text-align: left">{{ $item->unidad }}</td>
-                                <td style="text-align: left">
-                                    {{ $item->nombre_producto . '-' . $item->nombre_modelo . '-' . $item->nombre_color . '-' . $item->nombre_talla }}
-                                </td>
-                                <td style="text-align: left">{{ number_format($item->precio_unitario, 2) }}</td>
-                                <td style="text-align: right">{{ number_format($item->importe, 2) }}</td>
-                            </tr>
-                        @endif
-                    @endforeach
+                        @endforeach
+                    @endif
+
                 @endif
 
                 @if ($documento->es_anticipo)
@@ -303,7 +342,7 @@
                             {{ number_format($documento->anticipo_monto_consumido * -1, 2) }}
                         </td>
                     </tr>
-                @endif
+                @endif 
             </tbody>
             <tfoot>
                 @if ($documento->tipo_venta_id != 129)

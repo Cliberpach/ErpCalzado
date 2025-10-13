@@ -7,13 +7,14 @@ use App\Almacenes\Color;
 use App\Almacenes\Modelo;
 use App\Almacenes\Producto;
 use App\Almacenes\Talla;
-use App\Ventas\Cliente;
+use App\Ventas\Documento\Detalle;
 use App\Ventas\Documento\Documento;
+use App\Ventas\Pedido;
 use Illuminate\Support\Facades\Auth;
 
 class VentaDto
 {
-    public function prepararDtoFromAnticipo(object $datos_validados): array
+    public function prepararDtoFromAnticipoConsumo(object $datos_validados): array
     {
         $dto    =   [];
 
@@ -94,12 +95,12 @@ class VentaDto
         $dto['almacen_nombre']  =   $datos_validados->almacen->descripcion;
 
         //========= ANTICIPO ========
-        $dto['es_anticipo']     =   true;
+        $dto['es_anticipo']     =   $datos_validados->es_anticipo;
         $dto['saldo_anticipo']  =   $montos->monto_total_pagar;
 
         //======= PEDIDO ========
         $dto['pedido_id']               =   $datos_validados->pedido_id;
-        $dto['tipo_doc_venta_pedido']   =   "ANTICIPO";
+        $dto['tipo_doc_venta_pedido']   =   $datos_validados->tipo_doc_venta_pedido;
 
         //========= MODO DESPACHO ==========
         $dto['modo']                    =   'VENTA';
@@ -107,16 +108,17 @@ class VentaDto
         return $dto;
     }
 
-    public function prepararDtoDetalleFromAnticipo(Documento $venta):array{
+    public function prepararDtoDetalleFromAnticipo(Documento $venta): array
+    {
         $dto    =   [];
 
-        $almacen    =   Almacen::where('tipo','FICTICIO')->where('estado','ANULADO')->first();
-        $producto   =   Producto::where('tipo','FICTICIO')->where('estado','ANULADO')->first();
-        $color      =   Color::where('tipo','FICTICIO')->where('estado','ANULADO')->first();
-        $talla      =   Talla::where('tipo','FICTICIO')->where('estado','ANULADO')->first();
-        $modelo     =   Modelo::where('tipo','FICTICIO')->where('estado','ANULADO')->first();
+        $almacen    =   Almacen::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
+        $producto   =   Producto::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
+        $color      =   Color::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
+        $talla      =   Talla::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
+        $modelo     =   Modelo::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
 
-        $dto['almacen_id']         =   $almacen->id;
+        $dto['almacen_id']          =   $almacen->id;
         $dto['almacen_nombre']      =   $almacen->descripcion;
         $dto['documento_id']        =   $venta->id;
         $dto['producto_id']         =   $producto->id;
@@ -138,6 +140,65 @@ class VentaDto
         $dto['cantidad_sin_cambio']     =   1;
         $dto['cantidad_cambiada']       =   0;
         $dto['estado_cambio_talla']     =   'SIN CAMBIOS';
+
+        return $dto;
+    }
+
+    public function prepararDtoDetalleFromConsumo(Documento $venta, int $pedido_id): array
+    {
+        $dto    =   [];
+
+        $pedido         =   Pedido::findOrFail($pedido_id);
+        $almacen        =   Almacen::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
+        $producto       =   Producto::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
+        $color          =   Color::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
+        $talla          =   Talla::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
+        $modelo         =   Modelo::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
+        $lst_anticipos  =   Documento::where('pedido_id', $pedido_id)->where('tipo_doc_venta_pedido', 'ANTICIPO')->where('estado', 'ACTIVO')->get();
+        $detalle_pedido =   Detalle::where('documento_id', $pedido->doc_venta_credito_id)->get()->toArray();
+
+        foreach ($lst_anticipos as $anticipo) {
+            $anticipo_dto   =   [];
+            $anticipo_dto['almacen_id']          =   $almacen->id;
+            $anticipo_dto['almacen_nombre']      =   $almacen->descripcion;
+            $anticipo_dto['documento_id']        =   $venta->id;
+            $anticipo_dto['producto_id']         =   $producto->id;
+            $anticipo_dto['color_id']            =   $color->id;
+            $anticipo_dto['talla_id']            =   $talla->id;
+            $anticipo_dto['codigo_producto']     =   $producto->codigo;
+            $anticipo_dto['unidad']              =   'NIU';
+            $anticipo_dto['nombre_producto']     =   'ANTICIPO: FACTURA NRO. ' . $anticipo->serie . '-' . $anticipo->correlativo;
+            $anticipo_dto['nombre_color']        =   $color->descripcion;
+            $anticipo_dto['nombre_talla']        =   $talla->descripcion;
+            $anticipo_dto['nombre_modelo']       =   $modelo->descripcion;
+            $anticipo_dto['cantidad']            =   1;
+            $anticipo_dto['precio_unitario']     =   $anticipo->total_pagar;
+            $anticipo_dto['importe']             =   $anticipo->total_pagar;
+            $anticipo_dto['porcentaje_descuento']    =   0;
+            $anticipo_dto['precio_unitario_nuevo']   =   $anticipo->total_pagar;
+            $anticipo_dto['importe_nuevo']           =   $anticipo->total_pagar;
+            $anticipo_dto['monto_descuento']         =   0;
+            $anticipo_dto['cantidad_sin_cambio']     =   1;
+            $anticipo_dto['cantidad_cambiada']       =   0;
+            $anticipo_dto['estado_cambio_talla']     =   'SIN CAMBIOS';
+            $anticipo_dto['anticipo_id']             =   $anticipo->id;
+            $anticipo_dto['anticipo_serie']          =   $anticipo->serie . '-' . $anticipo->correlativo;
+            $anticipo_dto['tipo']                    =   'SERVICIO';
+
+            $dto[]  =   $anticipo_dto;
+        }
+
+        foreach ($detalle_pedido as $item) {
+            $_item   =   $item;
+            unset($_item['id']);
+            unset($_item['estado']);
+            unset($_item['eliminado']);
+            unset($_item['created_at']);
+            unset($_item['updated_at']);
+            $_item['documento_id']  =   $venta->id;
+
+            $dto[]  =   $_item;
+        }
 
         return $dto;
     }

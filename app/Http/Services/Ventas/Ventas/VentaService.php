@@ -343,7 +343,7 @@ class VentaService
         if (!$datos_envio) {
             return $documento;
         }
-       
+
         //========= SI YA TENÍA ENVÍO ACTUALIZAMOS ========
         $datos_envio                    =   (array)$datos_envio;
         $datos_envio['documento_id']    =   $id;
@@ -367,7 +367,7 @@ class VentaService
         $this->qr_code($id);
 
         $detalles           =   Detalle::where('documento_id', $id)->where('eliminado', '0')->get();
-
+       
         $mostrar_cuentas    =   DB::select('SELECT
                                 c.propiedad
                                 FROM configuracion AS c
@@ -494,13 +494,48 @@ class VentaService
         $datos_validados->legenda               =   $legenda;
 
         //=========== OBTENER DTO ===========
-        $dto    =   $this->s_venta_dto->prepararDtoFromAnticipo($datos_validados);
+        $dto    =   $this->s_venta_dto->prepararDtoFromAnticipoConsumo($datos_validados);
 
         //======= INSERTAR VENTA =======
         $venta  =   $this->s_repository->insertarVentaAnticipo($dto);
 
         //========= INSERTAR DETALLE VENTA ========
         $dto_detalle    =   $this->s_venta_dto->prepararDtoDetalleFromAnticipo($venta);
+        $this->s_repository->insertarDetalleVentaAnticipo($dto_detalle);
+
+        return $venta;
+    }
+
+     public function generarComprobanteConsumo(array $datos):Documento
+    {
+        //========= VALIDACIÓN ANTICIPO =========
+        $datos_validados  =   $this->s_validacion->validacionVentaConsumo($datos);
+
+        //======== COMPROBANTE ACTIVO =========
+        $this->s_validacion->comprobanteActivo($datos_validados->sede_id, $datos_validados->tipo_comprobante);
+
+        //======== OBTENER CORRELATIVO Y SERIE =======
+        $datos_correlativo  =   $this->s_correlativo->getCorrelativo($datos_validados->tipo_comprobante, $datos_validados->sede_id);
+
+        //========= CALCULAR MONTOS =========
+        $montos             =   $this->s_calculos->calcularMontosDeTotal(floatval($datos_validados->monto));
+
+        //======== OBTENIENDO LEYENDA =======
+        $legenda                =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
+
+        $datos_validados->datos_correlativo     =   $datos_correlativo;
+        $datos_validados->montos                =   $montos;
+        $datos_validados->legenda               =   $legenda;
+
+        //=========== OBTENER DTO ===========
+        $dto    =   $this->s_venta_dto->prepararDtoFromAnticipoConsumo($datos_validados);
+
+        //======= INSERTAR VENTA =======
+        $venta  =   $this->s_repository->insertarVentaAnticipo($dto);
+
+        //========= INSERTAR DETALLE VENTA ========
+        $dto_detalle    =   $this->s_venta_dto->prepararDtoDetalleFromConsumo($venta,$datos_validados->pedido_id);
+
         $this->s_repository->insertarDetalleVentaAnticipo($dto_detalle);
 
         return $venta;

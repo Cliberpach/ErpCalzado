@@ -21,6 +21,7 @@ class PedidoService
     private VentaService $s_venta;
     private CalculosService $s_calculos;
     private PedidoRepository $s_repository;
+    private PedidoValidacion $s_validacion;
 
     public function __construct()
     {
@@ -28,6 +29,7 @@ class PedidoService
         $this->s_venta      =   new VentaService();
         $this->s_calculos   =   new CalculosService();
         $this->s_repository =   new PedidoRepository();
+        $this->s_validacion =   new PedidoValidacion();
     }
 
     public function store(array $datos): array
@@ -509,5 +511,15 @@ class PedidoService
         }
 
         return $resultado;
+    }
+
+    public function generarComprobanteConsumo(array $datos): Documento
+    {
+        $dto  =   $this->s_validacion->validacionGenerarComprobanteConsumo($datos);
+
+        $venta  =   $this->s_venta->generarComprobanteConsumo($dto);
+        $this->s_repository->enlazarPedidoComprobanteConsumo($venta,$dto['pedido_id']);
+
+        return $venta;
     }
 }

@@ -735,7 +735,10 @@ class VentaRepository
         return Documento::create($dto);
     }
 
-    public function insertarDetalleVentaAnticipo(array $dto){
-        Detalle::create($dto);
+    public function insertarDetalleVentaAnticipo(array $dto)
+    {
+        Detalle::insert($dto);
     }
+
+
 }

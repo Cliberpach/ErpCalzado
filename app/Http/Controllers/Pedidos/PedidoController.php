@@ -80,6 +80,7 @@ class PedidoController extends Controller
                 DB::raw('CONCAT(p.documento_venta_facturacion_serie, "-", p.documento_venta_facturacion_correlativo) as documento_venta'),
                 DB::raw('if(p.cotizacion_id is null,"-",concat("CO-",p.cotizacion_id)) as cotizacion_nro'),
                 'p.doc_venta_credito_estado_pago',
+                'p.doc_venta_consumo_id'
             )->where('p.estado', '<>', 'ANULADO');
 
         if ($fecha_inicio) {
@@ -1630,6 +1631,31 @@ array:2 [
         } catch (Throwable $th) {
             Session::flash('message_error', $th->getMessage());
             return redirect()->route('pedidos.pedido.index');
+        }
+    }
+
+    public function generarComprobanteConsumo(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+
+            $venta_consumo    =   $this->s_pedido->generarComprobanteConsumo($request->toArray());
+
+            $url_pdf = route('ventas.documento.comprobante', [
+                'id' => $venta_consumo->id,
+                'size' => 80
+            ]);
+
+            //====== REGISTRO DE ACTIVIDAD ========
+            $descripcion = "SE GENERÓ EL COMPROBANTE CONSUMO: " . Carbon::parse($venta_consumo->created_at)->format('d/m/y');
+            $gestion = "COMPROBANTE CONSUMO";
+            crearRegistro($venta_consumo, $descripcion, $gestion);
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'COMPROBANTE CONSUMO GENERADO CON ÉXITO', 'url_pdf' => $url_pdf]);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
 }
