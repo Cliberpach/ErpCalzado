@@ -323,40 +323,49 @@ export default {
                 cancelButtonColor: "#d33",
                 confirmButtonText: "Sí!",
                 showLoaderOnConfirm: true,
-                allowOutsideClick: false,
-                preConfirm: async () => {
-                    try {
-                        const res = await axios.get(route('ventas.documento.sunat', id));
-                        console.log(res);
-                        return res.data;
-                    } catch (error) {
-                        const data = { success: false, message: "ERROR EN LA SOLICITUD", exception: error };
-                        return data;
-                    }
-                }
-            }).then((result) => {
+                allowOutsideClick: false
+            }).then(async (result) => {
 
-                if (result.value && result.value.success) {
-                    toastr.success(result.value.message, 'DOCUMENTO ENVIADO A SUNAT', { timeOut: 5000 });
-                    this.tabla.ajax.reload(null, false);
-                }
+                if (result.isConfirmed) {
 
-                if (result.value && !result.value.success) {
-                    this.tabla.ajax.reload(null, false);
-                    toastr.error(result.value.exception, result.value.message, { timeOut: 0 });
-                }
-
-                if (result.dismiss === Swal.DismissReason.cancel) {
-                    swalWithBootstrapButtons.fire({
-                        title: "Operación cancelada",
-                        text: "No se realizaron acciones",
-                        icon: "error"
+                    Swal.fire({
+                        title: 'Enviando a SUNAT...',
+                        text: 'Por favor espere un momento.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
                     });
+
+                    try {
+
+                        const formData = new FormData();
+                        formData.append('id', id);
+
+                        const res = await axios.post(route('ventas.documento.sunat'), formData);
+                        if (res.data.success) {
+                            recargarTabla();
+                            toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
+                        } else {
+                            recargarTabla();
+                            toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                        }
+
+                    } catch (error) {
+                        toastr.error(error, 'ERROR EN LA PETICIÓN ENVIAR COMPROBANTE A SUNAT');
+                    }finally{
+                        Swal.close();
+                    }
+
+                } else {
+
+                    Swal.fire(
+                        'Cancelado',
+                        'El envío fue cancelado.',
+                        'error'
+                    );
                 }
-
             });
-
-
         },
         dias(data) {
             var dias = data.dias > 4 ? 0 : 4 - data.dias;
@@ -755,7 +764,7 @@ export default {
                             if (data.sunat == '0' && data.tipo_venta != "129" && data.estado == 'ACTIVO') {
 
                                 acciones += `<a data-id="${row.id}" class="dropdown-item btn-enviar-sunat" href="javascript:void(0);">
-                                                <i class="fa fa-send" style="color: #0065b3;"></i> Sunat
+                                                <i class="fas fa-paper-plane" style="color: #0065b3;"></i> Sunat
                                             </a>`;
                             }
 

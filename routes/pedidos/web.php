@@ -1,12 +1,9 @@
 <?php
 
-use App\Http\Controllers\Kardex\KCuenta\KCuentaController;
-use App\Http\Controllers\Kardex\KStock\KStockController;
 use App\Http\Controllers\Pedidos\PedidoController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('pedidos')->middleware('auth')->group(function () {
-
 
     //PEDIDOS-PEDIDOS
     Route::prefix('pedidos')->group(function () {

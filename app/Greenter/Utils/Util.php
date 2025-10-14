@@ -52,7 +52,7 @@ final class Util
         //$certificate = file_get_contents(__DIR__ . '/../certificate/certificate_merris.pem');
 
         //====== OBTENIENDO RUTA DEL CERTIFICADO =======
-        $certificadoPath    =   storage_path('app/public/' . $greenter_config->ruta_certificado);   
+        $certificadoPath    =   storage_path('app/public/' . $greenter_config->ruta_certificado);
 
         if(!file_exists($certificadoPath)){
             throw new Exception('No existe el certificado,debe registrar uno en Mantenimiento/Empresas');
@@ -80,7 +80,7 @@ final class Util
         $ruc        =   $greenter_config->ruc;
 
         $see->setClaveSOL($ruc, $sol_user, $sol_pass);
-        
+
         $see->setCachePath(__DIR__ . '/../cache');
 
         return $see;
@@ -97,7 +97,7 @@ final class Util
                 'cpe' => 'https://gre-test.nubefact.com/v1',
             ]);
 
-            //$ruc    =   "20161515648";   
+            //$ruc    =   "20161515648";
         }
 
         if($greenter_config->modo === "PRODUCCION"){
@@ -106,8 +106,8 @@ final class Util
                 'cpe' => 'https://api-cpe.sunat.gob.pe/v1',
             ]);
         }
-       
-        $certificadoPath    =   storage_path('app/public/' . $greenter_config->ruta_certificado);   
+
+        $certificadoPath    =   storage_path('app/public/' . $greenter_config->ruta_certificado);
 
         if(!file_exists($certificadoPath)){
             throw new Exception('No existe el certificado,debe registrar uno en Mantenimiento/Empresas');
@@ -124,8 +124,8 @@ final class Util
         // if ($certificate === false) {
         //     throw new Exception('No se pudo cargar el certificado');
         // }
-        
-           
+
+
         return $api->setBuilderOptions([
                 'strict_variables' => true,
                 'optimizations' => 0,
@@ -179,7 +179,7 @@ HTML;
     {
         $doc_name   = null;
         if($document){
-            $doc_name   =   $document->getName();   
+            $doc_name   =   $document->getName();
         }else{
             $doc_name   =   $document_name;
         }
@@ -192,7 +192,7 @@ HTML;
     {
         $doc_name   = null;
         if($document){
-            $doc_name   =   $document->getName();   
+            $doc_name   =   $document->getName();
         }else{
             $doc_name   =   $document_name;
         }
@@ -229,8 +229,9 @@ HTML;
                 $fileDir    =   public_path('storage/greenter/notas_credito_facturas/cdr');
             }
         }
-        
+
         if($typeFile    ==  "xml"){
+
             if($tipo_comprobante == 'RESUMEN'){
                 //$fileDir = __DIR__.'/../files/resumenes_xml';
                 $fileDir    =   public_path('storage/greenter/resumenes/xml');
@@ -241,7 +242,7 @@ HTML;
             if($tipo_comprobante == 127){   //======== FACTURA =====
                 $fileDir    =   public_path('storage/greenter/facturas/xml');
             }
-            if($tipo_comprobante == 128){   //======== FACTURA =====
+            if($tipo_comprobante == 128){   //======== BOLETA =====
                 $fileDir    =   public_path('storage/greenter/boletas/xml');
             }
             if($tipo_comprobante == '07-03'){
@@ -252,14 +253,14 @@ HTML;
             }
         }
 
-
         if (!file_exists($fileDir)) {
+         
             mkdir($fileDir, 0777, true);
         }
 
-        
         if(!file_exists($fileDir.DIRECTORY_SEPARATOR.$filename)){
             file_put_contents($fileDir.DIRECTORY_SEPARATOR.$filename, $content);
+
         }
     }
 

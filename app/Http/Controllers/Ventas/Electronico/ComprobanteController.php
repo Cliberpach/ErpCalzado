@@ -31,6 +31,7 @@ use Greenter\Ws\Services\SunatEndpoints;
 
 use DateTime;
 use App\Greenter\Utils\Util;
+use App\Http\Services\Facturacion\FacturacionManager;
 use App\Ventas\Cliente;
 use Greenter\Model\Sale\Charge;
 use Greenter\Model\Sale\Prepayment;
@@ -38,6 +39,12 @@ use Throwable;
 
 class ComprobanteController extends Controller
 {
+    private FacturacionManager $s_facturacion;
+    public function __construct()
+    {
+        $this->s_facturacion    =   new FacturacionManager();
+    }
+
     public function index()
     {
         return view('ventas.comprobantes.index');
@@ -234,7 +241,6 @@ class ComprobanteController extends Controller
             //====== OBTENER EL DOCUMENTO DE VENTA =========
             $documento  =   Documento::findOrFail($id);
 
-
             $tipo_documento_cliente =   null;
             $tipo_doc_facturacion   =   null;
 
@@ -279,9 +285,6 @@ class ComprobanteController extends Controller
                 ->setCompany($util->shared->getCompany($documento->sede_id))
                 ->setClient($client);
 
-
-            //if (!$documento->anticipo_consumido_id) {
-
             $invoice
                 ->setMtoOperGravadas($documento->mto_oper_gravadas_sunat) //======= MONTO VENDIDO SIN IMPUESTO =======
                 ->setMtoIGV($documento->mto_igv_sunat) //======== IMPUESTO =======
@@ -290,135 +293,10 @@ class ComprobanteController extends Controller
                 ->setSubTotal($documento->sub_total_sunat) //========= MONTO VENDIDO + IMPUESTO =======
                 ->setMtoImpVenta($documento->mto_imp_venta_sunat); //======= MONTO VENDIDO + IMPUESTO =========
 
-            //} else {
-
-            /*$tipoDocRel =   $documento->anticipo_tipo_venta_id == '127' ? '02' : '03';
-
-                //========= SUMATORIA DEL DETALLE CON IGV =======
-                $anticipo_monto_consumido_sin_igv   =   $documento->anticipo_monto_consumido / 1.18;
-
-                $subtotal       =   (float)$documento->sub_total + (float)$documento->monto_envio + (float)$documento->monto_embalaje;
-                $imp_venta      =   (float)$subtotal - (float)$anticipo_monto_consumido_sin_igv;
-                $valor_venta    =   $subtotal / 1.18;
-                $mtoOperGravada =   $valor_venta -  (float)$anticipo_monto_consumido_sin_igv;
-                $mtoIgv         =   $mtoOperGravada * 0.18;
-                $totalImpuestos =   $mtoIgv;*/
-
-            /*dd([
-                    'subtotal_calculado' => $subtotal,
-                    'subtotal_sunat' => (float)$documento->sub_total_sunat,
-
-                    'imp_venta_calculado' => $imp_venta,
-                    'imp_venta_sunat' => (float)$documento->mto_imp_venta_sunat,
-
-                    'valor_venta_calculado' => $valor_venta,
-                    'valor_venta_sunat' => (float)$documento->valor_venta_sunat,
-
-                    'mtoOperGravada_calculado' => $mtoOperGravada,
-                    'mto_oper_gravadas_sunat' => (float)$documento->mto_oper_gravadas_sunat,
-
-                    'mtoIgv_calculado' => $mtoIgv,
-                    'mto_igv_sunat' => (float)$documento->mto_igv_sunat,
-
-                    'total_impuestos_calculado' => $totalImpuestos,
-                    'total_impuestos_sunat' => (float)$documento->total_impuestos_sunat,
-                ]);*/
-
-            /*
-                $invoice
-                    ->setDescuentos([
-                        (
-                            new Charge())
-                            ->setCodTipo('04')
-                            ->setFactor(1)
-                            ->setMonto($documento->anticipo_monto_consumido_sin_igv) // anticipo sin igv
-                            ->setMontoBase($documento->anticipo_monto_consumido_sin_igv)
-                    ])
-                    ->setAnticipos([
-                        (new Prepayment())
-                            ->setTipoDocRel($tipoDocRel) // catalog. 12  02 facturas anticipo - 03 boletas anticipo
-                            ->setNroDocRel($documento->anticipo_consumido_serie . '-' . $documento->anticipo_consumido_correlativo)
-                            ->setTotal($documento->anticipo_monto_consumido_sin_igv)
-                    ])
-                    ->setMtoOperGravadas($documento->mto_oper_gravadas_sunat)
-                    ->setMtoIGV($documento->mto_igv_sunat)
-                    ->setTotalImpuestos($documento->total_impuestos_sunat)
-                    ->setValorVenta($documento->valor_venta_sunat)
-                    ->setSubTotal($documento->sub_total_sunat)
-                    ->setMtoImpVenta($documento->mto_imp_venta_sunat)
-                    ->setTotalAnticipos($documento->anticipo_monto_consumido_sin_igv);
-                */
-
-            /*$invoice
-                    ->setDescuentos([
-                        (
-                            new Charge())
-                            ->setCodTipo('04')
-                            ->setFactor(1)
-                            ->setMonto($anticipo_monto_consumido_sin_igv) // anticipo sin igv
-                            ->setMontoBase($anticipo_monto_consumido_sin_igv)
-                    ])
-                    ->setAnticipos([
-                        (new Prepayment())
-                            ->setTipoDocRel($tipoDocRel) // catalog. 12  02 facturas anticipo - 03 boletas anticipo
-                            ->setNroDocRel($documento->anticipo_consumido_serie . '-' . $documento->anticipo_consumido_correlativo)
-                            ->setTotal($anticipo_monto_consumido_sin_igv)
-                    ])
-                    ->setMtoOperGravadas($mtoOperGravada)
-                    ->setMtoIGV($mtoIgv)
-                    ->setTotalImpuestos($totalImpuestos)
-                    ->setValorVenta($valor_venta)
-                    ->setSubTotal($subtotal)
-                    ->setMtoImpVenta($imp_venta)
-                    ->setTotalAnticipos($anticipo_monto_consumido_sin_igv);*/
-
-            /*$invoice
-                    ->setDescuentos([
-                        (
-                            new Charge())
-                            ->setCodTipo('04')
-                            ->setFactor(1)
-                            ->setMonto(100) // anticipo sin igv
-                            ->setMontoBase(100)
-                    ])
-                    ->setMtoOperGravadas(100)
-                    ->setMtoIGV(18)
-                    ->setValorVenta(200)
-                    ->setTotalImpuestos(18)
-                    ->setSubTotal(236)
-                    ->setMtoImpVenta(136)
-                    ->setAnticipos([
-                        (new Prepayment())
-                            ->setTipoDocRel($tipoDocRel) // catalog. 12  02 facturas anticipo - 03 boletas anticipo
-                            ->setNroDocRel($documento->anticipo_consumido_serie . '-' . $documento->anticipo_consumido_correlativo)
-                            ->setTotal(100)
-                    ])
-                    ->setTotalAnticipos(100);*/
-            //}
 
             //======== CONSTRUIR DETALLE FACTURA ========
             $detalles   =   $documento->detalles;
             $items      =   [];
-
-            //=========== SI NO ES FACTURA PAGO ANTICIPADO =========
-            //if (!$documento->es_anticipo) {
-
-            /*$detail = new SaleDetail();
-                $detail->setCodProducto('P001')
-                    ->setUnidad('NIU')
-                    ->setDescripcion('PROD 1')
-                    ->setCantidad(2)
-                    ->setMtoValorUnitario(100)
-                    ->setMtoValorVenta(200)
-                    ->setMtoBaseIgv(200)
-                    ->setPorcentajeIgv(18)
-                    ->setIgv(36)
-                    ->setTipAfeIgv('10')
-                    ->setTotalImpuestos(36)
-                    ->setMtoPrecioUnitario(118)
-                ;*/
-
-            //$items[]    =   $detail;
 
             foreach ($detalles as $detalle) {
                 $items[] = (new SaleDetail())
@@ -468,26 +346,6 @@ class ComprobanteController extends Controller
                     ->setTotalImpuestos((float)1 * ((float)$documento->monto_envio - (float)$documento->monto_envio / 1.18))
                     ->setMtoPrecioUnitario($documento->monto_envio);
             }
-            // } else {
-
-            /*
-                $items[] = (new SaleDetail())
-                    ->setCodProducto('PAGO ANTICIPADO')
-                    ->setUnidad('NIU')
-                    ->setDescripcion('PAGO ANTICIPADO')
-                    ->setCantidad(1)
-                    ->setMtoValorUnitario((float)$documento->mto_imp_venta_sunat / 1.18)
-                    ->setMtoValorVenta(((float)$documento->mto_imp_venta_sunat / 1.18) * (float)1)
-                    ->setMtoBaseIgv(((float)$documento->mto_imp_venta_sunat / 1.18) * (float)1)
-                    ->setPorcentajeIgv(18)
-                    ->setIgv((float)1 * ((float)$documento->mto_imp_venta_sunat - (float)$documento->mto_imp_venta_sunat / 1.18))
-                    ->setTipAfeIgv('10') // Catalog: 07
-                    ->setTotalImpuestos((float)1 * ((float)$documento->mto_imp_venta_sunat - (float)$documento->mto_imp_venta_sunat / 1.18))
-                    ->setMtoPrecioUnitario($documento->mto_imp_venta_sunat);
-                */
-            //}
-
-
 
             $formatter  = new NumeroALetras();
             $legenda    = $formatter->toInvoice($documento->total_pagar, 2, 'SOLES');
@@ -499,13 +357,6 @@ class ComprobanteController extends Controller
                         ->setValue($legenda)
                 ]);
 
-            // $invoice->setDetails([$detail])
-            //     ->setLegends([
-            //         (new Legend())
-            //             ->setCode('1000')
-            //             ->setValue('SON DOSCIENTOS TREINTA Y SEIS CON OO/100 SOLES')
-            //     ]);
-
             $see = $this->controlConfiguracionGreenter($util);
 
             $res = $see->send($invoice);
@@ -607,249 +458,26 @@ class ComprobanteController extends Controller
         }
     }
 
-    public function sunat($id)
+    public function sunat(Request $request)
     {
+        DB::beginTransaction();
+
         try {
 
-            //====== OBTENER EL DOCUMENTO DE VENTA =========
-            $documento  =   Documento::findOrFail($id);
+            $res    =   $this->s_facturacion->sunat_invoice($request->get('id'));
 
-
-            $tipo_documento_cliente =   null;
-            $tipo_doc_facturacion   =   null;
-
-            if ($documento->tipo_venta_id   ==  127) {   //====== FACTURA ====
-                $tipo_documento_cliente =   '6';    //======= RUC ====
-                $tipo_doc_facturacion   =   '01';
-            }
-            if ($documento->tipo_venta_id   ==  128) {   //======== BOLETA =====
-                $tipo_documento_cliente =   '1';    //====== DNI ======
-                $tipo_doc_facturacion   =   '03';
-            }
-
-            $clienteBD  =  Cliente::find($documento->cliente_id);
-
-            //======= INSTANCIAMOS LA CLASE UTIL ========
-            $util = Util::getInstance();
-
-            $invoice = new Invoice();
-
-            $invoice
-                ->setUblVersion('2.1')
-                ->setTipoOperacion('0101')
-                ->setTipoDoc('01') // FACTURA
-                ->setSerie('F001')
-                ->setCorrelativo('200')
-                ->setFechaEmision(new DateTime())
-                ->setFormaPago(new FormaPagoContado())
-                ->setTipoMoneda('PEN')
-                ->setCompany($util->shared->getCompany(1))
-                ->setClient($util->shared->getClient())
-
-                // ======= TOTALES ORIGINALES (sin restar anticipo) =======
-                ->setMtoOperGravadas(100.00)
-                ->setMtoIGV(18.00)
-                ->setTotalImpuestos(18.00)
-                ->setValorVenta(100.00)
-                ->setSubTotal(118.00)
-                ->setMtoImpVenta(0.00) // Total final luego del descuento por anticipo
-
-                // ======= ANTICIPO REFERENCIADO =======
-                ->setAnticipos([
-                    (new Prepayment())
-                        ->setTipoDocRel('02') // tipo de documento del anticipo
-                        ->setNroDocRel('F001-100')
-                        ->setTotal(118.00)
-                ])
-                ->setTotalAnticipos(118.00)
-
-                // ======= DESCUENTO GLOBAL POR ANTICIPO =======
-                ->setDescuentos([
-                    (new Charge())
-                        ->setCodTipo('04')   // Descuento por anticipo (SUNAT)
-                        ->setMonto(118.00)   // Monto del anticipo
-                    // 👇 NO uses setMontoBase ni setFactor
-                ]);
-
-            // ======= DETALLE GRAVADO =======
-            $detail = (new SaleDetail())
-                ->setCodProducto('ANTICIPO')
-                ->setUnidad('NIU')
-                ->setDescripcion('APLICACIÓN TOTAL DE ANTICIPO')
-                ->setCantidad(1)
-                ->setMtoValorUnitario(100.00)
-                ->setMtoValorVenta(100.00)
-                ->setMtoBaseIgv(100.00)
-                ->setPorcentajeIgv(18)
-                ->setIgv(18.00)
-                ->setTipAfeIgv('10') // gravado IGV
-                ->setTotalImpuestos(18.00)
-                ->setMtoPrecioUnitario(118.00);
-
-            $invoice->setDetails([$detail]);
-
-            $invoice->setLegends([
-                (new Legend())
-                    ->setCode('1000')
-                    ->setValue('SON CERO CON 00/100 SOLES')
-            ]);
-
-            $see = $this->controlConfiguracionGreenter($util);
-
-            $res = $see->send($invoice);
-
-            dd($res);
-
-            $util->writeXml($invoice, $see->getFactory()->getLastXml(), $documento->tipo_venta_id, null);
-
-            if ($documento->tipo_venta_id   ==  127) {
-                $documento->ruta_xml      =   'storage/greenter/facturas/xml/' . $invoice->getName() . '.xml';
-            }
-            if ($documento->tipo_venta_id   ==  128) {
-                $documento->ruta_xml      =   'storage/greenter/boletas/xml/' . $invoice->getName() . '.xml';
-            }
-
-            //======== ENVÍO CORRECTO Y ACEPTADO ==========
-            if ($res->isSuccess()) {
-                //====== GUARDANDO RESPONSE ======
-                $cdr                                    =   $res->getCdrResponse();
-                $documento->cdr_response_description    =   $cdr->getDescription();
-                $documento->cdr_response_id             =   $cdr->getId();
-                $documento->cdr_response_code           =   $cdr->getCode();
-                $documento->cdr_response_reference      =   $cdr->getReference();
-
-                //========= GUARDANDO NOTES ======
-                $response_notes =   '';
-                foreach ($cdr->getNotes() as $note) {
-                    $response_notes .= '|' . $note . '|';
-                }
-                $documento->cdr_response_notes   =   $response_notes;
-
-
-                $util->writeCdr($invoice, $res->getCdrZip(), $documento->tipo_venta_id, null);
-                if ($documento->tipo_venta_id   ==  127) {
-                    $documento->ruta_cdr      =   'storage/greenter/facturas/cdr/' . $invoice->getName() . '.zip';
-                }
-                if ($documento->tipo_venta_id   ==  128) {
-                    $documento->ruta_cdr      =   'storage/greenter/boletas/cdr/' . $invoice->getName() . '.zip';
-                }
-
-                $documento->sunat                       =   "1";
-
-                if ($cdr->getCode() != '0') {
-                    $documento->regularize              =   '1';
-                }
-
-                $documento->update();
-
-                return response()->json(["success"   =>  true, "message" => $cdr->getDescription()]);
-            } else {
-
-                $documento->response_error_message  =   $res->getError()->getMessage();
-                $documento->response_error_code     =   $res->getError()->getCode();
-                $documento->regularize              =   '1';
-                $documento->update();
-
-                /*
-                    ================================================================
-                        ERROR 1033
-                        El comprobante fue registrado previamente con otros datos
-                        - Detalle: xxx.xxx.xxx value='ticket: 202413738761966
-                        error: El comprobante B001-1704 fue informado anteriormente'
-
-                        ERROR 2223
-                        El documento ya fue informado
-                    ================================================================
-                    */
-
-                if ($res->getError()->getCode() == 1033 || $res->getError()->getCode() == 2223) {
-                    $documento->response_error_message  =   $res->getError()->getMessage();
-                    $documento->response_error_code     =   $res->getError()->getCode();
-                    $documento->regularize              =   '0';
-                    $documento->sunat                   =   '1';
-                    $documento->update();
-
-                    return response()->json([
-                        "success"   =>  false,
-                        "message"   =>  "SE ACTUALIZÓ EL ESTADO DE LA BOLETA A ENVIADA",
-                        "exception" =>  $res->getError()->getMessage(),
-                        "code"      =>  $res->getError()->getCode(),
-                        "doc_actualizado"   =>  $documento
-                    ]);
-                }
-
-                return response()->json([
-                    "success"   =>  false,
-                    "message"   =>  "ERROR AL ENVIAR A SUNAT",
-                    "exception" =>  "CÓDIGO: " . $res->getError()->getCode() . " | DESCRIPCIÓN: " . $res->getError()->getMessage(),
-                    "code"      =>  $res->getError()->getCode()
-                ]);
-            }
+            DB::commit();
+            return response()->json($res);
         } catch (Throwable $th) {
-
+            DB::rollBack();
             return response()->json([
                 'success' => false,
-                "message"   =>  "ERROR EN EL SERVIDOR",
-                "exception" => $th->getMessage(),
+                "message"   =>  $th->getMessage(),
                 'line' => $th->getLine(),
                 'file' => $th->getFile()
             ]);
         }
     }
-
-    public function controlConfiguracionGreenter($util)
-    {
-        //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
-        $greenter_config    =   DB::select('select
-                                gc.ruta_certificado,
-                                gc.id_api_guia_remision,
-                                gc.modo,
-                                gc.clave_api_guia_remision,
-                                e.ruc,
-                                e.razon_social,
-                                e.direccion_fiscal,
-                                e.ubigeo,
-                                e.direccion_llegada,
-                                gc.sol_user,
-                                gc.sol_pass
-                                from greenter_config as gc
-                                inner join empresas as e on e.id=gc.empresa_id
-                                inner join configuracion as c on c.propiedad = gc.modo
-                                where gc.empresa_id=1 and c.slug="AG"');
-
-
-        if (count($greenter_config) === 0) {
-            throw new Exception('NO SE ENCONTRÓ NINGUNA CONFIGURACIÓN PARA GREENTER');
-        }
-
-        if (!$greenter_config[0]->sol_user) {
-            throw new Exception('DEBE ESTABLECER LA CREDENCIAL SOL_USER');
-        }
-        if (!$greenter_config[0]->sol_pass) {
-            throw new Exception('DEBE ESTABLECER LA CREDENCIAL SOL_PASS');
-        }
-        if ($greenter_config[0]->modo !== "BETA" && $greenter_config[0]->modo !== "PRODUCCION") {
-            throw new Exception('NO SE HA CONFIGURADO EL AMBIENTE BETA O PRODUCCIÓN PARA GREENTER');
-        }
-
-        $see    =   null;
-        if ($greenter_config[0]->modo === "BETA") {
-            //===== MODO BETA ======
-            $see = $util->getSee(SunatEndpoints::FE_BETA, $greenter_config[0]);
-        }
-
-        if ($greenter_config[0]->modo === "PRODUCCION") {
-            //===== MODO PRODUCCION ======
-            $see = $util->getSee(SunatEndpoints::FE_PRODUCCION, $greenter_config[0]);
-        }
-
-        if (!$see) {
-            throw new Exception('ERROR EN LA CONFIGURACIÓN DE GREENTER, SEE ES NULO');
-        }
-
-        return $see;
-    }
-
 
     public function convertirContingencia($id)
     {

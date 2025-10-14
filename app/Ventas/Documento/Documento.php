@@ -106,6 +106,8 @@ class Documento extends Model
         'anticipo_consumido_serie',
         'anticipo_consumido_correlativo',
         'anticipo_tipo_venta_id',
+        'total_anticipos_sunat',
+        'descuento_global_sunat',
         'mto_oper_gravadas_sunat',
         'mto_igv_sunat',
         'total_impuestos_sunat',

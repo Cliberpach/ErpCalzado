@@ -72,6 +72,8 @@ class VentaDto
         $dto['moneda']                  =   1;
 
         //======== SUNAT ========
+        $dto['total_anticipos_sunat']   =   $montos->totalAnticiposSunat;
+        $dto['descuento_global_sunat']  =   $montos->descuentoGlobalSunat;
         $dto['mto_oper_gravadas_sunat'] =   $montos->mtoOperGravadasSunat;
         $dto['mto_igv_sunat']           =   $montos->mtoIgvSunat;
         $dto['total_impuestos_sunat']   =   $montos->totalImpuestosSunat;

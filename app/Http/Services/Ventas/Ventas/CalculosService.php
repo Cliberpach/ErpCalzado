@@ -87,20 +87,22 @@ class CalculosService
         return $montos;
     }
 
-    public function calcularMontosDeTotal(float $monto)
+    public function calcularMontosDeTotal(float $monto,float $monto_anticipos)
     {
-        $monto_total_pagar      =   $monto;
-        $monto_total            =   $monto_total_pagar / 1.18;
-        $monto_igv              =   $monto_total_pagar - $monto_total;
+        $monto_anticipos            =   $monto_anticipos;
+        $monto_descuento_global     =   $monto_anticipos/1.18;
+        $monto_total_pagar          =   $monto;
+        $monto_total                =   $monto_total_pagar / 1.18;
+        $monto_igv                  =   $monto_total_pagar - $monto_total;
 
-        $mtoOperGravadasSunat   =   ($monto_total_pagar / 1.18);
+        $mtoOperGravadasSunat   =   ($monto_total_pagar / 1.18) - $monto_descuento_global;
         $mtoIgvSunat            =   $mtoOperGravadasSunat * 0.18;
         $totalImpuestosSunat    =   $mtoIgvSunat;
-        $valorVentaSunat        =   $mtoOperGravadasSunat;
-        $subTotalSunat          =   $mtoOperGravadasSunat + $mtoIgvSunat;
-        $mtoImpVentaSunat       =   $subTotalSunat;
+        $valorVentaSunat        =   ($monto_total_pagar / 1.18);
+        $subTotalSunat          =   $monto_total_pagar;
+        $mtoImpVentaSunat       =   $subTotalSunat - $monto_anticipos;
 
-           $montos =   (object) [
+        $montos =   (object) [
             'monto_subtotal'        =>  $monto_total_pagar,
             'monto_total_pagar'     =>  $monto_total_pagar,
             'monto_total'           =>  $monto_total,
@@ -110,6 +112,8 @@ class CalculosService
             'monto_descuento'       =>  0,
             'porcentaje_descuento'  =>  0,
 
+            'totalAnticiposSunat'   =>  $monto_anticipos,
+            'descuentoGlobalSunat'  =>  $monto_descuento_global,
             'mtoOperGravadasSunat'  =>  $mtoOperGravadasSunat,
             'mtoIgvSunat'           =>  $mtoIgvSunat,
             'totalImpuestosSunat'   =>  $totalImpuestosSunat,

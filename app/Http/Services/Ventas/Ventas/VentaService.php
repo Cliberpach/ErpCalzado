@@ -367,7 +367,7 @@ class VentaService
         $this->qr_code($id);
 
         $detalles           =   Detalle::where('documento_id', $id)->where('eliminado', '0')->get();
-       
+
         $mostrar_cuentas    =   DB::select('SELECT
                                 c.propiedad
                                 FROM configuracion AS c
@@ -484,7 +484,7 @@ class VentaService
         $datos_correlativo  =   $this->s_correlativo->getCorrelativo($datos_validados->tipo_comprobante, $datos_validados->sede_id);
 
         //========= CALCULAR MONTOS =========
-        $montos             =   $this->s_calculos->calcularMontosDeTotal(floatval($datos_validados->monto));
+        $montos             =   $this->s_calculos->calcularMontosDeTotal(floatval($datos_validados->monto),0);
 
         //======== OBTENIENDO LEYENDA =======
         $legenda                =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
@@ -518,10 +518,10 @@ class VentaService
         $datos_correlativo  =   $this->s_correlativo->getCorrelativo($datos_validados->tipo_comprobante, $datos_validados->sede_id);
 
         //========= CALCULAR MONTOS =========
-        $montos             =   $this->s_calculos->calcularMontosDeTotal(floatval($datos_validados->monto));
+        $montos             =   $this->s_calculos->calcularMontosDeTotal(floatval($datos_validados->monto),floatval($datos_validados->monto_anticipos));
 
         //======== OBTENIENDO LEYENDA =======
-        $legenda                =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
+        $legenda                =   UtilidadesController::convertNumeroLetras($montos->mtoImpVentaSunat);
 
         $datos_validados->datos_correlativo     =   $datos_correlativo;
         $datos_validados->montos                =   $montos;

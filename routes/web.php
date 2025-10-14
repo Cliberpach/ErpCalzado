@@ -2,7 +2,6 @@
 
 use App\Events\NotifySunatEvent;
 use App\Http\Controllers\Almacenes\ConductorController;
-use App\Http\Controllers\Pedidos\PedidoController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -323,18 +322,6 @@ Route::group(
             Route::get('show_dev/{id}', 'Compras\NotaController@show_dev')->name('compras.notas_dev.show');
         });
 
-
-        //COMPROBANTES ELECTRONICOS
-        Route::prefix('comprobantes/electronicos')->group(function () {
-            Route::get('/', 'Ventas\Electronico\ComprobanteController@index')->name('ventas.comprobantes');
-            Route::get('getVouchers', 'Ventas\Electronico\ComprobanteController@getVouchers')->name('ventas.getVouchers');
-            Route::get('sunat/{id}', 'Ventas\Electronico\ComprobanteController@sunat')->name('ventas.documento.sunat');
-            Route::get('sunat-contingencia/{id}', 'Ventas\Electronico\ComprobanteController@sunatContingencia')->name('ventas.documento.sunat.contingencia');
-            Route::get('contingencia/{id}', 'Ventas\Electronico\ComprobanteController@convertirContingencia')->name('ventas.documento.contingencia');
-            Route::get('cdr/{id}', 'Ventas\Electronico\ComprobanteController@cdr')->name('ventas.documento.cdr');
-            Route::post('/envio', 'Ventas\Electronico\ComprobanteController@email')->name('ventas.documento.envio');
-        });
-
         //NOTAS DE CREDITO / DEBITO
         Route::prefix('notas/electronicos')->group(function () {
             Route::get('index/{id}', 'Ventas\Electronico\NotaController@index')->name('ventas.notas');
@@ -627,6 +614,7 @@ require __DIR__ . '/kardex/web.php';
 require __DIR__ . '/cajas/web.php';
 require __DIR__ . '/cuentas/web.php';
 require __DIR__ . '/pedidos/web.php';
+require __DIR__ . '/sunat/web.php';
 
 
 Route::get('ventas/documentos/comprobante/{id}/{size}', 'Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');

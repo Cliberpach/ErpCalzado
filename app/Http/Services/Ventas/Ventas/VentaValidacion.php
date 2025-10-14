@@ -325,17 +325,22 @@ class VentaValidacion
         $datos['fecha_vencimiento']     =   Carbon::now()->addDays($condicion_pago->dias)->toDateString();
 
         //======== EMPRESA ===========
-        $empresa                =   Empresa::find(1);
-        $datos['ruc_empresa']   =   $empresa->ruc;
-        $datos['empresa']       =   $empresa->razon_social;
+        $empresa                            =   Empresa::find(1);
+        $datos['ruc_empresa']               =   $empresa->ruc;
+        $datos['empresa']                   =   $empresa->razon_social;
         $datos['direccion_fiscal_empresa']  =   $empresa->direccion_fiscal;
         $datos['empresa_id']                =   $empresa->id;
         $datos['igv']                       =   $empresa->igv;
 
-        $datos['almacen']       =   Almacen::findOrFail(1);
-        $datos['tipo_doc_venta_pedido'] =   "CONSUMO";
+        $datos['almacen']                   =   Almacen::findOrFail(1);
+        $datos['tipo_doc_venta_pedido']     =   "CONSUMO";
 
         $datos['es_anticipo']   =   false;
+
+        //======= LISTA DE ANTICIPOS ========
+        $lst_anticipos              =   Documento::where('pedido_id', $datos['pedido_id'])->where('tipo_doc_venta_pedido', 'ANTICIPO')->where('estado', 'ACTIVO');
+        $datos['lst_anticipos']     =   $lst_anticipos->get();
+        $datos['monto_anticipos']   =   $lst_anticipos->sum('total_pagar');
 
         return (object)$datos;
     }
