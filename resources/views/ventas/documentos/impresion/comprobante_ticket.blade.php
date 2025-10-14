@@ -342,7 +342,7 @@
                             {{ number_format($documento->anticipo_monto_consumido * -1, 2) }}
                         </td>
                     </tr>
-                @endif 
+                @endif
             </tbody>
             <tfoot>
                 @if ($documento->tipo_venta_id != 129)
@@ -374,7 +374,7 @@
                     @endif
                     <tr>
                         <th colspan="4" style="text-align:right">Total a pagar: S/.</th>
-                        <th style="text-align:right">{{ number_format($documento->total_pagar, 2) }}</th>
+                        <th style="text-align:right">{{ number_format($documento->mto_imp_venta_sunat, 2) }}</th>
                     </tr>
                 @else
                     @if ($documento->monto_descuento != 0)
