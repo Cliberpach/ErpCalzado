@@ -126,7 +126,7 @@ class VentaDto
         $dto['producto_id']         =   $producto->id;
         $dto['color_id']            =   $color->id;
         $dto['talla_id']            =   $talla->id;
-        $dto['codigo']              =   $producto->codigo;
+        $dto['codigo_producto']     =   $producto->codigo;
         $dto['unidad']              =   'NIU';
         $dto['nombre_producto']     =   $producto->nombre;
         $dto['nombre_color']        =   $color->descripcion;
