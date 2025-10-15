@@ -293,7 +293,7 @@
                         <td style="text-align: left">-</td>
                         <td style="text-align: left">NIU</td>
                         <td style="text-align: left">
-                            {{ 'PAGO ANTICIPADO' }}
+                            {{ '****PAGO ANTICIPADO***' }}
                         </td>
                         <td style="text-align: left">-</td>
                         <td style="text-align: right">-</td>

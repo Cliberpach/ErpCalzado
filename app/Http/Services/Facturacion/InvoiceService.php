@@ -29,7 +29,7 @@ class InvoiceService
         $this->s_invoice_repository =   new InvoiceRepository();
     }
 
-    public function sunat(int $id):array
+    public function sunat(int $id): array
     {
         $dto    =   $this->s_invoice_dto->getDtoSunat($id);
 
@@ -38,7 +38,7 @@ class InvoiceService
 
         //========= CONSTRUIR INVOICE =========
         $invoice    =   $this->build_invoice($util, $dto);
-
+      
         //========= ENVIAR SUNAT ==========
         $see = $this->s_invoice_dto->controlConfiguracionGreenter($util);
         $res = $see->send($invoice);
@@ -46,11 +46,11 @@ class InvoiceService
         //========== GUARDAR XML ==========
         $this->s_invoice_repository->guardarXml($invoice, $util, $see, $dto['documento']);
 
-        $res_operar    =   $this->operarRespuesta($res,$dto['documento'],$invoice,$util);
+        $res_operar    =   $this->operarRespuesta($res, $dto['documento'], $invoice, $util);
         return $res_operar;
     }
 
-    public function getCliente(array $dto):Client
+    public function getCliente(array $dto): Client
     {
         $clienteBD              =   $dto['cliente_bd'];
         $tipo_documento_cliente =   $dto['codigos']['tipo_documento_cliente'];
@@ -72,7 +72,6 @@ class InvoiceService
     public function build_invoice(Util $util, array $dto): Invoice
     {
         $documento      =   $dto['documento'];
-        $lst_anticipos  =   $dto['lst_anticipos'];
 
         //========== INSTANCIAR INVOICE ===========
         $invoice    =   new Invoice();
@@ -96,8 +95,6 @@ class InvoiceService
 
         //========= SET LEGENDA ===========
         $invoice    =   $this->setLegenda($invoice, $documento);
-
-        dd($invoice);
 
         return $invoice;
     }
@@ -153,9 +150,9 @@ class InvoiceService
 
     public function setAnticipos(Invoice $invoice, array $dto): Invoice
     {
-        $lst_anticipos      =   $dto['lst_anticipos'];
-        $documento          =   $dto['documento'];
-        $total_anticipos    =   0;
+        $lst_anticipos          =   $dto['lst_anticipos'];
+        $documento              =   $dto['documento'];
+        $lst_anticipos_greenter =   [];
 
         foreach ($lst_anticipos as $anticipo) {
 
@@ -169,17 +166,17 @@ class InvoiceService
                 $tipo_doc_rel = '03';
             }
 
-            $invoice
-                ->setAnticipos([
-                    (new Prepayment())
-                        ->setTipoDocRel($tipo_doc_rel) // catalog. 12
-                        ->setNroDocRel($anticipo->anticipo_serie)
-                        ->setTotal($doc_anticipo->total_pagar)
-                ]);
+            $anticipo_greenter      =    (new Prepayment())
+                ->setTipoDocRel($tipo_doc_rel) // catalog. 12
+                ->setNroDocRel($anticipo->anticipo_serie)
+                ->setTotal($doc_anticipo->total_pagar);
 
-            $total_anticipos += floatval($doc_anticipo->total_pagar);
+            $lst_anticipos_greenter[]   =   $anticipo_greenter;
+
         }
 
+        $invoice
+            ->setAnticipos($lst_anticipos_greenter);
         $invoice->setTotalAnticipos($documento->total_anticipos_sunat);
         return $invoice;
     }
@@ -207,7 +204,7 @@ class InvoiceService
             $details[]  =   $detail;
         }
 
-        $invoice->setDetails([$detail]);
+        $invoice->setDetails($details);
 
         return $invoice;
     }
@@ -223,7 +220,7 @@ class InvoiceService
         return $invoice;
     }
 
-    public function operarRespuesta($res, Documento $documento, Invoice $invoice, Util $util):array
+    public function operarRespuesta($res, Documento $documento, Invoice $invoice, Util $util): array
     {
         $message    =   null;
         $success    =   false;
@@ -233,19 +230,18 @@ class InvoiceService
             //====== GUARDANDO RESPONSE ======
             $cdr        =   $res->getCdrResponse();
 
-            if($cdr){
-                $message    =   $this->s_invoice_repository->guardarCdr($invoice,$documento,$cdr,$util,$res);
-                $success    =   $cdr->getCode() == 0?true:false;
-            }else{
+            if ($cdr) {
+                $message    =   $this->s_invoice_repository->guardarCdr($invoice, $documento, $cdr, $util, $res);
+                $success    =   $cdr->getCode() == 0 ? true : false;
+            } else {
                 $message    =   'ENVIADO, CDR NO RECIBIDO';
             }
-
         }
 
         if (!$res->isSuccess()) {
-           $message =   $this->s_invoice_repository->guardarResNotSuccess($documento,$res);
+            $message =   $this->s_invoice_repository->guardarResNotSuccess($documento, $res);
         }
 
-        return ['success'=>$success,'message'=>$message];
+        return ['success' => $success, 'message' => $message];
     }
 }

@@ -457,6 +457,8 @@ class PedidoService
 
     public function generarDocAtencion(Request $request)
     {
+        $request->merge(['doc_atencion'=>'doc_atencion','metodoPagoId'=>null,'cuentaPagoId'=>null]);
+
         $docVentaRequest        =   DocVentaStoreRequest::createFrom($request);
         $documentoController    =   new DocumentoController();
         $res                    =   $documentoController->store($docVentaRequest);

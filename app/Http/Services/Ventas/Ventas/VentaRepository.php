@@ -47,44 +47,47 @@ class VentaRepository
             $documento->fecha_vencimiento   = Carbon::now()->toDateString();
         }
 
-        //======= PAGO =======
-        //======== SI SE PROPORCIONA EFECTIVO,MONTO Y FECHA PAGO ========
-        if ($datos_validados->metodoPagoId == 1 && $datos_validados->montoPago && $datos_validados->fechaOperacionPago) {
-            if (floatval($datos_validados->montoPago) != floatval($montos->monto_total_pagar)) {
-                throw new Exception("EL MONTO DE PAGO NO COINCIDE CON EL TOTAL DE LA VENTA");
+        //======= PAGO SI SE PROPORCIONA EFECTIVO,MONTO Y FECHA PAGO =======
+        if (!$datos_validados->doc_atencion) {
+
+            if ($datos_validados->metodoPagoId == 1 && $datos_validados->montoPago && $datos_validados->fechaOperacionPago) {
+                if (floatval($datos_validados->montoPago) != floatval($montos->monto_total_pagar)) {
+                    throw new Exception("EL MONTO DE PAGO NO COINCIDE CON EL TOTAL DE LA VENTA");
+                }
+
+                $documento->pago_1_monto            =   $datos_validados->montoPago;
+                $documento->pago_1_fecha_operacion  =   $datos_validados->fechaOperacionPago;
+                $documento->importe                 =   $datos_validados->montoPago;
+                $documento->pago_1_tipo_pago_nombre =   $datos_validados->tipo_pago_1->descripcion;
+                $documento->pago_1_tipo_pago_id     =   $datos_validados->metodoPagoId;
+                $documento->tipo_pago_id            =   $datos_validados->metodoPagoId;
+                $documento->estado_pago             =   'PAGADA';
             }
 
-            $documento->pago_1_monto            =   $datos_validados->montoPago;
-            $documento->pago_1_fecha_operacion  =   $datos_validados->fechaOperacionPago;
-            $documento->importe                 =   $datos_validados->montoPago;
-            $documento->pago_1_tipo_pago_nombre =   $datos_validados->tipo_pago_1->descripcion;
-            $documento->pago_1_tipo_pago_id     =   $datos_validados->metodoPagoId;
-            $documento->tipo_pago_id            =   $datos_validados->metodoPagoId;
-            $documento->estado_pago             =   'PAGADA';
-        }
+            //======== SI SE PROPORCIONA OTRO MÉTODO,CUENTA,MONTO,NRO OP,FECHA ========
+            if ($datos_validados->metodoPagoId != 1 && $datos_validados->cuentaPagoId && $datos_validados->montoPago && $datos_validados->nroOperacionPago && $datos_validados->fechaOperacionPago) {
+                if (floatval($datos_validados->montoPago) != floatval($montos->monto_total_pagar)) {
+                    throw new Exception("EL MONTO DE PAGO NO COINCIDE CON EL TOTAL DE LA VENTA");
+                }
+                $documento->pago_1_monto            =   $datos_validados->montoPago;
+                $documento->pago_1_fecha_operacion  =   $datos_validados->fechaOperacionPago;
+                $documento->importe                 =   $datos_validados->montoPago;
+                $documento->pago_1_tipo_pago_nombre =   $datos_validados->tipo_pago_1->descripcion;
+                $documento->pago_1_tipo_pago_id     =   $datos_validados->metodoPagoId;
+                $documento->tipo_pago_id            =   $datos_validados->metodoPagoId;
+                $documento->estado_pago             =   'PAGADA';
+                if ($datos_validados->cuenta_pago_1) {
+                    $documento->pago_1_banco_nombre         =   $datos_validados->cuenta_pago_1->banco_nombre;
+                    $documento->pago_1_nro_cuenta           =   $datos_validados->cuenta_pago_1->nro_cuenta;
+                    $documento->pago_1_cci                  =   $datos_validados->cuenta_pago_1->cci;
+                    $documento->pago_1_celular              =   $datos_validados->cuenta_pago_1->celular;
+                    $documento->pago_1_titular              =   $datos_validados->cuenta_pago_1->titular;
+                    $documento->pago_1_moneda               =   $datos_validados->cuenta_pago_1->moneda;
+                    $documento->pago_1_cuenta_id            =   $datos_validados->cuentaPagoId;
+                    $documento->pago_1_nro_operacion        =   $datos_validados->nroOperacionPago;
+                }
+            }
 
-        //======== SI SE PROPORCIONA OTRO MÉTODO,CUENTA,MONTO,NRO OP,FECHA ========
-        if ($datos_validados->metodoPagoId != 1 && $datos_validados->cuentaPagoId && $datos_validados->montoPago && $datos_validados->nroOperacionPago && $datos_validados->fechaOperacionPago) {
-            if (floatval($datos_validados->montoPago) != floatval($montos->monto_total_pagar)) {
-                throw new Exception("EL MONTO DE PAGO NO COINCIDE CON EL TOTAL DE LA VENTA");
-            }
-            $documento->pago_1_monto            =   $datos_validados->montoPago;
-            $documento->pago_1_fecha_operacion  =   $datos_validados->fechaOperacionPago;
-            $documento->importe                 =   $datos_validados->montoPago;
-            $documento->pago_1_tipo_pago_nombre =   $datos_validados->tipo_pago_1->descripcion;
-            $documento->pago_1_tipo_pago_id     =   $datos_validados->metodoPagoId;
-            $documento->tipo_pago_id            =   $datos_validados->metodoPagoId;
-            $documento->estado_pago             =   'PAGADA';
-            if ($datos_validados->cuenta_pago_1) {
-                $documento->pago_1_banco_nombre         =   $datos_validados->cuenta_pago_1->banco_nombre;
-                $documento->pago_1_nro_cuenta           =   $datos_validados->cuenta_pago_1->nro_cuenta;
-                $documento->pago_1_cci                  =   $datos_validados->cuenta_pago_1->cci;
-                $documento->pago_1_celular              =   $datos_validados->cuenta_pago_1->celular;
-                $documento->pago_1_titular              =   $datos_validados->cuenta_pago_1->titular;
-                $documento->pago_1_moneda               =   $datos_validados->cuenta_pago_1->moneda;
-                $documento->pago_1_cuenta_id            =   $datos_validados->cuentaPagoId;
-                $documento->pago_1_nro_operacion        =   $datos_validados->nroOperacionPago;
-            }
         }
 
         //======== EMPRESA ========
@@ -739,6 +742,4 @@ class VentaRepository
     {
         Detalle::insert($dto);
     }
-
-
 }

@@ -115,7 +115,7 @@ class VentaDto
         $dto    =   [];
 
         $almacen    =   Almacen::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
-        $producto   =   Producto::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
+        $producto   =   Producto::where('tipo', 'FICTICIO')->where('codigo','****PAGO ANTICIPADO***')->where('estado', 'ANULADO')->first();
         $color      =   Color::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
         $talla      =   Talla::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
         $modelo     =   Modelo::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
@@ -152,7 +152,7 @@ class VentaDto
 
         $pedido         =   Pedido::findOrFail($pedido_id);
         $almacen        =   Almacen::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
-        $producto       =   Producto::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
+        $producto       =   Producto::where('tipo', 'FICTICIO')->where('codigo','PRODUCTO')->where('estado', 'ANULADO')->first();
         $color          =   Color::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
         $talla          =   Talla::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
         $modelo         =   Modelo::where('tipo', 'FICTICIO')->where('estado', 'ANULADO')->first();
