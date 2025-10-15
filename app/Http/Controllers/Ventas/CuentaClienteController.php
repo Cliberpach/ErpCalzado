@@ -272,7 +272,7 @@ array:10 [▼
         return response()->download($ruta);
     }
 
-    /*
+/*
 array:4 [
   "cliente" => "1281"
   "tipo_comprobante" => "127"

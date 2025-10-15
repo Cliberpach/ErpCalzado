@@ -3,9 +3,8 @@
 
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
-@include('pedidos.pedido.modal-historial-atenciones')
-@include('pedidos.pedido.modal-pedido-detalles')
-
+@include('pedidos.pedido.modals.mdl_historial_atenciones')
+@include('pedidos.pedido.modals.mdl_pedido_show')
 
 <div class="row wrapper border-bottom white-bg page-heading align-items-center" style="padding:10px 5px;">
     <div class="col-lg-5 col-md-5 col-sm-12 col-xs-12">
@@ -29,7 +28,7 @@
     </div>
     <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 d-flex justify-content-end">
         <button id="btn_añadir_cotizacion" class="btn btn-primary" onclick="añadirPedido()">
-            <i class="fa fa-plus-square"></i> Añadir nuevo
+            <i class="fa fa-plus-square"></i> NUEVO
         </button>
     </div>
 </div>
@@ -136,8 +135,7 @@
 <script>
     //======== DATATABLES ====
     let pedidos_data_table = null;
-    //====== DATATABLE PEDIDO DETALLES ========
-    let detalles_data_table = null;
+
     //===== DATATABLE ATENCIONES =======
     let atenciones_data_table = null;
 
@@ -145,9 +143,13 @@
         sessionMessages();
         loadSelect2();
         loadDataTable();
-
-        eventsModalAtenciones();
+        events();
     })
+
+    function events(){
+        eventsMdlPedidoShow();
+        eventsModalAtenciones();
+    }
 
     function sessionMessages() {
         let existe = @json(Session::has('pedido_error'));
@@ -305,27 +307,6 @@
             "order": [
                 [0, 'desc']
             ],
-
-            // buttons: [{
-            //         text: '<a id="btn-excel-pedidos" href="javascript:void(0);"><i class="fa fa-file-excel-o"></i> Excel</a>',
-            //         className: 'custom-button btn-hola',
-            //         action: function(e, dt, node, config) {
-            //             excelPedidos();
-            //         }
-            //     },
-            //     {
-            //         extend: 'pdf',
-            //         className: 'custom-button btn-check',
-            //         text: '<i class="fas fa-file-pdf"></i> Pdf',
-            //         title: 'Pedidos'
-            //     },
-            //     {
-            //         extend: 'print',
-            //         className: 'custom-button btn-check',
-            //         text: '<i class="fa fa-print"></i> Imprimir',
-            //         title: 'Pedidos'
-            //     }
-            // ],
             dom: '<"buttons-container"B><"search-length-container"lf>tp',
             bProcessing: true,
             columns: [{
@@ -620,205 +601,7 @@
         });
     }
 
-    $('#modal_historial_atenciones').on('show.bs.modal', async function(event) {
 
-
-        var button = $(event.relatedTarget)
-        const pedido_id = button.data('pedido-id');
-
-
-        document.querySelector('.pedido_id_span').textContent = pedido_id;
-
-        //===== OBTENIENDO ATENCIONES DEL PEDIDO =======
-        try {
-            const res = await axios.get(route('pedidos.pedido.getAtenciones', {
-                pedido_id
-            }));
-            console.log(res);
-            const type = res.data.type;
-            if (type == 'success') {
-                const pedido_atenciones = res.data.pedido_atenciones;
-                pintarTablePedidoAtenciones(pedido_atenciones);
-            }
-        } catch (error) {
-
-        }
-
-    })
-
-    $('#modal_pedido_detalles').on('show.bs.modal', async function(event) {
-
-        var button = $(event.relatedTarget)
-        const pedido_id = button.data('pedido-id');
-
-        document.querySelector('.pedido_id_span_pd').textContent = pedido_id;
-
-        //===== OBTENIENDO DETALLES DEL PEDIDO =======
-        try {
-            const res = await axios.get(route('pedidos.pedido.getPedidoDetalles', {
-                pedido_id
-            }));
-            console.log(res);
-            const type = res.data.type;
-
-            if (type == 'success') {
-                const pedido_detalles = res.data.pedido_detalles;
-                pintarTablePedidoDetalles(pedido_detalles);
-            }
-
-            if (type == 'error') {
-                const message = res.data.message;
-                const exception = res.data.exception;
-
-                toastr.error(`${message} - ${exception}`, 'ERROR');
-            }
-        } catch (error) {
-            toastr.error(error, 'ERROR EN LA PETICIÓN VER DETALLE DEL PEDIDO');
-        }
-
-    })
-
-    function pintarTablePedidoDetalles(pedido_detalles) {
-        const bodyPedidoDetalles = document.querySelector('#table-pedido-detalles tbody');
-
-        if (detalles_data_table) {
-            detalles_data_table.destroy();
-        }
-
-        bodyPedidoDetalles.innerHTML = '';
-        let body = ``;
-
-        pedido_detalles.forEach((pd) => {
-            body += `<tr>
-                <th scope="row">${pd.producto_nombre}</th>
-                <td scope="row">${pd.color_nombre}</td>
-                <td scope="row">${pd.talla_nombre}</td>
-                <td scope="row">${pd.cantidad}</td>
-                <td scope="row">${pd.cantidad_atendida}</td>
-                <td scope="row">${pd.cantidad_pendiente}</td>
-                <td scope="row">${pd.cantidad_enviada}</td>
-                <td scope="row">${pd.cantidad_devuelta}</td>
-                <td scope="row">${pd.cantidad_fabricacion}</td>
-            </tr>`;
-        })
-
-        bodyPedidoDetalles.innerHTML = body;
-
-        detalles_data_table = new DataTable('#table-pedido-detalles', {
-            "order": [
-                [0, 'desc']
-            ],
-            buttons: [{
-                    extend: 'excelHtml5',
-                    className: 'custom-button btn-check',
-                    text: '<i class="fa fa-file-excel-o" style="font-size:15px;"></i> Excel',
-                    title: 'DETALLES DEL PEDIDO',
-                },
-                {
-                    extend: 'print',
-                    className: 'custom-button btn-check',
-                    text: '<i class="fa fa-print"></i> Imprimir',
-                    title: 'DETALLES DEL PEDIDO'
-                },
-            ],
-            dom: '<"buttons-container"B><"search-length-container"lf>tp',
-            bProcessing: true,
-            language: {
-                processing: "Procesando datos...",
-                search: "BUSCAR: ",
-                lengthMenu: "MOSTRAR _MENU_ ITEMS",
-                info: "MOSTRANDO _START_ A _END_ DE _TOTAL_ ITEMS",
-                infoEmpty: "MOSTRANDO 0 ITEMS",
-                infoFiltered: "(FILTRADO de _MAX_ ITEMS)",
-                infoPostFix: "",
-                loadingRecords: "CARGA EN CURSO",
-                zeroRecords: "Aucun &eacute;l&eacute;ment &agrave; afficher",
-                emptyTable: "NO HAY ITEMS DISPONIBLES",
-                paginate: {
-                    first: "PRIMERO",
-                    previous: "ANTERIOR",
-                    next: "SIGUIENTE",
-                    last: "ÚLTIMO"
-                },
-                aria: {
-                    sortAscending: ": activer pour trier la colonne par ordre croissant",
-                    sortDescending: ": activer pour trier la colonne par ordre décroissant"
-                }
-            }
-        });
-
-    }
-
-    function pintarTablePedidoAtenciones(pedido_atenciones) {
-        const bodyPedidoDetalles = document.querySelector('#table-atenciones-detalles tbody');
-        bodyPedidoDetalles.innerHTML = '';
-
-        const bodyPedidoAtenciones = document.querySelector('#table-pedido-atenciones tbody');
-
-        if (atenciones_data_table) {
-            atenciones_data_table.destroy();
-        }
-
-        bodyPedidoAtenciones.innerHTML = '';
-        let body = ``;
-
-        pedido_atenciones.forEach((pa) => {
-            body += `<tr class="rowAtencion" data-pedido-id="${pa.pedido_id}" data-documento-id=${pa.documento_id}>
-                <th scope="row">${pa.documento_serie}-${pa.documento_correlativo}</th>
-                <td scope="row">${pa.fecha_atencion}</td>
-                <td scope="row">${pa.documento_usuario}</td>
-                <td scope="row">${pa.documento_monto_envio}</td>
-                <td scope="row">${pa.documento_monto_embalaje}</td>
-                <td scope="row">${pa.documento_total_pagar}</td>
-            </tr>`;
-        })
-
-        bodyPedidoAtenciones.innerHTML = body;
-
-        atenciones_data_table = new DataTable('#table-pedido-atenciones', {
-            "order": [
-                [0, 'desc']
-            ],
-            buttons: [{
-                    extend: 'excelHtml5',
-                    className: 'custom-button btn-check',
-                    text: '<i class="fa fa-file-excel-o" style="font-size:15px;"></i> Excel',
-                    title: 'ATENCIONES DEL PEDIDO'
-                },
-                {
-                    extend: 'print',
-                    className: 'custom-button btn-check',
-                    text: '<i class="fa fa-print"></i> Imprimir',
-                    title: 'ATENCIONES DEL PEDIDO'
-                },
-            ],
-            dom: '<"buttons-container"B><"search-length-container"lf>tp',
-            bProcessing: true,
-            language: {
-                processing: "Procesando datos...",
-                search: "BUSCAR: ",
-                lengthMenu: "MOSTRAR _MENU_ ITEMS",
-                info: "MOSTRANDO _START_ A _END_ DE _TOTAL_ ITEMS",
-                infoEmpty: "MOSTRANDO 0 ITEMS",
-                infoFiltered: "(FILTRADO de _MAX_ ITEMS)",
-                infoPostFix: "",
-                loadingRecords: "CARGA EN CURSO",
-                zeroRecords: "Aucun &eacute;l&eacute;ment &agrave; afficher",
-                emptyTable: "NO HAY ITEMS DISPONIBLES",
-                paginate: {
-                    first: "PRIMERO",
-                    previous: "ANTERIOR",
-                    next: "SIGUIENTE",
-                    last: "ÚLTIMO"
-                },
-                aria: {
-                    sortAscending: ": activer pour trier la colonne par ordre croissant",
-                    sortDescending: ": activer pour trier la colonne par ordre décroissant"
-                }
-            }
-        });
-
-    }
 
     async function eliminarPedido(pedido_id) {
 

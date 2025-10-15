@@ -129,7 +129,7 @@ class VentaValidacion
             'tipo_pago_1'               =>  $tipo_pago_1,
             'cuenta_pago_1'             =>  $cuenta_pago_1,
 
-            'doc_atencion'              =>  $datos['doc_atencion']??null
+            'tipo_doc_venta_pedido'     =>  $datos['tipo_doc_venta_pedido']??null
         ];
 
 

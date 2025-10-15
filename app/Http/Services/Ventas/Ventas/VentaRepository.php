@@ -48,7 +48,7 @@ class VentaRepository
         }
 
         //======= PAGO SI SE PROPORCIONA EFECTIVO,MONTO Y FECHA PAGO =======
-        if (!$datos_validados->doc_atencion) {
+        if ($datos_validados->tipo_doc_venta_pedido != 'ATENCION') {
 
             if ($datos_validados->metodoPagoId == 1 && $datos_validados->montoPago && $datos_validados->fechaOperacionPago) {
                 if (floatval($datos_validados->montoPago) != floatval($montos->monto_total_pagar)) {
@@ -196,12 +196,14 @@ class VentaRepository
         }
 
         $documento->modo    =   $datos_validados->modo ?? 'VENTA';
+
         if ($datos_validados->modo) {
             $documento->tipo_doc_venta_pedido   =   "ATENCION";
             $documento->pedido_id               =   $datos_validados->pedido_id ?? null;
         }
-        if ($datos_validados->tipo_doc_venta_pedido  === 'CONSUMO') {
-            $documento->tipo_doc_venta_pedido   =   "CONSUMO";
+
+        if ($datos_validados->tipo_doc_venta_pedido) {
+            $documento->tipo_doc_venta_pedido   =   $datos_validados->tipo_doc_venta_pedido;
         }
 
         $documento->telefono    =   $datos_validados->telefono;

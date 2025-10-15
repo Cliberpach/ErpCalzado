@@ -21,11 +21,15 @@ class PedidoManager
         return $this->s_pedido->facturar($datos);
     }
 
-    public function generarDocumentoVenta(array $datos):int {
-        return $this->s_pedido->generarDocumentoVenta($datos);
+    public function generarDocumentoVentaAtencion(array $datos):Documento {
+        return $this->s_pedido->generarDocumentoVentaAtencion($datos);
     }
 
     public function generarComprobanteConsumo(array $datos):Documento{
         return $this->s_pedido->generarComprobanteConsumo($datos);
+    }
+
+    public function getAtenciones(int $id){
+        return $this->s_pedido->getAtenciones($id);
     }
 }

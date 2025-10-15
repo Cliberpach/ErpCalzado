@@ -620,7 +620,7 @@ array:11 [
 
             //========= OBTENIENDO EL DETALLE DEL PEDIDO =====
             $pedido         =   Pedido::findOrFail($pedido_id);
-            $pedido_detalle =   PedidoDetalle::where('pedido_id', $pedido_id)->get();
+            $pedido_detalle =   PedidoDetalle::where('pedido_id', $pedido_id)->where('tipo','PRODUCTO')->get();
             $cliente        =   Cliente::findOrFail($pedido->cliente_id);
 
             //========== EL DOCUMENTO IDENTIDAD DEL CLIENTE DEBE SER IGUAL AL DEL DOC VENTA ANTICIPO ========
@@ -746,7 +746,7 @@ array:11 [
             }
 
             $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
-            $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
+            $condiciones        =   Condicion::where('estado', 'ACTIVO')->where('id',1)->get();
 
             $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
             $tallas             =   Talla::where('estado', 'ACTIVO')->get();
@@ -814,19 +814,16 @@ array:11 [
 
 
 
-    public function getAtenciones($pedido_id)
+    public function getAtenciones(int $pedido_id)
     {
-        $pedido_atenciones    =   DB::select('select cd.serie as documento_serie,cd.correlativo as documento_correlativo,
-                                cd.created_at as fecha_atencion ,CONCAT(p.nombres, " ", p.apellido_paterno, " ", p.apellido_materno) AS documento_usuario,
-                                cd.monto_envio as documento_monto_envio, cd.monto_embalaje as documento_monto_embalaje,
-                                cd.total_pagar as documento_total_pagar,cd.pedido_id,cd.id as documento_id
-                                from  cotizacion_documento as cd
-                                inner join user_persona as up on cd.user_id = up.user_id
-                                inner join personas as p  on p.id = up.persona_id
-                                where cd.pedido_id=? and cd.tipo_doc_venta_pedido = "ATENCION" ', [$pedido_id]);
+        try {
 
+            $lst_atenciones =   $this->s_pedido->getAtenciones($pedido_id);
 
-        return  response()->json(['type' => 'success', 'pedido_atenciones' => $pedido_atenciones]);
+            return response()->json(['success' => true, 'message' => 'DATOS OBTENIDOS', 'pedido_atenciones' => $lst_atenciones]);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 
     public function getAtencionDetalles($pedido_id, $documento_id)
@@ -1308,14 +1305,19 @@ array:23 [
         DB::beginTransaction();
         try {
 
-            $res    =   $this->s_pedido->generarDocumentoVenta($request->toArray());
+            $venta_atencion    =   $this->s_pedido->generarDocumentoVentaAtencion($request->toArray());
+
+            //====== REGISTRO DE ACTIVIDAD ========
+            $descripcion = "SE GENERÓ EL DOCUMENTO VENTA ATENCIÓN DE PEDIDO: " . Carbon::parse($venta_atencion->created_at)->format('d/m/y');
+            $gestion = "VENTA ATENCIÓN DE PEDIDO";
+            crearRegistro($venta_atencion, $descripcion, $gestion);
 
             DB::commit();
 
             return response()->json([
                 'success'       => true,
-                'documento_id'  => $res,
-                'mensaje'       => 'DOCUMENTO DE VENTA GENERADO - PEDIDO ACTUALIZADO'
+                'documento_id'  => $venta_atencion->id,
+                'mensaje'       => 'DOCUMENTO DE VENTA DE ATENCIÓN GENERADO CON ÉXITO'
             ]);
         } catch (Throwable $th) {
             DB::rollBack();
@@ -1379,9 +1381,9 @@ array:23 [
         try {
             $pedido_detalles    =   PedidoDetalle::where('pedido_id', $pedido_id)->get();
 
-            return response()->json(['type' => 'success', 'pedido_detalles' => $pedido_detalles]);
-        } catch (\Throwable $th) {
-            return response()->json(['type' => 'error', 'exception' => $th->getMessage(), 'message' => 'ERROR EN EL SERVIDOR']);
+            return response()->json(['success' => true, 'pedido_detalles' => $pedido_detalles]);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'exception' => $th->getMessage(), 'message' => $th->getMessage()]);
         }
     }
 

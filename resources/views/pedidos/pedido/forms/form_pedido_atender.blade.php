@@ -118,6 +118,9 @@
                     <option></option>
                     @foreach ($condiciones as $condicion)
                         <option value="{{ $condicion->id }}"
+                            @if ($condicion->id == 1)
+                                selected
+                            @endif
                             {{ old('condicion_id') == $condicion->id ? 'selected' : '' }}
                             {{ $pedido->condicion_id == $condicion->id ? 'selected' : '' }}>
                             {{ $condicion->descripcion }}

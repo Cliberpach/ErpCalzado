@@ -22,6 +22,7 @@ class PedidoService
     private CalculosService $s_calculos;
     private PedidoRepository $s_repository;
     private PedidoValidacion $s_validacion;
+    private PedidoDto $s_pedido_dto;
 
     public function __construct()
     {
@@ -30,6 +31,7 @@ class PedidoService
         $this->s_calculos   =   new CalculosService();
         $this->s_repository =   new PedidoRepository();
         $this->s_validacion =   new PedidoValidacion();
+        $this->s_pedido_dto =   new PedidoDto();
     }
 
     public function store(array $datos): array
@@ -247,27 +249,13 @@ class PedidoService
         return $detalleFormateado;
     }
 
-    public function generarDocumentoVenta(array $datos): int
+    public function generarDocumentoVentaAtencion(array $datos): Documento
     {
-
-        $pedido                 =   Pedido::findOrFail($datos['pedido_id']);
-
-        $request = new Request($datos);
-        $request->merge([
-            'sede_id'               => $pedido->sede_id,
-            'almacenSeleccionado'   => $pedido->almacen_id,
-        ]);
+        $dto    =   $this->s_pedido_dto->getDtoDocumentoAtencion($datos);
+        $pedido =   $dto['pedido'];
 
         if ($pedido->facturado === 'SI') {
             $this->actualizarSaldoFacturado($pedido, $datos);
-            $additionalData = [
-                'facturado'             =>  'SI',
-                'generar_recibo_caja'   =>  'NO',
-                'user_id'               =>  $pedido->user_id,
-                'cliente_id'            =>  $pedido->cliente_id,
-                'pedido_nro'            =>  $pedido->pedido_nro,
-            ];
-            $request->merge($additionalData);
         }
 
         //======= ACTUALIZANDO CANTIDAD ATENDIDA EN PEDIDO DETALLES ======
@@ -277,14 +265,9 @@ class PedidoService
         $this->actualizarEstadoPedido($pedido);
 
         //========== GENERAR DOC VENTA ===========
-        $res_doc_atencion   =   $this->generarDocAtencion($request);
-
-        //========= GENERAR DOCUMENTO VENTA DE CONSUMO EN CASO EL PEDIDO SE COMPLETÓ DE ATENDER =======
-        // if ($pedido->estado === "FINALIZADO" && $pedido->facturado === "SI") {
-        //     $this->generarDocConsumo($pedido);
-        // }
-
-        return $res_doc_atencion->documento_id;
+        $venta_atencion =   $this->s_venta->registrar($dto);
+        
+        return $venta_atencion;
     }
 
     public function actualizarCantAtendida(array $datos, Pedido $pedido)
@@ -455,21 +438,6 @@ class PedidoService
         }
     }
 
-    public function generarDocAtencion(Request $request)
-    {
-        $request->merge(['doc_atencion'=>'doc_atencion','metodoPagoId'=>null,'cuentaPagoId'=>null]);
-
-        $docVentaRequest        =   DocVentaStoreRequest::createFrom($request);
-        $documentoController    =   new DocumentoController();
-        $res                    =   $documentoController->store($docVentaRequest);
-        $jsonResponse           =   $res->getData();
-
-        if (!$jsonResponse->success) {
-            throw new Exception($jsonResponse->message . ' en la línea ' . $jsonResponse->line . ' del archivo ' . $jsonResponse->file);
-        }
-        return $jsonResponse;
-    }
-
     function agruparProductosConTallas(array $items)
     {
         $resultado = [];
@@ -520,8 +488,24 @@ class PedidoService
         $dto  =   $this->s_validacion->validacionGenerarComprobanteConsumo($datos);
 
         $venta  =   $this->s_venta->generarComprobanteConsumo($dto);
-        $this->s_repository->enlazarPedidoComprobanteConsumo($venta,$dto['pedido_id']);
+        $this->s_repository->enlazarPedidoComprobanteConsumo($venta, $dto['pedido_id']);
 
         return $venta;
+    }
+
+    public function getAtenciones(int $id)
+    {
+        $pedido_atenciones  =   DB::select('SELECT
+                                cd.serie AS documento_serie,
+                                cd.correlativo AS documento_correlativo,
+                                cd.created_at AS fecha_atencion ,
+                                cd.registrador_nombre AS documento_usuario,
+                                cd.monto_envio AS documento_monto_envio, cd.monto_embalaje AS documento_monto_embalaje,
+                                cd.total_pagar AS documento_total_pagar,cd.pedido_id,cd.id AS documento_id
+                                FROM  cotizacion_documento AS cd
+                                WHERE cd.pedido_id = ?
+                                AND cd.tipo_doc_venta_pedido = "ATENCION" ', [$id]);
+
+        return $pedido_atenciones;
     }
 }

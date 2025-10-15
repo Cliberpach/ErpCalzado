@@ -127,7 +127,6 @@ class PedidoRepository
             $detalle->importe_nuevo         = $pedido->monto_embalaje;
             $detalle->monto_descuento       = 0;
             $detalle->tipo                  = 'SERVICIO';
-            $detalle->estado                = 'ACTIVO';
             $detalle->save();
         }
 
@@ -158,7 +157,6 @@ class PedidoRepository
             $detalle->importe_nuevo         = $pedido->monto_envio;
             $detalle->monto_descuento       = 0;
             $detalle->tipo                  = 'SERVICIO';
-            $detalle->estado                = 'ACTIVO';
             $detalle->save();
         }
     }

@@ -253,7 +253,7 @@
                         @endforeach
                     @endif
 
-                    @if (!$documento->tipo_doc_venta_pedido)
+                    @if (!$documento->tipo_doc_venta_pedido || $documento->tipo_doc_venta_pedido == 'ATENCION')
                         @foreach ($detalles as $item)
                             @if ($documento->tipo_venta_id == 129)
                                 @if ($item->cantidad - $item->detalles->sum('cantidad') > 0)
