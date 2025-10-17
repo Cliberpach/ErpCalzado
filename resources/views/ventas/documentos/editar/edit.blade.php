@@ -1424,6 +1424,9 @@
             document.querySelector('.btn-guardar-envio').click();
             activarEventosSelectsMdlEnvio();
         }
+
+        window.tipoEnvioSelect.setValue(187);
+        
     }
 
     function setEntregaDomicilio(entrega_domicilio) {
