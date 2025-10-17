@@ -37,41 +37,35 @@ class CotizacionService
         $montos             =   $this->sc_calculos->calcularMontos($datos);
         $datos['montos']    =   $montos;
 
-        $dto    =   $this->s_dto->prepararDtoStore($datos);
-
         //======== REGISTRANDO MAESTRO COTIZACIÓN ======
+        $dto        =   $this->s_dto->prepararDtoStore($datos);
         $cotizacion =   $this->s_repository->registrarCotizacion($dto);
 
         //======= REGISTRO DETALLE DE LA COTIZACIÓN =====
-        $this->s_repository->registrarDetalleCotizacion($lstCotizacion, $cotizacion);
+        $dto_detalle    =   $this->s_dto->prepararDtoDetalle($lstCotizacion,$cotizacion);
+        $this->s_repository->registrarDetalleCotizacion($dto_detalle);
 
-        dd($cotizacion);
         return $cotizacion;
     }
 
     public function update(array $datos, int $id): Cotizacion
     {
-        $lstCotizacion      =   json_decode($datos['lstCotizacion']);
-        $montos_cotizacion  =   json_decode($datos['montos_cotizacion']);
-
-        $almacen                =   Almacen::find($datos['almacen']);
-        $registrador            =   User::find($datos['registrador_id']);
-        $cliente                =   Cliente::findOrFail($datos['cliente']);
-        $datos['cliente']       =   $cliente;
-        $datos['lstCotizacion'] =   $lstCotizacion;
-        $datos['almacen']       =   $almacen;
-        $datos['registrador']   =   $registrador;
+        $lstCotizacion              =   json_decode($datos['lstCotizacion']);
+        $montos_cotizacion          =   json_decode($datos['montos_cotizacion']);
+        $datos['montos_cotizacion'] =   $montos_cotizacion;
 
         //======= CALCULANDO MONTOS ========
         $montos =   $this->sc_calculos->calcularMontos($datos);
         $datos['montos']    =   $montos;
 
         //====== ACTUALIZAR ======
-        $cotizacion =   $this->s_repository->actualizarCotizacion($id, $datos);
+        $dto        =   $this->s_dto->prepararDtoStore($datos);
+        $cotizacion =   $this->s_repository->actualizarCotizacion($id, $dto);
 
         //======== ELIMINAR DETALLE ANTERIOR ======
         $this->s_repository->eliminarDetalleCotizacion($id);
-        $this->s_repository->registrarDetalleCotizacion($lstCotizacion, $cotizacion);
+        $dto_detalle    =   $this->s_dto->prepararDtoDetalle($lstCotizacion,$cotizacion);
+        $this->s_repository->registrarDetalleCotizacion($dto_detalle);
 
         return $cotizacion;
     }

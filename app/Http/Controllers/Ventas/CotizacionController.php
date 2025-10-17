@@ -204,7 +204,7 @@ array:10 [
         $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
         $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
         $detalles           =   CotizacionDetalle::where('cotizacion_id', $id)->where('estado', 'ACTIVO')
-            ->with('producto', 'color', 'talla')->get();
+                                ->where('tipo','PRODUCTO')->with('producto', 'color', 'talla')->get();
 
         $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
         $categorias         =   Categoria::where('estado', 'ACTIVO')->get();

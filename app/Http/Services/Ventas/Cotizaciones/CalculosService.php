@@ -14,9 +14,8 @@ class CalculosService
         $monto_total        =   0.0;
         $monto_igv          =   0.0;
         $monto_total_pagar  =   0.0;
-        $monto_descuento    =   $montos_cotizacion->monto_descuento ?? 0;
+        $monto_descuento    =   floatval($montos_cotizacion->monto_descuento ?? 0);
 
-        dd($montos_cotizacion);
         foreach ($lstCotizacion as $producto) {
             $monto_subtotal     +=  ($producto->cantidad * $producto->precio_venta_nuevo);
         }
@@ -24,7 +23,7 @@ class CalculosService
         $monto_total_pagar      =   $monto_subtotal + $monto_embalaje + $monto_envio;
         $monto_total            =   $monto_total_pagar / 1.18;
         $monto_igv              =   $monto_total_pagar - $monto_total;
-        $porcentaje_descuento   =   ($monto_descuento * 100) / ($monto_total_pagar);
+        $porcentaje_descuento   =   ( ($monto_descuento) / ($monto_total_pagar + $monto_descuento) ) * 100;
 
         return (object)[
         'monto_subtotal'=>$monto_subtotal,
@@ -34,7 +33,8 @@ class CalculosService
         'monto_total'=>$monto_total,
         'monto_descuento'=>$monto_descuento,
         'porcentaje_descuento'=>$porcentaje_descuento,
-        'monto_total_pagar' =>  $monto_total_pagar];
+        'monto_total_pagar' =>  $monto_total_pagar
+        ];
 
     }
 }

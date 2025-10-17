@@ -659,7 +659,6 @@
         })
     }
 
-
     const calcularDescuento = (producto_id, color_id, porcentaje_descuento) => {
         const indiceExiste = carrito.findIndex((c) => {
             return c.producto_id == producto_id && c.color_id == color_id;
@@ -822,7 +821,7 @@
             htmlTallas = ``;
             filas += `<tr>
                             <td>
-                                <i class="fas fa-trash-alt btn btn-primary delete-product"
+                                <i class="fas fa-trash-alt btn btn-danger delete-product"
                                 data-producto="${c.producto_id}" data-color="${c.color_id}">
                                 </i>
                             </td>

@@ -2,7 +2,7 @@
 
 namespace App\Http\Services\Ventas\Cotizaciones;
 
-use App\Ventas\Cotizacion;
+use App\Models\Ventas\Cotizacion\Cotizacion;
 use App\Ventas\Pedido;
 
 class CotizacionManager

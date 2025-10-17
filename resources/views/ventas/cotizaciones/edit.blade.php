@@ -226,33 +226,58 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         loadSelect2();
-        cargarProductosPrevios();
         events();
-        eventsCliente();
+        cargarProductosPrevios();
     })
 
     function events() {
 
+        eventsCliente();
+
+        document.querySelector('.embalaje').addEventListener('input', (e) => {
+            let value = e.target.value;
+
+            // 1. Reemplazar todo lo que no sea dígito o punto
+            value = value.replace(/[^\d.]/g, '');
+
+            // 2. Evitar que el primer carácter sea un punto
+            value = value.replace(/^\./, '');
+
+            // 3. Permitir solo un punto decimal
+            value = value.replace(/(\..*)\./g, '$1');
+
+            // 4. Eliminar ceros a la izquierda del entero, pero dejando al menos un dígito
+            value = value.replace(/^0+(\d)/, '$1');
+
+            e.target.value = value;
+
+            calcularMontos();
+        })
+
+        document.querySelector('.envio').addEventListener('input', (e) => {
+            let value = e.target.value;
+
+            // 1. Reemplazar todo lo que no sea dígito o punto
+            value = value.replace(/[^\d.]/g, '');
+
+            // 2. Evitar que el primer carácter sea un punto
+            value = value.replace(/^\./, '');
+
+            // 3. Permitir solo un punto decimal
+            value = value.replace(/(\..*)\./g, '$1');
+
+            // 4. Eliminar ceros a la izquierda del entero, pero dejando al menos un dígito
+            value = value.replace(/^0+(\d)/, '$1');
+
+            e.target.value = value;
+
+            calcularMontos();
+        })
+
         document.addEventListener('input', (e) => {
+
             if (e.target.classList.contains('inputCantidad')) {
                 e.target.value = e.target.value.replace(/^0+|[^0-9]/g, '');
-            }
-
-            if (e.target.classList.contains('embalaje') || e.target.classList.contains('envio')) {
-                // Eliminar ceros a la izquierda, excepto si es el único carácter en el campo o si es seguido por un punto decimal y al menos un dígito
-                e.target.value = e.target.value.replace(
-                    /^0+(?=\d)|(?<=\D)0+(?=\d)|(?<=\d)0+(?=\.)|^0+(?=[1-9])/g, '');
-
-                // Evitar que el primer carácter sea un punto
-                e.target.value = e.target.value.replace(/^(\.)/, '');
-
-                // Reemplazar todo excepto los dígitos y el punto decimal
-                e.target.value = e.target.value.replace(/[^\d.]/g, '');
-
-                // Reemplazar múltiples puntos decimales con uno solo
-                e.target.value = e.target.value.replace(/(\..*)\./g, '$1');
-
-                calcularMontos();
             }
 
             if (e.target.classList.contains('detailDescuento')) {
@@ -613,7 +638,6 @@
             }
         })
 
-
         //===== CALCULAR SUBTOTAL POR FILA DEL DETALLE ======
         calcularSubTotal();
         //===== CARGANDO EMBALAJE Y ENVÍO PREVIO ========
@@ -630,6 +654,22 @@
 
         //====== APLICAMOS DATATABLE A LA TABLA DETALLES COTIZACIÓN =======
         loadDataTableDetallesCotizacion();
+
+        //========== SET EMBALAJE Y ENVIO ===========
+        const cotizacion = @json($cotizacion);
+        const embalajeInput = document.querySelector('.embalaje');
+        const envioInput = document.querySelector('.envio');
+
+        embalajeInput.value = cotizacion.monto_embalaje ? formatoMoneda(cotizacion.monto_embalaje) : 0;
+        embalajeInput.dispatchEvent(new Event('input', {
+            bubbles: true
+        }));
+
+        envioInput.value = cotizacion.monto_envio ? formatoMoneda(cotizacion.monto_envio) : 0;
+        envioInput.dispatchEvent(new Event('input', {
+            bubbles: true
+        }));
+
     }
 
     //======= CALCULAR DESCUENTO ========
@@ -789,7 +829,7 @@
             htmlTallas = ``;
             filas += `<tr>
                             <td>
-                                <i class="fas fa-trash-alt btn btn-primary delete-product"
+                                <i class="fas fa-trash-alt btn btn-danger delete-product"
                                 data-producto="${c.producto_id}" data-color="${c.color_id}">
                                 </i>
                             </td>
@@ -1116,7 +1156,7 @@
             }
         } else {
             toastr.info('NO SE PUDO FIJAR EL PRECIO DE VENTA PREVIO PARA EL PRODUCTO',
-            'ESTO NO AFECTA A LA COTIZACIÓN');
+                'ESTO NO AFECTA A LA COTIZACIÓN');
         }
 
     }
@@ -1197,11 +1237,11 @@
 
 
                     const res = await axios.post(route("ventas.cotizacion.update", cotizacion_id),
-                    formData, {
-                        headers: {
-                            "X-HTTP-Method-Override": "PUT"
-                        }
-                    });
+                        formData, {
+                            headers: {
+                                "X-HTTP-Method-Override": "PUT"
+                            }
+                        });
 
                     if (res.data.success) {
                         window.location = route('ventas.cotizacion.index');
@@ -1229,7 +1269,7 @@
                         Swal.close();
                         toastr.error(error.message, 'ERROR DESCONOCIDO');
                     }
-                }finally{
+                } finally {
 
                 }
 

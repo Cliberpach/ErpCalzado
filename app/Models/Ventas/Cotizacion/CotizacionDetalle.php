@@ -25,6 +25,7 @@ class CotizacionDetalle extends Model
         'almacen_nombre',
         'producto_nombre',
         'color_nombre',
-        'talla_nombre'
+        'talla_nombre',
+        'tipo'
     ];
 }
