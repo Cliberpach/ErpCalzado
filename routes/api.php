@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Almacenes\Categoria\CategoriaController;
+use App\Http\Controllers\Api\Almacenes\Categoria\ProductoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,4 +22,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::prefix('categorias')->group(function () {
     Route::get('get-all', [CategoriaController::class, 'getAll']);
+});
+
+Route::prefix('productos')->group(function () {
+    Route::get('get-all', [ProductoController::class, 'getAll']);
 });
