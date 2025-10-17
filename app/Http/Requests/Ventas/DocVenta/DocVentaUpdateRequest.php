@@ -44,6 +44,12 @@ class DocVentaUpdateRequest extends FormRequest
                 'required',
                 Rule::exists('clientes', 'id')->where('estado', 'ACTIVO'),
             ],
+            'telefono' => [
+                'nullable',
+                'regex:/^[0-9]+$/',
+                'min:9',
+                'max:20',
+            ],
             'observacion' => [
                 'nullable',
                 'string',
@@ -145,6 +151,10 @@ class DocVentaUpdateRequest extends FormRequest
             'img_pago_1.max'   => 'La imagen de pago no debe superar los 4 MB.',
 
             'fecha_operacion_1.date'     => 'La fecha de la operación debe ser una fecha válida.',
+
+            'telefono.regex'                   => 'El teléfono solo puede contener números.',
+            'telefono.min'                     => 'El teléfono debe tener al menos :min dígitos.',
+            'telefono.max'                     => 'El teléfono no puede tener más de :max dígitos.',
 
         ];
     }

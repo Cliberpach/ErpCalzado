@@ -1112,7 +1112,7 @@ array:27 [
         $tipos_venta    =   tipos_venta()->whereIn('parametro', ['F', 'B', 'N']);
         $metodos_pago   =   tipos_pago();
         $envio_venta    =   EnvioVenta::where('documento_id', $id)->first();
-       
+
         $fullaccess     =   false;
 
         $registrador    =   User::find($documento->user_id);
@@ -3821,8 +3821,7 @@ array:2 [
         return $res;
     }
 
-
-    /*
+/*
 array:12 [
   "_token"              => "JkC2sg9Zt5Isu8EDaiym3KG9zjpCHMeGw2NmMA0P"
   "data_envio"          => "{"departamento":{"nombre":"LA LIBERTAD"},"provincia":{"text":"TRUJILLO"},"distrito":{"text":"TRUJILLO"},"empresa_envio":{"id":"1","empresa":"EMTRAFESA"},"sede_envio":{"id":"2","direccion":"Av. Nicolás de Piérola 1404 – 1406 Urb. Mochica."},"tipo_envio":{"descripcion":"AGENCIA"},"destinatario":{"nro_documento":"48259735","nombres":"KAREN JAZMIN ROJAS MELGAREJO","tipo_documento":"DNI"},"tipo_pago_envio":{"descripcion":"PAGAR ENVÍO"},"entrega_domicilio":false,"direccion_entrega":"","fecha_envio_propuesta":"2025-03-04","origen_venta":{"descripcion":"WATHSAPP"},"obs_rotulo":"","obs_despacho":""}"

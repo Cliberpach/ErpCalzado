@@ -321,7 +321,7 @@ class VentaService
 
         $documento  =   $this->s_repository->actualizarVenta($datos_validados, $datos_validados->documento);
 
-        $detalle_anterior   =   Detalle::where('documento_id', $id)->get();
+        $detalle_anterior   =   Detalle::where('documento_id', $id)->where('tipo','PRODUCTO')->get();
 
         //======== DEVOLVER STOCKS =======
         foreach ($detalle_anterior as $da) {

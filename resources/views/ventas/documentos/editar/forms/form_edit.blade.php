@@ -15,7 +15,7 @@
 
     <input type="hidden" name="data_envio" id="data_envio">
 
-    <div class="row">
+    <div class="row mb-3">
 
         <div class="col-12 col-lg-3 col-md-3 mb-3">
             <label for="registrador" style="font-weight: bold;">REGISTRADOR</label>
@@ -144,6 +144,20 @@
             <label for="observacion" style="font-weight: bold;">OBSERVACIÓN</label>
             <textarea maxlength="200" class="form-control" name="observacion" id="observacion" cols="30" rows="3"></textarea>
             <span style="font-weight: bold;color:red;" class="observacion_error msgError"></span>
+        </div>
+
+           <div class="col-12 col-lg-3 col-md-3 mb-3">
+            <label for="telefono" style="font-weight: bold;">TELÉFONO</label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon1">
+                        <i class="fas fa-phone"></i>
+                    </span>
+                </div>
+                <input value="{{ $documento->telefono }}" name="telefono" id="telefono" type="text"
+                    class="form-control" placeholder="Número de teléfono" aria-label="Telefono"
+                    aria-describedby="basic-addon1">
+            </div>
         </div>
 
     </div>

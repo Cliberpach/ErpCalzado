@@ -722,6 +722,8 @@ class VentaRepository
         //======= ALMACÉN ======
         $documento->almacen_id      =   $datos_validados->almacen->id;
         $documento->almacen_nombre  =   $datos_validados->almacen->descripcion;
+
+        $documento->telefono        =   $datos_validados->telefono;
         $documento->update();
 
         return $documento;
