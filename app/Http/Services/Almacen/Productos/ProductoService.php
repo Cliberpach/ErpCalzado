@@ -7,6 +7,7 @@ use App\Almacenes\Producto;
 use App\Almacenes\ProductoColor;
 use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +15,7 @@ class ProductoService
 {
     private ProductoRepository $s_repository;
 
-      public function __construct()
+    public function __construct()
     {
         $this->s_repository =   new ProductoRepository();
     }
@@ -112,13 +113,13 @@ class ProductoService
         }
 
         //======== ACTUALIZAR IMÁGENES =========
-        $this->s_repository->actualizarImagenes($datos,$producto);
+        $this->s_repository->actualizarImagenes($datos, $producto);
 
         return $producto;
     }
 
-    
-    public function generarAdhesivos(array $data):Collection
+
+    public function generarAdhesivos(array $data): Collection
     {
         $almacen_id     =   $data['almacen_id'];
         $producto_id    =   $data['producto_id'];
@@ -127,11 +128,11 @@ class ProductoService
 
         foreach ($tallas_bd as $talla) {
 
-            $existeTalla    =   ProductoColorTalla::where('almacen_id',$almacen_id)
-                                ->where('producto_id', $producto_id)
-                                ->where('color_id', $color_id)
-                                ->where('talla_id', $talla->id)
-                                ->exists();
+            $existeTalla    =   ProductoColorTalla::where('almacen_id', $almacen_id)
+                ->where('producto_id', $producto_id)
+                ->where('color_id', $color_id)
+                ->where('talla_id', $talla->id)
+                ->exists();
 
             if (!$existeTalla) {
                 $nueva_talla                =   new ProductoColorTalla();
@@ -146,38 +147,37 @@ class ProductoService
 
             //======== CREAR CÓDIGO BARRAS ========
             $this->generarCodigoBarras($producto_id, $color_id, $talla->id);
-
         }
 
         //======== GENERAR PDF CON ETIQUETAS ==========
         $items  =   DB::table('producto_color_tallas as pct')
-                    ->join('productos as p', 'p.id', '=', 'pct.producto_id')
-                    ->join('colores as c', 'c.id', '=', 'pct.color_id')
-                    ->join('tallas as t', 't.id', '=', 'pct.talla_id')
-                    ->join('modelos as m','m.id','p.modelo_id')
-                    ->join('categorias as ca','ca.id','p.categoria_id')
-                    ->join('codigos_barra as cb', function ($join) {
-                        $join->on('cb.producto_id', '=', 'pct.producto_id')
-                            ->on('cb.color_id', '=', 'pct.color_id')
-                            ->on('cb.talla_id', '=', 'pct.talla_id');
-                    })
-                    ->where('pct.almacen_id',$almacen_id)
-                    ->where('pct.producto_id',$producto_id)
-                    ->where('pct.color_id',$color_id)
-                    ->select(
-                        'm.id as modelo_id',
-                        'p.id as producto_id',
-                        'c.id as color_id',
-                        't.id as talla_id',
-                        'ca.descripcion as categoria_nombre',
-                        'm.descripcion as modelo_nombre',
-                        'p.nombre as producto_nombre',
-                        'c.descripcion as color_nombre',
-                        't.descripcion as talla_nombre',
-                        'cb.codigo_barras',
-                        'cb.ruta_cod_barras'
-                    )
-                    ->get();
+            ->join('productos as p', 'p.id', '=', 'pct.producto_id')
+            ->join('colores as c', 'c.id', '=', 'pct.color_id')
+            ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+            ->join('modelos as m', 'm.id', 'p.modelo_id')
+            ->join('categorias as ca', 'ca.id', 'p.categoria_id')
+            ->join('codigos_barra as cb', function ($join) {
+                $join->on('cb.producto_id', '=', 'pct.producto_id')
+                    ->on('cb.color_id', '=', 'pct.color_id')
+                    ->on('cb.talla_id', '=', 'pct.talla_id');
+            })
+            ->where('pct.almacen_id', $almacen_id)
+            ->where('pct.producto_id', $producto_id)
+            ->where('pct.color_id', $color_id)
+            ->select(
+                'm.id as modelo_id',
+                'p.id as producto_id',
+                'c.id as color_id',
+                't.id as talla_id',
+                'ca.descripcion as categoria_nombre',
+                'm.descripcion as modelo_nombre',
+                'p.nombre as producto_nombre',
+                'c.descripcion as color_nombre',
+                't.descripcion as talla_nombre',
+                'cb.codigo_barras',
+                'cb.ruta_cod_barras'
+            )
+            ->get();
 
         return $items;
     }
@@ -222,5 +222,29 @@ class ProductoService
             $codigoBarra->ruta_cod_barras   = 'public/productos/' . $name;
             $codigoBarra->save();
         }
+    }
+
+    public function destroy(int $id):Producto
+    {
+        $producto = Producto::findOrFail($id);
+        $producto->estado = 'ANULADO';
+        $producto->update();
+
+        //========== ANULAMOS PRODUCTO COLORES Y PRODUCTO COLOR TALLAS =========
+        DB::table('producto_colores')
+            ->where('producto_id', $id)
+            ->update([
+                "estado"        =>  'ANULADO',
+                "updated_at"    =>  Carbon::now()
+            ]);
+
+        DB::table('producto_color_tallas')
+            ->where('producto_id', $id)
+            ->update([
+                "estado"        =>  'ANULADO',
+                "updated_at"    =>  Carbon::now()
+            ]);
+
+        return $producto;
     }
 }

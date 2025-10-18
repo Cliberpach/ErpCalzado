@@ -2,86 +2,89 @@
 
 namespace App\Http\Controllers\Almacenes;
 
-use App\Almacenes\Color;
 use App\Almacenes\Talla;
 use App\Almacenes\ProductoColorTalla;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Almacen\Color\ColorStoreRequest;
+use App\Http\Requests\Almacen\Color\ColorUpdateRequest;
+use App\Http\Services\Almacen\Colores\ColorManager;
+use App\Models\Almacenes\Color\Color;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
-use Illuminate\Support\Facades\DB; 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class ColorController extends Controller
 {
+
+    private ColorManager $s_color;
+
+    public function __construct()
+    {
+        $this->s_color  =   new ColorManager();
+    }
+
     public function index()
     {
         //$this->authorize('haveaccess','categoria.index');
         return view('almacenes.colores.index');
     }
 
-    public function getColor(){
-        $colores = Color::where('estado','ACTIVO')->get();
-        $coleccion = collect([]);
-        foreach($colores as $color){
-            $coleccion->push([
-                'id' => $color->id,
-                'descripcion' => $color->descripcion,
-                'fecha_creacion' =>  Carbon::parse($color->created_at)->format( 'd/m/Y'),
-                'fecha_actualizacion' =>  Carbon::parse($color->updated_at)->format( 'd/m/Y'),
-                'estado' => $color->estado,
-            ]);
-        }
-        return DataTables::of($coleccion)->toJson();
+    public function getColores(Request $request)
+    {
+
+        $colores = Color::where('estado', 'ACTIVO');
+
+        return DataTables::of($colores)->toJson();
     }
 
-    public function store(Request $request){
-        //$this->authorize('haveaccess','categoria.index');
-        $data = $request->all();
+    public function getColor(int $id)
+    {
+        try {
 
-        $rules = [
-            'descripcion_guardar' => 'required|unique:colores,descripcion,NULL,id,estado,ACTIVO',
-        ];
-        
-        $messages = [
-            'descripcion_guardar.required' => 'El campo Descripción es obligatorio.',
-            'descripcion_guardar.unique'      =>  'El color ya existe',
-        ];
+            $color  =   $this->s_color->getColor($id);
 
-        $validator = Validator::make($data, $rules ,$messages);
+            return response()->json(['success' => true, 'message' => 'COLOR OBTENIDO', 'data' => $color]);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
+    }
 
-        if($request->get('fetch') && $request->get('fetch')=='SI'){
-            if ($validator->fails()) {
-                return response()->json(['message' => 'error','data'=>$validator->errors()->toArray()]);
-            }
-        }else{
-            $validator->validate();
+    public function store(ColorStoreRequest $request)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            $color  =   $this->s_color->store($request->toArray());
+
+            //Registro de actividad
+            $descripcion = "SE AGREGÓ EL COLOR CON LA DESCRIPCION: " . $color->descripcion;
+            $gestion = "COLOR";
+            crearRegistro($color, $descripcion, $gestion);
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'COLOR REGISTRADO CON ÉXITO']);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
 
 
-        $color = new Color();
-        $color->descripcion = $request->get('descripcion_guardar');
-        $color->save();
-
-        
-        //$this->asociarColorProductos($color);
-
-        //Registro de actividad
-        $descripcion = "SE AGREGÓ EL COLOR CON LA DESCRIPCION: ". $color->descripcion;
-        $gestion = "COLOR";
-        crearRegistro($color, $descripcion , $gestion);
-
-        if($request->has('fetch') && $request->input('fetch') == 'SI'){
-            return response()->json(['message' => 'success',    'data'=>$color]);        
+        if ($request->has('fetch') && $request->input('fetch') == 'SI') {
+            return response()->json(['message' => 'success',    'data' => $color]);
         }
 
-        Session::flash('success','Color creado.');
+        Session::flash('success', 'Color creado.');
         return redirect()->route('almacenes.colores.index')->with('guardar', 'success');
     }
 
-    public function asociarColorProductos($color){
+    public function asociarColorProductos($color)
+    {
 
         // Obtener todas las tallas
         $tallas = Talla::all();
@@ -117,55 +120,47 @@ class ColorController extends Controller
         }
     }
 
-    public function update(Request $request){
-        //$this->authorize('haveaccess','categoria.index');
-        $data = $request->all();
+    public function update(ColorUpdateRequest $request, int $id)
+    {
+        DB::beginTransaction();
+        try {
 
-        $rules = [
-            'tabla_id' => 'required',
-            'descripcion' => [
-                'required',
-                Rule::unique('colores')->where(function ($query) {
-                    return $query->where('estado', 'ACTIVO');
-                }),
-            ],
-        ];
-        
-        $message = [
-            'descripcion.required'  => 'El campo Descripción es obligatorio.',
-            'descripcion.unique'    => 'El color ya existe.',
-        ];
+            $color  =   $this->s_color->update($id, $request->toArray());
 
-        Validator::make($data, $rules, $message)->validate();
-        
-        $color = Color::findOrFail($request->get('tabla_id'));
-        $color->descripcion = $request->get('descripcion');
-        $color->update();
 
-        //Registro de actividad
-        $descripcion = "SE MODIFICÓ EL COLOR CON LA DESCRIPCION: ". $color->descripcion;
-        $gestion = "COLOR";
-        modificarRegistro($color, $descripcion , $gestion);
+            //Registro de actividad
+            $descripcion = "SE MODIFICÓ EL COLOR CON LA DESCRIPCION: " . $color->descripcion;
+            $gestion = "COLOR";
+            modificarRegistro($color, $descripcion, $gestion);
 
-        Session::flash('success','Color modificado.');
-        return redirect()->route('almacenes.colores.index')->with('modificar', 'success');
+            DB::commit();
+
+            return response()->json(['success' => true, 'message' => 'COLOR ACTUALIZADO CON ÉXITO']);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 
-    
-    public function destroy($id)
+
+    public function destroy(int $id)
     {
-        //$this->authorize('haveaccess','categoria.index');
-        $color = Color::findOrFail($id);
-        $color->estado = 'ANULADO';
-        $color->update();
+        $this->authorize('haveaccess', 'categoria.index');
+        DB::beginTransaction();
+        try {
 
-        //Registro de actividad
-        $descripcion = "SE ELIMINÓ EL COLOR CON LA DESCRIPCION: ". $color->descripcion;
-        $gestion = "COLOR";
-        eliminarRegistro($color, $descripcion , $gestion);
+            $color  =   $this->s_color->destroy($id);
+            
+            $descripcion = "SE ELIMINÓ EL COLOR CON LA DESCRIPCION: " . $color->descripcion;
+            $gestion = "COLOR";
+            eliminarRegistro($color, $descripcion, $gestion);
 
-        Session::flash('success','Color eliminado.');
-        return redirect()->route('almacenes.colores.index')->with('eliminar', 'success');
+            DB::commit();
 
+            return response()->json(['success' => true, 'message' => 'COLOR ELIMINADO CON ÉXITO']);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 }

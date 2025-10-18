@@ -205,7 +205,7 @@ array:13 [
         DB::beginTransaction();
 
         try {
-            
+
             $datos      =   $request->validated();
             for ($i = 1; $i <= 5; $i++) {
                 $key = "remove_imagen{$i}";
@@ -222,7 +222,7 @@ array:13 [
             Session::flash('success', 'Producto modificado.');
             DB::commit();
             return response()->json(['success' => true, 'message' => 'PRODUCTO ACTUALIZADO CON ÉXITO']);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
@@ -239,34 +239,30 @@ array:13 [
         ]);
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $this->authorize('haveaccess', 'producto.index');
-        $producto = Producto::findOrFail($id);
-        $producto->estado = 'ANULADO';
-        $producto->update();
+        DB::beginTransaction();
 
-        //========== ANULAMOS PRODUCTO COLORES Y PRODUCTO COLOR TALLAS =========
-        DB::table('producto_colores')
-            ->where('producto_id', $id)
-            ->update([
-                "estado"        =>  'ANULADO',
-                "updated_at"    =>  Carbon::now()
-            ]);
+        try {
 
-        DB::table('producto_color_tallas')
-            ->where('producto_id', $id)
-            ->update([
-                "estado"        =>  'ANULADO',
-                "updated_at"    =>  Carbon::now()
-            ]);
+            $producto   =   $this->s_producto->destroy($id);
 
-        // $producto->detalles()->update(['estado'=> 'ANULADO']);
+            //Registro de actividad
+            $descripcion = "SE ELIMINÓ EL PRODUCTO CON LA DESCRIPCION: " . $producto->nombre;
+            $gestion = "PRODUCTO";
+            eliminarRegistro($producto, $descripcion, $gestion);
 
-        //Registro de actividad
-        $descripcion = "SE ELIMINÓ EL PRODUCTO CON LA DESCRIPCION: " . $producto->nombre;
-        $gestion = "PRODUCTO";
-        eliminarRegistro($producto, $descripcion, $gestion);
+            DB::commit();
+
+            return response()->json(['success'=>true,'message'=>'PRODUCTO ELIMINADO CON ÉXITO']);
+
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
+
+
 
         Session::flash('success', 'Producto eliminado.');
         return redirect()->route('almacenes.producto.index')->with('eliminar', 'success');
