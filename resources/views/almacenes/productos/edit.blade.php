@@ -196,8 +196,6 @@
 @stop
 
 @push('scripts')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" />
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
 <script>
     //====== VARIABLES ===============
     const formCrearCategoria = document.querySelector('#crear_categoria');
