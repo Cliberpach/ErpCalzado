@@ -9,7 +9,7 @@
             <div class="row">
 
                 <div class="col-12 mb-3">
-                    <label class="required">Nombre del Producto</label>
+                    <label class="required_field">Nombre del Producto</label>
                     <input type="text" id="nombre" name="nombre"
                         class="form-control {{ $errors->has('nombre') ? ' is-invalid' : '' }}"
                         value="{{ old('nombre') }}" maxlength="191" onkeyup="return mayus(this)" required>

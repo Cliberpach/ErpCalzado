@@ -6,7 +6,7 @@
 @include('almacenes.categorias.create')
 @include('almacenes.marcas.create')
 @include('almacenes.modelos.create')
-@include('almacenes.colores.create')
+@include('almacenes.colores.modals.mdl_create_color')
 
 
 <style>

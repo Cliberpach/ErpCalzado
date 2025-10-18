@@ -5,7 +5,7 @@
 @include('almacenes.categorias.create')
 @include('almacenes.marcas.create')
 @include('almacenes.modelos.create')
-@include('almacenes.colores.create')
+@include('almacenes.colores.modals.mdl_create_color')
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
@@ -50,8 +50,6 @@
 @stop
 
 @push('scripts')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" />
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
 <script>
     //====== VARIABLES ===============
     const formCrearCategoria = document.querySelector('#crear_categoria');
