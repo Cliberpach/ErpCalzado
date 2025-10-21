@@ -22,6 +22,7 @@ class ProductoController extends Controller
         $perPage = $request->get('per_page', 10);
 
         $productos = DB::table('productos as p')
+            ->join('categorias as c', 'c.id', '=', 'p.categoria_id')
             ->select(
                 'p.id',
                 'p.nombre',
@@ -32,7 +33,8 @@ class ProductoController extends Controller
                 'p.img2_ruta',
                 'p.img3_ruta',
                 'p.img4_ruta',
-                'p.img5_ruta'
+                'p.img5_ruta',
+                'c.descripcion as categoria_nombre'
             )
             ->where('p.tipo', 'PRODUCTO')
             ->where('p.mostrar_en_web', true)
@@ -61,7 +63,7 @@ class ProductoController extends Controller
                 'img3_url' => $producto->img3_ruta ? asset($producto->img3_ruta) : null,
                 'img4_url' => $producto->img4_ruta ? asset($producto->img4_ruta) : null,
                 'img5_url' => $producto->img5_ruta ? asset($producto->img5_ruta) : null,
-                
+
                 'colores'       => isset($colores[$producto->id]) ? $colores[$producto->id]->values() : []
             ];
         });
