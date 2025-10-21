@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Almacenes\Categoria\CategoriaController;
+use App\Http\Controllers\Api\Almacenes\Categoria\ColorController;
 use App\Http\Controllers\Api\Almacenes\Producto\ProductoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -26,4 +27,8 @@ Route::prefix('categorias')->group(function () {
 
 Route::prefix('productos')->group(function () {
     Route::get('get-all', [ProductoController::class, 'getAll']);
+});
+
+Route::prefix('colores')->group(function () {
+    Route::get('get-all', [ColorController::class, 'getAll']);
 });
