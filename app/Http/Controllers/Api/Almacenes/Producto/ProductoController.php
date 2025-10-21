@@ -54,6 +54,8 @@ class ProductoController extends Controller
             return [
                 'id' => $producto->id,
                 'nombre' => $producto->nombre,
+                'categoria_nombre' => $producto->categoria_nombre,
+                
                 'precio_venta_1' => floatval($producto->precio_venta_1),
                 'precio_venta_2' => floatval($producto->precio_venta_2),
                 'precio_venta_3' => floatval($producto->precio_venta_3),
