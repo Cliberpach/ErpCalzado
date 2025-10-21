@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Almacenes\Categoria;
+namespace App\Http\Controllers\Api\Almacenes\Color;
 
 use App\Http\Controllers\Controller;
 use App\Models\Almacenes\Color\Color;
