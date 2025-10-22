@@ -19,6 +19,8 @@ class ProductoController extends Controller
 
     public function getAll(Request $request)
     {
+        $filtro_categoria    =   $request->get('categoria');
+
         $perPage = $request->get('per_page', 10);
 
         $productos = DB::table('productos as p')
@@ -37,8 +39,13 @@ class ProductoController extends Controller
                 'c.descripcion as categoria_nombre'
             )
             ->where('p.tipo', 'PRODUCTO')
-            ->where('p.mostrar_en_web', true)
-            ->paginate($perPage);
+            ->where('p.mostrar_en_web', true);
+
+        if ($filtro_categoria) {
+            $productos->where('p.categoria_id', $filtro_categoria);
+        }
+
+        $productos->paginate($perPage);
 
         $ids = $productos->getCollection()->pluck('id');
 
@@ -55,7 +62,7 @@ class ProductoController extends Controller
                 'id' => $producto->id,
                 'nombre' => $producto->nombre,
                 'categoria_nombre' => $producto->categoria_nombre,
-                
+
                 'precio_venta_1' => floatval($producto->precio_venta_1),
                 'precio_venta_2' => floatval($producto->precio_venta_2),
                 'precio_venta_3' => floatval($producto->precio_venta_3),
