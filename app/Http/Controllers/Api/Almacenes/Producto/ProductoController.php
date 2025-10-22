@@ -42,10 +42,10 @@ class ProductoController extends Controller
             ->where('p.mostrar_en_web', true);
 
         if ($filtro_categoria) {
-            $productos->where('p.categoria_id', $filtro_categoria);
+            $productos->where('c.id', $filtro_categoria);
         }
 
-        $productos->paginate($perPage);
+        $productos = $productos->paginate($perPage);
 
         $ids = $productos->getCollection()->pluck('id');
 
