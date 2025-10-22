@@ -143,7 +143,7 @@ class ProductoController extends Controller
                 'img1_url' => $producto->img1_ruta ? asset($producto->img1_ruta) : null,
                 'img2_url' => $producto->img2_ruta ? asset($producto->img2_ruta) : null,
                 'img3_url' => $producto->img3_ruta ? asset($producto->img3_ruta) : null,
-                'img4_url' => $producto->img4->img4_ruta ? asset($producto->img4_ruta) : null,
+                'img4_url' => $producto->img4_ruta ? asset($producto->img4_ruta) : null,
                 'img5_url' => $producto->img5_ruta ? asset($producto->img5_ruta) : null,
                 'colores'       => $colores,
             ];
