@@ -147,12 +147,9 @@ class ProductoController extends Controller
                 $color->tallas = $tallas_color;
             }
 
-            if(count($tallas) === 0){
-                throw new Exception("NO HAY STOCK DISPONIBLE PARA ESTE PRODUCTO");
-            }
-
             $data = [
                 'id' => $producto->id,
+                'disponible'    =>  count($tallas) === 0?false:true,
                 'nombre' => $producto->nombre,
                 'descripcion' => $producto->descripcion,
                 'categoria_nombre' => $producto->categoria_nombre,
