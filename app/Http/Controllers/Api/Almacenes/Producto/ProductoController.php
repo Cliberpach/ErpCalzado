@@ -131,7 +131,7 @@ class ProductoController extends Controller
                 ->select('c.id', 'c.descripcion as nombre', 'c.codigo')
                 ->get();
 
-            $tallas = [];
+            $cant_tallas = 0;
             foreach ($colores as $color) {
                 $tallas_color = DB::table('producto_color_tallas as pct')
                     ->join('tallas as t', 't.id', '=', 'pct.talla_id')
@@ -143,13 +143,13 @@ class ProductoController extends Controller
                     ->select('t.id', 't.descripcion as nombre', 'pct.stock', 'pct.stock_logico')
                     ->get();
 
-                $tallas[$color->id] = $tallas_color;
+                $cant_tallas += count($tallas_color);
                 $color->tallas = $tallas_color;
             }
 
             $data = [
                 'id' => $producto->id,
-                'disponible'    =>  count($tallas) === 0?false:true,
+                'disponible'    =>  $cant_tallas === 0?false:true,
                 'nombre' => $producto->nombre,
                 'descripcion' => $producto->descripcion,
                 'categoria_nombre' => $producto->categoria_nombre,
