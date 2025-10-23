@@ -28,6 +28,7 @@ Route::prefix('categorias')->group(function () {
 Route::prefix('productos')->group(function () {
     Route::get('get-all', [ProductoController::class, 'getAll']);
     Route::get('get-one/{id}', [ProductoController::class, 'getOne']);
+    Route::get('{producto}/colores/{color}/tallas', [ProductoController::class, 'getTallasByColor']);
 });
 
 Route::prefix('colores')->group(function () {

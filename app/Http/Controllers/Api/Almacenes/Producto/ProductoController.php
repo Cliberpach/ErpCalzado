@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Almacenes\Producto;
 use App\Almacenes\Categoria;
 use App\Almacenes\Producto;
 use App\Http\Controllers\Controller;
+use App\Models\Almacenes\Color\Color;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -175,6 +176,76 @@ class ProductoController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'ERROR AL OBTENER EL PRODUCTO',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function getTallasByColor($producto, $color)
+    {
+        try {
+
+            $producto = Producto::findOrFail($producto->id);
+
+            if($producto->mostrar_en_web == false){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'PRODUCTO NO DISPONIBLE',
+                ], 404);
+            }
+            if($producto->estado != 'ACTIVO'){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'PRODUCTO NO DISPONIBLE',
+                ], 404);
+            }
+            if($producto->tipo != 'PRODUCTO'){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'PRODUCTO NO DISPONIBLE',
+                ], 404);
+            }
+
+            $color =    Color::findOrFail($color);
+            if($color->estado != 'ACTIVO'){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'COLOR NO DISPONIBLE',
+                ], 404);
+            }
+            if($color->tipo != 'COLOR'){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'COLOR NO DISPONIBLE',
+                ], 404);
+            }
+
+            $tallas = DB::table('producto_color_tallas as pct')
+                ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+                ->where('pct.producto_id', $producto->id)
+                ->where('pct.color_id', $color)
+                ->where('pct.almacen_id', 1)
+                ->where('pct.stock_logico', '>', 0)
+                ->where('pct.stock','>=','pct.stock_logico')
+                ->select('t.id', 't.descripcion as nombre', 'pct.stock', 'pct.stock_logico')
+                ->get();
+
+            if($tallas->isEmpty()){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'NO HAY TALLAS DISPONIBLES PARA ESTE COLOR',
+                ], 404);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'TALLAS OBTENIDAS',
+                'data' => $tallas,
+            ]);
+        } catch (Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ERROR AL OBTENER LAS TALLAS',
                 'error' => $th->getMessage(),
             ], 500);
         }
