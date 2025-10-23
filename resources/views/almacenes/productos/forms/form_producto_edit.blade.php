@@ -131,7 +131,7 @@
                     </div>
                     <span style="font-weight: bold; color:red;" class="mostrar_en_web_error msgErrorProducto"></span>
                 </div>
-                
+
             </div>
         </div>
     </div>
@@ -208,6 +208,11 @@
 
                 </div>
             </div>
+        </div>
+        <div class="col-12">
+            <label for="descripcion">DESCRIPCIÓN</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" rows="3" maxlength="300"
+                placeholder="Ingrese una descripción">{{$producto->descripcion}}</textarea>
         </div>
     </div>
 

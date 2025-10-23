@@ -33,6 +33,7 @@ class ProductoService
         $producto->precio_venta_2   =   $datos['precio2'];
         $producto->precio_venta_3   =   $datos['precio3'];
         $producto->costo            =   $datos['costo'] ?? 0;
+        $producto->descripcion      =   $datos['descripcion'] ?? null;
         $producto->save();
 
         //======= GUARDAMOS LOS COLORES ASIGNADOS AL PRODUCTO ========
@@ -117,7 +118,6 @@ class ProductoService
 
         return $producto;
     }
-
 
     public function generarAdhesivos(array $data): Collection
     {

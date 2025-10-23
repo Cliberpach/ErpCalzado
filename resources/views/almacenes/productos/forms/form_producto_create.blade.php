@@ -67,8 +67,8 @@
                         class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}">
                         <option></option>
                         @foreach ($modelos as $modelo)
-                            <option value="{{ $modelo->id }}"
-                                {{ old('modelo') == $modelo->id ? 'selected' : '' }}>{{ $modelo->descripcion }}
+                            <option value="{{ $modelo->id }}" {{ old('modelo') == $modelo->id ? 'selected' : '' }}>
+                                {{ $modelo->descripcion }}
                             </option>
                         @endforeach
                     </select>
@@ -115,7 +115,7 @@
     <hr>
 
     <div class="row">
-        <div class="col-12">
+        <div class="col-12 mb-3">
             <div class="panel panel-primary">
                 <div class="panel-heading">
                     <h4><b>IMÁGENES</b></h4>
@@ -236,6 +236,11 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="col-12">
+            <label for="descripcion">DESCRIPCIÓN</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" rows="3" maxlength="300"
+                placeholder="Ingrese una descripción"></textarea>
         </div>
     </div>
 

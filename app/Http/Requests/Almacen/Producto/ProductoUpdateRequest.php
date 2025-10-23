@@ -60,7 +60,8 @@ class ProductoUpdateRequest extends FormRequest
             'imagen4' => 'nullable|file|mimes:jpg,jpeg,webp,avif|max:2048',
             'imagen5' => 'nullable|file|mimes:jpg,jpeg,webp,avif|max:2048',
 
-            'mostrar_en_web' => 'nullable|boolean'
+            'mostrar_en_web' => 'nullable|boolean',
+            'descripcion' => 'nullable|string|max:300'
 
         ];
     }
@@ -102,6 +103,7 @@ class ProductoUpdateRequest extends FormRequest
             'imagen5.max'   => 'La imagen 5 no puede superar los 2 MB.',
 
             'mostrar_en_web.boolean' => 'El campo MOSTRAR EN WEB debe ser verdadero o falso.',
+            'descripcion.max' => 'El campo descripción no puede tener más de 300 caracteres.'
 
         ];
     }
