@@ -185,7 +185,7 @@ class ProductoController extends Controller
     {
         try {
 
-            $producto = Producto::findOrFail($producto->id);
+            $producto = Producto::findOrFail($producto);
 
             if($producto->mostrar_en_web == false){
                 return response()->json([
@@ -236,7 +236,7 @@ class ProductoController extends Controller
                     'message' => 'NO HAY TALLAS DISPONIBLES PARA ESTE COLOR',
                 ], 404);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'TALLAS OBTENIDAS',
