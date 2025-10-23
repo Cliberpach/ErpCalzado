@@ -1,6 +1,6 @@
 @extends('layout')
 @section('content')
-    @include('ventas.documentos.modal-envio')
+    @include('ventas.documentos.editar.modals.mdl_envio')
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
 <style>
@@ -326,9 +326,11 @@
         border-color: #d7e9fb !important;
     }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap4.min.css">
 @endpush
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
     const tfootSubtotal = document.querySelector('.subtotal');
     const tfootEmbalaje = document.querySelector('.embalaje');
@@ -361,7 +363,9 @@
         loadSelect2();
 
         events();
+        iniciarSelectsMdlEnvio();
         eventsModalEnvio();
+        setDefaultMdlEnvio();
 
         ocultarAnimacionPedido();
     })
@@ -642,7 +646,7 @@
 
                 } else {
                     secureClosure = 1;
-                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
+                    toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                     Swal.close();
                 }
 
@@ -1248,6 +1252,20 @@
                 .find('.select2-selection')
                 .addClass('colorReadOnly');
         }
+    }
+
+    async function setDefaultMdlEnvio() {
+        const cliente = @json($cliente);
+        desactivarEventosSelectsMdlEnvio();
+        window.departamentoSelect.setValue(parseInt(cliente.departamento_id));
+        const provincias = await getProvincias(cliente.departamento_id);
+        pintarProvincias(provincias, cliente.provincia_id);
+        const distritos = await getDistritos(cliente.provincia_id);
+        pintarDistritos(distritos, parseInt(cliente.distrito_id));
+        setZona(getZona(parseInt(cliente.departamento_id)));
+        window.tipoEnvioSelect.setValue(187, false);
+        await getEmpresasEnvio();
+        activarEventosSelectsMdlEnvio();
     }
 </script>
 @endpush

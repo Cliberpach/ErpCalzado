@@ -44,9 +44,9 @@ class PedidoValidacion
         if(floatval($suma_comprobantes_anticipos) != floatval($pedido->total_pagar)){
             throw new Exception("DEBE GENERAR COMPROBANTES DE ANTICIPO PARA TODOS LOS PAGOS DE LA CUENTA");
         }
-      
+
         $dto    =   [
-            'cliente_id'            =>  $pedido->cliente_id,
+            'cliente_id'            =>  $anticipo_comprobante->cliente_id,
             'monto'                 =>  $pedido->total_pagar,
             'tipo_comprobante_id'   =>  $anticipo_comprobante->tipo_venta_id,
             'sede_id'               =>  $anticipo_comprobante->sede_id,
