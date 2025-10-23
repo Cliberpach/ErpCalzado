@@ -230,6 +230,12 @@ class ProductoController extends Controller
                 ->select('t.id', 't.descripcion as nombre', 'pct.stock', 'pct.stock_logico')
                 ->get();
 
+            return response()->json([
+                'success' => true,
+                'message' => 'TALLAS OBTENIDAS',
+                'data' => $tallas,
+            ]);
+
             if($tallas->isEmpty()){
                 return response()->json([
                     'success' => false,
