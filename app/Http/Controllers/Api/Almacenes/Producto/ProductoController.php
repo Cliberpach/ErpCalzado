@@ -6,6 +6,7 @@ use App\Almacenes\Categoria;
 use App\Almacenes\Producto;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -130,6 +131,26 @@ class ProductoController extends Controller
                 ->select('c.id', 'c.descripcion as nombre', 'c.codigo')
                 ->get();
 
+            $tallas = [];
+            foreach ($colores as $color) {
+                $tallas_color = DB::table('producto_color_tallas as pct')
+                    ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+                    ->where('pct.producto_id', $producto->id)
+                    ->where('pct.color_id', $color->id)
+                    ->where('pct.almacen_id', 1)
+                    ->where('pct.stock_logico', '>', 0)
+                    ->where('pct.stock','>=','pct.stock_logico')
+                    ->select('t.id', 't.descripcion as nombre', 'pct.stock', 'pct.stock_logico')
+                    ->get();
+
+                $tallas[$color->id] = $tallas_color;
+                $color->tallas = $tallas_color;
+            }
+
+            if(count($tallas) === 0){
+                throw new Exception("NO HAY STOCK DISPONIBLE PARA ESTE PRODUCTO");
+            }
+
             $data = [
                 'id' => $producto->id,
                 'nombre' => $producto->nombre,
@@ -140,11 +161,11 @@ class ProductoController extends Controller
                 'precio_venta_2' => floatval($producto->precio_venta_2),
                 'precio_venta_3' => floatval($producto->precio_venta_3),
 
-                'img1_url' => $producto->img1_ruta ? asset($producto->img1_ruta) : null,
-                'img2_url' => $producto->img2_ruta ? asset($producto->img2_ruta) : null,
-                'img3_url' => $producto->img3_ruta ? asset($producto->img3_ruta) : null,
-                'img4_url' => $producto->img4_ruta ? asset($producto->img4_ruta) : null,
-                'img5_url' => $producto->img5_ruta ? asset($producto->img5_ruta) : null,
+                'img1_url'      => $producto->img1_ruta ? asset($producto->img1_ruta) : null,
+                'img2_url'      => $producto->img2_ruta ? asset($producto->img2_ruta) : null,
+                'img3_url'      => $producto->img3_ruta ? asset($producto->img3_ruta) : null,
+                'img4_url'      => $producto->img4_ruta ? asset($producto->img4_ruta) : null,
+                'img5_url'      => $producto->img5_ruta ? asset($producto->img5_ruta) : null,
                 'colores'       => $colores,
             ];
 
