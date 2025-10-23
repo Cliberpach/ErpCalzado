@@ -223,19 +223,14 @@ class ProductoController extends Controller
             $tallas = DB::table('producto_color_tallas as pct')
                 ->join('tallas as t', 't.id', '=', 'pct.talla_id')
                 ->where('pct.producto_id', $producto->id)
-                ->where('pct.color_id', $color)
+                ->where('pct.color_id', $color->id)
                 ->where('pct.almacen_id', 1)
                 ->where('pct.stock_logico', '>', 0)
                 ->where('pct.stock','>=','pct.stock_logico')
                 ->select('t.id', 't.descripcion as nombre', 'pct.stock', 'pct.stock_logico')
                 ->get();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'TALLAS OBTENIDAS',
-                'data' => $tallas,
-            ]);
-
+          
             if($tallas->isEmpty()){
                 return response()->json([
                     'success' => false,
