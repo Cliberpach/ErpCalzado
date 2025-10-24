@@ -29,7 +29,7 @@
                     <div class="row align-items-end">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="" class="required">Cliente</label>
+                                <label for="" class="required" style="font-weight: bold;">Cliente</label>
                                 <select name="cliente_b" id="cliente_b" class="select2_form form-control">
                                     <option value=""></option>
                                     @foreach (clientes() as $cliente)
@@ -40,10 +40,10 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="" class="required">Estado</label>
+                                <label for="" class="required" style="font-weight: bold;">Estado</label>
                                 <select name="estado_b" id="estado_b" class="select2_form form-control">
                                     <option value=""></option>
-                                    <option value="PENDIENTE">PENDIENTES</option>
+                                    <option selected value="PENDIENTE">PENDIENTES</option>
                                     <option value="PAGADO">PAGADOS</option>
                                 </select>
                             </div>
