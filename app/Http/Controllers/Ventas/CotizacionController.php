@@ -115,7 +115,9 @@ class CotizacionController extends Controller
         $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
         $categorias         =   Categoria::where('estado', 'ACTIVO')->get();
         $marcas             =   Marca::where('estado', 'ACTIVO')->get();
-        $tallas             =   Talla::where('estado', 'ACTIVO')->get();
+
+        $tallas             =   UtilidadesController::getTallas();
+
         $cliente            =   Cliente::findOrFail(1);
 
         $registrador        =   Auth::user();
@@ -204,12 +206,12 @@ array:10 [
         $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
         $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
         $detalles           =   CotizacionDetalle::where('cotizacion_id', $id)->where('estado', 'ACTIVO')
-            ->with('producto', 'color', 'talla')->get();
+                                ->with('producto', 'color', 'talla')->get();
 
         $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
         $categorias         =   Categoria::where('estado', 'ACTIVO')->get();
         $marcas             =   Marca::where('estado', 'ACTIVO')->get();
-        $tallas             =   Talla::where('estado', 'ACTIVO')->get();
+        $tallas             =   UtilidadesController::getTallas();
         $porcentaje_igv     =   Empresa::find(1)->igv;
 
         $registrador        =   User::find($cotizacion->registrador_id);
@@ -842,7 +844,7 @@ array:10 [
         return redirect()->route('ventas.documento.create', ['cotizacion' => $id]);
     }
 
-/*
+    /*
 array:4 [
   "_token" => "UjYzdBIkW5HpOS1iWrFQkt7jR9sHguuVJPHNrVJB"
   "fecha_propuesta" => null
@@ -858,12 +860,12 @@ array:4 [
 
             $pedido =   $this->s_cotizacion->generarPedido($request->toArray());
 
-            $message        =   "SE CONVIRTIÓ COTIZACIÓN N°". $request->get('cotizacion_id')." A PEDIDO N°".$pedido->id;
+            $message        =   "SE CONVIRTIÓ COTIZACIÓN N°" . $request->get('cotizacion_id') . " A PEDIDO N°" . $pedido->id;
             $descripcion    =   $message;
             $gestion        =   "COTIZACIÓN A PEDIDO";
             modificarRegistro($pedido, $descripcion, $gestion);
 
-            Session::flash('message_success',$message);
+            Session::flash('message_success', $message);
 
             DB::commit();
 
@@ -873,7 +875,7 @@ array:4 [
             ]);
         } catch (Throwable $th) {
 
-            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(),'file'=>$th->getFile()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(), 'file' => $th->getFile()]);
         }
     }
 

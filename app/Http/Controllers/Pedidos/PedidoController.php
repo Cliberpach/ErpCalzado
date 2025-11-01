@@ -22,6 +22,7 @@ use App\Ventas\Documento\Documento;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Pedido\PedidosExport;
+use App\Http\Controllers\UtilidadesController;
 use App\Http\Requests\Pedidos\Pedido\PedidoDocVentaRequest;
 use App\Http\Requests\Pedidos\Pedido\PedidoStoreRequest;
 use App\Http\Requests\Pedidos\Pedido\PedidoUpdateRequest;
@@ -137,8 +138,8 @@ class PedidoController extends Controller
             [Auth::user()->id]
         )[0];
 
-        $modelos            = Modelo::where('estado', 'ACTIVO')->get();
-        $tallas             = Talla::where('estado', 'ACTIVO')->get();
+        $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
+        $tallas             =   UtilidadesController::getTallas();
 
         $tipos_documento    =   tipos_documento();
         $departamentos      =   departamentos();
@@ -241,9 +242,6 @@ array:18 [
             $pedido->porcentaje_descuento   =   $montos->porcentaje_descuento;
 
             //======= CONTANDO PEDIDOS ======
-            $cantidad_pedidos   =   Pedido::count();
-            $pedido->pedido_nro =   $cantidad_pedidos + 1;
-
             $pedido->sede_id    =   $request->get('sede_id');
             $pedido->almacen_id =   $request->get('almacen');
             $pedido->save();
@@ -378,7 +376,7 @@ array:18 [
         )[0];
 
         $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
-        $tallas             =   Talla::where('estado', 'ACTIVO')->get();
+        $tallas             =   UtilidadesController::getTallas();
         $pedido_id          =   $id;
 
         $tipos_documento    =   tipos_documento();
@@ -425,7 +423,7 @@ array:11 [
     public function update(PedidoUpdateRequest $request, $id)
     {
         DB::beginTransaction();
-      
+
         try {
 
             $pedido         =   Pedido::find($id);

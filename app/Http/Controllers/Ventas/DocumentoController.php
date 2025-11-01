@@ -659,7 +659,7 @@ array:13 [
                 $detalleValidado[] = $detalleArray;
             }
 
-            $tallas = Talla::all();
+            $tallas             =   UtilidadesController::getTallas();
             $origenes_ventas    =   DB::select('SELECT
                                     td.id,
                                     td.descripcion
@@ -750,7 +750,7 @@ array:13 [
                     'fullaccess'    =>  $fullaccess,
                     'vista'         =>  $vista,
                     "tipoVentas"    =>  $tipoVentaArray,
-                    "tallas"        =>  Talla::where('estado', 'ACTIVO')->get(),
+                    "tallas"        =>  UtilidadesController::getTallas(),
                     'almacenes'     =>  [],
                     'sede_id'       =>  $sede_id,
                     'departamentos' =>  $departamentos,
@@ -1243,7 +1243,7 @@ array:27 [
 
         $empresas       =   Empresa::where('estado', 'ACTIVO')->get();
         $productos      =   Producto::where('estado', 'ACTIVO')->get();
-        $tallas         =   Talla::where('estado', 'ACTIVO')->get();
+        $tallas         =   UtilidadesController::getTallas();
         $modelos        =   Modelo::where('estado', 'ACTIVO')->get();
         $documento      =   Documento::findOrFail($id);
         $detalles       =   Detalle::where('documento_id', $id)->where('estado', 'ACTIVO')->with(['lote', 'lote.producto'])->get();
