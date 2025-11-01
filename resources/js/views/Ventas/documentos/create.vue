@@ -218,6 +218,7 @@
                                                     <input v-model="formCreate.telefono" type="text" maxlength="9"
                                                         class="form-control" placeholder="Ingrese número de teléfono">
                                                 </div>
+                                                <span class="telefono_error msgError"></span>
                                             </div>
 
                                             <div
@@ -957,6 +958,7 @@ export default {
 
                 if (status === 422 && errors) {
                     pintarErroresValidacion(errors, 'error');
+                    Swal.close();
                 } else if (status) {
                     toastr.error(`Error ${status}: ${error.response?.data?.message || 'Ocurrió un problema'}`);
                 } else {
