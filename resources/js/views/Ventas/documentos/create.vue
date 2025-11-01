@@ -798,8 +798,8 @@ export default {
         },
         addDataEnvio(value) {
             // const { departamento,provincia,distrito,tipo_envio,empresa_envio,sede_envio,destinatario } = value;
-            this.formCreate.data_envio = value;
-            console.log(this.formCreate);
+            this.formCreate.data_envio = JSON.stringify(dataEnvio);
+          
         },
         formatearDetalle(detalles) {
             if (detalles.length > 0) {

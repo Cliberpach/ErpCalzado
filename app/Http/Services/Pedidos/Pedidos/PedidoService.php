@@ -69,7 +69,7 @@ class PedidoService
         }
 
         //======= OBTENIENDO DETALLE DEL PEDIDO ===========
-        $detalle_pedido     = PedidoDetalle::where('pedido_id', $pedido_id)->get();
+        $detalle_pedido     = PedidoDetalle::where('pedido_id', $pedido_id)->where('tipo','PRODUCTO')->get();
         $detalle_formateado = $this->formatearArrayDetalleObjetos($detalle_pedido);
         $productos          = json_encode($detalle_formateado);
 

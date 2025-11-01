@@ -95,6 +95,9 @@
         dtPedidoDetalle = iniciarDataTable('table-detalle-pedido-ver');
         pintarMontos(@json($pedido));
         events();
+        //====== CARGANDO EMBALAJE Y ENVÍO PREVIO =======
+        tfootEmbalaje.value = @json($pedido->monto_embalaje);
+        tfootEnvio.value = @json($pedido->monto_envio);
     });
 
     function events() {
@@ -148,13 +151,14 @@
                     const formData = new FormData(formFacturarPedido);
                     formData.append('pedido_id', @json($pedido->id));
                     const res = await axios.post(route('pedidos.pedido.facturar-store'), formData);
-                    if(res.data.success){
+                    if (res.data.success) {
                         let url_open_pdf = '{{ route('ventas.documento.comprobante', [':id1', ':size']) }}'
-                                            .replace(':id1', res.data.documento_id)
-                                            .replace(':size', 80);
-                        window.open(url_open_pdf, 'Comprobante SISCOM','location=1, status=1, scrollbars=1,width=900, height=600');
+                            .replace(':id1', res.data.documento_id)
+                            .replace(':size', 80);
+                        window.open(url_open_pdf, 'Comprobante SISCOM',
+                            'location=1, status=1, scrollbars=1,width=900, height=600');
                         window.location.href = '{{ route('ventas.documento.index') }}';
-                    }else{
+                    } else {
                         Swal.close();
                         toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                         return;

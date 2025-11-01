@@ -892,7 +892,7 @@ array:27 [
         try {
 
             $documento  =   $this->s_venta->registrar($request->toArray());
-
+           
             DB::commit();
 
             return response()->json([
@@ -1305,7 +1305,7 @@ array:27 [
             'cuentas'           =>  $cuentas
         ]);
     }
-    
+
     public function venta_comprobante($id)
     {
         try {

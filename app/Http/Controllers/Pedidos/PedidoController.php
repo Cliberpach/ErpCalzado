@@ -1456,7 +1456,7 @@ array:9 [
             );
         } catch (Throwable $th) {
             DB::rollback();
-            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(),'file'=>$th->getFile()]);
         }
     }
 
@@ -1638,7 +1638,7 @@ array:2 [
                 throw new Exception("PEDIDO PE-" . $id . ",SOLO EL USUARIO QUE LO CREÓ PUEDE FACTURARLO");
             }
 
-            $detalle            =   PedidoDetalle::where('pedido_id', $id)->get();
+            $detalle            =   PedidoDetalle::where('pedido_id', $id)->where('tipo','PRODUCTO')->get();
             $detalle            =   $this->formatearArrayDetalleObjetos($detalle);
 
             $tallas             =   Talla::where('estado', 'ACTIVO')->get();
