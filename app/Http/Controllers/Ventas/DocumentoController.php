@@ -1243,10 +1243,10 @@ array:27 [
 
         $empresas       =   Empresa::where('estado', 'ACTIVO')->get();
         $productos      =   Producto::where('estado', 'ACTIVO')->get();
-        $tallas         =   UtilidadesController::getTallas();
+        $tallas         =   Talla::where('estado', 'ACTIVO')->get();
         $modelos        =   Modelo::where('estado', 'ACTIVO')->get();
         $documento      =   Documento::findOrFail($id);
-        $detalles       =   Detalle::where('documento_id', $id)->where('estado', 'ACTIVO')->with(['lote', 'lote.producto'])->get();
+        $detalles       =   Detalle::where('documento_id', $id)->where('estado', 'ACTIVO')->where('tipo','PRODUCTO')->get();
         $condiciones    =   Condicion::where('estado', 'ACTIVO')->get();
         $tipos_venta    =   tipos_venta()->whereIn('parametro', ['F', 'B', 'N']);
         $metodos_pago   =   tipos_pago();
@@ -1256,19 +1256,9 @@ array:27 [
 
         $registrador    =   User::find($documento->user_id);
         $sede           =   Sede::find($documento->sede_id);
-        $almacenes      =   Almacen::where('estado', 'ACTIVO')
-            ->where('tipo_almacen', 'PRINCIPAL')
-            ->get();
+        $almacenes      =   Almacen::where('estado', 'ACTIVO')->where('tipo_almacen', 'PRINCIPAL')->get();
 
-        $cliente        =   DB::table('clientes as c')
-            ->select(
-                'c.id',
-                DB::raw('CONCAT(c.tipo_documento,":",c.documento,"-",c.nombre) as descripcion'),
-            )
-            ->where('c.id', $documento->cliente_id)
-            ->where('c.estado', 'ACTIVO')
-            ->get()[0];
-
+        $cliente        =   Cliente::findOrFail($documento->cliente_id);
 
         $departamentos  =   Departamento::all();
 
@@ -1289,7 +1279,6 @@ array:27 [
         $tipos_envio        =   UtilidadesController::getTiposEnvio();
         $tipos_documento    =   UtilidadesController::getTiposDocumento();
         $cuentas            =   UtilidadesController::getCuentas();
-
 
         return view('ventas.documentos.editar.edit', [
             'documento'         =>  $documento,
@@ -1316,7 +1305,7 @@ array:27 [
             'cuentas'           =>  $cuentas
         ]);
     }
-
+    
     public function venta_comprobante($id)
     {
         try {

@@ -128,7 +128,7 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
 
-        dtStocksVenta = iniciarDataTable('table-stocks');
+        dtStocksVenta = iniciarDataTable('table-stocks',{ lengthChange: false, pageLength: 100 });
         dtDetalleVenta = iniciarDataTable('table-detalle');
 
         events();
@@ -284,40 +284,7 @@
 
         //=========== MODAL DESPACHO =========
         document.querySelector('.btn-envio').addEventListener('click', () => {
-
-            //======= COLCANDO EN MODAL ENVIO EL NOMBRE DEL CLIENTE =======
-            const cliente_nombre = $("#cliente").find('option:selected').text();
-            console.log(cliente_nombre);
-
-            const nroDocumento = cliente_nombre.split(':')[1].split('-')[0].trim();
-            const cliente_nombre_recortado = cliente_nombre.split('-')[1].trim()
-            const tipo_documento = cliente_nombre.split(':')[0];
-
-            console.log(cliente_nombre);
-            console.log(cliente_nombre_recortado);
-            console.log(nroDocumento);
-
-            if (tipo_documento === "DNI" || tipo_documento === "CARNET EXT.") {
-                //====== COLOCAR TEXTO DEL SPAN =====
-                document.querySelector('.span-tipo-doc-dest').textContent = tipo_documento;
-                //====== SELECCIONAR LA OPCIÓN RESPECTIVA EN SELECT TIPO DOC DEST ======
-                if (tipo_documento === "DNI") {
-                    $('#tipo_doc_destinatario').val(0).trigger('change');
-                    if (nroDocumento.trim() != "99999999") {
-                        document.querySelector('#nro_doc_destinatario').value = nroDocumento;
-                        document.querySelector('#nro_doc_destinatario').value = nroDocumento;
-                        document.querySelector('#nombres_destinatario').value = cliente_nombre_recortado;
-                    }
-                }
-                if (tipo_documento === "CARNET EXT.") {
-                    $('#tipo_doc_destinatario').val(1).trigger('change');
-                    document.querySelector('#nro_doc_destinatario').value = nroDocumento;
-                    document.querySelector('#nombres_destinatario').value = cliente_nombre_recortado;
-                }
-            }
-
-            //========= ABRIR MODAL ENVÍO =======
-            $("#modal_envio").modal("show");
+            accionOpenMdlEnvio();
         })
     }
 
@@ -349,7 +316,7 @@
                     return "BUSCANDO...";
                 },
                 noResults: function() {
-                    return "No se encontraron productos";
+                    return "No se encontraron clientes";
                 }
             },
             ajax: {
@@ -369,7 +336,11 @@
                         return {
                             results: clientes.map(item => ({
                                 id: item.id,
-                                text: item.descripcion
+                                text: item.descripcion,
+                                telefono: item.telefono_movil,
+                                departamento_id: item.departamento_id,
+                                provincia_id: item.provincia_id,
+                                distrito_id: item.distrito_id
                             })),
                             pagination: {
                                 more: data.more
@@ -392,7 +363,15 @@
                         '<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>'
                     );
                 }
-                return data.text;
+                const $option = $('<span>', {
+                        text: data.text
+                    }).attr('data-telefono', data.telefono || '').attr('data-departamento-id', data
+                        .departamento_id || '')
+                    .attr('data-provincia-id', data.provincia_id || '').attr('data-distrito-id', data
+                        .distrito_id || '');
+
+
+                return $option;
             },
         });
 
@@ -991,7 +970,7 @@
                 if (res.data.success) {
                     destruirDataTable(dtStocksVenta);
                     pintarTableStocks(res.data.producto_color_tallas);
-                    dtStocksVenta = iniciarDataTable('table-stocks');
+                    dtStocksVenta = iniciarDataTable('table-stocks',{ lengthChange: false, pageLength: 100 });
                     pintarPreciosVenta(res.data.producto_color_tallas);
                     //loadCarrito();
                     //loadPrecioVentaProductoCarrito(producto_id);
@@ -1120,7 +1099,6 @@
             }
         })
 
-
         //===== CALCULAR SUBTOTAL POR FILA DEL DETALLE ======
         calcularSubTotal();
 
@@ -1134,6 +1112,22 @@
 
         //===== CALCULAR MONTOS Y PINTARLOS ======
         calcularMontos();
+
+        const embalajeInput = document.querySelector('.embalaje');
+        if (embalajeInput) {
+            embalajeInput.value = parseFloat(documento.monto_embalaje) ?? 0;
+            embalajeInput.dispatchEvent(new Event('input', {
+                bubbles: true
+            }));
+        }
+
+        const envioInput = document.querySelector('.envio');
+        if (envioInput) {
+            envioInput.value = parseFloat(documento.monto_envio) ?? 0;
+            envioInput.dispatchEvent(new Event('input', {
+                bubbles: true
+            }));
+        }
     }
 
     //======= CALCULAR DESCUENTO ========
@@ -1427,8 +1421,12 @@
             setDestinatario(despacho.destinatario_tipo_doc, despacho.destinatario_nro_doc, despacho
                 .destinatario_nombre);
 
+            document.querySelector('.btn-guardar-envio').click();
             activarEventosSelectsMdlEnvio();
         }
+
+        window.tipoEnvioSelect.setValue(187);
+        
     }
 
     function setEntregaDomicilio(entrega_domicilio) {
@@ -1467,6 +1465,7 @@
     }
 
     function setDestinatario(destTipoDoc, destNroDoc, destNombre) {
+
         if (window.tipoDocDestinatarioSelect) {
             const items = window.tipoDocDestinatarioSelect.options;
             const match = Object.values(items).find(i => i.text.trim() === destTipoDoc.trim());
@@ -1479,6 +1478,63 @@
         document.querySelector('#nombres_destinatario').value = destNombre;
     }
 
+    async function accionOpenMdlEnvio() {
+
+        //======= COLCANDO EN MODAL ENVIO EL NOMBRE DEL CLIENTE =======
+        let clienteSeleccionado = $('#cliente').select2('data')[0];
+        const hayEnvio = document.querySelector('#data_envio').value;
+        const estado_despacho = @json($documento->estado_despacho);
+
+        if (!clienteSeleccionado.departamento_id) {
+            const option = $('#cliente').find(':selected');
+            clienteSeleccionado = {
+                ...clienteSeleccionado,
+                telefono: option.data('telefono'),
+                departamento_id: option.data('departamento-id'),
+                provincia_id: option.data('provincia-id'),
+                distrito_id: option.data('distrito-id'),
+            };
+        }
+
+        if (clienteSeleccionado && !hayEnvio && (estado_despacho === 'S/D' || estado_despacho === 'PENDIENTE')) {
+            desactivarEventosSelectsMdlEnvio();
+            window.departamentoSelect.setValue(parseInt(clienteSeleccionado.departamento_id));
+            const provincias = await getProvincias(parseInt(clienteSeleccionado.departamento_id));
+            pintarProvincias(provincias, parseInt(clienteSeleccionado.provincia_id));
+            const distritos = await getDistritos(clienteSeleccionado.provincia_id);
+            pintarDistritos(distritos, parseInt(clienteSeleccionado.distrito_id));
+            setZona(getZona(parseInt(clienteSeleccionado.departamento_id)));
+
+            //====== COLOCAR TEXTO DEL SPAN =====
+            const cliente_nombre = $("#cliente").find('option:selected').text();
+            const nroDocumento = cliente_nombre.split(':')[1].split('-')[0].trim();
+            const cliente_nombre_recortado = cliente_nombre.split('-')[1].trim()
+            const tipo_documento = cliente_nombre.split(':')[0];
+
+            if (tipo_documento === "DNI" || tipo_documento === "CARNET EXT.") {
+                //====== COLOCAR TEXTO DEL SPAN =====
+                document.querySelector('.span-tipo-doc-dest').textContent = tipo_documento;
+                //====== SELECCIONAR LA OPCIÓN RESPECTIVA EN SELECT TIPO DOC DEST ======
+                if (tipo_documento === "DNI") {
+                    window.tipoDocDestinatarioSelect.setValue(6);
+                    if (nroDocumento.trim() != "99999999") {
+                        document.querySelector('#nro_doc_destinatario').value = nroDocumento;
+                        document.querySelector('#nro_doc_destinatario').value = nroDocumento;
+                        document.querySelector('#nombres_destinatario').value = cliente_nombre_recortado;
+                    }
+                }
+                if (tipo_documento === "CARNET EXT.") {
+                    window.tipoDocDestinatarioSelect.setValue(7);
+                    document.querySelector('#nro_doc_destinatario').value = nroDocumento;
+                    document.querySelector('#nombres_destinatario').value = cliente_nombre_recortado;
+                }
+            }
+            activarEventosSelectsMdlEnvio();
+        }
+
+        //========= ABRIR MODAL ENVÍO =======
+        $("#modal_envio").modal("show");
+    }
 
     //========= evento al cerrar la ventana ========
     /*window.onbeforeunload = () => {
