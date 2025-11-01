@@ -88,10 +88,11 @@ class DespachoController extends Controller
         if ($cliente_id) {
             $query->where('ev.cliente_id', '=', $cliente_id);
         }
-        if ($fecha_inicio_despacho) {
+
+        if ($fecha_inicio_despacho && $estado == 'DESPACHADO') {
             $query->whereDate('ev.fecha_envio', '>=', $fecha_inicio_despacho);
         }
-        if ($fecha_fin_despacho) {
+        if ($fecha_fin_despacho && $estado == 'DESPACHADO') {
             $query->whereDate('ev.fecha_envio', '<=', $fecha_fin_despacho);
         }
 
