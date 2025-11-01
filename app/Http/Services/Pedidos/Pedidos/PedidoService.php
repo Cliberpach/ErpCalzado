@@ -98,6 +98,8 @@ class PedidoService
             "sede_id"                   =>  $pedido->sede_id,
             "almacenSeleccionado"       =>  $pedido->almacen_id,
             "pedido_id"                 =>  $pedido->id,
+            "metodoPagoId"              =>  null,
+            "cuentaPagoId"              =>  null
         ];
 
         $request_base = Request::create(

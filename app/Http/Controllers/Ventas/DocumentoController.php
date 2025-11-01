@@ -892,7 +892,7 @@ array:27 [
         try {
 
             $documento  =   $this->s_venta->registrar($request->toArray());
-           
+
             DB::commit();
 
             return response()->json([
@@ -902,7 +902,7 @@ array:27 [
             ]);
         } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(), 'file' => $th->getFile()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage()."-".$th->getLine()."-".$th->getFile(), 'line' => $th->getLine(), 'file' => $th->getFile()]);
         }
     }
 

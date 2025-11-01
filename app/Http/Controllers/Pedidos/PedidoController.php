@@ -1446,6 +1446,7 @@ array:9 [
         DB::beginTransaction();
         try {
             $doc_venta   =   $this->s_pedido->facturar($request->toArray());
+    
             DB::commit();
             return response()->json(
                 [

@@ -274,7 +274,7 @@ class VentaRepository
 
                 //========= VALIDACIÓN STOCK ========
                 if (
-                    !$datos_validados->ticket_credito &&
+                    !$datos_validados->ticket_credito && !$datos_validados->facturar &&
                     (
                         floatval($talla->cantidad) > floatval($existe[0]->stock)
                     )
@@ -316,7 +316,6 @@ class VentaRepository
                     && $datos_validados->modo !== 'CONSUMO'
                     && !$datos_validados->ticket_credito
                 ) {
-
                     //===== ACTUALIZANDO STOCK ===========
                     DB::update(
                         'UPDATE producto_color_tallas
