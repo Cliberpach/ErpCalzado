@@ -141,7 +141,7 @@ class CotizacionDTOS
         }
 
         if ($cotizacion->monto_envio != 0 && $cotizacion->monto_envio) {
-            $almacen_ficticio               =   Almacen::where('tipo','FICTICIO')->where('estado','ANULADO')->where('descripcion','ALMACEN')->first();
+            $almacen_ficticio                   =   Almacen::where('tipo','FICTICIO')->where('estado','ANULADO')->where('descripcion','ALMACEN')->first();
             $producto_embalaje                  =   Producto::where('tipo', 'FICTICIO')->where('nombre', 'ENVIO')->first();
             $color_ficticio                     =   Color::where('tipo', 'FICTICIO')->where('descripcion', 'SERVICIO')->first();
             $talla_ficticio                     =   Talla::where('tipo', 'FICTICIO')->where('descripcion', 'SERVICIO')->first();
