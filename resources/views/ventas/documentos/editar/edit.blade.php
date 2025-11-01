@@ -1052,6 +1052,8 @@
         amounts.envio = envio.toFixed(2);
         amounts.subtotal = subtotal.toFixed(2);
         amounts.monto_descuento = descuento.toFixed(2);
+
+        document.querySelector('#monto_1').value = total_pagar;
     }
 
     const cargarProductosPrevios = () => {
@@ -1426,7 +1428,7 @@
         }
 
         window.tipoEnvioSelect.setValue(187);
-        
+
     }
 
     function setEntregaDomicilio(entrega_domicilio) {

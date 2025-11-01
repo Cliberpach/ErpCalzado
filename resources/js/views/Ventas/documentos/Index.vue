@@ -92,7 +92,7 @@
         <ModalVentasVue @pago-registrado="recargarTabla" :ventasPendientes="ventasPendientes" :imgDefault="imginicial"
             :modoPagos="this.lst_modos_pago" :cliente_id="cliente_id" />
         <!-- <ModalPdfDownloadVue :pdfData.sync="pdfData" /> -->
-        <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" ref="modalEnvioRef" />
+        <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" @storeDataEnvio="storeDataEnvio" ref="modalEnvioRef" />
     </div>
 </template>
 <script>
@@ -593,8 +593,46 @@ export default {
         getRowByIdVue(table, id) {
             const allRows = table.rows().data().toArray();
             return allRows.find(row => row.id == id);
-        }
+        },
+        async storeDataEnvio(data_envio) {
+            try {
 
+                limpiarErroresValidacion('msgError');
+
+                Swal.fire({
+                    title: 'Guardando...',
+                    text: 'Por favor espere',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+
+                const res = await axios.post(route('ventas.despachos.store'), data_envio);
+                if (res.data.success) {
+                    toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
+                    this.tabla.ajax.reload(null, false);
+                    this.$refs.modalEnvioRef.cerrarMdlEnvio()
+                } else {
+                    toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                }
+            } catch (error) {
+                const status = error.response?.status;
+                const errors = error.response?.data?.errors;
+
+                if (status === 422 && errors) {
+                    this.$refs.modalEnvioRef.pintarErroresValidacionMdlEnvio(errors);
+                    toastr.error('ERRORES DE VALIDACIÓN EN EL FORMULARIO');
+                } else if (status) {
+                    toastr.error(`Error ${status}: ${error.response?.data?.message || 'Ocurrió un problema'}`);
+                } else {
+                    toastr.error(error.message || 'Error de conexión con el servidor', 'ERROR');
+                }
+                Swal.close();
+            } finally {
+                Swal.close();
+            }
+        }
     },
     mounted() {
         this.$nextTick(() => {

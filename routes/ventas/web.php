@@ -144,6 +144,7 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
         Route::get('get-despacho/{documento_id}','Ventas\DespachoController@getDespacho')->name('ventas.despachos.getDespacho');
         Route::post('/updateDespacho', 'Ventas\DespachoController@updateDespacho')->name('ventas.despachos.updateDespacho');
         Route::post('/eliminarDespacho', 'Ventas\DespachoController@eliminarDespacho')->name('ventas.despachos.eliminarDespacho');
+        Route::post('/store', 'Ventas\DespachoController@store')->name('ventas.despachos.store');
 
     });
 

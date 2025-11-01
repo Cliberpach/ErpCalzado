@@ -780,6 +780,7 @@ export default {
             this.formEnvio.obs_despacho = this.obs_despacho;
             this.formEnvio.tipo_pago_envio = this.tipo_pago_envio;
 
+            console.log(this.mode,'MODE')
             if (this.mode == "create") {
                 this.hayDatosEnvio = true;
                 this.$emit('addDataEnvio', this.formEnvio);

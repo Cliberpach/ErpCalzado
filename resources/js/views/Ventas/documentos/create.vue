@@ -1147,4 +1147,9 @@ export default {
         max-width: 1200px;
     }
 }
+.v-select .vs__dropdown-menu {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 </style>

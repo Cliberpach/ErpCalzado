@@ -308,4 +308,43 @@ array:15 [
         }
     }
 
+
+    /*
+array:15 [
+  "departamento" => 13
+  "provincia" => 1301
+  "distrito" => 130101
+  "tipo_envio" => 190
+  "empresa_envio" => 1
+  "sede_envio" => 1
+  "destinatario" => array:3 [
+    "tipo_documento" => "DNI"
+    "nro_documento" => "99999999"
+    "nombres" => "VARIOS"
+  ]
+  "documento_id" => 53
+  "direccion_entrega" => null
+  "entrega_domicilio" => false
+  "origen_venta" => 192
+  "fecha_envio_propuesta" => "2025-08-20"
+  "obs_rotulo" => "test 1"
+  "obs_despacho" => "test 2"
+  "tipo_pago_envio" => 195
+]
+*/
+    public function store(EnvioVentaStoreRequest $request)
+    {
+        try {
+            DB::beginTransaction();
+
+            $this->s_despacho->store($request->toArray());
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'DATOS DE ENVÍO']);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(), 'file' => $th->getFile()]);
+        }
+    }
+
 }
