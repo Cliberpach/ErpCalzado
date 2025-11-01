@@ -124,7 +124,9 @@ class VentaValidacion
             'fechaOperacionPago'        =>  $datos['fechaOperacionPago'] ?? null,
 
             'tipo_pago_1'               =>  $tipo_pago_1,
-            'cuenta_pago_1'             =>  $cuenta_pago_1
+            'cuenta_pago_1'             =>  $cuenta_pago_1,
+
+            'atencion'                  =>  $datos['atencion']??null
         ];
 
 

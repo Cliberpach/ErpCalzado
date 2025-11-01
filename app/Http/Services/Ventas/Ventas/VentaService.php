@@ -85,7 +85,7 @@ class VentaService
             ]);
 
         //======== EN CASO VENTA CONTADO Y PAGADA ELECTRÓNICO, VA AL KARDEX ===========
-        if ($venta->condicion_id == 1 && $venta->tipo_pago_id != 1 && $venta->estado_pago == 'PAGADA') {
+        if ($venta->condicion_id == 1 && $venta->tipo_pago_id != 1 && $venta->estado_pago == 'PAGADA' && !$datos_validados->atencion) {
             $this->s_kardex_cuenta->registrarDesdeVenta($venta);
         }
 
@@ -93,7 +93,7 @@ class VentaService
         $data_envio =   $datos['data_envio']??null;
         if ($data_envio) {
             $data_envio = json_decode($datos['data_envio']);
-            
+
             $this->s_repository->insertarDespacho($venta, $data_envio, $datos_validados);
         }
 

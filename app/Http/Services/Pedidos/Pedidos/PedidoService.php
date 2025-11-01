@@ -210,6 +210,9 @@ class PedidoService
         $request->merge([
             'sede_id'               => $pedido->sede_id,
             'almacenSeleccionado'   => $pedido->almacen_id,
+            'atencion'              => 'ATENCION',
+            'metodoPagoId'          => null,
+            'cuentaPagoId'          => null
         ]);
 
         if ($pedido->facturado === 'SI') {
@@ -255,6 +258,7 @@ class PedidoService
                     ->where('producto_id', $producto->producto_id)
                     ->where('color_id', $producto->color_id)
                     ->where('talla_id', $talla->talla_id)
+                    ->where('tipo','PRODUCTO')
                     ->update([
                         'cantidad_pendiente'    => DB::raw('cantidad_pendiente  - ' . $talla->cantidad),
                         'cantidad_atendida'     => DB::raw('cantidad_atendida   + ' . $talla->cantidad)
