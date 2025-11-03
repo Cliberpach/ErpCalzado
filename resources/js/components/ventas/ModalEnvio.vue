@@ -366,7 +366,7 @@ export default {
                 })
             ]);
 
-            this.tipo_envio = 188;
+            this.tipo_envio = 187;
 
         },
         empresa_envio(value) {
@@ -376,7 +376,7 @@ export default {
             this.sedes_envio = [];
 
             if (value) {
-                if (this.tipo_envio == 189) { //====== DELIVERY ======
+                if (this.tipo_envio == 188) { //====== DELIVERY ======
                     this.sede_envio = null;
                 }
 
@@ -403,7 +403,7 @@ export default {
                     ->NO HAY CONTRAENTREGA
                     ->PUEDE HABER ENTREGA A DOMICILIO
                 */
-                if (value === 188) {
+                if (value === 187) {
                     this.mostrar_combo_sedes = true;
                     this.mostrar_entrega_domicilio = true;
                 }
@@ -414,7 +414,7 @@ export default {
                     ->HAY ENTREGA A DOMICILIO SIEMPRE
                 */
 
-                if (value === 189) {
+                if (value === 188) {
                     this.mostrar_combo_sedes = false;
                     this.mostrar_entrega_domicilio = true;
                     this.entrega_domicilio = true;
@@ -427,7 +427,7 @@ export default {
                     ->NO HAY CONTRAENTREGA
                     ->NO HAY ENTREGA A DOMICILIO
                 */
-                if (value === 190) {
+                if (value > 188) {
                     this.mostrar_combo_sedes = true;
                     this.mostrar_entrega_domicilio = false;
                     this.entrega_domicilio = false;
@@ -707,7 +707,7 @@ export default {
             if (!despacho) {
                 this.departamento = 15;
                 this.tipo_pago_envio = 196;
-                this.tipo_envio = 188;
+                this.tipo_envio = 187;
                 this.mode = 'store';
                 toastr.warning('PODRÁ CREAR DATOS DE DESPACHO', 'EL DOCUMENTO NO TIENE DATOS DE DESPACHO');
                 this.loading = false;
