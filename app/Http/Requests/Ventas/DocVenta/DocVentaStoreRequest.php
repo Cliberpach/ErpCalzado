@@ -87,7 +87,7 @@ class DocVentaStoreRequest extends FormRequest
                 'max:20',
                 Rule::unique('cotizacion_documento', 'pago_1_nro_operacion')
                     ->where(function ($query) {
-                        $query->where('sunat', '<>', 2);
+                        $query->where('sunat', '<>', '2');
                     }),
             ];
             $rules['fechaOperacionPago'] = 'date';
