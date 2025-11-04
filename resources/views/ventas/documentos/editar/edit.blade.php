@@ -1396,7 +1396,7 @@
     async function setDatosEnvioPrevio() {
 
         const despacho = @json($envio_venta);
-
+        console.log(despacho);
         if (despacho) {
 
             document.querySelector('#monto-envio').classList.remove('btn-light');
@@ -1405,11 +1405,11 @@
             desactivarEventosSelectsMdlEnvio();
             window.departamentoSelect.setValue(parseInt(despacho.departamento_id));
             const provincias = await getProvincias(despacho.departamento_id);
-            pintarProvincias(provincias, despacho.provincia_id);
+            pintarProvincias(provincias, parseInt(despacho.provincia_id));
             const distritos = await getDistritos(despacho.provincia_id);
             pintarDistritos(distritos, parseInt(despacho.distrito_id));
             setZona(getZona(parseInt(despacho.departamento_id)));
-            window.tipoEnvioSelect.setValue(despacho.tipo_envio_id, false);
+            window.tipoEnvioSelect.setValue(parseInt(despacho.tipo_envio_id), false);
             await getEmpresasEnvio();
             window.empresaEnvioSelect.setValue(despacho.empresa_envio_id, false);
             await getSedesEnvio();
@@ -1425,9 +1425,9 @@
 
             document.querySelector('.btn-guardar-envio').click();
             activarEventosSelectsMdlEnvio();
+        }else{
+            window.tipoEnvioSelect.setValue(187);
         }
-
-        window.tipoEnvioSelect.setValue(187);
 
     }
 

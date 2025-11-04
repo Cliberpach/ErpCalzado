@@ -335,14 +335,14 @@ class VentaService
             $this->s_kardex_cuenta->actualizarDesdeVenta($documento);
         }
 
-        $datos_envio    =   json_decode($datos['data_envio']);
-        $tiene_envio    =   EnvioVenta::where('documento_id', $id)->select('id')->first();
-
+        $datos_envio    =   $datos['data_envio']??null;
+        $tiene_envio    =   EnvioVenta::where('documento_id', $id)->select('id','estado')->first();
         if (!$datos_envio) {
             return $documento;
         }
 
         //========= SI YA TENÍA ENVÍO ACTUALIZAMOS ========
+        $datos_envio                    =   json_decode($datos_envio);
         $datos_envio                    =   (array)$datos_envio;
         $datos_envio['documento_id']    =   $id;
         $datos_envio['destinatario']    =   (array)$datos_envio['destinatario'];
