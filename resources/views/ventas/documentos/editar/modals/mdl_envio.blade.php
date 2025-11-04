@@ -517,8 +517,9 @@
     async function consultarAPI(dni_destinatario) {
         try {
             let documento = dni_destinatario;
-            let url = route('getApidni', {
-                dni: documento
+            let url = route('utilidades.consultarDocumento', {
+                tipo_doc: 6,
+                nro_doc: documento
             });
 
             const {
@@ -540,10 +541,9 @@
             data
         } = results;
         if (success) {
-            document.querySelector('#nombres_destinatario').value = data.nombres + ' ' + data.apellido_paterno + ' ' +
-                data.apellido_materno;
+            document.querySelector('#nombres_destinatario').value = data.nombre_completo;
         } else {
-
+            
         }
     }
 

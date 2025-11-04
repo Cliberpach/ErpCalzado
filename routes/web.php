@@ -740,6 +740,7 @@ Route::get('/get-producto-by-modelo/{modelo_id}', 'Almacenes\ProductoController@
 Route::get('/get-stocklogico/{almacen_id}/{producto_id}/{color_id}/{talla_id}', 'Almacenes\ProductoController@getStockLogico');
 
 Route::prefix('utilidades')->group(function () {
+    Route::get('consultarDocumento', 'UtilidadesController@consultarDocumento')->name('utilidades.consultarDocumento');
     Route::get('getClientes', 'Ventas\ClienteController@getClientes')->name('utilidades.getClientes');
     Route::get('getProductosTodos', 'Almacenes\ProductoController@getProductosTodos')->name('utilidades.getProductosTodos');
     Route::get('getProductosConStock', 'Almacenes\ProductoController@getProductosConStock')->name('utilidades.getProductosConStock');

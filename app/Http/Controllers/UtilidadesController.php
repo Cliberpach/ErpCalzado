@@ -8,6 +8,7 @@ use App\Almacenes\Modelo;
 use App\Almacenes\Producto;
 use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
+use App\Mantenimiento\Tabla\Detalle;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -435,5 +436,90 @@ class UtilidadesController extends Controller
             ->orderBy('descripcion')
             ->get();
         return $tallas;
+    }
+
+    /*
+array:2 [
+  "tipo_doc" => "6"
+  "nro_doc" => "75608753"
+]
+*/
+    public function consultarDocumento(Request $request)
+    {
+        try {
+
+            $tipo_doc   =   $request->get('tipo_doc');
+            $nro_doc    =   $request->get('nro_doc');
+
+            if (!$tipo_doc) {
+                throw new Exception("FALTA EL PARÁMETRO TIPO DOC");
+            }
+
+            if ($tipo_doc != 6 && $tipo_doc != 7) {
+                throw new Exception("SOLO SE PUEDEN CONSULTAR DNI Y RUC");
+            }
+
+            if (!$nro_doc) {
+                throw new Exception("FALTA EL PARÁMETRO N° DOC");
+            }
+
+            if (!is_numeric($nro_doc)) {
+                throw new Exception("EL N° DOC DEBE SER NUMÉRICO");
+            }
+
+            if ($tipo_doc == 6 && strlen($nro_doc) != 8) {
+                throw new Exception("EL DNI DEBE TENER 8 DÍGITOS");
+            }
+
+            if ($tipo_doc == 7 && strlen($nro_doc) != 11) {
+                throw new Exception("EL RUC DEBE TENER 11 DÍGITOS");
+            }
+
+            //======== VALIDAR EXISTENCIA DEL TIPO DOC =======
+            $tipo_doc_bd = Detalle::findOrFail($tipo_doc);
+
+            if ($tipo_doc == 6 && $tipo_doc_bd->simbolo != 'DNI') {
+                throw new Exception("CAMPO INCORRECTO PARA TIPO DOC EN TABLA DETALLES");
+            }
+            if ($tipo_doc == 7 && $tipo_doc_bd->simbolo != 'RUC') {
+                throw new Exception("CAMPO INCORRECTO PARA TIPO DOC EN TABLA DETALLES");
+            }
+
+            //======= VERIFICAR SI EXISTE EL CLIENTE =======
+            $cliente = DB::table('clientes as c')
+                ->where('tipo_documento', $tipo_doc_bd->simbolo)
+                ->where('documento', $nro_doc)
+                ->where('estado', 'ACTIVO')
+                ->select(
+                    'c.nombre as nombre_completo',
+                    'c.documento as numero'
+                )
+                ->first();
+
+            //========= CONSULTAR EN API ========
+            if (!$cliente) {
+
+                $datos_api  =   null;
+
+                if ($tipo_doc == 6) {
+                    $consulta_controller    =   new ParametroController();
+                    $datos_api              =   json_decode($consulta_controller->apiDni($nro_doc));
+                }
+                if ($tipo_doc == 7) {
+                    $consulta_controller    =   new ParametroController();
+                    $datos_api              =   json_decode($consulta_controller->apiRuc($nro_doc));
+                }
+
+                if (!$datos_api->success) {
+                    throw new Exception($datos_api->message);
+                }
+
+                return response()->json(['success' => true, 'message' => 'CONSULTA REALIZADA', 'data' => $datos_api->data, 'origin' => 'API']);
+            }
+
+            return response()->json(['success' => true, 'message' => 'CLIENTE OBTENIDO DE BD', 'data' => $cliente, 'origin' => 'BD']);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 }
