@@ -3945,8 +3945,10 @@ array:2 [
                     'productos_tabla'       =>  $request->get('lstVenta'),
                     'tipo_venta'            =>  $tipo_venta,
                     'documento_convertido'  =>  $documento->id,
-                    'monto_embalaje'       =>  $documento->monto_embalaje,
+                    'monto_embalaje'        =>  $documento->monto_embalaje,
                     'monto_envio'           =>  $documento->monto_envio,
+                    'metodoPagoId'          =>  null,
+                    'cuentaPagoId'          =>  null
                 ]
             );
         } catch (Throwable $th) {

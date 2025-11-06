@@ -274,7 +274,9 @@ class VentaRepository
 
                 //========= VALIDACIÓN STOCK ========
                 if (
-                    !$datos_validados->ticket_credito && !$datos_validados->facturar &&
+                    !$datos_validados->ticket_credito
+                    && !$datos_validados->facturar
+                    && !$datos_validados->documento_convertido &&
                     (
                         floatval($talla->cantidad) > floatval($existe[0]->stock)
                     )

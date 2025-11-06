@@ -85,7 +85,11 @@ class VentaService
             ]);
 
         //======== EN CASO VENTA CONTADO Y PAGADA ELECTRÓNICO, VA AL KARDEX ===========
-        if ($venta->condicion_id == 1 && $venta->tipo_pago_id != 1 && $venta->estado_pago == 'PAGADA' && !$datos_validados->atencion) {
+        if ($venta->condicion_id == 1
+        && $venta->tipo_pago_id != 1
+        && $venta->estado_pago == 'PAGADA'
+        && !$datos_validados->atencion
+        && !$datos_validados->documento_convertido) {
             $this->s_kardex_cuenta->registrarDesdeVenta($venta);
         }
 
