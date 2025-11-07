@@ -6,6 +6,7 @@ use App\Almacenes\Almacen;
 use App\Mantenimiento\Condicion;
 use App\Mantenimiento\Cuenta\Cuenta;
 use App\Mantenimiento\Empresa\Empresa;
+use App\Mantenimiento\Sedes\Sede;
 use App\Mantenimiento\TipoPago\TipoPago;
 use App\User;
 use App\Ventas\Cliente;
@@ -24,17 +25,9 @@ class VentaValidacion
             throw new Exception("FALTA EL PARÁMETRO SEDE EN LA PETICIÓN!!!");
         }
 
-        $sede = DB::select(
-            'SELECT
-            es.*
-        FROM empresa_sedes AS es
-        WHERE
-            es.id = ?
-        AND es.estado = "ACTIVO"',
-            [$datos['sede_id']]
-        );
+        $sede   =   Sede::findOrFail($datos['sede_id']);
 
-        if (count($sede) === 0) {
+        if (!$sede) {
             throw new Exception("NO EXISTE LA SEDE EN LA BD!!!");
         }
 

@@ -388,11 +388,12 @@
                 if (data.loading) {
                     return $(
                         '<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>'
-                        );
+                    );
                 }
                 return data.text;
             },
         });
+        
         $('#cliente').select2({
             width: '100%',
             placeholder: "Buscar Cliente...",
@@ -587,33 +588,36 @@
         tfootSubtotal.textContent = 'S/. ' + subtotal.toFixed(2);
         tfootDescuento.textContent = 'S/. ' + descuento.toFixed(2);
 
-        amountsPedido.totalPagar = total_pagar.toFixed(2);
-        amountsPedido.igv = igv.toFixed(2);
-        amountsPedido.total = total.toFixed(2);
-        amountsPedido.embalaje = embalaje.toFixed(2);
-        amountsPedido.envio = envio.toFixed(2);
-        amountsPedido.subtotal = subtotal.toFixed(2);
-        amountsPedido.monto_descuento = descuento.toFixed(2);
+        amountsPedido.totalPagar = total_pagar;
+        amountsPedido.igv = igv;
+        amountsPedido.total = total;
+        amountsPedido.embalaje = embalaje;
+        amountsPedido.envio = envio;
+        amountsPedido.subtotal = subtotal;
+        amountsPedido.monto_descuento = descuento;
     }
 
-
-    //======== CALCULAR DESCUENTO ========
     const calcularDescuento = (producto_id, color_id, porcentaje_descuento) => {
         const indiceExiste = carrito.findIndex((c) => {
             return c.producto_id == producto_id && c.color_id == color_id;
-        })
+        });
 
         if (indiceExiste !== -1) {
             const producto_color_editar = carrito[indiceExiste];
 
             //===== APLICANDO DESCUENTO ======
             producto_color_editar.porcentaje_descuento = porcentaje_descuento;
-            producto_color_editar.monto_descuento = porcentaje_descuento === 0 ? 0 : producto_color_editar
-                .subtotal * (porcentaje_descuento / 100);
-            producto_color_editar.precio_venta_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar
-                .precio_venta * (1 - porcentaje_descuento / 100)).toFixed(2);
-            producto_color_editar.subtotal_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar
-                .subtotal * (1 - porcentaje_descuento / 100)).toFixed(2);
+            producto_color_editar.monto_descuento = porcentaje_descuento === 0 ?
+                0 :
+                parseFloat(producto_color_editar.subtotal * (porcentaje_descuento / 100));
+
+            producto_color_editar.precio_venta_nuevo = porcentaje_descuento === 0 ?
+                0 :
+                parseFloat(producto_color_editar.precio_venta * (1 - porcentaje_descuento / 100));
+
+            producto_color_editar.subtotal_nuevo = porcentaje_descuento === 0 ?
+                0 :
+                parseFloat(producto_color_editar.subtotal * (1 - porcentaje_descuento / 100));
 
             carrito[indiceExiste] = producto_color_editar;
 
@@ -622,21 +626,21 @@
 
             //==== ACTUALIZANDO PRECIO VENTA Y SUBTOTAL EN EL HTML ====
             const detailPrecioVenta = document.querySelector(
-                `.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
+                `.precio_venta_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`
+            );
             const detailSubtotal = document.querySelector(
-                `.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`);
+                `.subtotal_${producto_color_editar.producto_id}_${producto_color_editar.color_id}`
+            );
 
             if (porcentaje_descuento !== 0) {
-                detailPrecioVenta.textContent = producto_color_editar.precio_venta_nuevo;
-                detailSubtotal.textContent = producto_color_editar.subtotal_nuevo;
+                detailPrecioVenta.textContent = formatoMoneda(producto_color_editar.precio_venta_nuevo);
+                detailSubtotal.textContent = formatoMoneda(producto_color_editar.subtotal_nuevo);
             } else {
-                detailPrecioVenta.textContent = producto_color_editar.precio_venta;
-                detailSubtotal.textContent = producto_color_editar.subtotal;
+                detailPrecioVenta.textContent = formatoMoneda(producto_color_editar.precio_venta);
+                detailSubtotal.textContent = formatoMoneda(producto_color_editar.subtotal);
             }
-
         }
-    }
-
+    };
 
     //========= REORDENAR CARRITO =========
     const reordenarCarrito = () => {
@@ -734,24 +738,29 @@
             })
 
 
-            htmlTallas += `   <td style="text-align: right;">
-                                    <div style="width:100px;">
-                                        <span class="precio_venta_${c.producto_id}_${c.color_id}">
-                                            ${c.porcentaje_descuento === 0? c.precio_venta:c.precio_venta_nuevo}
-                                        </span>
-                                    </div>
-                                </td>
-                                <td class="td-subtotal" style="text-align: right;">
-                                    <span class="subtotal_${c.producto_id}_${c.color_id}">
-                                        ${c.porcentaje_descuento === 0? c.subtotal:c.subtotal_nuevo}
-                                    </span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <input data-producto-id="${c.producto_id}" data-color-id="${c.color_id}"
-                                    style="width:130px; margin: 0 auto;" value="${c.porcentaje_descuento}"
-                                    class="form-control detailDescuento"></input>
-                                </td>
-                            </tr>`;
+            htmlTallas += `
+                <td style="text-align: right;">
+                    <div style="width:100px;">
+                        <span class="precio_venta_${c.producto_id}_${c.color_id}">
+                            ${c.porcentaje_descuento === 0
+                                ? formatoMoneda(c.precio_venta)
+                                : formatoMoneda(c.precio_venta_nuevo)}
+                        </span>
+                    </div>
+                </td>
+                <td class="td-subtotal" style="text-align: right;">
+                    <span class="subtotal_${c.producto_id}_${c.color_id}">
+                        ${c.porcentaje_descuento === 0
+                            ? formatoMoneda(c.subtotal)
+                            : formatoMoneda(c.subtotal_nuevo)}
+                    </span>
+                </td>
+                <td style="text-align: center;">
+                    <input data-producto-id="${c.producto_id}" data-color-id="${c.color_id}"
+                        style="width:130px; margin: 0 auto;" value="${c.porcentaje_descuento}"
+                        class="form-control detailDescuento"></input>
+                </td>
+            </tr>`;
 
             fila += htmlTallas;
             bodyDetalleTable.innerHTML = fila;

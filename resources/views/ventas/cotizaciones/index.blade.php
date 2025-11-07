@@ -39,17 +39,7 @@
         </div>
     </div>
 </div>
-
 @stop
-
-
-
-@if (Session::has('error'))
-<script>
-    toastr.error('{{ Session::get('error') }}', 'Error');
-</script>
-@endif
-
 
 <script>
     let dtCotizaciones = null;
@@ -112,7 +102,11 @@
                 {
                     data: 'total_pagar',
                     name: 'co.total_pagar',
-                    searchable: false
+                    searchable: false,
+                    orderable:false,
+                    render: function(data, type, row) {
+                        return formatoMoneda(data);
+                    }
                 },
                 {
                     data: 'estado',

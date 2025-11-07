@@ -29,7 +29,7 @@
     </div>
     <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 d-flex justify-content-end">
         <button id="btn_añadir_cotizacion" class="btn btn-primary" onclick="añadirPedido()">
-            <i class="fa fa-plus-square"></i> Añadir nuevo
+            <i class="fa fa-plus-square"></i> NUEVO
         </button>
     </div>
 </div>
@@ -321,7 +321,10 @@
                 },
                 {
                     data: 'total_pagar',
-                    searchable: false
+                    searchable: false,
+                    render: function(data, type, row) {
+                        return formatoMoneda(data);
+                    }
                 },
                 {
                     data: 'user_nombre',

@@ -44,7 +44,6 @@ class CotizacionService
         //======= REGISTRO DETALLE DE LA COTIZACIÓN =====
         $dto_detalle    =   $this->s_dto->prepararDtoDetalle($lstCotizacion,$cotizacion);
         $this->s_repository->registrarDetalleCotizacion($dto_detalle);
-
         return $cotizacion;
     }
 
@@ -56,7 +55,7 @@ class CotizacionService
 
         //======= CALCULANDO MONTOS ========
         $montos =   $this->sc_calculos->calcularMontos($datos);
-    
+
         $datos['montos']    =   $montos;
 
         //====== ACTUALIZAR ======

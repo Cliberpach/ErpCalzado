@@ -46,7 +46,11 @@ class VentaRepository
         //======= PAGO =======
         //======== SI SE PROPORCIONA EFECTIVO,MONTO Y FECHA PAGO ========
         if ($datos_validados->metodoPagoId == 1 && $datos_validados->montoPago && $datos_validados->fechaOperacionPago) {
-            if (floatval($datos_validados->montoPago) != floatval($montos->monto_total_pagar)) {
+
+            $montoPago = number_format((float) $datos_validados->montoPago, 2, '.', '');
+            $montoTotal = number_format((float) $montos->monto_total_pagar, 2, '.', '');
+
+            if (bccomp($montoPago, $montoTotal, 2) !== 0) {
                 throw new Exception("EL MONTO DE PAGO NO COINCIDE CON EL TOTAL DE LA VENTA");
             }
 
@@ -61,9 +65,14 @@ class VentaRepository
 
         //======== SI SE PROPORCIONA OTRO MÉTODO,CUENTA,MONTO,NRO OP,FECHA ========
         if ($datos_validados->metodoPagoId != 1 && $datos_validados->cuentaPagoId && $datos_validados->montoPago && $datos_validados->nroOperacionPago && $datos_validados->fechaOperacionPago) {
-            if (floatval($datos_validados->montoPago) != floatval($montos->monto_total_pagar)) {
+
+            $montoPago = number_format((float) $datos_validados->montoPago, 2, '.', '');
+            $montoTotal = number_format((float) $montos->monto_total_pagar, 2, '.', '');
+
+            if (bccomp($montoPago, $montoTotal, 2) !== 0) {
                 throw new Exception("EL MONTO DE PAGO NO COINCIDE CON EL TOTAL DE LA VENTA");
             }
+
             $documento->pago_1_monto            =   $datos_validados->montoPago;
             $documento->pago_1_fecha_operacion  =   $datos_validados->fechaOperacionPago;
             $documento->importe                 =   $datos_validados->montoPago;
@@ -82,7 +91,7 @@ class VentaRepository
                 $documento->pago_1_nro_operacion        =   $datos_validados->nroOperacionPago;
             }
         }
-
+       
         //======== EMPRESA ========
         $documento->ruc_empresa                 =   $datos_validados->empresa->ruc;
         $documento->empresa                     =   $datos_validados->empresa->razon_social;
@@ -379,7 +388,7 @@ class VentaRepository
             && !$datos_validados->facturar
             && !$datos_validados->documento_convertido
             && $datos_validados->tipo_doc_venta_pedido !== 'CONSUMO'
-        ){
+        ) {
 
             $departamento_id = str_pad($data_envio->departamento, 2, '0', STR_PAD_LEFT);
             $provincia_id    = str_pad($data_envio->provincia, 4, '0', STR_PAD_LEFT);

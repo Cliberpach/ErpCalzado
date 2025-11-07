@@ -92,7 +92,8 @@
         <ModalVentasVue @pago-registrado="recargarTabla" :ventasPendientes="ventasPendientes" :imgDefault="imginicial"
             :modoPagos="this.lst_modos_pago" :cliente_id="cliente_id" />
         <!-- <ModalPdfDownloadVue :pdfData.sync="pdfData" /> -->
-        <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" @storeDataEnvio="storeDataEnvio" ref="modalEnvioRef" />
+        <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" @storeDataEnvio="storeDataEnvio"
+            ref="modalEnvioRef" />
     </div>
 </template>
 <script>
@@ -683,7 +684,14 @@ export default {
                     { data: 'sede_nombre', name: 'es.nombre', searchable: false },
                     { data: 'almacen_nombre', name: 'cd.almacen_nombre' },
                     { data: 'cliente', name: 'cd.cliente' },
-                    { data: 'total_pagar', name: 'cd.total_pagar', searchable: false },
+                    {
+                        data: 'total_pagar',
+                        name: 'cd.total_pagar',
+                        searchable: false,
+                        render: function (data, type, row) {
+                            return formatoNumero(data);
+                        }
+                    },
                     { data: 'condicion', name: 'condicions.descripcion', searchable: false },
                     {
                         data: 'estado_pago',

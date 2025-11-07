@@ -34,7 +34,9 @@ class CotizacionDTOS
 
         //=========  CLIENTE =========
         $cliente            =   Cliente::findOrFail($datos['cliente']);
-        $dto['cliente_id']  =   $cliente->id;
+    
+        $dto['cliente_id']      =   $cliente->id;
+        $dto['cliente_nombre']  =   $cliente->nombre;
 
         //========= REGISTRADOR ========
         $dto['registrador_id']     =   $datos['registrador_id'];

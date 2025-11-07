@@ -711,7 +711,7 @@ export default {
             this.$refs.tablaProductos.actualizarItemCarrito(productoEditado);
         },
         actualizarMontoPago(valor) {
-            this.montoPago = valor;
+            this.montoPago = parseFloat(valor).toFixed(2);
         },
         borrarDataEnvio() {
             this.formCreate.data_envio = null;
@@ -731,9 +731,6 @@ export default {
             } finally {
                 this.ocultarAnimacionVenta();
             }
-        },
-        actualizarMontoPago(valor) {
-            this.montoPago = valor;
         },
         validarMontoPago(e) {
             let valor = e.target.value;
@@ -1071,7 +1068,7 @@ export default {
             }
 
 
-            if (parseFloat(this.montoPago) != parseFloat(this.formCreate.monto_total_pagar)) {
+            if (parseFloat(this.montoPago).toFixed(2) != parseFloat(this.formCreate.monto_total_pagar).toFixed(2)) {
                 toastr.error('EL MONTO DE PAGO ES DIFERENTE AL TOTAL DE LA VENTA');
                 this.$nextTick(() => {
                     const input = this.$refs.inputMontoPago;

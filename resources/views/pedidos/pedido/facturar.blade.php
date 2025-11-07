@@ -222,23 +222,30 @@
             })
 
 
-            htmlTallas += `   <td style="text-align: right;">
-                                    <div style="width:100px;">
-                                        <span class="precio_venta_${c.producto_id}_${c.color_id}">
-                                            ${c.porcentaje_descuento === 0? c.precio_venta:c.precio_venta_nuevo}
-                                        </span>
-                                    </div>
-                                </td>
-                                <td class="td-subtotal" style="text-align: right;">
-                                    <span class="subtotal_${c.producto_id}_${c.color_id}">
-                                        ${c.subtotal}
-                                    </span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <input disabled data-producto-id="${c.producto_id}" data-color-id="${c.color_id}" style="width:130px; margin: 0 auto;" value="${c.porcentaje_descuento}"
-                                    class="form-control detailDescuento"></input>
-                                </td>
-                            </tr>`;
+            htmlTallas += `
+                <td style="text-align: right;">
+                    <div style="width:100px;">
+                        <span class="precio_venta_${c.producto_id}_${c.color_id}">
+                            ${formatoMoneda(c.porcentaje_descuento === 0 ? c.precio_venta : c.precio_venta_nuevo)}
+                        </span>
+                    </div>
+                </td>
+                <td class="td-subtotal" style="text-align: right;">
+                    <span class="subtotal_${c.producto_id}_${c.color_id}">
+                        ${formatoMoneda(c.subtotal)}
+                    </span>
+                </td>
+                <td style="text-align: center;">
+                    <input
+                        disabled
+                        data-producto-id="${c.producto_id}"
+                        data-color-id="${c.color_id}"
+                        style="width:130px; margin: 0 auto;"
+                        value="${formatoNumero(c.porcentaje_descuento)}"
+                        class="form-control detailDescuento">
+                    </input>
+                </td>
+            </tr>`;
 
             fila += htmlTallas;
             bodyDetalleTable.innerHTML = fila;
@@ -246,11 +253,13 @@
     }
 
     function pintarMontos(pedido) {
-        document.querySelector('.subtotal').innerHTML = pedido.sub_total;
-        document.querySelector('.embalaje').innerHTML = pedido.monto_embalaje;
-        document.querySelector('.envio').innerHTML = pedido.monto_envio;
-        document.querySelector('.descuento').innerHTML = pedido.monto_descuento;
-        document.querySelector('.total-pagar').innerHTML = pedido.total_pagar;
+        document.querySelector('.subtotal').innerHTML           =   formatoMoneda(pedido.sub_total);
+        document.querySelector('.embalaje').innerHTML           =   formatoMoneda(pedido.monto_embalaje);
+        document.querySelector('.envio').innerHTML              =   formatoMoneda(pedido.monto_envio);
+        document.querySelector('.descuento').innerHTML          =   formatoMoneda(pedido.monto_descuento);
+        document.querySelector('.total-pagar').innerHTML        =   formatoMoneda(pedido.total_pagar);
+        document.querySelector('.igv').innerHTML                =   formatoMoneda(pedido.total_igv);
+        document.querySelector('.total').innerHTML              =   formatoMoneda(pedido.total);
     }
 </script>
 @endpush

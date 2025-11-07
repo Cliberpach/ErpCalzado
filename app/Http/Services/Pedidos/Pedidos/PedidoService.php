@@ -203,7 +203,6 @@ class PedidoService
 
     public function generarDocumentoVenta(array $datos): int
     {
-
         $pedido                 =   Pedido::findOrFail($datos['pedido_id']);
 
         $request = new Request($datos);

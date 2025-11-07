@@ -196,7 +196,6 @@ array:18 [
             $lstPedido          =   json_decode($request->get('lstPedido'));
             $amountsPedido      =   json_decode($request->get('amountsPedido'));
 
-
             //======= MANEJANDO MONTOS ========
             $montos =   PedidoController::calcularMontos($lstPedido, $amountsPedido);
 
@@ -205,20 +204,18 @@ array:18 [
             $pedido->cliente_id         = $request->get('cliente');
 
             //======== BUSCANDO NOMBRE DEL CLIENTE =====//
-            $cliente    =   DB::select('select c.id,c.nombre,c.telefono_movil from clientes as c
-                            where c.id=?', [$request->get('cliente')]);
+            $cliente    =   Cliente::findOrFail($request->get('cliente'));
 
-            $pedido->cliente_nombre     =   $cliente[0]->nombre;
-            $pedido->cliente_telefono   =   $cliente[0]->telefono_movil;
+            $pedido->cliente_nombre     =   $cliente->nombre;
+            $pedido->cliente_telefono   =   $cliente->telefono_movil;
             //==========================================//
 
             $pedido->empresa_id         =  1;
 
             //======== BUSCANDO NOMBRE DE LA EMPRESA =====//
-            $empresa    =   DB::select('select e.id,e.razon_social from empresas as e
-                            where e.id=?', [1]);
+            $empresa    =   Empresa::findOrFail(1);
 
-            $pedido->empresa_nombre     =   $empresa[0]->razon_social;
+            $pedido->empresa_nombre     =   $empresa->razon_social;
             //==========================================//
 
             $pedido->condicion_id       = $request->get('condicion_id');
@@ -277,7 +274,7 @@ array:18 [
                     ]);
                 }
             }
-
+        
             //====== REGISTRO DE ACTIVIDAD ========
             $descripcion = "SE AGREGÓ EL PEDIDO CON LA FECHA: " . Carbon::parse($pedido->fecha_registro)->format('d/m/y');
             $gestion = "PEDIDO";
@@ -287,7 +284,7 @@ array:18 [
 
             Session::flash('success', 'Pedido creado.');
             return response()->json(['success' => true, 'message' => 'PEDIDO REGISTRADO CON ÉXITO']);
-        } catch (\Throwable  $th) {
+        } catch (Throwable  $th) {
             DB::rollback();
             return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine()]);
         }

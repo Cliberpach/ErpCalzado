@@ -201,6 +201,21 @@ function getRowByIndex(dtTabla, index) {
     return data[index];
 }
 
+// function formatoMoneda(valor) {
+//     return parseFloat(valor).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// }
+
 function formatoMoneda(valor) {
-    return parseFloat(valor).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return parseFloat(valor).toLocaleString('es-PE', {
+        style: 'currency',
+        currency: 'PEN',
+        minimumFractionDigits: 2
+    });
+}
+
+function formatoNumero(valor) {
+    return parseFloat(valor).toLocaleString('es-PE', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }

@@ -75,7 +75,8 @@
                     onclick="openModalCliente()">Registrar</button>
                 <select id="cliente" name="cliente" onchange="elegirCliente()"
                     class="select2_form form-control {{ $errors->has('cliente') ? ' is-invalid' : '' }}" required>
-                    <option value="{{$cliente->id}}">{{$cliente->tipo_documento.':'.$cliente->documento.'-'.$cliente->nombre}}</option>
+                    <option value="{{ $cliente->id }}">
+                        {{ $cliente->tipo_documento . ':' . $cliente->documento . '-' . $cliente->nombre }}</option>
                 </select>
             </div>
         </div>
@@ -96,6 +97,90 @@
             <span style="font-weight: bold;color:red;" class="telefono_error msgError"></span>
         </div>
 
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12 col-xs-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h4><b>SELECCIONAR PRODUCTOS</b></h4>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-group row">
+
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
+                                    <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA
+                                        - MODELO - PRODUCTO</label>
+                                    <select id="producto" class="" onchange="getColoresTallas()">
+                                        <option value=""></option>
+                                    </select>
+                                </div>
+
+                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-3">
+                                    <label class="required" style="font-weight: bold;">PRECIO
+                                        VENTA</label>
+                                    <select id="precio_venta" class="select2_form form-control">
+                                    </select>
+                                </div>
+                                
+                                <div class="col-12 mt-3">
+                                    <label style="font-weight: bold;">CÓDIGO BARRA</label>
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text" id="basic-addon1">
+                                                <i class="fas fa-barcode"></i>
+                                            </span>
+                                        </div>
+                                        <input class="inputBarCode form-control" maxlength="8" type="text"
+                                            placeholder="Escriba el código de barra" aria-label="Username"
+                                            aria-describedby="basic-addon1">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mt-3">
+                                <div class="col-lg-12">
+                                    @include('ventas.cotizaciones.table-stocks')
+                                </div>
+                            </div>
+
+                            <div class="form-group row mt-1">
+                                <div class="col-lg-2 col-xs-12">
+                                    <button disabled type="button" id="btn_agregar_detalle"
+                                        class="btn btn-warning btn-block"><i class="fa fa-plus"></i>
+                                        AGREGAR</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h4><b>Detalle de la Cotización</b></h4>
+                </div>
+                <div class="panel-body">
+
+                    @include('ventas.cotizaciones.table-stocks', [
+                        'carrito' => 'carrito',
+                    ])
+
+                    <div class="col-12 d-flex justify-content-end">
+                        <div class="table-responsive">
+                            @include('ventas.cotizaciones.table_montos')
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
     </div>
 
 </form>

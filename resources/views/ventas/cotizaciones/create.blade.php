@@ -38,128 +38,6 @@
                             @include('ventas.cotizaciones.forms.form_create_cotizacion')
                         </div>
                     </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-lg-12 col-xs-12">
-                            <div class="panel panel-primary">
-                                <div class="panel-heading">
-                                    <h4><b>SELECCIONAR PRODUCTOS</b></h4>
-                                </div>
-                                <div class="panel-body">
-                                    <div class="row">
-                                        <div class="col-lg-12">
-                                            <div class="form-group row">
-                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                                                    <label class="required" style="font-weight: bold;">CATEGORÍA</label>
-                                                    <select id="categoria"
-                                                        class="select2_form form-control {{ $errors->has('categoria') ? ' is-invalid' : '' }}"
-                                                        onchange="getProductos()">
-                                                        <option></option>
-                                                        @foreach ($categorias as $categoria)
-                                                            <option value="{{ $categoria->id }}"
-                                                                {{ old('categoria') == $categoria->id ? 'selected' : '' }}>
-                                                                {{ $categoria->descripcion }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                                                    <label class="required" style="font-weight: bold;">MARCA</label>
-                                                    <select id="marca"
-                                                        class="select2_form form-control {{ $errors->has('marca') ? ' is-invalid' : '' }}"
-                                                        onchange="getProductos()">
-                                                        <option></option>
-                                                        @foreach ($marcas as $marca)
-                                                            <option value="{{ $marca->id }}"
-                                                                {{ old('marca') == $marca->id ? 'selected' : '' }}>
-                                                                {{ $marca->marca }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                                                    <label class="required" style="font-weight: bold;">MODELO</label>
-                                                    <select id="modelo"
-                                                        class="select2_form form-control {{ $errors->has('modelo') ? ' is-invalid' : '' }}"
-                                                        onchange="getProductos()">
-                                                        <option></option>
-                                                        @foreach ($modelos as $modelo)
-                                                            <option value="{{ $modelo->id }}"
-                                                                {{ old('modelo') == $modelo->id ? 'selected' : '' }}>
-                                                                {{ $modelo->descripcion }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                                                    <label class="required" style="font-weight: bold;">PRODUCTO</label>
-                                                    <select id="producto"
-                                                        class="select2_form form-control {{ $errors->has('producto') ? ' is-invalid' : '' }}"
-                                                        onchange="getColoresTallas()">
-                                                        <option value=""></option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-3">
-                                                    <label class="required" style="font-weight: bold;">PRECIO
-                                                        VENTA</label>
-                                                    <select id="precio_venta" class="select2_form form-control">
-                                                    </select>
-                                                </div>
-                                                <div class="col-12 mt-3">
-                                                    <label style="font-weight: bold;">CÓDIGO BARRA</label>
-                                                    <div class="input-group mb-3">
-                                                        <div class="input-group-prepend">
-                                                            <span class="input-group-text" id="basic-addon1">
-                                                                <i class="fas fa-barcode"></i>
-                                                            </span>
-                                                        </div>
-                                                        <input class="inputBarCode form-control" maxlength="8"
-                                                            type="text" placeholder="Escriba el código de barra"
-                                                            aria-label="Username" aria-describedby="basic-addon1">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group row mt-3">
-                                                <div class="col-lg-12">
-                                                    @include('ventas.cotizaciones.table-stocks')
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group row mt-1">
-                                                <div class="col-lg-2 col-xs-12">
-                                                    <button disabled type="button" id="btn_agregar_detalle"
-                                                        class="btn btn-warning btn-block"><i class="fa fa-plus"></i>
-                                                        AGREGAR</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="panel panel-primary">
-                                <div class="panel-heading">
-                                    <h4><b>Detalle de la Cotización</b></h4>
-                                </div>
-                                <div class="panel-body">
-
-                                    @include('ventas.cotizaciones.table-stocks', [
-                                        'carrito' => 'carrito',
-                                    ])
-
-                                    <div class="col-12 d-flex justify-content-end">
-                                        <div class="table-responsive">
-                                            @include('ventas.cotizaciones.table_montos')
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="hr-line-dashed"></div>
                     <div class="row">
                         <div class="col-lg-12">
@@ -639,6 +517,67 @@
                 return $option;
             },
         });
+
+        $('#producto').select2({
+            width: '100%',
+            placeholder: "Buscar producto...",
+            allowClear: true,
+            language: {
+                inputTooShort: function(args) {
+                    var min = args.minimum;
+                    return "Por favor, ingrese " + min + " o más caracteres";
+                },
+                searching: function() {
+                    return "BUSCANDO...";
+                },
+                noResults: function() {
+                    return "No se encontraron productos";
+                }
+            },
+            ajax: {
+                url: '{{ route('pedidos.pedido.getProductos') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        search: params.term,
+                        almacen_id: $('#almacen').val(),
+                        page: params.page || 1
+                    };
+                },
+                processResults: function(data, params) {
+                    if (data.success) {
+                        params.page = params.page || 1;
+                        const productos = data.productos;
+                        return {
+                            results: productos.map(item => ({
+                                id: item.producto_id,
+                                text: item.producto_completo
+                            })),
+                            pagination: {
+                                more: data.more
+                            }
+                        };
+                    } else {
+                        toastr.error(data.message, 'ERROR EN EL SERVIDOR');
+                        return {
+                            results: []
+                        }
+                    }
+
+                },
+                cache: true
+            },
+            minimumInputLength: 2,
+            templateResult: function(data) {
+                if (data.loading) {
+                    return $(
+                        '<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>'
+                    );
+                }
+                return data.text;
+            },
+        });
     }
 
     //====== FORMATEAR EL CARRITO A FORMATO DE BD ======
@@ -659,7 +598,7 @@
         })
     }
 
-  //======= CALCULAR DESCUENTO ========
+    //======= CALCULAR DESCUENTO ========
     const calcularDescuento = (producto_id, color_id, porcentaje_descuento) => {
         const indiceExiste = carrito.findIndex((c) => {
             return c.producto_id == producto_id && c.color_id == color_id;
@@ -771,16 +710,14 @@
         tfootSubtotal.textContent = 'S/. ' + subtotal.toFixed(2);
         tfootDescuento.textContent = 'S/. ' + descuento.toFixed(2);
 
-        amountsCotizacion.totalPagar = total_pagar.toFixed(2);
-        amountsCotizacion.igv = igv.toFixed(2);
-        amountsCotizacion.total = total.toFixed(2);
-        amountsCotizacion.embalaje = embalaje.toFixed(2);
-        amountsCotizacion.envio = envio.toFixed(2);
-        amountsCotizacion.subtotal = subtotal.toFixed(2);
-        amountsCotizacion.monto_descuento = descuento.toFixed(2);
+        amountsCotizacion.totalPagar = total_pagar;
+        amountsCotizacion.igv = igv;
+        amountsCotizacion.total = total;
+        amountsCotizacion.embalaje = embalaje;
+        amountsCotizacion.envio = envio;
+        amountsCotizacion.subtotal = subtotal;
+        amountsCotizacion.monto_descuento = descuento;
     }
-
-
 
     const eliminarProducto = (productoId, colorId) => {
         carrito = carrito.filter((p) => {

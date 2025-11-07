@@ -986,9 +986,9 @@
             producto_color_editar.monto_descuento = porcentaje_descuento === 0 ? 0 : producto_color_editar
                 .subtotal * (porcentaje_descuento / 100);
             producto_color_editar.precio_venta_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar
-                .precio_venta * (1 - porcentaje_descuento / 100)).toFixed(2);
+                .precio_venta * (1 - porcentaje_descuento / 100));
             producto_color_editar.subtotal_nuevo = porcentaje_descuento === 0 ? 0 : (producto_color_editar
-                .subtotal * (1 - porcentaje_descuento / 100)).toFixed(2);
+                .subtotal * (1 - porcentaje_descuento / 100));
 
             carrito[indiceExiste] = producto_color_editar;
 
@@ -1042,13 +1042,13 @@
         tfootSubtotal.textContent = 'S/. ' + subtotal.toFixed(2);
         tfootDescuento.textContent = 'S/. ' + descuento.toFixed(2);
 
-        inputTotalPagar.value = total_pagar.toFixed(2);
-        inputIgv.value = igv.toFixed(2);
-        inputTotal.value = total.toFixed(2);
-        inputEmbalaje.value = embalaje.toFixed(2);
-        inputEnvio.value = envio.toFixed(2);
-        inputSubTotal.value = subtotal.toFixed(2);
-        inputMontoDescuento.value = descuento.toFixed(2);
+        inputTotalPagar.value = total_pagar;
+        inputIgv.value = igv;
+        inputTotal.value = total;
+        inputEmbalaje.value = embalaje;
+        inputEnvio.value = envio;
+        inputSubTotal.value = subtotal;
+        inputMontoDescuento.value = descuento;
     }
 
 
