@@ -274,7 +274,7 @@ array:18 [
                     ]);
                 }
             }
-        
+
             //====== REGISTRO DE ACTIVIDAD ========
             $descripcion = "SE AGREGÓ EL PEDIDO CON LA FECHA: " . Carbon::parse($pedido->fecha_registro)->format('d/m/y');
             $gestion = "PEDIDO";
@@ -848,15 +848,20 @@ array:11 [
 
     public function getAtenciones($pedido_id)
     {
-        $pedido_atenciones    =   DB::select('select cd.serie as documento_serie,cd.correlativo as documento_correlativo,
-                                cd.created_at as fecha_atencion ,CONCAT(p.nombres, " ", p.apellido_paterno, " ", p.apellido_materno) AS documento_usuario,
-                                cd.monto_envio as documento_monto_envio, cd.monto_embalaje as documento_monto_embalaje,
-                                cd.total_pagar as documento_total_pagar,cd.pedido_id,cd.id as documento_id
-                                from  cotizacion_documento as cd
-                                inner join user_persona as up on cd.user_id = up.user_id
-                                inner join personas as p  on p.id = up.persona_id
-                                where cd.pedido_id=? and cd.tipo_doc_venta_pedido = "ATENCION" ', [$pedido_id]);
-
+        $pedido_atenciones  =   DB::select('SELECT
+                                cd.serie as documento_serie,
+                                cd.correlativo as documento_correlativo,
+                                cd.created_at as fecha_atencion ,
+                                cd.registrador_nombre AS documento_usuario,
+                                cd.monto_envio as documento_monto_envio,
+                                cd.monto_embalaje as documento_monto_embalaje,
+                                cd.total_pagar as documento_total_pagar,
+                                cd.pedido_id,
+                                cd.id as documento_id,
+                                cd.tipo_doc_venta_pedido
+                                FROM  cotizacion_documento as cd
+                                WHERE cd.pedido_id = ?
+                                AND cd.tipo_doc_venta_pedido = "ATENCION"', [$pedido_id]);
 
         return  response()->json(['type' => 'success', 'pedido_atenciones' => $pedido_atenciones]);
     }
