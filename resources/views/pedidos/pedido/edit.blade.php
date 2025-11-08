@@ -744,13 +744,13 @@
         tfootSubtotal.textContent = 'S/. ' + subtotal.toFixed(2);
         tfootDescuento.textContent = 'S/. ' + descuento.toFixed(2);
 
-        amountsPedido.totalPagar = total_pagar.toFixed(2);
-        amountsPedido.igv = igv.toFixed(2);
-        amountsPedido.total = total.toFixed(2);
-        amountsPedido.embalaje = embalaje.toFixed(2);
-        amountsPedido.envio = envio.toFixed(2);
-        amountsPedido.subtotal = subtotal.toFixed(2);
-        amountsPedido.monto_descuento = descuento.toFixed(2);
+        amountsPedido.totalPagar = total_pagar;
+        amountsPedido.igv = igv;
+        amountsPedido.total = total;
+        amountsPedido.embalaje = embalaje;
+        amountsPedido.envio = envio;
+        amountsPedido.subtotal = subtotal;
+        amountsPedido.monto_descuento = descuento;
     }
 
     //======== CALCULAR DESCUENTO ========
