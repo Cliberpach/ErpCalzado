@@ -33,15 +33,16 @@ class CalculosService
         $monto_total_pagar  =   0.0;
         $monto_descuento    =   0;
         $monto_anticipo     =   $datos_validados->anticipo_monto_consumido ?? 0;
+        $monto_subtotal_ant =   0;
 
         foreach ($lstVenta as $producto) {
             foreach ($producto->tallas as $talla) {
-                $monto_descuento    +=  (float)$producto->monto_descuento;
                 if (floatval($producto->porcentaje_descuento) == 0) {
                     $monto_subtotal     +=  ($talla->cantidad * $producto->precio_venta);
                 } else {
                     $monto_subtotal     +=  ($talla->cantidad * $producto->precio_venta_nuevo);
                 }
+                $monto_subtotal_ant +=  ($talla->cantidad * $producto->precio_venta);
             }
         }
 
@@ -49,6 +50,7 @@ class CalculosService
         $monto_total            =   $monto_total_pagar / 1.18;
         $monto_igv              =   $monto_total_pagar - $monto_total;
         $porcentaje_descuento   =   ($monto_descuento * 100) / ($monto_total_pagar + $monto_anticipo);
+        $monto_descuento        =   $monto_subtotal_ant - $monto_subtotal;
 
         //========= CALCULAR LOS MONTOS DE SUNAT =========
         if ($monto_anticipo == 0) {

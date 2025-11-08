@@ -711,7 +711,7 @@ export default {
             this.$refs.tablaProductos.actualizarItemCarrito(productoEditado);
         },
         actualizarMontoPago(valor) {
-            this.montoPago = parseFloat(valor).toFixed(2);
+            this.montoPago = formatoNumero(valor);
         },
         borrarDataEnvio() {
             this.formCreate.data_envio = null;
@@ -1067,8 +1067,10 @@ export default {
                 return false;
             }
 
+            const montoPago = Math.round(parseFloat(this.montoPago) * 100) / 100;
+            const totalVenta = Math.round(parseFloat(this.formCreate.monto_total_pagar) * 100) / 100;
 
-            if (parseFloat(this.montoPago).toFixed(2) != parseFloat(this.formCreate.monto_total_pagar).toFixed(2)) {
+            if (montoPago !== totalVenta) {
                 toastr.error('EL MONTO DE PAGO ES DIFERENTE AL TOTAL DE LA VENTA');
                 this.$nextTick(() => {
                     const input = this.$refs.inputMontoPago;
@@ -1144,9 +1146,9 @@ export default {
         max-width: 1200px;
     }
 }
-.v-select .vs__dropdown-menu {
-  max-height: 200px;
-  overflow-y: auto;
-}
 
+.v-select .vs__dropdown-menu {
+    max-height: 200px;
+    overflow-y: auto;
+}
 </style>

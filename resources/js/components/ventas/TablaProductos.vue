@@ -446,35 +446,31 @@
                                             DESCUENTO:</td>
                                         <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
                                             <span>{{ `S/.
-                                                ${Number(monto_descuento).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,
-                                                ",")}` }}</span>
+                                                ${formatoNumero(monto_descuento)}` }}</span>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
-                                            MONTO TOTAL:
+                                            TOTAL:
                                         </td>
                                         <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
-                                            {{ `S/. ${Number(monto_total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,
-                                                ",")}` }}
+                                            {{ `S/. ${formatoNumero(monto_total)}` }}
                                         </td>
                                     </tr>
                                     <tr>
                                         <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">IGV:
                                         </td>
                                         <td class="igv" colspan="1" style="font-weight: bold; text-align:end;">
-                                            {{ `S/. ${Number(monto_igv).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,
-                                                ",")}` }}
+                                            {{ `S/. ${formatoNumero(monto_igv)}` }}
                                         </td>
                                     </tr>
                                     <tr>
                                         <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
-                                            MONTO TOTAL A
+                                            TOTAL A
                                             PAGAR:</td>
                                         <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
                                             {{ `S/.
-                                            ${Number(monto_total_pagar).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,
-                                                ",")}`
+                                            ${formatoNumero(monto_total_pagar)}`
                                             }}
                                         </td>
                                     </tr>
@@ -783,6 +779,12 @@ export default {
 
     },
     methods: {
+        formatoNumero(valor) {
+            return parseFloat(valor).toLocaleString('es-PE', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        },
         actualizarItemCarrito(productoEditado) {
             const indexProducto = this.carrito.findIndex((c) => {
                 return c.producto_id == productoEditado.producto_id && c.color_id == productoEditado.color_id;
@@ -1534,7 +1536,7 @@ export default {
                         this.calcularDescuento(c.producto_id, c.color_id, c.porcentaje_descuento);
                     })
 
-                    console.log('carrito',this.carrito);
+                    console.log('carrito', this.carrito);
                     toastr.info('AGREGADO AL DETALLE!!!', `${res.data.producto.producto_nombre} - ${res.data.producto.color_nombre} - ${res.data.producto.talla_nombre}
                                 PRECIO: ${res.data.producto.precio_venta}`, { timeOut: 0 });
 
