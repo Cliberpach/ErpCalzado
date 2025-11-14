@@ -152,8 +152,8 @@ class DespachoService
         $envio->origen_venta            =   $origen_venta->descripcion;
         $envio->origen_venta_id         =   $origen_venta->id;
 
-        $envio->obs_rotulo   = mb_strtoupper($datos['obs_rotulo'], 'UTF-8');
-        $envio->obs_despacho = mb_strtoupper($datos['obs_despacho'], 'UTF-8');
+        $envio->obs_rotulo              =   mb_strtoupper($datos['obs_rotulo'], 'UTF-8');
+        $envio->obs_despacho            =   mb_strtoupper($datos['obs_despacho'], 'UTF-8');
 
         $envio->usuario_nombre          =   Auth::user()->usuario;
         $envio->user_vendedor_id        =   $venta->user_id;
@@ -168,8 +168,8 @@ class DespachoService
         $envio->modo                  =   'VENTA';
         $envio->save();
 
-        $venta->despacho_id     =   $envio->id;
-        $venta->estado_despacho       = 'PENDIENTE';
+        $venta->despacho_id         =   $envio->id;
+        $venta->estado_despacho     = 'PENDIENTE';
         $venta->update();
     }
 
@@ -191,6 +191,7 @@ class DespachoService
         $tipo_pago_envio        =   Detalle::findOrFail($datos['tipo_pago_envio']);
         $origen_venta           =   Detalle::findOrFail($datos['origen_venta']);
         $venta                  =   Documento::findOrFail($datos['documento_id']);
+        $almacen                =   Almacen::findOrFail($venta->almacen_id);
 
         $envio                          =   EnvioVenta::where('documento_id', $documento_id)->first();
         $envio->documento_id            =   $datos['documento_id'];
@@ -231,6 +232,11 @@ class DespachoService
         $envio->obs_despacho            =   mb_strtoupper($datos['obs_despacho'], 'UTF-8');
 
         $envio->usuario_nombre          =   Auth::user()->usuario;
+
+        $envio->almacen_id            =   $venta->almacen_id;
+        $envio->almacen_nombre        =   $venta->almacen_nombre;
+        $envio->sede_id               =   $venta->sede_id;
+        $envio->sede_despachadora_id  =   $almacen->sede_id;
         $envio->update();
     }
 }
