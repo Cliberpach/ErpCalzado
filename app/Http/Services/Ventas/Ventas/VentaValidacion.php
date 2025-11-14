@@ -19,7 +19,7 @@ class VentaValidacion
 {
 
     public static function validacionStore($datos)
-    {   
+    {
         //========= VALIDAR LA SEDE ========
         if (empty($datos['sede_id'])) {
             throw new Exception("FALTA EL PARÁMETRO SEDE EN LA PETICIÓN!!!");
@@ -89,7 +89,7 @@ class VentaValidacion
 
             'facturar'                  =>  $datos['facturar'] ?? null,
             'pedido_id'                 =>  $datos['pedido_id'] ?? null,
-            'modo'                      =>  $datos['monto'] ?? null,
+            'modo'                      =>  $datos['modo'] ?? null,
             'facturado'                 =>  $datos['facturado'] ?? null,
 
             'anticipo_consumido_id'     =>  $datos['anticipo_consumido_id'] ?? null,
