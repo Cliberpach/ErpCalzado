@@ -52,7 +52,7 @@ class ResumenController extends Controller
     public function getComprobantes($fechaComprobantes,$sede_id){
 
 
-        $enf        =   DB::select('select
+        $enf        =   DB::select('SELECT
                         enf.*
                         from empresa_numeracion_facturaciones as enf
                         inner join tabladetalles as td on td.id = enf.tipo_comprobante

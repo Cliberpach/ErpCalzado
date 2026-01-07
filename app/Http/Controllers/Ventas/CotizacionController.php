@@ -30,8 +30,6 @@ use Yajra\DataTables\Facades\DataTables;
 use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
-use App\Ventas\Pedido;
-use App\Ventas\PedidoDetalle;
 use App\Pos\DetalleMovimientoVentaCaja;
 use App\User;
 use App\Ventas\EnvioVenta;

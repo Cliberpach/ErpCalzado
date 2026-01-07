@@ -34,7 +34,7 @@ class CotizacionDTOS
 
         //=========  CLIENTE =========
         $cliente            =   Cliente::findOrFail($datos['cliente']);
-    
+
         $dto['cliente_id']      =   $cliente->id;
         $dto['cliente_nombre']  =   $cliente->nombre;
 
@@ -115,9 +115,9 @@ class CotizacionDTOS
 
         if ($cotizacion->monto_embalaje != 0 && $cotizacion->monto_embalaje) {
             $almacen_ficticio               =   Almacen::where('tipo','FICTICIO')->where('estado','ANULADO')->where('descripcion','ALMACEN')->first();
-            $producto_embalaje              =   Producto::where('tipo', 'FICTICIO')->where('nombre', 'EMBALAJE')->first();
-            $color_ficticio                 =   Color::where('tipo', 'FICTICIO')->where('descripcion', 'SERVICIO')->first();
-            $talla_ficticio                 =   Talla::where('tipo', 'FICTICIO')->where('descripcion', 'SERVICIO')->first();
+            $producto_embalaje              =   Producto::where('tipo', 'FICTICIO')->where('estado','ANULADO')->where('nombre', 'EMBALAJE')->first();
+            $color_ficticio                 =   Color::where('tipo', 'FICTICIO')->where('estado','ANULADO')->where('descripcion', 'SERVICIO')->first();
+            $talla_ficticio                 =   Talla::where('tipo', 'FICTICIO')->where('estado','ANULADO')->where('descripcion', 'SERVICIO')->first();
 
             $dto                            = [];
             $dto['cotizacion_id']           = $cotizacion->id;
@@ -144,18 +144,18 @@ class CotizacionDTOS
 
         if ($cotizacion->monto_envio != 0 && $cotizacion->monto_envio) {
             $almacen_ficticio                   =   Almacen::where('tipo','FICTICIO')->where('estado','ANULADO')->where('descripcion','ALMACEN')->first();
-            $producto_embalaje                  =   Producto::where('tipo', 'FICTICIO')->where('nombre', 'ENVIO')->first();
-            $color_ficticio                     =   Color::where('tipo', 'FICTICIO')->where('descripcion', 'SERVICIO')->first();
-            $talla_ficticio                     =   Talla::where('tipo', 'FICTICIO')->where('descripcion', 'SERVICIO')->first();
+            $producto_envio                     =   Producto::where('tipo', 'FICTICIO')->where('estado','ANULADO')->where('nombre', 'ENVIO')->first();
+            $color_ficticio                     =   Color::where('tipo', 'FICTICIO')->where('estado','ANULADO')->where('descripcion', 'SERVICIO')->first();
+            $talla_ficticio                     =   Talla::where('tipo', 'FICTICIO')->where('estado','ANULADO')->where('descripcion', 'SERVICIO')->first();
 
             $dto                            = [];
             $dto['cotizacion_id']           = $cotizacion->id;
             $dto['almacen_id']              = $almacen_ficticio->id;
-            $dto['producto_id']             = $producto_embalaje->id;
+            $dto['producto_id']             = $producto_envio->id;
             $dto['color_id']                = $color_ficticio->id;
             $dto['talla_id']                = $talla_ficticio->id;
             $dto['almacen_nombre']          = $almacen_ficticio->descripcion;
-            $dto['producto_nombre']         = $producto_embalaje->nombre;
+            $dto['producto_nombre']         = $producto_envio->nombre;
             $dto['color_nombre']            = $color_ficticio->descripcion;
             $dto['talla_nombre']            = $talla_ficticio->descripcion;
             $dto['cantidad']                = 1;
