@@ -18,4 +18,16 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::prefix('categorias')->group(function () {
+    Route::get('get-all', [CategoriaController::class, 'getAll']);
+});
 
+Route::prefix('productos')->group(function () {
+    Route::get('get-all', [ProductoController::class, 'getAll']);
+    Route::get('get-one/{id}', [ProductoController::class, 'getOne']);
+    Route::get('{producto}/colores/{color}/tallas', [ProductoController::class, 'getTallasByColor']);
+});
+
+Route::prefix('colores')->group(function () {
+    Route::get('get-all', [ColorController::class, 'getAll']);
+});
