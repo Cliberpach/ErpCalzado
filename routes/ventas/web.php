@@ -23,14 +23,14 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
 
 
         //Tiendas
-        Route::get('tiendas/index/{id}', 'Ventas\TiendaController@index')->name('clientes.tienda.index');
+       /*Route::get('tiendas/index/{id}', 'Ventas\TiendaController@index')->name('clientes.tienda.index');
         Route::get('tiendas/getShop/{id}', 'Ventas\TiendaController@getShop')->name('clientes.tienda.shop');
         Route::get('tiendas/create/{id}', 'Ventas\TiendaController@create')->name('clientes.tienda.create');
         Route::post('tiendas/store/', 'Ventas\TiendaController@store')->name('clientes.tienda.store');
         Route::put('tiendas/update/{id}', 'Ventas\TiendaController@update')->name('clientes.tienda.update');
         Route::get('tiendas/destroy/{id}', 'Ventas\TiendaController@destroy')->name('clientes.tienda.destroy');
         Route::get('tiendas/show/{id}', 'Ventas\TiendaController@show')->name('clientes.tienda.show');
-        Route::get('tiendas/actualizar/{id}', 'Ventas\TiendaController@edit')->name('clientes.tienda.edit');
+        Route::get('tiendas/actualizar/{id}', 'Ventas\TiendaController@edit')->name('clientes.tienda.edit');*/
     });
 
     // Cotizaciones
