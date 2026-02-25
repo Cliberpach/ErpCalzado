@@ -263,7 +263,6 @@ class ProductoController extends Controller
             }
 
             $products = Producto::from('productos as p')
-                ->leftjoin('producto_color_tallas as pct', 'pct.producto_id', 'p.id')
                 ->join('categorias as c', 'c.id', 'p.categoria_id')
                 ->join('marcas as m', 'm.id', 'p.marca_id')
                 ->where('p.estado', 'ACTIVO')
@@ -271,10 +270,6 @@ class ProductoController extends Controller
                     $q->where('p.nombre', 'LIKE', "%{$query}%")
                         ->orWhere('c.descripcion', 'LIKE', "%{$query}%")
                         ->orWhere('m.marca', 'LIKE', "%{$query}%");
-                })
-                ->where(function ($q) use ($warehouse_id) {
-                    $q->where('pct.almacen_id', $warehouse_id)
-                        ->orWhereNull('pct.almacen_id');
                 })
                 ->limit(20)
                 ->select(
@@ -289,13 +284,8 @@ class ProductoController extends Controller
 
             $data = $products->map(fn($p) => [
                 'id' => $p->id,
-                'text'  => "{$p->producto_nombre} - ($p->stock)",
+                'text'  => "{$p->producto_nombre}",
                 'subtext' => "{$p->categoria_nombre}-{$p->marca_nombre}",
-                'sale_price' =>  $p->precio_venta_1,
-                'name'  =>  $p->producto_nombre,
-                'category_name' =>  $p->categoria_nombre,
-                'brand_name'    =>  $p->marca_nombre,
-                'stock'         =>  $p->stock,
             ]);
 
             return response()->json([
