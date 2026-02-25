@@ -56,7 +56,7 @@ class ProductoController extends Controller
             dd('ola');
         }
 
-        return response()->json($productos->get());
+        //return response()->json($productos->get());
 
         $productos = $productos->paginate($perPage);
 
