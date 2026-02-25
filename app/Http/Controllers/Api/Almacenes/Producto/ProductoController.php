@@ -292,7 +292,7 @@ class ProductoController extends Controller
                 'text'  => "{$p->nombre} - ($p->stock)",
                 'subtext' => "{$p->categoria_nombre}-{$p->marca_nombre}",
                 'sale_price' =>  $p->precio_venta_1,
-                'name'  =>  $p->nombre,
+                'name'  =>  $p->producto_nombre,
                 'category_name' =>  $p->categoria_nombre,
                 'brand_name'    =>  $p->marca_nombre,
                 'stock'         =>  $p->stock,
