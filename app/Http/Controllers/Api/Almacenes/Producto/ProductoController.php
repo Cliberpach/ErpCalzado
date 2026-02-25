@@ -22,7 +22,7 @@ class ProductoController extends Controller
     public function getAll(Request $request)
     {
         $filtro_categoria    =   $request->get('categoria');
-
+        $filter_search           = $request->get('search');
         $perPage = $request->get('per_page', 10);
 
         $productos = DB::table('productos as p')
@@ -46,6 +46,15 @@ class ProductoController extends Controller
         if ($filtro_categoria) {
             $productos->where('c.id', $filtro_categoria);
         }
+
+        if ($filter_search) {
+            $productos->where(function ($q) use ($filter_search) {
+                $q->where('p.nombre', 'like', "%{$filter_search}%")
+                    ->orWhere('c.descripcion', 'like', "%{$filter_search}%");
+            });
+        }
+
+        return response()->json($filter_search);
 
         $productos = $productos->paginate($perPage);
 
@@ -290,7 +299,6 @@ class ProductoController extends Controller
                 'success' => true,
                 'data' => $data
             ]);
-
         } catch (Throwable $th) {
             return response()->json([
                 'success' => false,
