@@ -140,7 +140,7 @@ class ProductoController extends Controller
                     ->where('pct.color_id', $color->id)
                     ->where('pct.almacen_id', 1)
                     ->where('pct.stock_logico', '>', 0)
-                    ->where('pct.stock','>=','pct.stock_logico')
+                    ->where('pct.stock', '>=', 'pct.stock_logico')
                     ->select('t.id', 't.descripcion as nombre', 'pct.stock', 'pct.stock_logico')
                     ->get();
 
@@ -150,7 +150,7 @@ class ProductoController extends Controller
 
             $data = [
                 'id' => $producto->id,
-                'disponible'    =>  $cant_tallas === 0?false:true,
+                'disponible'    =>  $cant_tallas === 0 ? false : true,
                 'nombre' => $producto->nombre,
                 'descripcion' => $producto->descripcion,
                 'categoria_nombre' => $producto->categoria_nombre,
@@ -187,19 +187,19 @@ class ProductoController extends Controller
 
             $producto = Producto::findOrFail($producto);
 
-            if($producto->mostrar_en_web == false){
+            if ($producto->mostrar_en_web == false) {
                 return response()->json([
                     'success' => false,
                     'message' => 'PRODUCTO NO DISPONIBLE',
                 ], 404);
             }
-            if($producto->estado != 'ACTIVO'){
+            if ($producto->estado != 'ACTIVO') {
                 return response()->json([
                     'success' => false,
                     'message' => 'PRODUCTO NO DISPONIBLE',
                 ], 404);
             }
-            if($producto->tipo != 'PRODUCTO'){
+            if ($producto->tipo != 'PRODUCTO') {
                 return response()->json([
                     'success' => false,
                     'message' => 'PRODUCTO NO DISPONIBLE',
@@ -207,13 +207,13 @@ class ProductoController extends Controller
             }
 
             $color =    Color::findOrFail($color);
-            if($color->estado != 'ACTIVO'){
+            if ($color->estado != 'ACTIVO') {
                 return response()->json([
                     'success' => false,
                     'message' => 'COLOR NO DISPONIBLE',
                 ], 404);
             }
-            if($color->tipo != 'COLOR'){
+            if ($color->tipo != 'COLOR') {
                 return response()->json([
                     'success' => false,
                     'message' => 'COLOR NO DISPONIBLE',
@@ -226,12 +226,12 @@ class ProductoController extends Controller
                 ->where('pct.color_id', $color->id)
                 ->where('pct.almacen_id', 1)
                 ->where('pct.stock_logico', '>', 0)
-                ->where('pct.stock','>=','pct.stock_logico')
+                ->where('pct.stock', '>=', 'pct.stock_logico')
                 ->select('t.id', 't.descripcion as nombre', 'pct.stock', 'pct.stock_logico')
                 ->get();
 
-          
-            if($tallas->isEmpty()){
+
+            if ($tallas->isEmpty()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'NO HAY TALLAS DISPONIBLES PARA ESTE COLOR',
@@ -243,6 +243,66 @@ class ProductoController extends Controller
                 'message' => 'TALLAS OBTENIDAS',
                 'data' => $tallas,
             ]);
+        } catch (Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ERROR AL OBTENER LAS TALLAS',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function searchProduct(Request $request)
+    {
+        try {
+            $query          =   trim($request->get('q', ''));
+            $warehouse_id   =   $request->get('warehouse_id');
+
+            if (empty($query)) {
+                return response()->json(['data' => []]);
+            }
+
+            $products = Producto::from('productos as p')
+                ->leftjoin('producto_color_tallas as pct', 'pct.producto_id', 'p.id')
+                ->join('categorias as c', 'c.id', 'p.categoria_id')
+                ->join('marcas as m', 'm.id', 'p.marca_id')
+                ->where('p.estado', 'ACTIVO')
+                ->where(function ($q) use ($query) {
+                    $q->where('p.nombre', 'LIKE', "%{$query}%")
+                        ->orWhere('c.descripcion', 'LIKE', "%{$query}%")
+                        ->orWhere('m.marca', 'LIKE', "%{$query}%");
+                })
+                ->where(function ($q) use ($warehouse_id) {
+                    $q->where('pct.almacen_id', $warehouse_id)
+                        ->orWhereNull('pct.almacen_id');
+                })
+                ->limit(20)
+                ->select(
+                    'pct.almacen_id',
+                    'p.id',
+                    'm.marca as marca_nombre',
+                    'p.nombre as producto_nombre',
+                    'c.descripcion as categoria_nombre',
+                    'p.precio_venta_1',
+                    DB::raw('COALESCE(pct.stock, 0) as stock')
+                )->get();
+
+            $data = $products->map(fn($p) => [
+                'id' => $p->id,
+                'text'  => "{$p->nombre} - ($p->stock)",
+                'subtext' => "{$p->categoria_nombre}-{$p->marca_nombre}",
+                'sale_price' =>  $p->precio_venta_1,
+                'name'  =>  $p->nombre,
+                'category_name' =>  $p->categoria_nombre,
+                'brand_name'    =>  $p->marca_nombre,
+                'stock'         =>  $p->stock,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+
         } catch (Throwable $th) {
             return response()->json([
                 'success' => false,
