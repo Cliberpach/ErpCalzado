@@ -273,13 +273,11 @@ class ProductoController extends Controller
                 })
                 ->limit(20)
                 ->select(
-                    'pct.almacen_id',
                     'p.id',
                     'm.marca as marca_nombre',
                     'p.nombre as producto_nombre',
                     'c.descripcion as categoria_nombre',
                     'p.precio_venta_1',
-                    DB::raw('COALESCE(pct.stock, 0) as stock')
                 )->get();
 
             $data = $products->map(fn($p) => [
