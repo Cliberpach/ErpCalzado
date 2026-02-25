@@ -289,7 +289,7 @@ class ProductoController extends Controller
 
             $data = $products->map(fn($p) => [
                 'id' => $p->id,
-                'text'  => "{$p->nombre} - ($p->stock)",
+                'text'  => "{$p->producto_nombre} - ($p->stock)",
                 'subtext' => "{$p->categoria_nombre}-{$p->marca_nombre}",
                 'sale_price' =>  $p->precio_venta_1,
                 'name'  =>  $p->producto_nombre,
