@@ -52,9 +52,11 @@ class ProductoController extends Controller
                 $q->where('p.nombre', 'like', "%{$filter_search}%")
                     ->orWhere('c.descripcion', 'like', "%{$filter_search}%");
             });
+        }else{
+            dd('ola');
         }
 
-        return response()->json($filter_search);
+        return response()->json($productos->get());
 
         $productos = $productos->paginate($perPage);
 
