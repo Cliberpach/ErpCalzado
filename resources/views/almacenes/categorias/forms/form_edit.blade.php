@@ -36,3 +36,33 @@
         </small>
     </div>
 </form>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const inputImagen = document.getElementById("imagen_editar");
+        const preview = document.getElementById("preview_imagen_editar");
+
+        inputImagen.addEventListener("change", function() {
+
+            if (this.files && this.files[0]) {
+
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                };
+
+                reader.readAsDataURL(this.files[0]);
+
+            } else {
+                preview.src = "";
+                preview.style.display = "none";
+            }
+
+        });
+
+    });
+</script>
