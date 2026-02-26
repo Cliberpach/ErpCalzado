@@ -16,7 +16,8 @@ class CreateColoresTable extends Migration
         Schema::create('colores', function (Blueprint $table) {
             $table->Increments('id');
             $table->string('descripcion');
-            $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
+            $table->string('codigo', 20)->nullable();
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
             $table->timestamps();
         });
     }
