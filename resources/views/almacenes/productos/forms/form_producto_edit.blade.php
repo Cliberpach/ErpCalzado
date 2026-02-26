@@ -119,6 +119,19 @@
                         value="{{ old('costo') }}" />
                     <span style="font-weight: bold;color:red;" class="precio3_error msgErrorProducto"></span>
                 </div>
+
+                <div class="col-lg-6 col-12 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="mostrar_en_web" name="mostrar_en_web"
+                            value="1"
+                            {{ old('mostrar_en_web', $producto->mostrar_en_web ?? false) ? 'checked' : '' }}>
+                        <label class="form-check-label fw-bold" for="mostrar_en_web">
+                            MOSTRAR EN WEB
+                        </label>
+                    </div>
+                    <span style="font-weight: bold; color:red;" class="mostrar_en_web_error msgErrorProducto"></span>
+                </div>
+
             </div>
         </div>
     </div>
@@ -195,6 +208,11 @@
 
                 </div>
             </div>
+        </div>
+        <div class="col-12">
+            <label for="descripcion">DESCRIPCIÓN</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" rows="3" maxlength="300"
+                placeholder="Ingrese una descripción">{{$producto->descripcion}}</textarea>
         </div>
     </div>
 
