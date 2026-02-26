@@ -1,4 +1,5 @@
-<form role="form" action="{{ route('almacenes.categorias.update') }}" method="POST" id="editar_categoria">
+<form role="form" action="{{ route('almacenes.categorias.update') }}" method="POST" id="editar_categoria"
+    enctype="multipart/form-data">
     {{ csrf_field() }} {{ method_field('PUT') }}
 
     <input type="hidden" name="tabla_id" id="tabla_id_editar" value="{{ old('tabla_id') }}">
