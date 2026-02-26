@@ -705,6 +705,7 @@ require __DIR__ . '/ventas/web.php';
 require __DIR__ . '/mantenimiento/web.php';
 require __DIR__ . '/kardex/web.php';
 require __DIR__ . '/cajas/web.php';
+require __DIR__ . '/almacenes/web.php';
 
 
 Route::get('ventas/documentos/comprobante/{id}/{size}', 'Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');
