@@ -120,9 +120,11 @@ class CategoriaController extends Controller
             'tabla_id' => 'required',
             'descripcion' => [
                 'required',
-                Rule::unique('categorias')->where(function ($query) {
-                    return $query->where('estado', 'ACTIVO');
-                }),
+                Rule::unique('categorias')
+                    ->ignore($request->tabla_id)
+                    ->where(function ($query) {
+                        return $query->where('estado', 'ACTIVO');
+                    }),
             ],
         ];
 
@@ -158,7 +160,7 @@ class CategoriaController extends Controller
             $categoria->img_ruta = 'categorias/img/' . $nombreImagen;
             $categoria->img_nombre = $nombreImagen;
         }
-        
+
         $categoria->update();
 
         //Registro de actividad
