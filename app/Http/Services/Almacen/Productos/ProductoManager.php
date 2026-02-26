@@ -26,4 +26,8 @@ class ProductoManager
     public function generarAdhesivos(array $data):Collection{
         return $this->s_producto->generarAdhesivos($data);
     }
+
+    public function destroy(int $id):Producto{
+        return $this->s_producto->destroy($id);
+    }
 }
