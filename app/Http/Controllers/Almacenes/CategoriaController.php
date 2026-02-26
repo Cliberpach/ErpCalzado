@@ -136,6 +136,29 @@ class CategoriaController extends Controller
 
         $categoria = Categoria::findOrFail($request->get('tabla_id'));
         $categoria->descripcion = $request->get('descripcion');
+
+        if ($request->hasFile('imagen')) {
+
+            // Eliminar imagen anterior si existe
+            if (
+                $categoria->img_ruta &&
+                file_exists(storage_path('app/public/' . $categoria->img_ruta))
+            ) {
+
+                unlink(storage_path('app/public/' . $categoria->img_ruta));
+            }
+
+            // Guardar nueva imagen
+            $nombreImagen = time() . '_' . uniqid() . '.' .
+                $request->file('imagen')->getClientOriginalExtension();
+
+            $request->file('imagen')
+                ->storeAs('categorias/img', $nombreImagen, 'public');
+
+            $categoria->img_ruta = 'categorias/img/' . $nombreImagen;
+            $categoria->img_nombre = $nombreImagen;
+        }
+        
         $categoria->update();
 
         //Registro de actividad
