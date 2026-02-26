@@ -31,6 +31,8 @@ class CategoriaController extends Controller
                 'fecha_creacion' =>  Carbon::parse($categoria->created_at)->format('d/m/Y'),
                 'fecha_actualizacion' =>  Carbon::parse($categoria->updated_at)->format('d/m/Y'),
                 'estado' => $categoria->estado,
+                'img_ruta'  =>  $categoria->img_ruta,
+                'img_nombre'    =>  $categoria->img_nombre
             ]);
         }
         return DataTables::of($coleccion)->toJson();

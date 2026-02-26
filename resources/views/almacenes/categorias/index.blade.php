@@ -1,13 +1,13 @@
 @extends('layout')
 @section('content')
-@include('almacenes.categorias.create')
-@include('almacenes.categorias.edit')
-@include('almacenes.categorias.modalfile')
+    @include('almacenes.categorias.create')
+    @include('almacenes.categorias.edit')
+    @include('almacenes.categorias.modalfile')
 @section('almacenes-active', 'active')
 @section('categoria-active', 'active')
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-10 col-md-10">
-       <h2  style="text-transform:uppercase"><b>Listado de Categorias</b></h2>
+        <h2 style="text-transform:uppercase"><b>Listado de Categorias</b></h2>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{ route('home') }}">Panel de Control</a>
@@ -19,7 +19,8 @@
         </ol>
     </div>
     <div class="col-lg-2 col-md-2">
-        <a data-toggle="modal" data-target="#modal_crear_categoria"  class="btn btn-block btn-w-m btn-primary m-t-md" href="#">
+        <a data-toggle="modal" data-target="#modal_crear_categoria" class="btn btn-block btn-w-m btn-primary m-t-md"
+            href="#">
             <i class="fa fa-plus-square"></i> Añadir nuevo
         </a>
         <a class="btn btn-block btn-w-m btn-primary m-t-md btn-modal-file" href="#">
@@ -33,31 +34,32 @@
 
     <div class="row">
         <div class="col-lg-12">
-        <div class="ibox ">
+            <div class="ibox ">
 
-            <div class="ibox-content">
+                <div class="ibox-content">
 
-                <div class="table-responsive">
-                    <table class="table dataTables-articulo table-striped table-bordered table-hover"  style="text-transform:uppercase">
-                    <thead>
-                        <tr>
-                            <th class="text-center"></th>
-                            <th class="text-center">DESCRIPCION</th>
-                            <th class="text-center">CREADO</th>
-                            <th class="text-center">ACTUALIZADO</th>
-                            <th class="text-center">ACCIONES</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    <div class="table-responsive">
+                        <table class="table dataTables-articulo table-striped table-bordered table-hover"
+                            style="text-transform:uppercase">
+                            <thead>
+                                <tr>
+                                    <th class="text-center"></th>
+                                    <th class="text-center">DESCRIPCION</th>
+                                    <th class="text-center">CREADO</th>
+                                    <th class="text-center">ACTUALIZADO</th>
+                                    <th class="text-center">ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 
-                    </tbody>
+                            </tbody>
 
-                    </table>
+                        </table>
+                    </div>
+
                 </div>
-
             </div>
         </div>
-    </div>
     </div>
 </div>
 
@@ -73,33 +75,51 @@
 
 @push('scripts')
 <script>
-
     $(document).ready(function() {
 
 
         $('.dataTables-articulo').DataTable({
-            "processing":true,
-            "ajax": '{{ route("getCategory")}}' ,
+            "processing": true,
+            "ajax": '{{ route('getCategory') }}',
             "columns": [
                 //Tabla General
-                {data: 'id', className:"text-center", "visible":false},
-                {data: 'descripcion', className:"text-center"},
-                {data: 'fecha_creacion', className:"text-center"},
-                {data: 'fecha_actualizacion', className:"text-center"},
+                {
+                    data: 'id',
+                    className: "text-center",
+                    "visible": false
+                },
+                {
+                    data: 'descripcion',
+                    className: "text-center"
+                },
+                {
+                    data: 'fecha_creacion',
+                    className: "text-center"
+                },
+                {
+                    data: 'fecha_actualizacion',
+                    className: "text-center"
+                },
                 {
                     data: null,
-                    className:"text-center",
-                    render: function (data) {
+                    className: "text-center",
+                    render: function(data) {
 
-                        return "<div class='btn-group'><button class='btn btn-warning btn-sm modificarDetalle' onclick='obtenerData("+data.id+")' type='button' title='Modificar'><i class='fa fa-edit'></i></button><a class='btn btn-danger btn-sm' href='#' onclick='eliminar("+data.id+")' title='Eliminar'><i class='fa fa-trash'></i></a></div>"
+                        return "<div class='btn-group'><button class='btn btn-warning btn-sm modificarDetalle' onclick='obtenerData(" +
+                            data.id +
+                            ")' type='button' title='Modificar'><i class='fa fa-edit'></i></button><a class='btn btn-danger btn-sm' href='#' onclick='eliminar(" +
+                            data.id +
+                            ")' title='Eliminar'><i class='fa fa-trash'></i></a></div>"
                     }
                 }
 
             ],
             "language": {
-                        "url": "{{asset('Spanish.json')}}"
+                "url": "{{ asset('Spanish.json') }}"
             },
-            "order": [[ 0, "desc" ]],
+            "order": [
+                [0, "desc"]
+            ],
 
 
 
@@ -110,29 +130,44 @@
     //Controlar Error
     $.fn.DataTable.ext.errMode = 'throw';
 
-    function obtenerData($id) {
+    function obtenerData(id) {
+
         var table = $('.dataTables-articulo').DataTable();
         var data = table.rows().data();
-        limpiarError()
-        data.each(function (value, index) {
-            if (value.id == $id) {
+        limpiarError();
+
+        data.each(function(value, index) {
+
+            if (value.id == id) {
+
                 $('#tabla_id_editar').val(value.id);
                 $('#descripcion_editar').val(value.descripcion);
+
+                // IMAGEN
+                if (value.img_ruta) {
+                    $('#preview_imagen_editar')
+                        .attr('src', '/storage/' + value.img_ruta)
+                        .show();
+                } else {
+                    $('#preview_imagen_editar')
+                        .attr('src', '')
+                        .hide();
+                }
             }
         });
 
         $('#modal_editar_categoria').modal('show');
-
-
     }
 
     //Old Modal Editar
-    @if ($errors->has('descripcion') )
-        $('#modal_editar_categoria').modal({ show: true });
+    @if ($errors->has('descripcion'))
+        $('#modal_editar_categoria').modal({
+            show: true
+        });
     @endif
 
     function limpiarError() {
-        $('#descripcion_editar').removeClass( "is-invalid" )
+        $('#descripcion_editar').removeClass("is-invalid")
         $('#error-descripcion').text('')
     }
 
@@ -141,12 +176,14 @@
     });
 
     //Old Modal Crear
-    @if ($errors->has('descripcion_guardar') )
-        $('#modal_crear_categoria').modal({ show: true });
+    @if ($errors->has('descripcion_guardar'))
+        $('#modal_crear_categoria').modal({
+            show: true
+        });
     @endif
 
     function guardarError() {
-        $('#descripcion_guardar').removeClass( "is-invalid" )
+        $('#descripcion_guardar').removeClass("is-invalid")
         $('#error-descripcion-guardar').text('')
     }
 
@@ -158,12 +195,12 @@
 
 
     const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                confirmButton: 'btn btn-success',
-                cancelButton: 'btn btn-danger',
-            },
-            buttonsStyling: false
-        })
+        customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-danger',
+        },
+        buttonsStyling: false
+    })
 
 
     function eliminar(id) {
@@ -176,21 +213,21 @@
             confirmButtonColor: "#1ab394",
             confirmButtonText: 'Si, Confirmar',
             cancelButtonText: "No, Cancelar",
-            }).then((result) => {
+        }).then((result) => {
             if (result.isConfirmed) {
                 //Ruta Eliminar
-                var url_eliminar = '{{ route("almacenes.categorias.destroy", ":id")}}';
-                url_eliminar = url_eliminar.replace(':id',id);
-                $(location).attr('href',url_eliminar);
+                var url_eliminar = '{{ route('almacenes.categorias.destroy', ':id') }}';
+                url_eliminar = url_eliminar.replace(':id', id);
+                $(location).attr('href', url_eliminar);
 
-                }else if (
+            } else if (
                 /* Read more about handling dismissals below */
                 result.dismiss === Swal.DismissReason.cancel
             ) {
                 swalWithBootstrapButtons.fire(
-                'Cancelado',
-                'La Solicitud se ha cancelado.',
-                'error'
+                    'Cancelado',
+                    'La Solicitud se ha cancelado.',
+                    'error'
                 )
 
             }
@@ -198,7 +235,7 @@
 
     }
 
-    $('#editar_categoria').submit(function(e){
+    $('#editar_categoria').submit(function(e) {
         e.preventDefault();
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
@@ -221,24 +258,24 @@
             confirmButtonColor: "#1ab394",
             confirmButtonText: 'Si, Confirmar',
             cancelButtonText: "No, Cancelar",
-            }).then((result) => {
+        }).then((result) => {
             if (result.isConfirmed) {
-                    this.submit();
-                }else if (
+                this.submit();
+            } else if (
                 /* Read more about handling dismissals below */
                 result.dismiss === Swal.DismissReason.cancel
             ) {
                 swalWithBootstrapButtons.fire(
-                'Cancelado',
-                'La Solicitud se ha cancelado.',
-                'error'
+                    'Cancelado',
+                    'La Solicitud se ha cancelado.',
+                    'error'
                 )
 
             }
-            })
+        })
     })
 
-    $('#crear_categoria').submit(function(e){
+    $('#crear_categoria').submit(function(e) {
         e.preventDefault();
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
@@ -260,25 +297,24 @@
             confirmButtonColor: "#1ab394",
             confirmButtonText: 'Si, Confirmar',
             cancelButtonText: "No, Cancelar",
-            }).then((result) => {
+        }).then((result) => {
             if (result.isConfirmed) {
-                    this.submit();
-                }else if (
+                this.submit();
+            } else if (
                 /* Read more about handling dismissals below */
                 result.dismiss === Swal.DismissReason.cancel
             ) {
                 swalWithBootstrapButtons.fire(
-                'Cancelado',
-                'La Solicitud se ha cancelado.',
-                'error'
+                    'Cancelado',
+                    'La Solicitud se ha cancelado.',
+                    'error'
                 )
             }
-            })
+        })
     })
 
-    $(".btn-modal-file").on('click', function () {
+    $(".btn-modal-file").on('click', function() {
         $("#modal_file").modal("show");
     });
-
 </script>
 @endpush
