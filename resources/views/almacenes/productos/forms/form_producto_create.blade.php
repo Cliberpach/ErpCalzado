@@ -109,14 +109,14 @@
                 </div>
 
                 <div class="col-lg-6 col-12 mb-3">
-                    <label for="mostrar_web" class="required">Mostrar en web</label>
+                    <label for="mostrar_web" class="required" style="font-weight: bold;">Mostrar en web</label>
 
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input" id="mostrar_web" name="mostrar_web"
                             value="1">
 
                         <label class="custom-control-label" for="mostrar_web">
-                            Sí
+                            SÍ
                         </label>
                     </div>
 

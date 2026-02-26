@@ -34,6 +34,7 @@ class ProductoService
         $producto->precio_venta_3   =   $datos['precio3'];
         $producto->costo            =   $datos['costo'] ?? 0;
         $producto->descripcion      =   $datos['descripcion'] ?? null;
+        $producto->mostrar_en_web   =   $datos['mostrar_web'] ?? null;
         $producto->save();
 
         //======= GUARDAMOS LOS COLORES ASIGNADOS AL PRODUCTO ========
@@ -224,7 +225,7 @@ class ProductoService
         }
     }
 
-    public function destroy(int $id):Producto
+    public function destroy(int $id): Producto
     {
         $producto = Producto::findOrFail($id);
         $producto->estado = 'ANULADO';
