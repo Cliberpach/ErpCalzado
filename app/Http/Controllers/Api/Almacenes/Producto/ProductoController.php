@@ -21,9 +21,9 @@ class ProductoController extends Controller
 
     public function getAll(Request $request)
     {
-        $filtro_categoria    =   $request->get('categoria');
-        $filter_search           = $request->get('search');
-        $perPage = $request->get('per_page', 10);
+        $filtro_categoria       =   $request->get('categoria');
+        $filter_search          =   $request->get('search');
+        $perPage                =   $request->get('per_page', 10);
 
         $productos = DB::table('productos as p')
             ->join('categorias as c', 'c.id', '=', 'p.categoria_id')
