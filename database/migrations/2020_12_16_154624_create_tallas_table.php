@@ -16,7 +16,8 @@ class CreateTallasTable extends Migration
         Schema::create('tallas', function (Blueprint $table) {
             $table->Increments('id');
             $table->string('descripcion');
-            $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
+            $table->enum('tipo', ['FICTICIO', 'TALLA'])->default('TALLA');
             $table->timestamps();
         });
     }

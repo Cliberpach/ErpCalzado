@@ -17,13 +17,15 @@ class CreateAlmacenesTable extends Migration
             $table->engine = 'InnoDB';
             $table->Increments('id');
 
-            $table->unsignedBigInteger('sede_id'); 
+            $table->unsignedBigInteger('sede_id');
             $table->foreign('sede_id')->references('id')->on('empresa_sedes');
 
-            $table->string('descripcion',160);
+            $table->string('descripcion', 160);
             $table->string('ubicacion');
             $table->enum('tipo_almacen', ['PRINCIPAL', 'SECUNDARIO'])->default('SECUNDARIO');
-            $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
+            $table->enum('tipo', ['ALMACEN', 'FICTICIO'])->default('ALMACEN');
+
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
             $table->timestamps();
         });
     }

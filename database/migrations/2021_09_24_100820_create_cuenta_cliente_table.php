@@ -14,15 +14,18 @@ class CreateCuentaClienteTable extends Migration
     public function up()
     {
         Schema::create('cuenta_cliente', function (Blueprint $table) {
-            $table->increments('id');
+            $table->id();
+
             $table->unsignedInteger('cotizacion_documento_id');
-            $table->foreign('cotizacion_documento_id')->references('id')->on('cotizacion_documento')->onDelete('cascade');
+            $table->foreign('cotizacion_documento_id')->references('id')->on('cotizacion_documento');
+
             $table->string('numero_doc')->nullable();
             $table->date('fecha_doc')->nullable();
-            $table->unsignedDecimal('monto', 15,2);
+            $table->unsignedDecimal('monto', 15, 2);
             $table->text('acta')->nullable();
-            $table->unsignedDecimal('saldo')->nullable()->default(0.00);            
-            $table->enum('estado',['PENDIENTE','PAGADO','ANULADO'])->default('PENDIENTE');
+            $table->unsignedDecimal('saldo', 8, 2)
+                ->default(0.00);
+            $table->enum('estado', ['PENDIENTE', 'PAGADO', 'ANULADO'])->default('PENDIENTE');
             $table->timestamps();
         });
     }

@@ -16,10 +16,10 @@ class CreateEmpresaSedesTable extends Migration
         Schema::create('empresa_sedes', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedInteger('empresa_id'); 
+            $table->unsignedInteger('empresa_id');
             $table->foreign('empresa_id')->references('id')->on('empresas');
 
-            $table->string('nombre',160);
+            $table->string('nombre', 160);
             $table->string('ruc', 20);
             $table->string('razon_social');
             $table->string('direccion');
@@ -34,7 +34,12 @@ class CreateEmpresaSedesTable extends Migration
             $table->string('codigo_local')->nullable();
             $table->enum('tipo_sede', ['PRINCIPAL', 'SECUNDARIA'])->default('SECUNDARIA');
             $table->string('serie')->nullable();
-            $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
+
+            $table->longText('logo_ruta')->nullable();
+            $table->longText('logo_nombre')->nullable();
+            $table->string('urbanizacion', 200)->nullable();
+            $table->longText('carpeta_nombre')->nullable();
             $table->timestamps();
         });
     }

@@ -18,6 +18,7 @@ class CreateColoresTable extends Migration
             $table->string('descripcion');
             $table->string('codigo', 20)->nullable();
             $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
+            $table->enum('tipo', ['COLOR', 'FICTICIO'])->default('COLOR');
             $table->timestamps();
         });
     }

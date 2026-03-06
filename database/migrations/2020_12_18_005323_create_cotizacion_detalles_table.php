@@ -15,10 +15,10 @@ class CreateCotizacionDetallesTable extends Migration
     {
         Schema::create('cotizacion_detalles', function (Blueprint $table) {
             $table->Increments('id');
-            
+
             $table->unsignedInteger('cotizacion_id');
             $table->foreign('cotizacion_id')->references('id')->on('cotizaciones');
-            
+
             $table->unsignedInteger('almacen_id');
             $table->foreign('almacen_id')->references('id')->on('almacenes');
 
@@ -31,22 +31,22 @@ class CreateCotizacionDetallesTable extends Migration
             $table->unsignedInteger('talla_id');
             $table->foreign('talla_id')->references('id')->on('tallas');
 
-            $table->string('almacen_nombre',160);
-            $table->string('producto_nombre',160);
-            $table->string('color_nombre',160);
-            $table->string('talla_nombre',160);
-            
-            $table->unsignedDecimal('cantidad');
-            $table->unsignedDecimal('precio_unitario');
-            $table->unsignedDecimal('importe');
+            $table->string('almacen_nombre', 160);
+            $table->string('producto_nombre', 160);
+            $table->string('color_nombre', 160);
+            $table->string('talla_nombre', 160);
 
-            $table->unsignedDecimal('porcentaje_descuento', 15, 2)->nullable();
-            $table->unsignedDecimal('precio_unitario_nuevo', 15, 2);
-            $table->unsignedDecimal('importe_nuevo', 15, 2);
-            $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
+            $table->unsignedDecimal('cantidad', 15, 6);
+            $table->unsignedDecimal('precio_unitario', 15, 6);
+            $table->unsignedDecimal('importe', 15, 6);
 
-         
-            $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
+            $table->unsignedDecimal('porcentaje_descuento', 15, 6)->nullable();
+            $table->unsignedDecimal('precio_unitario_nuevo', 15, 6)->nullable();
+            $table->unsignedDecimal('importe_nuevo', 15, 6)->nullable();
+            $table->unsignedDecimal('monto_descuento', 15, 6)->nullable();
+
+            $table->enum('tipo', ['PRODUCTO', 'SERVICIO'])->default('PRODUCTO')->nullable();
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
             $table->timestamps();
         });
     }

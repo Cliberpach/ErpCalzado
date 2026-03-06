@@ -16,7 +16,8 @@ class CreateModelosTable extends Migration
         Schema::create('modelos', function (Blueprint $table) {
             $table->Increments('id');
             $table->string('descripcion');
-            $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
+            $table->enum('tipo', ['MODELO', 'FICTICIO'])->default('MODELO');
             $table->timestamps();
         });
     }

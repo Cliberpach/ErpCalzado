@@ -15,8 +15,10 @@ class CreateDetalleCuentaProveedorTable extends Migration
     {
         Schema::create('detalle_cuenta_proveedor', function (Blueprint $table) {
             $table->id();
+            
             $table->unsignedInteger('cuenta_proveedor_id');
-            $table->foreign('cuenta_proveedor_id')->references('id')->on('cuenta_proveedor')->onDelete('cascade');
+            $table->foreign('cuenta_proveedor_id')->references('id')->on('cuenta_proveedor');
+
             $table->foreignId('mcaja_id')->references('id')->on('movimiento_caja')->onDelete('cascade');
             $table->date('fecha');
             $table->text('observacion');

@@ -17,7 +17,10 @@ class CreateCategoriasTable extends Migration
             $table->engine = 'InnoDB';
             $table->Increments('id');
             $table->string('descripcion');
-            $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
+            $table->enum('tipo', ['CATEGORIA', 'FICTICIO'])->default('CATEGORIA');
+            $table->longText('img_ruta')->nullable();
+            $table->longText('img_nombre')->nullable();
             $table->timestamps();
         });
     }

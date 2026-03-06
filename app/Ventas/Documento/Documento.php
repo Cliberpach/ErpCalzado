@@ -2,11 +2,9 @@
 
 namespace App\Ventas\Documento;
 
-use App\Events\NotifySunatEvent;
 use App\Mantenimiento\Condicion;
 use Illuminate\Database\Eloquent\Model;
 
-use App\Mantenimiento\Tabla\Detalle as TablaDetalle;
 use App\Ventas\CuentaCliente;
 use App\Ventas\RetencionDetalle;
 use Illuminate\Support\Facades\DB;
@@ -15,64 +13,6 @@ class Documento extends Model
 {
     protected $table = 'cotizacion_documento';
     protected $guarded = [''];
-    // protected $fillable = [
-    //     //DATOS DE LA EMPRESA
-    //     'ruc_empresa',
-    //     'empresa',
-    //     'direccion_fiscal_empresa',
-    //     'empresa_id',
-    //     //CLIENTE
-    //     'tipo_documento_cliente',
-    //     'documento_cliente',
-    //     'direccion_cliente',
-    //     'cliente',
-    //     'cliente_id',
-    //     'condicion_id',
-    //     'moneda',
-    //     'numero_doc',
-    //     'fecha_documento',
-    //     'fecha_atencion',
-    //     'fecha_vencimiento',
-    //     'sub_total',
-    //     'monto_embalaje',
-    //     'monto_envio',
-    //     'total',
-    //     'total_igv',
-    //     'total_pagar',
-    //     'user_id',
-    //     'igv',
-    //     'igv_check',
-    //     'tipo_venta',
-    //     'cotizacion_venta',
-    //     'sunat',
-    //     'envio_sunat',
-
-    //     'importe',
-    //     'efectivo',
-    //     'tipo_pago_id',
-
-    //     'getCdrResponse',
-    //     'regularize',
-    //     'getRegularizeResponse',
-        
-    //     'correlativo',
-    //     'banco_empresa_id',
-    //     'serie',
-    //     'ruta_comprobante_archivo',
-    //     'nombre_comprobante_archivo',
-
-    //     'estado',
-    //     'estado_pago',
-    //     'ruta_pago',
-
-    //     'convertir',
-
-    //     'contingencia',
-    //     'correlativo_contingencia',
-    //     'serie_contingencia',
-    //     'getCdrResponse_contingencia',
-    //     'getRegularizeResponse_contingencia'
-    // ];
 
     public function retencion()
     {
@@ -137,10 +77,10 @@ class Documento extends Model
     public function doc_convertido():string
     {
         $documento_convertido_id        =   $this->convertir;
-        $doc_convertido                 =   DB::select('select cd.serie,cd.correlativo 
+        $doc_convertido                 =   DB::select('select cd.serie,cd.correlativo
                                             from cotizacion_documento as cd
-                                            where id=?',[$documento_convertido_id]);  
-        
+                                            where id=?',[$documento_convertido_id]);
+
         if(count($doc_convertido)>0){
             return $doc_convertido[0]->serie.'-'.$doc_convertido[0]->correlativo;
         }else{
@@ -148,11 +88,11 @@ class Documento extends Model
         }
     }
 
-    public function usuario():string 
+    public function usuario():string
     {
         $usuario_id         =   $this->user_id;
-        $usuario            =   DB::select('select u.usuario as usuario_nombre 
-                                from users as u   
+        $usuario            =   DB::select('select u.usuario as usuario_nombre
+                                from users as u
                                 where u.id=?',[$usuario_id]);
 
         if(count($usuario)>0){

@@ -34,34 +34,37 @@ class CreateCotizacionesTable extends Migration
             $table->unsignedInteger('registrador_id');
             $table->foreign('registrador_id')->references('id')->on('users');
 
-            $table->string('almacen_nombre',160);
-            $table->string('registrador_nombre',160);
+            $table->unsignedInteger('pedido_id')->nullable();
+
+            $table->string('almacen_nombre', 160);
+            $table->string('registrador_nombre', 160);
+            $table->mediumText('cliente_nombre')->nullable();
 
 
             $table->date('fecha_documento');
             $table->date('fecha_atencion')->nullable();
 
-            $table->unsignedDecimal('sub_total', 15, 2);
-            $table->unsignedDecimal('monto_embalaje', 15, 2)->nullable();
-            $table->unsignedDecimal('monto_envio', 15, 2)->nullable();
-            $table->unsignedDecimal('total', 15, 2);
-            $table->unsignedDecimal('total_igv', 15, 2);
-            $table->unsignedDecimal('total_pagar', 15, 2);
-            $table->unsignedDecimal('porcentaje_descuento', 15, 2)->nullable();
-            $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
+            $table->unsignedDecimal('sub_total', 15, 6);
+            $table->unsignedDecimal('monto_embalaje', 15, 6)->nullable();
+            $table->unsignedDecimal('monto_envio', 15, 6)->nullable();
+            $table->unsignedDecimal('total', 15, 6);
+            $table->unsignedDecimal('total_igv', 15, 6);
+            $table->unsignedDecimal('total_pagar', 15, 6);
+            $table->unsignedDecimal('porcentaje_descuento', 15, 6)->nullable();
+            $table->unsignedDecimal('monto_descuento', 15, 6)->nullable();
 
-            $table->string('igv_check',2)->nullable();
-            $table->char('igv',3)->nullable();
+            $table->string('igv_check', 2)->nullable();
+            $table->decimal('igv', 15, 6)->nullable();
 
             $table->string('moneda');
 
             $table->unsignedInteger('venta_id')->nullable();
-            $table->string('venta_serie',20)->nullable();
-            $table->string('venta_correlativo',20)->nullable();
+            $table->string('venta_serie', 20)->nullable();
+            $table->string('venta_correlativo', 20)->nullable();
 
-            $table->string('telefono',20)->nullable();
+            $table->string('telefono', 20)->nullable();
 
-            $table->enum('estado',['VIGENTE','ATENDIDA', 'ANULADO', 'VENCIDA'])->default('VIGENTE');
+            $table->enum('estado', ['VIGENTE', 'ATENDIDA', 'ANULADO', 'VENCIDA'])->default('VIGENTE');
             $table->timestamps();
         });
     }

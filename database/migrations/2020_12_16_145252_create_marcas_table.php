@@ -19,6 +19,7 @@ class CreateMarcasTable extends Migration
             $table->string('marca');
             $table->string('procedencia')->nullable();
             $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
+            $table->enum('tipo',['FICTICIO','MARCA'])->default('MARCA');
             $table->timestamps();
         });
     }

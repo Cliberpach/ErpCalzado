@@ -72,11 +72,14 @@
 @endcan
 
 @can('restore', [Auth::user(), ['cliente.index', 'cotizacion.index', 'documento_venta.index', 'ventascaja.index',
-    'guia.index', 'resumenes.index', 'pedidos.index', 'despachos.index', 'reservas.index']])
+    'guia.index', 'resumenes.index', 'pedidos.index', 'despachos.index', 'reservas.index', 'ventas.tipo_cliente.index']])
     <li class="@yield('ventas-active')">
         <a href="#"><i class="fa fa-signal"></i> <span class="nav-label">Ventas</span><span
                 class="fa arrow"></span></a>
         <ul class="nav nav-second-level collapse">
+            @can('haveaccess', 'tipo_cliente.index')
+                <li class="@yield('tipo_cliente-active')"><a href="{{ route('ventas.tipo_cliente.index') }}">Tipos Clientes</a></li>
+            @endcan
             @can('haveaccess', 'cliente.index')
                 <li class="@yield('clientes-active')"><a href="{{ route('ventas.cliente.index') }}">Clientes</a></li>
             @endcan
@@ -338,7 +341,7 @@
 
 
 @can('restore', [Auth::user(), ['kardex_proveedor.index', 'kardex_cliente.index', 'kardex_producto.index',
-    'kardex_salida.index', 'kardex_venta.index','kardex_cuenta.index']])
+    'kardex_salida.index', 'kardex_venta.index', 'kardex_cuenta.index']])
     <li class="@yield('kardex-active')">
         <a href="#"><i class="fa fa-exclamation"></i> <span class="nav-label">Kardex</span><span
                 class="fa arrow"></span></a>

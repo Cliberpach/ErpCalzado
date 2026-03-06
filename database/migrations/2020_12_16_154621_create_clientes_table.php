@@ -34,7 +34,7 @@ class CreateClientesTable extends Migration
             $table->string('telefono_movil')->nullable();
             $table->string('telefono_fijo')->nullable();
             $table->string('moneda_credito')->nullable();
-            $table->unsignedDecimal('limite_credito', 15,2)->nullable();
+            $table->unsignedDecimal('limite_credito', 15, 2)->nullable();
             $table->string('nombre_contacto')->nullable();
             $table->string('telefono_contacto')->nullable();
             $table->string('correo_electronico_contacto')->nullable();
@@ -57,14 +57,19 @@ class CreateClientesTable extends Migration
             $table->string('correo_propietario')->nullable();
 
             //CRM
-            $table->enum('crm',['0','1'])->default('0');
+            $table->enum('crm', ['0', '1'])->default('0');
 
             $table->enum('agente_retencion', ['0', '1'])->default('0');
             $table->unsignedDecimal('tasa_retencion', 8, 2)->nullable();
             $table->unsignedDecimal('monto_mayor', 8, 2)->nullable();
+            
+            $table->string('lat')->nullable();
+            $table->string('lng')->nullable();
+            $table->string('ruta_logo')->nullable();
+            $table->string('nombre_logo')->nullable();
 
             $table->string('activo')->default('SIN VERIFICAR');
-            $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
             $table->timestamps();
         });
     }

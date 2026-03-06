@@ -15,10 +15,13 @@ class CreateCompraDocumentosTable extends Migration
     {
         Schema::create('compra_documentos', function (Blueprint $table) {
             $table->increments('id');
+            $table->unsignedBigInteger('sede_id');
+            $table->foreign('sede_id')->references('id')->on('empresa_sedes');
+
             $table->date('fecha_emision');
             $table->date('fecha_vencimiento')->nullable();
-            $table->date('fecha_entrega')->nullable();
-            
+            $table->date('fecha_entrega');
+
             $table->unsignedInteger('empresa_id');
             $table->foreign('empresa_id')->references('id')->on('empresas')->onDelete('cascade');
 
@@ -35,8 +38,8 @@ class CreateCompraDocumentosTable extends Migration
             $table->string('tipo_pago')->nullable();
             $table->string('moneda');
 
-            $table->string('igv_check',2)->nullable();
-            $table->char('igv',3)->nullable();
+            $table->string('igv_check', 2)->nullable();
+            $table->char('igv', 3)->nullable();
             $table->unsignedDecimal('tipo_cambio', 15, 4)->nullable();
             $table->unsignedDecimal('dolar', 15, 4)->nullable();
 
@@ -57,9 +60,11 @@ class CreateCompraDocumentosTable extends Migration
             $table->unsignedDecimal('total_dolares', 15, 4)->nullable();
 
             $table->mediumText('observacion')->nullable();
-            $table->BigInteger('usuario_id');
 
-            $table->enum('estado',['VIGENTE','PENDIENTE','ADELANTO','CONCRETADA','ANULADO','PAGADA'])->default('VIGENTE');
+            $table->unsignedInteger('usuario_id');
+            $table->foreign('usuario_id')->references('id')->on('users');
+
+            $table->enum('estado', ['VIGENTE', 'PENDIENTE', 'ADELANTO', 'CONCRETADA', 'ANULADO', 'PAGADA'])->default('VIGENTE');
 
             $table->timestamps();
         });

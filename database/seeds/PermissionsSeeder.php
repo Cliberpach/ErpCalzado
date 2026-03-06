@@ -18,576 +18,463 @@ class PermissionsSeeder extends Seeder
         $useradmin = User::find(1);
 
         $roleadmin = Role::create([
-            'name'=>'ADMIN',
-            'slug'=>'ADMIN',
-            'description'=>'Administrador',
-            'full-access'=>'SI'
+            'name' => 'ADMIN',
+            'slug' => 'ADMIN',
+            'description' => 'Administrador',
+            'full-access' => 'SI'
         ]);
 
         Role::create([
-            'name'=>'USER',
-            'slug'=>'USER',
-            'description'=>'USER',
-            'full-access'=>'NO'
+            'name' => 'USER',
+            'slug' => 'USER',
+            'description' => 'USER',
+            'full-access' => 'NO'
         ]);
 
         $useradmin->roles()->sync([$roleadmin->id]);
 
-        //Dahsboard permission
-
         Permission::create([
-            'name'  => 'Ver graficos de información',
-            'slug' => 'dashboard',
+            'name'        => 'Ver graficos de información',
+            'slug'        => 'dashboard',
             'description' => 'El usuario podrá ver graficos de informacion (compras, ventas, etc)'
         ]);
 
-        //User permission
-
         Permission::create([
-            'name'  => 'Listar Usuarios',
-            'slug'=>'user.index',
-            'description'=>'El usuario puede listar usuarios'
+            'name'        => 'Listar Usuarios',
+            'slug'        => 'user.index',
+            'description' => 'El usuario puede listar usuarios'
         ]);
-
 
         Permission::create([
-            'name'  => 'Crear Usuario',
-            'slug'=>'user.create',
-            'description'=>'El usuario puede crear usuarios'
+            'name'        => 'Crear Usuario',
+            'slug'        => 'user.create',
+            'description' => 'El usuario puede crear usuarios'
         ]);
 
-
         Permission::create([
-            'name'  => 'Editar Usuario',
-            'slug'=>'user.edit',
-            'description'=>'El usuario puede editar usuarios'
+            'name'        => 'Editar Usuario',
+            'slug'        => 'user.edit',
+            'description' => 'El usuario puede editar usuarios'
         ]);
 
-
         Permission::create([
-            'name'  => 'Ver Usuario',
-            'slug'=>'user.show',
-            'description'=>'El usuario puede ver usuarios'
+            'name'        => 'Ver Usuario',
+            'slug'        => 'user.show',
+            'description' => 'El usuario puede ver usuarios'
         ]);
-
 
         Permission::create([
-            'name'  => 'Editar mi Usuario',
-            'slug'=>'userown.edit',
-            'description'=>'El usuario puede editar su propio usuario'
+            'name'        => 'Editar mi Usuario',
+            'slug'        => 'userown.edit',
+            'description' => 'El usuario puede editar su propio usuario'
         ]);
 
-
         Permission::create([
-            'name'  => 'Ver mi Usuario',
-            'slug'=>'userown.show',
-            'description'=>'El usuario puede ver su propio usuario'
+            'name'        => 'Ver mi Usuario',
+            'slug'        => 'userown.show',
+            'description' => 'El usuario puede ver su propio usuario'
         ]);
-
 
         Permission::create([
-            'name'  => 'Eliminar Usuario',
-            'slug'=>'user.delete',
-            'description'=>'El usuario puede eliminar usuarios'
+            'name'        => 'Eliminar Usuario',
+            'slug'        => 'user.delete',
+            'description' => 'El usuario puede eliminar usuarios'
         ]);
 
-
-        //Roles permission
-
         Permission::create([
-            'name'  => 'Mantenedor Roles',
-            'slug'=>'role.index',
-            'description'=>'El usuario puede acceder al mantenedor de Roles'
+            'name'        => 'Mantenedor Roles',
+            'slug'        => 'role.index',
+            'description' => 'El usuario puede acceder al mantenedor de Roles'
         ]);
-
-        //Almacenes permission
 
         Permission::create([
-            'name'  => 'Mantenedor Almacén',
-            'slug'=>'almacen.index',
-            'description'=>'El usuario puede acceder al mantenedor de Almacenes'
+            'name'        => 'Mantenedor Almacén',
+            'slug'        => 'almacen.index',
+            'description' => 'El usuario puede acceder al mantenedor de Almacenes'
         ]);
 
-        //Categoria permission
-
         Permission::create([
-            'name'  => 'Mantenedor Categoria',
-            'slug'=>'categoria.index',
-            'description'=>'El usuario puede acceder al mantenedor de Categorias'
+            'name'        => 'Mantenedor Categoria',
+            'slug'        => 'categoria.index',
+            'description' => 'El usuario puede acceder al mantenedor de Categorias'
         ]);
-
-        //Unidad de Producto permission
 
         Permission::create([
-            'name'  => 'Mantenedor Unidad de Producto',
-            'slug'=>'unidadProducto.index',
-            'description'=>'El usuario puede acceder al mantenedor de unidad de Producto'
+            'name'        => 'Mantenedor Unidad de Producto',
+            'slug'        => 'unidadProducto.index',
+            'description' => 'El usuario puede acceder al mantenedor de unidad de producto'
         ]);
 
-        //Lote Produco permission
-
         Permission::create([
-            'name'  => 'Consulta Lote Producto',
-            'slug'=>'lote_producto.index',
-            'description'=>'El usuario puede acceder a la consulta de Lote Productos'
+            'name'        => 'Consulta Lote Producto',
+            'slug'        => 'lote_producto.index',
+            'description' => 'El usuario puede acceder a la consulta de Lote Producto'
         ]);
 
-        //Marca permission
-
         Permission::create([
-            'name'  => 'Mantenedor Marca',
-            'slug'=>'marca.index',
-            'description'=>'El usuario puede acceder al mantenedor de Marcas'
+            'name'        => 'Mantenedor Marca',
+            'slug'        => 'marca.index',
+            'description' => 'El usuario puede acceder al mantenedor de Marcas'
         ]);
-
-        //Producto permission
 
         Permission::create([
-            'name'  => 'Mantenedor Producto',
-            'slug'=>'producto.index',
-            'description'=>'El usuario puede acceder al mantenedor de Productos'
+            'name'        => 'Mantenedor Producto',
+            'slug'        => 'producto.index',
+            'description' => 'El usuario puede acceder al mantenedor de Productos'
         ]);
 
-        //Nota Ingreso permission
-
         Permission::create([
-            'name'  => 'Mantenedor Notas de Ingreso',
-            'slug'=>'nota_ingreso.index',
-            'description'=>'El usuario puede acceder al mantenedor de Notas de Ingreso'
+            'name'        => 'Mantenedor Notas de Ingreso',
+            'slug'        => 'nota_ingreso.index',
+            'description' => 'El usuario puede acceder al mantenedor de Notas de Ingreso'
         ]);
 
-        //Nota Salida permission
-
         Permission::create([
-            'name'  => 'Mantenedor Notas de Salida',
-            'slug'=>'nota_salida.index',
-            'description'=>'El usuario puede acceder al mantenedor de Notas de Salida'
+            'name'        => 'Mantenedor Notas de Salida',
+            'slug'        => 'nota_salida.index',
+            'description' => 'El usuario puede acceder al mantenedor de Notas de Salida'
         ]);
-
-        //Tipo Cliente permission
 
         Permission::create([
-            'name'  => 'Mantenedor Tipos de Cliente',
-            'slug'=>'tipo_cliente.index',
-            'description'=>'El usuario puede acceder al mantenedor de Tipos de Cliente'
+            'name'        => 'Mantenedor Tipos de Cliente',
+            'slug'        => 'tipo_cliente.index',
+            'description' => 'El usuario puede acceder al mantenedor de Tipos de Cliente'
         ]);
 
-        //Orden compra permission
-
         Permission::create([
-            'name'  => 'Mantenedor Ordenes de Compra',
-            'slug'=>'orden_compra.index',
-            'description'=>'El usuario puede acceder al mantenedor de Ordenes de Compra'
+            'name'        => 'Mantenedor Ordenes de Compra',
+            'slug'        => 'orden_compra.index',
+            'description' => 'El usuario puede acceder al mantenedor de Ordenes de Compra'
         ]);
 
-        //Documento de compra permission
-
         Permission::create([
-            'name'  => 'Mantenedor Documentos de compra',
-            'slug'=>'documento_compra.index',
-            'description'=>'El usuario puede acceder al mantenedor de Documentos de Compra'
+            'name'        => 'Mantenedor Documentos de compra',
+            'slug'        => 'documento_compra.index',
+            'description' => 'El usuario puede acceder al mantenedor de Documentos de Compra'
         ]);
-
-        //Proveedor permission
 
         Permission::create([
-            'name'  => 'Mantenedor Proveedores',
-            'slug'=>'proveedor.index',
-            'description'=>'El usuario puede acceder al mantenedor de Proveedores'
+            'name'        => 'Mantenedor Proveedores',
+            'slug'        => 'proveedor.index',
+            'description' => 'El usuario puede acceder al mantenedor de Proveedores'
         ]);
 
-        //Cuenta proveedor permission
-
         Permission::create([
-            'name'  => 'Mantenedor Cuentas de proveedor',
-            'slug'=>'cuenta_proveedor.index',
-            'description'=>'El usuario puede acceder al mantenedor de Cuentas de Proveedor'
+            'name'        => 'Mantenedor Cuentas de proveedor',
+            'slug'        => 'cuenta_proveedor.index',
+            'description' => 'El usuario puede acceder al mantenedor de Cuentas de Proveedor'
         ]);
-
-        //Colaborador permission
 
         Permission::create([
-            'name'  => 'Mantenedor Colaboradores',
-            'slug'=>'colaborador.index',
-            'description'=>'El usuario puede acceder al mantenedor de Colaboradores'
+            'name'        => 'Mantenedor Colaboradores',
+            'slug'        => 'colaborador.index',
+            'description' => 'El usuario puede acceder al mantenedor de Colaboradores'
         ]);
 
-        //Empresa permission
-
         Permission::create([
-            'name'  => 'Mantenedor Empresas',
-            'slug'=>'empresa.index',
-            'description'=>'El usuario puede acceder al mantenedor de Empresas'
+            'name'        => 'Mantenedor Empresas',
+            'slug'        => 'empresa.index',
+            'description' => 'El usuario puede acceder al mantenedor de Empresas'
         ]);
 
-         //Condicion permission
-
-         Permission::create([
-            'name'  => 'Mantenedor Condiciones',
-            'slug'=>'condicion.index',
-            'description'=>'El usuario puede acceder al mantenedor de Condiciones'
+        Permission::create([
+            'name'        => 'Mantenedor Condiciones',
+            'slug'        => 'condicion.index',
+            'description' => 'El usuario puede acceder al mantenedor de Condiciones'
         ]);
 
-        //Configuracion permission
-
         Permission::create([
-            'name'  => 'Mantenedor de Configuracion',
-            'slug' => 'configuracion.index',
-            'description' => 'El usuario puede acceder al mantenedor de Configuracion'
+            'name'        => 'Mantenedor de Configuracion',
+            'slug'        => 'configuracion.index',
+            'description' => 'El usuario puede acceder al mantenedor de Configuración'
         ]);
 
-        //Personas permission
-
         Permission::create([
-            'name'  => 'Mantenedor de Personas',
-            'slug'=>'persona.index',
-            'description'=>'El usuario puede acceder al mantenedor de Personas'
+            'name'        => 'Mantenedor de Personas',
+            'slug'        => 'persona.index',
+            'description' => 'El usuario puede acceder al mantenedor de Personas'
         ]);
-
-        //Tabla permission
 
         Permission::create([
-            'name'  => 'Mantenedor Tablas General',
-            'slug'=>'tabla.index',
-            'description'=>'El usuario puede acceder al mantenedor de Tablas Generales'
+            'name'        => 'Mantenedor Tablas General',
+            'slug'        => 'tabla.index',
+            'description' => 'El usuario puede acceder al mantenedor de Tablas Generales'
         ]);
 
-        //Vendedor permission
-
         Permission::create([
-            'name'  => 'Mantenedor Vendedores',
-            'slug'=>'vendedor.index',
-            'description'=>'El usuario puede acceder al mantenedor de Vendedores'
+            'name'        => 'Mantenedor Vendedores',
+            'slug'        => 'vendedor.index',
+            'description' => 'El usuario puede acceder al mantenedor de Vendedores'
         ]);
 
-        //MANTENEDOR METODO ENTREGA
         Permission::create([
-            'name'  => 'Mantenedor Métodos Entrega',
-            'slug'=>'metodo_entrega.index',
-            'description'=>'El usuario puede acceder al mantenedor de métodos entrega'
+            'name'        => 'Mantenedor Cajas',
+            'slug'        => 'caja.index',
+            'description' => 'El usuario puede acceder al mantenedor de Cajas'
         ]);
 
-        //Caja permission
-
         Permission::create([
-            'name'  => 'Mantenedor Cajas',
-            'slug'=>'caja.index',
-            'description'=>'El usuario puede acceder al mantenedor de Cajas'
+            'name'        => 'Listar Movimientos Caja',
+            'slug'        => 'movimiento_caja.index',
+            'description' => 'El usuario puede acceder al mantenedor de Movimientos de Caja'
         ]);
-
-        //Movimiento Caja permission
 
         Permission::create([
-            'name'  => 'Listar Movimientos Caja',
-            'slug'=>'movimiento_caja.index',
-            'description'=>'El usuario puede acceder al mantenedor de Movimientos Caja'
+            'name'        => 'Aperturar Caja',
+            'slug'        => 'movimiento_caja.create',
+            'description' => 'El usuario puede aperturar Caja'
         ]);
 
         Permission::create([
-            'name'  => 'Aperturar Caja',
-            'slug'=>'movimiento_caja.create',
-            'description'=>'El usuario puede aperturar Caja'
+            'name'        => 'Mantenedor Clientes',
+            'slug'        => 'cliente.index',
+            'description' => 'El usuario puede acceder al mantenedor de Clientes'
         ]);
 
-        //Cliente permission
-
         Permission::create([
-            'name'  => 'Mantenedor Clientes',
-            'slug'=>'cliente.index',
-            'description'=>'El usuario puede acceder al mantenedor de Clientes'
+            'name'        => 'Mantenedor Cotizaciones',
+            'slug'        => 'cotizacion.index',
+            'description' => 'El usuario puede acceder al mantenedor de Notas de Cotización'
         ]);
-
-        //Cotizacion permission
 
         Permission::create([
-            'name'  => 'Mantenedor Cotizaciones',
-            'slug'=>'cotizacion.index',
-            'description'=>'El usuario puede acceder al mantenedor de Notas de Salida'
+            'name'        => 'Mantenedor Egresos',
+            'slug'        => 'egreso.index',
+            'description' => 'El usuario puede acceder al mantenedor de Egresos'
         ]);
 
-        //Egreso permission
-
         Permission::create([
-            'name'  => 'Mantenedor Egresos',
-            'slug'=>'egreso.index',
-            'description'=>'El usuario puede acceder al mantenedor de Egresos'
+            'name'        => 'Mantenedor Documentos Venta',
+            'slug'        => 'documento_venta.index',
+            'description' => 'El usuario puede acceder al mantenedor de Documentos de Venta'
         ]);
 
-        //Documento Venta permission
-
         Permission::create([
-            'name'  => 'Mantenedor Documentos Venta',
-            'slug'=>'documento_venta.index',
-            'description'=>'El usuario puede acceder al mantenedor de Documentos de Venta'
+            'name'        => 'Mantenedor Cuentas Cliente',
+            'slug'        => 'cuenta_cliente.index',
+            'description' => 'El usuario puede acceder al mantenedor de Cuentas de Cliente'
         ]);
 
-        //Resúmenes Permission
         Permission::create([
-            'name'  => 'Mantenedor Resúmenes',
-            'slug'=>'resumenes.index',
-            'description'=>'El usuario puede acceder al mantenedor de Resúmenes'
+            'name'        => 'Mantenedor Guias de Remision',
+            'slug'        => 'guia.index',
+            'description' => 'El usuario puede acceder al mantenedor de Guias de Remisión'
         ]);
 
-        //Ventas Caja Permission
         Permission::create([
-            'name'  => 'Ventas Caja',
-            'slug'=>'ventascaja.index',
-            'description'=>'El usuario puede acceder a Ventas Caja'
+            'name'        => 'Mantenedor Notas Electronicas',
+            'slug'        => 'nota_electronica.index',
+            'description' => 'El usuario puede acceder al mantenedor de Notas Electrónicas'
         ]);
 
-        //Ventas Pedidos Permission
         Permission::create([
-            'name'  => 'Mantenedor Pedidos',
-            'slug'=>'pedidos.index',
-            'description'=>'El usuario puede acceder al mantenedor de Pedidos'
+            'name'        => 'Vista de Utilidad Mensual',
+            'slug'        => 'utilidad_mensual.index',
+            'description' => 'El usuario puede acceder a la vista de Utilidad Mensual'
         ]);
 
-        //Cuenta Cliente permission
         Permission::create([
-            'name'  => 'Mantenedor Cuentas Cliente',
-            'slug'=>'cuenta_cliente.index',
-            'description'=>'El usuario puede acceder al mantenedor de Cuentas Cliente'
+            'name'        => 'Vista de Consulta Documentos',
+            'slug'        => 'consulta_documento.index',
+            'description' => 'El usuario puede acceder a la vista de consulta de Documentos'
         ]);
-
-        //Guia permission
 
         Permission::create([
-            'name'  => 'Mantenedor Guias de Remision',
-            'slug'=>'guia.index',
-            'description'=>'El usuario puede acceder al mantenedor de Guias de Remision'
+            'name'        => 'Vista de Consulta - Ventas - Documento',
+            'slug'        => 'consulta_venta_documento.index',
+            'description' => 'El usuario puede acceder a la vista de Consulta - Ventas - Documento'
         ]);
 
-        //Nota Electronica permission
-
         Permission::create([
-            'name'  => 'Mantenedor Notas Electronicas',
-            'slug'=>'nota_electronica.index',
-            'description'=>'El usuario puede acceder al mantenedor de Notas Electronicas'
+            'name'        => 'Vista de Consulta - Ventas - Cotizacion',
+            'slug'        => 'consulta_venta_cotizacion.index',
+            'description' => 'El usuario puede acceder a la vista de Consulta - Ventas - Cotización'
         ]);
 
-        //Utilidad Mensual
         Permission::create([
-            'name'  => 'Vista de Utilidad Mensual',
-            'slug'=>'utilidad_mensual.index',
-            'description'=>'El usuario puede acceder a la vista de Utilidad Mensual'
+            'name'        => 'Vista de Consulta - Ventas - Documentos No Enviados',
+            'slug'        => 'consulta_venta_documento_no.index',
+            'description' => 'El usuario puede acceder a la vista de Consulta - Ventas - Documentos No Enviados'
         ]);
-
-        /*Nuevos permisos*/
-
-        /*====================CONSULTAS=====================*/
 
-        //Consulta documentos
         Permission::create([
-            'name'  => 'Vista de Consulta Documentos',
-            'slug'=>'consulta_documento.index',
-            'description'=>'El usuario puede acceder a la vista de consulta documentos'
+            'name'        => 'Vista de Consulta Compras - Orden',
+            'slug'        => 'consulta_compras_orden.index',
+            'description' => 'El usuario puede acceder a la vista de Consulta - Compras - Orden'
         ]);
 
-        //Consulta - venta - documento
         Permission::create([
-            'name'  => 'Vista de Consulta - Ventas - Documento',
-            'slug'=>'consulta_venta_documento.index',
-            'description'=>'El usuario puede acceder a la vista de Consulta - Ventas - Documento'
+            'name'        => 'Vista de Consulta Compras - Documento',
+            'slug'        => 'consulta_compras_documento.index',
+            'description' => 'El usuario puede acceder a la vista de Consulta - Compras - Documento'
         ]);
 
-        //Consulta - venta - cotizacion
         Permission::create([
-            'name'  => 'Vista de Consulta - Ventas - Cotizacion',
-            'slug'=>'consulta_venta_cotizacion.index',
-            'description'=>'El usuario puede acceder a la vista de Consulta - Ventas - Cotizacion'
+            'name'        => 'Vista de Consulta Cuenta Proveedor',
+            'slug'        => 'consulta_cuenta_proveedor.index',
+            'description' => 'El usuario puede acceder a la vista de Consulta Cuenta Proveedor'
         ]);
 
-        //Consulta - venta - Documentos No Enviados
         Permission::create([
-            'name'  => 'Vista de Consulta - Ventas - Documentos No Enviados',
-            'slug'=>'consulta_venta_documento_no.index',
-            'description'=>'El usuario puede acceder a la vista de Consulta - Ventas - Documentos No Enviados'
+            'name'        => 'Vista de Consulta Cuenta Cliente',
+            'slug'        => 'consulta_cuenta_cliente.index',
+            'description' => 'El usuario puede acceder a la vista de Consulta Cuenta Cliente'
         ]);
 
-        //Consulta Compras - Orden
         Permission::create([
-            'name'  => 'Vista de Consulta Compras - Orden',
-            'slug'=>'consulta_compras_orden.index',
-            'description'=>'El usuario puede acceder a la vista de Consulta - Compras - Orden'
+            'name'        => 'Vista de Consulta Nota de Salida',
+            'slug'        => 'consulta_nota_salida.index',
+            'description' => 'El usuario puede acceder a la vista de Consulta Nota de Salida'
         ]);
 
-        //Consulta Compras - Documento
         Permission::create([
-            'name'  => 'Vista de Consulta Compras - Documento',
-            'slug'=>'consulta_compras_documento.index',
-            'description'=>'El usuario puede acceder a la vista de Consulta - Compras - Documento'
+            'name'        => 'Vista de Consulta Nota de Ingreso',
+            'slug'        => 'consulta_nota_ingreso.index',
+            'description' => 'El usuario puede acceder a la vista de Consulta Nota de Ingreso'
         ]);
 
-        //Consulta Compras - Cuenta Proveedor
         Permission::create([
-            'name'  => 'Vista de Consulta Cuenta Proveedor',
-            'slug'=>'consulta_cuenta_proveedor.index',
-            'description'=>'El usuario puede acceder a la vista de Consulta Cuenta Proveedor'
+            'name'        => 'Vista de Consulta Utilidad bruta',
+            'slug'        => 'consulta_utilidad_bruta.index',
+            'description' => 'El usuario puede acceder a la vista de Consulta de Utilidad Bruta'
         ]);
 
-        //Consulta Compras - Cuenta Cliente
         Permission::create([
-            'name'  => 'Vista de Consulta Cuenta Cliente',
-            'slug'=>'consulta_cuenta_cliente.index',
-            'description'=>'El usuario puede acceder a la vista de Consulta Cuenta Cliente'
+            'name'        => 'Vista de Reporte Caja Diaria',
+            'slug'        => 'reporte_cajadiaria.index',
+            'description' => 'El usuario puede acceder a la vista de Reporte Caja Diaria'
         ]);
 
-        //Consulta Compras - Nota de Salida
         Permission::create([
-            'name'  => 'Vista de Consulta Nota de Salida',
-            'slug'=>'consulta_nota_salida.index',
-            'description'=>'El usuario puede acceder a la vista de Consulta Nota de Salida'
+            'name'        => 'Vista de Reporte Venta',
+            'slug'        => 'reporte_venta.index',
+            'description' => 'El usuario puede acceder a la vista de Reporte Venta'
         ]);
 
-        //Consulta Compras - Nota de Ingreso
         Permission::create([
-            'name'  => 'Vista de Consulta Nota de Ingreso',
-            'slug'=>'consulta_nota_ingreso.index',
-            'description'=>'El usuario puede acceder a la vista de Consulta Nota de Ingreso'
+            'name'        => 'Vista de Reporte Compra',
+            'slug'        => 'reporte_compra.index',
+            'description' => 'El usuario puede acceder a la vista de Reporte Compra'
         ]);
 
-        //Consulta Compras - Utilidad bruta
         Permission::create([
-            'name'  => 'Vista de Consulta Utilidad bruta',
-            'slug'=>'consulta_utilidad_bruta.index',
-            'description'=>'El usuario puede acceder a la vista de Consulta Utilidad Bruta'
+            'name'        => 'Vista de Reporte Nota de Salida',
+            'slug'        => 'reporte_nota_salida.index',
+            'description' => 'El usuario puede acceder a la vista de Reporte Nota de Salida'
         ]);
 
-
-        /*====================REPORTES=====================*/
-
-        //Reporte - Caja Diaria
         Permission::create([
-            'name'  => 'Vista de Reporte Caja Diaria',
-            'slug'=>'reporte_cajadiaria.index',
-            'description'=>'El usuario puede acceder a la vista de Reporte Caja Diaria'
+            'name'        => 'Vista de Reporte Nota de Ingreso',
+            'slug'        => 'reporte_nota_ingreso.index',
+            'description' => 'El usuario puede acceder a la vista de Reporte Nota de Ingreso'
         ]);
 
-        //Reporte - Venta
         Permission::create([
-            'name'  => 'Vista de Reporte Venta',
-            'slug'=>'reporte_venta.index',
-            'description'=>'El usuario puede acceder a la vista de Reporte Venta'
+            'name'        => 'Vista de Reporte Cuentas por Cobrar',
+            'slug'        => 'reporte_cuenta_cobrar.index',
+            'description' => 'El usuario puede acceder a la vista de Reporte Cuentas por Cobrar'
         ]);
 
-        //Reporte - Compra
         Permission::create([
-            'name'  => 'Vista de Reporte Compra',
-            'slug'=>'reporte_compra.index',
-            'description'=>'El usuario puede acceder a la vista de Reporte Compra'
+            'name'        => 'Vista de Reporte Cuentas por Pagar',
+            'slug'        => 'reporte_cuenta_pagar.index',
+            'description' => 'El usuario puede acceder a la vista de Reporte Cuentas por Pagar'
         ]);
 
-        //Reporte - Nota de Salida
         Permission::create([
-            'name'  => 'Vista de Reporte Nota de Salida',
-            'slug'=>'reporte_nota_salida.index',
-            'description'=>'El usuario puede acceder a la vista de Reporte Nota de Salida'
+            'name'        => 'Vista de Reporte Stock Valorizado',
+            'slug'        => 'reporte_stock_valorizado.index',
+            'description' => 'El usuario puede acceder a la vista de Reporte Stock Valorizado'
         ]);
 
-        //Reporte - Nota de Ingreso
         Permission::create([
-            'name'  => 'Vista de Reporte Nota de Ingreso',
-            'slug'=>'reporte_nota_ingreso.index',
-            'description'=>'El usuario puede acceder a la vista de Reporte Nota de Ingreso'
+            'name'        => 'Vista de Kardex Proveedor',
+            'slug'        => 'kardex_proveedor.index',
+            'description' => 'El usuario puede acceder a la vista de Kardex Proveedor'
         ]);
 
-        //Reporte - Cuentas por Cobrar
         Permission::create([
-            'name'  => 'Vista de Reporte Cuentas por Cobrar',
-            'slug'=>'reporte_cuenta_cobrar.index',
-            'description'=>'El usuario puede acceder a la vista de Reporte Cuentas por Cobrar'
+            'name'        => 'Vista de Kardex Cliente',
+            'slug'        => 'kardex_cliente.index',
+            'description' => 'El usuario puede acceder a la vista de Kardex Cliente'
         ]);
 
-        //Reporte - Cuentas por Pagar
         Permission::create([
-            'name'  => 'Vista de Reporte Cuentas por Pagar',
-            'slug'=>'reporte_cuenta_pagar.index',
-            'description'=>'El usuario puede acceder a la vista de Reporte Cuentas por Pagar'
+            'name'        => 'Consulta kardex producto',
+            'slug'        => 'kardex_producto.index',
+            'description' => 'El usuario puede acceder a la consulta de Kardex producto'
         ]);
 
-        //Reporte - Stock - Valorizado
         Permission::create([
-            'name'  => 'Vista de Reporte Stock Valorizado',
-            'slug'=>'reporte_stock_valorizado.index',
-            'description'=>'El usuario puede acceder a la vista de Reporte Stock Valorizado'
+            'name'        => 'Vista de Kardex Venta',
+            'slug'        => 'kardex_venta.index',
+            'description' => 'El usuario puede acceder a la vista de Kardex Venta'
         ]);
 
-        //Kardex - Proveedor
         Permission::create([
-            'name'  => 'Vista de Kardex Proveedor',
-            'slug'=>'kardex_proveedor.index',
-            'description'=>'El usuario puede acceder a la vista de Kardex Proveedor'
+            'name'        => 'Vista de Kardex Nota de Salida',
+            'slug'        => 'kardex_salida.index',
+            'description' => 'El usuario puede acceder a la vista de Kardex Nota de Salida'
         ]);
 
-        //Kardex - Cliente
         Permission::create([
-            'name'  => 'Vista de Kardex Cliente',
-            'slug'=>'kardex_cliente.index',
-            'description'=>'El usuario puede acceder a la vista de Kardex Cliente'
+            'name'        => 'Ventas Caja',
+            'slug'        => 'ventascaja.index',
+            'description' => 'El usuario puede pagar los documentos de venta'
         ]);
-
-        //Kardex producto permission
 
         Permission::create([
-            'name'  => 'Consulta kardex producto',
-            'slug'=>'kardex_producto.index',
-            'description'=>'El usuario puede acceder a la consulta de Kardex producto'
+            'name'        => 'Ventas Resúmenes',
+            'slug'        => 'resumenes.index',
+            'description' => 'El usuario puede acceder a los resúmenes'
         ]);
 
-        //Kardex - Ventas
         Permission::create([
-            'name'  => 'Vista de Kardex Venta',
-            'slug'=>'kardex_venta.index',
-            'description'=>'El usuario puede acceder a la vista de Kardex Venta'
+            'name'        => 'Ventas Despacho',
+            'slug'        => 'despachos.index',
+            'description' => 'El usuario puede acceder al mantenedor despachos'
         ]);
 
-        //Kardex - Salidas
         Permission::create([
-            'name'  => 'Vista de Kardex Nota de Salida',
-            'slug'=>'kardex_salida.index',
-            'description'=>'El usuario puede acceder a la vista de Kardex Nota de Salida'
+            'name'        => 'Mantenedor Pedidos',
+            'slug'        => 'pedido.index',
+            'description' => 'El usuario puede acceder al mantenedor pedidos'
         ]);
 
-        //VENTAS CAJA
         Permission::create([
-            'name'  => 'Ventas Caja',
-            'slug'=>'ventascaja.index',
-            'description'=>'El usuario puede pagar los documentos de venta.'
+            'name'        => 'Mantenedor Recibos Caja',
+            'slug'        => 'recibos_caja.index',
+            'description' => 'El usuario podrá acceder al mantenedor de recibos de caja'
         ]);
 
-        //====== VENTAS RESÚMENES ==========
         Permission::create([
-            'name'  => 'Ventas Resúmenes',
-            'slug'=>'resumenes.index',
-            'description'=>'El usuario puede acceder a los resúmenes.'
+            'name'        => 'Contabilidad',
+            'slug'        => 'contabilidad.index',
+            'description' => 'El usuario puede acceder a consultas de documentos contables'
         ]);
 
-        //====== VENTAS DESPACHOS ==========
         Permission::create([
-            'name'  => 'Ventas Despacho',
-            'slug'=>'despachos.index',
-            'description'=>'El usuario puede acceder al mantenedor despachos.'
+            'name'        => 'Vista Detalles de Pedidos',
+            'slug'        => 'pedidos_detalles.index',
+            'description' => 'El usuario podrá consultar los detalles de todos los pedidos'
         ]);
 
-        //====== VENTAS PEDIDOS ==========
         Permission::create([
-            'name'  => 'Ventas Despacho',
-            'slug'=>'pedidos.index',
-            'description'=>'El usuario puede acceder al mantenedor pedidos.'
+            'name'        => 'Traslados',
+            'slug'        => 'traslados.index',
+            'description' => 'El usuario puede realizar traslados'
         ]);
 
-        //====== VENTAS RECIBOS CAJA ==========
         Permission::create([
-            'name'  => 'Mantenedor Recibos Caja',
-            'slug'=>'recibos_caja.index',
-            'description'=>'El usuario podrá acceder al mantenedor de recibos caja.'
+            'name'        => 'Solicitudes Traslado',
+            'slug'        => 'solicitudes_traslado.index',
+            'description' => 'El usuario puede marcar los traslados como recibidos'
         ]);
 
-        //====== VENTAS RECIBOS CAJA ==========
         Permission::create([
-            'name'  => 'Contabilidad',
-            'slug'=>'contabilidad.index',
-            'description'=>'El usuario puede acceder a consultas de de documentos de venta.'
+            'name'        => 'Reservas',
+            'slug'        => 'reservas.index',
+            'description' => 'Gestionar reservas de pedidos'
         ]);
     }
 }

@@ -20,14 +20,18 @@ class CreateCompraDocumentoDetallesTable extends Migration
                   ->references('id')->on('compra_documentos')
                   ->onDelete('cascade');
 
-            $table->unsignedInteger('producto_id')->unsigned();
-            $table->unsignedInteger('color_id')->unsigned();
-            $table->unsignedInteger('talla_id')->unsigned();
+            $table->unsignedInteger('producto_id');
+            $table->unsignedInteger('color_id');
+            $table->unsignedInteger('talla_id');
+
+            $table->foreign('producto_id')->references('id')->on('productos');
+            $table->foreign('color_id')->references('id')->on('colores');
+            $table->foreign('talla_id')->references('id')->on('tallas');
 
             $table->string('producto_codigo')->nullable();
             $table->string('producto_nombre')->nullable();
             $table->string('presentacion_producto')->nullable();
-            $table->string('medida_producto')->nullable();
+            $table->string('medida_producto');
 
             $table->string('color_nombre')->nullable();
             $table->string('talla_nombre')->nullable();
@@ -36,10 +40,6 @@ class CreateCompraDocumentoDetallesTable extends Migration
 
             $table->unsignedDecimal('cantidad', 15, 4);
             $table->date('fecha_vencimiento')->nullable();
-
-            // $table->string('lote')->nullable();
-            // $table->unsignedInteger('lote_id')->unsigned()->nullable();
-            // $table->foreign('lote_id')->references('id')->on('lote_productos')->onDelete('cascade');
 
             $table->unsignedDecimal('precio', 15,4)->nullable();
             $table->unsignedDecimal('precio_inicial', 15, 4)->nullable();

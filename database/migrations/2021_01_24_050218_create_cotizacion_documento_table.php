@@ -17,7 +17,7 @@ class CreateCotizacionDocumentoTable extends Migration
 
             $table->Increments('id');
 
-            $table->string('telefono',20)->nullable();
+            $table->string('telefono', 20)->nullable();
 
             //EMPRESA
             $table->BigInteger('ruc_empresa');
@@ -31,44 +31,42 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->unsignedBigInteger('sede_id');
             $table->foreign('sede_id')->references('id')->on('empresa_sedes');
 
-            $table->string('almacen_nombre',160);
+            $table->string('almacen_nombre', 160);
 
             //CLIENTE
             $table->string('tipo_documento_cliente');
-            $table->BigInteger('documento_cliente');
+            $table->string('documento_cliente', 25);
             $table->mediumText('direccion_cliente');
             $table->string('cliente');
             $table->unsignedInteger('cliente_id'); //OBTENER TIENDAS DEL CLIENTE
 
             $table->unsignedBigInteger('pedido_id')->nullable();
-            $table->foreign('pedido_id')->references('id')->on('pedidos')->onDelete('cascade');
 
             $table->enum('tipo_doc_venta_pedido', ['ATENCION', 'FACTURACION'])->nullable();
-
 
             $table->date('fecha_documento');
             $table->date('fecha_vencimiento');
             $table->date('fecha_atencion')->nullable();
 
             $table->string('tipo_venta_id');
-            $table->string('tipo_venta_nombre',160);
+            $table->string('tipo_venta_nombre', 160);
 
 
-            $table->unsignedDecimal('sub_total', 15, 2);
-            $table->unsignedDecimal('monto_embalaje',15,2)->nullable();
-            $table->unsignedDecimal('monto_envio',15,2)->nullable();
-            $table->unsignedDecimal('total', 15, 2);
-            $table->unsignedDecimal('total_igv', 15, 2);
-            $table->unsignedDecimal('total_pagar', 15, 2);
+            $table->unsignedDecimal('sub_total', 15, 6);
+            $table->unsignedDecimal('monto_embalaje', 15, 6)->nullable();
+            $table->unsignedDecimal('monto_envio', 15, 6)->nullable();
+            $table->unsignedDecimal('total', 15, 6);
+            $table->unsignedDecimal('total_igv', 15, 6);
+            $table->unsignedDecimal('total_pagar', 15, 6);
 
-            $table->unsignedDecimal('porcentaje_descuento', 15, 2)->nullable();
-            $table->unsignedDecimal('monto_descuento', 15, 2)->nullable();
+            $table->unsignedDecimal('porcentaje_descuento', 15, 6)->nullable();
+            $table->unsignedDecimal('monto_descuento', 15, 6)->nullable();
 
 
             $table->unsignedInteger('tipo_pago_id')->nullable();
             $table->foreign('tipo_pago_id')->references('id')->on('tipos_pago')->onDelete('cascade');
-            $table->unsignedDecimal('efectivo', 15, 2)->nullable()->default(0.00);
-            $table->unsignedDecimal('importe', 15, 2)->nullable()->default(0.00);
+            $table->unsignedDecimal('efectivo', 15, 6)->nullable()->default(0);
+            $table->unsignedDecimal('importe', 15, 6)->nullable()->default(0);
 
             $table->foreignId('condicion_id')->nullable()->constrained()->onDelete('SET NULL');
             $table->longText('ruta_xml')->nullable();
@@ -80,11 +78,11 @@ class CreateCotizacionDocumentoTable extends Migration
 
             $table->unsignedInteger('banco_empresa_id')->unsigned()->nullable();
             $table->foreign('banco_empresa_id')
-                  ->references('id')->on('banco_empresas')
-                  ->onDelete('SET NULL');
+                ->references('id')->on('banco_empresas')
+                ->onDelete('SET NULL');
 
-            $table->string('igv_check',2)->nullable();
-            $table->unsignedDecimal('igv',15,4)->nullable();
+            $table->string('igv_check', 2)->nullable();
+            $table->unsignedDecimal('igv', 15, 6)->nullable();
             $table->string('moneda');
 
             $table->string('numero_doc')->nullable();
@@ -96,20 +94,20 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->mediumText('observacion')->nullable();
-            $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
-            $table->enum('estado_pago',['PAGADA','PENDIENTE','ADELANTO','CONCRETADA','VIGENTE','DEVUELTO'])->default('PENDIENTE');
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
+            $table->enum('estado_pago', ['PAGADA', 'PENDIENTE', 'ADELANTO', 'CONCRETADA', 'VIGENTE', 'DEVUELTO'])->default('PENDIENTE');
 
             $table->longText('legenda');
 
-            $table->enum('sunat',['0','1','2'])->default('0');
+            $table->enum('sunat', ['0', '1', '2'])->default('0');
 
             $table->json('getCdrResponse')->nullable();
             $table->json('getRegularizeResponse')->nullable();
-            $table->enum('regularize',['0','1'])->default('0');
+            $table->enum('regularize', ['0', '1'])->default('0');
 
 
             $table->unsignedBigInteger('correlativo');
-            $table->string('serie',20);
+            $table->string('serie', 20);
 
             $table->string('ruta_comprobante_archivo')->nullable();
             $table->string('nombre_comprobante_archivo')->nullable();
@@ -120,11 +118,67 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->BigInteger('correlativo_contingencia')->nullable();
             $table->string('serie_contingencia')->nullable();
             $table->enum('sunat_contingencia', ['0', '1', '2'])->default('0');
-            $table->json('getCdrResponse_contingencia')->nullable();
-            $table->json('getRegularizeResponse_contingencia')->nullable();
 
-            $table->string('cambio_talla',1)->nullable();
+            $table->string('cambio_talla', 1)->nullable();
+            $table->string('registrador_nombre', 200)->nullable();
 
+            //===== ANTICIPO ======
+            $table->boolean('es_anticipo')->default(0)->nullable();
+            $table->unsignedDecimal('saldo_anticipo', 15, 6)->nullable()->default(0.000000);
+            $table->unsignedInteger('anticipo_consumido_id')->nullable();
+            $table->unsignedDecimal('anticipo_monto_consumido', 15, 6)->nullable()->default(0.000000);
+            $table->decimal('anticipo_monto_consumido_sin_igv', 15, 6)->nullable()->default(0.000000);
+            $table->string('anticipo_consumido_serie', 20)->nullable();
+            $table->unsignedBigInteger('anticipo_consumido_correlativo')->nullable();
+            $table->string('anticipo_tipo_venta_id', 20)->nullable();
+            $table->decimal('total_anticipos_sunat', 15, 6)->nullable()->default(0.000000);
+            $table->decimal('descuento_global_sunat', 15, 6)->nullable()->default(0.000000);
+
+            //========= MONTOS SUNAT =========
+            $table->unsignedDecimal('mto_oper_gravadas_sunat', 15, 6)->nullable();
+            $table->unsignedDecimal('mto_igv_sunat', 15, 6)->nullable();
+            $table->unsignedDecimal('total_impuestos_sunat', 15, 6)->nullable();
+            $table->unsignedDecimal('valor_venta_sunat', 15, 6)->nullable();
+            $table->unsignedDecimal('sub_total_sunat', 15, 6)->nullable();
+            $table->unsignedDecimal('mto_imp_venta_sunat', 15, 6)->nullable();
+
+            //============ CAJA - DESPACHO =========
+            $table->unsignedBigInteger('despacho_id')->nullable();
+            $table->unsignedBigInteger('caja_id')->nullable();
+            $table->unsignedBigInteger('caja_movimiento_id')->nullable();
+            $table->string('caja_nombre', 160)->nullable();
+            $table->string('condicion_pago_nombre', 200)->nullable();
+            $table->enum('estado_despacho', ['PENDIENTE', 'EMBALADO', 'DESPACHADO', 'S/D'])
+                ->default('S/D');
+
+            //============ PAGO 1 ============
+            $table->unsignedBigInteger('pago_1_cuenta_id')->nullable();
+            $table->string('pago_1_banco_nombre', 160)->nullable();
+            $table->string('pago_1_nro_cuenta', 100)->nullable();
+            $table->string('pago_1_cci', 100)->nullable();
+            $table->string('pago_1_celular', 20)->nullable();
+            $table->string('pago_1_titular', 200)->nullable();
+            $table->string('pago_1_moneda', 160)->nullable();
+            $table->date('pago_1_fecha_operacion')->nullable();
+            $table->time('pago_1_hora_operacion')->nullable();
+            $table->string('pago_1_tipo_pago_nombre', 160)->nullable();
+            $table->string('pago_1_nro_operacion', 30)->nullable();
+            $table->unsignedDecimal('pago_1_monto', 15, 6)->nullable();
+            $table->unsignedInteger('pago_1_tipo_pago_id')->nullable();
+
+            //=========== CONVERSION /REGULARIZACION / GUIAS
+            $table->unsignedInteger('resumen_id')->nullable();
+            $table->unsignedInteger('convert_de_id')->nullable();
+            $table->string('convert_de_serie', 160)->nullable();
+            $table->unsignedInteger('convert_en_id')->nullable();
+            $table->string('convert_en_serie', 160)->nullable();
+            $table->unsignedInteger('guia_id')->nullable();
+            $table->unsignedInteger('regularizado_en_id')->nullable();
+            $table->unsignedInteger('regularizado_de_id')->nullable();
+            $table->string('regularizado_en_serie', 160)->nullable();
+            $table->string('regularizado_de_serie', 160)->nullable();
+            $table->enum('modo', ['CONSUMO', 'VENTA', 'ATENCION', 'RESERVA'])
+                ->default('VENTA');
 
             $table->string('cdr_response_description')->nullable();
             $table->string('cdr_response_code')->nullable();

@@ -1,4 +1,6 @@
-@extends('layout') @section('content')
+@extends('layout')
+
+@section('content')
 
 @section('ventas-active', 'active')
 @section('clientes-active', 'active')
@@ -107,7 +109,7 @@
                     .find('.dt-search input')
                     .after(
                         '<small class="form-text text-muted d-block">Puedes buscar por: tipo doc, documento, nombre, teléfono, departamento, provincia, distrito.</small>'
-                        );
+                    );
             },
             "columns": [{
                     data: 'tipo_documento',

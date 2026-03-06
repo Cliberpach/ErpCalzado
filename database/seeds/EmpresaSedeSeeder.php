@@ -29,6 +29,9 @@ class EmpresaSedeSeeder extends Seeder
         $sede->codigo_local             =  '0000';
         $sede->tipo_sede                =  'PRINCIPAL';
         $sede->serie                    =   '001';
+        $sede->nombre                   =   'PRINCIPAL';
+        $sede->urbanizacion             =   '-';
+        $sede->carpeta_nombre           =   '-';
         $sede->save();
 
 
@@ -38,7 +41,7 @@ class EmpresaSedeSeeder extends Seeder
             'tipo_comprobante' => 127,
             'numero_iniciar' => 1,
             'emision_iniciada' => 1,
-            'sede_id'=>1
+            'sede_id' => 1
         ]);
 
         Numeracion::create([
@@ -47,7 +50,7 @@ class EmpresaSedeSeeder extends Seeder
             'tipo_comprobante' => 128,
             'numero_iniciar' => 1,
             'emision_iniciada' => 1,
-            'sede_id'=>1
+            'sede_id' => 1
         ]);
 
         Numeracion::create([
@@ -56,7 +59,7 @@ class EmpresaSedeSeeder extends Seeder
             'tipo_comprobante' => 129,
             'numero_iniciar' => 1,
             'emision_iniciada' => 1,
-            'sede_id'=>1
+            'sede_id' => 1
         ]);
     }
 }

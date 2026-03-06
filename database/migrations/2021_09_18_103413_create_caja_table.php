@@ -15,9 +15,12 @@ class CreateCajaTable extends Migration
     {
         Schema::create('caja', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('sede_id');
+            $table->foreign('sede_id')->references('id')->on('empresa_sedes');
+
             $table->string("nombre");
-            $table->enum('estado_caja',['ABIERTA','CERRADA'])->default('CERRADA');
-            $table->enum('estado',['ACTIVO','ANULADO'])->default('ACTIVO');
+            $table->enum('estado_caja', ['ABIERTA', 'CERRADA'])->default('CERRADA');
+            $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
             $table->timestamps();
         });
     }

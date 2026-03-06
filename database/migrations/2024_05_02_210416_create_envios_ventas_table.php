@@ -28,11 +28,11 @@ class CreateEnviosVentasTable extends Migration
             $table->foreign('sede_envio_id')->references('id')->on('empresa_envio_sedes');
             $table->string('sede_envio_nombre');
             $table->string('tipo_envio');
-            $table->string('destinatario_tipo_doc',30);
+            $table->string('destinatario_tipo_doc', 30);
             $table->string('destinatario_nro_doc');
             $table->string('destinatario_nombre');
             $table->unsignedInteger('cliente_id');
-            $table->foreign('cliente_id')->references('id')->on('clientes');            
+            $table->foreign('cliente_id')->references('id')->on('clientes');
             $table->string('cliente_nombre');
             $table->string('cliente_celular');
             $table->string('tipo_pago_envio');
@@ -46,15 +46,15 @@ class CreateEnviosVentasTable extends Migration
             $table->string('origen_venta')->nullable();
             $table->text('obs_rotulo')->nullable();
             $table->text('obs_despacho')->nullable();
-            $table->string('usuario_nombre',70)->nullable();
+            $table->string('usuario_nombre', 70)->nullable();
 
-            $table->unsignedInteger('user_vendedor_id'); 
-            $table->foreign('user_vendedor_id')->references('id')->on('users'); 
-            $table->string('user_vendedor_nombre',260); 
+            $table->unsignedInteger('user_vendedor_id');
+            $table->foreign('user_vendedor_id')->references('id')->on('users');
+            $table->string('user_vendedor_nombre', 260);
 
-            $table->unsignedInteger('user_despachador_id')->nullable(); 
-            $table->foreign('user_despachador_id')->references('id')->on('users'); 
-            $table->string('user_despachador_nombre',260)->nullable(); 
+            $table->unsignedInteger('user_despachador_id')->nullable();
+            $table->foreign('user_despachador_id')->references('id')->on('users');
+            $table->string('user_despachador_nombre', 260)->nullable();
 
 
 
@@ -63,10 +63,22 @@ class CreateEnviosVentasTable extends Migration
 
             $table->unsignedBigInteger('sede_id');
             $table->foreign('sede_id')->references('id')->on('empresa_sedes');
-            
-            $table->string('almacen_nombre',160);
 
-            $table->enum('estado', ['PENDIENTE', 'EMBALADO','DESPACHADO'])->default('PENDIENTE');
+            $table->unsignedBigInteger('sede_despachadora_id');
+            $table->foreign('sede_despachadora_id')->references('id')->on('empresa_sedes');
+
+            $table->string('almacen_nombre', 160);
+
+            $table->char('departamento_id', 2)->nullable();
+            $table->char('provincia_id', 4)->nullable();
+            $table->char('distrito_id', 6)->nullable();
+
+            $table->unsignedInteger('tipo_envio_id')->nullable();
+            $table->unsignedInteger('tipo_pago_envio_id')->nullable();
+            $table->unsignedInteger('origen_venta_id')->nullable();
+
+            $table->enum('modo', ['VENTA', 'ATENCION', 'RESERVA'])->default('VENTA');
+            $table->enum('estado', ['PENDIENTE', 'RESERVADO', 'DESPACHADO'])->default('PENDIENTE');
             $table->timestamps();
         });
     }

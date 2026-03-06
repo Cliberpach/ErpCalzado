@@ -15,9 +15,13 @@ class CreateDetalleMovimientoVentaTable extends Migration
     {
         Schema::create('detalle_movimiento_venta', function (Blueprint $table) {
             $table->id();
+            
+            $table->unsignedInteger('colaborador_id');
+            $table->foreign('colaborador_id')->references('id')->on('colaboradores');
+
             $table->foreignId('mcaja_id')->references('id')->on('movimiento_caja')->onDelete('cascade');
             $table->unsignedInteger('cdocumento_id');
-            $table->string('cobrar',10)->default('SI');
+            $table->string('cobrar', 10)->default('SI');
             $table->foreign('cdocumento_id')->references('id')->on('cotizacion_documento')->onDelete('cascade');
             $table->timestamps();
         });

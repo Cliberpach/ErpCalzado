@@ -32,5 +32,11 @@ class ConfiguracionSeeder extends Seeder
             'nro_dias'      =>  null
         ]);
 
+        Configuracion::create([
+            'slug'          => 'MCB',
+            'descripcion'   => 'MOSTRAR CUENTAS BANCARIAS',
+            'propiedad'     => 'NO',
+            'nro_dias'      =>  null
+        ]);
     }
 }

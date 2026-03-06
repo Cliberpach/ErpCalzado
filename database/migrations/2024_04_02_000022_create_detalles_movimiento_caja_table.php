@@ -15,14 +15,20 @@ class CreateDetallesMovimientoCajaTable extends Migration
     {
         Schema::create('detalles_movimiento_caja', function (Blueprint $table) {
             $table->id();
+
+            $table->unsignedBigInteger('sede_id');
+            $table->foreign('sede_id')->references('id')->on('empresa_sedes');
+
+            $table->unsignedInteger('colaborador_id');
+            $table->foreign('colaborador_id')->references('id')->on('colaboradores');
+
             $table->unsignedBigInteger('movimiento_id');
-            $table->integer('usuario_id')->unsigned();
+            $table->unsignedInteger('usuario_id')->unsigned();
             $table->dateTime('fecha_entrada');
             $table->dateTime('fecha_salida')->nullable();
-            $table->foreign('usuario_id')->references('id')
-            ->on('users');
-            $table->foreign('movimiento_id')->references('id')
-            ->on('movimiento_caja');
+
+            $table->foreign('usuario_id')->references('id')->on('users');
+            $table->foreign('movimiento_id')->references('id')->on('movimiento_caja');
             $table->timestamps();
         });
     }

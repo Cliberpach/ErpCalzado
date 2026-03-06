@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Ventas\TipoClienteController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -21,16 +22,23 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
         Route::post('/getCustomer', 'Ventas\ClienteController@getCustomer')->name('ventas.cliente.getcustomer');
         Route::get('/getCliente/{tipo_documento}/{nro_documento}', 'Ventas\ClienteController@getCliente')->name('ventas.cliente.getCliente');
 
-
         //Tiendas
-       /*Route::get('tiendas/index/{id}', 'Ventas\TiendaController@index')->name('clientes.tienda.index');
+        Route::get('tiendas/index/{id}', 'Ventas\TiendaController@index')->name('clientes.tienda.index');
         Route::get('tiendas/getShop/{id}', 'Ventas\TiendaController@getShop')->name('clientes.tienda.shop');
         Route::get('tiendas/create/{id}', 'Ventas\TiendaController@create')->name('clientes.tienda.create');
         Route::post('tiendas/store/', 'Ventas\TiendaController@store')->name('clientes.tienda.store');
         Route::put('tiendas/update/{id}', 'Ventas\TiendaController@update')->name('clientes.tienda.update');
         Route::get('tiendas/destroy/{id}', 'Ventas\TiendaController@destroy')->name('clientes.tienda.destroy');
         Route::get('tiendas/show/{id}', 'Ventas\TiendaController@show')->name('clientes.tienda.show');
-        Route::get('tiendas/actualizar/{id}', 'Ventas\TiendaController@edit')->name('clientes.tienda.edit');*/
+        Route::get('tiendas/actualizar/{id}', 'Ventas\TiendaController@edit')->name('clientes.tienda.edit');
+    });
+
+    Route::group(["prefix" => "tipo_cliente"], function () {
+        Route::get('index', [TipoClienteController::class, 'index'])->name('ventas.tipo_cliente.index');
+        Route::get('productos/marca/get-all', [TipoClienteController::class, 'getAll'])->name('ventas.tipo_cliente.get-all');
+        Route::post('store', [TipoClienteController::class, 'store'])->name('ventas.tipo_cliente.store');
+        Route::put('update/{id}', [TipoClienteController::class, 'update'])->name('ventas.tipo_cliente.update');
+        Route::delete('destroy/{id}', [TipoClienteController::class, 'destroy'])->name('ventas.tipo_cliente.destroy');
     });
 
     // Cotizaciones
@@ -132,8 +140,8 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
     });
 
 
-     //Despachos
-    Route::prefix('despachos')->group(function() {
+    //Despachos
+    Route::prefix('despachos')->group(function () {
 
         Route::get('/', 'Ventas\DespachoController@index')->name('ventas.despachos.index');
         Route::get('/getTable', 'Ventas\DespachoController@getTable')->name('ventas.despachos.getTable');
@@ -141,11 +149,10 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
         Route::get('/pdfBultos/{documento_id}/{despacho_id}/{nro_bultos}', 'Ventas\DespachoController@pdfBultos')->name('ventas.despachos.pdfBultos');
         Route::post('/setEmbalaje', 'Ventas\DespachoController@setEmbalaje')->name('ventas.despachos.setEmbalaje');
         Route::post('/setDespacho', 'Ventas\DespachoController@setDespacho')->name('ventas.despachos.setDespacho');
-        Route::get('get-despacho/{documento_id}','Ventas\DespachoController@getDespacho')->name('ventas.despachos.getDespacho');
+        Route::get('get-despacho/{documento_id}', 'Ventas\DespachoController@getDespacho')->name('ventas.despachos.getDespacho');
         Route::post('/updateDespacho', 'Ventas\DespachoController@updateDespacho')->name('ventas.despachos.updateDespacho');
         Route::post('/eliminarDespacho', 'Ventas\DespachoController@eliminarDespacho')->name('ventas.despachos.eliminarDespacho');
         Route::post('/store', 'Ventas\DespachoController@store')->name('ventas.despachos.store');
-
     });
 
     //Reservas

@@ -201,7 +201,11 @@
                 <td>ATENDIDO POR</td>
                 <td>:</td>
                 <td class="text-uppercase">{{ $documento->user->usuario }}</td>
-                {{-- <td class="text-uppercase">{{ $documento->user->user->persona ? $documento->user->user->persona->getApellidosYNombres() : $documento->user->usuario }}</td> --}}
+            </tr>
+            <tr>
+                <td>ALMACÉN</td>
+                <td>:</td>
+                <td class="text-uppercase">{{ $documento->almacen_nombre }}</td>
             </tr>
         </table>
     </div><br>

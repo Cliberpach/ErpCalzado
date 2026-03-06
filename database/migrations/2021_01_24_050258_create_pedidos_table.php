@@ -56,12 +56,12 @@ class CreatePedidosTable extends Migration
             $table->unsignedDecimal('monto_facturado',15,2)->nullable();
             $table->unsignedDecimal('saldo_facturado',15,2)->nullable();
 
-            $table->unsignedInteger('documento_venta_facturacion_id ');
-            $table->foreign('documento_venta_facturacion_id ')->references('id')->on('cotizacion_documento');
-            
+            $table->unsignedInteger('documento_venta_facturacion_id');
+            $table->foreign('documento_venta_facturacion_id')->references('id')->on('cotizacion_documento');
+
             $table->string('documento_venta_facturacion_serie',100)->nullable();
             $table->string('documento_venta_facturacion_correlativo',100)->nullable();
-            
+
             $table->enum('estado', ['PENDIENTE', 'ATENDIENDO','FINALIZADO','ANULADO'])->default('PENDIENTE');
             $table->timestamps();
 
