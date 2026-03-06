@@ -321,7 +321,7 @@ class VentaService
         $legenda                    =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
         $datos_validados->legenda   =   $legenda;
 
-        $documento  =   $this->s_repository->actualizarVenta($datos_validados, $datos_validados->documento);
+        $documento          =   $this->s_repository->actualizarVenta($datos_validados, $datos_validados->documento);
 
         $detalle_anterior   =   Detalle::where('documento_id', $id)->get();
 

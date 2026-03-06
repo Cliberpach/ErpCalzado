@@ -119,7 +119,7 @@ class VentaValidacion
             'tipo_pago_1'               =>  $tipo_pago_1,
             'cuenta_pago_1'             =>  $cuenta_pago_1,
 
-            'atencion'                  =>  $datos['atencion']??null
+            'atencion'                  =>  $datos['atencion'] ?? null
         ];
 
 
@@ -201,8 +201,8 @@ class VentaValidacion
         $tipo_pago_1 = null;
         $cuenta_pago_1 = null;
         if ($condicion->id == 1) {
-            $tipo_pago_1    =   TipoPago::find($datos['metodo_pago_1']);
-            $cuenta_pago_1  =   Cuenta::find($datos['cuenta_1']);
+            $tipo_pago_1    =   TipoPago::find($datos['metodo_pago_1'])??null;
+            $cuenta_pago_1  =   Cuenta::find($datos['cuenta_1']) ?? null;
         }
 
         return (object)[
