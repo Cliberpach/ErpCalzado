@@ -1,0 +1,7 @@
+@import "~filepond/dist/filepond.min.css";
+@import "~filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
+
+/*======== QUITAR CREDITOS FILEPOUND ===========*/
+.filepond--credits {
+    display: none !important;
+}

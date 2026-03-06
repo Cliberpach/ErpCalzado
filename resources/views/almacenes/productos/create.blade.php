@@ -2,7 +2,7 @@
 @section('content')
 @section('almacenes-active', 'active')
 @section('producto-active', 'active')
-@include('almacenes.categorias.create')
+
 @include('almacenes.marcas.create')
 @include('almacenes.modelos.create')
 @include('almacenes.colores.modals.mdl_create_color')

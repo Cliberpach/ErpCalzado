@@ -1,14 +1,21 @@
 <?php
 
-namespace App\Http\Requests\Almacen\Color;
+namespace App\Http\Requests\Almacen\Categoria;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
-use Illuminate\Contracts\Validation\Validator;
 
-class ColorUpdateRequest extends FormRequest
+class CategoriaUpdateRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool
+     */
+    public function authorize()
+    {
+        return true;
+    }
 
     protected function prepareForValidation()
     {
@@ -27,31 +34,24 @@ class ColorUpdateRequest extends FormRequest
     }
 
     /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array
      */
-    public function rules(): array
+    public function rules()
     {
         return [
-            'descripcion' => [
+            'nombre' => [
                 'required',
                 'string',
                 'max:191',
-                Rule::unique('colores', 'descripcion')
-                    ->ignore($this->route('id')) // Ignora el registro actual
+                Rule::unique('categorias', 'descripcion')
+                    ->ignore($this->route('id'))
                     ->where(function ($query) {
                         return $query->where('estado', 'ACTIVO');
                     }),
             ],
+
             'imagen' => [
                 'nullable',
                 'image',
@@ -61,13 +61,15 @@ class ColorUpdateRequest extends FormRequest
         ];
     }
 
-    public function messages(): array
+    public function messages()
     {
         return [
-            'descripcion.required' => 'El campo "descripción" es obligatorio.',
-            'descripcion.string'   => 'El campo "descripción" debe ser una cadena de texto.',
-            'descripcion.max'      => 'El campo "descripción" no debe exceder los 191 caracteres.',
-            'descripcion.unique'   => 'Ya existe un color con esta descripción en estado ACTIVO.',
+
+            // nombre
+            'nombre.required' => 'El campo nombre es obligatorio.',
+            'nombre.string' => 'El nombre debe ser una cadena de texto.',
+            'nombre.max' => 'El nombre no puede tener más de 191 caracteres.',
+            'nombre.unique' => 'Ya existe una categoría con ese nombre.',
 
             // imagen
             'imagen.image' => 'El archivo debe ser una imagen válida.',
@@ -76,9 +78,17 @@ class ColorUpdateRequest extends FormRequest
         ];
     }
 
-    protected function failedValidation(Validator $validator)
+    /**
+     * Handle a failed validation attempt.
+     *
+     * @param \Illuminate\Contracts\Validation\Validator $validator
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
     {
-        throw new ValidationException($validator, response()->json([
+        // Devuelve una respuesta JSON con los errores de validación
+        throw new \Illuminate\Validation\ValidationException($validator, response()->json([
+            'success'   =>  false,
             'errors' => $validator->errors()
         ], 422));
     }

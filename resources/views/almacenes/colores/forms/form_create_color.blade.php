@@ -9,12 +9,21 @@
                 value="{{ old('descripcion') }}"required>
             <p class="descripcion_error msgError"></p>
         </div>
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <label style="font-weight: bold;">Color:</label>
-            <input type="color" class="form-control" name="codigo" id="codigo"
-                value="{{ old('codigo', '#ffffff') }}" title="Elige un color">
-            <p class="codigo_error msgError"></p>
-        </div>
+    </div>
+
+    <div class="form-group">
+
+        <label for="imagen">Imagen</label>
+
+        <input type="file" id="imagen" name="imagen" class="form-control-file"
+            accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif">
+
+        <span class="form-text text-muted">
+            Formatos permitidos: JPG, PNG, WEBP, AVIF. Tamaño máximo: 2MB.
+        </span>
+
+        <small class="text-danger font-weight-bold imagen_error"></small>
+
     </div>
 </form>
 
@@ -25,4 +34,3 @@
         width: 100%;
     }
 </style>
-

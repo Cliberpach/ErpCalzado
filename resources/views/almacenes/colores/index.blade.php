@@ -58,9 +58,11 @@
         z-index: 3000 !important;
     }
 </style>
+<link rel="stylesheet" href="{{ mix('css/filepond.css') }}">
 @endpush
 
 @push('scripts')
+<script src="{{ mix('js/filepond.js') }}"></script>
 <script>
     let dtColores = null;
 

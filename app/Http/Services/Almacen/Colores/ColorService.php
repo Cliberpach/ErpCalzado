@@ -2,20 +2,20 @@
 
 namespace App\Http\Services\Almacen\Colores;
 
-use App\Almacenes\Producto;
 use App\Models\Almacenes\Color\Color;
-use Illuminate\Support\Collection;
 
 class ColorService
 {
-    public function store(array $datos): Color
+    public function store(array $data): Color
     {
-        $color              =   new Color();
-        $color->descripcion =   $datos['descripcion'];
-        $color->codigo      =   $datos['codigo'] ?? null;
-        $color->save();
+        $instance              =   new Color();
+        $instance->descripcion =    mb_convert_encoding($data['descripcion'], 'UTF-8', 'UTF-8');
+        $instance->save();
 
-        return $color;
+        if (!empty($data['imagen'])) {
+            $this->saveImg($data['imagen'], $instance);
+        }
+        return $instance;
     }
 
     public function getColor(int $id): Color
@@ -47,5 +47,25 @@ class ColorService
         $color->update();
 
         return $color;
+    }
+
+    public function saveImg($img, $instance)
+    {
+        if (!empty($img)) {
+            $file = $img;
+
+            $imgName = $instance->id . '_color.' . $file->getClientOriginalExtension();
+
+            $path = $file->storeAs(
+                'colores',
+                $imgName,
+                'public'
+            );
+
+            $instance->update([
+                'img_ruta' => $path,
+                'img_nombre' => $imgName
+            ]);
+        }
     }
 }

@@ -20,7 +20,8 @@
                             class="required"></label>) son obligatorios.</small>
                 </div>
                 <div class="col-md-6 text-right">
-                    <button type="submit" form="form_create_color" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Guardar</button>
+                    <button type="submit" form="form_create_color" class="btn btn-primary btn-sm"><i
+                            class="fa fa-save"></i> Guardar</button>
                     <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i
                             class="fa fa-times"></i> Cancelar</button>
                 </div>
@@ -32,49 +33,45 @@
 
 
 <script>
+    const paramsMdlCreateColor = {
+        fpImg: null
+    }
+
     function openMdlCreateColor() {
         $('#modal_crear_color').modal('show');
     }
 
     function eventsMdlCreateColor() {
+        loadFpMdlCreateColor();
         document.querySelector('#form_create_color').addEventListener('submit', (e) => {
             e.preventDefault();
             registrarColor(e.target);
         })
+
+        $('#modal_edit_color').on('hidden.bs.modal', function(e) {
+            const formCreate = document.querySelector('#form_create_color');
+            formCreate.reset();
+            limpiarErroresValidacion('msgError');
+            paramsMdlCreateColor.id = null;
+            paramsMdlCreateColor.row = null;
+
+            if (paramsMdlCreateColor.fpImg) {
+                paramsMdlCreateColor.fpImg.removeFiles();
+            }
+        });
     }
 
     function registrarColor(formCreateColor) {
 
         const colorNombre = document.querySelector('#descripcion').value;
-        const codigoColor = document.querySelector('#codigo').value;
 
-        const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                confirmButton: "btn btn-success",
-                cancelButton: "btn btn-danger"
-            },
-            buttonsStyling: false
-        });
-        swalWithBootstrapButtons.fire({
+        Swal.fire({
             title: "Desea registrar el color?",
             html: `
             <div style="text-align: center; margin-top: 10px;">
                 <p style="font-size: 16px; margin-bottom: 10px;">
                     <strong>Nombre:</strong> ${colorNombre}
                 </p>
-                <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
-                    <div
-                        style="
-                            width: 60px;
-                            height: 60px;
-                            background-color: ${codigoColor};
-                            border: 2px solid #333;
-                            border-radius: 8px;
-                            margin-bottom: 8px;
-                        ">
-                    </div>
-                    <span style="font-weight: bold;">${codigoColor}</span>
-                </div>
             </div>
         `,
             icon: "warning",
@@ -100,7 +97,7 @@
                 try {
                     toastr.clear();
 
-                    const formData  =   new FormData(formCreateColor);
+                    const formData = new FormData(formCreateColor);
                     const res = await axios.post(route('almacenes.colores.store'), formData);
 
                     if (res.data.success) {
@@ -131,17 +128,49 @@
                         Swal.close();
                         toastr.error(error.message, 'ERROR DESCONOCIDO');
                     }
-                }finally{
+                } finally {
                     Swal.close();
                 }
 
             } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
+                Swal.fire({
                     title: "Operación cancelada",
                     text: "No se realizaron acciones",
                     icon: "error"
                 });
             }
+        });
+    }
+
+    function loadFpMdlCreateColor() {
+        const inputImg = document.querySelector('#imagen');
+
+        paramsMdlCreateColor.fpImg = FilePond.create(inputImg, {
+            allowImagePreview: true,
+            imagePreviewHeight: 120,
+            imageCropAspectRatio: '1:1',
+            styleLayout: 'compact',
+            stylePanelAspectRatio: 0.5,
+            storeAsFile: true,
+
+            allowFileTypeValidation: true,
+            acceptedFileTypes: [
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+                'image/avif'
+            ],
+
+            allowFileSizeValidation: true,
+            maxFileSize: '2MB',
+
+            labelIdle: 'Arrastra una imagen o <span class="filepond--label-action">Buscar</span>',
+
+            labelFileTypeNotAllowed: 'Solo se permiten imágenes PNG, JPG, WEBP o AVIF',
+            fileValidateTypeLabelExpectedTypes: 'Formatos válidos: PNG, JPG, WEBP, AVIF',
+
+            labelMaxFileSizeExceeded: 'El archivo es demasiado grande',
+            labelMaxFileSize: 'El tamaño máximo permitido es 2 MB'
         });
     }
 </script>

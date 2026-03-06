@@ -9,13 +9,10 @@ use App\Http\Requests\Almacen\Color\ColorStoreRequest;
 use App\Http\Requests\Almacen\Color\ColorUpdateRequest;
 use App\Http\Services\Almacen\Colores\ColorManager;
 use App\Models\Almacenes\Color\Color;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Throwable;
 
 class ColorController extends Controller
@@ -54,6 +51,14 @@ class ColorController extends Controller
         }
     }
 
+/*
+array:4 [
+  "_token" => "RG1HST0u8rFP9P4C45b1jIJZ4NEadP1ACzaldZ4L"
+  "_method" => "POST"
+  "descripcion" => "CELESTE"
+  "imagen" => Illuminate\Http\UploadedFile {#1178}
+]
+*/
     public function store(ColorStoreRequest $request)
     {
         DB::beginTransaction();
@@ -124,9 +129,8 @@ class ColorController extends Controller
     {
         DB::beginTransaction();
         try {
-
+            dd($request->all());
             $color  =   $this->s_color->update($id, $request->toArray());
-
 
             //Registro de actividad
             $descripcion = "SE MODIFICÓ EL COLOR CON LA DESCRIPCION: " . $color->descripcion;

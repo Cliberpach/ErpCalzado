@@ -3,7 +3,7 @@
          <tr>
              <th class="text-center"></th>
              <th class="text-center">NOMBRE</th>
-             <th class="text-center">COLOR</th>
+             <th class="text-center">IMG</th>
              <th class="text-center"></th>
          </tr>
      </thead>

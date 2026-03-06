@@ -33,14 +33,13 @@ class ColorStoreRequest extends FormRequest
                     return $query->where('estado', 'ACTIVO');
                 }),
             ],
-            /*'codigo' => [
+
+            'imagen' => [
                 'nullable',
-                'string',
-                'max:20',
-                Rule::unique('colores')->where(function ($query) {
-                    return $query->where('estado', 'ACTIVO');
-                }),
-            ],*/
+                'image',
+                'mimes:jpg,jpeg,png,webp,avif',
+                'max:2048'
+            ],
         ];
     }
 
@@ -52,9 +51,10 @@ class ColorStoreRequest extends FormRequest
             'descripcion.max'      => 'El campo "descripción" no debe exceder los 191 caracteres.',
             'descripcion.unique'   => 'Ya existe un color con esta descripción en estado ACTIVO.',
 
-            'codigo.string'        => 'El campo "código" debe ser una cadena de texto.',
-            'codigo.max'           => 'El campo "código" no debe exceder los 20 caracteres.',
-            'codigo.unique'        => 'Ya existe un color con este código en estado ACTIVO.',
+            // imagen
+            'imagen.image' => 'El archivo debe ser una imagen válida.',
+            'imagen.mimes' => 'La imagen debe ser de tipo: jpg, jpeg, png, webp o avif.',
+            'imagen.max' => 'La imagen no debe superar los 2 MB.',
         ];
     }
 

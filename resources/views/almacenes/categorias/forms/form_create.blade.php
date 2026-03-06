@@ -1,49 +1,30 @@
-<form role="form" action="{{ route('almacenes.categorias.store') }}" method="POST" id="crear_categoria"
-    enctype="multipart/form-data">
-    {{ csrf_field() }} {{ method_field('POST') }}
+<form id="form_create_categoria" method="POST">
+    @csrf
 
-    <div class="form-group">
-        <label class="required">Descripción:</label>
-        <input type="text" class="form-control {{ $errors->has('descripcion_guardar') ? ' is-invalid' : '' }}"
-            name="descripcion_guardar" id="descripcion_guardar" value="{{ old('descripcion_guardar') }}"
-            onkeyup="return mayus(this)" required>
+    <div class="form-row">
+        <div class="form-group col-md-12">
+            <label for="nombre">Nombre <span class="text-danger">*</span></label>
 
-        @if ($errors->has('descripcion_guardar'))
-            <span class="invalid-feedback" role="alert">
-                <strong id="error-descripcion-guardar">{{ $errors->first('descripcion_guardar') }}</strong>
-            </span>
-        @endif
-    </div>
+            <input type="text" id="nombre" name="nombre" class="form-control inputName" placeholder="Nombre"
+                required>
 
-    <div class="form-group">
-        <label>Imagen (Opcional)</label>
-
-        <div class="custom-file">
-            <input type="file" class="custom-file-input {{ $errors->has('imagen') ? 'is-invalid' : '' }}"
-                id="imagen" name="imagen" accept=".jpg,.jpeg,.webp,.avif,image/jpeg,image/webp,image/avif">
-
-            <label class="custom-file-label" for="imagen">
-                Seleccionar imagen...
-            </label>
-
-            @if ($errors->has('imagen'))
-                <span class="invalid-feedback d-block" role="alert">
-                    <strong>{{ $errors->first('imagen') }}</strong>
-                </span>
-            @endif
+            <small class="text-danger font-weight-bold nombre_error"></small>
         </div>
-
-        <small class="form-text text-muted">
-            Formatos permitidos: JPG, WEBP, AVIF. Tamaño máximo: 1MB.
-        </small>
     </div>
-</form>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        document.querySelector('.custom-file-input').addEventListener('change', function(e) {
-            let fileName = e.target.files[0]?.name || "Seleccionar imagen...";
-            e.target.nextElementSibling.innerText = fileName;
-        });
-    });
-</script>
+    <div class="form-group">
+
+        <label for="imagen">Imagen</label>
+
+        <input type="file" id="imagen" name="imagen" class="form-control-file"
+            accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif">
+
+        <span class="form-text text-muted">
+            Formatos permitidos: JPG, PNG, WEBP, AVIF. Tamaño máximo: 2MB.
+        </span>
+
+        <small class="text-danger font-weight-bold imagen_error"></small>
+
+    </div>
+
+</form>

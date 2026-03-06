@@ -33,7 +33,9 @@
 
 <script>
     const parametrosMdlEditColor = {
-        id: null
+        id: null,
+        row: null,
+        fpImg: null
     };
 
     async function openMdlEditColor(colorId) {
@@ -46,15 +48,37 @@
     }
 
     function eventsMdlEditColor() {
+        loadFpMdlEditColor();
         document.querySelector('#form_edit_color').addEventListener('submit', (e) => {
             e.preventDefault();
             actualizarColor(e.target);
         })
+
+        $('#modal_edit_color').on('hidden.bs.modal', function(e) {
+            const formEdit = document.querySelector('#form_edit_color');
+            formEdit.reset();
+            limpiarErroresValidacion('msgError');
+            parametrosMdlEditColor.id = null;
+            parametrosMdlEditColor.row = null;
+            
+            if (parametrosMdlEditColor.fpImg) {
+                parametrosMdlEditColor.fpImg.removeFiles();
+            }
+        });
     }
 
     function pintarColorEdit(color) {
         document.querySelector('#descripcion_edit').value = color.descripcion;
-        document.querySelector('#codigo_edit').value = color.codigo ? color.codigo : '#ffffff';
+        parametrosMdlEditColor.row = color;
+
+        if (!parametrosMdlEditColor.fpImg) return;
+        parametrosMdlEditColor.fpImg.removeFiles();
+
+        if (color.img_ruta) {
+            parametrosMdlEditColor.fpImg.addFile(
+                @json(asset('storage')) + '/' + color.img_ruta
+            );
+        }
     }
 
     async function getColor(colorId) {
@@ -80,37 +104,16 @@
     function actualizarColor(formActualizarColor) {
 
         const colorNombre = document.querySelector('#descripcion_edit').value;
-        const codigoColor = document.querySelector('#codigo_edit').value;
 
-        const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                confirmButton: "btn btn-success",
-                cancelButton: "btn btn-danger"
-            },
-            buttonsStyling: false
-        });
-        swalWithBootstrapButtons.fire({
+        Swal.fire({
             title: "Desea actualizar el color?",
             html: `
-            <div style="text-align: center; margin-top: 10px;">
-                <p style="font-size: 16px; margin-bottom: 10px;">
-                    <strong>Nombre:</strong> ${colorNombre}
-                </p>
-                <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
-                    <div
-                        style="
-                            width: 60px;
-                            height: 60px;
-                            background-color: ${codigoColor};
-                            border: 2px solid #333;
-                            border-radius: 8px;
-                            margin-bottom: 8px;
-                        ">
-                    </div>
-                    <span style="font-weight: bold;">${codigoColor}</span>
+                <div style="text-align: center; margin-top: 10px;">
+                    <p style="font-size: 16px; margin-bottom: 10px;">
+                        <strong>Nombre:</strong> ${colorNombre}
+                    </p>
                 </div>
-            </div>
-        `,
+            `,
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "Sí!",
@@ -173,12 +176,44 @@
                 }
 
             } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
+                Swal.fire({
                     title: "Operación cancelada",
                     text: "No se realizaron acciones",
                     icon: "error"
                 });
             }
+        });
+    }
+
+    function loadFpMdlEditColor() {
+        const inputImg = document.querySelector('#imagen_edit');
+
+        parametrosMdlEditColor.fpImg = FilePond.create(inputImg, {
+            allowImagePreview: true,
+            imagePreviewHeight: 120,
+            imageCropAspectRatio: '1:1',
+            styleLayout: 'compact',
+            stylePanelAspectRatio: 0.5,
+            storeAsFile: true,
+
+            allowFileTypeValidation: true,
+            acceptedFileTypes: [
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+                'image/avif'
+            ],
+
+            allowFileSizeValidation: true,
+            maxFileSize: '2MB',
+
+            labelIdle: 'Arrastra una imagen o <span class="filepond--label-action">Buscar</span>',
+
+            labelFileTypeNotAllowed: 'Solo se permiten imágenes PNG, JPG, WEBP o AVIF',
+            fileValidateTypeLabelExpectedTypes: 'Formatos válidos: PNG, JPG, WEBP, AVIF',
+
+            labelMaxFileSizeExceeded: 'El archivo es demasiado grande',
+            labelMaxFileSize: 'El tamaño máximo permitido es 2 MB'
         });
     }
 </script>

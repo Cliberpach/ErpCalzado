@@ -29,7 +29,6 @@ class TipoClienteController extends Controller
         return DataTables::of($items)->make(true);
     }
 
-
     /*
 array:2 [
   "_token" => "Y4SrtC3C8UYpGfCGoUPNw3kLnourb786iaFIcSeR"

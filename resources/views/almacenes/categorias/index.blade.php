@@ -1,8 +1,7 @@
 @extends('layout')
 @section('content')
-    @include('almacenes.categorias.create')
-    @include('almacenes.categorias.edit')
-    @include('almacenes.categorias.modalfile')
+    @include('almacenes.categorias.modals.mdl_create')
+    @include('almacenes.categorias.modals.mdl_edit')
 @section('almacenes-active', 'active')
 @section('categoria-active', 'active')
 <div class="row wrapper border-bottom white-bg page-heading">
@@ -19,12 +18,8 @@
         </ol>
     </div>
     <div class="col-lg-2 col-md-2">
-        <a data-toggle="modal" data-target="#modal_crear_categoria" class="btn btn-block btn-w-m btn-primary m-t-md"
-            href="#">
-            <i class="fa fa-plus-square"></i> Añadir nuevo
-        </a>
-        <a class="btn btn-block btn-w-m btn-primary m-t-md btn-modal-file" href="#">
-            <i class="fa fa-plus-square"></i> Importar Excel
+        <a class="btn btn-block btn-w-m btn-primary m-t-md text-white" onclick="openMdlCreate();">
+            <i class="fa fa-plus-square"></i> NUEVO
         </a>
     </div>
 
@@ -39,22 +34,7 @@
                 <div class="ibox-content">
 
                     <div class="table-responsive">
-                        <table class="table dataTables-articulo table-striped table-bordered table-hover"
-                            style="text-transform:uppercase">
-                            <thead>
-                                <tr>
-                                    <th class="text-center"></th>
-                                    <th class="text-center">DESCRIPCION</th>
-                                    <th class="text-center">CREADO</th>
-                                    <th class="text-center">ACTUALIZADO</th>
-                                    <th class="text-center">ACCIONES</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                            </tbody>
-
-                        </table>
+                        @include('almacenes.categorias.tables.tbl_list')
                     </div>
 
                 </div>
@@ -62,259 +42,166 @@
         </div>
     </div>
 </div>
+@endsection
 
-
-@stop
 @push('styles')
-<style>
-    .my-swal {
-        z-index: 3000 !important;
-    }
-</style>
-@endpush
+<link rel="stylesheet" href="{{ mix('css/filepond.css') }}">
+<script src="{{ mix('js/filepond.js') }}"></script>
 
-@push('scripts')
 <script>
-    $(document).ready(function() {
+    let dtCategoria = null;
 
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDtCategorias();
+        events();
+    });
 
-        $('.dataTables-articulo').DataTable({
-            "processing": true,
-            "ajax": '{{ route('getCategory') }}',
-            "columns": [
-                //Tabla General
-                {
+    function events() {
+        eventsMdlCreate();
+        eventsMdlEdit();
+    }
+
+    function loadDtCategorias() {
+        const url = '{{ route('almacenes.categorias.getAll') }}';
+
+        dtCategoria = new DataTable('#tbl-list', {
+            serverSide: true,
+            processing: true,
+            responsive: true,
+            ajax: {
+                url: url,
+                type: 'GET',
+            },
+            "order": [
+                [0, 'desc']
+            ],
+            columns: [{
                     data: 'id',
-                    className: "text-center",
-                    "visible": false
+                    name: 'id'
                 },
                 {
                     data: 'descripcion',
-                    className: "text-center"
-                },
-                {
-                    data: 'fecha_creacion',
-                    className: "text-center"
-                },
-                {
-                    data: 'fecha_actualizacion',
-                    className: "text-center"
+                    name: 'descripcion'
                 },
                 {
                     data: null,
-                    className: "text-center",
-                    render: function(data) {
+                    render: function(data, type, row) {
 
-                        return "<div class='btn-group'><button class='btn btn-warning btn-sm modificarDetalle' onclick='obtenerData(" +
-                            data.id +
-                            ")' type='button' title='Modificar'><i class='fa fa-edit'></i></button><a class='btn btn-danger btn-sm' href='#' onclick='eliminar(" +
-                            data.id +
-                            ")' title='Eliminar'><i class='fa fa-trash'></i></a></div>"
+                        return `
+                                <div class="btn-group dropup">
+                                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                                         <i class="fa fa-bars"></i>
+                                    </button>
+
+                                    <div class="dropdown-menu dropdown-menu-right" style="max-height:150px; overflow-y:auto;">
+
+                                        <a class="dropdown-item" href="javascript:void(0);" onclick="openMdlEdit(${data.id})">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
+
+                                        <div class="dropdown-divider"></div>
+
+                                        <a class="dropdown-item text-danger" href="javascript:void(0);" onclick="deleteCategoria(${data.id})">
+                                            <i class="fas fa-trash"></i> Eliminar
+                                        </a>
+
+                                    </div>
+                                </div>
+                            `;
+                    },
+                    name: 'actions',
+                    orderable: false,
+                    searchable: false
+                }
+            ],
+            language: {
+                "lengthMenu": "Mostrar _MENU_ categorías por página",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ categorías",
+                "infoEmpty": "Mostrando 0 a 0 de 0 categorías",
+                "infoFiltered": "(filtrado de _MAX_ categorías totales)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                },
+                "loadingRecords": "Cargando...",
+                "processing": "Procesando...",
+                "emptyTable": "No hay datos disponibles en la tabla",
+                "aria": {
+                    "sortAscending": ": activar para ordenar la columna de manera ascendente",
+                    "sortDescending": ": activar para ordenar la columna de manera descendente"
+                }
+            }
+        });
+    }
+
+    function deleteCategoria(id) {
+        toastr.clear();
+        let row = getRowById(dtCategoria, id);
+        let message = '';
+
+        Swal.fire({
+            title: `Eliminar categoría?`,
+            text: `${row.descripcion}`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí!",
+            cancelButtonText: "No!",
+            reverseButtons: true
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+
+                Swal.fire({
+                    title: 'Cargando...',
+                    html: 'Eliminando categoría...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
                     }
+                });
+
+                try {
+                    let url =
+                        `{{ route('almacenes.categorias.destroy', ['id' => ':id']) }}`;
+                    url = url.replace(':id', id);
+                    const token = document.querySelector('input[name="_token"]').value;
+
+                    const response = await fetch(url, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': token
+                        }
+                    });
+
+                    const res = await response.json();
+
+                    if (res.success) {
+                        dtCategoria.draw();
+                        toastr.success(res.message, 'OPERACIÓN COMPLETADA');
+                    } else {
+                        toastr.error(res.message, 'Error en el servidor - eliminar categoría');
+                    }
+
+                } catch (error) {
+                    toastr.error(error, 'Error en la petición eliminar categoría');
+                } finally {
+                    Swal.close();
                 }
 
-            ],
-            "language": {
-                "url": "{{ asset('Spanish.json') }}"
-            },
-            "order": [
-                [0, "desc"]
-            ],
-
-
-
-        });
-
-    });
-
-    //Controlar Error
-    $.fn.DataTable.ext.errMode = 'throw';
-
-    function obtenerData(id) {
-
-        var table = $('.dataTables-articulo').DataTable();
-        var data = table.rows().data();
-        limpiarError();
-
-        data.each(function(value, index) {
-
-            if (value.id == id) {
-
-                $('#tabla_id_editar').val(value.id);
-                $('#descripcion_editar').val(value.descripcion);
-
-                // IMAGEN
-                if (value.img_ruta) {
-                    $('#preview_imagen_editar')
-                        .attr('src', '/storage/' + value.img_ruta)
-                        .show();
-                } else {
-                    $('#preview_imagen_editar')
-                        .attr('src', '')
-                        .hide();
-                }
-            }
-        });
-
-        $('#modal_editar_categoria').modal('show');
-    }
-
-    //Old Modal Editar
-    @if ($errors->has('descripcion'))
-        $('#modal_editar_categoria').modal({
-            show: true
-        });
-    @endif
-
-    function limpiarError() {
-        $('#descripcion_editar').removeClass("is-invalid")
-        $('#error-descripcion').text('')
-    }
-
-    $('#modal_editar_categoria').on('hidden.bs.modal', function(e) {
-        limpiarError()
-    });
-
-    //Old Modal Crear
-    @if ($errors->has('descripcion_guardar'))
-        $('#modal_crear_categoria').modal({
-            show: true
-        });
-    @endif
-
-    function guardarError() {
-        $('#descripcion_guardar').removeClass("is-invalid")
-        $('#error-descripcion-guardar').text('')
-    }
-
-    $('#modal_crear_categoria').on('hidden.bs.modal', function(e) {
-        guardarError()
-        $('#descripcion_guardar').val('')
-
-    });
-
-
-    const swalWithBootstrapButtons = Swal.mixin({
-        customClass: {
-            confirmButton: 'btn btn-success',
-            cancelButton: 'btn btn-danger',
-        },
-        buttonsStyling: false
-    })
-
-
-    function eliminar(id) {
-
-        Swal.fire({
-            title: 'Opción Eliminar',
-            text: "¿Seguro que desea eliminar registro?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: "#1ab394",
-            confirmButtonText: 'Si, Confirmar',
-            cancelButtonText: "No, Cancelar",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                //Ruta Eliminar
-                var url_eliminar = '{{ route('almacenes.categorias.destroy', ':id') }}';
-                url_eliminar = url_eliminar.replace(':id', id);
-                $(location).attr('href', url_eliminar);
-
             } else if (
                 /* Read more about handling dismissals below */
                 result.dismiss === Swal.DismissReason.cancel
             ) {
-                swalWithBootstrapButtons.fire(
-                    'Cancelado',
-                    'La Solicitud se ha cancelado.',
-                    'error'
-                )
-
+                Swal.fire({
+                    title: "Operación cancelada",
+                    text: "No se realizaron acciones",
+                    icon: "error"
+                });
             }
-        })
-
+        });
     }
-
-    $('#editar_categoria').submit(function(e) {
-        e.preventDefault();
-        const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                container: 'my-swal',
-                confirmButton: 'btn btn-success',
-                cancelButton: 'btn btn-danger',
-            },
-            buttonsStyling: false
-
-        })
-
-        Swal.fire({
-            customClass: {
-                container: 'my-swal'
-            },
-            title: 'Opción Modificar',
-            text: "¿Seguro que desea modificar los cambios?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: "#1ab394",
-            confirmButtonText: 'Si, Confirmar',
-            cancelButtonText: "No, Cancelar",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                this.submit();
-            } else if (
-                /* Read more about handling dismissals below */
-                result.dismiss === Swal.DismissReason.cancel
-            ) {
-                swalWithBootstrapButtons.fire(
-                    'Cancelado',
-                    'La Solicitud se ha cancelado.',
-                    'error'
-                )
-
-            }
-        })
-    })
-
-    $('#crear_categoria').submit(function(e) {
-        e.preventDefault();
-        const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                container: 'my-swal',
-                confirmButton: 'btn btn-success',
-                cancelButton: 'btn btn-danger',
-            },
-            buttonsStyling: false
-        })
-
-        Swal.fire({
-            customClass: {
-                container: 'my-swal'
-            },
-            title: 'Opción Guardar',
-            text: "¿Seguro que desea guardar cambios?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: "#1ab394",
-            confirmButtonText: 'Si, Confirmar',
-            cancelButtonText: "No, Cancelar",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                this.submit();
-            } else if (
-                /* Read more about handling dismissals below */
-                result.dismiss === Swal.DismissReason.cancel
-            ) {
-                swalWithBootstrapButtons.fire(
-                    'Cancelado',
-                    'La Solicitud se ha cancelado.',
-                    'error'
-                )
-            }
-        })
-    })
-
-    $(".btn-modal-file").on('click', function() {
-        $("#modal_file").modal("show");
-    });
 </script>
 @endpush

@@ -35,6 +35,8 @@ class CreateProductosTable extends Migration
             $table->unsignedDecimal('precio_venta_1', 15, 2)->nullable();
             $table->unsignedDecimal('precio_venta_2', 15, 2)->nullable();
             $table->unsignedDecimal('precio_venta_3', 15, 2)->nullable();
+            $table->unsignedDecimal('precio_venta_4', 15, 2)->nullable();
+
 
             $table->boolean('igv')->default(TRUE);
             $table->string('facturacion')->default('SI'); //campo agregado
@@ -56,7 +58,7 @@ class CreateProductosTable extends Migration
             $table->longText('img5_nombre')->nullable();
 
             $table->boolean('mostrar_en_web')->default(false);
-            
+
             $table->timestamps();
         });
     }

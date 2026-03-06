@@ -4,20 +4,45 @@ namespace App\Http\Controllers\Almacenes;
 
 use App\Almacenes\Categoria;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Almacen\Categoria\CategoriaUpdateRequest;
+use App\Http\Services\Almacen\Categorias\CategoriaManager;
+use App\Models\Almacenes\Categoria\Categoria as AlmacenesCategoria;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\File;
+use Throwable;
 
 class CategoriaController extends Controller
 {
+    private CategoriaManager $s_manager;
+
+    public function __construct()
+    {
+        $this->s_manager  =   new CategoriaManager();
+    }
+
     public function index()
     {
         $this->authorize('haveaccess', 'categoria.index');
         return view('almacenes.categorias.index');
+    }
+
+    public function getAll(Request $request)
+    {
+        $items =   AlmacenesCategoria::select(
+            'id',
+            'descripcion',
+            'img_ruta',
+            'img_nombre'
+        )
+            ->where('estado', 'ACTIVO');
+
+        return DataTables::of($items)->make(true);
     }
 
     public function getCategory()
@@ -38,135 +63,62 @@ class CategoriaController extends Controller
         return DataTables::of($coleccion)->toJson();
     }
 
+
+    /*
+array:3 [
+  "_token" => "RG1HST0u8rFP9P4C45b1jIJZ4NEadP1ACzaldZ4L"
+  "nombre" => "BOTAS"
+  "imagen" => Illuminate\Http\UploadedFile {#1149}
+]
+*/
     public function store(Request $request)
     {
         $this->authorize('haveaccess', 'categoria.index');
-        $data = $request->all();
+        DB::beginTransaction();
+        try {
+            $instance   =   $this->s_manager->store($request->toArray());
 
+            //Registro de actividad
+            $descripcion = "SE AGREGÓ LA CATEGORIA CON LA DESCRIPCION: " . $instance->descripcion;
+            $gestion = "CATEGORIA";
+            crearRegistro($instance, $descripcion, $gestion);
 
-        $rules = [
-            'descripcion_guardar' => 'required|unique:categorias,descripcion,NULL,id,estado,ACTIVO',
-            'imagen' => 'nullable|mimes:jpg,jpeg,webp,avif|max:1024', // 1MB
-
-        ];
-
-        $messages = [
-            'descripcion_guardar.required' => 'El campo Descripción es obligatorio.',
-            'descripcion_guardar.unique'      =>  'La categoría ya existe',
-
-            'imagen.mimes' => 'La imagen debe ser formato JPG, JPEG, WEBP o AVIF.',
-            'imagen.max' => 'La imagen no debe superar 1MB.',
-        ];
-
-        $validator = Validator::make($data, $rules, $messages);
-
-        if ($request->get('fetch') && $request->get('fetch') == 'SI') {
-            if ($validator->fails()) {
-                return response()->json(['message' => 'error', 'data' => $validator->errors()]);
-            }
-        } else {
-            $validator->validate();
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Categoría registrada con éxito']);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
-
-        $categoria = new Categoria();
-        $categoria->descripcion = $request->get('descripcion_guardar');
-
-        if ($request->hasFile('imagen')) {
-
-            // Ruta dentro de storage/app/public
-            $rutaBase = storage_path('app/public/categorias/img');
-
-            // Crear carpetas si no existen
-            if (!File::exists($rutaBase)) {
-                File::makeDirectory($rutaBase, 0755, true);
-            }
-
-            // Generar nombre único
-            $extension = $request->file('imagen')->getClientOriginalExtension();
-            $nombreImagen = time() . '_' . uniqid() . '.' . $extension;
-
-            // Guardar imagen
-            $request->file('imagen')->move($rutaBase, $nombreImagen);
-
-            // Guardar ruta relativa en BD
-            $categoria->img_ruta = 'categorias/img/' . $nombreImagen;
-            $categoria->img_nombre  =   $nombreImagen;
-        }
-
-
-        $categoria->save();
-
-        //Registro de actividad
-        $descripcion = "SE AGREGÓ LA CATEGORIA CON LA DESCRIPCION: " . $categoria->descripcion;
-        $gestion = "CATEGORIA";
-        crearRegistro($categoria, $descripcion, $gestion);
-
-
-        if ($request->has('fetch') && $request->input('fetch') == 'SI') {
-            $update_categorias  =   Categoria::all();
-            return response()->json(['message' => 'success',    'data' => $update_categorias]);
-        }
-
-        Session::flash('success', 'Categoria creada.');
-        return redirect()->route('almacenes.categorias.index')->with('guardar', 'success');
     }
 
-    public function update(Request $request)
+
+    /*
+array:3 [
+  "_token" => "RG1HST0u8rFP9P4C45b1jIJZ4NEadP1ACzaldZ4L"
+  "nombre" => "SANDALIAS"
+  "imagen" => Illuminate\Http\UploadedFile {#1983}
+]
+*/
+    public function update(CategoriaUpdateRequest $request, int $id)
     {
         $this->authorize('haveaccess', 'categoria.index');
-        $data = $request->all();
+        DB::beginTransaction();
+        try {
+            $instance   =   $this->s_manager->update($request->toArray(), $id);
 
-        $rules = [
-            'tabla_id' => 'required',
-            'descripcion' => [
-                'required',
-                Rule::unique('categorias')
-                    ->ignore($request->tabla_id)
-                    ->where(function ($query) {
-                        return $query->where('estado', 'ACTIVO');
-                    }),
-            ],
-        ];
+            //Registro de actividad
+            $descripcion = "SE MODIFICÓ LA CATEGORIA CON LA DESCRIPCION: " . $instance->descripcion;
+            $gestion = "CATEGORIA";
+            modificarRegistro($instance, $descripcion, $gestion);
 
-        $message = [
-            'descripcion.required'  => 'El campo Descripción es obligatorio.',
-            'descripcion.unique'    => 'La categoría ya existe.',
-
-        ];
-
-        Validator::make($data, $rules, $message)->validate();
-
-        $categoria = Categoria::findOrFail($request->get('tabla_id'));
-        $categoria->descripcion = $request->get('descripcion');
-
-        if ($request->hasFile('imagen')) {
-
-            // Eliminar imagen anterior si existe
-            if (
-                $categoria->img_ruta &&
-                file_exists(storage_path('app/public/' . $categoria->img_ruta))
-            ) {
-
-                unlink(storage_path('app/public/' . $categoria->img_ruta));
-            }
-
-            // Guardar nueva imagen
-            $nombreImagen = time() . '_' . uniqid() . '.' .
-                $request->file('imagen')->getClientOriginalExtension();
-
-            $request->file('imagen')
-                ->storeAs('categorias/img', $nombreImagen, 'public');
-
-            $categoria->img_ruta = 'categorias/img/' . $nombreImagen;
-            $categoria->img_nombre = $nombreImagen;
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Categoría actualizada con éxito']);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
 
-        $categoria->update();
 
-        //Registro de actividad
-        $descripcion = "SE MODIFICÓ LA CATEGORIA CON LA DESCRIPCION: " . $categoria->descripcion;
-        $gestion = "CATEGORIA";
-        modificarRegistro($categoria, $descripcion, $gestion);
 
         Session::flash('success', 'Categoria modificado.');
         return redirect()->route('almacenes.categorias.index')->with('modificar', 'success');
@@ -176,16 +128,23 @@ class CategoriaController extends Controller
     public function destroy($id)
     {
         $this->authorize('haveaccess', 'categoria.index');
-        $categoria = Categoria::findOrFail($id);
-        $categoria->estado = 'ANULADO';
-        $categoria->update();
+        DB::beginTransaction();
+        try {
 
-        //Registro de actividad
-        $descripcion = "SE ELIMINÓ LA CATEGORIA CON LA DESCRIPCION: " . $categoria->descripcion;
-        $gestion = "CATEGORIA";
-        eliminarRegistro($categoria, $descripcion, $gestion);
+            $instance           =   Categoria::findOrFail($id);
+            $instance->estado   =   'ANULADO';
+            $instance->update();
 
-        Session::flash('success', 'Categoria eliminado.');
-        return redirect()->route('almacenes.categorias.index')->with('eliminar', 'success');
+            //Registro de actividad
+            $descripcion = "SE ELIMINÓ LA CATEGORIA CON LA DESCRIPCION: " . $instance->descripcion;
+            $gestion = "CATEGORIA";
+            modificarRegistro($instance, $descripcion, $gestion);
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Categoría eliminada con éxito']);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 }

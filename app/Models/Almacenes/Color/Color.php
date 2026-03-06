@@ -10,6 +10,8 @@ class Color extends Model
 
     protected $fillable = [
       'descripcion',
-      'codigo'
+      'codigo',
+      'img_ruta',
+      'img_nombre'
     ];
 }
