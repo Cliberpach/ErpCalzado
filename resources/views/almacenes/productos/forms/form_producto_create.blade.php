@@ -100,6 +100,14 @@
                     <span style="font-weight: bold;color:red;" class="precio3_error msgErrorProducto"></span>
                 </div>
 
+                <div class="col-lg-4 col-12 mb-3">
+                    <label class="required form-label">PRECIO 4</label>
+                    <input required class="form-control {{ $errors->has('precio4') ? ' is-invalid' : '' }}"
+                        type="number" step="0.01" inputmode="decimal" id="precio4" name="precio4"
+                        value="{{ old('precio4') }}" />
+                    <span style="font-weight: bold;color:red;" class="precio4_error msgErrorProducto"></span>
+                </div>
+
                 <div class="col-lg-6 col-12 mb-3">
                     <label class="required">COSTO</label>
                     <input class="form-control {{ $errors->has('costo') ? ' is-invalid' : '' }}" type="number"

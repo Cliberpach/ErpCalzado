@@ -32,6 +32,7 @@ class ProductoService
         $producto->precio_venta_1   =   $datos['precio1'];
         $producto->precio_venta_2   =   $datos['precio2'];
         $producto->precio_venta_3   =   $datos['precio3'];
+        $producto->precio_venta_4   =   $datos['precio4'];
         $producto->costo            =   $datos['costo'] ?? 0;
         $producto->descripcion      =   $datos['descripcion'] ?? null;
         $producto->mostrar_en_web   =   $datos['mostrar_web'] ?? null;

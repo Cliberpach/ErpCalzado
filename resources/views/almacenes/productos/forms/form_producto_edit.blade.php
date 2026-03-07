@@ -111,6 +111,15 @@
                     </div>
                 </div>
 
+                <div class="col-lg-4 col-12">
+                    <div class="form-group">
+                        <label style="font-weight:bold;" class="required">PRECIO 4</label>
+                        <input required value="{{ $producto->precio_venta_4 }}" class="form-control" type="number"
+                            step="0.01" inputmode="decimal" id="precio4" name="precio4" />
+                        <span style="font-weight: bold;color:red;" class="precio4_error msgErrorProducto"></span>
+                    </div>
+                </div>
+
                 <div class="col-lg-6 col-12">
                     <label style="font-weight:bold;" class="required">COSTO</label>
                     <input value="{{ $producto->costo }}"
@@ -212,7 +221,7 @@
         <div class="col-12">
             <label for="descripcion">DESCRIPCIÓN</label>
             <textarea class="form-control" id="descripcion" name="descripcion" rows="3" maxlength="300"
-                placeholder="Ingrese una descripción">{{$producto->descripcion}}</textarea>
+                placeholder="Ingrese una descripción">{{ $producto->descripcion }}</textarea>
         </div>
     </div>
 

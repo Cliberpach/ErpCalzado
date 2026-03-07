@@ -39,8 +39,9 @@ class ProductoRepository
         $producto->precio_venta_1   =   $datos['precio1'];
         $producto->precio_venta_2   =   $datos['precio2'];
         $producto->precio_venta_3   =   $datos['precio3'];
+        $producto->precio_venta_4   =   $datos['precio4'];
         $producto->costo            =   $datos['costo'];
-        $producto->mostrar_en_web   =   $datos['mostrar_en_web']??false;
+        $producto->mostrar_en_web   =   $datos['mostrar_en_web'] ?? false;
         $producto->descripcion      =   $datos['descripcion'] ?? null;
         $producto->update();
         return $producto;
