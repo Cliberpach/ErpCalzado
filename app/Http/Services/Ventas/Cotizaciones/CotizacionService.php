@@ -2,12 +2,10 @@
 
 namespace App\Http\Services\Ventas\Cotizaciones;
 
-use App\Almacenes\Almacen;
+use App\Http\Services\Almacen\Productos\ProductoService;
+use App\Http\Services\Almacen\Tallas\TallaService;
 use App\Http\Services\Pedidos\Pedidos\PedidoService;
 use App\Models\Ventas\Cotizacion\Cotizacion;
-use App\User;
-use App\Ventas\Cliente;
-use App\Ventas\CotizacionDetalle;
 use App\Ventas\Pedido;
 
 class CotizacionService
@@ -17,6 +15,7 @@ class CotizacionService
     private CotizacionValidacion $s_validaciones;
     private PedidoService $s_pedido;
     private CotizacionDTOS $s_dto;
+    private CotizacionMapper $s_mapper;
 
     public function __construct()
     {
@@ -25,6 +24,7 @@ class CotizacionService
         $this->s_validaciones   =   new CotizacionValidacion();
         $this->s_pedido         =   new PedidoService();
         $this->s_dto            =   new CotizacionDTOS();
+        $this->s_mapper         =   new CotizacionMapper();
     }
 
     public function store(array $datos): Cotizacion
@@ -42,7 +42,7 @@ class CotizacionService
         $cotizacion =   $this->s_repository->registrarCotizacion($dto);
 
         //======= REGISTRO DETALLE DE LA COTIZACIÓN =====
-        $dto_detalle    =   $this->s_dto->prepararDtoDetalle($lstCotizacion,$cotizacion);
+        $dto_detalle    =   $this->s_dto->prepararDtoDetalle($lstCotizacion, $cotizacion);
         $this->s_repository->registrarDetalleCotizacion($dto_detalle);
         return $cotizacion;
     }
@@ -64,13 +64,13 @@ class CotizacionService
 
         //======== ELIMINAR DETALLE ANTERIOR ======
         $this->s_repository->eliminarDetalleCotizacion($id);
-        $dto_detalle    =   $this->s_dto->prepararDtoDetalle($lstCotizacion,$cotizacion);
+        $dto_detalle    =   $this->s_dto->prepararDtoDetalle($lstCotizacion, $cotizacion);
         $this->s_repository->registrarDetalleCotizacion($dto_detalle);
 
         return $cotizacion;
     }
 
-    public function generarPedido(array $datos):Pedido
+    public function generarPedido(array $datos): Pedido
     {
         $datos      =   $this->s_validaciones->validacionGenerarPedido($datos);
 
@@ -86,5 +86,26 @@ class CotizacionService
         $cotizacion->update();
 
         return $pedido;
+    }
+
+    public function getColoresTallas(int $almacen_id, int $producto_id)
+    {
+        $s_producto     =   new ProductoService();
+        $s_talla        =   new TallaService();
+
+        $precios_venta  =   $this->s_repository->getPreciosVentaProducto($producto_id);
+        $colores        =   $s_producto->getProductoColores($almacen_id, $producto_id);
+        $stocks         =   $s_producto->getProductoStocks($almacen_id, $producto_id);
+        $tallas         =   $s_talla->getTallas();
+
+        $producto_color_tallas  =   null;
+        if (count($colores) > 0) {
+            $producto_color_tallas  =   $this->s_mapper->formatearColoresTallas($colores, $stocks, $tallas);
+        }
+
+        return (object)[
+            'producto_color_tallas' =>  $producto_color_tallas,
+            '_precios_venta'        =>  $precios_venta
+        ];
     }
 }

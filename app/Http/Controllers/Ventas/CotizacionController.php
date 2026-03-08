@@ -181,7 +181,7 @@ array:10 [
             return response()->json(['success' => true, 'message' => "COTIZACIÓN REGISTRADA CON ÉXITO"]);
         } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(),'file'=>$th->getFile()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(), 'file' => $th->getFile()]);
         }
     }
 
@@ -202,7 +202,7 @@ array:10 [
         $empresas           =   Empresa::where('estado', 'ACTIVO')->get();
         $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
         $detalles           =   CotizacionDetalle::where('cotizacion_id', $id)->where('estado', 'ACTIVO')
-                                ->where('tipo','PRODUCTO')->with('producto', 'color', 'talla')->get();
+            ->where('tipo', 'PRODUCTO')->with('producto', 'color', 'talla')->get();
 
         $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
         $categorias         =   Categoria::where('estado', 'ACTIVO')->get();
@@ -840,7 +840,7 @@ array:10 [
         return redirect()->route('ventas.documento.create', ['cotizacion' => $id]);
     }
 
-/*
+    /*
 array:4 [
   "_token" => "UjYzdBIkW5HpOS1iWrFQkt7jR9sHguuVJPHNrVJB"
   "fecha_propuesta" => null
@@ -856,12 +856,12 @@ array:4 [
 
             $pedido =   $this->s_cotizacion->generarPedido($request->toArray());
 
-            $message        =   "SE CONVIRTIÓ COTIZACIÓN N°". $request->get('cotizacion_id')." A PEDIDO N°".$pedido->id;
+            $message        =   "SE CONVIRTIÓ COTIZACIÓN N°" . $request->get('cotizacion_id') . " A PEDIDO N°" . $pedido->id;
             $descripcion    =   $message;
             $gestion        =   "COTIZACIÓN A PEDIDO";
             modificarRegistro($pedido, $descripcion, $gestion);
 
-            Session::flash('message_success',$message);
+            Session::flash('message_success', $message);
 
             DB::commit();
 
@@ -871,7 +871,7 @@ array:4 [
             ]);
         } catch (Throwable $th) {
 
-            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(),'file'=>$th->getFile()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine(), 'file' => $th->getFile()]);
         }
     }
 
@@ -915,140 +915,24 @@ array:4 [
 
     public function getColoresTallas($almacen_id, $producto_id)
     {
-
         try {
 
-
-            $precios_venta  =   DB::select('SELECT
-                                p.id AS producto_id,
-                                p.nombre AS producto_nombre,
-                                p.precio_venta_1,
-                                p.precio_venta_2,
-                                p.precio_venta_3
-                                FROM
-                                    productos AS p
-                                WHERE
-                                    p.id = ? AND p.estado = "ACTIVO" ', [$producto_id]);
-
-
-            $colores =  DB::select(
-                'SELECT
-                                    p.id AS producto_id,
-                                    p.nombre AS producto_nombre,
-                                    c.id AS color_id,
-                                    c.descripcion AS color_nombre
-                                FROM
-                                    producto_colores AS pc
-                                    inner join productos as p on p.id = pc.producto_id
-                                    inner join colores as c on c.id = pc.color_id
-                                WHERE
-                                    pc.almacen_id  = ?
-                                    AND pc.producto_id = ?
-                                    AND p.estado = "ACTIVO" and c.estado = "ACTIVO" ',
-                [$almacen_id, $producto_id]
-            );
-
-            $stocks =   DB::select(
-                'select
-                        pct.producto_id,
-                        pct.color_id,
-                        pct.talla_id,
-                        pct.stock,
-                        pct.stock_logico,
-                        t.descripcion as talla_nombre
-                        from producto_color_tallas as pct
-                        inner join productos as p on p.id = pct.producto_id
-                        inner join colores as c on c.id = pct.color_id
-                        inner join tallas as t on t.id = pct.talla_id
-                        where
-                        p.estado = "ACTIVO"
-                        and c.estado = "ACTIVO"
-                        and t.estado = "ACTIVO"
-                        and pct.almacen_id = ?
-                        AND p.id = ?',
-                [$almacen_id, $producto_id]
-            );
-
-            $tallas =   Talla::where('estado', 'ACTIVO')->orderBy('id')->get();
-
-            $producto_color_tallas  =   null;
-            $_precios_venta          =   null;
-            if (count($colores) > 0) {
-                $producto_color_tallas  =   $this->formatearColoresTallas($colores, $stocks, $tallas);
-            }
-            if (count($precios_venta) !== 0) {
-                $_precios_venta   =   $precios_venta[0];
-            }
+            $data   =   $this->s_cotizacion->getColoresTallas($almacen_id, $producto_id);
 
             return response()->json([
                 'success' => true,
-                'producto_color_tallas'     =>  $producto_color_tallas,
-                'precios_venta'             =>  $_precios_venta,
+                'producto_color_tallas'     =>  $data->producto_color_tallas,
+                'precios_venta'             =>  $data->_precios_venta,
                 'message'                   =>  'TALLAS OBTENIDAS'
             ]);
-        } catch (\Throwable $th) {
-
-            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        } catch (Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+                'file' => $th->getFile(),
+                'line' => $th->getLine()
+            ]);
         }
-    }
-
-    public function formatearColoresTallas($colores, $stocks, $tallas)
-    {
-        $producto = [];
-
-        // Verifica si $colores no está vacío
-        if (count($colores) > 0) {
-            $producto['id'] = $colores[0]->producto_id;
-            $producto['nombre'] = $colores[0]->producto_nombre;
-        } else {
-            // Maneja el caso cuando $colores está vacío
-            $producto['id'] = null;
-            $producto['nombre'] = null;
-        }
-
-        $lstColores = [];
-
-        //======== RECORRIENDO COLORES =======
-        foreach ($colores as $color) {
-            $item_color = [];
-            $item_color['id'] = $color->color_id;
-            $item_color['nombre'] = $color->color_nombre;
-
-            //======== OBTENIENDO TALLAS DEL COLOR =======
-            $lstTallas = [];
-
-            foreach ($tallas as $talla) {
-                $item_talla = [];
-                $item_talla['id'] = $talla->id;
-                $item_talla['nombre'] = $talla->descripcion;
-
-                // Filtrar stocks para color y talla actuales
-                $stock_filtrado = array_filter($stocks, function ($stock) use ($producto, $color, $talla) {
-                    return $stock->producto_id == $producto['id'] &&
-                        $stock->color_id == $color->color_id &&
-                        $stock->talla_id == $talla->id;
-                });
-
-                // Asignar stock y stock lógico si existe, o establecer en 0
-                if (!empty($stock_filtrado)) {
-                    $first_stock = reset($stock_filtrado); // Obtiene el primer elemento del array filtrado
-                    $item_talla['stock'] = $first_stock->stock;
-                    $item_talla['stock_logico'] = $first_stock->stock_logico;
-                } else {
-                    $item_talla['stock'] = 0;
-                    $item_talla['stock_logico'] = 0;
-                }
-
-                $lstTallas[] = $item_talla;
-            }
-
-            $item_color['tallas'] = $lstTallas;
-            $lstColores[] = $item_color;
-        }
-
-        $producto['colores'] = $lstColores;
-
-        return $producto;
     }
 
     public function getProductoBarCode($barcode)

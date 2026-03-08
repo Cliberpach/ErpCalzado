@@ -249,4 +249,14 @@ class ProductoService
 
         return $producto;
     }
+
+    public function getProductoColores(int $almacen_id, int $producto_id)
+    {
+        return $this->s_repository->getProductoColores($almacen_id, $producto_id);
+    }
+
+    public function getProductoStocks(int $almacen_id, int $producto_id)
+    {
+        return $this->s_repository->getProductoStocks($almacen_id, $producto_id);
+    }
 }

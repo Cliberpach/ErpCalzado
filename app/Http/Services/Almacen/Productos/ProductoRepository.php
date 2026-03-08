@@ -5,6 +5,7 @@ namespace App\Http\Services\Almacen\Productos;
 use App\Almacenes\Producto;
 use App\Almacenes\ProductoColor;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 class ProductoRepository
@@ -124,5 +125,52 @@ class ProductoRepository
         $producto->update();
 
         return $producto;
+    }
+
+    public function getProductoColores(int $almacen_id, int $producto_id)
+    {
+        $colores =  DB::select(
+            'SELECT
+                                    p.id AS producto_id,
+                                    p.nombre AS producto_nombre,
+                                    c.id AS color_id,
+                                    c.descripcion AS color_nombre
+                                FROM
+                                    producto_colores AS pc
+                                    inner join productos as p on p.id = pc.producto_id
+                                    inner join colores as c on c.id = pc.color_id
+                                WHERE
+                                    pc.almacen_id  = ?
+                                    AND pc.producto_id = ?
+                                    AND p.estado = "ACTIVO" and c.estado = "ACTIVO" ',
+            [$almacen_id, $producto_id]
+        );
+        return $colores;
+    }
+
+
+    public function getProductoStocks(int $almacen_id, int $producto_id)
+    {
+        $stocks =   DB::select(
+            'SELECT
+                        pct.producto_id,
+                        pct.color_id,
+                        pct.talla_id,
+                        pct.stock,
+                        pct.stock_logico,
+                        t.descripcion as talla_nombre
+                        from producto_color_tallas as pct
+                        inner join productos as p on p.id = pct.producto_id
+                        inner join colores as c on c.id = pct.color_id
+                        inner join tallas as t on t.id = pct.talla_id
+                        where
+                        p.estado = "ACTIVO"
+                        and c.estado = "ACTIVO"
+                        and t.estado = "ACTIVO"
+                        and pct.almacen_id = ?
+                        AND p.id = ?',
+            [$almacen_id, $producto_id]
+        );
+        return $stocks;
     }
 }
