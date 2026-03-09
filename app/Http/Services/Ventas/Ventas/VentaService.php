@@ -487,7 +487,7 @@ class VentaService
         return (object)[
             'stocks'    =>  $stocks,
             'producto_colores'  =>  $colores,
-            'precios_venta_array'   =>  $precios_venta->toArray()
+            'precios_venta_array'   =>  $precios_venta
         ];
     }
 }
