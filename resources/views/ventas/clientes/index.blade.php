@@ -19,7 +19,7 @@
     </div>
     <div class="col-lg-2 col-md-2">
         <button id="btn_añadir_cliente" class="btn btn-block btn-w-m btn-primary m-t-md">
-            <i class="fa fa-plus-square"></i> Añadir nuevo
+            <i class="fa fa-plus-square"></i> NUEVO
         </button>
         <button id="btn_file_cliente" class="btn btn-block btn-w-m btn-primary m-t-md">
             <i class="fa fa-file-excel-o"></i> Importar Excel
@@ -33,27 +33,7 @@
             <div class="ibox ">
                 <div class="ibox-content">
                     <div class="table-responsive">
-                        <table class="table dataTables-cliente table-striped table-bordered table-hover"
-                            style="text-transform:uppercase">
-                            <thead>
-
-                                <tr>
-
-                                    <th class="text-center">TIPO DOC</th>
-                                    <th class="text-center">N° DOC</th>
-                                    <th class="text-center">NOMBRE</th>
-                                    <th class="text-center">TELÉFONO MÓVIL</th>
-                                    <th class="text-center">DEPARTAMENTOS</th>
-                                    <th class="text-center">PROVINCIAS</th>
-                                    <th class="text-center">DISTRITOS</th>
-                                    <th class="text-center">ZONAS</th>
-                                    <th class="text-center">ACCIONES</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                            </tbody>
-                        </table>
+                        @include('ventas.clientes.tables.tbl_list')
                     </div>
                 </div>
             </div>
@@ -114,84 +94,110 @@
             "columns": [{
                     data: 'tipo_documento',
                     name: 'c.tipo_documento',
-                    className: "text-center letrapequeña"
+                    className: "text-center letrapequeña",
+                    searchable: true,
+                    orderable: false
+                },
+                {
+                    data: 'tipo_cliente_nombre',
+                    name: 'c.tipo_cliente_nombre',
+                    className: "text-center letrapequeña",
+                    searchable: true,
+                    orderable: false
                 },
                 {
                     data: 'documento',
                     name: 'c.documento',
-                    className: "text-center letrapequeña"
+                    className: "text-center letrapequeña",
+                    searchable: true,
+                    orderable: false,
+                    orderable: true
                 },
                 {
                     data: 'nombre',
                     name: 'c.nombre',
-                    className: "text-left letrapequeña"
+                    className: "text-left letrapequeña",
+                    searchable: true,
+                    orderable: true
                 },
                 {
                     data: 'telefono_movil',
                     name: 'c.telefono_movil',
-                    className: "text-center letrapequeña"
+                    className: "text-center letrapequeña",
+                    searchable: true,
+                    orderable: false
                 },
                 {
                     data: 'departamento',
                     name: 'd.nombre',
-                    className: "text-center letrapequeña"
+                    className: "text-center letrapequeña",
+                    searchable: true,
+                    orderable: true
                 },
                 {
                     data: 'provincia',
                     name: 'p.nombre',
-                    className: "text-center letrapequeña"
+                    className: "text-center letrapequeña",
+                    searchable: true,
+                    orderable: true
                 },
                 {
                     data: 'distrito',
                     name: 'd.nombre',
-                    className: "text-center letrapequeña"
+                    className: "text-center letrapequeña",
+                    searchable: true,
+                    orderable: true
                 },
                 {
                     data: 'zona',
                     searchable: false,
-                    className: "text-center letrapequeña"
+                    className: "text-center letrapequeña",
+                    searchable: false,
+                    orderable: false
                 },
                 {
+                    orderable: false,
                     searchable: false,
                     data: null,
                     className: "text-center",
                     render: function(data) {
-                        //Ruta Detalle
-                        var url_detalle = '{{ route('ventas.cliente.show', ':id') }}';
-                        url_detalle = url_detalle.replace(':id', data.id);
 
-                        //Ruta Modificar
-                        var url_editar = '{{ route('ventas.cliente.edit', ':id') }}';
-                        url_editar = url_editar.replace(':id', data.id);
+                        let url_detalle = `{{ route('ventas.cliente.show', ':id') }}`.replace(
+                            ':id', data.id);
+                        let url_editar = `{{ route('ventas.cliente.edit', ':id') }}`.replace(
+                            ':id', data.id);
+                        let url_tienda = `{{ route('clientes.tienda.index', ':id') }}`.replace(
+                            ':id', data.id);
 
-                        //Ruta Tiendas
-                        var url_tienda = '{{ route('clientes.tienda.index', ':id') }}';
-                        url_tienda = url_tienda.replace(':id', data.id);
+                        return `
+                        <div class='btn-group' style='text-transform:capitalize;'>
+                            <button data-toggle='dropdown' class='btn btn-primary btn-sm dropdown-toggle'>
+                                <i class='fa fa-bars'></i>
+                            </button>
+                            <ul class='dropdown-menu'>
 
-                        /* return "<div class='btn-group'>" +
-                             "<a class='btn btn-primary btn-sm' href='" + url_tienda +
-                             "' title='Tiendas'><i class='fa fa-shopping-cart'></i></a>" +
-                             "<a class='btn btn-success btn-sm' href='" + url_detalle +
-                             "' title='Detalle'><i class='fa fa-eye'></i></a>" +
-                             "<a class='btn btn-warning btn-sm modificarDetalle' href='" +
-                             url_editar + "' title='Modificar'><i class='fa fa-edit'></i></a>" +
-                             "<a class='btn btn-danger btn-sm' href='#' onclick='eliminar(" +
-                             data.id + ")' title='Eliminar'><i class='fa fa-trash'></i></a>" +
-                             "</div>";*/
+                                <li>
+                                    <a class='dropdown-item' href="${url_detalle}" title='Detalle'>
+                                        <b><i class='fa fa-eye'></i> Detalle</b>
+                                    </a>
+                                </li>
 
-                        return "<div class='btn-group' style='text-transform:capitalize;'><button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class='fa fa-bars'></i></button><ul class='dropdown-menu'>" +
+                                <li>
+                                    <a class='dropdown-item' href="${url_editar}" title='Editar'>
+                                        <b><i class='fa fa-edit'></i> Editar</b>
+                                    </a>
+                                </li>
 
-                            "<li><a class='dropdown-item' href='" + url_detalle +
-                            "' title='Modificar' ><b><i class='fa fa-eye'></i>Detalle</a></b></li>" +
+                                <li>
+                                    <a class='dropdown-item' onclick='eliminar(${data.id})' title='Eliminar'>
+                                        <b><i class='fa fa-trash'></i> Eliminar</b>
+                                    </a>
+                                </li>
 
-                            "<li><a class='dropdown-item' href='" + url_editar +
-                            "' title='Modificar' ><b><i class='fa fa-edit'></i>Editar</a></b></li>" +
+                                <li class='dropdown-divider'></li>
 
-                            "<li><a class='dropdown-item' onclick='eliminar(" + data.id +
-                            ")' title='Eliminar'><b><i class='fa fa-trash'></i> Eliminar</a></b></li>" +
-
-                            "<li class='dropdown-divider'></li>" +
-                            "</ul></div>"
+                            </ul>
+                        </div>`;
                     }
                 }
 

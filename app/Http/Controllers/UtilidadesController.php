@@ -9,6 +9,7 @@ use App\Almacenes\Producto;
 use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
 use App\Mantenimiento\Tabla\Detalle;
+use App\Models\Ventas\TipoCliente\TipoCliente;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -521,5 +522,10 @@ array:2 [
         } catch (Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
+    }
+
+
+    public static function getTiposClientes(){
+        return TipoCliente::where('estado','ACTIVO')->get();
     }
 }

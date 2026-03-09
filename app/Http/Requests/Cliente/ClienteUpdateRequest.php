@@ -24,7 +24,7 @@ class ClienteUpdateRequest extends FormRequest
      */
     public function rules()
     {
-        $id = $this->route('id'); 
+        $id = $this->route('id');
 
         return [
             'tipo_documento' => 'required',
@@ -34,6 +34,12 @@ class ClienteUpdateRequest extends FormRequest
                 Rule::unique('clientes', 'documento')->where(function ($query) {
                     $query->whereIn('estado', ["ACTIVO"]);
                 })->ignore($id)
+            ],
+            'tipo_cliente' => [
+                'required',
+                Rule::exists('tipos_clientes', 'id')->where(function ($query) {
+                    $query->where('estado', 'ACTIVO');
+                }),
             ],
             'nombre' => 'required',
             'zona' => 'required',

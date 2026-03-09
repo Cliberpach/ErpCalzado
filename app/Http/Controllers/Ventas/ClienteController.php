@@ -3,19 +3,18 @@
 namespace App\Http\Controllers\Ventas;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\UtilidadesController;
 use App\Http\Requests\Cliente\ClienteStoreFastRequest;
 use App\Http\Requests\Cliente\ClienteStoreRequest;
 use App\Http\Requests\Cliente\ClienteUpdateRequest;
+use App\Models\Ventas\TipoCliente\TipoCliente;
 use App\Ventas\Cliente;
-use App\Ventas\Tienda;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Throwable;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -29,55 +28,47 @@ class ClienteController extends Controller
     public function getTable()
     {
         $clientes = DB::table('clientes as c')
-        ->join('departamentos as d','d.id','c.departamento_id')
-        ->join('provincias as p','p.id','c.provincia_id')
-        ->join('distritos as dis','dis.id','c.distrito_id')
-        ->select(
-            'c.id',
-            'c.tipo_documento',
-            'c.documento',
-            'c.nombre',
-            'c.telefono_movil',
-            'd.nombre as departamento',
-            'p.nombre as provincia',
-            'dis.nombre as distrito',
-            'c.provincia_id',
-            'c.distrito_id',
-            'c.zona',
-        )
-        ->where('c.estado', 'ACTIVO')
-        ->orderByDesc('c.id');
+            ->join('departamentos as d', 'd.id', 'c.departamento_id')
+            ->join('provincias as p', 'p.id', 'c.provincia_id')
+            ->join('distritos as dis', 'dis.id', 'c.distrito_id')
+            ->select(
+                'c.id',
+                'c.tipo_documento',
+                'c.documento',
+                'c.nombre',
+                'c.telefono_movil',
+                'd.nombre as departamento',
+                'p.nombre as provincia',
+                'dis.nombre as distrito',
+                'c.provincia_id',
+                'c.distrito_id',
+                'c.zona',
+                'c.tipo_cliente_nombre'
+            )
+            ->where('c.estado', 'ACTIVO')
+            ->orderByDesc('c.id');
 
-        //$coleccion = collect([]);
-        /*foreach ($clientes as $cliente) {
-            $coleccion->push([
-                'id' => $cliente->id,
-                'documento' => $cliente->getDocumento(),
-                'nombre' => ($cliente->tipo_documento == 'RUC') ? '-' : $cliente->nombre,
-                'razon_social' => ($cliente->tipo_documento == 'RUC') ? $cliente->nombre : '-',
-                'telefono_movil' => $cliente->telefono_movil,
-                'departamento' => $cliente->getDepartamento(),
-                'provincia' => $cliente->getProvincia(),
-                'distrito' => $cliente->getDistrito(),
-                'zona' => $cliente->getDepartamentoZona(),
-            ]);
-        }*/
         return DataTables::make($clientes)->toJson();
     }
 
     public function create()
     {
-        $action = route('ventas.cliente.store');
-        $cliente = new Cliente();
-        return view('ventas.clientes.create')->with(compact('action', 'cliente'));
+        $action         =   route('ventas.cliente.store');
+        $tipos_clientes =   UtilidadesController::getTiposClientes();
+        $cliente        =   new Cliente();
+        return view('ventas.clientes.create')->with(
+            compact(
+                'action',
+                'cliente',
+                'tipos_clientes'
+            )
+        );
     }
 
     public function store(ClienteStoreRequest $request)
     {
         DB::beginTransaction();
-
         try {
-            $data = $request->all();
 
             $arrayDatos = $request->all();
             if ($arrayDatos['fecha_aniversario'] == "-") {
@@ -85,12 +76,16 @@ class ClienteController extends Controller
             } else {
                 $arrayDatos['fecha_aniversario'] = Carbon::createFromFormat('d/m/Y', $arrayDatos['fecha_aniversario'])->format('Y-m-d');
             }
+
+            $tipo_cliente                   =   TipoCliente::findOrFail($request->get('tipo_cliente'));
+
             $cliente                        =   new Cliente($arrayDatos);
             $cliente->tipo_documento        =   $request->get('tipo_documento');
 
             $cliente->documento             =   $request->get('documento');
-            $cliente->tabladetalles_id      =   $request->input('tipo_cliente');
-            $cliente->nombre                =   $request->get('nombre');
+            $cliente->tipo_cliente_id       =   $tipo_cliente->id;
+            $cliente->tipo_cliente_nombre   =   $tipo_cliente->nombre;
+            $cliente->nombre                =   mb_strtoupper($request->get('nombre'), 'UTF-8');
             $cliente->codigo                =   $request->get('codigo');
             $cliente->zona                  =   $request->get('zona');
             $cliente->nombre_comercial      =   $request->get('nombre_comercial');
@@ -139,7 +134,6 @@ class ClienteController extends Controller
                 $cliente->nombre_logo   =   $name;
                 $cliente->ruta_logo     =   $request->file('logo')->store('public/clientes/img');
             }
-
             $cliente->save();
 
             //Registro de actividad
@@ -150,14 +144,16 @@ class ClienteController extends Controller
             Session::flash('success', 'Cliente creado.');
             DB::commit();
             return redirect()->route('ventas.cliente.index')->with('guardar', 'success');
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
             dd($th->getMessage());
         }
     }
+
     public function edit($id)
     {
-        $cliente = Cliente::findOrFail($id);
+        $cliente        =   Cliente::findOrFail($id);
+        $tipos_clientes =   UtilidadesController::getTiposClientes();
 
         $put = True;
         $action = route('ventas.cliente.update', $id);
@@ -165,26 +161,28 @@ class ClienteController extends Controller
             'cliente' => $cliente,
             'action' => $action,
             'put' => $put,
+            'tipos_clientes'    =>  $tipos_clientes
         ]);
     }
 
     public function update(ClienteUpdateRequest $request, $id)
     {
         DB::beginTransaction();
-
         try {
-            $data = $request->all();
+
+            $tipo_cliente                   = TipoCliente::findOrFail($request->get('tipo_cliente'));
 
             $cliente                        = Cliente::findOrFail($id);
             $cliente->tipo_documento        = $request->get('tipo_documento');
             $cliente->documento             = $request->get('documento');
-            $cliente->nombre                = $request->get('nombre');
+            $cliente->nombre                = mb_strtoupper($request->get('nombre'), 'UTF-8');
 
             $cliente->codigo                = $request->get('codigo');
             $cliente->zona                  = $request->get('zona');
             $cliente->nombre_comercial      = $request->get('nombre_comercial');
 
-            $cliente->tabladetalles_id      = $request->input('tipo_cliente');
+            $cliente->tipo_cliente_id       = $tipo_cliente->id;
+            $cliente->tipo_cliente_nombre   = $tipo_cliente->nombre;
             $cliente->departamento_id       = str_pad($request->get('departamento'), 2, "0", STR_PAD_LEFT);
             $cliente->provincia_id          = str_pad($request->get('provincia'), 4, "0", STR_PAD_LEFT);
             $cliente->distrito_id           = str_pad($request->get('distrito'), 6, "0", STR_PAD_LEFT);
@@ -346,12 +344,14 @@ array:14 [
         try {
             DB::beginTransaction();
 
-            $arrayDatos                     =   $request->all();
+            $tipo_cliente   =   TipoCliente::findOrFail($request->get('tipo_cliente_id'));
+
             $cliente                        =   new Cliente();
             $cliente->tipo_documento        =   $request->get('tipo_documento');
 
             $cliente->documento             =   $request->get('documento');
-            $cliente->tabladetalles_id      =   $request->input('tipo_cliente_id');
+            $cliente->tipo_cliente_id       =   $tipo_cliente->id;
+            $cliente->tipo_cliente_nombre   =   $tipo_cliente->nombre;
             $cliente->nombre                =   $request->get('nombre');
             $cliente->codigo                =   $request->get('codigo');
             $cliente->zona                  =   $request->get('zona');

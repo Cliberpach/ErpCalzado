@@ -107,7 +107,7 @@ class CotizacionController extends Controller
     {
         $tipos_documento    =   tipos_documento();
         $departamentos      =   departamentos();
-        $tipo_clientes      =   tipo_clientes();
+        $tipo_clientes      =   UtilidadesController::getTiposClientes();
 
         $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
         $modelos            =   Modelo::where('estado', 'ACTIVO')->get();

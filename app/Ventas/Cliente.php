@@ -2,6 +2,7 @@
 
 namespace App\Ventas;
 
+use App\Models\Ventas\TipoCliente\TipoCliente;
 use Illuminate\Database\Eloquent\Model;
 
 class Cliente extends Model
@@ -13,7 +14,10 @@ class Cliente extends Model
         'nombre',
         'nombre_comercial',
         'codigo',
-        'tabladetalles_id',
+
+        'tipo_cliente_id',
+        'tipo_cliente_nombre',
+
         'departamento_id',
         'provincia_id',
         'distrito_id',
@@ -53,7 +57,7 @@ class Cliente extends Model
 
     public function detalle()
     {
-        return $this->belongsTo('App\Mantenimiento\Tabla\Detalle', 'tabladetalles_id');
+        return $this->belongsTo(TipoCliente::class, 'tipo_cliente_id');
     }
 
     public function getDocumento(): string

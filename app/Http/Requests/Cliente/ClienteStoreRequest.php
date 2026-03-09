@@ -30,7 +30,12 @@ class ClienteStoreRequest extends FormRequest
                 $query->whereIn('estado', ["ACTIVO"]);
             })],
             'nombre' => 'required',
-            'tipo_cliente' => 'required',
+            'tipo_cliente' => [
+                'required',
+                Rule::exists('tipos_clientes', 'id')->where(function ($query) {
+                    $query->where('estado', 'ACTIVO');
+                }),
+            ],
             'departamento' => 'required',
             'zona' => 'required',
             'provincia' => 'required',

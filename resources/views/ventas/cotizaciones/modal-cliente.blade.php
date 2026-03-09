@@ -41,8 +41,8 @@
                                         <div class="input-group">
                                             <input type="text" id="documento" name="documento" class="form-control"
                                                 required maxlength="8" oninput="validarDocumentoMdlCliente(this)">
-                                            <button id="btn_consultar_doc" onclick="consultarDocumentoMdlCliente()" type="button"
-                                                style="color:white" class="btn btn-primary">
+                                            <button id="btn_consultar_doc" onclick="consultarDocumentoMdlCliente()"
+                                                type="button" style="color:white" class="btn btn-primary">
                                                 <i class="fa fa-search"></i>
                                                 <span id="entidad"> </span>
                                             </button>
@@ -58,7 +58,7 @@
                                         <select class="select2_modal_cliente" name="tipo_cliente_id"
                                             id="tipo_cliente_id">
                                             @foreach ($tipo_clientes as $tipo_cliente)
-                                                <option value="{{ $tipo_cliente->id }}">{{ $tipo_cliente->simbolo }}
+                                                <option value="{{ $tipo_cliente->id }}">{{ $tipo_cliente->nombre }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -102,7 +102,8 @@
                                         <label class="required lbl_mdl_cliente"
                                             for="departamento_mdl_cliente">DEPARTAMENTO</label>
                                         <select required class="select2_modal_cliente" name="departamento_mdl_cliente"
-                                            id="departamento_mdl_cliente" onchange="setUbicacionDepartamentoMdlCliente(this.value,'first')">
+                                            id="departamento_mdl_cliente"
+                                            onchange="setUbicacionDepartamentoMdlCliente(this.value,'first')">
                                             @foreach ($departamentos as $departamento)
                                                 <option @if ($departamento->id == 13) selected @endif
                                                     value="{{ $departamento->id }}">{{ $departamento->nombre }}
@@ -115,9 +116,11 @@
                                 </div>
                                 <div class="col-12 col-md-6 mb-2">
                                     <div class="form-group m-0">
-                                        <label class="required lbl_mdl_cliente" for="provincia_mdl_cliente">PROVINCIA</label>
+                                        <label class="required lbl_mdl_cliente"
+                                            for="provincia_mdl_cliente">PROVINCIA</label>
                                         <select required class="select2_modal_cliente" name="provincia_mdl_cliente"
-                                            id="provincia_mdl_cliente" onchange="setUbicacionProvinciaMdlCliente(this.value,'first')">
+                                            id="provincia_mdl_cliente"
+                                            onchange="setUbicacionProvinciaMdlCliente(this.value,'first')">
 
                                         </select>
                                     </div>
@@ -127,7 +130,8 @@
                             <div class="row">
                                 <div class="col-12 col-md-6 mb-2">
                                     <div class="form-group m-0">
-                                        <label class="required lbl_mdl_cliente" for="distrito_mdl_cliente">DISTRITO</label>
+                                        <label class="required lbl_mdl_cliente"
+                                            for="distrito_mdl_cliente">DISTRITO</label>
                                         <select required class="select2_modal_cliente" name="distrito_mdl_cliente"
                                             id="distrito_mdl_cliente">
 
@@ -184,8 +188,8 @@
                         marcados con asterisco (*) son obligatorios.</small>
                 </div>
                 <div class="col-md-6 text-right">
-                    <button id="btnGuardarClienteMdlCliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente"
-                        style="color:white;"><i class="fa fa-save"></i> Guardar</button>
+                    <button id="btnGuardarClienteMdlCliente" type="submit" class="btn btn-primary btn-sm"
+                        form="frmCliente" style="color:white;"><i class="fa fa-save"></i> Guardar</button>
                     <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"
                         @click.prevent="Cerrar"><i class="fa fa-times"></i> Cancelar</button>
                 </div>
@@ -254,7 +258,7 @@
 
         setZonaMdlCliente(getZonaMdlCliente(departamento_id));
 
-        mostrarAnimacionModalCliente();
+        mostrarAnimacion();
         const provincias = await getProvinciasMdlCliente(departamento_id, provincia_id);
         pintarProvinciasMdlCliente(provincias, provincia_id);
 
@@ -265,7 +269,7 @@
 
         const distritos = await getDistritosMdlCliente(provincia_id);
         pintarDistritosMdlCliente(distritos, distrito_id);
-        ocultarAnimacionModalCliente();
+        ocultarAnimacion();
     }
 
     function getZonaMdlCliente(departamento_id) {
@@ -323,7 +327,7 @@
     //====== PINTAR DISTRITOS ========
     async function getDistritosMdlCliente(provincia_id, distrito_id) {
         try {
-            mostrarAnimacionModalCliente();
+            mostrarAnimacion();
             const {
                 data
             } = await this.axios.post(route('mantenimiento.ubigeo.distritos'), {
@@ -435,7 +439,7 @@
     //======= CONSULTAR API =======
     async function consultarAPIMdlCliente(tipo_documento, nro_documento) {
         try {
-            mostrarAnimacionModalCliente();
+            mostrarAnimacion();
             let tipoDoc = tipo_documento;
             let documento = nro_documento;
             let url = null;
@@ -487,7 +491,7 @@
             this.loading = false;
             alert("Error en consultarAPIMdlCliente" + ex);
         } finally {
-            ocultarAnimacionModalCliente();
+            ocultarAnimacion();
         }
     }
 
@@ -525,7 +529,7 @@
             };
 
 
-            ocultarAnimacionModalCliente();
+            ocultarAnimacion();
             return;
         }
 
@@ -583,7 +587,7 @@
     async function guardarClienteMdlCliente() {
         try {
             //======= MOSTRAR OVERLAY =======
-            mostrarAnimacionModalCliente();
+            mostrarAnimacion();
 
             //======== OBTENEMOS EL SIMBOLO DEL TIPO DOCUMENTO =======
             const formData = new FormData(formCliente);
@@ -612,7 +616,7 @@
             }
             toastr.error(ex, 'ERROR EN LA PETICIÓN REGISTRAR CLIENTE');
         } finally {
-            ocultarAnimacionModalCliente();
+            ocultarAnimacion();
         }
     }
 
@@ -658,15 +662,5 @@
             }
         }
 
-    }
-
-    function mostrarAnimacionModalCliente() {
-
-        document.querySelector('.overlay_modal_cliente').style.visibility = 'visible';
-    }
-
-    function ocultarAnimacionModalCliente() {
-
-        document.querySelector('.overlay_modal_cliente').style.visibility = 'hidden';
     }
 </script>

@@ -32,7 +32,12 @@ class ClienteStoreFastRequest extends FormRequest
                 $query->whereIn('estado', ["ACTIVO"]);
             })],
             'nombre'            => 'required',
-            'tipo_cliente_id'   => 'required',
+            'tipo_cliente_id' => [
+                'required',
+                Rule::exists('tipos_clientes', 'id')->where(function ($query) {
+                    $query->where('estado', 'ACTIVO');
+                }),
+            ],
             'departamento'      => 'required',
             'zona'              => 'required',
             'provincia'         => 'required',
@@ -51,6 +56,7 @@ class ClienteStoreFastRequest extends FormRequest
         $messages = [
             'tipo_documento.required'   => 'El campo Tipo de documento es obligatorio.',
             'tipo_cliente_id.required'  => 'El campo Tipo de cliente es obligatorio.',
+            'tipo_cliente.exists' => 'El tipo de cliente seleccionado no existe o está inactivo.',
             'documento.required'        => 'El campo Nro. Documento es obligatorio',
             'documento.unique'          => 'El Nro. documento ya está registrado.',
             'documento.numeric'         => 'El campo Nro. Documento debe ser numérico',
