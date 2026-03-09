@@ -7,6 +7,7 @@ use App\Almacenes\ProductoColor;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 
 class ProductoRepository
 {
@@ -129,48 +130,75 @@ class ProductoRepository
 
     public function getProductoColores(int $almacen_id, int $producto_id)
     {
-        $colores =  DB::select(
+        $colores   =   DB::select(
             'SELECT
-                                    p.id AS producto_id,
-                                    p.nombre AS producto_nombre,
-                                    c.id AS color_id,
-                                    c.descripcion AS color_nombre
-                                FROM
-                                    producto_colores AS pc
-                                    inner join productos as p on p.id = pc.producto_id
-                                    inner join colores as c on c.id = pc.color_id
-                                WHERE
-                                    pc.almacen_id  = ?
-                                    AND pc.producto_id = ?
-                                    AND p.estado = "ACTIVO" and c.estado = "ACTIVO" ',
-            [$almacen_id, $producto_id]
+            pc.almacen_id,
+            p.id as producto_id,
+            p.nombre as producto_nombre,
+            c.id as color_id,
+            c.descripcion as color_nombre
+            from producto_colores as pc
+            inner join productos as p on p.id = pc.producto_id
+            inner join colores as c on c.id = pc.color_id
+            where
+            p.id = ?
+            AND pc.almacen_id = ?
+            AND c.estado = "ACTIVO"
+            AND p.estado = "ACTIVO"
+            group by pc.almacen_id,p.id,p.nombre,c.id,c.descripcion
+            order by p.id,c.id',
+            [$producto_id, $almacen_id]
         );
+
         return $colores;
     }
 
-
     public function getProductoStocks(int $almacen_id, int $producto_id)
     {
-        $stocks =   DB::select(
+        $stocks =  DB::select(
             'SELECT
-                        pct.producto_id,
-                        pct.color_id,
-                        pct.talla_id,
-                        pct.stock,
-                        pct.stock_logico,
-                        t.descripcion as talla_nombre
-                        from producto_color_tallas as pct
-                        inner join productos as p on p.id = pct.producto_id
-                        inner join colores as c on c.id = pct.color_id
-                        inner join tallas as t on t.id = pct.talla_id
-                        where
-                        p.estado = "ACTIVO"
-                        and c.estado = "ACTIVO"
-                        and t.estado = "ACTIVO"
-                        and pct.almacen_id = ?
-                        AND p.id = ?',
-            [$almacen_id, $producto_id]
+            p.id AS producto_id,
+            p.nombre AS producto_nombre,
+            pct.color_id,
+            c.descripcion AS color_nombre,
+            pct.talla_id,
+            t.descripcion AS talla_nombre,
+            pct.stock,
+            pct.stock_logico,
+            pct.almacen_id
+            FROM producto_color_tallas AS pct
+            INNER JOIN productos AS p ON p.id = pct.producto_id
+            INNER JOIN colores AS c ON c.id = pct.color_id
+            INNER JOIN tallas AS t ON t.id = pct.talla_id
+            WHERE p.id = ?
+            AND c.estado="ACTIVO"
+            AND t.estado="ACTIVO"
+            AND p.estado="ACTIVO"
+            AND pct.almacen_id = ?
+            ORDER BY p.id,c.id,t.id',
+            [$producto_id, $almacen_id]
         );
         return $stocks;
+    }
+
+    public function getPreciosVenta(int $producto_id)
+    {
+        $columns = Schema::getColumnListing('productos');
+
+        $precioColumns = collect($columns)
+            ->filter(function ($col) {
+                return str_starts_with($col, 'precio_venta');
+            })
+            ->toArray();
+
+        $selectColumns = array_merge([], $precioColumns);
+
+        $precios_venta = Producto::from('productos as p')
+            ->where('p.id', $producto_id)
+            ->where('p.estado', 'ACTIVO')
+            ->select($selectColumns)
+            ->first();
+
+        return $precios_venta;
     }
 }

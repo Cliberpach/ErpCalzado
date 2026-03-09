@@ -312,96 +312,24 @@ class DocumentoController extends Controller
             $productos = DB::select($query, $params);
 
             return response()->json(['success' => true, 'productos' => $productos]);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
 
     public function getColoresTallas($almacen_id, $producto_id)
     {
-
         try {
 
-            $stocks =  DB::select(
-                'select p.id as producto_id, p.nombre as producto_nombre,
-                                    p.precio_venta_1,p.precio_venta_2,p.precio_venta_3,
-                                    pct.color_id,c.descripcion as color_name,
-                                    pct.talla_id,t.descripcion as talla_name,pct.stock,
-                                    pct.stock_logico,
-                                    pct.almacen_id
-                                    from producto_color_tallas as pct
-                                    inner join productos as p on p.id = pct.producto_id
-                                    inner join colores as c on c.id = pct.color_id
-                                    inner join tallas as t on t.id = pct.talla_id
-                                    where p.id = ?
-                                    AND c.estado="ACTIVO"
-                                    AND t.estado="ACTIVO"
-                                    AND p.estado="ACTIVO"
-                                    AND pct.almacen_id = ?
-                                    order by p.id,c.id,t.id',
-                [$producto_id, $almacen_id]
-            );
-
-            $producto_colores   =   DB::select(
-                'select
-                                    pc.almacen_id,
-                                    p.id as producto_id,
-                                    p.nombre as producto_nombre,
-                                    c.id as color_id,
-                                    c.descripcion as color_nombre,
-                                    p.precio_venta_1,
-                                    p.precio_venta_2,
-                                    p.precio_venta_3
-                                    from producto_colores as pc
-                                    inner join productos as p on p.id = pc.producto_id
-                                    inner join colores as c on c.id = pc.color_id
-                                    where
-                                    p.id = ?
-                                    AND pc.almacen_id = ?
-                                    AND c.estado = "ACTIVO"
-                                    AND p.estado = "ACTIVO"
-                                    group by pc.almacen_id,p.id,p.nombre,c.id,c.descripcion,
-                                    p.precio_venta_1,p.precio_venta_2,p.precio_venta_3
-                                    order by p.id,c.id',
-                [$producto_id, $almacen_id]
-            );
-
-            $precios_venta  =   DB::select('SELECT
-                                p.precio_venta_1,
-                                p.precio_venta_2,
-                                p.precio_venta_3
-                                FROM
-                                    productos AS p
-                                WHERE
-                                p.id = ? AND p.estado = "ACTIVO" ', [$producto_id]);
-
-            if (!empty($precios_venta)) {
-                $precios_venta_array = array_filter([
-                    $precios_venta[0]->precio_venta_1,
-                    $precios_venta[0]->precio_venta_2,
-                    $precios_venta[0]->precio_venta_3,
-                ]);
-            } else {
-                $precios_venta_array = [];
-            }
-
-            $productosProcesados = [];
-            foreach ($producto_colores as $pc) {
-                if (!in_array($pc->producto_id, $productosProcesados)) {
-                    $pc->printPreciosVenta = TRUE;
-                    array_push($productosProcesados, $pc->producto_id);
-                } else {
-                    $pc->printPreciosVenta = FALSE;
-                }
-            }
+            $data   =   $this->s_venta->getColoresTallas($almacen_id, $producto_id);
 
             return response()->json([
-                "success"          =>  true,
-                "stocks"            =>  $stocks,
-                "producto_colores" =>  $producto_colores,
-                'precios_venta'     =>  $precios_venta_array
+                "success"               =>  true,
+                "stocks"                =>  $data->stocks,
+                "producto_colores"      =>  $data->producto_colores,
+                'precios_venta'         =>  $data->precios_venta_array
             ]);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
@@ -892,7 +820,7 @@ array:27 [
         try {
 
             $documento  =   $this->s_venta->registrar($request->toArray());
-       
+
             DB::commit();
 
             return response()->json([
@@ -902,7 +830,7 @@ array:27 [
             ]);
         } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => $th->getMessage()."-".$th->getLine()."-".$th->getFile(), 'line' => $th->getLine(), 'file' => $th->getFile()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage() . "-" . $th->getLine() . "-" . $th->getFile(), 'line' => $th->getLine(), 'file' => $th->getFile()]);
         }
     }
 
@@ -1246,7 +1174,7 @@ array:27 [
         $tallas         =   Talla::where('estado', 'ACTIVO')->get();
         $modelos        =   Modelo::where('estado', 'ACTIVO')->get();
         $documento      =   Documento::findOrFail($id);
-        $detalles       =   Detalle::where('documento_id', $id)->where('estado', 'ACTIVO')->where('tipo','PRODUCTO')->get();
+        $detalles       =   Detalle::where('documento_id', $id)->where('estado', 'ACTIVO')->where('tipo', 'PRODUCTO')->get();
         $condiciones    =   Condicion::where('estado', 'ACTIVO')->get();
         $tipos_venta    =   tipos_venta()->whereIn('parametro', ['F', 'B', 'N']);
         $metodos_pago   =   tipos_pago();

@@ -4,6 +4,7 @@ namespace App\Http\Services\Ventas\Ventas;
 
 use App\Http\Controllers\UtilidadesController;
 use App\Http\Services\Almacen\ProductoColorTalla\ProductoColorTallaService;
+use App\Http\Services\Almacen\Productos\ProductoService;
 use App\Http\Services\Kardex\Cuenta\KardexCuentaService;
 use App\Http\Services\Produccion\Orden\OrdenProduccionService;
 use App\Http\Services\Ventas\Despacho\DespachoService;
@@ -85,16 +86,18 @@ class VentaService
             ]);
 
         //======== EN CASO VENTA CONTADO Y PAGADA ELECTRÓNICO, VA AL KARDEX ===========
-        if ($venta->condicion_id == 1
-        && $venta->tipo_pago_id != 1
-        && $venta->estado_pago == 'PAGADA'
-        && !$datos_validados->atencion
-        && !$datos_validados->documento_convertido) {
+        if (
+            $venta->condicion_id == 1
+            && $venta->tipo_pago_id != 1
+            && $venta->estado_pago == 'PAGADA'
+            && !$datos_validados->atencion
+            && !$datos_validados->documento_convertido
+        ) {
             $this->s_kardex_cuenta->registrarDesdeVenta($venta);
         }
 
         //======= DESPACHO ======
-        $data_envio =   $datos['data_envio']??null;
+        $data_envio =   $datos['data_envio'] ?? null;
         if ($data_envio) {
             $data_envio = json_decode($datos['data_envio']);
 
@@ -339,8 +342,8 @@ class VentaService
             $this->s_kardex_cuenta->actualizarDesdeVenta($documento);
         }
 
-        $datos_envio    =   $datos['data_envio']??null;
-        $tiene_envio    =   EnvioVenta::where('documento_id', $id)->select('id','estado')->first();
+        $datos_envio    =   $datos['data_envio'] ?? null;
+        $tiene_envio    =   EnvioVenta::where('documento_id', $id)->select('id', 'estado')->first();
         if (!$datos_envio) {
             return $documento;
         }
@@ -362,7 +365,7 @@ class VentaService
         return $documento;
     }
 
-      public function getVoucherPdf(int $id, int $size): array
+    public function getVoucherPdf(int $id, int $size): array
     {
         $documento  =   Documento::findOrFail($id);
 
@@ -414,7 +417,7 @@ class VentaService
         return ['pdf' => $pdf, 'nombre' => $documento->serie . '-' . $documento->correlativo . '.pdf'];
     }
 
-     public function qr_code(int $id): array
+    public function qr_code(int $id): array
     {
 
         $documento = Documento::findOrFail($id);
@@ -474,4 +477,17 @@ class VentaService
         return array('success' => true, 'mensaje' => 'QR creado exitosamente');
     }
 
+    public function getColoresTallas($almacen_id, $producto_id): object
+    {
+        $s_producto =   new ProductoService();
+        $precios_venta  =   $s_producto->getPreciosVenta($producto_id);
+        $stocks         =   $s_producto->getProductoStocks($almacen_id, $producto_id);
+        $colores        =   $s_producto->getProductoColores($almacen_id, $producto_id);
+
+        return (object)[
+            'stocks'    =>  $stocks,
+            'producto_colores'  =>  $colores,
+            'precios_venta_array'   =>  $precios_venta->toArray()
+        ];
+    }
 }

@@ -259,4 +259,9 @@ class ProductoService
     {
         return $this->s_repository->getProductoStocks($almacen_id, $producto_id);
     }
+
+    public function getPreciosVenta(int $producto_id)
+    {
+        return $this->s_repository->getPreciosVenta($producto_id);
+    }
 }

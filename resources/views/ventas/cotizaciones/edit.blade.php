@@ -1008,30 +1008,22 @@
     }
 
     //======= PINTAR PRECIOS VENTA =======
-    function pintarPreciosVenta(precios_venta) {
+    function pintarPreciosVenta(preciosVenta) {
         //======= LIMPIAR SELECT2 DE PRODUCTOS ======
         $('#precio_venta').empty();
 
         //====== LLENAR =======
-
-        if (precios_venta) {
-            if (precios_venta.precio_venta_1 != null) {
-                const option_1 = new Option(precios_venta.precio_venta_1, 'precio_venta_1', false, false);
-                $('#precio_venta').append(option_1);
-            }
-
-            if (precios_venta.precio_venta_2 != null) {
-                const option_2 = new Option(precios_venta.precio_venta_2, 'precio_venta_2', false, false);
-                $('#precio_venta').append(option_2);
-            }
-
-            if (precios_venta.precio_venta_3 != null) {
-                const option_3 = new Option(precios_venta.precio_venta_3, 'precio_venta_3', false, false);
-                $('#precio_venta').append(option_3);
-            }
+        if (preciosVenta) {
+            const keys = Object.keys(preciosVenta);
+            keys.forEach((k) => {
+                const precioVenta = preciosVenta[k];
+                if (precioVenta && precioVenta > 0) {
+                    const option = new Option(precioVenta, k, false, false);
+                    $('#precio_venta').append(option);
+                }
+            })
         }
 
-        // Refrescar Select2
         $('#precio_venta').trigger('change');
     }
 

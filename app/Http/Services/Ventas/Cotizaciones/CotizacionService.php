@@ -93,7 +93,7 @@ class CotizacionService
         $s_producto     =   new ProductoService();
         $s_talla        =   new TallaService();
 
-        $precios_venta  =   $this->s_repository->getPreciosVentaProducto($producto_id);
+        $precios_venta  =   $s_producto->getPreciosVenta($producto_id);
         $colores        =   $s_producto->getProductoColores($almacen_id, $producto_id);
         $stocks         =   $s_producto->getProductoStocks($almacen_id, $producto_id);
         $tallas         =   $s_talla->getTallas();

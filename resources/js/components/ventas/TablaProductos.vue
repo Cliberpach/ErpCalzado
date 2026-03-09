@@ -253,38 +253,46 @@
                             <thead>
                                 <tr>
                                     <th>PRODUCTO</th>
+                                    <th>COLOR</th>
                                     <template v-for="talla in tallas">
-                                        <th class="colorStockLogico">
-                                            {{ talla.descripcion }}
-                                        </th>
-                                        <th>CANT</th>
+                                        <template v-if="tallaHasStocks(talla.id)">
+                                            <th class="colorStockLogico">
+                                                {{ talla.descripcion }}
+                                            </th>
+                                            <th>CANT</th>
+                                        </template>
                                     </template>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="pc in productosPorModelo.producto_colores"
                                     :key="`${pc.producto_id}${pc.color_id}`">
-                                    <td>{{ pc.producto_nombre }} - {{ pc.color_nombre }}</td>
+                                    <td>{{ pc.producto_nombre }}</td>
+                                    <td>{{ pc.color_nombre }}</td>
 
                                     <template v-for="t in tallas">
-                                        <td class="colorStockLogico">
-                                            <span>
-                                                {{ printStockLogico(pc.producto_id, pc.color_id, t.id) }}
-                                            </span>
-                                        </td>
-                                        <td style="width: 5%;"
-                                            v-if="printStockLogico(pc.producto_id, pc.color_id, t.id) > 0">
-                                            <input type="text" class="form-control inputCantidad inputCantidadColor"
-                                                :data-almacen-id="pc.almacen_id" :data-producto-id="pc.producto_id"
-                                                :data-producto-nombre="pc.producto_nombre"
-                                                :data-color-nombre="pc.color_nombre" :data-talla-nombre="t.descripcion"
-                                                :data-color-id="pc.color_id" :data-talla-id="t.id"
-                                                @input="validarContenidoInput($event)"
-                                                :disabled="printStockLogico(pc.producto_id, pc.color_id, t.id) === 0" />
-                                        </td>
-                                        <td v-else>
 
-                                        </td>
+                                        <template v-if="tallaHasStocks(t.id)">
+                                            <td class="colorStockLogico">
+                                                <span>
+                                                    {{ printStockLogico(pc.producto_id, pc.color_id, t.id) }}
+                                                </span>
+                                            </td>
+                                            <td style="width: 5%;"
+                                                v-if="printStockLogico(pc.producto_id, pc.color_id, t.id) > 0">
+                                                <input type="text" class="form-control inputCantidad inputCantidadColor"
+                                                    :data-almacen-id="pc.almacen_id" :data-producto-id="pc.producto_id"
+                                                    :data-producto-nombre="pc.producto_nombre"
+                                                    :data-color-nombre="pc.color_nombre"
+                                                    :data-talla-nombre="t.descripcion" :data-color-id="pc.color_id"
+                                                    :data-talla-id="t.id" @input="validarContenidoInput($event)"
+                                                    :disabled="printStockLogico(pc.producto_id, pc.color_id, t.id) === 0" />
+                                            </td>
+                                            <td v-else>
+
+                                            </td>
+                                        </template>
+
                                     </template>
                                 </tr>
                             </tbody>
@@ -1373,7 +1381,7 @@ export default {
                     const res = await axios.get(route('ventas.documento.getColoresTallas', { almacen_id, producto_id }));
                     if (res.data.success) {
                         this.productosPorModelo = res.data;
-                        this.preciosVenta = res.data.precios_venta;
+                        this.preciosVenta = Object.values(res.data.precios_venta);
                     } else {
                         toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                     }
@@ -1388,6 +1396,15 @@ export default {
         printStockLogico(productoId, colorId, tallaId) {
             const stock = this.productosPorModelo.stocks.find(st => st.producto_id === productoId && st.color_id === colorId && st.talla_id === tallaId);
             return stock ? stock.stock_logico : 0;
+        },
+        tallaHasStocks(tallaId) {
+            const stocks = this.productosPorModelo?.stocks || [];
+
+            const total = stocks
+                .filter(stock => stock.talla_id == tallaId)
+                .reduce((sum, stock) => sum + Number(stock.stock_logico), 0);
+            console.log('total', total);
+            return total == 0 ? false : true;
         },
         async devolverCantidades() {
             console.log('ASEGURAR CIERRE', this.asegurarCierre);

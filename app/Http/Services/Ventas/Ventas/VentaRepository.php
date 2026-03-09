@@ -47,8 +47,8 @@ class VentaRepository
         //======== SI SE PROPORCIONA EFECTIVO,MONTO Y FECHA PAGO ========
         if ($datos_validados->metodoPagoId == 1 && $datos_validados->montoPago && $datos_validados->fechaOperacionPago) {
 
-            $montoPago = round($datos_validados->montoPago,2);
-            $montoTotal = round($montos->monto_total_pagar,2);
+            $montoPago = round($datos_validados->montoPago, 2);
+            $montoTotal = round($montos->monto_total_pagar, 2);
 
             if (bccomp($montoPago, $montoTotal, 2) !== 0) {
                 throw new Exception("EL MONTO DE PAGO NO COINCIDE CON EL TOTAL DE LA VENTA");
@@ -66,8 +66,8 @@ class VentaRepository
         //======== SI SE PROPORCIONA OTRO MÉTODO,CUENTA,MONTO,NRO OP,FECHA ========
         if ($datos_validados->metodoPagoId != 1 && $datos_validados->cuentaPagoId && $datos_validados->montoPago && $datos_validados->nroOperacionPago && $datos_validados->fechaOperacionPago) {
 
-            $montoPago = round($datos_validados->montoPago,2);
-            $montoTotal = round($montos->monto_total_pagar,2);
+            $montoPago = round($datos_validados->montoPago, 2);
+            $montoTotal = round($montos->monto_total_pagar, 2);
 
             if (bccomp($montoPago, $montoTotal, 2) !== 0) {
                 throw new Exception("EL MONTO DE PAGO NO COINCIDE CON EL TOTAL DE LA VENTA");

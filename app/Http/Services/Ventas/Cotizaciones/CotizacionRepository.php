@@ -37,29 +37,4 @@ class CotizacionRepository
         CotizacionDetalle::where('cotizacion_id', $id)->delete();
     }
 
-    public function getPreciosVentaProducto(int $producto_id)
-    {
-        $columns = Schema::getColumnListing('productos');
-
-        $precioColumns = collect($columns)
-            ->filter(function ($col) {
-                return str_starts_with($col, 'precio_venta');
-            })
-            ->toArray();
-
-        $selectColumns = array_merge([
-            'p.id as producto_id',
-            'p.nombre as producto_nombre'
-        ], $precioColumns);
-
-        $precios_venta = Producto::from('productos as p')
-            ->where('p.id', $producto_id)
-            ->where('p.estado', 'ACTIVO')
-            ->select($selectColumns)
-            ->first();
-
-        return $precios_venta;
-    }
-
-    
 }
