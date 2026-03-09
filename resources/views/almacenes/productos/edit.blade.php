@@ -8,7 +8,6 @@
 @include('almacenes.modelos.create')
 @include('almacenes.colores.modals.mdl_create_color')
 
-
 <style>
     .overlay_producto_edit {
         position: fixed;
