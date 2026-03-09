@@ -199,6 +199,8 @@ class ProductoRepository
             ->select($selectColumns)
             ->first();
 
-        return $precios_venta;
+        return array_filter($precios_venta->toArray(), function ($precio) {
+            return !is_null($precio);
+        });
     }
 }
