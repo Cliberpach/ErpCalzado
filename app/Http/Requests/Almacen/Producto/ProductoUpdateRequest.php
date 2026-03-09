@@ -43,6 +43,7 @@ class ProductoUpdateRequest extends FormRequest
             'precio1'   => 'required|numeric',
             'precio2'   => 'required|numeric',
             'precio3'   => 'required|numeric',
+            'precio4'   => 'required|numeric',
             'almacen'   => [
                 function ($attribute, $value, $fail) {
                     $colores = json_decode($this->input('coloresJSON'), true);
