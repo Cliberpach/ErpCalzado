@@ -21,8 +21,14 @@
         <button id="btn_añadir_cliente" class="btn btn-block btn-w-m btn-primary m-t-md">
             <i class="fa fa-plus-square"></i> NUEVO
         </button>
-        <button id="btn_file_cliente" class="btn btn-block btn-w-m btn-primary m-t-md">
-            <i class="fa fa-file-excel-o"></i> Importar Excel
+    </div>
+
+    <div class="col-12 text-right">
+        <button id="btn_file_cliente" class="btn btn-primary m-t-md">
+            <i class="fas fa-file-excel"></i> IMPORTAR
+        </button>
+        <button class="btn btn-success m-t-md" onclick="downloadExcel();">
+            <i class="fas fa-file-download"></i> EXPORTAR
         </button>
     </div>
 </div>
@@ -285,5 +291,20 @@
     $("#btn_file_cliente").on('click', function() {
         $("#modal_file").modal('show');
     });
+
+    function downloadExcel() {
+
+        const url = @json(route('ventas.cliente.excel'));
+
+        const params = {
+          
+        };
+
+        const queryString = new URLSearchParams(params).toString();
+
+        const finalUrl = `${url}?${queryString}`;
+        window.location.href = finalUrl;
+
+    }
 </script>
 @endpush

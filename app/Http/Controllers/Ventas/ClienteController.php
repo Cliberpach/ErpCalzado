@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Ventas;
 
+use App\Exports\Ventas\Clientes\ClientesExport;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UtilidadesController;
 use App\Http\Requests\Cliente\ClienteStoreFastRequest;
 use App\Http\Requests\Cliente\ClienteStoreRequest;
 use App\Http\Requests\Cliente\ClienteUpdateRequest;
+use App\Mantenimiento\Empresa\Empresa;
 use App\Mantenimiento\Tabla\Detalle;
 use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Distrito;
@@ -18,7 +20,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -29,7 +31,14 @@ class ClienteController extends Controller
         return view('ventas.clientes.index');
     }
 
-    public function getTable()
+    public function getTable(Request $request)
+    {
+        $clientes   =   $this->queryCustomers($request);
+
+        return DataTables::make($clientes)->toJson();
+    }
+
+    public function queryCustomers(Request $request)
     {
         $clientes = DB::table('clientes as c')
             ->join('departamentos as d', 'd.id', 'c.departamento_id')
@@ -51,8 +60,7 @@ class ClienteController extends Controller
             )
             ->where('c.estado', 'ACTIVO')
             ->orderByDesc('c.id');
-
-        return DataTables::make($clientes)->toJson();
+        return $clientes;
     }
 
     public function create()
@@ -441,5 +449,16 @@ array:14 [
         }
     }
 
-    public function searchCustomer(Request $request) {}
+    public function excel(Request $request)
+    {
+        ob_end_clean();
+        ob_start();
+        $empresa            =   Empresa::findOrFail(1);
+        $data               =   $this->queryCustomers($request)->get();
+
+        return Excel::download(
+            new ClientesExport($data, $request, $empresa),
+            'clientes_lista_' . Carbon::now()->format('Y_m_d_H_i_s') . '.xlsx'
+        );
+    }
 }

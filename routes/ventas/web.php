@@ -14,13 +14,14 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
         Route::get('/registrar', 'Ventas\ClienteController@create')->name('ventas.cliente.create');
         Route::post('/store', 'Ventas\ClienteController@store')->name('ventas.cliente.store');
         Route::post('/registrarFast', 'Ventas\ClienteController@storeFast')->name('ventas.cliente.storeFast');
-        Route::get('/actualizar/{id}', 'Ventas\ClienteController@edit')->name('ventas.cliente.edit');
+        Route::get('/edit/{id}', 'Ventas\ClienteController@edit')->name('ventas.cliente.edit');
         Route::put('/update/{id}', 'Ventas\ClienteController@update')->name('ventas.cliente.update');
         Route::get('/datos/{id}', 'Ventas\ClienteController@show')->name('ventas.cliente.show');
         Route::get('/destroy/{id}', 'Ventas\ClienteController@destroy')->name('ventas.cliente.destroy');
         Route::post('/getDocumento', 'Ventas\ClienteController@getDocumento')->name('ventas.cliente.getDocumento');
         Route::post('/getCustomer', 'Ventas\ClienteController@getCustomer')->name('ventas.cliente.getcustomer');
         Route::get('/getCliente/{tipo_documento}/{nro_documento}', 'Ventas\ClienteController@getCliente')->name('ventas.cliente.getCliente');
+        Route::get('/excel', 'Ventas\ClienteController@excel')->name('ventas.cliente.excel');
 
         //Tiendas
         Route::get('tiendas/index/{id}', 'Ventas\TiendaController@index')->name('clientes.tienda.index');
