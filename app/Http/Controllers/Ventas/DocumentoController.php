@@ -139,6 +139,7 @@ class DocumentoController extends Controller
                 'cd.convertir',
                 'cd.empresa_id',
                 'cd.cotizacion_venta',
+                'cd.created_at',
                 'cd.fecha_documento',
                 'cd.estado_pago',
                 'cd.condicion_id',

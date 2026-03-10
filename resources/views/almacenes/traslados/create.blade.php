@@ -322,7 +322,6 @@
                 });
                 const response = await axios.get(url);
 
-
                 destruirDataTable(dtNsProductos);
                 limpiarTabla('tabla_ns_productos');
                 pintarTableStocks(response.data.stocks, tallasBD, response.data.producto_colores);
@@ -418,10 +417,29 @@
         }
     }
 
+    function pintarHeadTableStocks(tallasConStock) {
+        const tblProductosHead = document.querySelector('#tabla_ns_productos thead');
+        let head = `<tr>
+                            <th scope="col">COLOR</th>
+                            <th scope="col">PRODUCTO</th>`;
+
+        tallasConStock.forEach((t) => {
+            head += `
+                <th style="background-color: rgb(210, 242, 242);"  scope="col" data-talla=${t.id}>${t.descripcion}</th>
+                <th>CANT</th>`;
+        })
+
+        head += `</tr>`;
+
+        tblProductosHead.innerHTML = head;
+    }
+
     //========= PINTAR TABLA STOCKS ==========
     const pintarTableStocks = (stocks, tallas, producto_colores) => {
         let options = ``;
-        console.log(stocks);
+        const tallasConStock = getTallasConStock(tallas, stocks);
+        pintarHeadTableStocks(tallasConStock);
+
         producto_colores.forEach((pc) => {
             options += `  <tr>
                             <th scope="row"  data-color=${pc.color_id} >
@@ -434,7 +452,7 @@
 
             let htmlTallas = ``;
 
-            tallas.forEach((t) => {
+            tallasConStock.forEach((t) => {
                 const stock = stocks.filter(st => st.producto_id == pc.producto_id && st.color_id ==
                     pc.color_id && st.talla_id == t.id)[0]?.stock || 0;
 
@@ -460,9 +478,21 @@
         })
 
         tableStocksBody.innerHTML = options;
-        //btnAgregarDetalle.disabled = false;
     }
 
+    function getTallasConStock(tallas, stocks) {
+        let tallasConStock = [];
+
+        tallas.forEach((t) => {
+            const stockTotal = stocks
+                .filter(s => s.talla_id == t.id)
+                .reduce((total, s) => total + Number(s.stock_logico), 0);
+            if (stockTotal > 0) {
+                tallasConStock.push(t);
+            }
+        })
+        return tallasConStock;
+    }
 
     function cambiarAlmacen(selectAlmacen) {
 

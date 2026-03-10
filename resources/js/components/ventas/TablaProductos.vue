@@ -328,12 +328,20 @@
                             <thead>
                                 <tr>
                                     <th class="text-center">
-                                        <i class="fa fa-dashboard"></i>
+                                        <i class="fas fa-dashboard"></i>
                                     </th>
                                     <th class="text-center">PRODUCTO</th>
-                                    <template v-for="t in tallas">
-                                        <th class="text-center">{{ t.descripcion }}</th>
+                                    <th class="text-center">COLOR</th>
+
+                                    <template v-for="t in tallasExistsCarrito">
+                                        <th class="text-center">
+                                            {{ t.descripcion }}
+                                        </th>
                                     </template>
+
+                                    <!-- <template v-for="t in tallas">
+                                        <th class="text-center">{{ t.descripcion }}</th>
+                                    </template> -->
 
                                     <th class="text-center">P. VENTA</th>
                                     <th class="text-center">SUBTOTAL</th>
@@ -357,10 +365,15 @@
                                         </td>
                                         <td class="text-center">
                                             <div style="width: 160px;">
-                                                {{ item.producto_nombre }}-{{ item.color_nombre }}
+                                                {{ item.producto_nombre }}
                                             </div>
                                         </td>
-                                        <td v-for="t in tallas">
+                                        <td class="text-center">
+                                            <div style="width: 160px;">
+                                                {{ item.color_nombre }}
+                                            </div>
+                                        </td>
+                                        <td v-for="t in tallasExistsCarrito">
                                             <p style="font-weight: bold;">{{ printTallaDetalle(t.id, item) }}</p>
                                         </td>
                                         <td>
@@ -532,7 +545,7 @@ export default {
     data() {
         return {
             hayDatosEnvio: false,
-
+            tallasExistsCarrito: [],
             monto_embalaje: 0,
             monto_envio: 0,
             monto_descuento: 0,
@@ -678,6 +691,8 @@ export default {
 
                 console.log('WATCH CARRITO');
 
+                this.getTallasExistsCarrito();
+
                 //======== si aún quedan items en el carrito , asegurar cierre será 1 =========
                 if (this.carrito.length > 0) {
                     this.asegurarCierre = 1;
@@ -723,21 +738,18 @@ export default {
         },
         modeloSeleccionado: {
             handler(value) {
-                console.log('modeloSeleccionado cambió:', value);
                 this.getProductos();
             },
             deep: true,
         },
         categoriaSeleccionada: {
             handler(value) {
-                console.log('categoriaSeleccionada cambió:', value);
                 this.getProductos();
             },
             deep: true,
         },
         marcaSeleccionada: {
             handler(value) {
-                console.log('marcaSeleccionada cambió:', value);
                 this.getProductos();
             },
             deep: true,
@@ -745,7 +757,6 @@ export default {
         productoSeleccionado: {
             handler(value) {
                 const producto_id = value.producto_id;
-                console.log('producto seleccionado');
                 if (producto_id) {
                     //====== OBTENER COLORES Y TALLAS DEL PRODUCTO ======
                     this.getColoresTallas();
@@ -813,7 +824,6 @@ export default {
             this.hayDatosEnvio = false;
         },
         async buscarProducto(query) {
-            console.log('OLA');
             if (!this.almacenSeleccionado) {
                 toastr.clear();
                 toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
@@ -840,14 +850,11 @@ export default {
                         }
                     });
 
-                    console.log(response);
-
                     if (response.data.success) {
                         this.productos = response.data.data.data;
                         this.loadingProductos = false;
                         this.buscando = false;
                     } else {
-                        console.log(response.data.message)
                         toastr.error(response.data.message, 'ERROR EN EL SERVIDOR');
                     }
 
@@ -1403,7 +1410,6 @@ export default {
             const total = stocks
                 .filter(stock => stock.talla_id == tallaId)
                 .reduce((sum, stock) => sum + Number(stock.stock_logico), 0);
-            console.log('total', total);
             return total == 0 ? false : true;
         },
         async devolverCantidades() {
@@ -1575,8 +1581,26 @@ export default {
             this.productoSeleccionado = '';
             this.precioVentaSeleccionado = '';
             this.$parent.ocultarAnimacionVenta();
-        }
+        },
+        getTallasExistsCarrito() {
+            const tallasExists = [];
 
+            this.tallas.forEach((talla) => {
+                const cantidad = this.carrito.reduce((total, item) => {
+                    const suma = item.tallas
+                        .filter(t => t.talla_id == talla.id)
+                        .reduce((acc, t) => acc + Number(t.cantidad), 0);
+
+                    return total + suma;
+                }, 0);
+
+                if (cantidad > 0) {
+                    tallasExists.push(talla);
+                }
+            });
+
+            this.tallasExistsCarrito = tallasExists;
+        }
     }
 }
 </script>

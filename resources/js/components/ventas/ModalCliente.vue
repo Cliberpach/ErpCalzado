@@ -105,8 +105,8 @@
                                     <div class="col-12 col-md-6">
                                         <div class="form-group">
                                             <label class="required" for="distrito">Distrito</label>
-                                            <v-select v-model="distrito" :options="lstDistritosFiltrado" :reduce="d => d"
-                                                label="nombre"></v-select>
+                                            <v-select v-model="distrito" :options="lstDistritosFiltrado"
+                                                :reduce="d => d" label="nombre"></v-select>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-6">
@@ -204,7 +204,7 @@ export default {
             lstProvinciasFiltrado: [],
             lstDistritosFiltrado: [],
             tipo_documento: 6,
-            tipo_cliente_id: "",
+            tipo_cliente_id: 3,
             departamento: {
                 id: 0,
                 nombre: "",
@@ -276,15 +276,12 @@ export default {
                 tipo_documento: null,
                 documento: null,
                 nombre: null,
-                descripcion:null
+                descripcion: null
             },
             maxlength: 8
         }
     },
     watch: {
-        tipoClientes(value) {
-            this.tipo_cliente_id = value.length > 0 ? value[0].id : "";
-        },
         departamento: {
             handler(value) {
                 console.log('WATCH DEPART');
@@ -643,11 +640,12 @@ export default {
 
         Cerrar() {
 
+            alert('cerrando');
             this.loadUbigeoSede();
 
             this.formCliente = {
                 tipo_documento: 6,
-                tipo_cliente_id: 121,
+                tipo_cliente_id: 3,
                 departamento: this.v_sede.departamento_id,
                 provincia: this.v_sede.provincia_id,
                 distrito: this.v_sede.distrito_id,
@@ -662,8 +660,8 @@ export default {
                 activo: "SIN VERIFICAR"
             }
 
-            this.tipo_documento = 6;
-            this.tipo_cliente_id = 121;
+            this.tipo_cliente_id = 3
+            this.tipo_documento = 6
 
         }
     }

@@ -679,7 +679,7 @@ export default {
                     { data: 'regularizado_de_serie', name: 'cd.regularizado_de_serie', searchable: false },
                     { data: 'numero_doc', name: 'numero_doc' },
                     { data: 'telefono', name: 'cd.telefono' },
-                    { data: 'fecha_documento', name: 'cd.fecha_documento', searchable: false },
+                    { data: 'created_at', name: 'cd.created_at', searchable: false },
                     { data: 'registrador_nombre', name: 'u.usuario', searchable: false },
                     { data: 'sede_nombre', name: 'es.nombre', searchable: false },
                     { data: 'almacen_nombre', name: 'cd.almacen_nombre' },

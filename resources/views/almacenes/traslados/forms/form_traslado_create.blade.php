@@ -12,7 +12,7 @@
             </div>
             <div class="form-group row">
 
-            
+
                 <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                     <label for="registrador_nombre" style="font-weight:bold;" class="required">Registrador</label>
                     <div class="input-group mb-3">
@@ -99,7 +99,7 @@
                     <h4 class=""><b>Seleccionar productos</b></h4>
                 </div>
                 <div class="panel-body">
-                  
+
                     <div class="col-lg-3 col-xs-12 mb-3">
                         <label class="required">Modelo</label>
                         <select id="modelo"
@@ -118,7 +118,7 @@
 
                     <div class="col-12">
                         <div class="table-responsive">
-                            @include('almacenes.nota_salidad.tables.tbl_ns_productos')
+                            @include('almacenes.traslados.tables.tbl_productos')
                         </div>
                     </div>
 
@@ -129,8 +129,8 @@
                                 id="btn_agregar_detalle" disabled> <i class="fa fa-plus"></i>
                                 AGREGAR</button>
                         </div>
-                    </div> 
-                   
+                    </div>
+
                 </div>
             </div>
         </div>
