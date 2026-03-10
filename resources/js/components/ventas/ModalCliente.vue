@@ -21,7 +21,7 @@
                                             <label class="required" style="font-weight: bold;" for="tipo_documento">Tipo
                                                 de documento</label>
                                             <v-select v-model="tipo_documento" :options="tipoDocumentos"
-                                                :reduce="tp => tp.simbolo" label="simbolo"></v-select>
+                                                :reduce="tp => tp.id" label="simbolo"></v-select>
                                         </div>
                                         <span style="color:red;" class="error_mdl_client_tipo_documento"></span>
                                     </div>
@@ -31,14 +31,11 @@
 
                                             <div class="input-group">
                                                 <input type="text" id="documento" name="documento" class="form-control"
-                                                    :maxlength="maxlength" v-model="formCliente.documento" required
-                                                    :disabled="(tipo_documento !== 'RUC' && tipo_documento !== 'DNI' &&
-                                                        tipo_documento !== 'CARNET EXT.' && tipo_documento !== 'PASAPORTE'
-                                                        && tipo_documento !== 'P. NAC.') ? true : false">
+                                                    :maxlength="maxlength" v-model="formCliente.documento" required>
                                                 <span class="input-group-append">
                                                     <button type="button" style="color:white" class="btn btn-primary"
                                                         @click.prevent="consultarDocumento"
-                                                        :disabled="(tipo_documento == 'RUC' || tipo_documento == 'DNI') ? false : true">
+                                                        :disabled="(tipo_documento == 8 || tipo_documento == 6) ? false : true">
                                                         <i class="fa fa-search"></i>
                                                         <span id="entidad">{{ entidad }}</span>
                                                     </button>
@@ -206,7 +203,7 @@ export default {
             tipoClientes: [],
             lstProvinciasFiltrado: [],
             lstDistritosFiltrado: [],
-            tipo_documento: "",
+            tipo_documento: 6,
             tipo_cliente_id: "",
             departamento: {
                 id: 0,
@@ -285,9 +282,6 @@ export default {
         }
     },
     watch: {
-        tipoDocumentos(value) {
-            this.tipo_documento = value.length > 0 ? value[0].simbolo : "";
-        },
         tipoClientes(value) {
             this.tipo_cliente_id = value.length > 0 ? value[0].id : "";
         },
@@ -338,10 +332,10 @@ export default {
             this.formCliente.activo = "SIN VERIFICAR";
             this.entidad = value == "DNI" ? "Reniec" : (value == "RUC" ? "Sunat" : "Entidad");
 
-            if (value == "DNI") {
+            if (value == 6) {
                 this.maxlength = 8;
             }
-            if (value == "RUC") {
+            if (value == 8) {
                 this.maxlength = 11;
             } else {
                 this.maxlength = 20;
@@ -580,14 +574,14 @@ export default {
                     toastr.error('El ' + this.tipo_documento + ' ingresado ya se encuentra registrado para un cliente',
                         'Registrado');
                 } else {
-                    if (this.tipo_documento === "DNI") {
+                    if (this.tipo_documento == 6) {
                         if (this.formCliente.documento.length === 8) {
                             this.consultarAPI();
                         } else {
                             this.loading = false;
                             toastr.error('El DNI debe de contar con 8 dígitos', 'Error');
                         }
-                    } else if (this.tipo_documento === "RUC") {
+                    } else if (this.tipo_documento == 8) {
                         if (this.formCliente.documento.length === 11) {
                             this.consultarAPI();
                         } else {
@@ -604,16 +598,16 @@ export default {
             try {
                 let tipoDoc = this.tipo_documento;
                 let documento = this.formCliente.documento;
-                let url = tipoDoc == "DNI" ? route('getApidni', { dni: documento }) : route('getApiruc', { ruc: documento });
+                let url = tipoDoc == 6 ? route('getApidni', { dni: documento }) : route('getApiruc', { ruc: documento });
                 const res = await this.axios.get(url);
 
                 if (res.data.success) {
                     const data = res.data;
-                    if (tipoDoc == "DNI") {
+                    if (tipoDoc == 6) {
                         this.CamposDNI(data);
                     }
 
-                    if (tipoDoc == "RUC") {
+                    if (tipoDoc == 8) {
                         this.CamposRUC(data);
                     }
                 } else {
@@ -652,7 +646,7 @@ export default {
             this.loadUbigeoSede();
 
             this.formCliente = {
-                tipo_documento: "DNI",
+                tipo_documento: 6,
                 tipo_cliente_id: 121,
                 departamento: this.v_sede.departamento_id,
                 provincia: this.v_sede.provincia_id,
@@ -668,7 +662,7 @@ export default {
                 activo: "SIN VERIFICAR"
             }
 
-            this.tipo_documento = "DNI";
+            this.tipo_documento = 6;
             this.tipo_cliente_id = 121;
 
         }

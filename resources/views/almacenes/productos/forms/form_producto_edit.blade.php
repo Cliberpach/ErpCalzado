@@ -91,6 +91,9 @@
                         <label style="font-weight:bold;" class="required">PRECIO 1</label>
                         <input required value="{{ $producto->precio_venta_1 }}" class="form-control" type="number"
                             step="0.01" inputmode="decimal" id="precio1" name="precio1" />
+                        <div class="mt-1">
+                            <span class="badge badge-success">UNIDAD</span>
+                        </div>
                         <span style="font-weight: bold;color:red;" class="precio1_error msgErrorProducto"></span>
                     </div>
                 </div>
@@ -99,6 +102,9 @@
                         <label style="font-weight:bold;" class="required">PRECIO 2</label>
                         <input required value="{{ $producto->precio_venta_2 }}" class="form-control" type="number"
                             step="0.01" inputmode="decimal" id="precio2" name="precio2" />
+                        <div class="mt-1">
+                            <span class="badge badge-success">SURTIDO</span>
+                        </div>
                         <span style="font-weight: bold;color:red;" class="precio2_error msgErrorProducto"></span>
                     </div>
                 </div>
@@ -107,6 +113,9 @@
                         <label style="font-weight:bold;" class="required">PRECIO 3</label>
                         <input required value="{{ $producto->precio_venta_3 }}" class="form-control" type="number"
                             step="0.01" inputmode="decimal" id="precio3" name="precio3" />
+                        <div class="mt-1">
+                            <span class="badge badge-warning">EMPRENDEDOR</span>
+                        </div>
                         <span style="font-weight: bold;color:red;" class="precio3_error msgErrorProducto"></span>
                     </div>
                 </div>
@@ -116,6 +125,9 @@
                         <label style="font-weight:bold;" class="required">PRECIO 4</label>
                         <input required value="{{ $producto->precio_venta_4 }}" class="form-control" type="number"
                             step="0.01" inputmode="decimal" id="precio4" name="precio4" />
+                        <div class="mt-1">
+                            <span class="badge badge-dark">SERIADO</span>
+                        </div>
                         <span style="font-weight: bold;color:red;" class="precio4_error msgErrorProducto"></span>
                     </div>
                 </div>

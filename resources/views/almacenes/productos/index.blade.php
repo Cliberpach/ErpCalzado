@@ -18,7 +18,7 @@
     </div>
     <div class="col-lg-2 col-md-2">
         <button id="btn_añadir_producto" class="btn btn-block btn-w-m btn-primary m-t-md">
-            <i class="fa fa-plus-square"></i> Añadir nuevo
+            <i class="fa fa-plus-square"></i> Nuevo
         </button>
     </div>
 </div>

@@ -257,18 +257,18 @@ array:11 [
         if (!is_null($data['tipo_documento']) && !is_null($data['documento'])) {
             if (!is_null($data['id'])) {
                 $cliente = Cliente::findOrFail($data['id']);
-                if ($cliente->tipo_documento == $data['tipo_documento'] && $cliente->documento == $data['documento']) {
+                if ($cliente->tipo_documento_id == $data['tipo_documento'] && $cliente->documento == $data['documento']) {
                     $igualPersona = true;
                 } else {
                     $cliente = Cliente::where([
-                        ['tipo_documento', '=', $data['tipo_documento']],
+                        ['tipo_documento_id', '=', $data['tipo_documento']],
                         ['documento', $data['documento']],
                         ['estado', 'ACTIVO']
                     ])->first();
                 }
             } else {
                 $cliente = Cliente::where([
-                    ['tipo_documento', '=', $data['tipo_documento']],
+                    ['tipo_documento_id', '=', $data['tipo_documento']],
                     ['documento', $data['documento']],
                     ['estado', 'ACTIVO']
                 ])->first();
@@ -298,7 +298,7 @@ array:11 [
 
     /*
 array:14 [
-  "tipo_documento" => "DNI"
+  "tipo_documento" => "6"
   "tipo_cliente_id" => 121
   "departamento" => 13
   "provincia" => 1301
