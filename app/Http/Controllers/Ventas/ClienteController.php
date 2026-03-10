@@ -7,6 +7,10 @@ use App\Http\Controllers\UtilidadesController;
 use App\Http\Requests\Cliente\ClienteStoreFastRequest;
 use App\Http\Requests\Cliente\ClienteStoreRequest;
 use App\Http\Requests\Cliente\ClienteUpdateRequest;
+use App\Mantenimiento\Tabla\Detalle;
+use App\Mantenimiento\Ubigeo\Departamento;
+use App\Mantenimiento\Ubigeo\Distrito;
+use App\Mantenimiento\Ubigeo\Provincia;
 use App\Models\Ventas\TipoCliente\TipoCliente;
 use App\Ventas\Cliente;
 use Carbon\Carbon;
@@ -53,87 +57,65 @@ class ClienteController extends Controller
 
     public function create()
     {
-        $action         =   route('ventas.cliente.store');
-        $tipos_clientes =   UtilidadesController::getTiposClientes();
-        $cliente        =   new Cliente();
+        $tipos_clientes     =   UtilidadesController::getTiposClientes();
+        $departments        =   Departamento::all();
+        $provinces          =   Provincia::all();
+        $districts          =   Distrito::all();
+        $tipos_documento    =   tipos_documento();
         return view('ventas.clientes.create')->with(
             compact(
-                'action',
-                'cliente',
-                'tipos_clientes'
+                'tipos_clientes',
+                'departments',
+                'provinces',
+                'districts',
+                'tipos_documento'
             )
         );
     }
 
+
+    /*
+array:11 [
+  "_token" => "jZJPbBDAGw1aLzQN7TuRbYGPm17cPrWwz5M5D6zh"
+  "type_identity_document" => "6"
+  "nro_document" => "77664477"
+  "type_customer" => "4"
+  "name" => "test"
+  "address" => "AV. RIVERA NAVARRETE NRO. 501, LIMA - LIMA - SAN ISIDRO"
+  "phone" => null
+  "email" => null
+  "department" => "09"
+  "province" => "0905"
+  "district" => "090509"
+]
+*/
     public function store(ClienteStoreRequest $request)
     {
         DB::beginTransaction();
         try {
 
-            $arrayDatos = $request->all();
-            if ($arrayDatos['fecha_aniversario'] == "-") {
-                unset($arrayDatos['fecha_aniversario']);
-            } else {
-                $arrayDatos['fecha_aniversario'] = Carbon::createFromFormat('d/m/Y', $arrayDatos['fecha_aniversario'])->format('Y-m-d');
-            }
+            $type_customer                  =   TipoCliente::findOrFail($request->get('type_customer'));
+            $distrito                       =   Distrito::findOrFail($request->get('district'));
+            $departamento                   =   Departamento::findOrFail($request->get('department'));
+            $tipo_documento                 =   Detalle::findOrfail($request->get('type_identity_document'));
 
-            $tipo_cliente                   =   TipoCliente::findOrFail($request->get('tipo_cliente'));
+            $cliente                        =   new Cliente();
+            $cliente->tipo_documento_id     =   $tipo_documento->id;
+            $cliente->tipo_documento        =   $tipo_documento->simbolo;
 
-            $cliente                        =   new Cliente($arrayDatos);
-            $cliente->tipo_documento        =   $request->get('tipo_documento');
+            $cliente->documento             =   $request->get('nro_document');
+            $cliente->tipo_cliente_id       =   $type_customer->id;
+            $cliente->tipo_cliente_nombre   =   $type_customer->nombre;
+            $cliente->nombre                =   mb_strtoupper($request->get('name'), 'UTF-8');
+            $cliente->codigo                =   $distrito->id;
+            $cliente->zona                  =   $departamento->zona;
 
-            $cliente->documento             =   $request->get('documento');
-            $cliente->tipo_cliente_id       =   $tipo_cliente->id;
-            $cliente->tipo_cliente_nombre   =   $tipo_cliente->nombre;
-            $cliente->nombre                =   mb_strtoupper($request->get('nombre'), 'UTF-8');
-            $cliente->codigo                =   $request->get('codigo');
-            $cliente->zona                  =   $request->get('zona');
-            $cliente->nombre_comercial      =   $request->get('nombre_comercial');
-
-            $cliente->departamento_id       =   str_pad($request->get('departamento'), 2, "0", STR_PAD_LEFT);
-            $cliente->provincia_id          =   str_pad($request->get('provincia'), 4, "0", STR_PAD_LEFT);
-            $cliente->distrito_id           =   str_pad($request->get('distrito'), 6, "0", STR_PAD_LEFT);
-            $cliente->direccion             =   $request->get('direccion');
-            $cliente->correo_electronico    =   $request->get('correo_electronico');
-            $cliente->telefono_movil        =   $request->get('telefono_movil');
-            $cliente->telefono_fijo         =   $request->get('telefono_fijo');
-            $cliente->activo                =   $request->get('activo');
-
-            $cliente->facebook              =   $request->get('facebook');
-            $cliente->instagram             =   $request->get('instagram');
-            $cliente->web                   =   $request->get('web');
-
-            $cliente->hora_inicio           =   $request->get('hora_inicio');
-            $cliente->hora_termino          =   $request->get('hora_termino');
-
-
-            $cliente->nombre_propietario    =   $request->get('nombre_propietario');
-            $cliente->direccion_propietario =   $request->get('direccion_propietario');
-
-            if ($request->get('fecha_nacimiento_prop') != "-") {
-                $cliente->fecha_nacimiento_prop  = Carbon::createFromFormat('d/m/Y', $request->get('fecha_nacimiento_prop'))->format('Y-m-d');
-            } else {
-                $cliente->fecha_nacimiento_prop  = NULL;
-            }
-
-            $cliente->celular_propietario   =   $request->get('celular_propietario');
-            $cliente->correo_propietario    =   $request->get('correo_propietario');
-
-            //Latitud y longitud
-            $cliente->lat = $request->get('lat');
-            $cliente->lng = $request->get('lng');
-
-            $cliente->agente_retencion  =   $request->get('retencion');
-            $cliente->tasa_retencion    =   $request->get('tasa_retencion');
-            $cliente->monto_mayor       =   $request->get('monto_mayor');
-
-            //Img Gps
-            if ($request->hasFile('logo')) {
-                $file                   =   $request->file('logo');
-                $name                   =   $file->getClientOriginalName();
-                $cliente->nombre_logo   =   $name;
-                $cliente->ruta_logo     =   $request->file('logo')->store('public/clientes/img');
-            }
+            $cliente->departamento_id       =   $request->get('department');
+            $cliente->provincia_id          =   $request->get('province');
+            $cliente->distrito_id           =   $request->get('district');
+            $cliente->direccion             =   $request->get('address');
+            $cliente->correo_electronico    =   $request->get('email');
+            $cliente->telefono_movil        =   $request->get('phone');
             $cliente->save();
 
             //Registro de actividad
@@ -143,98 +125,78 @@ class ClienteController extends Controller
 
             Session::flash('success', 'Cliente creado.');
             DB::commit();
-            return redirect()->route('ventas.cliente.index')->with('guardar', 'success');
+            return response()->json(['success' => true, 'message' => 'Cliente registrado con éxito']);
         } catch (Throwable $th) {
             DB::rollBack();
-            dd($th->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+                'line' => $th->getLine(),
+                'file' => $th->getFile()
+            ]);
         }
     }
 
     public function edit($id)
     {
-        $cliente        =   Cliente::findOrFail($id);
-        $tipos_clientes =   UtilidadesController::getTiposClientes();
-
-        $put = True;
-        $action = route('ventas.cliente.update', $id);
+        $customer           =   Cliente::findOrFail($id);
+        $tipos_clientes     =   UtilidadesController::getTiposClientes();
+        $departments        =   Departamento::all();
+        $provinces          =   Provincia::all();
+        $districts          =   Distrito::all();
+        $tipos_documento    =   tipos_documento();
         return view('ventas.clientes.edit', [
-            'cliente' => $cliente,
-            'action' => $action,
-            'put' => $put,
-            'tipos_clientes'    =>  $tipos_clientes
+            'customer' => $customer,
+            'tipos_clientes'    =>  $tipos_clientes,
+            'departments'       =>  $departments,
+            'provinces'         =>  $provinces,
+            'districts'         =>  $districts,
+            'tipos_documento'   =>  $tipos_documento
         ]);
     }
 
+    /*
+array:11 [
+  "_token" => "jZJPbBDAGw1aLzQN7TuRbYGPm17cPrWwz5M5D6zh"
+  "type_identity_document" => "6"
+  "nro_document" => "77664477"
+  "type_customer" => "1"
+  "name" => "TEST editado"
+  "address" => "AV. RIVERA NAVARRETE NRO. 501, LIMA - LIMA - SAN ISIDRO"
+  "phone" => null
+  "email" => "editado@gmail.com"
+  "department" => "09"
+  "province" => "0905"
+  "district" => "090509"
+]
+*/
     public function update(ClienteUpdateRequest $request, $id)
     {
         DB::beginTransaction();
         try {
 
-            $tipo_cliente                   = TipoCliente::findOrFail($request->get('tipo_cliente'));
+            $type_customer                  =   TipoCliente::findOrFail($request->get('type_customer'));
+            $distrito                       =   Distrito::findOrFail($request->get('district'));
+            $departamento                   =   Departamento::findOrFail($request->get('department'));
+            $tipo_documento                 =   Detalle::findOrfail($request->get('type_identity_document'));
 
-            $cliente                        = Cliente::findOrFail($id);
-            $cliente->tipo_documento        = $request->get('tipo_documento');
-            $cliente->documento             = $request->get('documento');
-            $cliente->nombre                = mb_strtoupper($request->get('nombre'), 'UTF-8');
+            $cliente                        =   Cliente::findOrFail($id);
+            $cliente->tipo_documento_id     =   $tipo_documento->id;
+            $cliente->tipo_documento        =   $tipo_documento->simbolo;
 
-            $cliente->codigo                = $request->get('codigo');
-            $cliente->zona                  = $request->get('zona');
-            $cliente->nombre_comercial      = $request->get('nombre_comercial');
+            $cliente->documento             =   $request->get('nro_document');
+            $cliente->tipo_cliente_id       =   $type_customer->id;
+            $cliente->tipo_cliente_nombre   =   $type_customer->nombre;
+            $cliente->nombre                =   mb_strtoupper($request->get('name'), 'UTF-8');
+            $cliente->codigo                =   $distrito->id;
+            $cliente->zona                  =   $departamento->zona;
 
-            $cliente->tipo_cliente_id       = $tipo_cliente->id;
-            $cliente->tipo_cliente_nombre   = $tipo_cliente->nombre;
-            $cliente->departamento_id       = str_pad($request->get('departamento'), 2, "0", STR_PAD_LEFT);
-            $cliente->provincia_id          = str_pad($request->get('provincia'), 4, "0", STR_PAD_LEFT);
-            $cliente->distrito_id           = str_pad($request->get('distrito'), 6, "0", STR_PAD_LEFT);
-            $cliente->direccion             = $request->get('direccion');
-            $cliente->correo_electronico    = $request->get('correo_electronico');
-            $cliente->telefono_movil        = $request->get('telefono_movil');
-            $cliente->telefono_fijo         = $request->get('telefono_fijo');
-
-            $cliente->direccion_negocio     = $request->get('direccion_negocio');
-            if ($request->get('fecha_aniversario') != "-") {
-                $cliente->fecha_aniversario = Carbon::createFromFormat('d/m/Y', $request->get('fecha_aniversario'))->format('Y-m-d');
-            }
-            $cliente->activo                = $request->get('activo');
-            $cliente->observaciones         = $request->get('observaciones');
-            $cliente->facebook              = $request->get('facebook');
-            $cliente->instagram             = $request->get('instagram');
-            $cliente->web                   = $request->get('web');
-
-            $cliente->hora_inicio           = $request->get('hora_inicio');
-            $cliente->hora_termino          = $request->get('hora_termino');
-
-
-            $cliente->nombre_propietario    = $request->get('nombre_propietario');
-            $cliente->direccion_propietario = $request->get('direccion_propietario');
-
-
-            if ($request->get('fecha_nacimiento_prop') != "-") {
-                $cliente->fecha_nacimiento_prop  = Carbon::createFromFormat('d/m/Y', $request->get('fecha_nacimiento_prop'))->format('Y-m-d');
-            } else {
-                $cliente->fecha_nacimiento_prop  = NULL;
-            }
-
-
-            $cliente->celular_propietario   = $request->get('celular_propietario');
-            $cliente->correo_propietario    = $request->get('correo_propietario');
-
-            //Latitud y longitud
-            $cliente->lat                   = $request->get('lat');
-            $cliente->lng                   = $request->get('lng');
-
-            $cliente->agente_retencion      = $request->get('retencion');
-            $cliente->tasa_retencion        = $request->get('tasa_retencion');
-            $cliente->monto_mayor           = $request->get('monto_mayor');
-
-            //Imagen cliente gps
-            if ($request->hasFile('logo')) {
-                Storage::delete($cliente->ruta_logo);
-                $file                       = $request->file('logo');
-                $name                       = $file->getClientOriginalName();
-                $cliente->nombre_logo       = $name;
-                $cliente->ruta_logo         = $request->file('logo')->store('public/clientes/img');
-            }
+            $cliente->departamento_id       =   $request->get('department');
+            $cliente->provincia_id          =   $request->get('province');
+            $cliente->distrito_id           =   $request->get('district');
+            $cliente->direccion             =   $request->get('address');
+            $cliente->correo_electronico    =   $request->get('email');
+            $cliente->telefono_movil        =   $request->get('phone');
             $cliente->update();
 
             //Registro de actividad
@@ -244,10 +206,15 @@ class ClienteController extends Controller
 
             Session::flash('success', 'Cliente modificado.');
             DB::commit();
-            return redirect()->route('ventas.cliente.index')->with('guardar', 'success');
-        } catch (\Throwable $th) {
+            return response()->json(['success' => true, 'message' => 'Cliente registrado con éxito']);
+        } catch (Throwable $th) {
             DB::rollBack();
-            dd($th->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+                'line' => $th->getLine(),
+                'file' => $th->getFile()
+            ]);
         }
     }
 
@@ -344,15 +311,17 @@ array:14 [
         try {
             DB::beginTransaction();
 
-            $tipo_cliente   =   TipoCliente::findOrFail($request->get('tipo_cliente_id'));
+            $tipo_cliente                   =   TipoCliente::findOrFail($request->get('tipo_cliente_id'));
+            $tipo_documento                 =   Detalle::findOrfail($request->get('tipo_documento'));
 
             $cliente                        =   new Cliente();
-            $cliente->tipo_documento        =   $request->get('tipo_documento');
+            $cliente->tipo_documento_id     =   $tipo_documento->id;
+            $cliente->tipo_documento        =   $tipo_documento->simbolo;
 
             $cliente->documento             =   $request->get('documento');
             $cliente->tipo_cliente_id       =   $tipo_cliente->id;
             $cliente->tipo_cliente_nombre   =   $tipo_cliente->nombre;
-            $cliente->nombre                =   $request->get('nombre');
+            $cliente->nombre                =   mb_strtoupper($request->get('nombre'), 'UTF-8');
             $cliente->codigo                =   $request->get('codigo');
             $cliente->zona                  =   $request->get('zona');
 
@@ -471,4 +440,6 @@ array:14 [
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
+
+    public function searchCustomer(Request $request) {}
 }

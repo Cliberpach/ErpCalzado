@@ -1,9 +1,9 @@
 /* EcoValle */
-.required:after {
+/* .required:after {
     color: #ff9d32;
     content: ' *';
     display: inline;
-}
+} */
 
 .leyenda-required {
     color: #ff9d32;

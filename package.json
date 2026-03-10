@@ -48,6 +48,7 @@
         "query-string": "^7.1.1",
         "select2": "^4.1.0-rc.0",
         "select2-bootstrap4-theme": "^1.0.0",
+        "tom-select": "^2.5.2",
         "vue-axios": "^3.4.1",
         "vue-select": "^3.16.0",
         "vue-select2-component": "^1.0.1",

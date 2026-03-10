@@ -168,7 +168,7 @@
 
                                             <div class="row" style="text-transform:uppercase;">
                                                 <div class="col-md-6">
-                                                    <label><strong>Hora de Inicio: </strong></label> 
+                                                    <label><strong>Hora de Inicio: </strong></label>
                                                     @if($cliente->hora_inicio != "")
                                                         <p>{{$cliente->hora_inicio}}</p>
                                                     @else
@@ -176,7 +176,7 @@
                                                     @endif
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label><strong>Hora de Termino: </strong></label> 
+                                                    <label><strong>Hora de Termino: </strong></label>
                                                     @if($cliente->hora_termino != "")
                                                         <p>{{$cliente->hora_termino}}</p>
                                                     @else
@@ -185,7 +185,7 @@
                                                 </div>
                                             </div>
 
-                                            
+
                                             </div>
                                     </div>
 
@@ -196,7 +196,7 @@
                                     <h4><b><i class="fa fa-caret-right"></i> DATOS DEL PROPIETARIO </b></h4><br>
 
                                     <div class="form-group row" style="text-transform:uppercase;">
-                                        
+
                                         <div class="col-md-6 b-r">
 
                                                 <div class="form-group">
@@ -217,7 +217,7 @@
                                                     @endif
                                                 </div>
 
-                                                
+
                                                 <div class="form-group">
                                                     <label><strong>CORREO: </strong></label>
                                                     @if($cliente->correo_propietario != "")
@@ -237,7 +237,7 @@
                                             <div class="row">
 
                                                 <div class="col-md-6">
-                                                    <label><strong>FECHA DE NACIMIENTO: </strong></label> 
+                                                    <label><strong>FECHA DE NACIMIENTO: </strong></label>
                                                     @if($cliente->fecha_nacimiento_prop != "")
                                                         <p>{{ Carbon\Carbon::parse($cliente->fecha_nacimiento_prop)->format('d/m/y') }}</p>
                                                     @else
@@ -245,7 +245,7 @@
                                                     @endif
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label><strong>CELULAR: </strong></label> 
+                                                    <label><strong>CELULAR: </strong></label>
                                                     @if($cliente->celular != "")
                                                         <p>{{$cliente->celular}}</p>
                                                     @else
@@ -262,7 +262,7 @@
 
 
                                     </div>
- 
+
                                 </div>
                             </div>
                         </div>

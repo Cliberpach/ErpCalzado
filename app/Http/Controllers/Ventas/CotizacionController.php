@@ -196,7 +196,7 @@ array:10 [
 
         $tipos_documento    =   tipos_documento();
         $departamentos      =   departamentos();
-        $tipo_clientes      =   tipo_clientes();
+        $tipo_clientes      =   UtilidadesController::getTiposClientes();
 
         $cotizacion         =   Cotizacion::findOrFail($id);
         $empresas           =   Empresa::where('estado', 'ACTIVO')->get();

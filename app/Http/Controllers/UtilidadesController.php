@@ -441,22 +441,21 @@ class UtilidadesController extends Controller
 
     /*
 array:2 [
-  "tipo_doc" => "6"
-  "nro_doc" => "75608753"
+  "type_identity_document" => "6"
+  "nro_document" => "75608753"
 ]
 */
     public function consultarDocumento(Request $request)
     {
         try {
-
-            $tipo_doc   =   $request->get('tipo_doc');
-            $nro_doc    =   $request->get('nro_doc');
+            $tipo_doc   =   $request->get('type_identity_document');
+            $nro_doc    =   $request->get('nro_document');
 
             if (!$tipo_doc) {
                 throw new Exception("FALTA EL PARÁMETRO TIPO DOC");
             }
 
-            if ($tipo_doc != 6 && $tipo_doc != 7) {
+            if ($tipo_doc != 6 && $tipo_doc != 8) {
                 throw new Exception("SOLO SE PUEDEN CONSULTAR DNI Y RUC");
             }
 
@@ -472,7 +471,7 @@ array:2 [
                 throw new Exception("EL DNI DEBE TENER 8 DÍGITOS");
             }
 
-            if ($tipo_doc == 7 && strlen($nro_doc) != 11) {
+            if ($tipo_doc == 8 && strlen($nro_doc) != 11) {
                 throw new Exception("EL RUC DEBE TENER 11 DÍGITOS");
             }
 
@@ -482,13 +481,13 @@ array:2 [
             if ($tipo_doc == 6 && $tipo_doc_bd->simbolo != 'DNI') {
                 throw new Exception("CAMPO INCORRECTO PARA TIPO DOC EN TABLA DETALLES");
             }
-            if ($tipo_doc == 7 && $tipo_doc_bd->simbolo != 'RUC') {
+            if ($tipo_doc == 8 && $tipo_doc_bd->simbolo != 'RUC') {
                 throw new Exception("CAMPO INCORRECTO PARA TIPO DOC EN TABLA DETALLES");
             }
 
             //======= VERIFICAR SI EXISTE EL CLIENTE =======
             $cliente = DB::table('clientes as c')
-                ->where('tipo_documento', $tipo_doc_bd->simbolo)
+                ->where('tipo_documento_id', $tipo_doc_bd->id)
                 ->where('documento', $nro_doc)
                 ->where('estado', 'ACTIVO')
                 ->select(
@@ -506,7 +505,7 @@ array:2 [
                     $consulta_controller    =   new ParametroController();
                     $datos_api              =   json_decode($consulta_controller->apiDni($nro_doc));
                 }
-                if ($tipo_doc == 7) {
+                if ($tipo_doc == 8) {
                     $consulta_controller    =   new ParametroController();
                     $datos_api              =   json_decode($consulta_controller->apiRuc($nro_doc));
                 }
@@ -523,7 +522,6 @@ array:2 [
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
-
 
     public static function getTiposClientes(){
         return TipoCliente::where('estado','ACTIVO')->get();

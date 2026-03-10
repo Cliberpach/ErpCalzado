@@ -4,31 +4,32 @@ namespace App\Http\Services\Pedidos\Pedidos;
 
 use App\Http\Controllers\Ventas\DocumentoController;
 use App\Http\Requests\Ventas\DocVenta\DocVentaStoreRequest;
-use App\User;
-use App\Ventas\Cliente;
+use App\Http\Services\Almacen\Productos\ProductoService;
+use App\Http\Services\Almacen\Tallas\TallaService;
 use App\Ventas\Documento\Detalle;
 use App\Ventas\Documento\Documento;
 use App\Ventas\Pedido;
 use App\Ventas\PedidoDetalle;
 use Carbon\Carbon;
-use Dom\Document;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PedidoService
 {
     private PedidoRepository $s_repository;
+    private PedidoMapper $s_mapper;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->s_repository =   new PedidoRepository();
+        $this->s_mapper     =   new PedidoMapper();
     }
 
-    public function storeFromCotizacion(array $datos):Pedido
+    public function storeFromCotizacion(array $datos): Pedido
     {
         $pedido =   $this->s_repository->insertarPedido($datos);
-        $this->s_repository->insertarDetallePedido($datos,$pedido);
+        $this->s_repository->insertarDetallePedido($datos, $pedido);
         return $pedido;
     }
 
@@ -69,7 +70,7 @@ class PedidoService
         }
 
         //======= OBTENIENDO DETALLE DEL PEDIDO ===========
-        $detalle_pedido     = PedidoDetalle::where('pedido_id', $pedido_id)->where('tipo','PRODUCTO')->get();
+        $detalle_pedido     = PedidoDetalle::where('pedido_id', $pedido_id)->where('tipo', 'PRODUCTO')->get();
         $detalle_formateado = $this->formatearArrayDetalleObjetos($detalle_pedido);
         $productos          = json_encode($detalle_formateado);
 
@@ -257,7 +258,7 @@ class PedidoService
                     ->where('producto_id', $producto->producto_id)
                     ->where('color_id', $producto->color_id)
                     ->where('talla_id', $talla->talla_id)
-                    ->where('tipo','PRODUCTO')
+                    ->where('tipo', 'PRODUCTO')
                     ->update([
                         'cantidad_pendiente'    => DB::raw('cantidad_pendiente  - ' . $talla->cantidad),
                         'cantidad_atendida'     => DB::raw('cantidad_atendida   + ' . $talla->cantidad)
@@ -468,5 +469,26 @@ class PedidoService
         }
 
         return $resultado;
+    }
+
+    public function getColoresTallas(int $almacen_id, int $producto_id)
+    {
+        $s_producto     =   new ProductoService();
+        $s_talla        =   new TallaService();
+
+        $precios_venta  =   $s_producto->getPreciosVenta($producto_id);
+        $colores        =   $s_producto->getProductoColores($almacen_id, $producto_id);
+        $stocks         =   $s_producto->getProductoStocks($almacen_id, $producto_id);
+        $tallas         =   $s_talla->getTallas();
+
+        $producto_color_tallas  =   null;
+        if (count($colores) > 0) {
+            $producto_color_tallas  =   $this->s_mapper->formatearColoresTallas($colores, $stocks, $tallas);
+        }
+
+        return (object)[
+            'producto_color_tallas' =>  $producto_color_tallas,
+            'precios_venta'         =>  $precios_venta
+        ];
     }
 }

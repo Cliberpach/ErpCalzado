@@ -3,6 +3,7 @@
 use App\Events\NotifySunatEvent;
 use App\Http\Controllers\Almacenes\ConductorController;
 use App\Http\Controllers\Pedidos\PedidoController;
+use App\Http\Controllers\Ventas\ClienteController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 

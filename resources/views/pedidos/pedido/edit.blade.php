@@ -489,7 +489,7 @@
                 if (data.loading) {
                     return $(
                         '<span><i style="color:blue;" class="fa fa-spinner fa-spin"></i> Buscando...</span>'
-                        );
+                    );
                 }
                 return data.text;
             },
@@ -1022,10 +1022,11 @@
                     producto_id
                 }));
                 if (res.data.success) {
+                    const data = res.data.data;
                     destruirDataTableStocks();
-                    pintarTableStocks(res.data.producto_color_tallas);
+                    pintarTableStocks(data.producto_color_tallas);
                     loadDataTableStocksPedido();
-                    pintarPreciosVenta(res.data.producto_color_tallas);
+                    pintarPreciosVenta(data.precios_venta);
                     loadCarrito();
                     loadPrecioVentaProductoCarrito(producto_id);
                 } else {
@@ -1433,7 +1434,7 @@
                     formData.append('sede_id', @json($sede_id));
                     formData.append('registrador_id', @json($registrador->id));
                     formData.append('amountsPedido', JSON.stringify(amountsPedido));
-                    formData.append('cliente',$('#cliente').val());
+                    formData.append('cliente', $('#cliente').val());
 
                     /*
                     const delay = new Promise(resolve => setTimeout(resolve, 10000));
@@ -1486,7 +1487,7 @@
                     } else {
                         toastr.error(error.message, 'ERROR DESCONOCIDO');
                     }
-                }finally{
+                } finally {
                     Swal.close();
                 }
 

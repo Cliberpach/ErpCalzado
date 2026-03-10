@@ -6,8 +6,7 @@ use App\Mantenimiento\Tabla\Detalle;
 use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Distrito;
 use App\Mantenimiento\Ubigeo\Provincia;
-use Exception;
-use Illuminate\Http\Request;
+use App\Models\Ventas\TipoCliente\TipoCliente;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -18,9 +17,16 @@ class ConsultasAjaxController extends Controller
         $tipos_documento = tipos_documento();
         return response()->json($tipos_documento);
     }
-    public function tipoClientes()
+
+    public function _tipoClientes()
     {
         $tipo_clientes = tipo_clientes();
+        return response()->json($tipo_clientes);
+    }
+
+    public function tipoClientes()
+    {
+        $tipo_clientes = TipoCliente::where('estado', 'ACTIVO')->get();
         return response()->json($tipo_clientes);
     }
 
@@ -50,13 +56,13 @@ class ConsultasAjaxController extends Controller
             $_tipo_envio    =   Detalle::findOrFail($tipo_envio);
 
             $empresas_envio =   DB::select(
-                                    'SELECT
+                'SELECT
                                                     ee.*
                                                     FROM empresas_envio AS ee
                                                     WHERE ee.tipo_envio=?
                                                     AND ee.estado="ACTIVO"',
-                                    [$_tipo_envio->descripcion]
-                                );
+                [$_tipo_envio->descripcion]
+            );
 
             return response()->json(['success' => true, 'empresas_envio' => $empresas_envio]);
         } catch (Throwable $th) {

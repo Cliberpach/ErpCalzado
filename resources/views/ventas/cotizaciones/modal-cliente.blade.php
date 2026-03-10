@@ -591,8 +591,6 @@
 
             //======== OBTENEMOS EL SIMBOLO DEL TIPO DOCUMENTO =======
             const formData = new FormData(formCliente);
-            formData.set('tipo_documento', selectTipoDoc.options[selectTipoDoc.selectedIndex].textContent);
-
             const res = await axios.post(route('ventas.cliente.storeFast'), formData);
 
             if (res.data.success) {

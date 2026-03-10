@@ -12,10 +12,10 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
         Route::get('/', 'Ventas\ClienteController@index')->name('ventas.cliente.index');
         Route::get('/getTable', 'Ventas\ClienteController@getTable')->name('ventas.cliente.getTable');
         Route::get('/registrar', 'Ventas\ClienteController@create')->name('ventas.cliente.create');
-        Route::post('/registrar', 'Ventas\ClienteController@store')->name('ventas.cliente.store');
+        Route::post('/store', 'Ventas\ClienteController@store')->name('ventas.cliente.store');
         Route::post('/registrarFast', 'Ventas\ClienteController@storeFast')->name('ventas.cliente.storeFast');
         Route::get('/actualizar/{id}', 'Ventas\ClienteController@edit')->name('ventas.cliente.edit');
-        Route::put('/actualizar/{id}', 'Ventas\ClienteController@update')->name('ventas.cliente.update');
+        Route::put('/update/{id}', 'Ventas\ClienteController@update')->name('ventas.cliente.update');
         Route::get('/datos/{id}', 'Ventas\ClienteController@show')->name('ventas.cliente.show');
         Route::get('/destroy/{id}', 'Ventas\ClienteController@destroy')->name('ventas.cliente.destroy');
         Route::post('/getDocumento', 'Ventas\ClienteController@getDocumento')->name('ventas.cliente.getDocumento');

@@ -53,7 +53,7 @@
                                         <div class="form-group mb-0">
                                             <label class="required" for="tipo_cliente">Tipo Cliente</label>
                                             <v-select v-model="tipo_cliente_id" :options="tipoClientes"
-                                                :reduce="tc => tc.id" label="descripcion"></v-select>
+                                                :reduce="tc => tc.id" label="nombre"></v-select>
                                         </div>
                                         <span style="color:red;" class="error_mdl_client_tipo_cliente_id"></span>
                                     </div>
@@ -510,7 +510,7 @@ export default {
                     this.clienteNuevo = res.data.cliente;
                     const descripcion = `${this.clienteNuevo.tipo_documento}:${this.clienteNuevo.documento}-${this.clienteNuevo.nombre}`;
                     this.clienteNuevo.descripcion = descripcion;
-                   
+
                     this.$emit("newCliente", this.clienteNuevo);
 
                     this.Cerrar();
@@ -660,7 +660,7 @@ export default {
                 zona: "",
                 nombre: "",
                 documento: "",
-                direccion: "Direccion Trujillo",
+                direccion: "NN",
                 telefono_movil: "999999999",
                 correo_electronico: "",
                 telefono_fijo: "",

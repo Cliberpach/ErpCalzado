@@ -393,7 +393,7 @@
                 return data.text;
             },
         });
-        
+
         $('#cliente').select2({
             width: '100%',
             placeholder: "Buscar Cliente...",
@@ -818,10 +818,11 @@
                     producto_id
                 }));
                 if (res.data.success) {
+                    const data = res.data.data;
                     destruirDataTableStocks();
-                    pintarTableStocks(res.data.producto_color_tallas);
+                    pintarTableStocks(data.producto_color_tallas);
                     loadDataTableStocksPedido();
-                    pintarPreciosVenta(res.data.producto_color_tallas);
+                    pintarPreciosVenta(data.precios_venta);
                     loadCarrito();
                     loadPrecioVentaProductoCarrito(producto_id);
                 } else {
@@ -919,30 +920,22 @@
     }
 
     //======= PINTAR PRECIOS VENTA =======
-    function pintarPreciosVenta(producto_color_tallas) {
+    function pintarPreciosVenta(preciosVenta) {
         //======= LIMPIAR SELECT2 DE PRODUCTOS ======
         $('#precio_venta').empty();
 
         //====== LLENAR =======
-
-        if (producto_color_tallas) {
-            if (producto_color_tallas.precio_venta_1 != null) {
-                const option_1 = new Option(producto_color_tallas.precio_venta_1, 'precio_venta_1', false, false);
-                $('#precio_venta').append(option_1);
-            }
-
-            if (producto_color_tallas.precio_venta_2 != null) {
-                const option_2 = new Option(producto_color_tallas.precio_venta_2, 'precio_venta_2', false, false);
-                $('#precio_venta').append(option_2);
-            }
-
-            if (producto_color_tallas.precio_venta_3 != null) {
-                const option_3 = new Option(producto_color_tallas.precio_venta_3, 'precio_venta_3', false, false);
-                $('#precio_venta').append(option_3);
-            }
+        if (preciosVenta) {
+            const keys = Object.keys(preciosVenta);
+            keys.forEach((k) => {
+                const precioVenta = preciosVenta[k];
+                if (precioVenta && precioVenta > 0) {
+                    const option = new Option(precioVenta, k, false, false);
+                    $('#precio_venta').append(option);
+                }
+            })
         }
 
-        // Refrescar Select2
         $('#precio_venta').trigger('change');
     }
 

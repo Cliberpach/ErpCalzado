@@ -1,8 +1,9 @@
 {
     "/js/app.js": "/js/app.js?id=214a4aa78c2c263d5affe394b8f15c5d",
     "/js/appNotify.js": "/js/appNotify.js?id=adcc85fe3b03a0cc7fca80a7f4629f00",
-    "/js/appPages.js": "/js/appPages.js?id=a05877041c1205a88fa5301183a06066",
+    "/js/appPages.js": "/js/appPages.js?id=f0d942159541ee38da73078a4562d708",
     "/js/utilidades.js": "/js/utilidades.js?id=4c3065f19b2bdaf590cc33287d4f5bf2",
+    "/js/tomselect.js": "/js/tomselect.js?id=93fdc35c46e1df38b616cef2215600c2",
     "/js/filepond.js": "/js/filepond.js?id=1186e2ad7b07d879a884f73cc637ec92",
     "/css/app.css": "/css/app.css?id=5f630dbbac2173fc72008e17ebb9aa03",
     "/css/filepond.css": "/css/filepond.css?id=e3e6ca82fd9bf08950cc54decdc87935",
