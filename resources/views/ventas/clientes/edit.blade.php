@@ -391,7 +391,7 @@
             const token = document.querySelector('input[name="_token"]').value;
 
             const url =
-                `{{ route('utilidades.searchCustomer') }}?type_identity_document=${encodeURIComponent(tipo_documento)}&nro_document=${encodeURIComponent(nro_documento)}`;
+                `{{ route('utilidades.consultarDocumento') }}?type_identity_document=${encodeURIComponent(tipo_documento)}&nro_document=${encodeURIComponent(nro_documento)}`;
 
             const response = await fetch(url, {
                 method: 'GET',
