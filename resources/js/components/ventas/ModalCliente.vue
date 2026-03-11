@@ -7,148 +7,346 @@
                         <span aria-hidden="true">&times;</span>
                         <span class="sr-only">Close</span>
                     </button>
-                    <i class="fa fa-user-plus modal-icon"></i>
+                    <i class="fas fa-user-plus modal-icon text-primary"></i>
                     <h4 class="modal-title">NUEVO CLIENTE</h4>
                     <small class="font-bold">Registrar</small>
                 </div>
+
                 <div class="modal-body content_cliente" :class="{ 'sk__loading': loading }">
+
                     <form id="frmCliente" class="formulario" @submit.prevent="Guardar">
+
                         <div class="row">
+
                             <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
+
                                 <div class="row">
+
                                     <div class="col-12 col-md-6">
                                         <div class="form-group mb-0">
-                                            <label class="required" style="font-weight: bold;" for="tipo_documento">Tipo
-                                                de documento</label>
+                                            <label class="required" style="font-weight: bold;" for="tipo_documento">
+                                                <i class="fas fa-id-card text-primary"></i> Tipo de documento
+                                            </label>
                                             <v-select v-model="tipo_documento" :options="tipoDocumentos"
                                                 :reduce="tp => tp.id" label="simbolo"></v-select>
                                         </div>
                                         <span style="color:red;" class="error_mdl_client_tipo_documento"></span>
                                     </div>
+
                                     <div class="col-12 col-md-6">
                                         <div class="form-group">
-                                            <label class="required" for="documento">Nro. Documento</label>
+
+                                            <label class="required" for="documento">
+                                                <i class="fas fa-address-card text-info"></i> Nro. Documento
+                                            </label>
 
                                             <div class="input-group">
+
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-id-badge text-primary"></i>
+                                                    </span>
+                                                </div>
+
                                                 <input type="text" id="documento" name="documento" class="form-control"
                                                     :maxlength="maxlength" v-model="formCliente.documento" required>
+
                                                 <span class="input-group-append">
                                                     <button type="button" style="color:white" class="btn btn-primary"
                                                         @click.prevent="consultarDocumento"
                                                         :disabled="(tipo_documento == 8 || tipo_documento == 6) ? false : true">
-                                                        <i class="fa fa-search"></i>
+
+                                                        <i class="fas fa-search"></i>
                                                         <span id="entidad">{{ entidad }}</span>
+
                                                     </button>
                                                 </span>
+
                                             </div>
+
                                             <span style="color:red;" class="error_mdl_client_documento"></span>
+
                                         </div>
                                     </div>
+
                                 </div>
+
                                 <div class="row">
+
                                     <div class="col-12 col-md-6">
                                         <div class="form-group mb-0">
-                                            <label class="required" for="tipo_cliente">Tipo Cliente</label>
+                                            <label class="required" for="tipo_cliente">
+                                                <i class="fas fa-users text-primary"></i> Tipo Cliente
+                                            </label>
+
                                             <v-select v-model="tipo_cliente_id" :options="tipoClientes"
                                                 :reduce="tc => tc.id" label="nombre"></v-select>
                                         </div>
+
                                         <span style="color:red;" class="error_mdl_client_tipo_cliente_id"></span>
+
                                     </div>
+
                                     <input type="hidden" id="codigo_verificacion" name="codigo_verificacion">
+
                                     <div class="col-12 col-md-6">
+
                                         <div class="form-group">
-                                            <label class="" for="activo">Estado</label>
-                                            <input type="text" id="activo" name="activo"
-                                                class="form-control text-center" v-model="formCliente.activo" readonly>
+
+                                            <label for="activo">
+                                                <i class="fas fa-toggle-on text-success"></i> Estado
+                                            </label>
+
+                                            <div class="input-group">
+
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-check-circle text-success"></i>
+                                                    </span>
+                                                </div>
+
+                                                <input type="text" id="activo" name="activo"
+                                                    class="form-control text-center" v-model="formCliente.activo"
+                                                    readonly>
+
+                                            </div>
 
                                         </div>
+
                                     </div>
+
                                 </div>
+
                                 <div class="row">
+
                                     <div class="col-12">
+
                                         <div class="form-group">
-                                            <label class="required" id="lblNombre" for="nombre">Nombre</label>
-                                            <input type="text" id="nombre" name="nombre" class="form-control"
-                                                maxlength="191" v-model="formCliente.nombre" required>
+
+                                            <label class="required" id="lblNombre" for="nombre">
+                                                <i class="fas fa-user text-primary"></i> Nombre
+                                            </label>
+
+                                            <div class="input-group">
+
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-user text-primary"></i>
+                                                    </span>
+                                                </div>
+
+                                                <input type="text" id="nombre" name="nombre" class="form-control"
+                                                    maxlength="191" v-model="formCliente.nombre" required>
+
+                                            </div>
 
                                         </div>
+
                                     </div>
+
                                     <div class="col-12">
+
                                         <div class="form-group">
-                                            <label for="direccion" class="required">Dirección Fiscal</label>
-                                            <input type="text" id="direccion" name="direccion" class="form-control"
-                                                maxlength="191" onkeyup="return mayus(this)" required
-                                                v-model="formCliente.direccion">
+
+                                            <label for="direccion" class="required">
+                                                <i class="fas fa-map-marker-alt text-danger"></i> Dirección Fiscal
+                                            </label>
+
+                                            <div class="input-group">
+
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-map text-info"></i>
+                                                    </span>
+                                                </div>
+
+                                                <input type="text" id="direccion" name="direccion" class="form-control"
+                                                    maxlength="191" onkeyup="return mayus(this)" required
+                                                    v-model="formCliente.direccion">
+
+                                            </div>
 
                                         </div>
+
                                     </div>
+
                                 </div>
+
                             </div>
+
                             <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
+
                                 <div class="row">
+
                                     <div class="col-12 col-md-6">
+
                                         <div class="form-group">
-                                            <label class="required" for="departamento">Departamento</label>
+
+                                            <label class="required" for="departamento">
+                                                <i class="fas fa-map text-info"></i> Departamento
+                                            </label>
+
                                             <v-select v-model="departamento" :options="lst_departamentos_base"
                                                 :reduce="d => d" label="nombre"></v-select>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-6">
-                                        <div class="form-group">
-                                            <label class="required" for="provincia">Provincia</label>
-                                            <v-select v-model="provincia" :options="lstProvinciasFiltrado"
-                                                :reduce="p => p" label="nombre"></v-select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-12 col-md-6">
-                                        <div class="form-group">
-                                            <label class="required" for="distrito">Distrito</label>
-                                            <v-select v-model="distrito" :options="lstDistritosFiltrado"
-                                                :reduce="d => d" label="nombre"></v-select>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-6">
-                                        <div class="form-group">
-                                            <label class="required" for="zona">Zona</label>
-                                            <input type="text" id="zona" name="zona" v-model="formCliente.zona"
-                                                class=" text-center form-control" readonly>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-12 col-md-6">
-                                        <div class="form-group mb-0">
-                                            <label for="telefono_movil" class="required">Teléfono móvil</label>
-                                            <input type="text" id="telefono_movil" name="telefono_movil"
-                                                class="form-control" onkeypress="return isNroPhone(event)" maxlength="9"
-                                                required v-model="formCliente.telefono_movil">
 
                                         </div>
-                                        <span style="color:red;" class="error_mdl_client_telefono_movil"></span>
+
                                     </div>
+
                                     <div class="col-12 col-md-6">
+
                                         <div class="form-group">
-                                            <label for="telefono_fijo">Teléfono fijo</label>
-                                            <input type="text" id="telefono_fijo" name="telefono_fijo"
-                                                class="form-control" onkeypress="return isNroPhone(event)" maxlength="9"
-                                                v-model="formCliente.telefono_fijo">
+
+                                            <label class="required" for="provincia">
+                                                <i class="fas fa-map-signs text-info"></i> Provincia
+                                            </label>
+
+                                            <v-select v-model="provincia" :options="lstProvinciasFiltrado"
+                                                :reduce="p => p" label="nombre"></v-select>
+
                                         </div>
-                                        <span style="color:red;" class="error_mdl_client_telefono_fijo"></span>
+
                                     </div>
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label for="correo_electronico">Correo electr&oacute;nico</label>
-                                            <input type="text" id="correo_electronico" name="correo_electronico"
-                                                class="form-control" v-model="formCliente.correo_electronico">
-                                        </div>
-                                        <span style="color:red;" class="error_mdl_client_correo"></span>
-                                    </div>
+
                                 </div>
+
+                                <div class="row">
+
+                                    <div class="col-12 col-md-6">
+
+                                        <div class="form-group">
+
+                                            <label class="required" for="distrito">
+                                                <i class="fas fa-location-arrow text-info"></i> Distrito
+                                            </label>
+
+                                            <v-select v-model="distrito" :options="lstDistritosFiltrado"
+                                                :reduce="d => d" label="nombre"></v-select>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+
+                                        <div class="form-group">
+
+                                            <label class="required" for="zona">
+                                                <i class="fas fa-compass text-warning"></i> Zona
+                                            </label>
+
+                                            <div class="input-group">
+
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-compass text-warning"></i>
+                                                    </span>
+                                                </div>
+
+                                                <input type="text" id="zona" name="zona" v-model="formCliente.zona"
+                                                    class=" text-center form-control" readonly>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="row">
+
+                                    <div class="col-12 col-md-6">
+
+                                        <div class="form-group mb-0">
+
+                                            <label for="telefono_movil" class="required">
+                                                <i class="fas fa-mobile-alt text-success"></i> Teléfono móvil
+                                            </label>
+
+                                            <div class="input-group">
+
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-mobile-alt text-success"></i>
+                                                    </span>
+                                                </div>
+
+                                                <input type="text" id="telefono_movil" name="telefono_movil"
+                                                    class="form-control" onkeypress="return isNroPhone(event)"
+                                                    maxlength="9" required v-model="formCliente.telefono_movil">
+
+                                            </div>
+
+                                        </div>
+
+                                        <span style="color:red;" class="error_mdl_client_telefono_movil"></span>
+
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+
+                                        <div class="form-group">
+
+                                            <label for="telefono_fijo">
+                                                <i class="fas fa-phone text-secondary"></i> Teléfono fijo
+                                            </label>
+
+                                            <div class="input-group">
+
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-phone text-secondary"></i>
+                                                    </span>
+                                                </div>
+
+                                                <input type="text" id="telefono_fijo" name="telefono_fijo"
+                                                    class="form-control" onkeypress="return isNroPhone(event)"
+                                                    maxlength="9" v-model="formCliente.telefono_fijo">
+
+                                            </div>
+
+                                        </div>
+
+                                        <span style="color:red;" class="error_mdl_client_telefono_fijo"></span>
+
+                                    </div>
+
+                                    <div class="col-12">
+
+                                        <div class="form-group">
+
+                                            <label for="correo_electronico">
+                                                <i class="fas fa-envelope text-danger"></i> Correo electrónico
+                                            </label>
+
+                                            <div class="input-group">
+
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-envelope text-danger"></i>
+                                                    </span>
+                                                </div>
+
+                                                <input type="text" id="correo_electronico" name="correo_electronico"
+                                                    class="form-control" v-model="formCliente.correo_electronico">
+
+                                            </div>
+
+                                        </div>
+
+                                        <span style="color:red;" class="error_mdl_client_correo"></span>
+
+                                    </div>
+
+                                </div>
+
                             </div>
+
                         </div>
+
                     </form>
+
                     <div class="sk-spinner sk-spinner-wave" :class="{ 'hide-cliente': !loading }">
                         <div class="sk-rect1"></div>
                         <div class="sk-rect2"></div>
@@ -156,23 +354,43 @@
                         <div class="sk-rect4"></div>
                         <div class="sk-rect5"></div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <div class="col-md-6 text-left">
-                        <i class="fa fa-exclamation-circle leyenda-required"></i> <small class="leyenda-required">Los
-                            campos
-                            marcados con asterisco (*) son obligatorios.</small>
-                    </div>
-                    <div class="col-md-6 text-right">
-                        <button id="btn-guardar-cliente" type="submit" class="btn btn-primary btn-sm" form="frmCliente"
-                            style="color:white;">
-                            <i class="fa fa-save"></i> Guardar</button>
-                        <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"
-                            @click.prevent="Cerrar"><i class="fa fa-times"></i> Cancelar</button>
-                    </div>
-                </div>
-            </div>
 
+                </div>
+
+                <div class="modal-footer">
+
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-md-6 text-left">
+                                <i class="fas fa-exclamation-circle text-warning leyenda-required"></i>
+                                <small class="leyenda-required">
+                                    Los campos marcados con asterisco (*) son obligatorios.
+                                </small>
+                            </div>
+
+                            <div class="col-md-6 text-right">
+
+                                <button id="btn-guardar-cliente" type="submit" class="btn btn-primary btn-sm"
+                                    form="frmCliente" style="color:white;">
+
+                                    <i class="fas fa-save"></i> Guardar
+
+                                </button>
+
+                                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"
+                                    @click.prevent="Cerrar">
+
+                                    <i class="fas fa-times"></i> Cancelar
+
+                                </button>
+
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+            </div>
         </div>
     </div>
 </template>

@@ -1,202 +1,254 @@
 <template>
     <div class="modal inmodal" id="modal_envio" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-lg ">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content animated bounceInRight">
-                <div class="modal-header">
+
+                <!-- HEADER -->
+                <div class="modal-header align-items-center">
+
                     <button type="button" class="close" data-dismiss="modal">
-                        <span aria-hidden="true">&times;</span>
-                        <span class="sr-only">Close</span>
+                        <span>&times;</span>
                     </button>
-                    <i class="fa fa-truck modal-icon"></i>
-                    <h4 class="modal-title">DATOS DE ENVÍO</h4>
-                    <small class="font-bold">Registrar</small>
+
+                    <div class="d-flex align-items-center justify-content-center">
+                        <i class="fas fa-truck text-primary mr-2 icon-header-envio"></i>
+
+                        <div>
+                            <h5 class="modal-title mb-0">DATOS DE ENVÍO</h5>
+                            <small class="font-bold text-muted">Registrar</small>
+                        </div>
+                    </div>
+
                 </div>
+
                 <div class="modal-body content_cliente" :class="{ 'sk__loading': loading }">
+
                     <form id="frmEnvio" class="formulario" @submit.prevent="Guardar">
+
+                        <!-- UBIGEO -->
                         <div class="row">
-                            <div class="col-12 col-md-12">
-                                <div class="row justify-content-between">
-                                    <div class="col-6">
-                                        <label for="" style="font-weight: bold;">UBIGEO</label>
+                            <div class="col-12">
+
+                                <div class="row justify-content-between align-items-center">
+                                    <div class="col-auto">
+                                        <label style="font-weight:bold;">
+                                            <i class="fas fa-map-marker-alt text-danger mr-1"></i>
+                                            UBIGEO
+                                        </label>
                                     </div>
-                                    <div class="col-6 d-flex justify-content-end">
-                                        <button @click="borrarDataEnvio" type="button" class="btn btn-danger">BORRAR
-                                            ENVÍO</button>
+
+                                    <div class="col-auto">
+                                        <button @click="borrarDataEnvio" type="button" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash text-white"></i> BORRAR ENVÍO
+                                        </button>
                                     </div>
                                 </div>
+
                                 <div class="row mt-2">
-                                    <div class="col-3 col-md-3">
+
+                                    <div class="col-12 col-sm-6 col-md-4">
                                         <div class="form-group">
-                                            <label class="required" for="departamento"
-                                                style="font-weight: bold;">DEPARTAMENTO</label>
+                                            <label class="required" style="font-weight:bold;">
+                                                <i class="fas fa-map text-primary"></i> DEPARTAMENTO
+                                            </label>
+
                                             <v-select placeholder="SELECCIONAR" v-model="departamento"
-                                                :options="Departamentos" :reduce="d => d.id" required label="nombre"
-                                                :clearable="false"></v-select>
+                                                :options="Departamentos" :reduce="d => d.id" label="nombre" required
+                                                :clearable="false">
+                                            </v-select>
                                         </div>
                                         <span class="departamento_error msgError"></span>
                                     </div>
-                                    <div class="col-3 col-md-3">
+
+                                    <div class="col-12 col-sm-6 col-md-4">
                                         <div class="form-group">
-                                            <label class="required" for="provincia"
-                                                style="font-weight: bold;">PROVINCIA</label>
+                                            <label class="required" style="font-weight:bold;">
+                                                <i class="fas fa-city text-info"></i> PROVINCIA
+                                            </label>
+
                                             <v-select placeholder="SELECCIONAR" v-model="provincia"
-                                                :options="Provincias" :reduce="p => p.id" required label="text"
-                                                :clearable="false"></v-select>
+                                                :options="Provincias" :reduce="p => p.id" label="text" required
+                                                :clearable="false">
+                                            </v-select>
                                         </div>
                                         <span class="provincia_error msgError"></span>
                                     </div>
-                                    <div class="col-3 col-md-3">
+
+                                    <div class="col-12 col-sm-6 col-md-4">
                                         <div class="form-group">
-                                            <label class="required" for="distrito"
-                                                style="font-weight: bold;">DISTRITO</label>
+                                            <label class="required" style="font-weight:bold;">
+                                                <i class="fas fa-location-arrow text-success"></i> DISTRITO
+                                            </label>
+
                                             <v-select placeholder="SELECCIONAR" v-model="distrito" :options="Distritos"
-                                                :reduce="d => d.id" required label="text" :clearable="false"></v-select>
+                                                :reduce="d => d.id" label="text" required :clearable="false">
+                                            </v-select>
                                         </div>
                                         <span class="distrito_error msgError"></span>
                                     </div>
+
                                 </div>
+
                                 <hr>
+
+                                <!-- TIPO ENVIO -->
                                 <div class="row">
-                                    <div class="col-4">
-                                        <label class="required" for="" style="font-weight: bold;">TIPO DE ENVÍO</label>
+
+                                    <div class="col-12 col-sm-6">
+                                        <label class="required" style="font-weight:bold;">
+                                            <i class="fas fa-shipping-fast text-primary"></i> TIPO DE ENVÍO
+                                        </label>
+
                                         <v-select placeholder="SELECCIONAR" v-model="tipo_envio" :options="tipos_envios"
-                                            :reduce="te => te.id" required :clearable="false"
-                                            label="descripcion"></v-select>
+                                            :reduce="te => te.id" label="descripcion" required :clearable="false">
+                                        </v-select>
+
                                         <span class="tipo_envio_error msgError"></span>
                                     </div>
-                                    <div class="col-4">
-                                        <label class="required" for="" style="font-weight: bold;">TIPO PAGO</label>
+
+                                    <div class="col-12 col-sm-6">
+                                        <label class="required" style="font-weight:bold;">
+                                            <i class="fas fa-money-bill-wave text-success"></i> TIPO PAGO
+                                        </label>
+
                                         <v-select v-model="tipo_pago_envio" :options="tipos_pago_envio"
-                                            :reduce="tp => tp.id" required :clearable="false"
-                                            label="descripcion"></v-select>
+                                            :reduce="tp => tp.id" label="descripcion" required :clearable="false">
+                                        </v-select>
+
                                         <span class="tipo_pago_envio_error msgError"></span>
                                     </div>
+
                                 </div>
+
+                                <!-- EMPRESA -->
                                 <div class="row mt-4">
-                                    <div class="col-4">
-                                        <label class="required" for="vselectEmpresa"
-                                            style="font-weight: bold;">EMPRESAS</label>
+
+                                    <div class="col-12 col-sm-6 col-md-4">
+                                        <label class="required" style="font-weight:bold;">
+                                            <i class="fas fa-building text-secondary"></i> EMPRESAS
+                                        </label>
+
                                         <v-select placeholder="SELECCIONAR" v-model="empresa_envio"
                                             :options="empresas_envio" :reduce="ee => ee.id" label="empresa"
-                                            id="vselectEmpresa" ref="vselectEmpresa"></v-select>
+                                            id="vselectEmpresa" ref="vselectEmpresa">
+                                        </v-select>
+
                                         <span class="empresa_envio_error msgError"></span>
                                     </div>
-                                    <div class="col-6" v-if="mostrar_combo_sedes">
-                                        <label class="required" for="" style="font-weight: bold;">SEDES</label>
+
+                                    <div class="col-12 col-sm-6 col-md-8 mt-3 mt-sm-0" v-if="mostrar_combo_sedes">
+
+                                        <label class="required" style="font-weight:bold;">
+                                            <i class="fas fa-warehouse text-dark"></i> SEDES
+                                        </label>
+
                                         <v-select placeholder="SELECCIONAR" :required="mostrar_combo_sedes"
                                             v-model="sede_envio" :options="sedes_envio" :reduce="se => se.id"
-                                            label="direccion"></v-select>
+                                            label="direccion">
+                                        </v-select>
+
                                         <span class="sede_envio_error msgError"></span>
+
                                     </div>
+
                                 </div>
-                                <div class="row mt-3" v-if="mostrar_entrega_domicilio">
-                                    <div class="col-4 d-flex align-items-center">
-                                        <div class="row" style="width: 100%;">
-                                            <div class="col-2 pr-0 d-flex align-items-center">
-                                                <input style="width: 50px;" id="check_entrega_domicilio" type="checkbox"
-                                                    v-model="entrega_domicilio" class="form-control">
-                                            </div>
-                                            <div class="col-9 pl-0">
-                                                <label for="check_entrega_domicilio" class="mb-0"
-                                                    style="font-weight: bold;">ENTREGA EN DOMICILIO</label>
-                                            </div>
-                                        </div>
-                                        <span class="entrega_domicilio_error msgError"></span>
-                                    </div>
-                                    <div class="col-7">
-                                        <label :class="{ 'required': entrega_domicilio }" for=""
-                                            style="font-weight: bold;">DIRECCION DE ENTREGA</label>
-                                        <input maxlength="150" :readonly="!entrega_domicilio"
-                                            :required="entrega_domicilio" type="text" class="form-control"
-                                            v-model="direccion_entrega">
-                                        <span class="direccion_entrega_error msgError"></span>
-                                    </div>
-                                </div>
+
                                 <hr>
+
+                                <!-- DESTINATARIO -->
+                                <label style="font-weight:bold;">
+                                    <i class="fas fa-user text-info"></i> DATOS DEL DESTINATARIO
+                                </label>
+
                                 <div class="row">
-                                    <div class="col-3">
-                                        <label for="origen_venta" style="font-weight: bold;">ORIGEN VENTA</label>
-                                        <v-select placeholder="SELECCIONAR" v-model="origen_venta"
-                                            :options="origenes_ventas" :reduce="ov => ov.id" label="descripcion"
-                                            :clearable="false"></v-select>
-                                        <span class="origen_venta_error msgError"></span>
-                                    </div>
-                                    <div class="col-3">
-                                        <label for="fecha_envio" style="font-weight: bold;">FECHA ENVÍO</label>
-                                        <input id="fecha_envio" v-model="fecha_envio" type="date" class="form-control">
-                                        <span class="fecha_envio_error msgError"></span>
-                                    </div>
-                                    <div class="col-3">
-                                        <label for="obs_rotulo" style="font-weight: bold;">OBS RÓTULO</label>
-                                        <textarea maxlength="35" id="obs_rotulo" v-model="obs_rotulo"
-                                            class="form-control"></textarea>
-                                        <span class="obs_rotulo_error msgError"></span>
-                                    </div>
-                                    <div class="col-3">
-                                        <label for="obs_despacho" style="font-weight: bold;">OBS DESPACHO</label>
-                                        <textarea id="obs_despacho" v-model="obs_despacho"
-                                            class="form-control"></textarea>
-                                        <span class="obs_despacho_error msgError"></span>
-                                    </div>
-                                </div>
-                                <hr>
-                                <label for="" style="font-weight: bold;">DATOS DEL DESTINATARIO</label>
-                                <div class="row">
-                                    <div class="col-3">
-                                        <label class="required" for="tipo_doc" style="font-weight: bold;">TIPO
-                                            DOC</label>
+
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <label class="required" style="font-weight:bold;">
+                                            <i class="fas fa-id-card text-primary"></i> TIPO DOC
+                                        </label>
+
                                         <v-select v-model="destinatario.tipo_documento" :options="tipoDocumentos"
-                                            :reduce="td => td" label="" :clearable="false"></v-select>
+                                            :reduce="td => td" :clearable="false">
+                                        </v-select>
                                     </div>
-                                    <div class="col-4">
-                                        <label class="required" for="dni_destinatario" style="font-weight: bold;">NRO.
-                                            {{
-                                                destinatario.tipo_documento }}</label>
+
+                                    <div class="col-12 col-sm-6 col-md-4">
+
+                                        <label class="required" style="font-weight:bold;">
+                                            <i class="fas fa-hashtag text-secondary"></i>
+                                            NRO {{ destinatario.tipo_documento }}
+                                        </label>
+
                                         <div class="input-group">
+
                                             <input type="text" id="dni_destinatario" class="form-control"
                                                 :maxlength="maxLengthDocumento" v-model="destinatario.nro_documento"
                                                 required>
-                                            <span class="input-group-append">
-                                                <button type="button" style="color:white" class="btn btn-success"
+
+                                            <div class="input-group-append">
+
+                                                <button type="button" class="btn btn-success"
                                                     v-if="destinatario.tipo_documento == 'DNI'"
                                                     @click.prevent="consultarDocumento">
-                                                    <i class="fa fa-search"></i>
-                                                    <span id="entidad"> CONSULTAR</span>
+                                                    <i class="fas fa-search text-white"></i>
                                                 </button>
-                                            </span>
+
+                                            </div>
+
                                         </div>
+
                                     </div>
-                                    <div class="col-5">
-                                        <label class="required" for="nombres_destinatario"
-                                            style="font-weight: bold;">NOMBRES</label>
+
+                                    <div class="col-12 col-md-5">
+
+                                        <label class="required" style="font-weight:bold;">
+                                            <i class="fas fa-user-tag text-info"></i> NOMBRES
+                                        </label>
+
                                         <input required type="text" id="nombres_destinatario"
-                                            v-model=destinatario.nombres class="form-control">
+                                            v-model="destinatario.nombres" class="form-control">
+
                                     </div>
+
                                 </div>
+
                             </div>
                         </div>
+
                     </form>
-                    <div class="sk-spinner sk-spinner-wave" :class="{ 'hide-cliente': !loading }">
-                        <div class="sk-rect1"></div>
-                        <div class="sk-rect2"></div>
-                        <div class="sk-rect3"></div>
-                        <div class="sk-rect4"></div>
-                        <div class="sk-rect5"></div>
-                    </div>
+
                 </div>
+
+                <!-- FOOTER -->
                 <div class="modal-footer">
-                    <div class="col-md-6 text-left">
-                        <i class="fa fa-exclamation-circle leyenda-required"></i> <small class="leyenda-required">Los
-                            campos
-                            marcados con asterisco (*) son obligatorios.</small>
+
+                    <div class="col-12">
+                        <div class="row">
+
+                            <div class="col-md-6 text-left">
+                                <i class="fas fa-exclamation-circle text-warning leyenda-required"></i>
+                                <small class="leyenda-required">
+                                    Los campos marcados con (*) son obligatorios.
+                                </small>
+                            </div>
+
+                            <div class="col-md-6 text-md-right text-center mt-2 mt-md-0">
+
+                                <button type="submit" class="btn btn-success btn-sm" form="frmEnvio">
+                                    <i class="fas fa-save text-white"></i> Guardar
+                                </button>
+
+                                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">
+                                    <i class="fas fa-times text-white"></i> Cerrar
+                                </button>
+
+                            </div>
+
+                        </div>
                     </div>
-                    <div class="col-md-6 text-right">
-                        <button type="submit" class="btn btn-success btn-sm" form="frmEnvio" style="color:white;"><i
-                                class="fa fa-save"></i> Guardar</button>
-                        <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i
-                                class="fa fa-times"></i> Cerrar</button>
-                    </div>
+
                 </div>
+
             </div>
         </div>
     </div>
@@ -780,7 +832,7 @@ export default {
             this.formEnvio.obs_despacho = this.obs_despacho;
             this.formEnvio.tipo_pago_envio = this.tipo_pago_envio;
 
-            console.log(this.mode,'MODE')
+            console.log(this.mode, 'MODE')
             if (this.mode == "create") {
                 this.hayDatosEnvio = true;
                 this.$emit('addDataEnvio', this.formEnvio);
@@ -871,7 +923,7 @@ export default {
         async consultarAPI() {
             try {
                 let documento = this.destinatario.nro_documento;
-                let url = route('utilidades.consultarDocumento', { tipo_doc: 6, nro_doc: documento });
+                let url = route('utilidades.consultarDocumento', { type_identity_document: 6, nro_document: documento });
 
                 const res = await this.axios.get(url);
 
@@ -1049,6 +1101,40 @@ export default {
     }
 }
 </script>
+
+<style>
+.icon-header-envio {
+    font-size: 20px;
+}
+
+@media (max-width: 992px) {
+    .icon-header-envio {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 768px) {
+    .icon-header-envio {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 992px) {
+
+    #modal_envio .modal-body {
+        padding: 18px;
+    }
+
+    #modal_envio .form-group {
+        margin-bottom: 14px;
+    }
+
+    #modal_envio label {
+        font-size: 13px;
+    }
+
+}
+</style>
 <style lang="scss">
 div.content_cliente {
     position: relative;
