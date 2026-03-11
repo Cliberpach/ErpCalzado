@@ -1206,8 +1206,8 @@ array:27 [
         $tipos_pago_envio   =   UtilidadesController::getTiposPagoEnvio();
 
         $tipos_envio        =   UtilidadesController::getTiposEnvio();
-        $tipos_documento    =   UtilidadesController::getTiposDocumento();
         $cuentas            =   UtilidadesController::getCuentas();
+        $tipo_clientes      =   UtilidadesController::getTiposClientes();
 
         return view('ventas.documentos.editar.edit', [
             'documento'         =>  $documento,
@@ -1224,7 +1224,7 @@ array:27 [
             'sede'              =>  $sede,
             'cliente'           =>  $cliente,
             'tipos_documento'   =>  tipos_documento(),
-            'tipo_clientes'     =>  tipo_clientes(),
+            'tipo_clientes'     =>  $tipo_clientes,
             'tipos_venta'       =>  $tipos_venta,
             'origenes_ventas'   =>  $origenes_ventas,
             'tipos_envio'       =>  $tipos_envio,

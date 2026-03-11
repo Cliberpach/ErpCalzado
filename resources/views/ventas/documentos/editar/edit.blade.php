@@ -128,7 +128,10 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
 
-        dtStocksVenta = iniciarDataTable('table-stocks',{ lengthChange: false, pageLength: 100 });
+        dtStocksVenta = iniciarDataTable('table-stocks', {
+            lengthChange: false,
+            pageLength: 100
+        });
         dtDetalleVenta = iniciarDataTable('table-detalle');
 
         events();
@@ -907,12 +910,12 @@
         const color_nombre = ic.getAttribute('data-color-nombre');
         const talla_id = ic.getAttribute('data-talla-id');
         const talla_nombre = ic.getAttribute('data-talla-nombre');
-        const precio_venta = $('#precio_venta').find('option:selected').text();
+        const precio_venta = parseFloat($('#precio_venta').select2('data')[0].element.data.sale_price);
         const cantidad = parseFloat(ic.value ? ic.value : 0);
 
         const monto_descuento = 0.0;
         const porcentaje_descuento = 0.0;
-        const precio_venta_nuevo = 0.0;
+        const precio_venta_nuevo = parseFloat($('#precio_venta').select2('data')[0].element.data.sale_price);
         const subtotal_nuevo = 0.0;
 
         const producto = {
@@ -968,10 +971,15 @@
                     producto_id
                 }));
                 if (res.data.success) {
+                    const data = res.data.data;
                     destruirDataTable(dtStocksVenta);
-                    pintarTableStocks(res.data.producto_color_tallas);
-                    dtStocksVenta = iniciarDataTable('table-stocks',{ lengthChange: false, pageLength: 100 });
-                    pintarPreciosVenta(res.data.producto_color_tallas);
+                    limpiarTabla('table-stocks');
+                    pintarTableStocks(data.producto_color_tallas);
+                    dtStocksVenta = iniciarDataTable('table-stocks', {
+                        lengthChange: false,
+                        pageLength: 100
+                    });
+                    pintarPreciosVenta(data.precios_venta);
                     //loadCarrito();
                     //loadPrecioVentaProductoCarrito(producto_id);
                 } else {
@@ -986,31 +994,6 @@
             destruirDataTable(dtStocksVenta);
             limpiarTabla('table-stocks');
             dtStocksVenta = iniciarDataTable('table-stocks');
-            ocultarAnimacion();
-        }
-    }
-
-
-    //======= CARGAR STOCKS LOGICOS DE PRODUCTOS POR MODELO =======
-    async function getProductosByModelo(idModelo) {
-        mostrarAnimacion();
-        modelo_id = idModelo;
-        btnAgregarDetalle.disabled = true;
-
-        if (modelo_id) {
-            try {
-                const url = `/get-producto-by-modelo/${modelo_id}`;
-                const response = await axios.get(url);
-                console.log(response.data);
-                pintarTableStocks(response.data.stocks, tallasBD, response.data.producto_colores);
-                loadCantPrevias();
-            } catch (error) {
-                console.error('Error al obtener productos por modelo:', error);
-            } finally {
-                ocultarAnimacion();
-            }
-        } else {
-            tableStocksBody.innerHTML = ``;
             ocultarAnimacion();
         }
     }
@@ -1182,38 +1165,31 @@
     }
 
     //======= PINTAR PRECIOS VENTA =======
-    function pintarPreciosVenta(producto_color_tallas) {
+    function pintarPreciosVenta(preciosVenta) {
         //======= LIMPIAR SELECT2 DE PRODUCTOS ======
         $('#precio_venta').empty();
 
         //====== LLENAR =======
+        preciosVenta.forEach((pv) => {
 
-        if (producto_color_tallas) {
-            if (producto_color_tallas.precio_venta_1 != null) {
-                const option_1 = new Option(producto_color_tallas.precio_venta_1, 'precio_venta_1', false, false);
-                $('#precio_venta').append(option_1);
+            if (pv.sale_price && pv.sale_price > 0) {
+                const option = new Option(pv.text, pv.name_column, false, false);
+                option.data = pv;
+                $('#precio_venta').append(option);
             }
+        })
 
-            if (producto_color_tallas.precio_venta_2 != null) {
-                const option_2 = new Option(producto_color_tallas.precio_venta_2, 'precio_venta_2', false, false);
-                $('#precio_venta').append(option_2);
-            }
 
-            if (producto_color_tallas.precio_venta_3 != null) {
-                const option_3 = new Option(producto_color_tallas.precio_venta_3, 'precio_venta_3', false, false);
-                $('#precio_venta').append(option_3);
-            }
-        }
-
-        // Refrescar Select2
         $('#precio_venta').trigger('change');
     }
 
     //========= PINTAR TABLA STOCKS ==========
     const pintarTableStocks = (producto) => {
         let filas = ``;
-        const tableStocksBody = document.querySelector('#table-stocks tbody');
+        const tallasConStock = getTallasConStock(tallasBD, producto.colores);
+        pintarHeadTableStocks(tallasConStock);
 
+        const tableStocksBody = document.querySelector('#table-stocks tbody');
         producto.colores.forEach((color) => {
             filas += `
                 <tr>
@@ -1223,36 +1199,40 @@
                     <th scope="row">${color.nombre}</th>
             `;
 
-            color.tallas.forEach((talla) => {
-                if (talla.stock_logico == 0) {
+            tallasConStock.forEach((tallaConStock) => {
+
+                const tallaColor = color.tallas.find(ct => ct.id == tallaConStock.id);
+                const stockLogico = tallaColor?.stock_logico || 0;
+
+                if (stockLogico == 0) {
                     filas += `
                         <td style="background-color: rgb(210, 242, 242);">
-                            <p style="margin:0;width:20px;text-align:center;">${talla.stock_logico}</p>
+                            <p style="margin:0;width:20px;text-align:center;">${stockLogico}</p>
                         </td>
                           <td width="8%">
                             <input style="width:50px;text-align:center;border: 2px solid #207ebc;" type="text" class="form-control inputCantidad"
-                                id="inputCantidad_${producto.id}_${color.id}_${talla.id}"
+                                id="inputCantidad_${producto.id}_${color.id}_${tallaColor.id}"
                                 data-producto-id="${producto.id}"
                                 data-producto-nombre="${producto.nombre}"
                                 data-color-nombre="${color.nombre}"
-                                data-talla-nombre="${talla.nombre}"
-                                data-color-id="${color.id}" data-talla-id="${talla.id}"
+                                data-talla-nombre="${tallaColor.nombre}"
+                                data-color-id="${color.id}" data-talla-id="${tallaColor.id}"
                                 data-producto-codigo="${producto.codigo}">
                         </td>
                     `;
                 } else {
                     filas += `
                         <td style="background-color: rgb(210, 242, 242);">
-                            <p style="margin:0;width:20px;text-align:center;font-weight:bold;">${talla.stock_logico}</p>
+                            <p style="margin:0;width:20px;text-align:center;font-weight:bold;">${stockLogico}</p>
                         </td>
                         <td width="8%">
                             <input style="width:50px;text-align:center;border: 2px solid #207ebc;" type="text" class="form-control inputCantidad"
-                                id="inputCantidad_${producto.id}_${color.id}_${talla.id}"
+                                id="inputCantidad_${producto.id}_${color.id}_${tallaColor.id}"
                                 data-producto-id="${producto.id}"
                                 data-producto-nombre="${producto.nombre}"
                                 data-color-nombre="${color.nombre}"
-                                data-talla-nombre="${talla.nombre}"
-                                data-color-id="${color.id}" data-talla-id="${talla.id}"
+                                data-talla-nombre="${tallaColor.nombre}"
+                                data-color-id="${color.id}" data-talla-id="${tallaColor.id}"
                                 data-producto-codigo="${producto.codigo}">
                         </td>
                     `;
@@ -1263,6 +1243,40 @@
         });
 
         tableStocksBody.innerHTML = filas;
+    }
+
+    function pintarHeadTableStocks(tallasConStock) {
+        const tblProductosHead = document.querySelector('#table-stocks thead');
+        let head = `<tr>
+                            <th scope="col">PRODUCTO</th>
+                            <th scope="col">COLOR</th>`;
+
+        tallasConStock.forEach((t) => {
+            head += `
+                <th style="background-color: rgb(210, 242, 242);"  scope="col" data-talla=${t.id}>${t.descripcion}</th>
+                <th>CANT</th>`;
+        })
+
+        head += `</tr>`;
+
+        tblProductosHead.innerHTML = head;
+    }
+
+    function getTallasConStock(tallas, productoColores) {
+        let tallasConStock = [];
+
+        tallas.forEach((t) => {
+            const stockTotal = productoColores
+                .flatMap(c => c.tallas)
+                .filter(ct => ct.id == t.id)
+                .reduce((total, ct) => total + Number(ct.stock_logico || 0), 0);
+
+            if (stockTotal > 0) {
+                tallasConStock.push(t);
+            }
+        });
+
+        return tallasConStock;
     }
 
     //============== PINTAR DETALLE ===========
@@ -1425,7 +1439,7 @@
 
             document.querySelector('.btn-guardar-envio').click();
             activarEventosSelectsMdlEnvio();
-        }else{
+        } else {
             window.tipoEnvioSelect.setValue(187);
         }
 

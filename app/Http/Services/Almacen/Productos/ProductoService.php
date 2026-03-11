@@ -7,17 +7,20 @@ use App\Almacenes\Producto;
 use App\Almacenes\ProductoColor;
 use App\Almacenes\ProductoColorTalla;
 use App\Almacenes\Talla;
+use App\Http\Services\Almacen\Tallas\TallaService;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ProductoService
 {
+    private ProductoMapper $s_mapper;
     private ProductoRepository $s_repository;
 
     public function __construct()
     {
         $this->s_repository =   new ProductoRepository();
+        $this->s_mapper     =   new ProductoMapper();
     }
 
     public function registrar(array $datos): Producto
@@ -263,5 +266,25 @@ class ProductoService
     public function getPreciosVenta(int $producto_id)
     {
         return $this->s_repository->getPreciosVenta($producto_id);
+    }
+
+    public function getColoresTalla(int $almacen_id, int $producto_id)
+    {
+        $s_talla        =   new TallaService();
+
+        $precios_venta  =   $this->getPreciosVenta($producto_id);
+        $colores        =   $this->getProductoColores($almacen_id, $producto_id);
+        $stocks         =   $this->getProductoStocks($almacen_id, $producto_id);
+        $tallas         =   $s_talla->getTallas();
+
+        $producto_color_tallas  =   null;
+        if (count($colores) > 0) {
+            $producto_color_tallas  =   $this->s_mapper->formatearColoresTallas($colores, $stocks, $tallas);
+        }
+
+        return (object)[
+            'producto_color_tallas' =>  $producto_color_tallas,
+            'precios_venta'        =>  $precios_venta
+        ];
     }
 }
