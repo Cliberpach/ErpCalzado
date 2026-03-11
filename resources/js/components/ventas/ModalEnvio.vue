@@ -10,7 +10,7 @@
                         <span>&times;</span>
                     </button>
 
-                    <div class="d-flex align-items-center justify-content-center">
+                    <div class="d-flex align-items-center">
                         <i class="fas fa-truck text-primary mr-2 icon-header-envio"></i>
 
                         <div>
@@ -46,7 +46,7 @@
 
                                 <div class="row mt-2">
 
-                                    <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="col-12 col-md-6 col-lg-4">
                                         <div class="form-group">
                                             <label class="required" style="font-weight:bold;">
                                                 <i class="fas fa-map text-primary"></i> DEPARTAMENTO
@@ -60,7 +60,7 @@
                                         <span class="departamento_error msgError"></span>
                                     </div>
 
-                                    <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="col-12 col-md-6 col-lg-4">
                                         <div class="form-group">
                                             <label class="required" style="font-weight:bold;">
                                                 <i class="fas fa-city text-info"></i> PROVINCIA
@@ -74,7 +74,7 @@
                                         <span class="provincia_error msgError"></span>
                                     </div>
 
-                                    <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="col-12 col-md-6 col-lg-4">
                                         <div class="form-group">
                                             <label class="required" style="font-weight:bold;">
                                                 <i class="fas fa-location-arrow text-success"></i> DISTRITO
@@ -94,7 +94,7 @@
                                 <!-- TIPO ENVIO -->
                                 <div class="row">
 
-                                    <div class="col-12 col-sm-6">
+                                    <div class="col-12 col-md-6">
                                         <label class="required" style="font-weight:bold;">
                                             <i class="fas fa-shipping-fast text-primary"></i> TIPO DE ENVÍO
                                         </label>
@@ -106,7 +106,7 @@
                                         <span class="tipo_envio_error msgError"></span>
                                     </div>
 
-                                    <div class="col-12 col-sm-6">
+                                    <div class="col-12 col-md-6">
                                         <label class="required" style="font-weight:bold;">
                                             <i class="fas fa-money-bill-wave text-success"></i> TIPO PAGO
                                         </label>
@@ -123,7 +123,7 @@
                                 <!-- EMPRESA -->
                                 <div class="row mt-4">
 
-                                    <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="col-12 col-md-6 col-lg-4">
                                         <label class="required" style="font-weight:bold;">
                                             <i class="fas fa-building text-secondary"></i> EMPRESAS
                                         </label>
@@ -136,7 +136,7 @@
                                         <span class="empresa_envio_error msgError"></span>
                                     </div>
 
-                                    <div class="col-12 col-sm-6 col-md-8 mt-3 mt-sm-0" v-if="mostrar_combo_sedes">
+                                    <div class="col-12 col-md-6 col-lg-8 mt-3 mt-md-0" v-if="mostrar_combo_sedes">
 
                                         <label class="required" style="font-weight:bold;">
                                             <i class="fas fa-warehouse text-dark"></i> SEDES
@@ -155,6 +155,55 @@
 
                                 <hr>
 
+                                <!-- ORIGEN / FECHA / OBS -->
+                                <div class="row">
+
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <label style="font-weight:bold;">
+                                            <i class="fas fa-store text-info"></i> ORIGEN VENTA
+                                        </label>
+
+                                        <v-select placeholder="SELECCIONAR" v-model="origen_venta"
+                                            :options="origenes_ventas" :reduce="ov => ov.id" label="descripcion"
+                                            :clearable="false">
+                                        </v-select>
+
+                                        <span class="origen_venta_error msgError"></span>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <label style="font-weight:bold;">
+                                            <i class="fas fa-calendar text-primary"></i> FECHA ENVÍO
+                                        </label>
+
+                                        <input id="fecha_envio" v-model="fecha_envio" type="date" class="form-control">
+
+                                        <span class="fecha_envio_error msgError"></span>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <label style="font-weight:bold;">
+                                            <i class="fas fa-tag text-secondary"></i> OBS RÓTULO
+                                        </label>
+
+                                        <textarea maxlength="35" id="obs_rotulo" v-model="obs_rotulo"
+                                            class="form-control">
+                                        </textarea>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <label style="font-weight:bold;">
+                                            <i class="fas fa-truck-loading text-primary"></i> OBS DESPACHO
+                                        </label>
+
+                                        <textarea id="obs_despacho" v-model="obs_despacho" class="form-control">
+                                        </textarea>
+                                    </div>
+
+                                </div>
+
+                                <hr>
+
                                 <!-- DESTINATARIO -->
                                 <label style="font-weight:bold;">
                                     <i class="fas fa-user text-info"></i> DATOS DEL DESTINATARIO
@@ -162,7 +211,7 @@
 
                                 <div class="row">
 
-                                    <div class="col-12 col-sm-6 col-md-3">
+                                    <div class="col-12 col-md-6 col-lg-3">
                                         <label class="required" style="font-weight:bold;">
                                             <i class="fas fa-id-card text-primary"></i> TIPO DOC
                                         </label>
@@ -172,7 +221,7 @@
                                         </v-select>
                                     </div>
 
-                                    <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="col-12 col-md-6 col-lg-4">
 
                                         <label class="required" style="font-weight:bold;">
                                             <i class="fas fa-hashtag text-secondary"></i>
@@ -199,7 +248,7 @@
 
                                     </div>
 
-                                    <div class="col-12 col-md-5">
+                                    <div class="col-12 col-lg-5">
 
                                         <label class="required" style="font-weight:bold;">
                                             <i class="fas fa-user-tag text-info"></i> NOMBRES
