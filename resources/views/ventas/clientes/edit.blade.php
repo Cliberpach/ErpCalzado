@@ -62,9 +62,16 @@
 
 @push('scripts')
 <script src="{{ mix('js/tomselect.js') }}"></script>
+<link rel="stylesheet" href="{{ mix('css/filepond.css') }}">
+<script src="{{ mix('js/filepond.js') }}"></script>
 <script>
+    const paramsCustomerEdit = {
+        fpImg: null
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         loadSelectCustomers();
+        loadFpCustomerEdit();
         events();
         fijarUbigeo();
         configuracionInicial();
@@ -264,7 +271,7 @@
 
     function configuracionInicial() {
         /*
-            const controlCredito = @json($customer->control_credito) == 1 ? true : false;
+            const controlCredito = @json($cliente->control_credito) == 1 ? true : false;
             const chkPermitirCredito = document.querySelector('#control_credito');
             chkPermitirCredito.checked = controlCredito;
             chkPermitirCredito.dispatchEvent(new Event('change'));
@@ -297,7 +304,7 @@
 
                 try {
 
-                    const id = @json($customer->id);
+                    const id = @json($cliente->id);
                     const token = document.querySelector('input[name="_token"]').value;
                     const formupdate = document.querySelector('#formActualizarCliente');
                     const formData = new FormData(formupdate);
@@ -526,7 +533,7 @@ ubigeo:
     }
 
     function fijarUbigeo() {
-        const cliente = @json($customer);
+        const cliente = @json($cliente);
         if (cliente.departamento_id) {
             const departmentId = String(parseInt(cliente.departamento_id));
             window.departmentSelect.setValue(departmentId);
@@ -539,6 +546,38 @@ ubigeo:
             const districtId = String(parseInt(cliente.distrito_id));
             window.districtSelect.setValue(districtId);
         }
+    }
+
+    function loadFpCustomerEdit() {
+        const inputImg = document.querySelector('#logo');
+
+        paramsCustomerEdit.fpImg = FilePond.create(inputImg, {
+            allowImagePreview: true,
+            imagePreviewHeight: 120,
+            imageCropAspectRatio: '1:1',
+            styleLayout: 'compact',
+            stylePanelAspectRatio: 0.5,
+            storeAsFile: true,
+
+            allowFileTypeValidation: true,
+            acceptedFileTypes: [
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+                'image/avif'
+            ],
+
+            allowFileSizeValidation: true,
+            maxFileSize: '2MB',
+
+            labelIdle: 'Arrastra una imagen o <span class="filepond--label-action">Buscar</span>',
+
+            labelFileTypeNotAllowed: 'Solo se permiten imágenes PNG, JPG, WEBP o AVIF',
+            fileValidateTypeLabelExpectedTypes: 'Formatos válidos: PNG, JPG, WEBP, AVIF',
+
+            labelMaxFileSizeExceeded: 'El archivo es demasiado grande',
+            labelMaxFileSize: 'El tamaño máximo permitido es 2 MB'
+        });
     }
 </script>
 @endpush

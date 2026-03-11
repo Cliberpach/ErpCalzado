@@ -90,7 +90,51 @@ class ClienteStoreRequest extends FormRequest
                 'size:6',
                 Rule::exists('distritos', 'id'),
             ],
-            // 'limite_credito' => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99']
+
+
+            /* -------- CAMPOS ADICIONALES -------- */
+            'direccion_negocio' => ['nullable', 'string', 'max:191'],
+
+            'fecha_aniversario' => [
+                'nullable',
+                'sometimes',
+                'date'
+            ],
+
+            'observaciones' => ['nullable', 'string'],
+
+            'facebook' => ['nullable', 'string', 'max:191'],
+
+            'instagram' => ['nullable', 'string', 'max:191'],
+
+            'web' => ['nullable', 'string', 'max:191'],
+
+            'hora_inicio' => ['nullable', 'string', 'max:191'],
+
+            'hora_termino' => ['nullable', 'string', 'max:191'],
+
+            'nombre_propietario' => ['nullable', 'string', 'max:191'],
+
+            'direccion_propietario' => ['nullable', 'string', 'max:191'],
+
+            'fecha_nacimiento_prop' => [
+                'nullable',
+                'date'
+            ],
+
+            'celular_propietario' => ['nullable', 'string', 'max:191'],
+
+            'correo_propietario' => ['nullable', 'email', 'max:191'],
+
+            'url_logo' => ['nullable', 'string', 'max:191'],
+
+            /* -------- IMAGEN -------- */
+            'logo' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp,avif',
+                'max:2048' // 2MB
+            ],
         ];
     }
 
@@ -130,7 +174,52 @@ class ClienteStoreRequest extends FormRequest
             'district.exists'       => 'El distrito seleccionado no es válido.',
 
             'type_customer.required' => 'El tipo de cliente es obligatorio.',
-            'type_customer.exists'   => 'El tipo de cliente seleccionado no existe o no está activo.'
+            'type_customer.exists'   => 'El tipo de cliente seleccionado no existe o no está activo.',
+
+            //========= CAMPOS EXTRA ==============
+
+            'direccion_negocio.string' => 'La dirección del negocio debe ser texto.',
+            'direccion_negocio.max' => 'La dirección del negocio no debe superar los 191 caracteres.',
+
+            'fecha_aniversario.date' => 'La fecha de aniversario debe tener un formato de fecha válido.',
+
+            'observaciones.string' => 'Las observaciones deben ser texto.',
+
+            'facebook.string' => 'El campo Facebook debe ser texto.',
+            'facebook.max' => 'El campo Facebook no debe superar los 191 caracteres.',
+
+            'instagram.string' => 'El campo Instagram debe ser texto.',
+            'instagram.max' => 'El campo Instagram no debe superar los 191 caracteres.',
+
+            'web.string' => 'El campo web debe ser texto.',
+            'web.max' => 'El campo web no debe superar los 191 caracteres.',
+
+            'hora_inicio.string' => 'La hora de inicio debe ser texto.',
+            'hora_inicio.max' => 'La hora de inicio no debe superar los 191 caracteres.',
+
+            'hora_termino.string' => 'La hora de término debe ser texto.',
+            'hora_termino.max' => 'La hora de término no debe superar los 191 caracteres.',
+
+            'nombre_propietario.string' => 'El nombre del propietario debe ser texto.',
+            'nombre_propietario.max' => 'El nombre del propietario no debe superar los 191 caracteres.',
+
+            'direccion_propietario.string' => 'La dirección del propietario debe ser texto.',
+            'direccion_propietario.max' => 'La dirección del propietario no debe superar los 191 caracteres.',
+
+            'fecha_nacimiento_prop.date' => 'La fecha de nacimiento del propietario debe ser una fecha válida.',
+
+            'celular_propietario.string' => 'El celular del propietario debe ser texto.',
+            'celular_propietario.max' => 'El celular del propietario no debe superar los 191 caracteres.',
+
+            'correo_propietario.email' => 'El correo del propietario debe tener un formato válido.',
+            'correo_propietario.max' => 'El correo del propietario no debe superar los 191 caracteres.',
+
+            'url_logo.string' => 'La URL del logo debe ser texto.',
+            'url_logo.max' => 'La URL del logo no debe superar los 191 caracteres.',
+
+            'logo.image' => 'El archivo del logo debe ser una imagen.',
+            'logo.mimes' => 'El logo debe ser un archivo de tipo: jpg, jpeg, png, webp o avif.',
+            'logo.max' => 'El logo no debe superar los 2MB.',
 
         ];
     }

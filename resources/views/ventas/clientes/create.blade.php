@@ -64,9 +64,16 @@
 
 @push('scripts')
 <script src="{{ mix('js/tomselect.js') }}"></script>
+<link rel="stylesheet" href="{{ mix('css/filepond.css') }}">
+<script src="{{ mix('js/filepond.js') }}"></script>
 <script>
+    const paramsCustomerCreate = {
+        fpImg: null
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         loadSelectCustomers();
+        loadFpCustomerCreate();
         events();
         configDefault();
     })
@@ -133,6 +140,38 @@
             }
         })
 
+    }
+
+    function loadFpCustomerCreate() {
+        const inputImg = document.querySelector('#logo');
+
+        paramsCustomerCreate.fpImg = FilePond.create(inputImg, {
+            allowImagePreview: true,
+            imagePreviewHeight: 120,
+            imageCropAspectRatio: '1:1',
+            styleLayout: 'compact',
+            stylePanelAspectRatio: 0.5,
+            storeAsFile: true,
+
+            allowFileTypeValidation: true,
+            acceptedFileTypes: [
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+                'image/avif'
+            ],
+
+            allowFileSizeValidation: true,
+            maxFileSize: '2MB',
+
+            labelIdle: 'Arrastra una imagen o <span class="filepond--label-action">Buscar</span>',
+
+            labelFileTypeNotAllowed: 'Solo se permiten imágenes PNG, JPG, WEBP o AVIF',
+            fileValidateTypeLabelExpectedTypes: 'Formatos válidos: PNG, JPG, WEBP, AVIF',
+
+            labelMaxFileSizeExceeded: 'El archivo es demasiado grande',
+            labelMaxFileSize: 'El tamaño máximo permitido es 2 MB'
+        });
     }
 
     function loadSelectCustomers() {
@@ -328,6 +367,8 @@
 
                 } catch (error) {
                     toastr.error(error, 'ERROR EN LA PETICIÓN REGISTRAR CLIENTE');
+                    Swal.close();
+                } finally {
                     Swal.close();
                 }
             } else if (result.dismiss === Swal.DismissReason.cancel) {

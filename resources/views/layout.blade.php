@@ -73,7 +73,9 @@
     <link href="https://cdn.datatables.net/v/bs4/dt-2.3.2/r-3.0.5/datatables.min.css" rel="stylesheet"
         integrity="sha384-57j+ilFSg5URotSQqwt2DpHtNkoi7sy+Qj1phKYVWmfSRDx3biVnhnx2mzJTEhu+" crossorigin="anonymous">
 
-    <link href="/Inspinia/css/bootstrap.min.css" rel="stylesheet">
+    {{-- <link href="/Inspinia/css/bootstrap.min.css" rel="stylesheet"> --}}
+    <link href="/css/bootstrap-4.6.2-dist/css/bootstrap.min.css" rel="stylesheet">
+
     {{-- <link href="/Inspinia/font-awesome/css/font-awesome.css" rel="stylesheet"> --}}
 
     <link href="/Inspinia/css/animate.css" rel="stylesheet">
@@ -444,7 +446,7 @@
     <script src="/Inspinia/js/popper.min.js"></script>
     <script src="/Inspinia/js/bootstrap.js"></script>
     <script src="/Inspinia/js/plugins/metisMenu/jquery.metisMenu.js"></script>
-     <script src="/Inspinia/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="/Inspinia/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
 
     <!-- Custom and plugin javascript -->
     <script src="/Inspinia/js/inspinia.js"></script>

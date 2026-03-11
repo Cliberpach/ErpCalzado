@@ -8,6 +8,7 @@ use App\Http\Controllers\UtilidadesController;
 use App\Http\Requests\Cliente\ClienteStoreFastRequest;
 use App\Http\Requests\Cliente\ClienteStoreRequest;
 use App\Http\Requests\Cliente\ClienteUpdateRequest;
+use App\Http\Services\Ventas\Clientes\ClienteManager;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Mantenimiento\Tabla\Detalle;
 use App\Mantenimiento\Ubigeo\Departamento;
@@ -26,6 +27,13 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ClienteController extends Controller
 {
+    private ClienteManager  $s_manager;
+
+    public function __construct()
+    {
+        $this->s_manager    =   new ClienteManager();
+    }
+
     public function index()
     {
         return view('ventas.clientes.index');
@@ -76,25 +84,41 @@ class ClienteController extends Controller
                 'departments',
                 'provinces',
                 'districts',
-                'tipos_documento'
+                'tipos_documento',
             )
         );
     }
 
 
-    /*
-array:11 [
-  "_token" => "jZJPbBDAGw1aLzQN7TuRbYGPm17cPrWwz5M5D6zh"
+/*
+array:25 [
+  "_token" => "d0jHqdxCtV7YSkPGywYyPAtFkF99PcqkYVfR4J17"
   "type_identity_document" => "6"
-  "nro_document" => "77664477"
-  "type_customer" => "4"
-  "name" => "test"
-  "address" => "AV. RIVERA NAVARRETE NRO. 501, LIMA - LIMA - SAN ISIDRO"
+  "nro_document" => "76477777"
+  "type_customer" => "1"
+  "name" => "CLIENTAZO"
+  "address" => "AV HUSARES 223"
   "phone" => null
   "email" => null
-  "department" => "09"
-  "province" => "0905"
-  "district" => "090509"
+  "department" => "08"
+  "province" => "0811"
+  "district" => "081103"
+
+  "direccion_negocio" => null
+  "fecha_aniversario" => "-"
+  "observaciones" => null
+  "facebook" => null
+  "instagram" => null
+  "web" => null
+  "hora_inicio" => null
+  "hora_termino" => null
+
+  "nombre_propietario" => null
+  "direccion_propietario" => null
+  "fecha_nacimiento_prop" => "-"
+  "celular_propietario" => null
+  "correo_propietario" => null
+  logo" => Illuminate\Http\UploadedFile {#1985}
 ]
 */
     public function store(ClienteStoreRequest $request)
@@ -102,29 +126,7 @@ array:11 [
         DB::beginTransaction();
         try {
 
-            $type_customer                  =   TipoCliente::findOrFail($request->get('type_customer'));
-            $distrito                       =   Distrito::findOrFail($request->get('district'));
-            $departamento                   =   Departamento::findOrFail($request->get('department'));
-            $tipo_documento                 =   Detalle::findOrfail($request->get('type_identity_document'));
-
-            $cliente                        =   new Cliente();
-            $cliente->tipo_documento_id     =   $tipo_documento->id;
-            $cliente->tipo_documento        =   $tipo_documento->simbolo;
-
-            $cliente->documento             =   $request->get('nro_document');
-            $cliente->tipo_cliente_id       =   $type_customer->id;
-            $cliente->tipo_cliente_nombre   =   $type_customer->nombre;
-            $cliente->nombre                =   mb_strtoupper($request->get('name'), 'UTF-8');
-            $cliente->codigo                =   $distrito->id;
-            $cliente->zona                  =   $departamento->zona;
-
-            $cliente->departamento_id       =   $request->get('department');
-            $cliente->provincia_id          =   $request->get('province');
-            $cliente->distrito_id           =   $request->get('district');
-            $cliente->direccion             =   $request->get('address');
-            $cliente->correo_electronico    =   $request->get('email');
-            $cliente->telefono_movil        =   $request->get('phone');
-            $cliente->save();
+            $cliente    =   $this->s_manager->store($request->toArray());
 
             //Registro de actividad
             $descripcion    =   "SE AGREGÓ EL CLIENTE CON EL NOMBRE: " . $cliente->nombre;
@@ -147,14 +149,14 @@ array:11 [
 
     public function edit($id)
     {
-        $customer           =   Cliente::findOrFail($id);
+        $cliente           =   Cliente::findOrFail($id);
         $tipos_clientes     =   UtilidadesController::getTiposClientes();
         $departments        =   Departamento::all();
         $provinces          =   Provincia::all();
         $districts          =   Distrito::all();
         $tipos_documento    =   tipos_documento();
         return view('ventas.clientes.edit', [
-            'customer' => $customer,
+            'cliente'           => $cliente,
             'tipos_clientes'    =>  $tipos_clientes,
             'departments'       =>  $departments,
             'provinces'         =>  $provinces,
