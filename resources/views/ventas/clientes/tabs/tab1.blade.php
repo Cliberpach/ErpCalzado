@@ -22,7 +22,8 @@
                 </button>
             </div>
             <input required @if (isset($cliente) && !in_array($cliente->tipo_documento_id, [6, 8])) readonly @endif id="nro_document" name="nro_document"
-                type="text" class="form-control" placeholder="Nro de Documento">
+                type="text" class="form-control" placeholder="Nro de Documento"
+                @if (isset($cliente)) value="{{ $cliente->documento }}"@else value="" @endif>
         </div>
         <span class="nro_document_error msgError text-danger"></span>
     </div>
@@ -50,7 +51,9 @@
             </div>
             <input required id="name" maxlength="160" name="name" type="text" class="form-control"
                 placeholder="Nombre"
-                >
+                @if (isset($cliente)) value="{{ $cliente->nombre }}"
+                        @else
+                            value="" @endif>
         </div>
         <span class="name_error msgError text-danger"></span>
     </div>
@@ -64,7 +67,10 @@
                 </span>
             </div>
             <input maxlength="160" id="address" name="address" type="text" class="form-control"
-                placeholder="Dirección">
+                placeholder="Dirección"
+                @if (isset($cliente)) value="{{ $cliente->direccion }}"
+                        @else
+                            value="" @endif>
         </div>
         <span class="address_error msgError text-danger"></span>
     </div>
@@ -78,7 +84,10 @@
                 </span>
             </div>
             <input maxlength="20" id="phone" name="phone" type="text" class="form-control"
-                placeholder="Teléfono">
+                placeholder="Teléfono"
+                @if (isset($cliente)) value="{{ $cliente->telefono_movil }}"
+                        @else
+                            value="" @endif>
         </div>
         <span class="phone_error msgError text-danger"></span>
     </div>
@@ -92,7 +101,10 @@
                 </span>
             </div>
             <input maxlength="160" id="email" name="email" type="email" class="form-control"
-                placeholder="Correo">
+                placeholder="Correo"
+                @if (isset($cliente)) value="{{ $cliente->correo_electronico }}"
+                        @else
+                            value="" @endif>
         </div>
         <span class="email_error msgError text-danger"></span>
     </div>
@@ -101,8 +113,8 @@
 
     <div class="col-lg-4 col-md-6 col-sm-12 mb-2">
         <label class="font-weight-bold">DEPARTAMENTO</label>
-        <select name="department" class="form-control" id="department" data-placeholder="Seleccionar">
-            <option></option>
+        <select required name="department" class="form-control" id="department" data-placeholder="Seleccionar">
+            <option value=""></option>
             @foreach ($departments as $departamento)
                 <option value="{{ $departamento->id }}">
                     {{ $departamento->nombre }}
@@ -114,16 +126,16 @@
 
     <div class="col-lg-4 col-md-6 col-sm-12 mb-2">
         <label class="font-weight-bold">PROVINCIA</label>
-        <select name="province" class="form-control select2_cliente" id="province" data-placeholder="Seleccionar">
-            <option></option>
+        <select required name="province" class="form-control" id="province" data-placeholder="Seleccionar">
+            <option value=""></option>
         </select>
         <span class="province_error msgError text-danger"></span>
     </div>
 
     <div class="col-lg-4 col-md-6 col-sm-12 mb-2">
         <label class="font-weight-bold">DISTRITO</label>
-        <select name="district" class="form-control select2_cliente" id="district" data-placeholder="Seleccionar">
-            <option></option>
+        <select required name="district" class="form-control" id="district" data-placeholder="Seleccionar">
+            <option value=""></option>
         </select>
         <span class="district_error msgError text-danger"></span>
     </div>

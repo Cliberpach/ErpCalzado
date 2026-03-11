@@ -79,20 +79,6 @@
 
     function events() {
 
-        //===== CHECK PERMITIR VENTAS AL CRÉDITO =======
-        /*document.querySelector('#control_credito').addEventListener('change', (e) => {
-            const marcado = e.target.checked;
-            const inputLimite = document.querySelector('#limite_credito');
-            if (marcado) {
-                inputLimite.readOnly = false;
-                inputLimite.classList.add('colorReadOnly');
-            } else {
-                inputLimite.readOnly = true;
-                inputLimite.classList.remove('colorReadOnly');
-                inputLimite.value = 0;
-            }
-        })*/
-
         window.departmentSelect.on('change', function(value) {
             changeDepartment(value);
         });
@@ -129,6 +115,7 @@
 
         document.querySelector('#formActualizarCliente').addEventListener('submit', (e) => {
             e.preventDefault();
+            if (!validationFormCreate(e.target)) return;
             update();
         })
 
@@ -343,6 +330,8 @@
 
                 } catch (error) {
                     toastr.error(error, 'ERROR EN LA PETICIÓN ACTUALIZAR CLIENTE');
+                    Swal.close();
+                } finally {
                     Swal.close();
                 }
 
@@ -578,6 +567,47 @@ ubigeo:
             labelMaxFileSizeExceeded: 'El archivo es demasiado grande',
             labelMaxFileSize: 'El tamaño máximo permitido es 2 MB'
         });
+
+        if (!paramsCustomerEdit.fpImg) return;
+        paramsCustomerEdit.fpImg.removeFiles();
+        const customer = @json($cliente);
+        if (customer.ruta_logo) {
+            paramsCustomerEdit.fpImg.addFile(
+                @json(asset('storage')) + '/' + customer.ruta_logo
+            );
+        }
+    }
+
+    function validationFormCreate(form) {
+        if (!form.checkValidity()) {
+
+            const firstInvalid = form.querySelector(':invalid');
+
+            if (firstInvalid) {
+
+                const tabPane = firstInvalid.closest('.tab-pane');
+                if (tabPane) {
+
+                    const tabId = tabPane.id;
+                    const tabButton = document.querySelector(`[data-target="#${tabId}"]`);
+
+                    if (tabButton) {
+                        tabButton.click();
+
+                        setTimeout(() => {
+                            firstInvalid.focus();
+                            firstInvalid.reportValidity();
+                        }, 200);
+                    }
+                }
+
+                firstInvalid.focus();
+                firstInvalid.reportValidity();
+            }
+
+            return false;
+        }
+        return true;
     }
 </script>
 @endpush

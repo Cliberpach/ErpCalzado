@@ -63,17 +63,27 @@
 @endsection
 
 @push('scripts')
+<script type="text/javascript"
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAS6qv64RYCHFJOygheJS7DvBDYB0iV2wI&libraries=geometry">
+</script>
 <script src="{{ mix('js/tomselect.js') }}"></script>
 <link rel="stylesheet" href="{{ mix('css/filepond.css') }}">
 <script src="{{ mix('js/filepond.js') }}"></script>
+
 <script>
     const paramsCustomerCreate = {
-        fpImg: null
+        fpImg: null,
+        departamento_api: '',
+        provincia_api: '',
+        distrito_api: '',
+        map: null,
+        onemarker: 0
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         loadSelectCustomers();
         loadFpCustomerCreate();
+        //loadMap();
         events();
         configDefault();
     })
@@ -128,10 +138,13 @@
 
         })
 
-        document.querySelector('#formRegistrarCliente').addEventListener('submit', (e) => {
+        document.querySelector('#formRegistrarCliente').addEventListener('submit', function(e) {
+
+            const form = this;
             e.preventDefault();
+            if (!validationFormCreate(form)) return;
             storeCustomer();
-        })
+        });
 
         document.addEventListener('click', (e) => {
             if (e.target.closest('.btnVolver')) {
@@ -555,6 +568,53 @@
             );
             window.districtSelect.refreshOptions(false);
         }
+    }
+
+    function loadMap() {
+        paramsCustomerCreate.map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 12,
+            center: {
+                lat: -8.1092027,
+                lng: -79.0244529
+            },
+            gestureHandling: "greedy",
+            zoomControl: false,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+        });
+    }
+
+    function validationFormCreate(form) {
+        if (!form.checkValidity()) {
+
+            const firstInvalid = form.querySelector(':invalid');
+
+            if (firstInvalid) {
+
+                const tabPane = firstInvalid.closest('.tab-pane');
+                if (tabPane) {
+
+                    const tabId = tabPane.id;
+                    const tabButton = document.querySelector(`[data-target="#${tabId}"]`);
+
+                    if (tabButton) {
+                        tabButton.click();
+
+                        setTimeout(() => {
+                            firstInvalid.focus();
+                            firstInvalid.reportValidity();
+                        }, 200);
+                    }
+                }
+
+                firstInvalid.focus();
+                firstInvalid.reportValidity();
+            }
+
+            return false;
+        }
+        return true;
     }
 </script>
 @endpush

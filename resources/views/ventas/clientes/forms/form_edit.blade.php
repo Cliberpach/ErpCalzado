@@ -1,4 +1,4 @@
-<form action="" id="formActualizarCliente" method="post">
+<form action="" id="formActualizarCliente" method="post" novalidate>
     @csrf
     <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
         <li class="nav-item" role="presentation">

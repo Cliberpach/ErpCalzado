@@ -32,12 +32,12 @@ class ClienteService
         $dto        =   $this->s_dto->getDtoStore($data);
         $instance   =   $this->s_repository->update($dto, $id);
 
-        /*if (!empty($data['imagen'])) {
+        if (!empty($data['logo'])) {
             $this->deleteimg($instance);
-            $this->saveImg($data['imagen'], $instance);
+            $this->saveImg($data['logo'], $instance);
         } else {
             $this->deleteImg($instance);
-        }*/
+        }
 
         return $instance;
     }

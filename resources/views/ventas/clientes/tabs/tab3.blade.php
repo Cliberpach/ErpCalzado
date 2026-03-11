@@ -52,7 +52,8 @@
                             </div>
 
                             <input type="date" id="fecha_nacimiento_prop" name="fecha_nacimiento_prop"
-                                class="form-control" value="">
+                                class="form-control"
+                                @if (isset($cliente)) value="{{ $cliente->fecha_nacimiento_prop }}"@else value="" @endif>
 
                         </div>
 
@@ -88,7 +89,9 @@
                     </label>
 
                     <input type="email" id="correo_propietario" name="correo_propietario" class="form-control"
-                        value="">
+                        @if (isset($cliente)) value="{{ $cliente->correo_propietario }}"
+                        @else
+                            value="" @endif>
 
                     <span class="correo_propietario_error msgError text-danger"></span>
 
@@ -102,7 +105,7 @@
 
         <div class="row">
 
-            <div class="col-lg-6">
+            {{-- <div class="col-lg-6">
 
                 <div class="row">
 
@@ -114,23 +117,19 @@
                     </div>
 
                     <div class="col-lg-12">
-                        <div id="map" style="width:350px;height:300px;"></div>
+                        <div id="map" style="width:100%;height:300px;"></div>
                     </div>
 
                 </div>
 
-            </div>
-
-
+            </div> --}}
 
             <div class="col-lg-6">
                 <label id="logo_label">
                     <i class="fas fa-image text-info"></i> Imagen
                 </label>
 
-
                 <input id="logo" type="file" name="logo" class="form-control" accept="image/*">
-
 
                 <span class="logo_error msgError text-danger"></span>
             </div>

@@ -90,7 +90,7 @@ class ClienteController extends Controller
     }
 
 
-/*
+    /*
 array:25 [
   "_token" => "d0jHqdxCtV7YSkPGywYyPAtFkF99PcqkYVfR4J17"
   "type_identity_document" => "6"
@@ -166,18 +166,32 @@ array:25 [
     }
 
     /*
-array:11 [
-  "_token" => "jZJPbBDAGw1aLzQN7TuRbYGPm17cPrWwz5M5D6zh"
+array:25 [
+  "_token" => "JUhJqKS3QaSTIxjpwLjr7uZWtlwdMMIYkGKn9gEG"
   "type_identity_document" => "6"
-  "nro_document" => "77664477"
-  "type_customer" => "1"
-  "name" => "TEST editado"
+  "nro_document" => "74777777"
+  "type_customer" => "2"
+  "name" => "TESTT"
   "address" => "AV. RIVERA NAVARRETE NRO. 501, LIMA - LIMA - SAN ISIDRO"
   "phone" => null
-  "email" => "editado@gmail.com"
-  "department" => "09"
-  "province" => "0905"
-  "district" => "090509"
+  "email" => "ld@gmail.com"
+  "department" => "07"
+  "province" => "0701"
+  "district" => "070104"
+  "direccion_negocio" => "AV TEST"
+  "fecha_aniversario" => "2026-03-01"
+  "observaciones" => "Y DALE U"
+  "facebook" => "FACE"
+  "instagram" => "INSTA"
+  "web" => "WEB"
+  "hora_inicio" => "20:00:00"
+  "hora_termino" => "22:01:00"
+  "nombre_propietario" => "SUPER PROPIETARIO"
+  "direccion_propietario" => null
+  "fecha_nacimiento_prop" => "2026-03-09"
+  "celular_propietario" => null
+  "correo_propietario" => null
+  "logo" => Illuminate\Http\UploadedFile {#1491}
 ]
 */
     public function update(ClienteUpdateRequest $request, $id)
@@ -185,29 +199,7 @@ array:11 [
         DB::beginTransaction();
         try {
 
-            $type_customer                  =   TipoCliente::findOrFail($request->get('type_customer'));
-            $distrito                       =   Distrito::findOrFail($request->get('district'));
-            $departamento                   =   Departamento::findOrFail($request->get('department'));
-            $tipo_documento                 =   Detalle::findOrfail($request->get('type_identity_document'));
-
-            $cliente                        =   Cliente::findOrFail($id);
-            $cliente->tipo_documento_id     =   $tipo_documento->id;
-            $cliente->tipo_documento        =   $tipo_documento->simbolo;
-
-            $cliente->documento             =   $request->get('nro_document');
-            $cliente->tipo_cliente_id       =   $type_customer->id;
-            $cliente->tipo_cliente_nombre   =   $type_customer->nombre;
-            $cliente->nombre                =   mb_strtoupper($request->get('name'), 'UTF-8');
-            $cliente->codigo                =   $distrito->id;
-            $cliente->zona                  =   $departamento->zona;
-
-            $cliente->departamento_id       =   $request->get('department');
-            $cliente->provincia_id          =   $request->get('province');
-            $cliente->distrito_id           =   $request->get('district');
-            $cliente->direccion             =   $request->get('address');
-            $cliente->correo_electronico    =   $request->get('email');
-            $cliente->telefono_movil        =   $request->get('phone');
-            $cliente->update();
+            $cliente    =   $this->s_manager->update($request->toArray(), $id);
 
             //Registro de actividad
             $descripcion    = "SE MODIFICÓ EL CLIENTE CON EL NOMBRE: " . $cliente->nombre;
