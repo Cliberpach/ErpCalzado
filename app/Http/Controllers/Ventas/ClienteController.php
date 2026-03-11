@@ -311,6 +311,7 @@ array:14 [
     public function storeFast(ClienteStoreFastRequest $request)
     {
         try {
+           
             DB::beginTransaction();
 
             $tipo_cliente                   =   TipoCliente::findOrFail($request->get('tipo_cliente_id'));

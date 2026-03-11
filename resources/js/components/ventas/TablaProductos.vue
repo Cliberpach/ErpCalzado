@@ -223,7 +223,8 @@
                         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 mt-3">
                             <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
                             <v-select v-model="precioVentaSeleccionado" :options="preciosVenta"
-                                placeholder="Seleccionar">
+                                :reduce="pv => pv.sale_price" placeholder="Seleccionar"
+                                label="text">
                             </v-select>
                         </div>
 
@@ -388,7 +389,7 @@
                                         <td>
                                             <div v-if="Number(item.subtotal) !== Number(item.subtotal_nuevo)">
                                                 <del style="color: gray;">{{ Number(item.subtotal).toFixed(2)
-                                                }}</del><br>
+                                                    }}</del><br>
                                                 <strong>{{ Number(item.subtotal_nuevo).toFixed(2) }}</strong>
                                             </div>
                                             <div v-else>
@@ -1388,7 +1389,7 @@ export default {
                     const res = await axios.get(route('ventas.documento.getColoresTallas', { almacen_id, producto_id }));
                     if (res.data.success) {
                         this.productosPorModelo = res.data;
-                        this.preciosVenta = Object.values(res.data.precios_venta);
+                        this.preciosVenta = res.data.precios_venta;
                     } else {
                         toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                     }

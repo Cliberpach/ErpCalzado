@@ -199,6 +199,30 @@ class ProductoRepository
             ->select($selectColumns)
             ->first();
 
+        $sale_prices    =   [];
+        $tipos_clientes =   [
+            'UNIDAD',
+            'SURTIDO',
+            'EMPRENDEDOR',
+            'SERIADO'
+        ];
+        $index  =   0;
+        foreach ($precioColumns as $key => $name_column) {
+            $sale_price =   $precios_venta[$name_column];
+            if (!$sale_price) continue;
+            $sale_price =   (object)[
+                'key'           =>  $index,
+                'sale_price'    =>  $precios_venta[$name_column],
+                'name_price'    =>  $tipos_clientes[$index],
+                'name_column'   =>  $name_column,
+                'text'          =>  $precios_venta[$name_column] . ' - ' . $tipos_clientes[$index]
+            ];
+            $sale_prices[]  =   $sale_price;
+            $index++;
+        }
+
+        return $sale_prices;
+
         return array_filter($precios_venta->toArray(), function ($precio) {
             return !is_null($precio);
         });

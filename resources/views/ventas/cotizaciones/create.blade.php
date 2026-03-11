@@ -5,10 +5,6 @@
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
 
-<div class="overlay_cotizacion_create">
-    <span class="loader_cotizacion_create"></span>
-</div>
-
 @csrf
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-12">
@@ -156,6 +152,7 @@
                 //==== SI EL INPUT ESTA VACÍO ====
                 if (valor.trim().length === 0) {
                     calcularDescuento(producto_id, color_id, 0);
+                    calcularMontos();
                     return;
                 }
 
@@ -190,22 +187,20 @@
 
         })
 
-
-
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('delete-product')) {
-                mostrarAnimacionCotizacion();
+                mostrarAnimacion();
                 const productoId = e.target.getAttribute('data-producto');
                 const colorId = e.target.getAttribute('data-color');
                 eliminarProducto(productoId, colorId);
-                clearDetalleCotizacion();
                 destruirDataTableDetalleCotizacion();
+                clearDetalleCotizacion();
                 pintarDetalleCotizacion(carrito);
                 calcularMontos();
                 loadDataTableDetallesCotizacion();
                 clearInputsCantidad();
                 loadCarrito();
-                ocultarAnimacionCotizacion();
+                ocultarAnimacion();
             }
         })
 
@@ -234,16 +229,16 @@
         btnAgregarDetalle.addEventListener('click', () => {
 
             toastr.clear();
-            mostrarAnimacionCotizacion();
+            mostrarAnimacion();
 
             if (!$('#producto').val()) {
                 toastr.error('DEBE SELECCIONAR UN PRODUCTO', 'OPERACIÓN INCORRECTA');
-                ocultarAnimacionCotizacion();
+                ocultarAnimacion();
                 return;
             }
             if (!$('#precio_venta').val()) {
                 toastr.error('DEBE SELECCIONAR UN PRECIO DE VENTA', 'OPERACIÓN INCORRECTA');
-                ocultarAnimacionCotizacion();
+                ocultarAnimacion();
                 return;
             }
 
@@ -260,7 +255,7 @@
             })
             calcularMontos();
             loadDataTableDetallesCotizacion();
-            ocultarAnimacionCotizacion();
+            ocultarAnimacion();
             toastr.info('PRODUCTOS AGREGADOS!!');
 
         })
@@ -760,13 +755,13 @@
         const color_nombre = ic.getAttribute('data-color-nombre');
         const talla_id = ic.getAttribute('data-talla-id');
         const talla_nombre = ic.getAttribute('data-talla-nombre');
-        const precio_venta = parseFloat($('#precio_venta').find('option:selected').text());
+        const precio_venta = parseFloat($('#precio_venta').select2('data')[0].element.data.sale_price);
         const cantidad = ic.value ? parseInt(ic.value) : 0;
         const subtotal = 0;
         const subtotal_nuevo = 0;
         const porcentaje_descuento = 0;
         const monto_descuento = 0;
-        const precio_venta_nuevo = parseFloat($('#precio_venta').find('option:selected').text());
+        const precio_venta_nuevo = parseFloat($('#precio_venta').select2('data')[0].element.data.sale_price);
 
         const producto = {
             producto_id,
@@ -871,20 +866,10 @@
         });
     }
 
-    function mostrarAnimacionCotizacion() {
-
-        document.querySelector('.overlay_cotizacion_create').style.visibility = 'visible';
-    }
-
-    function ocultarAnimacionCotizacion() {
-
-        document.querySelector('.overlay_cotizacion_create').style.visibility = 'hidden';
-    }
-
     //======== OBTENER PRODUCTOS POR MODELO ========
     async function getProductos() {
         toastr.clear();
-        mostrarAnimacionCotizacion();
+        mostrarAnimacion();
         limpiarTableStocks();
 
         modelo_id = document.querySelector('#modelo').value;
@@ -907,16 +892,16 @@
                     pintarSelectProductos(res.data.productos);
                     toastr.info('PRODUCTOS CARGADOS', 'OPERACIÓN COMPLETADA');
                 } else {
-                    ocultarAnimacionCotizacion();
+                    ocultarAnimacion();
                     toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                 }
             } catch (error) {
-                ocultarAnimacionCotizacion();
+                ocultarAnimacion();
                 toastr.error(error, 'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
             }
 
         } else {
-            ocultarAnimacionCotizacion();
+            ocultarAnimacion();
         }
     }
 
@@ -979,16 +964,15 @@
         $('#precio_venta').empty();
 
         //====== LLENAR =======
-        if (preciosVenta) {
-            const keys = Object.keys(preciosVenta);
-            keys.forEach((k) => {
-                const precioVenta = preciosVenta[k];
-                if (precioVenta && precioVenta > 0) {
-                    const option = new Option(precioVenta, k, false, false);
-                    $('#precio_venta').append(option);
-                }
-            })
-        }
+        preciosVenta.forEach((pv) => {
+
+            if (pv.sale_price && pv.sale_price > 0) {
+                const option = new Option(pv.text, pv.name_column, false, false);
+                option.data = pv;
+                $('#precio_venta').append(option);
+            }
+        })
+
 
         $('#precio_venta').trigger('change');
     }
@@ -999,7 +983,7 @@
         $('#producto').empty();
 
         if (productos.length === 0) {
-            ocultarAnimacionCotizacion();
+            ocultarAnimacion();
         }
 
         //====== LLENAR =======
@@ -1130,7 +1114,7 @@
     async function getProductoBarCode(barcode) {
         try {
             toastr.clear();
-            mostrarAnimacionCotizacion();
+            mostrarAnimacion();
             const res = await axios.get(route('ventas.cotizacion.getProductoBarCode', {
                 barcode
             }));
@@ -1149,7 +1133,7 @@
         } catch (error) {
             toastr.error(error, 'ERROR EN LA PETICIÓN OBTENER PRODUCTO POR CÓDIGO DE BARRA');
         } finally {
-            ocultarAnimacionCotizacion();
+            ocultarAnimacion();
         }
     }
 
@@ -1321,7 +1305,7 @@
 
         toastr.clear();
 
-        mostrarAnimacionCotizacion();
+        mostrarAnimacion();
         //====== QUITAR EVENTOS ======
         document.querySelector('#categoria').onchange = null;
         document.querySelector('#marca').onchange = null;
@@ -1368,7 +1352,7 @@
         })
         calcularMontos();
 
-        ocultarAnimacionCotizacion();
+        ocultarAnimacion();
         toastr.info('SE HA LIMPIADO EL FORMULARIO');
 
     }

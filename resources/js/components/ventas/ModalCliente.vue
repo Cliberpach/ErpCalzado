@@ -492,8 +492,10 @@ export default {
                 this.clearErrores();
                 document.querySelector('#btn-guardar-cliente').disabled = true;
                 document.querySelector('#btn-guardar-cliente').innerHTML = `<i class="fa fa-save fa-spin"></i> Guardando...`;
-
                 this.loading = true;
+
+                this.formCliente.tipo_documento = this.tipo_documento;
+                this.formCliente.tipo_cliente_id = this.tipo_cliente_id;
                 const res = await this.axios.post(route('ventas.cliente.storeFast'), this.formCliente);
 
                 if (res.data.success) {
@@ -640,7 +642,6 @@ export default {
 
         Cerrar() {
 
-            alert('cerrando');
             this.loadUbigeoSede();
 
             this.formCliente = {

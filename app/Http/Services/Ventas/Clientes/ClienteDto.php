@@ -34,7 +34,7 @@ class ClienteDto
         $dto['provincia_id']            = $data['province'] ?? null;
         $dto['distrito_id']             = $data['district'] ?? null;
 
-        $dto['direccion']               = $data['address'] ?? null;
+        $dto['direccion']               = mb_strtoupper(trim($data['address']), 'UTF-8') ?? null;
         $dto['correo_electronico']      = $data['email'] ?? null;
         $dto['telefono_movil']          = $data['phone'] ?? null;
 

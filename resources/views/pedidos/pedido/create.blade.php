@@ -663,13 +663,13 @@
         const color_nombre = ic.getAttribute('data-color-nombre');
         const talla_id = ic.getAttribute('data-talla-id');
         const talla_nombre = ic.getAttribute('data-talla-nombre');
-        const precio_venta = $('#precio_venta').find('option:selected').text();
+        const precio_venta = parseFloat($('#precio_venta').select2('data')[0].element.data.sale_price);
         const cantidad = ic.value ? ic.value : 0;
         const subtotal = 0;
         const subtotal_nuevo = 0;
         const porcentaje_descuento = 0;
         const monto_descuento = 0;
-        const precio_venta_nuevo = 0;
+        const precio_venta_nuevo = parseFloat($('#precio_venta').select2('data')[0].element.data.sale_price);
 
         const producto = {
             producto_id,
@@ -925,16 +925,14 @@
         $('#precio_venta').empty();
 
         //====== LLENAR =======
-        if (preciosVenta) {
-            const keys = Object.keys(preciosVenta);
-            keys.forEach((k) => {
-                const precioVenta = preciosVenta[k];
-                if (precioVenta && precioVenta > 0) {
-                    const option = new Option(precioVenta, k, false, false);
-                    $('#precio_venta').append(option);
-                }
-            })
-        }
+        preciosVenta.forEach((pv) => {
+
+            if (pv.sale_price && pv.sale_price > 0) {
+                const option = new Option(pv.text, pv.name_column, false, false);
+                option.data = pv;
+                $('#precio_venta').append(option);
+            }
+        })
 
         $('#precio_venta').trigger('change');
     }
