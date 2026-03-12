@@ -41,6 +41,7 @@ class ProductoStoreRequest extends FormRequest
             'precio1'   => 'required|numeric|min:0.01',
             'precio2'   => 'required|numeric|min:0.01',
             'precio3'   => 'required|numeric|min:0.01',
+            'precio4'   => 'required|numeric|min:0.01',
             'almacen'   => [
                 function ($attribute, $value, $fail) {
                     $colores = json_decode($this->input('coloresJSON'), true);
@@ -89,6 +90,10 @@ class ProductoStoreRequest extends FormRequest
             'precio3.required'  => 'El campo precio 3 es obligatorio.',
             'precio3.numeric'   => 'El campo precio 3 debe ser numérico.',
             'precio3.min'       => 'El campo precio 3 debe ser mayor a 0.',
+
+            'precio4.required'      => 'El campo precio 4 es obligatorio.',
+            'precio4.numeric'       => 'El campo precio 4 debe ser numérico.',
+            'precio4.min'           => 'El campo precio 4 debe ser mayor a 0.',
 
             'imagen1.mimes' => 'La imagen 1 debe ser un archivo de tipo: jpg, jpeg, webp, avif.',
             'imagen1.max'   => 'La imagen 1 no puede superar los 2 MB.',
