@@ -108,6 +108,7 @@ class VentaRepository
         //======== TIPO VENTA ======
         $documento->tipo_venta_id           = $datos_validados->tipo_venta->id;   //boleta,factura,nota_venta
         $documento->tipo_venta_nombre       = $datos_validados->tipo_venta->descripcion;
+        $documento->tipo_venta_codigo       = $datos_validados->tipo_venta->simbolo;
 
         //========= CONDICIÓN PAGO ======
         $documento->condicion_id            =   $datos_validados->condicion->id;

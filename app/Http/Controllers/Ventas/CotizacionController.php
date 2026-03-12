@@ -543,6 +543,7 @@ array:10 [
             //======== TIPO VENTA ======
             $documento->tipo_venta_id           = $tipo_venta->id;   //boleta,factura,nota_venta
             $documento->tipo_venta_nombre       = $tipo_venta->descripcion;
+            $documento->tipo_venta_codigo       = $tipo_venta->simbolo;
 
             //========= CONDICIÓN PAGO ======
             $documento->condicion_id            = $condicion->id;

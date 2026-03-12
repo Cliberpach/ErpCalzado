@@ -4,6 +4,7 @@ use App\Events\NotifySunatEvent;
 use App\Http\Controllers\Almacenes\ConductorController;
 use App\Http\Controllers\Pedidos\PedidoController;
 use App\Http\Controllers\Ventas\ClienteController;
+use App\Http\Controllers\Ventas\QuerySaleController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -749,4 +750,13 @@ Route::prefix('utilidades')->group(function () {
     Route::get('getColoresTalla/{almacen_id}/{producto_id}', 'Almacenes\ProductoController@getColoresTalla')->name('utilidades.getColoresTalla');
     Route::get('validarCantidad', 'UtilidadesController@validarCantidad')->name('utilidades.validarCantidad');
     Route::get('get-cuentas-metodo/{metodo_pago}', 'UtilidadesController@getCuentasPorMetodoPago')->name('utilidades.getCuentasPorMetodoPago');
+});
+
+
+Route::group(['prefix' => 'consultas'], function () {
+    Route::get('/comprobante', [QuerySaleController::class, 'index'])->name('consultarComprobante');
+    Route::post('/comprobante/buscar', [QuerySaleController::class, 'consultarComprobante'])->name('consultarComprobante.buscar');
+    Route::get('/comprobante/pdf', [QuerySaleController::class, 'pdf'])->name('consultarComprobante.pdf');
+    Route::get('/comprobante/xml', [QuerySaleController::class, 'xml'])->name('consultarComprobante.xml');
+    Route::get('/comprobante/cdr', [QuerySaleController::class, 'cdr'])->name('consultarComprobante.cdr');
 });

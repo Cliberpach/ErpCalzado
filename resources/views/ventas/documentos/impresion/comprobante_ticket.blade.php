@@ -537,14 +537,12 @@
         @endif
     </div>
     <footer>
-        <b>Para consultar el comprobante ingresar a <a target="_blank"
-                href="{{ (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') .
-                    '://' .
-                    $_SERVER['HTTP_HOST'] .
-                    '/buscar' }}"><em>{{ (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') .
-                    '://' .
-                    $_SERVER['HTTP_HOST'] .
-                    '/buscar' }}</em></a></b>
+        <b>
+            Para consultar el comprobante ingrese a
+            <a target="_blank" href="{{ route('consultarComprobante') }}">
+                <em>{{ route('consultarComprobante') }}</em>
+            </a>
+        </b>
     </footer>
 </body>
 
