@@ -1,4 +1,4 @@
-@extends('layout') 
+@extends('layout')
 @section('content')
 
 @section('consulta-active', 'active')
@@ -100,13 +100,11 @@
 
 @stop
 @push('styles')
-<link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 <!-- DataTable -->
 <link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
 @endpush
 
 @push('scripts')
-<script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
 <!-- DataTable -->
 <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
 <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>

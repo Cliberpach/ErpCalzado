@@ -102,7 +102,6 @@ class CotizacionController extends Controller
             ->make(true);
     }
 
-
     public function create()
     {
         $tipos_documento    =   tipos_documento();
@@ -113,7 +112,7 @@ class CotizacionController extends Controller
         $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
         $categorias         =   Categoria::where('estado', 'ACTIVO')->get();
         $marcas             =   Marca::where('estado', 'ACTIVO')->get();
-        $tallas             =   Talla::where('estado', 'ACTIVO')->get();
+        $tallas             =   UtilidadesController::getTallas();
         $cliente            =   Cliente::findOrFail(1);
 
         $registrador        =   Auth::user();

@@ -319,7 +319,7 @@
                     @foreach($detalles as $item)
                         <tr>
                             <td style="text-align: right; border-right: 2px solid #52BE80">{{ $item['cantidad_total'] }}</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">{{ $item['producto_codigo'].' - '.$item['modelo_nombre'].' - '.$item['producto_nombre'].' - '.$item['color_nombre'] }}</td>
+                            <td style="text-align: center; border-right: 2px solid #52BE80">{{ $item['modelo_nombre'].' - '.$item['producto_nombre'].' - '.$item['color_nombre'] }}</td>
                             @php
                                 $tallas = $item['tallas'];
                                 $descripcion = '';

@@ -190,7 +190,7 @@ array:18 [
 
         DB::beginTransaction();
         try {
-
+     
             $lstPedido          =   json_decode($request->get('lstPedido'));
             $amountsPedido      =   json_decode($request->get('amountsPedido'));
 

@@ -54,7 +54,7 @@
                 <select id="condicion_id" name="condicion_id" class="select2_form form-control" required>
                     <option></option>
                     @foreach ($condiciones as $condicion)
-                        <option value="{{ $condicion->id }}">
+                        <option value="{{ $condicion->id }}" @if ($condicion->id == 1) selected @endif>
                             {{ $condicion->descripcion }} {{ $condicion->dias > 0 ? $condicion->dias . ' días' : '' }}
                         </option>
                     @endforeach
