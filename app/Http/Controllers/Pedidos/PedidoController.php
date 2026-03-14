@@ -190,7 +190,7 @@ array:18 [
 
         DB::beginTransaction();
         try {
-     
+
             $lstPedido          =   json_decode($request->get('lstPedido'));
             $amountsPedido      =   json_decode($request->get('amountsPedido'));
 
@@ -778,7 +778,34 @@ array:11 [
             $condiciones        =   Condicion::where('estado', 'ACTIVO')->get();
 
             $modelos            =   Modelo::where('estado', 'ACTIVO')->get();
-            $tallas             =   Talla::where('estado', 'ACTIVO')->get();
+
+            $tallas = collect($atencion_detalle)
+                ->groupBy('talla_id')
+                ->map(function ($items) {
+                    return (object)[
+                        'id' => $items->first()->talla_id,
+                        'descripcion' => $items->first()->talla_nombre,
+                        'stock_logico_total' => $items->sum('stock_logico')
+                    ];
+                })
+                ->filter(function ($t) {
+                    return $t->stock_logico_total > 0;
+                })
+                ->sortBy(function ($t) {
+                    $orden = [
+                        '35' => 1,
+                        '36' => 2,
+                        '37' => 3,
+                        '38' => 4,
+                        '39' => 5,
+                        '40' => 6,
+                        '41' => 7,
+                    ];
+
+                    return $orden[$t->descripcion] ?? 99;
+                })
+                ->values();
+       
             $tipoVentas         =   tipos_venta()
                 ->whereIn('id', [129])
                 ->where('estado', 'ACTIVO');
@@ -798,11 +825,11 @@ array:11 [
                 );
             }
 
-            $departamentos  =   departamentos();
+            $departamentos      =   departamentos();
 
-            $almacen        =   Almacen::find($pedido->almacen_id);
-            $sede           =   Sede::find($pedido->sede_id);
-            $registrador    =   Colaborador::find(Auth::user()->colaborador_id);
+            $almacen            =   Almacen::find($pedido->almacen_id);
+            $sede               =   Sede::find($pedido->sede_id);
+            $registrador        =   Colaborador::find(Auth::user()->colaborador_id);
 
             $origenes_ventas    =   UtilidadesController::getOrigenesVentas();
             $tipos_pago_envio   =   UtilidadesController::getTiposPagoEnvio();
