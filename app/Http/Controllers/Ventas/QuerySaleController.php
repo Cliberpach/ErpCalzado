@@ -1,11 +1,9 @@
 <?php
-
 namespace App\Http\Controllers\Ventas;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ventas\QuerySale\QuerySaleRequest;
 use App\Http\Services\Ventas\Ventas\VentaManager;
-use App\Models\Tenant\Sales\Sale\Sale;
 use App\Ventas\Documento\Documento;
 use Exception;
 use Illuminate\Http\Request;
