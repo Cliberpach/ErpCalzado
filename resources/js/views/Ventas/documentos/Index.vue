@@ -689,7 +689,7 @@ export default {
                         name: 'cd.total_pagar',
                         searchable: false,
                         render: function (data, type, row) {
-                            return formatoNumero(data);
+                            return formatoMoneda(data);
                         }
                     },
                     { data: 'condicion', name: 'condicions.descripcion', searchable: false },
