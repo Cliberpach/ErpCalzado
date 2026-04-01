@@ -241,7 +241,7 @@
                         data-producto-id="${c.producto_id}"
                         data-color-id="${c.color_id}"
                         style="width:130px; margin: 0 auto;"
-                        value="${formatoNumero(c.porcentaje_descuento)}"
+                        value="${formatoMoneda(c.porcentaje_descuento)}"
                         class="form-control detailDescuento">
                     </input>
                 </td>
