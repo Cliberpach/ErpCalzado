@@ -527,19 +527,14 @@ class EmpresaController extends Controller
                 $nueva_factura->certificado =  $request->get('certificado_base');
                 $nueva_factura->save();
             }
-
-
-
         }
 
-
-
         //MODIFICAR NUMERACION DE FACTURACION DE LA EMPRESA
-        event(new EmpresaModificada(
-            $empresa,
-            $data['numeracion_tabla'])
-        );
-          
+        // event(new EmpresaModificada(
+        //     $empresa,
+        //     $data['numeracion_tabla'])
+        // );
+
 
         $entidadesJSON = $request->get('entidades_tabla');
         $entidadtabla = json_decode($entidadesJSON[0]);
