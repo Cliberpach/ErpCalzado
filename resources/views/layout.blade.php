@@ -473,8 +473,7 @@
         integrity="sha384-9m1/ul4UUfv6yoZjjPpf4EtIPDGd505EmvdZmpntp4ljXDaH5wT57N/Z2jXTXg2/" crossorigin="anonymous">
     </script>
 
-    <script src="{{ asset('js/utils.js') }}"></script>
-
+    <script src="{{ mix('js/utils.js') }}"></script>
     @stack('scripts')
 
     <script>
