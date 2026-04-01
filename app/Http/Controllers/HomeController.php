@@ -33,21 +33,16 @@ class HomeController extends Controller
     public function index()
     {
         $user = Auth::user();
-        if($user->havePermission('dashboard'))
-        {
-            return view('home');
-        }
-        else
-        {
+        if ($user->havePermission('dashboard')) {
+            return redirect()->route('home.dashboard');
+        } else {
             return view('home_aux');
         }
-        
     }
 
     public function dashboard()
     {
-        try
-        {
+        try {
             $fecha_actual = Carbon::now();
 
             $meses_aux = array();
@@ -72,25 +67,25 @@ class HomeController extends Controller
                 $total_notas = Nota::whereMonth('fechaEmision', $meses_aux[$j]->mes)->whereYear('fechaEmision', $meses_aux[$j]->anio)->sum('mtoImpVenta');
                 $total_ = (float)($total - $total_invalida - $total_notas);
                 //$total = Documento::where('estado','!=','ANULADO')->whereMonth('fecha_documento',$meses_aux[$j]->mes)->whereYear('fecha_documento',$meses_aux[$j]->anio)->sum('total');
-                array_push($ventas, array("nombre" => $meses_aux[$j]->nombre, "total" => round($total_,2)));
+                array_push($ventas, array("nombre" => $meses_aux[$j]->nombre, "total" => round($total_, 2)));
             }
 
             $compras = array();
             for ($j = 0; $j < count($meses_aux); $j++) {
-                $total = DocumentoDocumento::where('estado','!=','ANULADO')->whereMonth('fecha_emision',$meses_aux[$j]->mes)->whereYear('fecha_emision',$meses_aux[$j]->anio)->sum('total_soles');
-                array_push($compras, array("nombre" => $meses_aux[$j]->nombre, "total" => round($total,2)));
+                $total = DocumentoDocumento::where('estado', '!=', 'ANULADO')->whereMonth('fecha_emision', $meses_aux[$j]->mes)->whereYear('fecha_emision', $meses_aux[$j]->anio)->sum('total_soles');
+                array_push($compras, array("nombre" => $meses_aux[$j]->nombre, "total" => round($total, 2)));
             }
 
             $cobrar = array();
             for ($j = 0; $j < count($meses_aux); $j++) {
-                $total = CuentaCliente::where('estado','!=','ANULADO')->whereMonth('created_at',$meses_aux[$j]->mes)->whereYear('created_at',$meses_aux[$j]->anio)->sum('saldo');
-                array_push($cobrar, array("nombre" => $meses_aux[$j]->nombre, "total" => round($total,2)));
+                $total = CuentaCliente::where('estado', '!=', 'ANULADO')->whereMonth('created_at', $meses_aux[$j]->mes)->whereYear('created_at', $meses_aux[$j]->anio)->sum('saldo');
+                array_push($cobrar, array("nombre" => $meses_aux[$j]->nombre, "total" => round($total, 2)));
             }
 
             $pagar = array();
             for ($j = 0; $j < count($meses_aux); $j++) {
-                $total = CuentaProveedor::where('estado','!=','ANULADO')->whereMonth('created_at',$meses_aux[$j]->mes)->whereYear('created_at',$meses_aux[$j]->anio)->sum('saldo');
-                array_push($pagar, array("nombre" => $meses_aux[$j]->nombre, "total" => round($total,2)));
+                $total = CuentaProveedor::where('estado', '!=', 'ANULADO')->whereMonth('created_at', $meses_aux[$j]->mes)->whereYear('created_at', $meses_aux[$j]->anio)->sum('saldo');
+                array_push($pagar, array("nombre" => $meses_aux[$j]->nombre, "total" => round($total, 2)));
             }
 
             return response()->json([
@@ -100,9 +95,7 @@ class HomeController extends Controller
                 'cobrar' => $cobrar,
                 'pagar' => $pagar,
             ]);
-        }
-        catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false
             ]);

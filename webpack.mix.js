@@ -15,6 +15,8 @@ mix.js('resources/js/appPages.js', 'public/js').vue()
 
 mix.js('resources/js/utilidades.js', 'public/js');
 mix.js('resources/js/libs/global/tomselect.js', 'public/js');
+mix.js('resources/js/libs/global/highcharts.js', 'public/js');
+mix.js('resources/js/utils/utils.js', 'public/js');
 
 mix.js('resources/js/filepond.js', 'public/js')
    .postCss('resources/css/filepond.css', 'public/css');

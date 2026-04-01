@@ -2,6 +2,7 @@
 
 use App\Events\NotifySunatEvent;
 use App\Http\Controllers\Almacenes\ConductorController;
+use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Pedidos\PedidoController;
 use App\Http\Controllers\Ventas\ClienteController;
 use App\Http\Controllers\Ventas\QuerySaleController;
@@ -37,7 +38,7 @@ Route::group(
     ],
     function () {
         Route::get('/home', 'HomeController@index')->name('home');
-        Route::get('/home/dashboard', 'HomeController@dashboard')->name('home.dashboard');
+        Route::get('/home/dashboard', [DashboardController::class, 'index'])->name('home.dashboard');
 
         Route::get('logout', 'Auth\LoginController@logout')->name('logout');
 
@@ -708,6 +709,7 @@ require __DIR__ . '/mantenimiento/web.php';
 require __DIR__ . '/kardex/web.php';
 require __DIR__ . '/cajas/web.php';
 require __DIR__ . '/almacenes/web.php';
+require __DIR__ . '/dashboard/web.php';
 
 
 Route::get('ventas/documentos/comprobante/{id}/{size}', 'Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');
