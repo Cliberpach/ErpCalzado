@@ -153,6 +153,30 @@
 
                                 </div>
 
+                                <div class="row mt-3" v-if="mostrar_entrega_domicilio">
+                                    <div class="col-4 d-flex align-items-center">
+                                        <div class="row" style="width: 100%;">
+                                            <div class="col-2 pr-0 d-flex align-items-center">
+                                                <input style="width: 50px;" id="check_entrega_domicilio" type="checkbox"
+                                                    v-model="entrega_domicilio" class="form-control">
+                                            </div>
+                                            <div class="col-9 pl-0">
+                                                <label for="check_entrega_domicilio" class="mb-0"
+                                                    style="font-weight: bold;">ENTREGA EN DOMICILIO</label>
+                                            </div>
+                                        </div>
+                                        <span class="entrega_domicilio_error msgError"></span>
+                                    </div>
+                                    <div class="col-7">
+                                        <label :class="{ 'required': entrega_domicilio }" for=""
+                                            style="font-weight: bold;">DIRECCION DE ENTREGA</label>
+                                        <input maxlength="150" :readonly="!entrega_domicilio"
+                                            :required="entrega_domicilio" type="text" class="form-control"
+                                            v-model="direccion_entrega">
+                                        <span class="direccion_entrega_error msgError"></span>
+                                    </div>
+                                </div>
+
                                 <hr>
 
                                 <!-- ORIGEN / FECHA / OBS -->
