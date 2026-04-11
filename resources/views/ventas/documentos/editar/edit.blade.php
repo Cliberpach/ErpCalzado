@@ -1185,8 +1185,9 @@
 
     //========= PINTAR TABLA STOCKS ==========
     const pintarTableStocks = (producto) => {
+        console.log('producto',producto);
         let filas = ``;
-        const tallasConStock = getTallasConStock(tallasBD, producto.colores);
+        const tallasConStock = getTallasConStock(tallasBD, producto.colores);console.log('tallas con stock',tallasConStock);
         pintarHeadTableStocks(tallasConStock);
 
         const tableStocksBody = document.querySelector('#table-stocks tbody');
@@ -1201,7 +1202,7 @@
 
             tallasConStock.forEach((tallaConStock) => {
 
-                const tallaColor = color.tallas.find(ct => ct.id == tallaConStock.id);
+                const tallaColor = color.tallas.find(ct => ct.id == tallaConStock.id);console.log('tallaColor',tallaColor)
                 const stockLogico = tallaColor?.stock_logico || 0;
 
                 if (stockLogico == 0) {
@@ -1209,7 +1210,7 @@
                         <td style="background-color: rgb(210, 242, 242);">
                             <p style="margin:0;width:20px;text-align:center;">${stockLogico}</p>
                         </td>
-                          <td width="8%">
+                        <td width="8%">
                             <input style="width:50px;text-align:center;border: 2px solid #207ebc;" type="text" class="form-control inputCantidad"
                                 id="inputCantidad_${producto.id}_${color.id}_${tallaColor.id}"
                                 data-producto-id="${producto.id}"
@@ -1241,6 +1242,8 @@
 
             filas += `</tr>`;
         });
+
+        console.log('filas',filas);
 
         tableStocksBody.innerHTML = filas;
     }

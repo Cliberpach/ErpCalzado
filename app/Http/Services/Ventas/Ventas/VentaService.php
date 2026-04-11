@@ -65,7 +65,7 @@ class VentaService
         //======= INSERTAR VENTA =======
         $venta  =   $this->s_repository->insertarVenta($datos_validados, $montos, $datos_correlativo, $legenda);
 
-        $this->s_repository->insertarDetalleVenta($datos_validados, $venta);
+        $this->s_repository->insertarDetalleVenta($datos_validados, $venta, 'STORE');
 
         //======== ASOCIAR LA VENTA CON EL MOVIMIENTO CAJA DEL COLABORADOR ====
         $this->s_repository->asociarVentaCaja($venta, $datos_validados);
@@ -335,7 +335,7 @@ class VentaService
 
         //========= ELIMINAR DETALLE ANTERIOR =========
         $this->s_repository->eliminarDetalle($id);
-        $this->s_repository->insertarDetalleVenta($datos_validados, $documento);
+        $this->s_repository->insertarDetalleVenta($datos_validados, $documento, 'UPDATE');
 
         //======== EN CASO VENTA CONTADO Y PAGADA ELECTRÓNICO, VA AL KARDEX ===========
         if ($documento->condicion_id == 1 && $documento->tipo_pago_id != 1 && $documento->estado_pago == 'PAGADA') {

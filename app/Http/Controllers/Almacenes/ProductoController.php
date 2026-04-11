@@ -531,7 +531,7 @@ array:13 [
                     'mo.descripcion',
                     'p.nombre'
                 )
-                ->paginate(10, ['*'], 'page', $page);
+                ->paginate(20, ['*'], 'page', $page);
 
             return response()->json([
                 'success' => true,
@@ -539,7 +539,7 @@ array:13 [
                 'productos' => $productos->items(),
                 'more' => $productos->hasMorePages()
             ]);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }

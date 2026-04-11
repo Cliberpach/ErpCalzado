@@ -213,7 +213,7 @@ class VentaRepository
         return $documento;
     }
 
-    public function insertarDetalleVenta(object $datos_validados, Documento $documento)
+    public function insertarDetalleVenta(object $datos_validados, Documento $documento, string $mode)
     {
         foreach ($datos_validados->lstVenta as $item) {
             foreach ($item->tallas as $talla) {
@@ -328,23 +328,50 @@ class VentaRepository
                     && $datos_validados->modo !== 'CONSUMO'
                     && !$datos_validados->ticket_credito
                 ) {
+
                     //===== ACTUALIZANDO STOCK ===========
-                    DB::update(
-                        'UPDATE producto_color_tallas
+
+                    if ($mode === 'STORE') {
+                        DB::update(
+                            'UPDATE producto_color_tallas
                         SET stock = stock - ?
                         WHERE
                         almacen_id = ?
                         AND producto_id = ?
                         AND color_id = ?
                         AND talla_id = ?',
-                        [
-                            $talla->cantidad,
-                            $datos_validados->almacen->id,
-                            $item->producto_id,
-                            $item->color_id,
-                            $talla->talla_id
-                        ]
-                    );
+                            [
+                                $talla->cantidad,
+                                $datos_validados->almacen->id,
+                                $item->producto_id,
+                                $item->color_id,
+                                $talla->talla_id
+                            ]
+                        );
+                    }
+
+                    if ($mode === 'UPDATE') {
+                        DB::update(
+                            'UPDATE producto_color_tallas
+                        SET stock = stock - ?,
+                        stock_logico = stock_logico - ?
+                        WHERE
+                        almacen_id = ?
+                        AND producto_id = ?
+                        AND color_id = ?
+                        AND talla_id = ?',
+                            [
+                                $talla->cantidad,
+                                $talla->cantidad,
+
+                                $datos_validados->almacen->id,
+                                $item->producto_id,
+                                $item->color_id,
+                                $talla->talla_id
+                            ]
+                        );
+                    }
+
 
                     $nuevo_stock    =    DB::table('producto_color_tallas')
                         ->where('almacen_id', $datos_validados->almacen->id)

@@ -144,11 +144,19 @@ function destruirDataTable(dtTable) {
     }
 }
 
-function iniciarDataTable(idTabla, pageLength = 10, responsive = false) {
+function iniciarDataTable(idTabla, options = {}) {
+
+    const config = {
+        responsive: false,
+        pageLength: 10,
+        lengthChange: true,
+        ...options
+    };
 
     const dtGenerico = new DataTable(`#${idTabla}`, {
-        responsive: responsive,
-        pageLength: pageLength,
+        responsive: config.responsive,
+        pageLength: config.pageLength,
+        lengthChange: config.lengthChange,
         language: {
             processing: "Procesando...",
             search: "Buscar: ",
