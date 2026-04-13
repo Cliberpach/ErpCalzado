@@ -518,8 +518,8 @@
         try {
             let documento = dni_destinatario;
             let url = route('utilidades.consultarDocumento', {
-                tipo_doc: 6,
-                nro_doc: documento
+                type_identity_document: 6,
+                nro_document: documento
             });
 
             const {
@@ -543,7 +543,7 @@
         if (success) {
             document.querySelector('#nombres_destinatario').value = data.nombre_completo;
         } else {
-            
+
         }
     }
 
