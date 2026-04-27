@@ -43,7 +43,7 @@
                 if (res.data.success) {
                     loadVentasOrigen(res.data.data);
                 } else {
-                    toastr.error(res.data.message, 'Error en el servidor');
+                    //toastr.error(res.data.message, 'Error en el servidor');
                 }
 
             } catch (error) {
