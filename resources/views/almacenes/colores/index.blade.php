@@ -49,9 +49,8 @@
         </div>
     </div>
 </div>
+@endsection
 
-
-@stop
 @push('styles')
 <style>
     .my-swal {
@@ -90,23 +89,26 @@
                     className: "text-center"
                 },
                 {
-                    data: 'codigo',
+                    data: 'img_ruta',
                     className: 'text-center',
                     render: function(data, type, row) {
-                        if (!data) {
-                            return '<span class="text-muted">—</span>';
+
+                        if (data) {
+                            return `
+                                <img
+                                    src="/storage/${data}"
+                                    style="
+                                        width: 30px;
+                                        height: 30px;
+                                        object-fit: cover;
+                                        border-radius: 5px;
+                                        border: 1px solid #ccc;
+                                    "
+                                />
+                            `;
                         }
-                        return `
-                        <div style="
-                            display: inline-block;
-                            width: 25px;
-                            height: 25px;
-                            border-radius: 5px;
-                            border: 1px solid #ccc;
-                            background-color: ${data};
-                        " title="${data}"></div>
-                        <div style="font-size: 0.85rem; margin-top: 3px;">${data}</div>
-                    `;
+
+                        return '<span class="text-muted">Sin imagen</span>';
                     }
                 },
                 {

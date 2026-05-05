@@ -20,7 +20,7 @@
                             class="required"></label>) son obligatorios.</small>
                 </div>
                 <div class="col-md-6 text-right">
-                    <button type="submit" form="form_edit_color" class="btn btn-primary btn-sm"><i
+                    <button type="submit" form="form_edit_color" class="btn btn-success btn-sm"><i
                             class="fa fa-save"></i> Actualizar</button>
                     <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i
                             class="fa fa-times"></i> Cancelar</button>
@@ -60,7 +60,7 @@
             limpiarErroresValidacion('msgError');
             parametrosMdlEditColor.id = null;
             parametrosMdlEditColor.row = null;
-            
+
             if (parametrosMdlEditColor.fpImg) {
                 parametrosMdlEditColor.fpImg.removeFiles();
             }

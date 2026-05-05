@@ -20,7 +20,7 @@
                             class="required"></label>) son obligatorios.</small>
                 </div>
                 <div class="col-md-6 text-right">
-                    <button type="submit" form="form_create_color" class="btn btn-primary btn-sm"><i
+                    <button type="submit" form="form_create_color" class="btn btn-success btn-sm"><i
                             class="fa fa-save"></i> Guardar</button>
                     <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i
                             class="fa fa-times"></i> Cancelar</button>

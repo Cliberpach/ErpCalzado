@@ -3,7 +3,7 @@
 namespace App\Http\Services\Almacen\Colores;
 
 use App\Models\Almacenes\Color\Color;
-
+use Illuminate\Support\Facades\Storage;
 class ColorService
 {
     public function store(array $data): Color
@@ -35,8 +35,24 @@ class ColorService
 
         $color                  =   Color::findOrFail($id);
         $color->descripcion     =   $datos['descripcion'];
-        $color->codigo          =   $datos['codigo'];
         $color->update();
+
+        if (!empty($datos['imagen'])) {
+            if ($color->img_ruta && Storage::disk('public')->exists($color->img_ruta)) {
+                Storage::disk('public')->delete($color->img_ruta);
+            }
+            $this->saveImg($datos['imagen'], $color);
+        } else {
+
+            if ($color->img_ruta && Storage::disk('public')->exists($color->img_ruta)) {
+                Storage::disk('public')->delete($color->img_ruta);
+            }
+
+            $color->update([
+                'img_ruta'   => null,
+                'img_nombre' => null
+            ]);
+        }
         return $color;
     }
 

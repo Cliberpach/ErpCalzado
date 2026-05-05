@@ -129,7 +129,7 @@ array:4 [
     {
         DB::beginTransaction();
         try {
-            dd($request->all());
+           
             $color  =   $this->s_color->update($id, $request->toArray());
 
             //Registro de actividad
