@@ -22,12 +22,13 @@
     <a href="{{ route('home') }}"><i class="fa fa-th-large"></i> <span class="nav-label">Panel de
             control</span></a>
 </li>
-@can('haveaccess', 'utilidad_mensual.index')
+
+{{-- @can('haveaccess', 'utilidad_mensual.index')
     <li class="@yield('utilidad-active')">
         <a href="{{ route('consultas.utilidad.index') }}"><i class="fa fa-money"></i> <span
                 class="nav-label">Utilidad</span></a>
     </li>
-@endcan
+@endcan --}}
 
 @can('restore', [Auth::user(), ['caja.index', 'movimiento_caja.index', 'egreso.index', 'recibos_caja.index']])
     <li class="@yield('caja-chica-active')">
@@ -136,8 +137,10 @@
     'nota_ingreso.index', 'nota_salida.index', 'solicitudes_traslado.index', 'traslados.index', 'vehiculos.index',
     'conductores.index']])
     <li class="@yield('almacenes-active')">
-        <a href="#"><i class="fa fa-bar-chart-o"></i> <span class="nav-label">Almacén</span><span
-                class="fa arrow"></span></a>
+        <a href="#">
+            <i class="fas fa-warehouse"></i>
+            <span class="nav-label">Almacén</span>
+        </a>
         <ul class="nav nav-second-level collapse">
             @can('haveaccess', 'almacen.index')
                 <li class="@yield('almacen-active')"><a href="{{ route('almacenes.almacen.index') }}">Almacén</a></li>
@@ -187,8 +190,11 @@
 
 @can('restore', [Auth::user(), ['cuenta_proveedor.index', 'cuenta_cliente.index']])
     <li class="@yield('cuentas-active')">
-        <a href="#"><i class="fa fa-money"></i> <span class="nav-label">Cuentas </span><span
-                class="fa arrow"></span></a>
+        <a href="#">
+            <i class="fas fa-wallet"></i>
+            <span class="nav-label">Cuentas</span>
+            <span class="fa arrow"></span>
+        </a>
         <ul class="nav nav-second-level collapse">
             @can('haveaccess', 'cuenta_proveedor.index')
                 <li class="@yield('cuenta-proveedor-active')"><a href="{{ route('cuentaProveedor.index') }}"><span
@@ -303,8 +309,11 @@
     'reporte_nota_salida.index', 'reporte_nota_ingreso.index', 'reporte_cuenta_cobrar.index', 'reporte_cuenta_pagar.index',
     'reporte_stock_valorizado.index']])
     <li class="@yield('reporte-active')">
-        <a href="#"><i class="fa fa-money"></i> <span class="nav-label">Reportes </span><span
-                class="fa arrow"></span></a>
+        <a href="#">
+            <i class="fas fa-chart-bar"></i>
+            <span class="nav-label">Reportes</span>
+            <span class="fa arrow"></span>
+        </a>
         <ul class="nav nav-second-level collapse">
             @can('haveaccess', 'reporte_cajadiaria.index')
                 <li class="@yield('caja_diaria-active')"><a href="{{ route('reporte.pos.cajadiaria') }}">Caja Diaria</a></li>
