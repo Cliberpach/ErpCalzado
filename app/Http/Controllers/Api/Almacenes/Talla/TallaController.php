@@ -40,7 +40,7 @@ class TallaController extends Controller
 
                 return [
                     'id'      => $item->id,
-                    'text'    => $item->nombre,
+                    'text'    => $item->descripcion,
                     'subtext' => 'Talla disponible',
                 ];
             });
