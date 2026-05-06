@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Almacenes\Categoria\CategoriaController;
 use App\Http\Controllers\Api\Almacenes\Producto\ProductoController;
 use App\Http\Controllers\Api\Almacenes\Color\ColorController;
+use App\Http\Controllers\Api\Almacenes\Color\TallaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,4 +35,8 @@ Route::prefix('productos')->group(function () {
 
 Route::prefix('colores')->group(function () {
     Route::get('get-all', [ColorController::class, 'getAll']);
+});
+
+Route::prefix('colores')->group(function () {
+    Route::get('/get-all', [TallaController::class, 'getAll']);
 });
