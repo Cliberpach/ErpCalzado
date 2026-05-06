@@ -91,6 +91,8 @@
                 {
                     data: 'img_ruta',
                     className: 'text-center',
+                    searchable:false,
+                    orderable:false,
                     render: function(data, type, row) {
 
                         if (data) {
