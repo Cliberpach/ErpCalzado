@@ -2,7 +2,6 @@
 
 namespace App\Http\Services\Almacen\Categorias;
 
-
 use App\Models\Almacenes\Categoria\Categoria;
 use Illuminate\Support\Facades\Storage;
 
@@ -47,6 +46,9 @@ class CategoriaService
     {
         if (!empty($instance->img_ruta) && Storage::disk('public')->exists($instance->img_ruta)) {
             Storage::disk('public')->delete($instance->img_ruta);
+            $instance->img_ruta     =   null;
+            $instance->img_nombre   =   null;
+            $instance->save();
         }
     }
     public function saveImg($img, $instance)

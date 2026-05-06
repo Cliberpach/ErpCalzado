@@ -15,7 +15,7 @@
                 @include('almacenes.categorias.forms.form_edit')
             </div>
 
-            <div class="modal-footer d-flex justify-content-between">
+            <div class="modal-footer d-flex justify-content-end">
 
                 <div class="text-muted">
                     <i class="fas fa-info-circle"></i>

@@ -84,6 +84,29 @@
                     name: 'descripcion'
                 },
                 {
+                    data: 'img_ruta',
+                    className: 'text-center',
+                    render: function(data, type, row) {
+
+                        if (data) {
+                            return `
+                                <img
+                                    src="/storage/${data}"
+                                    style="
+                                        width: 30px;
+                                        height: 30px;
+                                        object-fit: cover;
+                                        border-radius: 5px;
+                                        border: 1px solid #ccc;
+                                    "
+                                />
+                            `;
+                        }
+
+                        return '<span class="text-muted">Sin imagen</span>';
+                    }
+                },
+                {
                     data: null,
                     render: function(data, type, row) {
 

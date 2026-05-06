@@ -2,9 +2,7 @@
 
 namespace App\Http\Services\Almacen\Categorias;
 
-use App\Almacenes\Producto;
 use App\Models\Almacenes\Categoria\Categoria;
-use Illuminate\Support\Collection;
 
 class CategoriaManager
 {
