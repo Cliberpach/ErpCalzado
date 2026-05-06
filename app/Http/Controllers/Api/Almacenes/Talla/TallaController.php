@@ -1,6 +1,5 @@
 <?php
-
-namespace App\Http\Controllers\Api\Almacenes\Color;
+namespace App\Http\Controllers\Api\Almacenes\Talla;
 
 use App\Almacenes\Talla;
 use App\Http\Controllers\Controller;

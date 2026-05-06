@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Almacenes\Categoria\CategoriaController;
 use App\Http\Controllers\Api\Almacenes\Producto\ProductoController;
 use App\Http\Controllers\Api\Almacenes\Color\ColorController;
-use App\Http\Controllers\Api\Almacenes\Color\TallaController;
+use App\Http\Controllers\Api\Almacenes\Talla\TallaController;
 
 /*
 |--------------------------------------------------------------------------
