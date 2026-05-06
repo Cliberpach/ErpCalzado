@@ -37,6 +37,6 @@ Route::prefix('colores')->group(function () {
     Route::get('get-all', [ColorController::class, 'getAll']);
 });
 
-Route::prefix('colores')->group(function () {
+Route::prefix('tallas')->group(function () {
     Route::get('/get-all', [TallaController::class, 'getAll']);
 });
