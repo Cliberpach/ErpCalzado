@@ -19,11 +19,17 @@ class ColorUpdateRequest extends FormRequest
                 $newKey = str_replace('_edit', '', $key);
 
                 $data[$newKey] = $value;
-                unset($data[$key]); // eliminar la key antigua
+                unset($data[$key]);
             }
         }
 
         $this->replace($data);
+
+        if ($this->descripcion) {
+            $this->merge([
+                'descripcion' => mb_strtoupper(trim($this->descripcion), 'UTF-8')
+            ]);
+        }
     }
 
     /**
@@ -47,11 +53,21 @@ class ColorUpdateRequest extends FormRequest
                 'string',
                 'max:191',
                 Rule::unique('colores', 'descripcion')
-                    ->ignore($this->route('id')) // Ignora el registro actual
+                    ->ignore($this->route('id'))
                     ->where(function ($query) {
                         return $query->where('estado', 'ACTIVO');
                     }),
             ],
+
+            'codigo' => [
+                'nullable',
+                'string',
+                'max:12',
+                Rule::unique('colores', 'codigo')->where(function ($query) {
+                    return $query->where('estado', 'ACTIVO');
+                }),
+            ],
+
             'imagen' => [
                 'nullable',
                 'image',
@@ -68,6 +84,11 @@ class ColorUpdateRequest extends FormRequest
             'descripcion.string'   => 'El campo "descripción" debe ser una cadena de texto.',
             'descripcion.max'      => 'El campo "descripción" no debe exceder los 191 caracteres.',
             'descripcion.unique'   => 'Ya existe un color con esta descripción en estado ACTIVO.',
+
+            // codigo
+            'codigo.string' => 'El campo "código" debe ser una cadena de texto.',
+            'codigo.max'    => 'El campo "código" no debe superar los 12 caracteres.',
+            'codigo.unique' => 'Ya existe un código en estado ACTIVO.',
 
             // imagen
             'imagen.image' => 'El archivo debe ser una imagen válida.',

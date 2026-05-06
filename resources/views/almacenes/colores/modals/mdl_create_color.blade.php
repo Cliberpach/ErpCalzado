@@ -14,16 +14,28 @@
                 @include('almacenes.colores.forms.form_create_color')
             </div>
 
-            <div class="modal-footer">
-                <div class="col-md-6 text-left" style="color:#fcbc6c">
-                    <i class="fa fa-exclamation-circle"></i> <small>Los campos marcados con asterisco (<label
-                            class="required"></label>) son obligatorios.</small>
+            <div class="modal-footer d-block">
+                <!-- Fila 1: Botones -->
+                <div class="row mb-2">
+                    <div class="col-md-12 text-right">
+                        <button type="submit" form="form_create_color" class="btn btn-success btn-sm">
+                            <i class="fas fa-save mr-1"></i> Guardar
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i> Cancelar
+                        </button>
+                    </div>
                 </div>
-                <div class="col-md-6 text-right">
-                    <button type="submit" form="form_create_color" class="btn btn-success btn-sm"><i
-                            class="fa fa-save"></i> Guardar</button>
-                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i
-                            class="fa fa-times"></i> Cancelar</button>
+
+                <!-- Fila 2: Nota -->
+                <div class="row">
+                    <div class="col-md-12 text-left text-warning">
+                        <i class="fas fa-exclamation-circle mr-1"></i>
+                        <small>
+                            Los campos marcados con asterisco
+                            (<span class="required">*</span>) son obligatorios.
+                        </small>
+                    </div>
                 </div>
             </div>
 

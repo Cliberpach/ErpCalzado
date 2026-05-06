@@ -17,6 +17,22 @@ class CategoriaStoreRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        $data = $this->all();
+
+        foreach ($data as $key => $value) {
+            if (str_ends_with($key, '_mdlcategory')) {
+                $newKey = str_replace('_mdlcategory', '', $key);
+
+                $data[$newKey] = $value;
+                unset($data[$key]); 
+            }
+        }
+
+        $this->replace($data);
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -25,7 +41,7 @@ class CategoriaStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'nombre' => [
+            'descripcion' => [
                 'required',
                 'string',
                 'max:191',
@@ -38,7 +54,7 @@ class CategoriaStoreRequest extends FormRequest
                 'nullable',
                 'image',
                 'mimes:jpg,jpeg,png,webp,avif',
-                'max:2048' 
+                'max:2048'
             ],
         ];
     }

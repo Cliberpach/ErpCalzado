@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Almacen\Producto;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 
 class ProductoStoreRequest extends FormRequest
@@ -16,6 +15,21 @@ class ProductoStoreRequest extends FormRequest
     public function authorize()
     {
         return true;
+    }
+
+    protected function prepareForValidation()
+    {
+        $data = [];
+
+        if ($this->nombre) {
+            $data['nombre'] = mb_strtoupper(trim($this->nombre), 'UTF-8');
+        }
+
+        if ($this->descripcion) {
+            $data['descripcion'] = mb_strtoupper(trim($this->descripcion), 'UTF-8');
+        }
+
+        $this->merge($data);
     }
 
     /**

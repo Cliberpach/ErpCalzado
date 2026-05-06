@@ -3,12 +3,12 @@
 
     <div class="form-row">
         <div class="form-group col-md-12">
-            <label for="nombre_edit">Nombre <span class="text-danger">*</span></label>
+            <label for="descripcion_edit">Nombre <span class="text-danger">*</span></label>
 
-            <input type="text" id="nombre_edit" name="nombre_edit" class="form-control inputName" placeholder="Nombre"
+            <input type="text" id="descripcion_edit" name="descripcion_edit" class="form-control inputName" placeholder="Nombre"
                 required>
 
-            <small class="text-danger font-weight-bold nombre_error"></small>
+            <small class="text-danger font-weight-bold descripcion_edit_error"></small>
         </div>
     </div>
 

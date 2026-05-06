@@ -8,6 +8,14 @@
                 value="{{ old('descripcion') }}"required>
             <p class="descripcion_edit_error msgError"></p>
         </div>
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <label class="required_field font-weight-bold text-success">
+                <i class="fas fa-barcode mr-1"></i> Código:
+            </label>
+            <input type="text" class="form-control" name="codigo_edit" id="codigo_edit" value="{{ old('codigo') }}"
+                maxlength="12">
+            <p class="codigo_edit_error msgError"></p>
+        </div>
     </div>
     <div class="form-group">
 

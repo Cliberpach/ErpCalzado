@@ -11,7 +11,6 @@ use App\Almacenes\Talla;
 use App\Almacenes\Producto;
 use App\Almacenes\TipoCliente;
 use App\Exports\Producto\CodigoBarra;
-use App\Exports\Producto\ProductosExport;
 use App\Exports\Reportes\PI\Producto_PI;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Reportes\ProductoController as ReportesProductoController;
@@ -22,7 +21,6 @@ use App\Mantenimiento\Empresa\Empresa;
 use App\Mantenimiento\Sedes\Sede;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
-
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
@@ -113,7 +111,6 @@ array:12 [
 */
     public function store(ProductoStoreRequest $request)
     {
-
         $this->authorize('haveaccess', 'producto.index');
 
         DB::beginTransaction();

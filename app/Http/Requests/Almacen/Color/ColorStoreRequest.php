@@ -9,19 +9,33 @@ use Illuminate\Contracts\Validation\Validator;
 
 class ColorStoreRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+    protected function prepareForValidation()
+    {
+        $data = $this->all();
+
+        foreach ($data as $key => $value) {
+            if (str_ends_with($key, '_color')) {
+                $newKey = str_replace('_color', '', $key);
+
+                $data[$newKey] = $value;
+                unset($data[$key]);
+            }
+        }
+
+        $this->replace($data);
+
+        if ($this->descripcion) {
+            $this->merge([
+                'descripcion' => mb_strtoupper(trim($this->descripcion), 'UTF-8')
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -30,6 +44,15 @@ class ColorStoreRequest extends FormRequest
                 'string',
                 'max:191',
                 Rule::unique('colores')->where(function ($query) {
+                    return $query->where('estado', 'ACTIVO');
+                }),
+            ],
+
+            'codigo' => [
+                'nullable',
+                'string',
+                'max:12',
+                Rule::unique('colores', 'codigo')->where(function ($query) {
                     return $query->where('estado', 'ACTIVO');
                 }),
             ],
@@ -51,10 +74,15 @@ class ColorStoreRequest extends FormRequest
             'descripcion.max'      => 'El campo "descripción" no debe exceder los 191 caracteres.',
             'descripcion.unique'   => 'Ya existe un color con esta descripción en estado ACTIVO.',
 
+            // codigo
+            'codigo.string' => 'El campo "código" debe ser una cadena de texto.',
+            'codigo.max'    => 'El campo "código" no debe superar los 12 caracteres.',
+            'codigo.unique' => 'Ya existe un código en estado ACTIVO.',
+
             // imagen
             'imagen.image' => 'El archivo debe ser una imagen válida.',
             'imagen.mimes' => 'La imagen debe ser de tipo: jpg, jpeg, png, webp o avif.',
-            'imagen.max' => 'La imagen no debe superar los 2 MB.',
+            'imagen.max'   => 'La imagen no debe superar los 2 MB.',
         ];
     }
 

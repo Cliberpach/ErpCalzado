@@ -4,18 +4,49 @@ namespace App\Http\Services\Almacen\Colores;
 
 use App\Models\Almacenes\Color\Color;
 use Illuminate\Support\Facades\Storage;
+
 class ColorService
 {
-    public function store(array $data): Color
+    public function store(array $data): array
     {
-        $instance              =   new Color();
-        $instance->descripcion =    mb_convert_encoding($data['descripcion'], 'UTF-8', 'UTF-8');
+        $descripcion = mb_strtoupper(trim($data['descripcion']), 'UTF-8');
+
+        $color = Color::where('descripcion', $descripcion)->first();
+
+        if ($color) {
+
+            if ($color->estado === 'ANULADO') {
+                // 🔁 REACTIVAR
+                $color->estado = 'ACTIVO';
+                $color->codigo = $data['codigo'] ?? null;
+                $color->save();
+
+                if (!empty($data['imagen'])) {
+                    $this->saveImg($data['imagen'], $color);
+                }
+
+                return [
+                    'color' => $color,
+                    'message' => 'El color ya existía y fue reactivado correctamente.'
+                ];
+            }
+        }
+
+        // 🆕 CREAR
+        $instance = new Color();
+        $instance->descripcion = $descripcion;
+        $instance->codigo = $data['codigo'] ?? null;
+        $instance->estado = 'ACTIVO';
         $instance->save();
 
         if (!empty($data['imagen'])) {
             $this->saveImg($data['imagen'], $instance);
         }
-        return $instance;
+
+        return [
+            'color' => $instance,
+            'message' => 'Color creado correctamente.'
+        ];
     }
 
     public function getColor(int $id): Color
@@ -23,7 +54,7 @@ class ColorService
         return Color::findOrFail($id);
     }
 
-    public function update(int $id, array $datos): Color
+    public function update(int $id, array $datos): array
     {
         $datos = collect($datos)->mapWithKeys(function ($value, $key) {
             if (str_ends_with($key, '_edit')) {
@@ -32,15 +63,41 @@ class ColorService
             return [$key => $value];
         })->toArray();
 
+        $descripcion = strtoupper(trim($datos['descripcion']));
+        $color = Color::findOrFail($id);
 
-        $color                  =   Color::findOrFail($id);
-        $color->descripcion     =   $datos['descripcion'];
-        $color->update();
+        $otroColor = Color::where('descripcion', $descripcion)
+            ->where('id', '!=', $id)
+            ->first();
+
+        if ($otroColor) {
+
+            if ($otroColor->estado === 'ANULADO') {
+                $otroColor->estado = 'ACTIVO';
+                $otroColor->codigo = $datos['codigo'] ?? $otroColor->codigo;
+                $otroColor->save();
+
+                $color->estado = 'ANULADO';
+                $color->save();
+
+                return [
+                    'color' => $otroColor,
+                    'message' => 'Se reactivó un color existente con el mismo nombre.'
+                ];
+            }
+        }
+
+        // ✅ UPDATE NORMAL
+        $color->descripcion = $descripcion;
+        $color->codigo = $datos['codigo'] ?? null;
+        $color->save();
 
         if (!empty($datos['imagen'])) {
+
             if ($color->img_ruta && Storage::disk('public')->exists($color->img_ruta)) {
                 Storage::disk('public')->delete($color->img_ruta);
             }
+
             $this->saveImg($datos['imagen'], $color);
         } else {
 
@@ -53,7 +110,11 @@ class ColorService
                 'img_nombre' => null
             ]);
         }
-        return $color;
+
+        return [
+            'color' => $color,
+            'message' => 'Color actualizado correctamente.'
+        ];
     }
 
     public function destroy(int $id): Color

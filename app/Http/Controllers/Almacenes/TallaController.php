@@ -3,17 +3,16 @@
 namespace App\Http\Controllers\Almacenes;
 
 use App\Almacenes\Talla;
-use App\Almacenes\ProductoColor;
 use App\Almacenes\ProductoColorTalla;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Almacen\Talla\TallaStoreRequest;
+use App\Http\Requests\Almacen\Talla\TallaUpdateRequest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
-use Illuminate\Support\Facades\DB; 
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class TallaController extends Controller
 {
@@ -23,65 +22,82 @@ class TallaController extends Controller
         return view('almacenes.tallas.index');
     }
 
-    public function getTalla(){
-        $tallas = Talla::where('estado','ACTIVO')->get();
-        $coleccion = collect([]);
-        foreach($tallas as $talla){
-            $coleccion->push([
-                'id' => $talla->id,
-                'descripcion' => $talla->descripcion,
-                'fecha_creacion' =>  Carbon::parse($talla->created_at)->format( 'd/m/Y'),
-                'fecha_actualizacion' =>  Carbon::parse($talla->updated_at)->format( 'd/m/Y'),
-                'estado' => $talla->estado,
+    public function getRepository(Request $request)
+    {
+        $data = Talla::where('estado', 'ACTIVO');
+
+        return DataTables::of($data)
+            ->editColumn('fecha_creacion', function ($talla) {
+                return Carbon::parse($talla->created_at)->format('d/m/Y');
+            })
+            ->toJson();
+    }
+
+    public function store(TallaStoreRequest $request)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            $data = $request->validated();
+            $descripcion = mb_strtoupper(trim($data['descripcion']), 'UTF-8');
+
+            $talla = Talla::where('descripcion', $descripcion)->first();
+
+            if ($talla) {
+
+                if ($talla->estado === 'ANULADO') {
+                    $talla->estado = 'ACTIVO';
+                    $talla->save();
+
+                    $descripcionLog = "SE REACTIVÓ LA TALLA CON LA DESCRIPCIÓN: " . $talla->descripcion;
+                    $gestion = "TALLA";
+                    crearRegistro($talla, $descripcionLog, $gestion);
+
+                    DB::commit();
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'La talla ya existía y fue reactivada correctamente.'
+                    ]);
+                }
+            }
+
+            // 🆕 CREAR NUEVA
+            $data['descripcion'] = $descripcion;
+            $data['estado'] = 'ACTIVO';
+
+            $talla = Talla::create($data);
+
+            // 📝 Registro de actividad
+            $descripcionLog = "SE AGREGÓ LA TALLA CON LA DESCRIPCIÓN: " . $talla->descripcion;
+            $gestion = "TALLA";
+            crearRegistro($talla, $descripcionLog, $gestion);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Talla registrada con éxito.'
+            ]);
+        } catch (Throwable $th) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage()
             ]);
         }
-        return DataTables::of($coleccion)->toJson();
     }
 
-    public function store(Request $request){
-        //$this->authorize('haveaccess','categoria.index');
-        $data = $request->all();
-
-        $rules = [
-            'descripcion_guardar' => [
-                'required',
-                Rule::unique('tallas', 'descripcion')->where(function ($query) {
-                    return $query->where('estado', 'ACTIVO');
-                }),
-            ],
-
-        ];
-        
-        $message = [
-            'descripcion_guardar.required'  => 'El campo Descripción es obligatorio.',
-            'descripcion_guardar.unique'    => 'La talla ya existe.',
-
-        ];
-
-        Validator::make($data, $rules, $message)->validate();
-
-        $talla = new Talla();
-        $talla->descripcion = $request->get('descripcion_guardar');
-        $talla->save();
-
-        //$this->asociarTallaProductos($talla);
-
-
-        //Registro de actividad
-        $descripcion = "SE AGREGÓ LA TALLA CON LA DESCRIPCION: ". $talla->descripcion;
-        $gestion = "TALLA";
-        crearRegistro($talla, $descripcion , $gestion);
-
-        Session::flash('success','Talla creada.');
-        return redirect()->route('almacenes.tallas.index')->with('guardar', 'success');
-    }
-
-    public function asociarTallaProductos($talla){
+    public function asociarTallaProductos($talla)
+    {
         // Obtener todos los productos y colores
         $productosColores = DB::table('producto_color_tallas')
-        ->select('producto_id', 'color_id')
-        ->distinct()
-        ->get();
+            ->select('producto_id', 'color_id')
+            ->distinct()
+            ->get();
 
         // Iterar sobre los productos y colores para asociar la nueva talla
         foreach ($productosColores as $productoColor) {
@@ -106,56 +122,96 @@ class TallaController extends Controller
         }
     }
 
-    public function update(Request $request){
-        //$this->authorize('haveaccess','categoria.index');
-        $data = $request->all();
+    public function update(TallaUpdateRequest $request, int $id)
+    {
+        DB::beginTransaction();
 
-        $rules = [
-            'tabla_id' => 'required',
-            'descripcion' => [
-                'required',
-                Rule::unique('tallas', 'descripcion')->where(function ($query) {
-                    return $query->where('estado', 'ACTIVO');
-                }),
-            ],
-        ];
-        
-        $message = [
-            'descripcion.required'  => 'El campo Descripción es obligatorio.',
-            'descripcion.unique'     => 'La talla ya existe.',
+        try {
 
-        ];
+            $data = $request->validated();
+            $descripcion = mb_strtoupper(trim($data['descripcion']), 'UTF-8');
 
-        Validator::make($data, $rules, $message)->validate();
-        
-        $talla = Talla::findOrFail($request->get('tabla_id'));
-        $talla->descripcion = $request->get('descripcion');
-        $talla->update();
+            $talla = Talla::findOrFail($id);
 
-        //Registro de actividad
-        $descripcion = "SE MODIFICÓ LA TALLA CON LA DESCRIPCION: ". $talla->descripcion;
-        $gestion = "TALLA";
-        modificarRegistro($talla, $descripcion , $gestion);
+            $otraTalla = Talla::where('descripcion', $descripcion)
+                ->where('id', '!=', $id)
+                ->first();
 
-        Session::flash('success','Talla modificada.');
-        return redirect()->route('almacenes.tallas.index')->with('modificar', 'success');
+            if ($otraTalla) {
+
+                if ($otraTalla->estado === 'ANULADO') {
+
+                    $otraTalla->estado = 'ACTIVO';
+                    $otraTalla->save();
+
+                    $talla->estado = 'ANULADO';
+                    $talla->save();
+
+                    $descripcionLog = "SE REACTIVÓ LA TALLA EXISTENTE: " . $otraTalla->descripcion;
+                    $gestion = "TALLA";
+                    modificarRegistro($otraTalla, $descripcionLog, $gestion);
+
+                    DB::commit();
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'La talla ya existía y fue reactivada correctamente.'
+                    ]);
+                }
+            }
+
+            $talla->descripcion = $descripcion;
+            $talla->save();
+
+            $descripcionLog = "SE MODIFICÓ LA TALLA CON LA DESCRIPCIÓN: " . $talla->descripcion;
+            $gestion = "TALLA";
+            modificarRegistro($talla, $descripcionLog, $gestion);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Talla modificada con éxito.'
+            ]);
+        } catch (Throwable $th) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage()
+            ]);
+        }
     }
 
-    
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        //$this->authorize('haveaccess','categoria.index');
-        $talla = Talla::findOrFail($id);
-        $talla->estado = 'ANULADO';
-        $talla->update();
+        DB::beginTransaction();
 
-        //Registro de actividad
-        $descripcion = "SE ELIMINÓ LA TALLA CON LA DESCRIPCION: ". $talla->descripcion;
-        $gestion = "TALLA";
-        eliminarRegistro($talla, $descripcion , $gestion);
+        try {
 
-        Session::flash('success','Talla eliminada.');
-        return redirect()->route('almacenes.tallas.index')->with('eliminar', 'success');
+            $talla = Talla::findOrFail($id);
+            $talla->estado = 'ANULADO';
+            $talla->update();
 
+            // Registro de actividad
+            $descripcion = "SE ELIMINÓ LA TALLA CON LA DESCRIPCION: " . $talla->descripcion;
+            $gestion = "TALLA";
+            eliminarRegistro($talla, $descripcion, $gestion);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Talla eliminada con éxito'
+            ]);
+        } catch (Throwable $th) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage()
+            ]);
+        }
     }
 }

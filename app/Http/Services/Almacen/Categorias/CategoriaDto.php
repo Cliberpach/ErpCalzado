@@ -8,7 +8,7 @@ class CategoriaDto
     {
         $dto    =   [];
 
-        $dto['descripcion'] = mb_strtoupper(trim($data['nombre']), 'UTF-8');
+        $dto['descripcion'] = mb_strtoupper(trim($data['descripcion']), 'UTF-8');
 
         return $dto;
     }

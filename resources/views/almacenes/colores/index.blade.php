@@ -1,102 +1,99 @@
 @extends('layout')
-@section('content')
 
+@section('almacenes-active', 'active')
+@section('color-active', 'active')
+
+
+@section('bread-module', 'Almacén')
+@section('bread-submodule', 'Almacénes')
+@section('hero-title', 'Lista de Colores')
+@section('hero-subtitle', 'Almacénes')
+
+@section('btn-add')
+    <a class="main-btn-add" href="#" onclick="openMdlCreateColor()">
+        <i class="fas fa-plus-circle"></i> Nuevo
+    </a>
+@endsection
+
+@section('content')
     @include('almacenes.colores.modalfile')
     @include('almacenes.colores.modals.mdl_create_color')
     @include('almacenes.colores.modals.mdl_edit_color')
 
-@section('almacenes-active', 'active')
-@section('color-active', 'active')
-<div class="row wrapper border-bottom white-bg page-heading">
-    <div class="col-lg-10 col-md-10">
-        <h2 style="text-transform:uppercase"><b>Listado de Colores</b></h2>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{ route('home') }}">Panel de Control</a>
-            </li>
-            <li class="breadcrumb-item active">
-                <strong>Colores</strong>
-            </li>
+    <div class="wrapper wrapper-content animated fadeInRight">
 
-        </ol>
-    </div>
-    <div class="col-lg-2 col-md-2">
-        <a data-toggle="modal" class="btn btn-block btn-w-m btn-primary m-t-md" href="javascript:void(0);"
-            onclick="openMdlCreateColor()">
-            <i class="fa fa-plus-square"></i> NUEVO
-        </a>
-        <a class="btn btn-block btn-w-m btn-primary m-t-md btn-modal-file" href="#">
-            <i class="fa fa-plus-square"></i> Importar Excel
-        </a>
-    </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox ">
 
-</div>
+                    <div class="ibox-content">
 
-<div class="wrapper wrapper-content animated fadeInRight">
+                        <div class="table-responsive">
+                            @include('almacenes.colores.tables.tbl_list_colores')
+                        </div>
 
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="ibox ">
-
-                <div class="ibox-content">
-
-                    <div class="table-responsive">
-                        @include('almacenes.colores.tables.tbl_list_colores')
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
-</div>
 @endsection
 
 @push('styles')
-<style>
-    .my-swal {
-        z-index: 3000 !important;
-    }
-</style>
-<link rel="stylesheet" href="{{ mix('css/filepond.css') }}">
+    <style>
+        .my-swal {
+            z-index: 3000 !important;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ mix('css/filepond.css') }}">
 @endpush
 
 @push('scripts')
-<script src="{{ mix('js/filepond.js') }}"></script>
-<script>
-    let dtColores = null;
+    <script src="{{ mix('js/filepond.js') }}"></script>
+    <script>
+        let dtColores = null;
 
-    document.addEventListener('DOMContentLoaded', () => {
-        iniciarDtColores();
-        events();
-    })
+        document.addEventListener('DOMContentLoaded', () => {
+            iniciarDtColores();
+            events();
+        })
 
-    function events() {
-        eventsMdlCreateColor();
-        eventsMdlEditColor();
-    }
+        function events() {
+            eventsMdlCreateColor();
+            eventsMdlEditColor();
+        }
 
-    function iniciarDtColores() {
-        dtColores = new DataTable('#dt-colores', {
-            "processing": true,
-            "ajax": '{{ route('almacenes.colores.getColores') }}',
-            "columns": [{
-                    data: 'id',
-                    className: "text-center",
-                    "visible": false
-                },
-                {
-                    data: 'descripcion',
-                    className: "text-center"
-                },
-                {
-                    data: 'img_ruta',
-                    className: 'text-center',
-                    searchable:false,
-                    orderable:false,
-                    render: function(data, type, row) {
+        function iniciarDtColores() {
+            dtColores = new DataTable('#dt-colores', {
+                "processing": true,
+                "ajax": '{{ route('almacenes.colores.getColores') }}',
+                "columns": [{
+                        data: 'id',
+                        searchable: false,
+                        className: "text-center",
+                        "visible": false
+                    },
+                    {
+                        data: 'descripcion',
+                        searchable: true,
+                        orderable: true,
+                        className: "text-center"
+                    },
+                    {
+                        data: 'codigo',
+                        searchable: true,
+                        orderable: true,
+                        className: "text-center"
+                    },
+                    {
+                        data: 'img_ruta',
+                        className: 'text-center',
+                        searchable: false,
+                        orderable: false,
+                        render: function(data, type, row) {
 
-                        if (data) {
-                            return `
+                            if (data) {
+                                return `
                                 <img
                                     src="/storage/${data}"
                                     style="
@@ -108,16 +105,18 @@
                                     "
                                 />
                             `;
-                        }
+                            }
 
-                        return '<span class="text-muted">Sin imagen</span>';
-                    }
-                },
-                {
-                    data: null,
-                    className: "text-center",
-                    render: function(data) {
-                        return `
+                            return '<span class="text-muted">Sin imagen</span>';
+                        }
+                    },
+                    {
+                        data: null,
+                        className: "text-center",
+                        searchable: false,
+                        orderable: false,
+                        render: function(data) {
+                            return `
                             <div class="btn-group">
                                 <button
                                     class="btn btn-warning btn-sm modificarDetalle"
@@ -135,31 +134,18 @@
                                 </a>
                             </div>
                         `;
+                        }
                     }
-                }
-            ],
-            "language": {
-                "url": "{{ asset('Spanish.json') }}"
-            },
-            "order": [
-                [0, "desc"]
-            ],
-        });
+                ],
+                "language": {
+                    "url": "{{ asset('Spanish.json') }}"
+                },
+                "order": [
+                    [0, "desc"]
+                ],
+            });
 
-    }
-
-    const swalWithBootstrapButtons = Swal.mixin({
-        customClass: {
-            confirmButton: 'btn btn-success',
-            cancelButton: 'btn btn-danger',
-        },
-        buttonsStyling: false
-    })
-
-    function eliminar(id) {
-        const fila = getRowById(dtColores, id);
-        const descripcion = fila?.descripcion || 'Sin descripción';
-        const codigo = fila?.codigo || '#ffffff';
+        }
 
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
@@ -167,11 +153,24 @@
                 cancelButton: 'btn btn-danger',
             },
             buttonsStyling: false
-        });
+        })
 
-        Swal.fire({
-            title: '¿Desea eliminar el color?',
-            html: `
+        function eliminar(id) {
+            const fila = getRowById(dtColores, id);
+            const descripcion = fila?.descripcion || 'Sin descripción';
+            const codigo = fila?.codigo || '#ffffff';
+
+            const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-danger',
+                },
+                buttonsStyling: false
+            });
+
+            Swal.fire({
+                title: '¿Desea eliminar el color?',
+                html: `
             <div style="text-align: center; font-size: 15px;">
                 <p><i class="fa fa-palette text-primary"></i>
                     <strong>Descripción:</strong> ${descripcion}
@@ -187,52 +186,52 @@
                 </p>
             </div>
         `,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: "#1ab394",
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: "No, cancelar",
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Eliminando color...',
-                    html: `
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: "#1ab394",
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: "No, cancelar",
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Eliminando color...',
+                        html: `
                     <div style="display:flex; align-items:center; justify-content:center; flex-direction:column;">
                         <i class="fa fa-spinner fa-spin fa-3x text-primary mb-3"></i>
                         <p style="margin:0; font-weight:600;">Por favor, espere un momento</p>
                     </div>
                 `,
-                    allowOutsideClick: false,
-                    showConfirmButton: false
-                });
+                        allowOutsideClick: false,
+                        showConfirmButton: false
+                    });
 
-                try {
-                    const res = await axios.delete(route('almacenes.colores.destroy', id));
-                    if (res.data.success) {
-                        toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
-                        dtColores.ajax.reload();
-                    } else {
-                        toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                    try {
+                        const res = await axios.delete(route('almacenes.colores.destroy', id));
+                        if (res.data.success) {
+                            toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
+                            dtColores.ajax.reload();
+                        } else {
+                            toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                        }
+                    } catch (error) {
+                        toastr.error(error, 'ERROR EN LA PETICIÓN ELIMINAR COLOR');
+                    } finally {
+                        Swal.close();
                     }
-                } catch (error) {
-                    toastr.error(error, 'ERROR EN LA PETICIÓN ELIMINAR COLOR');
-                } finally {
-                    Swal.close();
+
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    swalWithBootstrapButtons.fire(
+                        'Cancelado',
+                        'La solicitud ha sido cancelada.',
+                        'error'
+                    );
                 }
+            });
+        }
 
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire(
-                    'Cancelado',
-                    'La solicitud ha sido cancelada.',
-                    'error'
-                );
-            }
+
+        $(".btn-modal-file").on('click', function() {
+            $("#modal_file").modal("show");
         });
-    }
-
-
-    $(".btn-modal-file").on('click', function() {
-        $("#modal_file").modal("show");
-    });
-</script>
+    </script>
 @endpush

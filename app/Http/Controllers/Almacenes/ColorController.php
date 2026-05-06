@@ -10,7 +10,6 @@ use App\Http\Requests\Almacen\Color\ColorUpdateRequest;
 use App\Http\Services\Almacen\Colores\ColorManager;
 use App\Models\Almacenes\Color\Color;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -51,7 +50,7 @@ class ColorController extends Controller
         }
     }
 
-/*
+    /*
 array:4 [
   "_token" => "RG1HST0u8rFP9P4C45b1jIJZ4NEadP1ACzaldZ4L"
   "_method" => "POST"
@@ -65,27 +64,23 @@ array:4 [
 
         try {
 
-            $color  =   $this->s_color->store($request->toArray());
+            $res  =   $this->s_color->store($request->toArray());
 
             //Registro de actividad
-            $descripcion = "SE AGREGÓ EL COLOR CON LA DESCRIPCION: " . $color->descripcion;
+            $descripcion = "SE AGREGÓ EL COLOR CON LA DESCRIPCION: " . $res['color']->descripcion;
             $gestion = "COLOR";
-            crearRegistro($color, $descripcion, $gestion);
+            crearRegistro($res['color'], $descripcion, $gestion);
 
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'COLOR REGISTRADO CON ÉXITO']);
+            return response()->json([
+                'success' => true,
+                'message' => $res['message'],
+                'data'  =>  $res['color']
+            ]);
         } catch (Throwable $th) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
-
-
-        if ($request->has('fetch') && $request->input('fetch') == 'SI') {
-            return response()->json(['message' => 'success',    'data' => $color]);
-        }
-
-        Session::flash('success', 'Color creado.');
-        return redirect()->route('almacenes.colores.index')->with('guardar', 'success');
     }
 
     public function asociarColorProductos($color)
@@ -129,17 +124,17 @@ array:4 [
     {
         DB::beginTransaction();
         try {
-           
-            $color  =   $this->s_color->update($id, $request->toArray());
+
+            $res  =   $this->s_color->update($id, $request->toArray());
 
             //Registro de actividad
-            $descripcion = "SE MODIFICÓ EL COLOR CON LA DESCRIPCION: " . $color->descripcion;
+            $descripcion = "SE MODIFICÓ EL COLOR CON LA DESCRIPCION: " . $res['color']->descripcion;
             $gestion = "COLOR";
-            modificarRegistro($color, $descripcion, $gestion);
+            modificarRegistro($res['color'], $descripcion, $gestion);
 
             DB::commit();
 
-            return response()->json(['success' => true, 'message' => 'COLOR ACTUALIZADO CON ÉXITO']);
+            return response()->json(['success' => true, 'message' => $res['message']]);
         } catch (Throwable $th) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $th->getMessage()]);

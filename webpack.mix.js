@@ -18,8 +18,8 @@ mix.js('resources/js/libs/global/tomselect.js', 'public/js');
 mix.js('resources/js/libs/global/highcharts.js', 'public/js');
 mix.js('resources/js/utils/utils.js', 'public/js');
 
-mix.js('resources/js/filepond.js', 'public/js')
-   .postCss('resources/css/filepond.css', 'public/css');
+mix.js('resources/js/libs/global/filepond.js', 'public/js');
+mix.postCss('resources/css/filepond.css', 'public/css');
 
 mix.options({
     processCssUrls: false

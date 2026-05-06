@@ -25,10 +25,15 @@
                     <span style="font-weight: bold;color:red;" class="nombre_error msgErrorProducto"></span>
                 </div>
 
+                <div class="col-12">
+                    <label for="descripcion">DESCRIPCIÓN</label>
+                    <textarea class="form-control" id="descripcion" name="descripcion" rows="3" maxlength="300"
+                        placeholder="Ingrese una descripción">{{ $producto->descripcion }}</textarea>
+                </div>
+
                 <div class="col-lg-6 col-12 mb-3">
                     <label style="font-weight:bold;" class="required">Categoria</label>
-                    <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_categoria"
-                        class="btn btn-primary" href="#">
+                    <a style="padding:2.5px 4px;" onclick="openMdlCategory()" class="btn btn-success" href="#">
                         <i class="fa fa-plus"></i>
                     </a>
                     <select required id="categoria" name="categoria"
@@ -40,13 +45,12 @@
                                 {{ $categoria->descripcion }}</option>
                         @endforeach
                     </select>
-                    <span style="font-weight: bold;color:red;" class="categoria_error msgErrorProducto"></span>
+                    <span style="font-weight: bold;color:red;" class="categoria_error msgError"></span>
                 </div>
 
                 <div class="col-lg-6 col-12 mb-3">
                     <label style="font-weight:bold;" class="required">Marca</label>
-                    <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_marca"
-                        class="btn btn-primary" href="#">
+                    <a style="padding:2.5px 4px;" onclick="openMdlBrand()" class="btn btn-success" href="#">
                         <i class="fa fa-plus"></i>
                     </a>
                     <select id="marca" name="marca"
@@ -64,8 +68,7 @@
 
                 <div class="col-lg-6 col-12 mb-3">
                     <label style="font-weight:bold;" class="required">Modelo</label>
-                    <a style="padding:2.5px 4px;" data-toggle="modal" data-target="#modal_crear_modelo"
-                        class="btn btn-primary" href="#">
+                    <a style="padding:2.5px 4px;" class="btn btn-success" href="#" onclick="openMdlModelo()">
                         <i class="fa fa-plus"></i>
                     </a>
                     <select required id="modelo" name="modelo"
@@ -160,80 +163,45 @@
 
     <div class="row">
         <div class="col-12">
-            <div class="panel panel-primary">
+            <div class="panel panel-success">
                 <div class="panel-heading">
-                    <h4><b>IMÁGENES</b></h4>
+                    <h4 class="mb-1"><b>IMÁGENES</b></h4>
+                    <small class="text-white">
+                        Máximo 2MB. Formatos permitidos: JPG, JPEG, WEBP, AVIF.
+                    </small>
                 </div>
                 <div class="panel-body">
 
-                    <div class="row text-center">
-                        @for ($i = 1; $i <= 5; $i++)
-                            @php
-                                $ruta = $producto["img{$i}_ruta"] ?? null;
-                                $nombre = $producto["img{$i}_nombre"] ?? null;
-                            @endphp
+                    <div class="row justify-content-around">
+                        <!-- Imagen 1 -->
+                        <div class="col-md-4 col-6 mb-3">
+                            <input type="file" class="filepond" name="imagen1" />
+                        </div>
 
-                            <div class="col-md-2 col-6 mb-3">
-                                <div class="position-relative">
-                                    <label for="imagen{{ $i }}" class="d-block" style="cursor:pointer;">
-                                        <div class="d-flex align-items-center justify-content-center border rounded img-thumbnail"
-                                            style="height:150px;">
+                        <!-- Imagen 2 -->
+                        <div class="col-md-4 col-6 mb-3">
+                            <input type="file" class="filepond" name="imagen2" />
+                        </div>
 
-                                            {{-- Mostrar preview si existe, si no mostrar + --}}
-                                            @if ($ruta)
-                                                <a id="link{{ $i }}" href="{{ asset($ruta) }}"
-                                                    data-fancybox="galeria">
-                                                    <img id="preview{{ $i }}" src="{{ asset($ruta) }}"
-                                                        class="img-fluid img-preview">
-                                                </a>
-                                                <span id="plus{{ $i }}" class="d-none"
-                                                    style="font-size:2rem; color:#aaa;">+</span>
-                                            @else
-                                                <span id="plus{{ $i }}"
-                                                    style="font-size:2rem; color:#aaa;">+</span>
-                                                <a id="link{{ $i }}" href=""
-                                                    data-fancybox="galeria" class="d-none">
-                                                    <img id="preview{{ $i }}"
-                                                        class="img-fluid img-preview">
-                                                </a>
-                                            @endif
-                                        </div>
-                                    </label>
+                        <!-- Imagen 3 -->
+                        <div class="col-md-4 col-6 mb-3">
+                            <input type="file" class="filepond" name="imagen3" />
+                        </div>
 
-                                    {{-- Botón eliminar visible solo si ya existe --}}
-                                    <button type="button" id="remove{{ $i }}"
-                                        class="btn btn-sm btn-danger position-absolute {{ $ruta ? '' : 'd-none' }}"
-                                        style="top:5px; right:5px;"
-                                        onclick="removeImage('imagen{{ $i }}','preview{{ $i }}','plus{{ $i }}','remove{{ $i }}','filename{{ $i }}','link{{ $i }}')">
-                                        ✖
-                                    </button>
+                        <!-- Imagen 4 -->
+                        <div class="col-md-4 col-6 mb-3">
+                            <input type="file" class="filepond" name="imagen4" />
+                        </div>
 
-                                    {{-- Nombre de archivo --}}
-                                    <small id="filename{{ $i }}"
-                                        class="text-muted d-block mt-1 text-truncate">
-                                        {{ $nombre ?? '' }}
-                                    </small>
-                                </div>
+                        <!-- Imagen 5 -->
+                        <div class="col-md-4 col-6 mb-3">
+                            <input type="file" class="filepond" name="imagen5" />
+                        </div>
 
-                                {{-- Input oculto --}}
-                                <input type="file" class="d-none" id="imagen{{ $i }}"
-                                    name="imagen{{ $i }}" accept=".jpg,.jpeg,.webp,.avif"
-                                    onchange="previewImage(event, 'preview{{ $i }}', 'plus{{ $i }}','remove{{ $i }}','filename{{ $i }}','link{{ $i }}')">
-                                <input type="hidden" id="remove_imagen{{ $i }}"
-                                    name="remove_imagen{{ $i }}" value="0">
-
-                                <p class="m-0 imagen{{ $i }}_error msgError"></p>
-                            </div>
-                        @endfor
                     </div>
 
                 </div>
             </div>
-        </div>
-        <div class="col-12">
-            <label for="descripcion">DESCRIPCIÓN</label>
-            <textarea class="form-control" id="descripcion" name="descripcion" rows="3" maxlength="300"
-                placeholder="Ingrese una descripción">{{ $producto->descripcion }}</textarea>
         </div>
     </div>
 
@@ -251,9 +219,9 @@
                             <div class="row">
 
                                 <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 d-flex align-items-center">
-                                    <a style="padding:2.5px 4px;" data-toggle="modal"
-                                        data-target="#modal_crear_color" class="btn btn-primary" href="#">
-                                        NUEVO COLOR <i class="fa fa-plus"></i>
+                                    <a style="padding:2.5px 4px;" onclick="openMdlColor()" class="btn btn-success"
+                                        href="javascript:void(0);">
+                                        NUEVO COLOR <i class="fas fa-plus"></i>
                                     </a>
                                 </div>
 

@@ -14,3 +14,5 @@ FilePond.registerPlugin(
 FilePond.setOptions(es_ES);
 
 window.FilePond = FilePond;
+
+export default FilePond;

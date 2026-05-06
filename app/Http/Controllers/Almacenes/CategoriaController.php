@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Almacenes;
 
 use App\Almacenes\Categoria;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Almacen\Categoria\CategoriaStoreRequest;
 use App\Http\Requests\Almacen\Categoria\CategoriaUpdateRequest;
 use App\Http\Services\Almacen\Categorias\CategoriaManager;
 use App\Models\Almacenes\Categoria\Categoria as AlmacenesCategoria;
@@ -11,10 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\File;
 use Throwable;
 
 class CategoriaController extends Controller
@@ -67,11 +65,11 @@ class CategoriaController extends Controller
     /*
 array:3 [
   "_token" => "RG1HST0u8rFP9P4C45b1jIJZ4NEadP1ACzaldZ4L"
-  "nombre" => "BOTAS"
+  "descripcion" => "BOTAS"
   "imagen" => Illuminate\Http\UploadedFile {#1149}
 ]
 */
-    public function store(Request $request)
+    public function store(CategoriaStoreRequest $request)
     {
         $this->authorize('haveaccess', 'categoria.index');
         DB::beginTransaction();
@@ -84,7 +82,11 @@ array:3 [
             crearRegistro($instance, $descripcion, $gestion);
 
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'Categoría registrada con éxito']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Categoría registrada con éxito',
+                'data'  =>  $instance
+            ]);
         } catch (Throwable $th) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
@@ -95,7 +97,7 @@ array:3 [
     /*
 array:3 [
   "_token" => "RG1HST0u8rFP9P4C45b1jIJZ4NEadP1ACzaldZ4L"
-  "nombre" => "SANDALIAS"
+  "descripcion" => "SANDALIAS"
   "imagen" => Illuminate\Http\UploadedFile {#1983}
 ]
 */

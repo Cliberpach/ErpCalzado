@@ -24,10 +24,10 @@ class ProductoService
     }
 
     public function registrar(array $datos): Producto
-    {
+    {   
         //======= GUARDANDO PRODUCTO =======
         $producto                   =   new Producto();
-        $producto->nombre           =   $datos['nombre'];
+        $producto->nombre           =   mb_strtoupper(trim($datos['nombre']), 'UTF-8');
         $producto->marca_id         =   $datos['marca'];
         $producto->categoria_id     =   $datos['categoria'];
         $producto->modelo_id        =   $datos['modelo'];

@@ -69,6 +69,8 @@
 
     function pintarColorEdit(color) {
         document.querySelector('#descripcion_edit').value = color.descripcion;
+        document.querySelector('#codigo_edit').value = color.codigo;
+
         parametrosMdlEditColor.row = color;
 
         if (!parametrosMdlEditColor.fpImg) return;

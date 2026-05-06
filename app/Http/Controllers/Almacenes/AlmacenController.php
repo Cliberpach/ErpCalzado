@@ -2,182 +2,165 @@
 
 namespace App\Http\Controllers\Almacenes;
 
-use App\Almacenes\Almacen;
 use App\Http\Controllers\Controller;
-use App\Mantenimiento\Sedes\Sede;
+use App\Http\Requests\Almacen\Almacen\AlmacenStoreRequest;
+use App\Http\Requests\Almacen\Almacen\AlmacenUpdateRequest;
+use App\Models\Almacenes\Almacen\Almacen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
+use Throwable;
 use Yajra\DataTables\Facades\DataTables;
 
 class AlmacenController extends Controller
 {
     public function index()
     {
-        $this->authorize('haveaccess','almacen.index');
-        
+        $this->authorize('haveaccess', 'almacen.index');
+
         $sede_id                =   Auth::user()->sede->id;
 
         $sede_have_principal    =   Almacen::where('estado', 'ACTIVO')
-                                    ->where('sede_id', $sede_id)
-                                    ->where('tipo_almacen','PRINCIPAL')
-                                    ->exists();
+            ->where('sede_id', $sede_id)
+            ->where('tipo_almacen', 'PRINCIPAL')
+            ->exists();
 
-        return view('almacenes.almacen.index',compact('sede_id','sede_have_principal'));
+        return view('almacenes.almacen.index', compact('sede_id', 'sede_have_principal'));
     }
-    public function getRepository(){
+
+    public function getRepository()
+    {
 
         $sede_id   =   Auth::user()->sede->id;
 
         $almacenes  =   DB::table('almacenes as a')
-                        ->join('empresa_sedes as es','es.id','a.sede_id')
-                        ->select('a.*',
-                        'es.direccion as sede_direccion', 
-                        DB::raw('DATE_FORMAT(a.created_at, "%d/%m/%Y") as creado'),
-                        DB::raw('DATE_FORMAT(a.updated_at, "%d/%m/%Y") as actualizado')
-                        )
-                        ->where('a.estado','ACTIVO')
-                        ->where('a.sede_id',$sede_id)
-                        ->orderBy('a.id','DESC')
-                        ->get();
+            ->join('empresa_sedes as es', 'es.id', 'a.sede_id')
+            ->select(
+                'a.*',
+                'es.direccion as sede_direccion',
+                DB::raw('DATE_FORMAT(a.created_at, "%d/%m/%Y") as creado'),
+                DB::raw('DATE_FORMAT(a.updated_at, "%d/%m/%Y") as actualizado')
+            )
+            ->where('a.estado', 'ACTIVO')
+            ->where('a.sede_id', $sede_id)
+            ->orderBy('a.id', 'DESC')
+            ->get();
 
         return DataTables::of($almacenes)
-        ->make(true);
+            ->make(true);
     }
 
-/*
-array:7 [▼
-  "_token" => "1GLZQwEm27g0iIhFDg4ixijgrzEPTT3PfQqqPkWE"
-  "_method" => "POST"
-  "almacen_existe" => null
-  "sede_id" => "2"
-  "descripcion_guardar" => "ASDA"
-  "ubicacion_guardar" => "SDASDAS"
-  "tipo_almacen" => "PRINCIPAL"
+    /*
+array:5 [
+  "_token" => "sqPdRIxe0sP2mRvCnoMJXnOtXfwZpuQRiQBZbaQv"
+  "sede_id" => "1"
+  "descripcion" => "RESERVAS"
+  "ubicacion" => "TEST"
+  "tipo_almacen" => "SECUNDARIO"
 ]
 */
-    public function store(Request $request){
-     
-        $this->authorize('haveaccess','almacen.index'); 
-        $data = $request->all();
-    
+    public function store(AlmacenStoreRequest $request)
+    {
+        $this->authorize('haveaccess', 'almacen.index');
+        DB::beginTransaction();
 
-        $rules = [
-            'descripcion_guardar' => [
-                'required',
-                Rule::unique('almacenes','descripcion')->where(function ($query) {
-                    return $query->where('estado', 'ACTIVO');
-                }),
-            ],
-            'ubicacion_guardar' => 'required',
-        ];
-        
-        $message = [
-            'descripcion_guardar.required'  => 'El campo Descripción es obligatorio.',
-            'descripcion_guardar.unique'    => 'El nombre de almacén ya existe.',
-            'ubicacion_guardar.required'    => 'El campo Ubicación es obligatorio.',
-        ];
+        try {
 
-        Validator::make($data, $rules, $message)->validate();
+            $data   =   $request->validated();
+            $data['sede_id']    =   $request->get('sede_id');
 
-        $almacen                =   new Almacen();
-        $almacen->descripcion   =   $request->get('descripcion_guardar');
-        $almacen->ubicacion     =   $request->get('ubicacion_guardar');
-        $almacen->sede_id       =   $request->get('sede_id');
-        $almacen->tipo_almacen  =   $request->get('tipo_almacen');
-        $almacen->save();
+            $almacen    =   Almacen::create($data);
 
-        
-        //Registro de actividad
-        $descripcion    = "SE AGREGÓ EL ALMACEN CON EL NOMBRE: ". $almacen->descripcion;
-        $gestion        = "ALMACEN";
-        crearRegistro($almacen, $descripcion , $gestion);
+            //Registro de actividad
+            $descripcion    = "SE AGREGÓ EL ALMACEN CON EL NOMBRE: " . $almacen->descripcion;
+            $gestion        = "ALMACEN";
+            crearRegistro($almacen, $descripcion, $gestion);
 
-        Session::flash('success','Almacen creado.');
-        return redirect()->route('almacenes.almacen.index')->with('guardar', 'success');
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Almacén registrado con éxito']);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 
-    public function update(Request $request){
-        
-        $this->authorize('haveaccess','almacen.index');
-        $data = $request->all();
+    /*
+array:7 [
+  "_token" => "sqPdRIxe0sP2mRvCnoMJXnOtXfwZpuQRiQBZbaQv"
+  "sede_id_edit" => "1"
+  "descripcion_edit" => "REGALO"
+  "ubicacion_edit" => "REGALO"
+  "tipo_almacen_edit" => "PRINCIPAL"
+  "_method" => "PUT"
+  "sede_id" => "1"
+]
+*/
+    public function update(AlmacenUpdateRequest $request, int $id)
+    {
+        $this->authorize('haveaccess', 'almacen.index');
+        DB::beginTransaction();
+        try {
 
-        $rules = [
-            'tabla_id' => 'required',
-            'descripcion' => 'required',
-            'ubicacion' => 'required',
-        ];
-        
-        $message = [
-            'descripcion.required' => 'El campo Descripción es obligatorio.',
-            'ubicacion.required' => 'El campo Ubicación es obligatorio.',
-        ];
+            $data               =   $request->validated();
+            $data['sede_id']    =   $request->get('sede_id');
 
-        Validator::make($data, $rules, $message)->validate();
-        
-        $almacen                =   Almacen::findOrFail($request->get('tabla_id'));
-        $almacen->descripcion   =   $request->get('descripcion');
-        $almacen->ubicacion     =   $request->get('ubicacion');
-        $almacen->sede_id       =   $request->get('sede_id');
-        $almacen->update();
+            $almacen    =   Almacen::findOrFail($id);
+            $almacen->update($data);
 
-        //Registro de actividad
-        $descripcion    = "SE MODIFICÓ EL ALMACEN CON EL NOMBRE: ". $almacen->descripcion;
-        $gestion        = "ALMACEN";
-        modificarRegistro($almacen, $descripcion , $gestion);
+            //Registro de actividad
+            $descripcion    = "SE MODIFICO EL ALMACEN CON EL NOMBRE: " . $almacen->descripcion;
+            $gestion        = "ALMACEN";
+            modificarRegistro($almacen, $descripcion, $gestion);
+            DB::commit();
 
-        Session::flash('success','Almacen modificado.');
-        return redirect()->route('almacenes.almacen.index')->with('modificar', 'success');
+            return response()->json(['success' => true, 'message' => 'Almacén modificado con éxito']);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 
-    
     public function destroy($id)
     {
-        
-        $this->authorize('haveaccess','almacen.index');
-        $almacen = Almacen::findOrFail($id);
-        $almacen->estado = 'ANULADO';
-        $almacen->update();
+        $this->authorize('haveaccess', 'almacen.index');
+        DB::beginTransaction();
+        try {
 
-        //Registro de actividad
-        $descripcion = "SE ELIMINÓ EL ALMACEN CON EL NOMBRE: ". $almacen->descripcion;
-        $gestion = "ALMACEN";
-        eliminarRegistro($almacen, $descripcion , $gestion);
+            $almacen = Almacen::findOrFail($id);
+            $almacen->estado = 'ANULADO';
+            $almacen->update();
 
+            //Registro de actividad
+            $descripcion = "SE ELIMINÓ EL ALMACEN CON EL NOMBRE: " . $almacen->descripcion;
+            $gestion = "ALMACEN";
+            eliminarRegistro($almacen, $descripcion, $gestion);
+            DB::commit();
 
-        Session::flash('success','Almacen eliminado.');
-        return redirect()->route('almacenes.almacen.index')->with('eliminar', 'success');
-
+            return response()->json(['success' => true, 'message' => 'Almacén eliminado con éxito']);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 
     public function exist(Request $request)
     {
-        
+
         $data = $request->all();
         $descripcion = $data['descripcion'];
         $ubicacion = $data['ubicacion'];
         $id = $data['id'];
         $almacen = null;
 
-        if ($descripcion && $id && $ubicacion ) { // edit
+        if ($descripcion && $id && $ubicacion) { // edit
             $almacen = Almacen::where([
-                                    ['descripcion', $data['descripcion']],
-                                    ['ubicacion', $data['ubicacion']],
-                                    ['id', '<>', $data['id']]
-                                ])->where('estado','!=','ANULADO')->first();
+                ['descripcion', $data['descripcion']],
+                ['ubicacion', $data['ubicacion']],
+                ['id', '<>', $data['id']]
+            ])->where('estado', '!=', 'ANULADO')->first();
         } else if ($ubicacion && $descripcion && !$id) { // create
-            $almacen = Almacen::where('descripcion', $data['descripcion'])->where('ubicacion',$data['ubicacion'])->where('estado','!=','ANULADO')->first();
+            $almacen = Almacen::where('descripcion', $data['descripcion'])->where('ubicacion', $data['ubicacion'])->where('estado', '!=', 'ANULADO')->first();
         }
 
         $result = ['existe' => ($almacen) ? true : false];
 
         return response()->json($result);
-
     }
-
- 
-
 }

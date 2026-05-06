@@ -41,7 +41,7 @@ class CategoriaUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'nombre' => [
+            'descripcion' => [
                 'required',
                 'string',
                 'max:191',

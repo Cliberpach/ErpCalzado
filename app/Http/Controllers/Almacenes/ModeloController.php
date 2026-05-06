@@ -4,132 +4,159 @@ namespace App\Http\Controllers\Almacenes;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
 use App\Almacenes\Modelo;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\Almacen\Modelo\ModeloStoreRequest;
+use App\Http\Requests\Almacen\Modelo\ModeloUpdateRequest;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\DataTables;
-use Illuminate\Validation\Rule; 
+use Throwable;
 
 class ModeloController extends Controller
 {
     public function index()
     {
-        //$this->authorize('haveaccess','marca.index');
+        $this->authorize('haveaccess', 'modelo.index');
         return view('almacenes.modelos.index');
     }
 
-    public function getModelo(){
-        $modelos = Modelo::where('estado','ACTIVO')->get();
-        $coleccion = collect([]);
-        foreach($modelos as $modelo){
-            $coleccion->push([
-                'id' => $modelo->id,
-                'descripcion' => $modelo->descripcion,
-                'fecha_creacion' =>  Carbon::parse($modelo->created_at)->format( 'd/m/Y'),
-                'fecha_actualizacion' =>  Carbon::parse($modelo->updated_at)->format( 'd/m/Y'),
-                'estado' => $modelo->estado,
+    public function getRepository(Request $request)
+    {
+        $data = DB::table('modelos as m')
+            ->where('m.estado', 'ACTIVO');
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function store(ModeloStoreRequest $request)
+    {
+        $this->authorize('haveaccess', 'modelo.index');
+
+        DB::beginTransaction();
+
+        try {
+
+            $data = $request->validated();
+
+            $instance = Modelo::create($data);
+
+            // Registro de actividad
+            $descripcion = "SE AGREGÓ EL MODELO CON EL NOMBRE: " . $instance->descripcion;
+            $gestion = "MODELO";
+            crearRegistro($instance, $descripcion, $gestion);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Modelo registrado con éxito',
+                'data' => $instance
+            ]);
+        } catch (Throwable $th) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage()
             ]);
         }
-        return DataTables::of($coleccion)->toJson();
     }
 
-    public function store(Request $request){
-        //$this->authorize('haveaccess','categoria.index');
-        $data = $request->all();
+    public function update(ModeloUpdateRequest $request, int $id)
+    {
+        $this->authorize('haveaccess', 'modelo.index');
 
-        $rules = [
-            'descripcion_guardar' => [
-                'required',
-                Rule::unique('modelos', 'descripcion')->where(function ($query) {
-                    return $query->where('estado', 'ACTIVO');
-                }),
-            ]
-        ];
-        
-        $messages = [
-            'descripcion_guardar.required'    => 'El campo Descripción es obligatorio.',
-            'descripcion_guardar.unique'      =>  'El modelo ya existe',
-        ];
+        DB::beginTransaction();
 
-        $validator = Validator::make($data, $rules ,$messages);
+        try {
 
-        if($request->get('fetch') && $request->get('fetch')=='SI'){
-            if ($validator->fails()) {
-                return response()->json(['message' => 'error','data'=>$validator->errors()]);
-            }
-        }else{
-            $validator->validate();
+            $data = $request->validated();
+
+            $instance = Modelo::findOrFail($id);
+            $instance->update($data);
+
+            // Registro de actividad
+            $descripcion = "SE MODIFICÓ EL MODELO CON EL NOMBRE: " . $instance->descripcion;
+            $gestion = "MODELO";
+            modificarRegistro($instance, $descripcion, $gestion);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Modelo modificado con éxito'
+            ]);
+        } catch (Throwable $th) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage()
+            ]);
         }
-
-        $modelo = new Modelo();
-        $modelo->descripcion = $request->get('descripcion_guardar');
-        $modelo->save();
-
-        //Registro de actividad
-        $descripcion = "SE AGREGÓ EL MODELO CON LA DESCRIPCION: ". $modelo->descripcion;
-        $gestion = "MODELO";
-        crearRegistro($modelo, $descripcion , $gestion);
-
-        if($request->has('fetch') && $request->input('fetch') == 'SI'){
-            $update_modelos  =   Modelo::all();
-            return response()->json(['message' => 'success',    'data'=>$update_modelos]);        
-        }
-
-        Session::flash('success','Modelo creado.');
-        return redirect()->route('almacenes.modelos.index')->with('guardar', 'success');
     }
 
-    public function update(Request $request){
-        //$this->authorize('haveaccess','categoria.index');
-        $data = $request->all();
 
-        $rules = [
-            'tabla_id' => 'required',
-            'descripcion' => [
-                'required',
-                Rule::unique('modelos', 'descripcion')->where(function ($query) {
-                    return $query->where('estado', 'ACTIVO');
-                }),
-            ]        
-        ];
-        
-        $message = [
-            'descripcion.required'  => 'El campo Descripción es obligatorio.',
-            'descripcion.unique'    => 'El modelo ya existe.',
-        ];
-
-        Validator::make($data, $rules, $message)->validate();
-        
-        $modelo = Modelo::findOrFail($request->get('tabla_id'));
-        $modelo->descripcion = $request->get('descripcion');
-        $modelo->update();
-
-        //Registro de actividad
-        $descripcion = "SE MODIFICÓ EL MODELO CON LA DESCRIPCION: ". $modelo->descripcion;
-        $gestion = "MODELO";
-        modificarRegistro($modelo, $descripcion , $gestion);
-
-        Session::flash('success','Modelo modificado.');
-        return redirect()->route('almacenes.modelos.index')->with('modificar', 'success');
-    }
-
-    
     public function destroy($id)
     {
-        //$this->authorize('haveaccess','categoria.index');
-        $modelo = Modelo::findOrFail($id);
-        $modelo->estado = 'ANULADO';
-        $modelo->update();
+        //$this->authorize('haveaccess','modelo.index');
 
-        //Registro de actividad
-        $descripcion = "SE ELIMINÓ EL MODELO CON LA DESCRIPCION: ". $modelo->descripcion;
-        $gestion = "MODELO";
-        eliminarRegistro($modelo, $descripcion , $gestion);
+        DB::beginTransaction();
 
-        Session::flash('success','Modelo eliminado.');
-        return redirect()->route('almacenes.modelos.index')->with('eliminar', 'success');
+        try {
 
+            $instance = Modelo::findOrFail($id);
+            $instance->estado = 'ANULADO';
+            $instance->update();
+
+            // Registro de actividad
+            $descripcion = "SE ELIMINÓ EL MODELO CON EL NOMBRE: " . $instance->descripcion;
+            $gestion = "MODELO";
+            eliminarRegistro($instance, $descripcion, $gestion);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Modelo eliminado con éxito'
+            ]);
+        } catch (Throwable $th) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage()
+            ]);
+        }
+    }
+
+    public function modelSearch(Request $request)
+    {
+        try {
+            $query = trim($request->get('q', ''));
+
+            $models = DB::table('modelos as m')->where('m.estado', 'ACTIVO')->where('m.tipo','MODELO');
+
+            if ($query) {
+                $models->whereRaw("m.descripcion LIKE ?", ["%{$query}%"]);
+            }
+
+            $results = $models->limit(20)->get([
+                'm.id',
+                'm.descripcion',
+            ]);
+
+            $data = $results->map(fn($c) => [
+                'id' => $c->id,
+                'full_name' => $c->descripcion,
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'MODELOS OBTENIDOS', 'data' => $data]);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 }

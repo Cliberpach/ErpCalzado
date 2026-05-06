@@ -67,6 +67,178 @@
         }
     </style>
 
+    <style>
+        :root {
+            --b50: #E6F1FB;
+            --b100: #B5D4F4;
+            --b200: #85B7EB;
+            --b400: #378ADD;
+            --b600: #185FA5;
+            --b800: #0C447C;
+            --b900: #042C53;
+            --g100: #EEF4FD;
+            --g200: #D0E4F7;
+            --g400: #8A97A8;
+            --g600: #4E5E72;
+        }
+
+        /* ── HERO ── */
+        .main-hero {
+            background: linear-gradient(135deg, #042C53 0%, #0C447C 45%, #185FA5 80%, #2176C7 100%);
+            padding: 28px 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-hero::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: rgba(55, 138, 221, 0.18);
+        }
+
+        .main-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            left: 30%;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .main-hero-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .main-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11.5px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .main-breadcrumb a {
+            color: rgba(255, 255, 255, 0.78);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .main-breadcrumb a:hover {
+            color: #fff;
+        }
+
+        .main-breadcrumb .sep {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .main-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.4px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .main-subtitle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.55);
+            margin-top: 4px;
+        }
+
+        .main-btn-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            color: #0C447C !important;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none !important;
+            box-shadow: 0 4px 16px rgba(4, 44, 83, 0.28);
+            transition: all .15s;
+            white-space: nowrap;
+        }
+
+        .main-btn-add:hover {
+            background: #E6F1FB;
+            transform: translateY(-1px);
+        }
+
+        /* ── PAGE BG ── */
+        .main-content {
+            padding: 0;
+            background: #F0F5FF;
+            min-height: 100px;
+        }
+
+        /* ── CARD ── */
+        .main-content-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid rgba(133, 183, 235, 0.35);
+            box-shadow: 0 2px 24px rgba(12, 68, 124, 0.07);
+            overflow: hidden;
+        }
+
+        .main-content-card-top {
+            padding: 14px 20px;
+            border-bottom: 1px solid #EEF4FD;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: linear-gradient(90deg, #FAFCFF, #fff);
+        }
+
+        .main-content-card-top-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .main-content-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #185FA5, #378ADD);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .main-content-card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #042C53;
+        }
+
+        .main-content-card-sub {
+            font-size: 11px;
+            color: #8A97A8;
+        }
+    </style>
+
     <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 
     <!-- DATATABLES -->
@@ -415,6 +587,26 @@
             </div>
 
             <div id="content-system" style="display:block;">
+                <!-- ── HERO ── -->
+                <div class="main-hero @yield('hero-state')">
+                    <div class="main-hero-inner">
+                        <div>
+                            <ol class="main-breadcrumb">
+                                <li><a href="{{ route('home') }}"><i class="fas fa-home" style="font-size:10px"></i></a>
+                                </li>
+                                <li><span class="sep">›</span><a href="#">@yield('bread-module')</a></li>
+                                <li><span class="sep">›</span><span>@yield('bread-submodule')</span></li>
+                            </ol>
+                            <h2 class="main-title">
+                                <i class="fas fa-file-invoice" style="margin-right:10px;opacity:.85"></i>
+                                @yield('hero-title')
+                            </h2>
+                            <p class="main-subtitle">@yield('hero-subtitle')</p>
+                        </div>
+
+                        @yield('btn-add')
+                    </div>
+                </div>
                 @yield('content')
             </div>
 
