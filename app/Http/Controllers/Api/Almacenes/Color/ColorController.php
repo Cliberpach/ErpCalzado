@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Almacenes\Color;
 use App\Http\Controllers\Controller;
 use App\Models\Almacenes\Color\Color;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class ColorController extends Controller
@@ -13,6 +14,7 @@ class ColorController extends Controller
     {
         try {
 
+            $product     =   $request->get('product');
             $search = $request->get('search');
 
             $page = max((int) $request->get('page', 1), 1);
@@ -24,10 +26,21 @@ class ColorController extends Controller
                 ->where('tipo', 'COLOR');
 
             if (!empty($search)) {
-
                 $query->where('descripcion', 'LIKE', "%{$search}%");
             }
 
+            if (!empty($product)) {
+                $query->whereExists(function ($q) use ($product) {
+
+                    $q->select(DB::raw(1))
+                        ->from('producto_colores as pc')
+                        ->join('productos as p', 'p.id', '=', 'pc.producto_id')
+                        ->whereColumn('pc.color_id', 'colores.id')
+                        ->where('p.nombre', 'LIKE', "%{$product}%");
+                });
+            }
+
+            $query->distinct();
             $total = $query->count();
 
             $items = $query
