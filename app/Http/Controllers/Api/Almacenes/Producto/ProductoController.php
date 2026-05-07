@@ -51,8 +51,9 @@ class ProductoController extends Controller
             $productos->whereExists(function ($q) use ($filter_color) {
                 $q->select(DB::raw(1))
                     ->from('producto_colores as pc')
+                    ->join('colores as co','co.id','pc.color_id')
                     ->whereColumn('pc.producto_id', 'p.id')
-                    ->where('pc.color_id', $filter_color)
+                    ->where('co.descripcion', $filter_color)
                     ->where('pc.almacen_id', 1);
             });
         }
