@@ -15,6 +15,7 @@ class ProductoController extends Controller
     {
         $filtro_categoria       =   $request->get('categoria');
         $filter_color           =   $request->get('color');
+        $filter_size            =   $request->get('size');
         $filter_search          =   $request->get('search');
         $perPage                =   $request->get('per_page', 10);
 
@@ -51,10 +52,22 @@ class ProductoController extends Controller
             $productos->whereExists(function ($q) use ($filter_color) {
                 $q->select(DB::raw(1))
                     ->from('producto_colores as pc')
-                    ->join('colores as co','co.id','pc.color_id')
+                    ->join('colores as co', 'co.id', 'pc.color_id')
                     ->whereColumn('pc.producto_id', 'p.id')
                     ->where('co.descripcion', $filter_color)
                     ->where('pc.almacen_id', 1);
+            });
+        }
+
+        if ($filter_size) {
+            $productos->whereExists(function ($q) use ($filter_size) {
+                $q->select(DB::raw(1))
+                    ->from('producto_color_tallas as pct')
+                    ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+                    ->whereColumn('pct.producto_id', 'p.id')
+                    ->where('t.descripcion', $filter_size)
+                    ->where('pct.stock', '>', 0)
+                    ->where('pct.stock_logico', '>', 0);
             });
         }
 
