@@ -31,7 +31,6 @@ class ColorController extends Controller
 
             if (!empty($product)) {
                 $query->whereExists(function ($q) use ($product) {
-
                     $q->select(DB::raw(1))
                         ->from('producto_colores as pc')
                         ->join('productos as p', 'p.id', '=', 'pc.producto_id')
@@ -50,11 +49,13 @@ class ColorController extends Controller
                 ->get();
 
             $data = $items->map(function ($item) {
-
                 return [
-                    'id'      => $item->id,
-                    'text'    => $item->descripcion,
-                    'subtext' => 'Color disponible',
+                    'id'        => $item->id,
+                    'text'      => $item->descripcion,
+                    'subtext'   => 'Color disponible',
+                    'image' => $item->img_ruta
+                        ? asset('storage/' . $item->img_ruta)
+                        : null
                 ];
             });
 
