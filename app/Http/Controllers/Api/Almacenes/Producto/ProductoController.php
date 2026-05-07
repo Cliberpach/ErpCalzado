@@ -37,7 +37,7 @@ class ProductoController extends Controller
             ->where('p.mostrar_en_web', true);
 
         if ($filtro_categoria) {
-            $productos->where('c.id', $filtro_categoria);
+            $productos->where('c.descripcion', $filtro_categoria);
         }
 
         if ($filter_search) {
