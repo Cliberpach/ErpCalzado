@@ -2,26 +2,19 @@
 
 namespace App\Http\Controllers\Api\Almacenes\Producto;
 
-use App\Almacenes\Categoria;
 use App\Almacenes\Producto;
 use App\Http\Controllers\Controller;
 use App\Models\Almacenes\Color\Color;
-use Carbon\Carbon;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
-use Yajra\DataTables\DataTables;
-use Illuminate\Validation\Rule;
 use Throwable;
 
 class ProductoController extends Controller
 {
-
     public function getAll(Request $request)
     {
         $filtro_categoria       =   $request->get('categoria');
+        $filter_color           =   $request->get('color');
         $filter_search          =   $request->get('search');
         $perPage                =   $request->get('per_page', 10);
 
@@ -54,6 +47,16 @@ class ProductoController extends Controller
             });
         }
 
+        if ($filter_color) {
+            $productos->whereExists(function ($q) use ($filter_color) {
+                $q->select(DB::raw(1))
+                    ->from('producto_colores as pc')
+                    ->whereColumn('pc.producto_id', 'p.id')
+                    ->where('pc.color_id', $filter_color)
+                    ->where('pc.almacen_id', 1);
+            });
+        }
+
         //return response()->json($productos->get());
 
         $productos = $productos->paginate($perPage);
@@ -64,7 +67,12 @@ class ProductoController extends Controller
             ->join('colores as c', 'c.id', '=', 'pc.color_id')
             ->whereIn('pc.producto_id', $ids)
             ->where('pc.almacen_id', 1)
-            ->select('c.id', 'c.descripcion as nombre', 'c.codigo', 'pc.producto_id')
+            ->select(
+                'c.id',
+                'c.descripcion as nombre',
+                'c.codigo',
+                'pc.producto_id'
+            )
             ->get()
             ->groupBy('producto_id');
 
