@@ -14,8 +14,8 @@ class ColorController extends Controller
     {
         try {
 
-            $product     =   $request->get('product');
-            $search = $request->get('search');
+            $product    =   $request->get('product');
+            $search     =   $request->get('search');
 
             $page = max((int) $request->get('page', 1), 1);
 

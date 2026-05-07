@@ -15,6 +15,7 @@ class TallaController extends Controller
 
             $search   = $request->get('search');
             $color_id = $request->get('color_id');
+            $product  = $request->get('product');
 
             $page  = max((int) $request->get('page', 1), 1);
             $limit = max((int) $request->get('limit', 10), 1);
@@ -29,17 +30,28 @@ class TallaController extends Controller
                     DB::raw('SUM(pct.stock) as total_stock')
                 )
                 ->groupBy('t.id', 't.descripcion')
-                ->havingRaw('SUM(pct.stock) > 0');
+                ->havingRaw('SUM(pct.stock) > 0')
 
-            if (!empty($color_id)) {
-                $query->where('pct.color_id', $color_id);
-            }
+                ->when($color_id, function ($q) use ($color_id) {
+                    $q->where('pct.color_id', $color_id);
+                })
 
-            if (!empty($search)) {
-                $query->where('t.descripcion', 'LIKE', "%{$search}%");
-            }
+                ->when($search, function ($q) use ($search) {
+                    $q->where('t.descripcion', 'LIKE', "%{$search}%");
+                })
 
-            $total = (clone $query)->get()->count();
+                ->when($product, function ($q) use ($product) {
+
+                    $q->whereExists(function ($sub) use ($product) {
+
+                        $sub->select(DB::raw(1))
+                            ->from('productos as p')
+                            ->whereColumn('p.id', 'pct.producto_id')
+                            ->where('p.nombre', 'LIKE', "%{$product}%");
+                    });
+                });
+
+            $total = (clone $query)->count();
 
             $items = $query
                 ->orderBy('t.descripcion')
@@ -64,9 +76,11 @@ class TallaController extends Controller
                 'data' => $data,
 
                 'pagination' => [
+
                     'page'    => $page,
                     'limit'   => $limit,
                     'total'   => $total,
+
                     'hasMore' => ($page * $limit) < $total
                 ]
             ]);
