@@ -17,8 +17,12 @@ class ProductoController extends Controller
         $filter_color           =   $request->get('color');
         $filter_size            =   $request->get('size');
         $filter_search          =   $request->get('search');
-        $perPage                =   request('per_page', 48);
-        $perPage                =    max(12, min($perPage, 100));
+        
+        $allowedPerPage         =   [12, 24, 48, 96];
+        $perPage = request()->integer('per_page', 48);
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 48;
+        }
 
         $productos = DB::table('productos as p')
             ->join('categorias as c', 'c.id', '=', 'p.categoria_id')
