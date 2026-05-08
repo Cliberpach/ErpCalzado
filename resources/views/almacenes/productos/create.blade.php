@@ -5,7 +5,7 @@
 
 @section('bread-module', 'Almacén')
 @section('bread-submodule', 'Productos')
-@section('hero-title', 'Lista de Productos')
+@section('hero-title', 'Registrar Producto')
 @section('hero-subtitle', 'Productos')
 
 
