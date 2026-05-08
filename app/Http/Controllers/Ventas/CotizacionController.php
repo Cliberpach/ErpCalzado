@@ -47,7 +47,7 @@ class CotizacionController extends Controller
 
     public function index()
     {
-        $this->authorize('haveaccess', 'venta.cotizaciones.index');
+        $this->authorize('haveaccess', 'venta.cotizacion.index');
         return view('ventas.cotizaciones.index');
     }
 
@@ -104,6 +104,7 @@ class CotizacionController extends Controller
 
     public function create()
     {
+        $this->authorize('haveaccess', 'venta.cotizacion.index');
         $tipos_documento    =   tipos_documento();
         $departamentos      =   departamentos();
         $tipo_clientes      =   UtilidadesController::getTiposClientes();
@@ -186,6 +187,8 @@ array:10 [
 
     public function edit($id)
     {
+        $this->authorize('haveaccess', 'venta.cotizacion.index');
+
         //=========== SI LA COTIZACIÓN TIENE UN DOC DE VENTA, YA NO PUEDE MODIFICARSE =========
         $exists_doc_venta   =   DB::table('cotizacion_documento')->where('cotizacion_venta', $id)->exists();
         if ($exists_doc_venta) {
