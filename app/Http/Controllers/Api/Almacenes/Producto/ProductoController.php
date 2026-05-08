@@ -346,11 +346,11 @@ class ProductoController extends Controller
                     'nombre' => $p->nombre,
                     'precio' => $p->precio_venta_1,
                     'imagenes' => [
-                        $p->img1_ruta ? $baseUrl . '/' . $p->img1_ruta : null,
-                        $p->img2_ruta ? $baseUrl . '/' . $p->img2_ruta : null,
-                        $p->img3_ruta ? $baseUrl . '/' . $p->img3_ruta : null,
-                        $p->img4_ruta ? $baseUrl . '/' . $p->img4_ruta : null,
-                        $p->img5_ruta ? $baseUrl . '/' . $p->img5_ruta : null,
+                        $p->img1_ruta ? $baseUrl . '/' . str_replace('storage/', '', $p->img1_ruta) : null,
+                        $p->img2_ruta ? $baseUrl . '/' . str_replace('storage/', '', $p->img2_ruta) : null,
+                        $p->img3_ruta ? $baseUrl . '/' . str_replace('storage/', '', $p->img3_ruta) : null,
+                        $p->img4_ruta ? $baseUrl . '/' . str_replace('storage/', '', $p->img4_ruta) : null,
+                        $p->img5_ruta ? $baseUrl . '/' . str_replace('storage/', '', $p->img5_ruta) : null,
                     ],
                 ];
             });
