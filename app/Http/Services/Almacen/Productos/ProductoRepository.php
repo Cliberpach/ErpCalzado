@@ -45,6 +45,9 @@ class ProductoRepository
         $producto->costo            =   $datos['costo'];
         $producto->mostrar_en_web   =   $datos['mostrar_en_web'] ?? false;
         $producto->descripcion      =   $datos['descripcion'] ?? null;
+        $producto->is_featured      =   $datos['is_featured'] ?? 0;
+        $producto->is_sale          =   $datos['is_sale'] ?? 0;
+        $producto->is_outlet        =   $datos['is_outlet'] ?? 0;
         $producto->update();
         return $producto;
     }

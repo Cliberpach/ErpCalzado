@@ -23,8 +23,8 @@ class ProductoService
         $this->s_mapper     =   new ProductoMapper();
     }
 
-    public function registrar(array $datos): Producto
-    {   
+    public function store(array $datos): Producto
+    {
         //======= GUARDANDO PRODUCTO =======
         $producto                   =   new Producto();
         $producto->nombre           =   mb_strtoupper(trim($datos['nombre']), 'UTF-8');
@@ -39,6 +39,9 @@ class ProductoService
         $producto->costo            =   $datos['costo'] ?? 0;
         $producto->descripcion      =   $datos['descripcion'] ?? null;
         $producto->mostrar_en_web   =   $datos['mostrar_web'] ?? null;
+        $producto->is_featured      =   $datos['is_featured'] ?? 0;
+        $producto->is_sale          =   $datos['is_sale'] ?? 0;
+        $producto->is_outlet        =   $datos['is_outlet'] ?? 0;
         $producto->save();
 
         //======= GUARDAMOS LOS COLORES ASIGNADOS AL PRODUCTO ========
@@ -63,7 +66,7 @@ class ProductoService
         return $producto;
     }
 
-    public function actualizar(array $datos, int $id): Producto
+    public function update(array $datos, int $id): Producto
     {
         $producto   =   $this->s_repository->actualizarProducto($datos, $id);
 

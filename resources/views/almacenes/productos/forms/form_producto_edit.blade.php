@@ -156,9 +156,41 @@
                     <span style="font-weight: bold; color:red;" class="mostrar_en_web_error msgErrorProducto"></span>
                 </div>
 
+                <div class="col-lg-12 mt-3">
+                    <label style="font-weight:bold;">Opciones del Producto</label>
+
+                    <div class="custom-control custom-checkbox mb-2">
+                        <input type="checkbox" class="custom-control-input" id="is_featured" name="is_featured"
+                            value="1" {{ old('is_featured', $producto->is_featured) ? 'checked' : '' }}>
+
+                        <label class="custom-control-label" for="is_featured">
+                            Producto destacado
+                        </label>
+                    </div>
+
+                    <div class="custom-control custom-checkbox mb-2">
+                        <input type="checkbox" class="custom-control-input" id="is_sale" name="is_sale"
+                            value="1" {{ old('is_sale', $producto->is_sale) ? 'checked' : '' }}>
+
+                        <label class="custom-control-label" for="is_sale">
+                            En oferta / sale
+                        </label>
+                    </div>
+
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="is_outlet" name="is_outlet"
+                            value="1" {{ old('is_outlet', $producto->is_outlet) ? 'checked' : '' }}>
+
+                        <label class="custom-control-label" for="is_outlet">
+                            Outlet
+                        </label>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
+
     <hr>
 
     <div class="row">

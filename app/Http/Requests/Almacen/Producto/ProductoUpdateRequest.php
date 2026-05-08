@@ -76,7 +76,11 @@ class ProductoUpdateRequest extends FormRequest
             'imagen5' => 'nullable|file|mimes:jpg,jpeg,webp,avif|max:2048',
 
             'mostrar_en_web' => 'nullable|boolean',
-            'descripcion' => 'nullable|string|max:300'
+            'descripcion' => 'nullable|string|max:300',
+
+            'is_featured' => 'nullable|boolean',
+            'is_sale'     => 'nullable|boolean',
+            'is_outlet'   => 'nullable|boolean'
 
         ];
     }
@@ -122,8 +126,11 @@ class ProductoUpdateRequest extends FormRequest
             'imagen5.max'   => 'La imagen 5 no puede superar los 2 MB.',
 
             'mostrar_en_web.boolean' => 'El campo MOSTRAR EN WEB debe ser verdadero o falso.',
-            'descripcion.max' => 'El campo descripción no puede tener más de 300 caracteres.'
+            'descripcion.max' => 'El campo descripción no puede tener más de 300 caracteres.',
 
+            'is_featured.boolean' => 'El campo destacado debe ser verdadero o falso.',
+            'is_sale.boolean'     => 'El campo oferta debe ser verdadero o falso.',
+            'is_outlet.boolean'   => 'El campo outlet debe ser verdadero o falso.'
         ];
     }
 }

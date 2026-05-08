@@ -16,7 +16,7 @@
                     <span style="font-weight: bold;color:red;" class="nombre_error msgErrorProducto"></span>
                 </div>
 
-                <div class="col-12">
+                <div class="col-12 mb-3">
                     <label for="descripcion">DESCRIPCIÓN</label>
                     <textarea class="form-control" id="descripcion" name="descripcion" rows="3" maxlength="300"
                         placeholder="Ingrese una descripción"></textarea>
@@ -150,6 +150,36 @@
                     </div>
 
                     <span style="font-weight: bold;color:red;" class="mostrar_web_error msgErrorProducto"></span>
+                </div>
+
+                <div class="col-lg-6 col-12 mb-3">
+                    <label style="font-weight: bold;">Opciones de Producto</label>
+
+                    <div class="custom-control custom-checkbox mb-2">
+                        <input type="checkbox" class="custom-control-input" id="is_featured" name="is_featured"
+                            value="1">
+                        <label class="custom-control-label" for="is_featured">
+                            Producto destacado
+                        </label>
+                    </div>
+
+                    <div class="custom-control custom-checkbox mb-2">
+                        <input type="checkbox" class="custom-control-input" id="is_sale" name="is_sale"
+                            value="1">
+                        <label class="custom-control-label" for="is_sale">
+                            En oferta / sale
+                        </label>
+                    </div>
+
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="is_outlet" name="is_outlet"
+                            value="1">
+                        <label class="custom-control-label" for="is_outlet">
+                            Outlet
+                        </label>
+                    </div>
+
+                    <span style="font-weight: bold;color:red;" class="opciones_error msgErrorProducto"></span>
                 </div>
 
             </div>

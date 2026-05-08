@@ -15,15 +15,15 @@ class ProductoManager
         $this->s_producto   =   new ProductoService();
     }
 
-    public function registrar(array $data): Producto
+    public function store(array $data): Producto
     {
-        return $this->s_producto->registrar($data);
+        return $this->s_producto->store($data);
     }
 
 
-    public function actualizar(array $data, int $id): Producto
+    public function update(array $data, int $id): Producto
     {
-        return $this->s_producto->actualizar($data, $id);
+        return $this->s_producto->update($data, $id);
     }
 
     public function generarAdhesivos(array $data): Collection

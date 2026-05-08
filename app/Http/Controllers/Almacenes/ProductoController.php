@@ -118,7 +118,7 @@ array:12 [
         try {
 
             $datos      =   $request->validated();
-            $producto   =   $this->s_producto->registrar($datos);
+            $producto   =   $this->s_producto->store($datos);
 
             //======= REGISTRO DE ACTIVIDAD ========
             $descripcion = "SE AGREGÓ EL PRODUCTO CON LA DESCRIPCION: " . $producto->nombre;
@@ -201,12 +201,7 @@ array:13 [
         try {
 
             $datos      =   $request->validated();
-            for ($i = 1; $i <= 5; $i++) {
-                $key = "remove_imagen{$i}";
-                $datos[$key] = $request->input($key, 0);
-            }
-
-            $producto   =   $this->s_producto->actualizar($datos, $id);
+            $producto   =   $this->s_producto->update($datos, $id);
 
             //Registro de actividad
             $descripcion = "SE MODIFICÓ EL PRODUCTO CON LA DESCRIPCION: " . $producto->nombre;
