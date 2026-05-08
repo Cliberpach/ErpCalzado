@@ -334,4 +334,60 @@ class ProductoController extends Controller
             ], 500);
         }
     }
+
+    public function getProductsByTag()
+    {
+        $baseUrl = url('storage/');
+
+        $format = function ($products) use ($baseUrl) {
+            return $products->map(function ($p) use ($baseUrl) {
+                return [
+                    'id' => $p->id,
+                    'nombre' => $p->nombre,
+                    'precio' => $p->precio_venta_1,
+                    'imagenes' => [
+                        $p->img1_ruta ? $baseUrl . '/' . $p->img1_ruta : null,
+                        $p->img2_ruta ? $baseUrl . '/' . $p->img2_ruta : null,
+                        $p->img3_ruta ? $baseUrl . '/' . $p->img3_ruta : null,
+                        $p->img4_ruta ? $baseUrl . '/' . $p->img4_ruta : null,
+                        $p->img5_ruta ? $baseUrl . '/' . $p->img5_ruta : null,
+                    ],
+                ];
+            });
+        };
+
+        return response()->json([
+            'featured' => $format(
+                Producto::where('is_featured', 1)
+                    ->where('estado', 'ACTIVO')
+                    ->where('tipo', 'PRODUCTO')
+                    ->limit(4)
+                    ->get()
+            ),
+
+            'new' => $format(
+                Producto::where('estado', 'ACTIVO')
+                    ->where('tipo', 'PRODUCTO')
+                    ->latest()
+                    ->limit(4)
+                    ->get()
+            ),
+
+            'sale' => $format(
+                Producto::where('is_sale', 1)
+                    ->where('estado', 'ACTIVO')
+                    ->where('tipo', 'PRODUCTO')
+                    ->limit(4)
+                    ->get()
+            ),
+
+            'outlet' => $format(
+                Producto::where('is_outlet', 1)
+                    ->where('estado', 'ACTIVO')
+                    ->where('tipo', 'PRODUCTO')
+                    ->limit(4)
+                    ->get()
+            ),
+        ]);
+    }
 }
