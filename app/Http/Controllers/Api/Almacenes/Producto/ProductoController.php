@@ -154,6 +154,7 @@ class ProductoController extends Controller
     public function getOne($id)
     {
         try {
+
             $producto = DB::table('productos as p')
                 ->join('categorias as c', 'c.id', '=', 'p.categoria_id')
                 ->select(
@@ -382,6 +383,7 @@ class ProductoController extends Controller
                 Producto::where('is_featured', 1)
                     ->where('estado', 'ACTIVO')
                     ->where('tipo', 'PRODUCTO')
+                    ->where('mostrar_en_web', true)
                     ->limit(4)
                     ->get()
             ),
@@ -389,6 +391,7 @@ class ProductoController extends Controller
             'new' => $format(
                 Producto::where('estado', 'ACTIVO')
                     ->where('tipo', 'PRODUCTO')
+                    ->where('mostrar_en_web', true)
                     ->latest()
                     ->limit(4)
                     ->get()
@@ -398,6 +401,7 @@ class ProductoController extends Controller
                 Producto::where('is_sale', 1)
                     ->where('estado', 'ACTIVO')
                     ->where('tipo', 'PRODUCTO')
+                    ->where('mostrar_en_web', true)
                     ->limit(4)
                     ->get()
             ),
@@ -406,6 +410,7 @@ class ProductoController extends Controller
                 Producto::where('is_outlet', 1)
                     ->where('estado', 'ACTIVO')
                     ->where('tipo', 'PRODUCTO')
+                    ->where('mostrar_en_web', true)
                     ->limit(4)
                     ->get()
             ),
