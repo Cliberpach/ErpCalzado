@@ -162,7 +162,6 @@ array:8 [
     {
         DB::beginTransaction();
         $this->authorize('haveaccess', 'seguridad.role.edit');
-
         try {
 
             $role               = Role::findOrFail($id);

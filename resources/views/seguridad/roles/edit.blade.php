@@ -1,6 +1,5 @@
 @extends('layout')
 
-
 @section('seguridad-active', 'active')
 @section('roles-active', 'active')
 
@@ -38,7 +37,7 @@
 @push('scripts')
     <script>
         let dtPermisos = null;
-        let permisosSeleccionados = [];
+        let permisosSeleccionados = @json($permission_role);
 
         document.addEventListener('DOMContentLoaded', () => {
             dtPermisos = iniciarDataTable('tbl-permissions', 50, true);
@@ -157,19 +156,17 @@
         //========================================
         function cargarPermisosMarcados() {
 
-            permisosSeleccionados = [];
+            //========================================
+            // MARCAR CHECKS SEGUN ARRAY INICIAL
+            //========================================
+            document.querySelectorAll('.permission-checkbox')
+                .forEach(check => {
 
-            const checksMarcados = document.querySelectorAll(
-                '.permission-checkbox:checked'
-            );
+                    const permisoId = check.dataset.id.toString();
 
-            checksMarcados.forEach(check => {
+                    check.checked = permisosSeleccionados.includes(permisoId);
 
-                const permisoId = check.dataset.id;
-
-                agregarPermiso(permisoId);
-
-            });
+                });
 
             console.log(
                 'PERMISOS INICIALES:',
