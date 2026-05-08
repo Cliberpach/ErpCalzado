@@ -16,7 +16,7 @@ class AlmacenController extends Controller
 {
     public function index()
     {
-        $this->authorize('haveaccess', 'almacen.index');
+        $this->authorize('haveaccess', 'almacen.almacen.index');
 
         $sede_id                =   Auth::user()->sede->id;
 
@@ -61,7 +61,7 @@ array:5 [
 */
     public function store(AlmacenStoreRequest $request)
     {
-        $this->authorize('haveaccess', 'almacen.index');
+        $this->authorize('haveaccess', 'almacen.almacen.index');
         DB::beginTransaction();
 
         try {
@@ -96,7 +96,7 @@ array:7 [
 */
     public function update(AlmacenUpdateRequest $request, int $id)
     {
-        $this->authorize('haveaccess', 'almacen.index');
+        $this->authorize('haveaccess', 'almacen.almacen.index');
         DB::beginTransaction();
         try {
 
@@ -120,7 +120,7 @@ array:7 [
 
     public function destroy($id)
     {
-        $this->authorize('haveaccess', 'almacen.index');
+        $this->authorize('haveaccess', 'almacen.almacen.index');
         DB::beginTransaction();
         try {
 

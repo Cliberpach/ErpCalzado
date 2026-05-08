@@ -10,58 +10,65 @@ use App\Http\Requests\Almacen\Conductor\ConductorUpdateRequest;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 use Yajra\DataTables\Facades\DataTables;
 
 class ConductorController extends Controller
 {
-    public function index(){
+    public function index()
+    {
+        $this->authorize('haveaccess', 'almacen.conductores.index');
         return view('almacenes.conductores.index');
     }
 
-    public function getConductores(Request $request){
+    public function getConductores(Request $request)
+    {
 
         $conductores = DB::table('conductores as co')
-                    ->select(
-                        'co.id',
-                        'co.nombre_completo as nombre',
-                        'co.tipo_documento_nombre',
-                        'co.nro_documento',
-                        'co.telefono',
-                        'co.licencia'
-                    )
-                    ->where('co.estado','ACTIVO')
-                    ->get();
+            ->select(
+                'co.id',
+                'co.nombre_completo as nombre',
+                'co.tipo_documento_nombre',
+                'co.nro_documento',
+                'co.telefono',
+                'co.licencia'
+            )
+            ->where('co.estado', 'ACTIVO')
+            ->get();
 
         return DataTables::of($conductores)
-                ->make(true);
+            ->make(true);
     }
 
-    public function create(){
-
-        $tipos_documento    =   DB::select('select 
+    public function create()
+    {
+        $this->authorize('haveaccess', 'almacen.conductores.index');
+        $tipos_documento    =   DB::select('select
                                 td.id,
                                 td.simbolo,
                                 td.descripcion
                                 from tabladetalles as td
-                                where 
+                                where
                                 td.tabla_id = 3');
 
 
-        return view('almacenes.conductores.create',compact('tipos_documento'));
+        return view('almacenes.conductores.create', compact('tipos_documento'));
     }
 
-    public function edit($id){
-        $tipos_documento    =   DB::select('select 
+    public function edit($id)
+    {
+        $this->authorize('haveaccess', 'almacen.conductores.index');
+        $tipos_documento    =   DB::select('select
                                 td.id,
                                 td.simbolo,
                                 td.descripcion
                                 from tabladetalles as td
-                                where 
+                                where
                                 td.tabla_id = 3');
 
         $conductor          =   Conductor::find($id);
 
-        return view('registros.conductores.edit',compact('conductor','tipos_documento'));
+        return view('registros.conductores.edit', compact('conductor', 'tipos_documento'));
     }
 
     /*
@@ -77,17 +84,20 @@ class ConductorController extends Controller
     "registro_mtc"          =>  "MTC"
     ]
     */
-    public function store(ConductorStoreRequest $request){
-       
+    public function store(ConductorStoreRequest $request)
+    {
+        $this->authorize('haveaccess', 'almacen.conductores.index');
         DB::beginTransaction();
         try {
 
-            $tipo_documento =   DB::select('select 
-                                td.* 
-                                from tabladetalles as td 
-                                where 
+            $tipo_documento =   DB::select(
+                'select
+                                td.*
+                                from tabladetalles as td
+                                where
                                 td.id = ?',
-                                [$request->get('tipo_documento')])[0];
+                [$request->get('tipo_documento')]
+            )[0];
 
             $conductor                          =   new Conductor();
             $conductor->tipo_documento_id       =   $request->get('tipo_documento');
@@ -102,9 +112,9 @@ class ConductorController extends Controller
             $conductor->save();
 
             DB::commit();
-            return response()->json(['success'=>true,'message'=>'CONDUCTOR REGISTRADO']);
-        } catch (\Throwable $th) {
-            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+            return response()->json(['success' => true, 'message' => 'CONDUCTOR REGISTRADO']);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
 
@@ -119,17 +129,21 @@ class ConductorController extends Controller
         "telefono"          => "974585471"
     ]
     */
-    public function update(ConductorUpdateRequest $request,$id){
+    public function update(ConductorUpdateRequest $request, $id)
+    {
+        $this->authorize('haveaccess', 'almacen.conductores.index');
         DB::beginTransaction();
         try {
 
-            $tipo_documento =   DB::select('select 
-                                td.* 
-                                from tabladetalles as td 
-                                where 
+            $tipo_documento =   DB::select(
+                'select
+                                td.*
+                                from tabladetalles as td
+                                where
                                 td.id = ?',
-                                [$request->get('tipo_documento')])[0];
-            
+                [$request->get('tipo_documento')]
+            )[0];
+
             $conductor                          =   Conductor::find($id);
             $conductor->tipo_documento_id       =   $request->get('tipo_documento');
             $conductor->nro_documento           =   $request->get('nro_documento');
@@ -142,14 +156,16 @@ class ConductorController extends Controller
             $conductor->update();
 
             DB::commit();
-            return response()->json(['success'=>true,'message'=>'CONDUCTOR ACTUALIZADO']);
-        } catch (\Throwable $th) {
+            return response()->json(['success' => true, 'message' => 'CONDUCTOR ACTUALIZADO']);
+        } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success'=>false,'message'=>$th->getMessage(),'line'=>$th->getLine()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage(), 'line' => $th->getLine()]);
         }
     }
 
-    public function destroy($id){
+    public function destroy($id)
+    {
+        $this->authorize('haveaccess', 'almacen.conductores.index');
         DB::beginTransaction();
         try {
             $conductor                    =   Conductor::find($id);
@@ -157,110 +173,110 @@ class ConductorController extends Controller
             $conductor->update();
 
             DB::commit();
-            return response()->json(['success'=>true,'message'=>'CONDUCTOR ELIMINADO']);
-
+            return response()->json(['success' => true, 'message' => 'CONDUCTOR ELIMINADO']);
         } catch (\Throwable $th) {
             DB::rollBack();
-            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
 
 
-/*
+    /*
 array:2 [
   "tipo_documento" => "6"
   "nro_documento" => "71114222"
 ]
-*/ 
-public function consultarDocumento(Request $request){
-    try {
-   
-        //========= VALIDANDO QUE EL TIPO DOCUMENTO Y N° DOCUMENTO NO SEAN NULL =======
-        $tipo_documento =   $request->get('tipo_documento',null);
-        $nro_documento  =   $request->get('nro_documento',null);
+*/
+    public function consultarDocumento(Request $request)
+    {
+        try {
 
-        if(!$tipo_documento){
-            throw new Exception("EL TIPO DE DOCUMENTO ES OBLIGATORIO");
-        }
+            //========= VALIDANDO QUE EL TIPO DOCUMENTO Y N° DOCUMENTO NO SEAN NULL =======
+            $tipo_documento =   $request->get('tipo_documento', null);
+            $nro_documento  =   $request->get('nro_documento', null);
 
-        if(!$nro_documento){
-            throw new Exception("EL N° DOC ES OBLIGATORIO");
-        }
+            if (!$tipo_documento) {
+                throw new Exception("EL TIPO DE DOCUMENTO ES OBLIGATORIO");
+            }
 
-        if (!is_numeric($nro_documento)) {
-            throw new Exception("EL N° DOCUMENTO DEBE SER NUMÉRICO");
-        }
+            if (!$nro_documento) {
+                throw new Exception("EL N° DOC ES OBLIGATORIO");
+            }
 
-        //========= VERIFICANDO QUE EXISTA EL TIPO DOC EN LA BD ========
-        $exists_tipo_doc    =   DB::select('select 
+            if (!is_numeric($nro_documento)) {
+                throw new Exception("EL N° DOCUMENTO DEBE SER NUMÉRICO");
+            }
+
+            //========= VERIFICANDO QUE EXISTA EL TIPO DOC EN LA BD ========
+            $exists_tipo_doc    =   DB::select('select
                                 td.id,
                                 td.descripcion
                                 from tabladetalles as td
-                                where 
+                                where
                                 td.id = ?
                                 AND td.tabla_id = 3
-                                and td.estado = "ACTIVO"',[$tipo_documento]);
+                                and td.estado = "ACTIVO"', [$tipo_documento]);
 
-        if(count($exists_tipo_doc) === 0){
-            throw new Exception("EL TIPO DE DOC NO EXISTE EN LA BD");
-        }
+            if (count($exists_tipo_doc) === 0) {
+                throw new Exception("EL TIPO DE DOC NO EXISTE EN LA BD");
+            }
 
-        if($tipo_documento != 6 && $tipo_documento != 8){
-            throw new Exception("SOLO SE PUEDEN CONSULTAR DNI Y RUC");
-        }
+            if ($tipo_documento != 6 && $tipo_documento != 8) {
+                throw new Exception("SOLO SE PUEDEN CONSULTAR DNI Y RUC");
+            }
 
-        if ( $tipo_documento == 6 && strlen($nro_documento) != 8) {
-            throw new Exception("EL TIPO DE DOCUMENTO DNI DEBE TENER 8 DÍGITOS");
-        }
+            if ($tipo_documento == 6 && strlen($nro_documento) != 8) {
+                throw new Exception("EL TIPO DE DOCUMENTO DNI DEBE TENER 8 DÍGITOS");
+            }
 
-        if ( $tipo_documento == 8 && strlen($nro_documento) != 11) {
-            throw new Exception("EL TIPO DE DOCUMENTO RUC DEBE TENER 11 DÍGITOS");
-        }
+            if ($tipo_documento == 8 && strlen($nro_documento) != 11) {
+                throw new Exception("EL TIPO DE DOCUMENTO RUC DEBE TENER 11 DÍGITOS");
+            }
 
 
-        //======= COMPROBAR QUE NO EXISTA EL DOCUMENTO EN LA TABLA conductores =======
-        $existe_nro_documento   =   DB::select('select 
+            //======= COMPROBAR QUE NO EXISTA EL DOCUMENTO EN LA TABLA conductores =======
+            $existe_nro_documento   =   DB::select(
+                'select
                                     c.id,
                                     c.nombre_completo
                                     from conductores as c
-                                    where 
+                                    where
                                     c.tipo_documento_id = ?
-                                    and c.nro_documento = ? 
+                                    and c.nro_documento = ?
                                     and c.estado = "ACTIVO"',
-                                    [$tipo_documento,$nro_documento]);
+                [$tipo_documento, $nro_documento]
+            );
 
-        if(count($existe_nro_documento) > 0){
-            throw new Exception($exists_tipo_doc[0]->descripcion.':'.$nro_documento.'.YA EXISTE EN LA BD');
-        }
-        
-        if($tipo_documento == 6){
-
-            $res_consulta_api   =   UtilidadesController::apiDni($nro_documento);
-            $res                =   $res_consulta_api->getData();
-
-            //======= EN CASO LA CONSULTA FUE EXITOSA =====
-            if($res->success){
-                return response()->json(['success'=>true,'data'=>$res->data,'message'=>'OPERACIÓN COMPLETADA']);
-            }else{
-                throw new Exception($res->message);
+            if (count($existe_nro_documento) > 0) {
+                throw new Exception($exists_tipo_doc[0]->descripcion . ':' . $nro_documento . '.YA EXISTE EN LA BD');
             }
-        }
 
-        if($tipo_documento == 8){
-            $res_consulta_api   =   UtilidadesController::apiRuc($nro_documento);
-            $res                =   $res_consulta_api->getData();
+            if ($tipo_documento == 6) {
 
-            //======= EN CASO LA CONSULTA FUE EXITOSA =====
-            if($res->success){
-                return response()->json(['success'=>true,'data'=>$res->data,'message'=>'OPERACIÓN COMPLETADA']);
-            }else{
-                throw new Exception($res->message);
+                $res_consulta_api   =   UtilidadesController::apiDni($nro_documento);
+                $res                =   $res_consulta_api->getData();
+
+                //======= EN CASO LA CONSULTA FUE EXITOSA =====
+                if ($res->success) {
+                    return response()->json(['success' => true, 'data' => $res->data, 'message' => 'OPERACIÓN COMPLETADA']);
+                } else {
+                    throw new Exception($res->message);
+                }
             }
-        }
 
-    } catch (\Throwable $th) {
-        return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+            if ($tipo_documento == 8) {
+                $res_consulta_api   =   UtilidadesController::apiRuc($nro_documento);
+                $res                =   $res_consulta_api->getData();
+
+                //======= EN CASO LA CONSULTA FUE EXITOSA =====
+                if ($res->success) {
+                    return response()->json(['success' => true, 'data' => $res->data, 'message' => 'OPERACIÓN COMPLETADA']);
+                } else {
+                    throw new Exception($res->message);
+                }
+            }
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
-}
-
 }

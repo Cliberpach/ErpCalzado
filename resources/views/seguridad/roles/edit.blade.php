@@ -6,7 +6,7 @@
 
 @section('bread-module', 'Seguridad')
 @section('bread-submodule', 'Seguridad')
-@section('hero-title', 'Registrar Rol')
+@section('hero-title', 'Editar Rol')
 @section('hero-subtitle', 'Seguridad')
 
 @section('content')
@@ -15,7 +15,7 @@
             <div class="col-lg-12">
                 <div class="ibox">
                     <div class="ibox-content">
-                        @include('seguridad.roles.forms.form_create')
+                        @include('seguridad.roles.forms.form_edit')
                     </div>
                 </div>
             </div>
@@ -38,7 +38,7 @@
 @push('scripts')
     <script>
         let dtPermisos = null;
-        const permisosSeleccionados = [];
+        let permisosSeleccionados = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             dtPermisos = iniciarDataTable('tbl-permissions', 50, true);
@@ -46,20 +46,20 @@
             cargarPermisosMarcados();
         });
 
-
-        //===============================
+        //========================================
         // EVENTOS
-        //===============================
+        //========================================
         function events() {
 
             //====== SUBMIT FORM ======
-            document.querySelector('#crear_rol')
-                .addEventListener('submit', submitFormRol);
+            document.querySelector('#form_edit_role').addEventListener('submit', updateRole);
 
-            //====== CHECKBOX PERMISOS ======
+            //====== EVENTOS CHANGE ======
             document.addEventListener('change', (e) => {
 
+                //========================================
                 // CHECKBOX PERMISOS
+                //========================================
                 if (e.target.classList.contains('permission-checkbox')) {
 
                     const permisoId = e.target.dataset.id;
@@ -71,14 +71,17 @@
                         eliminarPermiso(permisoId);
                     }
 
-                    console.log(permisosSeleccionados);
+                    actualizarCheckAll();
                 }
 
+                //========================================
                 // CHECK GENERAL
+                //========================================
                 if (e.target.id === 'checkAllPermisos') {
 
                     const checked = e.target.checked;
-                    const checks = document.querySelectorAll('.check-permiso');
+
+                    const checks = document.querySelectorAll('.permission-checkbox');
 
                     checks.forEach(check => {
 
@@ -101,12 +104,16 @@
                     } else {
                         toastr.info('Todos los permisos fueron removidos');
                     }
+
                 }
 
-                //====== FULL ACCESS ======
+                //========================================
+                // FULL ACCESS
+                //========================================
                 if (e.target.name === 'full-access') {
 
                     const valor = e.target.value;
+
                     bloquearPermisos(valor === 'SI');
 
                 }
@@ -115,10 +122,12 @@
 
         }
 
-        //===============================
+        //========================================
         // AGREGAR PERMISO
-        //===============================
+        //========================================
         function agregarPermiso(permisoId) {
+
+            permisoId = permisoId.toString();
 
             const existe = permisosSeleccionados.includes(permisoId);
 
@@ -128,10 +137,12 @@
 
         }
 
-        //===============================
+        //========================================
         // ELIMINAR PERMISO
-        //===============================
+        //========================================
         function eliminarPermiso(permisoId) {
+
+            permisoId = permisoId.toString();
 
             const index = permisosSeleccionados.indexOf(permisoId);
 
@@ -141,27 +152,38 @@
 
         }
 
-        //===============================
-        // CARGAR CHECKS MARCADOS
-        //===============================
+        //========================================
+        // CARGAR PERMISOS MARCADOS
+        //========================================
         function cargarPermisosMarcados() {
 
-            const checksMarcados = document.querySelectorAll('.check-permiso:checked');
+            permisosSeleccionados = [];
+
+            const checksMarcados = document.querySelectorAll(
+                '.permission-checkbox:checked'
+            );
 
             checksMarcados.forEach(check => {
 
                 const permisoId = check.dataset.id;
 
-                if (!permisosSeleccionados.includes(permisoId)) {
-                    permisosSeleccionados.push(permisoId);
-                }
+                agregarPermiso(permisoId);
 
             });
 
+            console.log(
+                'PERMISOS INICIALES:',
+                permisosSeleccionados
+            );
+
             actualizarCheckAll();
 
-            //====== VALIDAR FULL ACCESS ======
-            const fullAccess = document.querySelector('input[name="full-access"]:checked');
+            //========================================
+            // VALIDAR FULL ACCESS
+            //========================================
+            const fullAccess = document.querySelector(
+                'input[name="full-access"]:checked'
+            );
 
             if (fullAccess) {
                 bloquearPermisos(fullAccess.value === 'SI');
@@ -169,70 +191,103 @@
 
         }
 
-        //===============================
+        //========================================
         // CHECK GENERAL
-        //===============================
+        //========================================
         function actualizarCheckAll() {
 
-            const totalChecks = document.querySelectorAll('.check-permiso').length;
-            const totalMarcados = document.querySelectorAll('.check-permiso:checked').length;
+            const totalChecks = document.querySelectorAll(
+                '.permission-checkbox'
+            ).length;
 
-            const checkAll = document.querySelector('#checkAllPermisos');
+            const totalMarcados = document.querySelectorAll(
+                '.permission-checkbox:checked'
+            ).length;
+
+            const checkAll = document.querySelector(
+                '#checkAllPermisos'
+            );
 
             if (checkAll) {
-                checkAll.checked = totalChecks === totalMarcados;
+                checkAll.checked = (
+                    totalChecks > 0 &&
+                    totalChecks === totalMarcados
+                );
             }
 
         }
 
-        //===============================
+        //========================================
         // BLOQUEAR PERMISOS
-        //===============================
-        function bloquearPermisos(bloquear = false) {
+        //========================================
+        function bloquearPermisos(fullAccess = false) {
+            toastr.clear();
+            const checks = document.querySelectorAll(
+                '.permission-checkbox'
+            );
 
-            const checks = document.querySelectorAll('.check-permiso');
-            const cardPermisos = document.querySelector('#cardPermisos');
+            const cardPermisos = document.querySelector(
+                '#cardPermisos'
+            );
 
-            checks.forEach(check => {
+            if (fullAccess) {
 
-                check.disabled = bloquear;
+                //====================================
+                // LIMPIAR ARRAY
+                //====================================
+                permisosSeleccionados = [];
 
-                if (bloquear) {
-                    check.checked = true;
+                //====================================
+                // DESMARCAR CHECKS
+                //====================================
+                checks.forEach(check => {
+                    check.checked = false;
+                });
 
-                    const permisoId = check.dataset.id;
-                    agregarPermiso(permisoId);
+                //====================================
+                // OCULTAR CARD
+                //====================================
+                if (cardPermisos) {
+                    cardPermisos.style.display = 'none';
                 }
 
-            });
+                toastr.info(
+                    'Full Access activado. No se requieren permisos específicos.'
+                );
 
-            if (cardPermisos) {
+            } else {
 
-                if (bloquear) {
-                    cardPermisos.classList.add('opacity-50');
-                } else {
-                    cardPermisos.classList.remove('opacity-50');
+                //====================================
+                // MOSTRAR CARD
+                //====================================
+                if (cardPermisos) {
+                    cardPermisos.style.display = 'block';
                 }
 
             }
 
             actualizarCheckAll();
 
+            console.log(
+                'PERMISOS ACTUALES:',
+                permisosSeleccionados
+            );
+
         }
 
-        //===============================
-        // SUBMIT FORM
-        //===============================
-        async function submitFormRol(e) {
+        //========================================
+        // UPDATE ROLE
+        //========================================
+        async function updateRole(e) {
 
             e.preventDefault();
 
             Swal.fire({
-                title: '¿Desea registrar el rol?',
-                text: 'Se guardará la información del rol.',
+                title: '¿Desea modificar el rol?',
+                text: 'Se actualizará la información del rol.',
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'Sí, guardar',
+                confirmButtonText: 'Sí',
                 cancelButtonText: 'Cancelar',
                 reverseButtons: true
             }).then(async (result) => {
@@ -242,6 +297,8 @@
                 }
 
                 const formData = new FormData(e.target);
+
+                formData.append('_method', 'PUT');
 
                 //====== AGREGAR PERMISOS ======
                 formData.append(
@@ -253,7 +310,7 @@
 
                     Swal.fire({
                         title: 'Procesando...',
-                        html: 'Guardando información',
+                        html: 'Actualizando Rol',
                         allowOutsideClick: false,
                         didOpen: () => {
                             Swal.showLoading();
@@ -262,32 +319,46 @@
 
                     limpiarErroresValidacion();
 
+                    const id = @json($role->id);
+
                     const response = await axios.post(
-                        route('seguridad.role.store'),
-                        formData, {
-                            headers: {
-                                'Content-Type': 'multipart/form-data'
-                            }
-                        }
+                        route('seguridad.role.update', {
+                            id: id
+                        }),
+                        formData
                     );
 
                     const res = response.data;
 
+                    Swal.close();
+
                     //====== SUCCESS ======
                     if (res.success) {
-                        toastr.success(res.message || 'Rol registrado correctamente');
-                        window.location.href = "{{ route('seguridad.role.index') }}";
+
+                        toastr.success(
+                            res.message || 'Rol actualizado correctamente'
+                        );
+
+                        window.location.href =
+                            "{{ route('seguridad.role.index') }}";
+
                     } else {
-                        toastr.error(res.message || 'Ocurrió un error');
-                        Swal.close();
+
+                        toastr.error(
+                            res.message || 'Ocurrió un error'
+                        );
+
                     }
 
                 } catch (error) {
 
                     Swal.close();
 
-                    //====== VALIDACIONES LARAVEL ======
-                    if (error.response && error.response.status === 422) {
+                    //====== VALIDACIONES ======
+                    if (
+                        error.response &&
+                        error.response.status === 422
+                    ) {
 
                         const errors = error.response.data.errors;
 
@@ -304,10 +375,11 @@
                         return;
                     }
 
-                    //====== ERROR GENERAL ======
                     toastr.error(
                         'Error en la petición'
                     );
+
+                    console.error(error);
 
                 }
 

@@ -40,7 +40,7 @@ class ProductoController extends Controller
 
     public function index()
     {
-        $this->authorize('haveaccess', 'producto.index');
+        $this->authorize('haveaccess', 'almacen.producto.index');
 
         $sede_id    =   Auth::user()->sede_id;
         $almacenes  =   Almacen::where('estado', 'ACTIVO')
@@ -52,7 +52,7 @@ class ProductoController extends Controller
 
     public function getTable()
     {
-        $this->authorize('haveaccess', 'producto.index');
+        $this->authorize('haveaccess', 'almacen.producto.index');
 
         $productos  =    DB::table('productos')
             ->join('marcas', 'productos.marca_id', '=', 'marcas.id')
@@ -74,7 +74,7 @@ class ProductoController extends Controller
 
     public function create()
     {
-        $this->authorize('haveaccess', 'producto.index');
+        $this->authorize('haveaccess', 'almacen.producto.index');
 
         $marcas         = Marca::where('estado', 'ACTIVO')->get();
         $categorias     = Categoria::where('estado', 'ACTIVO')->get();
@@ -111,7 +111,7 @@ array:12 [
 */
     public function store(ProductoStoreRequest $request)
     {
-        $this->authorize('haveaccess', 'producto.index');
+        $this->authorize('haveaccess', 'almacen.producto.index');
 
         DB::beginTransaction();
 
@@ -136,8 +136,7 @@ array:12 [
 
     public function edit($id)
     {
-
-        $this->authorize('haveaccess', 'producto.index');
+        $this->authorize('haveaccess', 'almacen.producto.index');
         $producto   =   Producto::findOrFail($id);
         $marcas     =   Marca::where('estado', 'ACTIVO')->get();
         $clientes   =   TipoCliente::where('estado', 'ACTIVO')->where('producto_id', $id)->get();
@@ -194,7 +193,7 @@ array:13 [
 */
     public function update(ProductoUpdateRequest $request, $id)
     {
-        $this->authorize('haveaccess', 'producto.index');
+        $this->authorize('haveaccess', 'almacen.producto.index');
 
         DB::beginTransaction();
 
@@ -219,7 +218,7 @@ array:13 [
 
     public function show($id)
     {
-        $this->authorize('haveaccess', 'producto.index');
+        $this->authorize('haveaccess', 'almacen.producto.index');
         $producto = Producto::findOrFail($id);
         $clientes = TipoCliente::where('estado', 'ACTIVO')->where('producto_id', $id)->get();
         return view('almacenes.productos.show', [
@@ -230,7 +229,7 @@ array:13 [
 
     public function destroy(int $id)
     {
-        $this->authorize('haveaccess', 'producto.index');
+        $this->authorize('haveaccess', 'almacen.producto.index');
         DB::beginTransaction();
 
         try {

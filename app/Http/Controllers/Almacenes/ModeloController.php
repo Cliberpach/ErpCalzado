@@ -15,7 +15,7 @@ class ModeloController extends Controller
 {
     public function index()
     {
-        $this->authorize('haveaccess', 'modelo.index');
+        $this->authorize('haveaccess', 'almacen.modelo.index');
         return view('almacenes.modelos.index');
     }
 
@@ -29,8 +29,7 @@ class ModeloController extends Controller
 
     public function store(ModeloStoreRequest $request)
     {
-        $this->authorize('haveaccess', 'modelo.index');
-
+        $this->authorize('haveaccess', 'almacen.modelo.index');
         DB::beginTransaction();
 
         try {
@@ -64,8 +63,7 @@ class ModeloController extends Controller
 
     public function update(ModeloUpdateRequest $request, int $id)
     {
-        $this->authorize('haveaccess', 'modelo.index');
-
+        $this->authorize('haveaccess', 'almacen.modelo.index');
         DB::beginTransaction();
 
         try {
@@ -100,8 +98,7 @@ class ModeloController extends Controller
 
     public function destroy($id)
     {
-        //$this->authorize('haveaccess','modelo.index');
-
+        $this->authorize('haveaccess', 'almacen.modelo.index');
         DB::beginTransaction();
 
         try {

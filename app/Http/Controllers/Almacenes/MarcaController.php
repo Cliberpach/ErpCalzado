@@ -15,7 +15,7 @@ class MarcaController extends Controller
 {
     public function index()
     {
-        $this->authorize('haveaccess', 'marca.index');
+        $this->authorize('haveaccess', 'almacen.marca.index');
         return view('almacenes.marcas.index');
     }
 
@@ -34,7 +34,7 @@ array:3 [
 */
     public function store(MarcaStoreRequest $request)
     {
-        $this->authorize('haveaccess', 'marca.index');
+        $this->authorize('haveaccess', 'almacen.marca.index');
         DB::beginTransaction();
         try {
 
@@ -65,7 +65,7 @@ array:4 [
 */
     public function update(MarcaUpdateRequest $request, int $id)
     {
-        $this->authorize('haveaccess', 'marca.index');
+        $this->authorize('haveaccess', 'almacen.marca.index');
         DB::beginTransaction();
         try {
             $data               =   $request->validated();
@@ -88,7 +88,7 @@ array:4 [
 
     public function destroy($id)
     {
-        $this->authorize('haveaccess', 'marca.index');
+        $this->authorize('haveaccess', 'almacen.marca.index');
         DB::beginTransaction();
         try {
 

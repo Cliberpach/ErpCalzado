@@ -8,38 +8,44 @@ use App\Http\Requests\Almacen\Vehiculo\VehiculoStoreRequest;
 use App\Http\Requests\Almacen\Vehiculo\VehiculoUpdateRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 use Yajra\DataTables\Facades\DataTables;
 
 class VehiculoController extends Controller
 {
-    public function index(){
+    public function index()
+    {
+        $this->authorize('haveaccess', 'almacen.vehiculos.index');
         return view('almacenes.vehiculos.index');
     }
 
-    public function getVehiculos(Request $request){
+    public function getVehiculos(Request $request)
+    {
 
         $vehiculos = DB::table('vehiculos as v')
-                    ->select(
-                        'v.id', 
-                        'v.placa',
-                        'v.modelo',
-                        'v.marca',
-                        'v.created_at as fecha_registro',
-                        'v.updated_at as fecha_modificacion'
-                    )
-                    ->where('v.estado','ACTIVO')
-                    ->get();
+            ->select(
+                'v.id',
+                'v.placa',
+                'v.modelo',
+                'v.marca',
+                'v.created_at as fecha_registro',
+                'v.updated_at as fecha_modificacion'
+            )
+            ->where('v.estado', 'ACTIVO')
+            ->get();
 
 
         return DataTables::of($vehiculos)
-                ->make(true);
+            ->make(true);
     }
 
-    public function create(){
+    public function create()
+    {
+        $this->authorize('haveaccess', 'almacen.vehiculos.index');
         return view('almacenes.vehiculos.create');
     }
 
-     /*
+    /*
     array:4 [ // app\Http\Controllers\Registros\VehiculoController.php:19
         "_token"    => "NjS8X7BKeHqRNmrtCBOxXMTbKz4F5P1TIpsagVd6"
         "placa"     => "asdasd"     --6 a 8 caracteres
@@ -47,50 +53,61 @@ class VehiculoController extends Controller
         "marca"     => "dasd"       --100 CARACTERES MÁXIMO
     ]
     */
-    public function store(VehiculoStoreRequest $request){
+    public function store(VehiculoStoreRequest $request)
+    {
+        $this->authorize('haveaccess', 'almacen.vehiculos.index');
+
         DB::beginTransaction();
         try {
 
             $vehiculo           =   new Vehiculo();
             $vehiculo->placa    =   mb_strtoupper($request->get('placa'), 'UTF-8');
             $vehiculo->modelo   =   mb_strtoupper($request->get('modelo'), 'UTF-8');
-            $vehiculo->marca    =   mb_strtoupper($request->get('marca'), 'UTF-8');            
+            $vehiculo->marca    =   mb_strtoupper($request->get('marca'), 'UTF-8');
             $vehiculo->save();
 
             DB::commit();
-            return response()->json(['success'=>true,'message'=>'VEHÍCULO REGISTRADO']);
-        } catch (\Throwable $th) {
+            return response()->json(['success' => true, 'message' => 'VEHÍCULO REGISTRADO']);
+        } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
 
-    public function edit($id){
+    public function edit($id)
+    {
+        $this->authorize('haveaccess', 'almacen.vehiculos.index');
+
         $vehiculo   =   Vehiculo::find($id);
 
-        return view('almacenes.vehiculos.edit',compact('vehiculo'));
+        return view('almacenes.vehiculos.edit', compact('vehiculo'));
     }
 
 
-    public function update($id,VehiculoUpdateRequest $request){
+    public function update($id, VehiculoUpdateRequest $request)
+    {
+        $this->authorize('haveaccess', 'almacen.vehiculos.index');
+
         DB::beginTransaction();
         try {
             $vehiculo           =   Vehiculo::find($id);
             $vehiculo->placa    =   mb_strtoupper($request->get('placa'), 'UTF-8');
             $vehiculo->modelo   =   mb_strtoupper($request->get('modelo'), 'UTF-8');
-            $vehiculo->marca    =   mb_strtoupper($request->get('marca'), 'UTF-8');            
+            $vehiculo->marca    =   mb_strtoupper($request->get('marca'), 'UTF-8');
             $vehiculo->update();
 
             DB::commit();
-            return response()->json(['success'=>true,'message'=>'VEHÍCULO ACTUALIZADO']);
-
-        } catch (\Throwable $th) {
+            return response()->json(['success' => true, 'message' => 'VEHÍCULO ACTUALIZADO']);
+        } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
 
-    public function destroy($id){
+    public function destroy($id)
+    {
+        $this->authorize('haveaccess', 'almacen.vehiculos.index');
+
         DB::beginTransaction();
         try {
             $vehiculo                    =   Vehiculo::find($id);
@@ -98,14 +115,10 @@ class VehiculoController extends Controller
             $vehiculo->update();
 
             DB::commit();
-            return response()->json(['success'=>true,'message'=>'VEHÍCULO ELIMINADO']);
-
-        } catch (\Throwable $th) {
+            return response()->json(['success' => true, 'message' => 'VEHÍCULO ELIMINADO']);
+        } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
-
-
-
 }

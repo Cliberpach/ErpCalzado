@@ -18,7 +18,7 @@ class TallaController extends Controller
 {
     public function index()
     {
-        //$this->authorize('haveaccess','categoria.index');
+        $this->authorize('haveaccess', 'almacen.talla.index');
         return view('almacenes.tallas.index');
     }
 
@@ -35,6 +35,7 @@ class TallaController extends Controller
 
     public function store(TallaStoreRequest $request)
     {
+        $this->authorize('haveaccess', 'almacen.talla.index');
         DB::beginTransaction();
 
         try {
@@ -124,8 +125,9 @@ class TallaController extends Controller
 
     public function update(TallaUpdateRequest $request, int $id)
     {
-        DB::beginTransaction();
+        $this->authorize('haveaccess', 'almacen.talla.index');
 
+        DB::beginTransaction();
         try {
 
             $data = $request->validated();
@@ -186,6 +188,7 @@ class TallaController extends Controller
 
     public function destroy(int $id)
     {
+        $this->authorize('haveaccess', 'almacen.talla.index');
         DB::beginTransaction();
 
         try {

@@ -26,7 +26,7 @@ class ColorController extends Controller
 
     public function index()
     {
-        //$this->authorize('haveaccess','categoria.index');
+        $this->authorize('haveaccess', 'almacen.categoria.index');
         return view('almacenes.colores.index');
     }
 
@@ -60,8 +60,8 @@ array:4 [
 */
     public function store(ColorStoreRequest $request)
     {
+        $this->authorize('haveaccess','almacen.categoria.index');
         DB::beginTransaction();
-
         try {
 
             $res  =   $this->s_color->store($request->toArray());
@@ -122,9 +122,9 @@ array:4 [
 
     public function update(ColorUpdateRequest $request, int $id)
     {
+        $this->authorize('haveaccess', 'almacen.categoria.index');
         DB::beginTransaction();
         try {
-
             $res  =   $this->s_color->update($id, $request->toArray());
 
             //Registro de actividad
@@ -144,7 +144,7 @@ array:4 [
 
     public function destroy(int $id)
     {
-        $this->authorize('haveaccess', 'categoria.index');
+        $this->authorize('haveaccess', 'almacen.categoria.index');
         DB::beginTransaction();
         try {
 

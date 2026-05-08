@@ -9,8 +9,6 @@ use App\Almacenes\Talla;
 use App\Almacenes\Modelo;
 use App\Almacenes\DetalleNotaIngreso;
 use App\Almacenes\Kardex;
-use App\Almacenes\LoteProducto;
-use App\Almacenes\MovimientoNota;
 use App\Almacenes\NotaIngreso;
 use App\Almacenes\Producto;
 use App\Almacenes\ProductoColor;
@@ -45,7 +43,7 @@ class NotaIngresoController extends Controller
      */
     public function index()
     {
-        $this->authorize('haveaccess', 'nota_ingreso.index');
+        $this->authorize('haveaccess', 'almacen.nota_ingreso.index');
         $almacenes  =   Almacen::where('sede_id',Auth::user()->sede_id)->where('estado','ACTIVO')->get();
         return view('almacenes.nota_ingresos.index',compact('almacenes'));
     }
@@ -97,9 +95,7 @@ class NotaIngresoController extends Controller
      */
     public function create()
     {
-
-        $this->authorize('haveaccess', 'nota_ingreso.index');
-
+        $this->authorize('haveaccess', 'almacen.nota_ingreso.index');
         $modelos        =   Modelo::where('estado', 'ACTIVO')->get();
         $tallas         =   Talla::where('estado', 'ACTIVO')->get();
         $colores        =   Color::where('estado', 'ACTIVO')->get();
@@ -134,8 +130,7 @@ array:7 [
 */
     public function store(Request $request)
     {
-        $this->authorize('haveaccess', 'nota_ingreso.index');
-
+        $this->authorize('haveaccess', 'almacen.nota_ingreso.index');
         DB::beginTransaction();
 
         try {
@@ -427,7 +422,7 @@ array:7 [
      */
     public function edit($id)
     {
-        $this->authorize('haveaccess', 'nota_ingreso.index');
+        $this->authorize('haveaccess', 'almacen.nota_ingreso.index');
 
         $fecha_hoy = Carbon::now()->toDateString();
         $fecha = Carbon::createFromFormat('Y-m-d', $fecha_hoy);
@@ -501,7 +496,7 @@ array:7 [
      */
     public function update(Request $request, $id)
     {
-        $this->authorize('haveaccess', 'nota_ingreso.index');
+        $this->authorize('haveaccess', 'almacen.nota_ingreso.index');
         $data = $request->all();
 
         $rules = [
@@ -612,7 +607,7 @@ array:7 [
      */
     public function destroy($id)
     {
-        $this->authorize('haveaccess', 'nota_ingreso.index');
+        $this->authorize('haveaccess', 'almacen.nota_ingreso.index');
         $notaingreso = NotaIngreso::findOrFail($id);
         $notaingreso->estado = "ANULADO";
         $notaingreso->save();

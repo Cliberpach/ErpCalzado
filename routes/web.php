@@ -65,31 +65,6 @@ Route::group(
             Route::post('/cuentasBancarias/modo', 'Configuracion\ConfiguracionController@cuentasBancariasModo')->name('configuracion.cuentasBancarias.modo');
         });
 
-        //Users
-        Route::prefix('users')->group(function () {
-            Route::get('/', 'Seguridad\UserController@index')->name('user.index');
-            Route::get('destroy/{id}', 'Seguridad\UserController@destroy')->name('user.destroy');
-            Route::get('create', 'Seguridad\UserController@create')->name('user.create');
-            Route::post('store', 'Seguridad\UserController@store')->name('user.store');
-            Route::get('edit/{id}', 'Seguridad\UserController@edit')->name('user.edit');
-            Route::put('update/{id}', 'Seguridad\UserController@update')->name('user.update');
-            Route::get('show/{id}', 'Seguridad\UserController@show')->name('user.show');
-        });
-
-        //Roles
-        Route::prefix('roles')->group(function () {
-            Route::get('/', 'Seguridad\RoleController@index')->name('role.index');
-            Route::get('destroy/{id}', 'Seguridad\RoleController@destroy')->name('role.destroy');
-            Route::get('create', 'Seguridad\RoleController@create')->name('role.create');
-            Route::post('store', 'Seguridad\RoleController@store')->name('role.store');
-            Route::get('edit/{id}', 'Seguridad\RoleController@edit')->name('role.edit');
-            Route::put('update/{id}', 'Seguridad\RoleController@update')->name('role.update');
-            Route::get('show/{id}', 'Seguridad\RoleController@show')->name('role.show');
-            Route::get('getTable', 'Seguridad\RoleController@getTable')->name('role.getTable');
-        });
-
-
-
         //Almacenes
         //Almacen
         Route::prefix('almacenes/almacen')->group(function () {
@@ -710,7 +685,7 @@ require __DIR__ . '/kardex/web.php';
 require __DIR__ . '/cajas/web.php';
 require __DIR__ . '/almacenes/web.php';
 require __DIR__ . '/dashboard/web.php';
-
+require __DIR__ . '/seguridad/web.php';
 
 Route::get('ventas/documentos/comprobante/{id}/{size}', 'Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');
 Route::get('ventas/documentos/xml/{id}', 'Ventas\DocumentoController@xml')->name('ventas.documento.xml');

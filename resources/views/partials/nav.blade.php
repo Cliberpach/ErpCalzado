@@ -133,55 +133,57 @@
     </li>
 @endcan
 
-@can('restore', [Auth::user(), ['almacen.index', 'categoria.index', 'marca.index', 'producto.index',
-    'nota_ingreso.index', 'nota_salida.index', 'solicitudes_traslado.index', 'traslados.index', 'vehiculos.index',
-    'conductores.index']])
+@can('restore', [Auth::user(), ['almacen.almacen.index', 'almacen.categoria.index', 'almacen.marca.index',
+    'almacen.modelo.index', 'almacen.color.index', 'almacen.talla.index', 'almacen.producto.index',
+    'almacen.nota_ingreso.index', 'almacen.nota_salida.index', 'almacen.solicitudes_traslado.index',
+    'almacen.traslados.index', 'almacen.vehiculos.index', 'almacen.conductores.index']])
     <li class="@yield('almacenes-active')">
         <a href="#">
             <i class="fas fa-warehouse"></i>
             <span class="nav-label">Almacén</span>
         </a>
         <ul class="nav nav-second-level collapse">
-            @can('haveaccess', 'almacen.index')
+            @can('haveaccess', 'almacen.almacen.index')
                 <li class="@yield('almacen-active')"><a href="{{ route('almacenes.almacen.index') }}">Almacén</a></li>
             @endcan
-            @can('haveaccess', 'categoria.index')
+            @can('haveaccess', 'almacen.categoria.index')
                 <li class="@yield('categoria-active')"><a href="{{ route('almacenes.categorias.index') }}">Categoria</a></li>
             @endcan
-            @can('haveaccess', 'marca.index')
+            @can('haveaccess', 'almacen.marca.index')
                 <li class="@yield('marca-active')"><a href="{{ route('almacenes.marcas.index') }}">Marca</a></li>
             @endcan
 
-            @can('haveaccess', 'modelo.index')
+            @can('haveaccess', 'almacen.modelo.index')
                 <li class="@yield('modelo-active')"><a href="{{ route('almacenes.modelos.index') }}">Modelo</a></li>
             @endcan
-            @can('haveaccess', 'color.index')
+            @can('haveaccess', 'almacen.color.index')
                 <li class="@yield('color-active')"><a href="{{ route('almacenes.colores.index') }}">Color</a></li>
             @endcan
-            @can('haveaccess', 'talla.index')
+            @can('haveaccess', 'almacen.talla.index')
                 <li class="@yield('talla-active')"><a href="{{ route('almacenes.tallas.index') }}">Talla</a></li>
             @endcan
 
-            @can('haveaccess', 'producto.index')
+            @can('haveaccess', 'almacen.producto.index')
                 <li class="@yield('producto-active')"><a href="{{ route('almacenes.producto.index') }}">Producto</a></li>
             @endcan
-            @can('haveaccess', 'nota_ingreso.index')
+
+            @can('haveaccess', 'almacen.nota_ingreso.index')
                 <li class="@yield('nota_ingreso-active')"><a href="{{ route('almacenes.nota_ingreso.index') }}">Nota Ingreso</a></li>
             @endcan
-            @can('haveaccess', 'nota_salida.index')
+            @can('haveaccess', 'almacen.nota_salida.index')
                 <li class="@yield('nota_salidad-active')"><a href="{{ route('almacenes.nota_salidad.index') }}">Nota Salida</a></li>
             @endcan
-            @can('haveaccess', 'solicitudes_traslado.index')
+            @can('haveaccess', 'almacen.solicitudes_traslado.index')
                 <li class="@yield('solicitudes_traslado-active')"><a href="{{ route('almacenes.solicitud_traslado.index') }}">Solicitudes
                         Traslado</a></li>
             @endcan
-            @can('haveaccess', 'traslados.index')
+            @can('haveaccess', 'almacen.traslados.index')
                 <li class="@yield('traslados-active')"><a href="{{ route('almacenes.traslados.index') }}">Traslados</a></li>
             @endcan
-            @can('haveaccess', 'vehiculos.index')
+            @can('haveaccess', 'almacen.vehiculos.index')
                 <li class="@yield('vehiculos-active')"><a href="{{ route('almacenes.vehiculos.index') }}">Vehículos</a></li>
             @endcan
-            @can('haveaccess', 'conductores.index')
+            @can('haveaccess', 'almacen.conductores.index')
                 <li class="@yield('conductores-active')"><a href="{{ route('almacenes.conductores.index') }}">Conductores</a></li>
             @endcan
         </ul>
@@ -440,12 +442,11 @@
                 class="fa arrow"></span></a>
         <ul class="nav nav-second-level collapse">
             @can('haveaccess', 'user.index')
-                <li class="@yield('users-active')"><a href="{{ route('user.index') }}">Usuarios</a></li>
+                <li class="@yield('users-active')"><a href="{{ route('seguridad.user.index') }}">Usuarios</a></li>
             @endcan
             @can('haveaccess', 'role.index')
-                <li class="@yield('roles-active')"><a href="{{ route('role.index') }}">Roles</a></li>
+                <li class="@yield('roles-active')"><a href="{{ route('seguridad.role.index') }}">Roles</a></li>
             @endcan
         </ul>
     </li>
-
 @endcan

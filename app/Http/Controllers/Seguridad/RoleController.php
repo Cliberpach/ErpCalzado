@@ -3,161 +3,221 @@
 namespace App\Http\Controllers\Seguridad;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Seguridad\Roles\RoleUpdateRequest;
+use App\Http\Requests\Seguridad\Roles\RolStoreRequest;
 use App\Permission\Model\Permission;
 use App\Permission\Model\Role;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
+use Throwable;
 use Yajra\DataTables\Facades\DataTables;
 
 class RoleController extends Controller
 {
     public function index()
     {
-
-        $this->authorize('haveaccess','role.index');
+        $this->authorize('haveaccess', 'seguridad.role.index');
         return view('seguridad.roles.index');
     }
 
     public function create()
     {
-        $this->authorize('haveaccess','role.index');
+        $this->authorize('haveaccess', 'seguridad.role.index');
         $permission_role = [];
-        $action = route('role.store');
         $role = new Role();
         $permissions = Permission::all();
-        $ubicacion = 'Registrar';
-        $title = 'REGISTRAR NUEVO ROL';
-        return view('seguridad.roles.create',compact('permissions','action','role','ubicacion','permission_role','title'));
+        return view('seguridad.roles.create', compact('permissions', 'role', 'permission_role'));
     }
 
-    public function store(Request $request)
+    /*
+array:7 [
+  "_token" => "EFBcg0A34InqzxLtDbBDbfDCZy33Bn28PdFtJ1Fq"
+  "name" => "test"
+  "slug" => "test"
+  "description" => "test"
+  "full-access" => "NO"
+  "punto-venta" => "NO"
+  "permissions" => "["2","8"]"
+]
+*/
+    public function store(RolStoreRequest $request)
     {
-        $this->authorize('haveaccess','role.index');
-        $data = $request->all();
+        $this->authorize('haveaccess', 'seguridad.role.index');
+        DB::beginTransaction();
+        try {
 
-        $rules = [
-            'name' => 'required|max:50|unique:roles,name',
-            'slug' => 'required|max:50|unique:roles,slug',
-            'full-access' => 'required|in:SI,NO',
-            'punto-venta' => 'required|in:SI,NO'
-        ];
+            $role               = new Role();
+            $role->name         = mb_strtoupper(trim($request->get('name')), 'UTF-8');
+            $role->description  = mb_strtoupper(trim($request->get('description')), 'UTF-8');
+            $role->slug         = mb_strtoupper(trim($request->get('slug')), 'UTF-8');
+            $role->{'full-access'} = $request->get('full-access');
+            $role->{'punto-venta'} = $request->get('punto-venta');
+            $role->save();
 
-        $message = [
-            'name.required' => 'El campo nombre es obligatorio.',
-            'name.unique' => 'El campo nombre debe ser único.',
-            'slug.required' => 'El campo slug es obligatorio.',
-            'slug.unique' => 'El campo slug debe ser único.',
-            'full-access' => 'El campo full-access acepta SI/NO.',
-            'punto-venta' => 'El campo punto-venta acepta SI/NO.',
-        ];
+            //========================
+            // PERMISOS
+            //========================
+            if ($request->get('full-access') === 'NO') {
 
-        Validator::make($data, $rules, $message)->validate();
-        $role = Role::create($request->all());
-        $role->name = strtoupper($request->get('name'));
-        $role->description = strtoupper($request->get('description'));
-        $role->slug = strtoupper($request->get('slug'));
-        $role->update();
-        if($request->get('permission'))
-        {
-            $role->permissions()->sync($request->get('permission'));
+                $permissions = json_decode(
+                    $request->permissions,
+                    true
+                );
+
+                $role->permissions()->sync($permissions ?? []);
+            } else {
+                $role->permissions()->sync([]);
+            }
+
+            DB::commit();
+            //Registro de actividad
+            $descripcion = "SE AGREGÓ EL ROL CON EL NOMBRE: " . $role->name;
+            $gestion = "ROLES";
+            crearRegistro($role, $descripcion, $gestion);
+
+            return response()->json(['success' => true, 'message' => 'ROL REGISTRADO CON ÉXITO']);
+        } catch (Throwable $th) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+                'line' => $th->getLine(),
+                'file' => $th->getFile()
+            ]);
         }
-
-        //Registro de actividad
-        $descripcion = "SE AGREGÓ EL ROL CON EL NOMBRE: ". $role->name;
-        $gestion = "ROLES";
-        crearRegistro($role, $descripcion , $gestion);
-
-        Session::flash('success','Rol creado.');
-        return redirect()->route('role.index')->with('guardar', 'success');
     }
 
     public function show($id)
     {
-        $this->authorize('haveaccess','role.index');
-        $role = Role::find($id);
-        $permission_role = [];
-        foreach($role->permissions as $permission)
-        {
-            $permission_role[] = $permission->id;
+        $this->authorize('haveaccess', 'seguridad.role.index');
+
+        try {
+
+            $role = Role::with('permissions')->findOrFail($id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Datos del rol obtenidos',
+                'data' => [
+                    'id'            => $role->id,
+                    'name'          => $role->name,
+                    'slug'          => $role->slug,
+                    'description'   => $role->description,
+                    'full_access'   => $role->{'full-access'},
+                    'punto_venta'   => $role->{'punto-venta'},
+                    'permissions'   => $role->permissions->map(function ($permission) {
+
+                        $parts = explode('.', $permission->slug);
+
+                        return [
+                            'id'         => $permission->id,
+                            'name'       => $permission->name,
+                            'slug'       => $permission->slug,
+                            'modulo'     => mb_strtoupper($parts[0] ?? '-', 'UTF-8'),
+                            'submodulo'  => mb_strtoupper($parts[1] ?? '-', 'UTF-8'),
+                        ];
+                    })
+                ]
+            ]);
+        } catch (Throwable $th) {
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+                'line'    => $th->getLine(),
+                'file'    => $th->getFile()
+            ]);
         }
-        $permissions = Permission::all();
-        return view('seguridad.roles.show',compact('permissions','role','permission_role'));
     }
 
     public function edit($id)
     {
-        $this->authorize('haveaccess','role.index');
-        $role = Role::find($id);
+        $this->authorize('haveaccess', 'seguridad.role.index');
+        $role = Role::findOrFail($id);
         $permission_role = [];
-        foreach($role->permissions as $permission)
-        {
+        foreach ($role->permissions as $permission) {
             $permission_role[] = $permission->id;
         }
-        $title = 'MODIFICAR ROL';
-        $action = route('role.update',$id);
         $permissions = Permission::all();
-        $ubicacion = 'Modificar';
-        $put = true;
-        return view('seguridad.roles.create',compact('permissions','action','role','ubicacion','permission_role','put','title'));
+        return view('seguridad.roles.edit', compact(
+            'permissions',
+            'role',
+            'permission_role',
+        ));
     }
 
-    public function update(Request $request, $id)
+    /*
+array:8 [
+  "_token" => "EFBcg0A34InqzxLtDbBDbfDCZy33Bn28PdFtJ1Fq"
+  "name" => "USER"
+  "slug" => "USER"
+  "description" => "USER"
+  "full-access" => "NO"
+  "punto-venta" => "NO"
+  "permissions" => "["3","5"]"
+  "_method" => "PUT"
+]
+*/
+    public function update(RoleUpdateRequest $request, $id)
     {
-        $this->authorize('haveaccess','role.edit');
-        $data = $request->all();
-        $role = Role::find($id);
-        $rules = [
-            'name' => 'required|max:50|unique:roles,name,'.$role->id,
-            'slug' => 'required|max:50|unique:roles,slug,'.$role->id,
-            'full-access' => 'required|in:SI,NO',
-            'punto-venta' => 'required|in:SI,NO',
-        ];
+        DB::beginTransaction();
+        $this->authorize('haveaccess', 'seguridad.role.edit');
 
-        $message = [
-            'name.required' => 'El campo nombre es obligatorio.',
-            'name.unique' => 'El campo nombre debe ser único.',
-            'slug.required' => 'El campo slug es obligatorio.',
-            'slug.unique' => 'El campo slug debe ser único.',
-            'full-access' => 'El campo full-access acepta SI/NO.',
-            'punto-venta' => 'El campo punto-venta acepta SI/NO.',
-        ];
+        try {
 
-        Validator::make($data, $rules, $message)->validate();
-        $role->update($request->all());
-        $role->name = strtoupper($request->get('name'));
-        $role->description = strtoupper($request->get('description'));
-        $role->slug = strtoupper($request->get('slug'));
-        $role->update();
-        if($request->get('permission'))
-        {
-            $role->permissions()->sync($request->get('permission'));
+            $role               = Role::findOrFail($id);
+            $role->name         = mb_strtoupper(trim($request->get('name')), 'UTF-8');
+            $role->description  = mb_strtoupper(trim($request->get('description')), 'UTF-8');
+            $role->slug         = mb_strtoupper(trim($request->get('slug')), 'UTF-8');
+            $role->{'full-access'} = $request->get('full-access');
+            $role->{'punto-venta'} = $request->get('punto-venta');
+            $role->save();
+
+            //========================================
+            // PERMISOS
+            //========================================
+            if ($request->get('full-access') === 'NO') {
+                $permissions = json_decode(
+                    $request->get('permissions'),
+                    true
+                );
+                $role->permissions()->sync($permissions ?? []);
+            } else {
+                $role->permissions()->sync([]);
+            }
+
+            DB::commit();
+
+            //Registro de actividad
+            $descripcion = "SE MODIFICÓ EL ROL CON EL NOMBRE: " . $role->name;
+            $gestion = "ROLES";
+            modificarRegistro($role, $descripcion, $gestion);
+
+            return response()->json(['success' => true, 'message' => 'ROL ACTUALIZADO CON ÉXITO']);
+        } catch (Throwable $th) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+                'line' => $th->getLine(),
+                'file' => $th->getFile()
+            ]);
         }
-        else
-        {
-            $role->permissions()->sync([]);
-        }
-
-        //Registro de actividad
-        $descripcion = "SE MODIFICÓ EL ROL CON EL NOMBRE: ". $role->name;
-        $gestion = "ROLES";
-        modificarRegistro($role, $descripcion , $gestion);
-        Session::flash('success','Rol Modificado.');
-        return redirect()->route('role.index')->with('modificar', 'success');
     }
 
     public function destroy($id)
     {
-        $role = Role::find($id);
+
+        $role = Role::findOrFail($id);
 
         //Registro de actividad
-        $descripcion = "SE ELIMINÓ EL ROL CON EL NOMBRE: ". $role->name;
+        $descripcion = "SE ELIMINÓ EL ROL CON EL NOMBRE: " . $role->name;
         $gestion = "ROLES";
-        eliminarRegistro($role, $descripcion , $gestion);
+        eliminarRegistro($role, $descripcion, $gestion);
 
         $role->delete();
-        Session::flash('success','Rol eliminado.');
-        return redirect()->route('role.index')->with('eliminar', 'success');
+        Session::flash('success', 'Rol eliminado.');
+        return redirect()->route('seguridad.role.index')->with('eliminar', 'success');
     }
 
     public function getTable()

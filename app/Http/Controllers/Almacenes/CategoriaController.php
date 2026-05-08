@@ -26,7 +26,7 @@ class CategoriaController extends Controller
 
     public function index()
     {
-        $this->authorize('haveaccess', 'categoria.index');
+        $this->authorize('haveaccess', 'almacen.categoria.index');
         return view('almacenes.categorias.index');
     }
 
@@ -71,7 +71,7 @@ array:3 [
 */
     public function store(CategoriaStoreRequest $request)
     {
-        $this->authorize('haveaccess', 'categoria.index');
+        $this->authorize('haveaccess', 'almacen.categoria.index');
         DB::beginTransaction();
         try {
             $instance   =   $this->s_manager->store($request->toArray());
@@ -103,7 +103,7 @@ array:3 [
 */
     public function update(CategoriaUpdateRequest $request, int $id)
     {
-        $this->authorize('haveaccess', 'categoria.index');
+        $this->authorize('haveaccess', 'almacen.categoria.index');
         DB::beginTransaction();
         try {
             $instance   =   $this->s_manager->update($request->toArray(), $id);
@@ -119,17 +119,12 @@ array:3 [
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
-
-
-
-        Session::flash('success', 'Categoria modificado.');
-        return redirect()->route('almacenes.categorias.index')->with('modificar', 'success');
     }
 
 
     public function destroy($id)
     {
-        $this->authorize('haveaccess', 'categoria.index');
+        $this->authorize('haveaccess', 'almacen.categoria.index');
         DB::beginTransaction();
         try {
 

@@ -10,7 +10,6 @@ use App\Almacenes\Talla;
 use App\Almacenes\Traslado;
 use App\Almacenes\TrasladoDetalle;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\UtilidadesController;
 use App\Mantenimiento\Empresa\Empresa;
 use Carbon\Carbon;
 use Exception;
@@ -23,78 +22,86 @@ use Throwable;
 
 class SolicitudTrasladoController extends Controller
 {
-    public function index(){
+    public function index()
+    {
+        $this->authorize('haveaccess', 'almacen.solicitudes_traslado.index');
         return view('almacenes.solicitudes_traslado.index');
     }
 
-    public function getSolicitudesTraslado(Request $request){
+    public function getSolicitudesTraslado(Request $request)
+    {
 
         $sede_id    =   Auth::user()->sede_id;
 
         $traslados  =   DB::table('traslados as t')
-                        ->join('almacenes as ao', 'ao.id', '=', 't.almacen_origen_id')
-                        ->join('almacenes as ad', 'ad.id', '=', 't.almacen_destino_id')
-                        ->join('empresa_sedes as eso', 'eso.id', '=', 't.sede_origen_id')
-                        ->join('empresa_sedes as esd', 'esd.id', '=', 't.sede_destino_id')
-                        ->select(
-                            DB::raw('CONCAT("TR-", t.id) as simbolo'),
-                            't.id',
-                            'ao.descripcion as almacen_origen_nombre',
-                            'ad.descripcion as almacen_destino_nombre',
-                            't.observacion',
-                            'eso.direccion as sede_origen_direccion',
-                            'esd.direccion as sede_destino_direccion',
-                            't.created_at as fecha_registro',
-                            't.fecha_traslado',
-                            't.registrador_nombre',
-                            't.estado'
-                        )
-                        ->where('t.sede_destino_id',$sede_id);
+            ->join('almacenes as ao', 'ao.id', '=', 't.almacen_origen_id')
+            ->join('almacenes as ad', 'ad.id', '=', 't.almacen_destino_id')
+            ->join('empresa_sedes as eso', 'eso.id', '=', 't.sede_origen_id')
+            ->join('empresa_sedes as esd', 'esd.id', '=', 't.sede_destino_id')
+            ->select(
+                DB::raw('CONCAT("TR-", t.id) as simbolo'),
+                't.id',
+                'ao.descripcion as almacen_origen_nombre',
+                'ad.descripcion as almacen_destino_nombre',
+                't.observacion',
+                'eso.direccion as sede_origen_direccion',
+                'esd.direccion as sede_destino_direccion',
+                't.created_at as fecha_registro',
+                't.fecha_traslado',
+                't.registrador_nombre',
+                't.estado'
+            )
+            ->where('t.sede_destino_id', $sede_id);
 
         return DataTables::of($traslados)->make(true);
-
     }
 
 
-    public function confirmarShow($id){
+    public function confirmarShow($id)
+    {
+        $this->authorize('haveaccess', 'almacen.solicitudes_traslado.index');
 
         $traslado   =   Traslado::find($id);
-        $detalle    =   TrasladoDetalle::where('traslado_id',$id)->get();
-        $tallas     =   Talla::where('estado','ACTIVO')->get();
+        $detalle    =   TrasladoDetalle::where('traslado_id', $id)->get();
+        $tallas     =   Talla::where('estado', 'ACTIVO')->get();
         $almacen_origen     =   Almacen::find($traslado->almacen_origen_id);
         $almacen_destino    =   Almacen::find($traslado->almacen_destino_id);
 
-        return view('almacenes.solicitudes_traslado.confirmar',
-        compact('tallas','detalle','traslado','almacen_origen','almacen_destino'));
+        return view(
+            'almacenes.solicitudes_traslado.confirmar',
+            compact('tallas', 'detalle', 'traslado', 'almacen_origen', 'almacen_destino')
+        );
     }
 
-/*
+    /*
 array:1 [
   "traslado_id" => "1"
 ]
 */
-    public function confirmarStore(Request $request){
+    public function confirmarStore(Request $request)
+    {
+        $this->authorize('haveaccess', 'almacen.solicitudes_traslado.index');
 
         DB::beginTransaction();
         try {
 
             //======== VALIDACIONES PREVIAS =====
-            if(!$request->get('traslado_id')){
+            if (!$request->get('traslado_id')) {
                 throw new Exception("FALTA EL PARÁMETRO TRASLADO ID EN LA PETICIÓN!!!");
             }
             $traslado   =   Traslado::find($request->get('traslado_id'));
 
-            if(!$traslado){
+            if (!$traslado) {
                 throw new Exception("NO EXISTE EL TRASLADO EN LA BD!!!");
             }
-            if($traslado->estado !== 'PENDIENTE'){
-                throw new Exception("EL TRASLADO YA SE ENCUENTRA CON ESTADO ".$traslado->estado.'!!!');
+            if ($traslado->estado !== 'PENDIENTE') {
+                throw new Exception("EL TRASLADO YA SE ENCUENTRA CON ESTADO " . $traslado->estado . '!!!');
             }
 
 
             //======== INCREMENTANDO STOCK EN ALMACÉN DESTINO ========
-            $detalle    =   TrasladoDetalle::where('traslado_id',$traslado->id)->get();
-            if(count($detalle) === 0){
+            $detalle    =   TrasladoDetalle::where('traslado_id', $traslado->id)->get();
+            if (count($detalle) === 0) {
                 throw new Exception("EL DETALLE DEL TRASLADO ESTÁ VACÍO!!!");
             }
 
@@ -103,7 +110,8 @@ array:1 [
             foreach ($detalle as  $item) {
 
                 //====== VERIFICAR EXISTENCIA DEL PRODUCTO EN EL ALMACÉN DESTINO =====
-                $producto_destino   =   DB::select('select
+                $producto_destino   =   DB::select(
+                    'select
                                         pct.*
                                         from producto_color_tallas as pct
                                         where
@@ -111,38 +119,38 @@ array:1 [
                                         and pct.producto_id = ?
                                         and pct.color_id = ?
                                         and pct.talla_id = ?',
-                                        [
-                                            $traslado->almacen_destino_id,
-                                            $item->producto_id,
-                                            $item->color_id,
-                                            $item->talla_id
-                                        ]);
+                    [
+                        $traslado->almacen_destino_id,
+                        $item->producto_id,
+                        $item->color_id,
+                        $item->talla_id
+                    ]
+                );
 
                 //======== TALLA EXISTE, INCREMENTAR STOCK =========
                 if (count($producto_destino) > 0) {
 
                     ProductoColorTalla::where('producto_id', $item->producto_id)
-                    ->where('color_id', $item->color_id)
-                    ->where('talla_id', $item->talla_id)
-                    ->where('almacen_id', $traslado->almacen_destino_id)
-                    ->update([
-                    'stock'         =>  DB::raw("stock + $item->cantidad"),
-                    'stock_logico'  =>  DB::raw("stock_logico + $item->cantidad"),
-                    'estado'        =>  '1',
-                    ]);
-
+                        ->where('color_id', $item->color_id)
+                        ->where('talla_id', $item->talla_id)
+                        ->where('almacen_id', $traslado->almacen_destino_id)
+                        ->update([
+                            'stock'         =>  DB::raw("stock + $item->cantidad"),
+                            'stock_logico'  =>  DB::raw("stock_logico + $item->cantidad"),
+                            'estado'        =>  '1',
+                        ]);
                 } else {
 
-                //========= TALLA NO EXISTE =============
+                    //========= TALLA NO EXISTE =============
 
                     //======= VERIFICANDO EXISTENCIA DEL COLOR ======
                     $existeColor    =   ProductoColor::where('producto_id', $item->producto_id)
-                                        ->where('color_id', $item->color_id)
-                                        ->where('almacen_id',$traslado->almacen_destino_id)
-                                        ->exists();
+                        ->where('color_id', $item->color_id)
+                        ->where('almacen_id', $traslado->almacen_destino_id)
+                        ->exists();
 
                     //======== COLOR NO EXISTE, REGISTRAR COLOR =======
-                    if(!$existeColor){
+                    if (!$existeColor) {
                         $producto_color                 =   new ProductoColor();
                         $producto_color->producto_id    =   $item->producto_id;
                         $producto_color->color_id       =   $item->color_id;
@@ -159,12 +167,12 @@ array:1 [
                     $producto->stock_logico     =   $item->cantidad;
                     $producto->almacen_id       =   $traslado->almacen_destino_id;
                     $producto->save();
-
                 }
 
-                 //========== REGISTRANDO EN KARDEX ========
+                //========== REGISTRANDO EN KARDEX ========
                 //=========== OBTENIENDO PRODUCTO CON STOCK NUEVO ===========
-                $producto   =   DB::select('select
+                $producto   =   DB::select(
+                    'select
                                 pct.*
                                 from producto_color_tallas as pct
                                 where
@@ -172,10 +180,13 @@ array:1 [
                                 and pct.color_id = ?
                                 and pct.talla_id = ?
                                 and pct.almacen_id = ?',
-                                [$item->producto_id,
-                                $item->color_id,
-                                $item->talla_id,
-                                $traslado->almacen_destino_id]);
+                    [
+                        $item->producto_id,
+                        $item->color_id,
+                        $item->talla_id,
+                        $traslado->almacen_destino_id
+                    ]
+                );
 
                 //==================== KARDEX ==================
                 $kardex                     =   new Kardex();
@@ -193,14 +204,13 @@ array:1 [
                 $kardex->importe            =   null;
                 $kardex->accion             =   'TRASLADO INGRESO';
                 $kardex->stock              =   $producto[0]->stock;
-                $kardex->numero_doc         =   'TR-'.$traslado->id;
+                $kardex->numero_doc         =   'TR-' . $traslado->id;
                 $kardex->documento_id       =   $traslado->id;
                 $kardex->registrador_id     =   Auth::user()->id;
                 $kardex->registrador_nombre =   Auth::user()->usuario;
                 $kardex->fecha              =   Carbon::today()->toDateString();
                 $kardex->descripcion        =   mb_strtoupper("TRASLADO INGRESO", 'UTF-8');
                 $kardex->save();
-
             }
 
             $traslado->estado           =   'RECIBIDO';
@@ -209,32 +219,34 @@ array:1 [
             $traslado->update();
 
             DB::commit();
-            return response()->json(['success'=>true,'message'=>"TRASLADO RECIBIDO CON ÉXITO!!!"]);
-
-
+            return response()->json(['success' => true, 'message' => "TRASLADO RECIBIDO CON ÉXITO!!!"]);
         } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
-
     }
 
-    public function show($traslado_id){
+    public function show($traslado_id)
+    {
+        $this->authorize('haveaccess', 'almacen.solicitudes_traslado.index');
 
-        $detalle            =   TrasladoDetalle::where('traslado_id',$traslado_id)->get();
+        $detalle            =   TrasladoDetalle::where('traslado_id', $traslado_id)->get();
         $traslado           =   Traslado::find($traslado_id);
-        $tallas             =   Talla::where('estado','ACTIVO')->get();
+        $tallas             =   Talla::where('estado', 'ACTIVO')->get();
         $almacen_origen     =   Almacen::find($traslado->almacen_origen_id);
         $almacen_destino    =   Almacen::find($traslado->almacen_destino_id);
 
-        return view('almacenes.solicitudes_traslado.show',compact('detalle','traslado','tallas','almacen_origen','almacen_destino'));
+        return view('almacenes.solicitudes_traslado.show', compact('detalle', 'traslado', 'tallas', 'almacen_origen', 'almacen_destino'));
     }
 
-    public function generarEtiquetas($id){
+    public function generarEtiquetas($id)
+    {
+        $this->authorize('haveaccess', 'almacen.solicitudes_traslado.index');
 
         try {
 
-            $traslado_detalle   =   DB::select('select
+            $traslado_detalle   =   DB::select(
+                'select
                                     p.nombre as producto_nombre,
                                     c.descripcion as color_nombre,
                                     t.descripcion as talla_nombre,
@@ -254,7 +266,8 @@ array:1 [
                                     inner join categorias as ca on ca.id = p.categoria_id
                                     left join codigos_barra as cb on (cb.producto_id = p.id and cb.color_id = c.id and cb.talla_id = t.id)
                                     where td.traslado_id = ?',
-                                    [$id]);
+                [$id]
+            );
 
 
             $empresa        =   Empresa::first();
@@ -266,11 +279,11 @@ array:1 [
             // Establecer el tamaño del papel
             $custom_paper = array(0, 0, $width_in_points, $height_in_points);
             $pdf = PDF::loadview('almacenes.productos.pdf.adhesivo', [
-                                    'nota_id'       =>  $id,
-                                    'nota_detalle'  =>  $traslado_detalle,
-                                    'empresa'       =>  $empresa
-                                    ])->setPaper($custom_paper)
-                                    ->setWarnings(false);
+                'nota_id'       =>  $id,
+                'nota_detalle'  =>  $traslado_detalle,
+                'empresa'       =>  $empresa
+            ])->setPaper($custom_paper)
+                ->setWarnings(false);
 
             return $pdf->stream('etiquetas.pdf');
         } catch (\Throwable $th) {
@@ -279,7 +292,5 @@ array:1 [
 
             return redirect()->route('almacenes.traslados.index');
         }
-
     }
-
 }

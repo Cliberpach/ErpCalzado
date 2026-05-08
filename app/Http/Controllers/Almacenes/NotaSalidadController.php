@@ -37,7 +37,7 @@ class NotaSalidadController extends Controller
      */
     public function index()
     {
-        $this->authorize('haveaccess', 'nota_salida.index');
+        $this->authorize('haveaccess', 'almacen.nota_salida.index');
         return view('almacenes.nota_salidad.index');
     }
     public function gettable(Request $request)
@@ -83,7 +83,7 @@ class NotaSalidadController extends Controller
      */
     public function create()
     {
-        $this->authorize('haveaccess', 'nota_salida.index');
+        $this->authorize('haveaccess', 'almacen.nota_salida.index');
 
         $usuarios   =   User::get();
 
@@ -140,7 +140,7 @@ array:11 [
     public function store(Request $request)
     {
 
-        $this->authorize('haveaccess', 'nota_salida.index');
+        $this->authorize('haveaccess', 'almacen.nota_salida.index');
 
 
         $registrador        =   User::find($request->get('registrador_id'));
@@ -436,7 +436,7 @@ array:11 [
      */
     public function show($id)
     {
-        $this->authorize('haveaccess', 'nota_salida.index');
+        $this->authorize('haveaccess', 'almacen.nota_salida.index');
         $notasalidad        =   NotaSalidad::findOrFail($id);
         $detallenotasalidad =   DB::select('select dns.id,dns.producto_id,dns.color_id,dns.talla_id,
                                 p.nombre as producto_nombre,c.descripcion as color_nombre,t.descripcion as talla_nombre,
@@ -483,7 +483,7 @@ array:11 [
      */
     public function edit($id)
     {
-        $this->authorize('haveaccess', 'nota_salida.index');
+        $this->authorize('haveaccess', 'almacen.nota_salida.index');
         $notasalidad = NotaSalidad::findOrFail($id);
         $data = array();
         $detallenotasalidad = DB::table('detalle_nota_salidad')->where('nota_salidad_id', $notasalidad->id)->get();
@@ -524,7 +524,7 @@ array:11 [
      */
     public function update(Request $request, $id)
     {
-        $this->authorize('haveaccess', 'nota_salida.index');
+        $this->authorize('haveaccess', 'almacen.nota_salida.index');
         $data = $request->all();
 
         $rules = [
@@ -600,7 +600,7 @@ array:11 [
      */
     public function destroy($id)
     {
-        $this->authorize('haveaccess', 'nota_salida.index');
+        $this->authorize('haveaccess', 'almacen.nota_salida.index');
         $notasalidad = NotaSalidad::findOrFail($id);
         $notasalidad->estado = "ANULADO";
         $notasalidad->save();
@@ -631,7 +631,7 @@ array:11 [
 
     public function getLot()
     {
-        $this->authorize('haveaccess', 'nota_salida.index');
+        $this->authorize('haveaccess', 'almacen.nota_salida.index');
         return datatables()->query(
             DB::table('lote_productos')
                 ->join('productos', 'productos.id', '=', 'lote_productos.producto_id')
