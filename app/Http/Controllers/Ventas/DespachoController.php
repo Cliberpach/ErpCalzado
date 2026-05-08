@@ -27,7 +27,7 @@ class DespachoController extends Controller
 
     public function index()
     {
-        $this->authorize('haveaccess', 'despachos.index');
+        $this->authorize('haveaccess', 'venta.despachos.index');
 
         $cliente_varios       =   DB::select('select c.id,c.nombre from clientes as c where c.id = 1');
 

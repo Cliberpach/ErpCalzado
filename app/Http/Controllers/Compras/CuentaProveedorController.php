@@ -4,27 +4,25 @@ namespace App\Http\Controllers\Compras;
 
 use App\Compras\CuentaProveedor;
 use App\Compras\DetalleCuentaProveedor;
-use App\Compras\Proveedor;
 use App\Http\Controllers\Controller;
 use App\Mantenimiento\Empresa\Empresa;
 use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Yajra\DataTables\Facades\DataTables;
 
 class CuentaProveedorController extends Controller
 {
     public function index() {
-        $this->authorize('haveaccess','cuenta_proveedor.index');
+        $this->authorize('haveaccess','compra.cuenta_proveedor.index');
 
         $fecha_hoy = Carbon::now()->toDateString();
         return view('compras.cuentaProveedor.index',compact('fecha_hoy'));
     }
     public function getTable() {
-        $this->authorize('haveaccess','cuenta_proveedor.index');
+        $this->authorize('haveaccess','compra.cuenta_proveedor.index');
         $datos=array();
         $cuentaProveedor=CuentaProveedor::get();
         foreach ($cuentaProveedor as $key => $value) {
@@ -79,7 +77,7 @@ class CuentaProveedorController extends Controller
     }
     public function getDatos(Request $request)
     {
-        $this->authorize('haveaccess','cuenta_proveedor.index');
+        $this->authorize('haveaccess','compra.cuenta_proveedor.index');
         $cuenta=CuentaProveedor::findOrFail($request->id);
         return array(
             "id"=>$cuenta->id,
@@ -96,7 +94,7 @@ class CuentaProveedorController extends Controller
 
     public function consulta(Request $request)
     {
-        $this->authorize('haveaccess','cuenta_proveedor.index');
+        $this->authorize('haveaccess','compra.cuenta_proveedor.index');
         $cuentas = DB::table('cuenta_proveedor')
         ->join('compra_documentos', 'compra_documentos.id', '=', 'cuenta_proveedor.compra_documento_id')
         ->join('proveedores', 'proveedores.id', '=', 'compra_documentos.proveedor_id')
@@ -118,8 +116,8 @@ class CuentaProveedorController extends Controller
 
     public function detallePago(Request $request)
     {
-        $this->authorize('haveaccess','cuenta_proveedor.index');
-       
+        $this->authorize('haveaccess','compra.cuenta_proveedor.index');
+
         DB::beginTransaction();
         $cuentaProveedor=CuentaProveedor::findOrFail($request->id);
         if($request->pago=="A CUENTA")
@@ -285,7 +283,7 @@ class CuentaProveedorController extends Controller
 
     public function reporte($id)
     {
-        $this->authorize('haveaccess','cuenta_proveedor.index');
+        $this->authorize('haveaccess','compra.cuenta_proveedor.index');
         $cuenta = CuentaProveedor::findOrFail($id);
         $proveedor = $cuenta->documento->proveedor;
         $empresa = Empresa::first();
@@ -299,7 +297,7 @@ class CuentaProveedorController extends Controller
     }
     public function imagen($id)
     {
-        $this->authorize('haveaccess','cuenta_proveedor.index');
+        $this->authorize('haveaccess','compra.cuenta_proveedor.index');
         $detalle = DetalleCuentaProveedor::find($id);
         $ruta = storage_path().'/app/'.$detalle->ruta_imagen;
         return response()->download($ruta);

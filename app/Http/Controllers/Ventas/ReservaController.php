@@ -16,7 +16,7 @@ use Throwable;
 class ReservaController extends Controller
 {
     public function index(){
-        $this->authorize('haveaccess','reservas.index');
+        $this->authorize('haveaccess','venta.reservas.index');
 
         return view('ventas.reservas.index');
     }

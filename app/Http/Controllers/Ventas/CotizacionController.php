@@ -47,7 +47,7 @@ class CotizacionController extends Controller
 
     public function index()
     {
-
+        $this->authorize('haveaccess', 'venta.cotizaciones.index');
         return view('ventas.cotizaciones.index');
     }
 

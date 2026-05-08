@@ -75,7 +75,7 @@ class DocumentoController extends Controller
 
     public function index()
     {
-        $this->authorize('haveaccess', 'documento_venta.index');
+        $this->authorize('haveaccess', 'venta.documento_venta.index');
         $dato = "Message";
 
         $departamentos  =   Departamento::all();
@@ -199,7 +199,7 @@ class DocumentoController extends Controller
 
     public function indexAntiguo()
     {
-        $this->authorize('haveaccess', 'documento_venta.index');
+        $this->authorize('haveaccess', 'venta.documento_venta.index');
         $dato = "Message";
         broadcast(new NotifySunatEvent($dato));
         return view('ventas.documentos.index-antiguo');
@@ -487,7 +487,7 @@ array:13 [
 
     public function create(Request $request)
     {
-        $this->authorize('haveaccess', 'documento_venta.index');
+        $this->authorize('haveaccess', 'venta.documento_venta.index');
 
         $empresas       = Empresa::where('estado', 'ACTIVO')->get();
         $clientes       = Cliente::where('estado', 'ACTIVO')->get();
@@ -635,7 +635,7 @@ array:13 [
     {
         try {
 
-            $this->authorize('haveaccess', 'documento_venta.index');
+        $this->authorize('haveaccess', 'venta.documento_venta.index');
 
             $sede_id        =   Auth::user()->sede_id;
 
@@ -814,7 +814,7 @@ array:27 [
 */
     public function store(DocVentaStoreRequest $request)
     {
-        $this->authorize('haveaccess', 'documento_venta.index');
+        $this->authorize('haveaccess', 'venta.documento_venta.index');
         ini_set("max_execution_time", 60000);
 
         DB::beginTransaction();
@@ -1168,7 +1168,7 @@ array:27 [
 
     public function edit($id)
     {
-        $this->authorize('haveaccess', 'documento_venta.index');
+        $this->authorize('haveaccess', 'venta.documento_venta.index');
 
         $empresas       =   Empresa::where('estado', 'ACTIVO')->get();
         $productos      =   Producto::where('estado', 'ACTIVO')->get();
@@ -1322,7 +1322,7 @@ array:27 [
 
     public function destroy($id)
     {
-        $this->authorize('haveaccess', 'documento_venta.index');
+        $this->authorize('haveaccess', 'venta.documento_venta.index');
         $documento = Documento::findOrFail($id);
         $documento->estado = 'ANULADO';
         $documento->update();
@@ -1350,7 +1350,7 @@ array:27 [
 
     public function show($id)
     {
-        $this->authorize('haveaccess', 'documento_venta.index');
+        $this->authorize('haveaccess', 'venta.documento_venta.index');
         $documento = Documento::findOrFail($id);
         $nombre_completo = $documento->user->persona->apellido_paterno . ' ' . $documento->user->persona->apellido_materno . ' ' . $documento->user->persona->nombres;
         $detalles = Detalle::where('documento_id', $id)->where('estado', 'ACTIVO')->get();
@@ -3791,7 +3791,7 @@ array:5 [
     public function convertirCreate($id)
     {
 
-        $this->authorize('haveaccess', 'documento_venta.index');
+        $this->authorize('haveaccess', 'venta.documento_venta.index');
 
         $productos          =   Producto::where('estado', 'ACTIVO')->get();
         $documento          =   Documento::findOrFail($id);

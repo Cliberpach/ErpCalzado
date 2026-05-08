@@ -2,24 +2,18 @@
 
 namespace App\Http\Controllers\Pos;
 
-use App\Compras\Documento\Detalle;
 use App\DetallesMovimientoCaja;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\MovimientoCaja\MovimientoCajaAperturaRequest;
 use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Empresa\Empresa;
-use App\Mantenimiento\Persona\Persona;
 use App\Mantenimiento\Sedes\Sede;
 use App\Pos\Caja;
 use App\Pos\MovimientoCaja;
-use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
 use Barryvdh\DomPDF\Facade as PDF;
 use Exception;
@@ -30,7 +24,7 @@ class CajaController extends Controller
 {
     public function index()
     {
-        $this->authorize('haveaccess', 'caja.index');
+        $this->authorize('haveaccess', 'caja.movimiento_caja.index');
 
         $sede_id    =   Auth::user()->sede_id;
 
@@ -103,7 +97,7 @@ array:3 [▼
     public function store(Request $request)
     {
 
-        $this->authorize('haveaccess', 'caja.index');
+        $this->authorize('haveaccess', 'caja.movimiento_caja.index');
 
         $caja           =   new Caja();
         $caja->nombre   =   $request->nombre;
@@ -130,8 +124,7 @@ array:3 [▼
 
     public function indexMovimiento()
     {
-        $this->authorize('haveaccess', 'movimiento_caja.index');
-
+        $this->authorize('haveaccess', 'caja.movimiento_caja.index');
 
         $lstAniosDB = DB::table('lote_productos')
             ->select(DB::raw('year(created_at) as value'))

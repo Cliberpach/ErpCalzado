@@ -8,7 +8,6 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
@@ -17,7 +16,7 @@ class CajaController extends Controller
 {
     public function index()
     {
-        $this->authorize('haveaccess','ventascaja.index');
+        $this->authorize('haveaccess','venta.ventascaja.index');
         return view('ventas.caja.index');
     }
 
@@ -175,7 +174,7 @@ class CajaController extends Controller
 
     public function storePago(Request $request)
     {
-        
+
         try
         {
             DB::beginTransaction();
@@ -258,7 +257,7 @@ class CajaController extends Controller
     }
     public function updatePago(Request $request)
     {
-     
+
         try
         {
             DB::beginTransaction();
@@ -314,7 +313,7 @@ class CajaController extends Controller
                 $extension              =   $request->file('imagen')->getClientOriginalExtension();
                 $nombreImagenPago       =   $documento->serie.'-'.$documento->correlativo.'.'.$extension;
                 $documento->ruta_pago   =   $request->file('imagen')->storeAs('public/pagos',$nombreImagenPago);
-                
+
             }else{
                 if ($request->get('ruta_pago') == null || $request->get('ruta_pago') == "") {
                     $documento->ruta_pago = "";
