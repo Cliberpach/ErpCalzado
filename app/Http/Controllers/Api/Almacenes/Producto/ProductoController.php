@@ -18,6 +18,11 @@ class ProductoController extends Controller
         $filter_size            =   $request->get('size');
         $filter_search          =   $request->get('search');
 
+        $filter_featured = $request->get('featured');
+        $filter_sale     = $request->get('sale');
+        $filter_outlet   = $request->get('outlet');
+        $filter_new      = $request->get('new');
+
         $allowedPerPage         =   [12, 24, 48, 96];
         $perPage = (int) request('per_page', 48);
         if (!in_array($perPage, $allowedPerPage)) {
@@ -74,6 +79,22 @@ class ProductoController extends Controller
                     ->where('pct.stock', '>', 0)
                     ->where('pct.stock_logico', '>', 0);
             });
+        }
+
+        if ($filter_featured) {
+            $productos->where('p.is_featured', 1);
+        }
+
+        if ($filter_sale) {
+            $productos->where('p.is_sale', 1);
+        }
+
+        if ($filter_outlet) {
+            $productos->where('p.is_outlet', 1);
+        }
+
+        if ($filter_new) {
+            $productos->orderByDesc('p.created_at');
         }
 
         //return response()->json($productos->get());
