@@ -11,45 +11,47 @@ use App\Mantenimiento\Sedes\Sede;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 use Yajra\DataTables\Facades\DataTables;
 
 class SedeController extends Controller
 {
-    public function index(){
+    public function index()
+    {
         return view('mantenimiento.sedes.index');
     }
 
-    public function create(){
+    public function create()
+    {
 
         $departamentos  =   DB::select('select * from departamentos');
         $provincias     =   DB::select('select * from provincias');
         $distritos      =   DB::select('select * from distritos');
 
-        return view('mantenimiento.sedes.create',compact('departamentos','provincias','distritos'));
+        return view('mantenimiento.sedes.create', compact('departamentos', 'provincias', 'distritos'));
     }
 
-    public function getSedes(){
+    public function getSedes()
+    {
 
-        $sedes  =   DB::select('select 
+        $sedes  =   DB::select('select
                     es.id,
                     es.nombre,
                     es.direccion,
                     CONCAT(es.departamento_nombre, " - ", es.provincia_nombre, " - ", es.distrito_nombre) AS ubigeo,
-                    es.codigo_local, 
+                    es.codigo_local,
                     e.razon_social,
                     es.tipo_sede
                     from empresa_sedes as es
                     inner join empresas as e on e.id = es.empresa_id');
-    
-        return DataTables::of($sedes)->toJson();
 
+        return DataTables::of($sedes)->toJson();
     }
 
-   
 
-/*
+
+    /*
 array:14 [
   "_token"          => "NtBVgvSzRbuHIPf9aPqpHtk2YDKsJzlErNrAkxCs"
   "nombre"          =  "SEDE NOMBRE"
@@ -64,43 +66,15 @@ array:14 [
   "codigo_local"    => "0001"
   "serie"           =>  "0002"
   "urbanizacion"    =>  "urbanizacion"
-    "img_empresa" => Illuminate\Http\UploadedFile {#2039
-        -test: false
-        -originalName: "certificate_test.pem"
-        -mimeType: "application/octet-stream"
-        -error: 0
-        #hashName: null
-        path: "D:\xampp\tmp"
-        filename: "php49A5.tmp"
-        basename: "php49A5.tmp"
-        pathname: "D:\xampp\tmp\php49A5.tmp"
-        extension: "tmp"
-        realPath: "D:\xampp\tmp\php49A5.tmp"
-        aTime: 2025-01-04 11:40:25
-        mTime: 2025-01-04 11:40:25
-        cTime: 2025-01-04 11:40:25
-        inode: 38843546786703131
-        size: 5332
-        perms: 0100666
-        owner: 0
-        group: 0
-        type: "file"
-        writable: true
-        readable: true
-        executable: false
-        file: true
-        dir: false
-        link: false
-        linkTarget: "D:\xampp\tmp\php49A5.tmp"
-    }
+    "img_empresa" => Illuminate\Http\UploadedFile {#2039}
 ]
-*/ 
-    public function store(SedeStoreRequest $request){
-        
+*/
+    public function store(SedeStoreRequest $request)
+    {
         DB::beginTransaction();
         try {
-            
-            $empresa            =   Empresa::find(1);
+
+            $empresa                =   Empresa::find(1);
 
             $sede               =   new Sede();
             $sede->nombre       =   $request->get('nombre');
@@ -114,19 +88,19 @@ array:14 [
             $departamento_id    =   $request->get('departamento');
             $provincia_id       =   $request->get('provincia');
             $distrito_id        =   $request->get('distrito');
-    
+
             $departamento_id    = str_pad($departamento_id, 2, '0', STR_PAD_LEFT);
             $provincia_id       = str_pad($provincia_id, 4, '0', STR_PAD_LEFT);
             $distrito_id        = str_pad($distrito_id, 6, '0', STR_PAD_LEFT);
-    
+
             $sede->departamento_id   =   $departamento_id;
             $sede->provincia_id      =   $provincia_id;
             $sede->distrito_id       =   $distrito_id;
-    
-            $departamento               =   DB::select('select d.nombre from departamentos as d where d.id=?',[$departamento_id])[0]->nombre;
-            $provincia                  =   DB::select('select p.nombre from provincias as p where p.id=?',[$provincia_id])[0]->nombre;
-            $distrito                   =   DB::select('select d.nombre from distritos as d where d.id=?',[$distrito_id])[0]->nombre;
-    
+
+            $departamento               =   DB::select('select d.nombre from departamentos as d where d.id=?', [$departamento_id])[0]->nombre;
+            $provincia                  =   DB::select('select p.nombre from provincias as p where p.id=?', [$provincia_id])[0]->nombre;
+            $distrito                   =   DB::select('select d.nombre from distritos as d where d.id=?', [$distrito_id])[0]->nombre;
+
             $sede->departamento_nombre      =   $departamento;
             $sede->provincia_nombre         =   $provincia;
             $sede->distrito_nombre          =   $distrito;
@@ -137,83 +111,96 @@ array:14 [
             $sede->urbanizacion             =   $request->get('urbanizacion');
             $sede->save();
 
+            $nombre_carpeta_personal = 'S' . $sede->id . '_' . $sede->ruc;
+            $sede->carpeta_nombre   =   $nombre_carpeta_personal;
+            $sede->save();
 
             //======== CREANDO CARPETA PERSONAL PARA LA SEDE ========
-            $nombre_carpeta_personal    = 'S'.$sede->id.'_'.$sede->ruc;
-            $ruta                       = "public/{$nombre_carpeta_personal}";
-
-            if (!Storage::exists($ruta)) {
-                Storage::makeDirectory($ruta);
+            $ruta_base = "public/{$nombre_carpeta_personal}";
+            if (!Storage::exists($ruta_base)) {
+                Storage::makeDirectory($ruta_base);
             }
 
-            //======= GUARDANDO LOGO SEDE =======
+            //======== GUARDANDO LOGO SEDE ========
             if ($request->hasFile('img_empresa')) {
 
-                $imagen             =   $request->file('img_empresa');
-                $nombre_imagen      =   'LOGO' . $nombre_carpeta_personal . '.' . $imagen->getClientOriginalExtension();
-                $ruta               =   $nombre_carpeta_personal.'/logo/';
-            
-                $ruta_completa      =   $imagen->storeAs($ruta, $nombre_imagen, 'public');
-            
-                $ruta_imagen        =   $nombre_carpeta_personal.'/'.$nombre_imagen;
+                $imagen = $request->file('img_empresa');
 
-                $sede->logo_ruta    =   $ruta_imagen;
-                $sede->logo_nombre  =   $nombre_imagen;
+                $nombre_imagen =
+                    'LOGO_' .
+                    $nombre_carpeta_personal .
+                    '.' .
+                    $imagen->getClientOriginalExtension();
+
+                $ruta_logo = $nombre_carpeta_personal . '/logo';
+
+                if (!Storage::disk('public')->exists($ruta_logo)) {
+                    Storage::disk('public')->makeDirectory($ruta_logo);
+                }
+
+                $ruta_completa = $imagen->storeAs(
+                    $ruta_logo,
+                    $nombre_imagen,
+                    'public'
+                );
+
+                $sede->logo_ruta   = $ruta_completa;
+                $sede->logo_nombre = $nombre_imagen;
+
                 $sede->update();
-            
             }
-            
+
             DB::commit();
 
-            return response()->json(['success'=>true,'message'=>'SEDE REGISTRADA']);
-
-        } catch (\Throwable $th) {
+            return response()->json(['success' => true, 'message' => 'SEDE REGISTRADA']);
+        } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
 
-    public function getNumeracion(Request $request){
+    public function getNumeracion(Request $request)
+    {
 
         $sede_id    =   $request->get('sede_id');
 
-        
-        $numeracion =   DB::select('select 
+
+        $numeracion =   DB::select('select
                         td.descripcion as comprobante,
                         enf.serie,
                         enf.numero_iniciar as nro_inicio,
                         IF(enf.emision_iniciada = "1", "INICIADO", "NO INICIADO") AS iniciado
                         from empresa_numeracion_facturaciones as enf
                         inner join tabladetalles as td on td.id = enf.tipo_comprobante
-                        where 
+                        where
                         enf.sede_id = ?
                         and enf.estado = "ACTIVO"
-                        and td.tabla_id = 21',[$sede_id]);
+                        and td.tabla_id = 21', [$sede_id]);
 
         return DataTables::of($numeracion)->toJson();
-
     }
 
-    public function numeracionCreate($sede_id){
-        
-        $sede               =   DB::select('select 
-                                es.* 
+    public function numeracionCreate($sede_id)
+    {
+
+        $sede               =   DB::select('select
+                                es.*
                                 from empresa_sedes as es
-                                where es.id = ?',[$sede_id])[0];
+                                where es.id = ?', [$sede_id])[0];
 
         //====== OMITIR NOTA DÉBITO Y DEVOLUCIÓN ====
         $tipos_comprobantes = DB::select('
-                                SELECT 
+                                SELECT
                                     td.id,
                                     td.descripcion,
                                     td.nombre,
                                     td.parametro
-                                FROM 
+                                FROM
                                     tabladetalles AS td
-                                WHERE 
+                                WHERE
                                     td.tabla_id = 21
                                     AND td.estado = "ACTIVO"
-                                    AND td.simbolo <> "08" 
+                                    AND td.simbolo <> "08"
                                     AND td.simbolo <> "NOTADEVOLUCION"
                                     AND td.id NOT IN (
                                         SELECT enf.tipo_comprobante
@@ -221,12 +208,11 @@ array:14 [
                                         WHERE enf.sede_id = ? and enf.empresa_id = 1
                                     )
                             ', [$sede_id]);
-                            
-        return view('mantenimiento.sedes.numeracion',compact('sede_id','tipos_comprobantes','sede'));
 
+        return view('mantenimiento.sedes.numeracion', compact('sede_id', 'tipos_comprobantes', 'sede'));
     }
 
-/*
+    /*
 array:4 [
   "comprobante_id"  => "128"
   "parametro"       => "B"
@@ -234,52 +220,61 @@ array:4 [
   "nro_inicio"      => "1"
   "sede_id"         => "13"
 ]
-*/ 
-    public function numeracionStore(NumeracionStoreRequest $request){
-      
+*/
+    public function numeracionStore(NumeracionStoreRequest $request)
+    {
+
         DB::beginTransaction();
         try {
 
             $sede_id    =   $request->get('sede_id');
 
-            if(!$sede_id){
+            if (!$sede_id) {
                 throw new Exception("FALTA EL ID DE LA SEDE EN LA PETICIÓN!!!");
             }
 
             $sede   =   Sede::where('id', $sede_id)
-                        ->where('estado', 'ACTIVO')
-                        ->first();
+                ->where('estado', 'ACTIVO')
+                ->first();
 
-            if(!$sede){
+            if (!$sede) {
                 throw new Exception("LA SEDE NO EXISTE EN LA BD!!!");
             }
 
             //======== EVITAR DUPLICADOS =======
-            $existe =   DB::select('select 
-                        enf.* 
+            $existe =   DB::select(
+                'select
+                        enf.*
                         from empresa_numeracion_facturaciones as enf
-                        where 
+                        where
                         enf.tipo_comprobante = ?
                         and enf.sede_id = ?
                         and enf.estado = "ACTIVO"',
-                        [$request->get('comprobante_id'),
-                        $request->get('sede_id')]);
+                [
+                    $request->get('comprobante_id'),
+                    $request->get('sede_id')
+                ]
+            );
 
-            if(count($existe) !== 0){
+            if (count($existe) !== 0) {
                 throw new Exception("EL TIPO DE COMPROBANTE YA FUE AGREGADO!!!");
             }
 
-            //======== VALIDANDO EL TIPO COMPROBANTE ====== 
-            $tipo_comprobante   =   DB::select('select 
-                                    td.* 
+            //======== VALIDANDO EL TIPO COMPROBANTE ======
+            $tipo_comprobante   =   DB::select(
+                'select
+                                    td.*
                                     from tabladetalles as td
                                     where td.id = ?
                                     and td.parametro = ?
                                     and td.estado = "ACTIVO"',
-                                    [$request->get('comprobante_id'),
-                                    $request->get('parametro')]);
+                [
+                    $request->get('comprobante_id'),
+                    $request->get('parametro')
+                ]
+            );
 
-            if(count($tipo_comprobante) === 0){
+            if (count($tipo_comprobante) === 0) {
                 throw new Exception("EL TIPO DE COMPROBANTE NO EXISTE EN LA BD!!!");
             }
 
@@ -288,11 +283,11 @@ array:4 [
             $numeracion->empresa_id         =   1;
             $numeracion->sede_id            =   $sede_id;
             $numeracion->serie              =   strtoupper(str_replace(
-                                                    ['á', 'é', 'í', 'ó', 'ú', 'ñ'],
-                                                    ['a', 'e', 'i', 'o', 'u', 'n'],
-                                                    $tipo_comprobante[0]->parametro . $request->get('serie')
-                                                ));
-            
+                ['á', 'é', 'í', 'ó', 'ú', 'ñ'],
+                ['a', 'e', 'i', 'o', 'u', 'n'],
+                $tipo_comprobante[0]->parametro . $request->get('serie')
+            ));
+
             $numeracion->tipo_comprobante   =   $tipo_comprobante[0]->id;
             $numeracion->numero_iniciar     =   $request->get('nro_inicio');
             $numeracion->emision_iniciada   =   '0';
@@ -300,17 +295,19 @@ array:4 [
             $numeracion->save();
 
             DB::commit();
-            return response()->json(['success'=>true,'message'=>'NUMERACIÓN AGREGADA A LA SEDE',
-                                'comprobante_id'=>$request->get('comprobante_id')]);
-          
+            return response()->json([
+                'success' => true,
+                'message' => 'NUMERACIÓN AGREGADA A LA SEDE',
+                'comprobante_id' => $request->get('comprobante_id')
+            ]);
         } catch (\Throwable $th) {
             DB::rollBack();
-            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
-
     }
 
-    public function edit($id){
+    public function edit($id)
+    {
         $sede           =   Sede::find($id);
         $departamentos  =   DB::select('select * from departamentos');
         $provincias     =   DB::select('select * from provincias');
@@ -319,25 +316,27 @@ array:4 [
         $rutaRelativa   = 'storage/' . ltrim($sede->logo_ruta, '/');
         $ruta           = public_path(str_replace('/', DIRECTORY_SEPARATOR, $rutaRelativa));
 
-        return view('mantenimiento.sedes.edit',compact('sede','departamentos','provincias','distritos'));
+        return view('mantenimiento.sedes.edit', compact('sede', 'departamentos', 'provincias', 'distritos'));
     }
 
 
-/*
-array:10 [
-  "_token" => "JOyNM7PhCTjKURJp3IlRSZAkxqLZl6lX1xKseSbB"
-  "nombre" => "SEDE CHICLAYO"
-  "direccion" => "AV U123"
-  "telefono" => null
-  "correo" => null
-  "departamento" => "14"
-  "provincia" => "1401"
-  "distrito" => "140108"
-  "urbanizacion" => null
-  "codigo_local" => "0002"
+    /*
+array:11 [
+  "_token" => "KA1dFsFUbCYF1eViw83L6oy0nk6rSS97vku67CF8"
+  "nombre" => "a"
+  "direccion" => "a"
+  "telefono" => "1"
+  "correo" => "admin@gmail.com"
+  "departamento" => "01"
+  "provincia" => "0101"
+  "distrito" => "010101"
+  "urbanizacion" => "a"
+  "codigo_local" => "1"
+  "img_empresa" => Illuminate\Http\UploadedFile {#1194}
 ]
-*/ 
-    public function update($id,Request $request){
+*/
+    public function update($id, Request $request)
+    {
         DB::beginTransaction();
         try {
             $empresa            =   Empresa::find(1);
@@ -354,19 +353,19 @@ array:10 [
             $departamento_id    =   $request->get('departamento');
             $provincia_id       =   $request->get('provincia');
             $distrito_id        =   $request->get('distrito');
-    
+
             $departamento_id    = str_pad($departamento_id, 2, '0', STR_PAD_LEFT);
             $provincia_id       = str_pad($provincia_id, 4, '0', STR_PAD_LEFT);
             $distrito_id        = str_pad($distrito_id, 6, '0', STR_PAD_LEFT);
-    
+
             $sede->departamento_id   =   $departamento_id;
             $sede->provincia_id      =   $provincia_id;
             $sede->distrito_id       =   $distrito_id;
-    
-            $departamento               =   DB::select('select d.nombre from departamentos as d where d.id=?',[$departamento_id])[0]->nombre;
-            $provincia                  =   DB::select('select p.nombre from provincias as p where p.id=?',[$provincia_id])[0]->nombre;
-            $distrito                   =   DB::select('select d.nombre from distritos as d where d.id=?',[$distrito_id])[0]->nombre;
-    
+
+            $departamento               =   DB::select('select d.nombre from departamentos as d where d.id=?', [$departamento_id])[0]->nombre;
+            $provincia                  =   DB::select('select p.nombre from provincias as p where p.id=?', [$provincia_id])[0]->nombre;
+            $distrito                   =   DB::select('select d.nombre from distritos as d where d.id=?', [$distrito_id])[0]->nombre;
+
             $sede->departamento_nombre      =   $departamento;
             $sede->provincia_nombre         =   $provincia;
             $sede->distrito_nombre          =   $distrito;
@@ -376,31 +375,83 @@ array:10 [
             $sede->update();
 
 
-            //======= GUARDANDO LOGO SEDE =======
+            //======= ACTUALIZANDO LOGO SEDE =======
+
+            // asegurar carpeta principal sede
+            $ruta_base =
+                $sede->carpeta_nombre;
+
+            if (
+                !Storage::disk('public')
+                    ->exists($ruta_base)
+            ) {
+
+                Storage::disk('public')
+                    ->makeDirectory($ruta_base);
+            }
+
             if ($request->hasFile('img_empresa')) {
 
-                $imagen             =   $request->file('img_empresa');
-                $nombre_imagen      =   'LOGO' . $sede->carpeta_nombre . '.' . $imagen->getClientOriginalExtension();
-                $ruta               =   $sede->carpeta_nombre.'/logo/';
-            
-                $ruta_completa      =   $imagen->storeAs($ruta, $nombre_imagen, 'public');
-            
-                $ruta_imagen        =   $sede->carpeta_nombre.'/logo/'.$nombre_imagen;
+                // eliminar logo anterior
+                if (
+                    $sede->logo_ruta &&
+                    Storage::disk('public')->exists($sede->logo_ruta)
+                ) {
 
-                $sede->logo_ruta    =   $ruta_imagen;
-                $sede->logo_nombre  =   $nombre_imagen;
-                $sede->update();
-            
+                    Storage::disk('public')
+                        ->delete($sede->logo_ruta);
+                }
+
+                $imagen = $request->file('img_empresa');
+
+                $extension =
+                    strtolower(
+                        $imagen->getClientOriginalExtension()
+                    );
+
+                $nombre_imagen =
+                    'LOGO_' .
+                    $sede->carpeta_nombre .
+                    '.' .
+                    $extension;
+
+                // carpeta logo
+                $ruta_logo =
+                    $sede->carpeta_nombre . '/logo';
+
+                // crear carpeta logo
+                if (
+                    !Storage::disk('public')
+                        ->exists($ruta_logo)
+                ) {
+
+                    Storage::disk('public')
+                        ->makeDirectory($ruta_logo);
+                }
+
+                // guardar imagen
+                $ruta_completa = $imagen->storeAs(
+                    $ruta_logo,
+                    $nombre_imagen,
+                    'public'
+                );
+
+                // actualizar campos
+                $sede->logo_ruta =
+                    $ruta_completa;
+
+                $sede->logo_nombre =
+                    $nombre_imagen;
+
+                $sede->save();
             }
-            
+
             DB::commit();
 
-            return response()->json(['success'=>true,'message'=>'SEDE ACTUALIZADA CON ÉXITO']);
-
-        } catch (\Throwable $th) {
+            return response()->json(['success' => true, 'message' => 'SEDE ACTUALIZADA CON ÉXITO']);
+        } catch (Throwable $th) {
             DB::rollBack();
-            return response()->json(['success'=>false,'message'=>$th->getMessage()]);
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
-
 }

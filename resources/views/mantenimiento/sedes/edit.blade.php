@@ -1,271 +1,277 @@
-@extends('layout') 
-
-@section('content')
+@extends('layout')
 
 @section('mantenimiento-active', 'active')
 @section('sedes-active', 'active')
 
+@section('bread-module', 'Mantenimiento')
+@section('bread-submodule', 'Mantenimiento')
+@section('hero-title', 'Editar Sede')
+@section('hero-subtitle', 'Mantenimiento')
 
-<div class="row wrapper border-bottom white-bg page-heading">
-    @csrf
-    <div class="col-lg-10 col-md-10">
-        <h2  style="text-transform:uppercase">
-            <b>Crear de Sede</b>
-        </h2>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{route('home')}}">Panel de Control</a>
-            </li>
-            <li class="breadcrumb-item active">
-                <strong>Editar Sede</strong>
-            </li>
-        </ol>
-    </div>
-    
-</div>
+@section('content')
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
 
-<div class="wrapper wrapper-content animated fadeInRight">
-    <div class="row">
-        <div class="col-lg-12">
-
-            <div class="ibox ">
-                <div class="ibox-content">
-                   
-                    @include('mantenimiento.sedes.forms.form_edit_sede')
-
+                <div class="ibox ">
+                    <div class="ibox-content">
+                        @include('mantenimiento.sedes.forms.form_edit_sede')
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+@endsection
 
-
-@stop
 @push('styles')
-<style>
-    .swal2-container {
-        z-index: 9999 !important; 
-    }
-</style>
-<link href="{{asset('Inspinia/css/plugins/select2/select2.min.css')}}" rel="stylesheet">   
+    <style>
+        .swal2-container {
+            z-index: 9999 !important;
+        }
+    </style>
+    <link href="{{ mix('css/filepond.css') }}" rel="stylesheet">
 @endpush
 
 @push('scripts')
-<script src="https://kit.fontawesome.com/f9bb7aa434.js" crossorigin="anonymous"></script>
-<script src="{{asset('Inspinia/js/plugins/select2/select2.full.min.js')}}"></script>
+    <script src="{{ mix('js/filepond.js') }}"></script>
+    <script>
+        const btnGetComprobantes = document.querySelector('#btn-get-comprobantes');
+        const bodyTableSearchComprobantes = document.querySelector('.table-search-comprobantes tbody');
+        let tableResumenes = null;
 
+        let pondImage = null;
+        let fecha_comprobantes = null;
+        let listComprobantes = [];
 
-<script>
-    const btnGetComprobantes            =   document.querySelector('#btn-get-comprobantes');
-    const bodyTableSearchComprobantes   =   document.querySelector('.table-search-comprobantes tbody');
-    let tableResumenes  = null;
-
-    let fecha_comprobantes              =   null;
-    let listComprobantes                =   [];   
-
-    document.addEventListener('DOMContentLoaded',()=>{
-        events();
-        iniciarSelect2();  
-        setUbigeoPrevio();
-    })
-
-    function events(){
-       
-        document.querySelector('#formActualizarSede').addEventListener('submit',(e)=>{
-            e.preventDefault();
-            actualizarSede(e.target);
+        document.addEventListener('DOMContentLoaded', () => {
+            initFilePondImage();
+            events();
+            iniciarSelect2();
+            setUbigeoPrevio();
         })
 
-    }
-
-    function iniciarSelect2(){
-        $(".select2_form").select2({
-            placeholder: "SELECCIONAR",
-            allowClear: true,
-            height: '200px',
-            width: '100%',
-        });
-    }
-
-    function previewImage(event) {
-        const input = event.target;
-        const preview = document.getElementById('img_vista_previa');
-
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-
-            reader.onload = function (e) {
-                preview.src = e.target.result; 
-            };
-
-            reader.readAsDataURL(input.files[0]); 
+        function events() {
+            document.querySelector('#formActualizarSede').addEventListener('submit', (e) => {
+                e.preventDefault();
+                actualizarSede(e.target);
+            })
         }
-    }
 
-    function resetImage() {
-        const preview = document.getElementById('img_vista_previa');
-        const input = document.getElementById('img_empresa');
-
-        preview.src = '{{ asset("img/img_default.png") }}'; // Volver a la imagen por defecto
-        input.value = ''; // Limpiar el campo de entrada
-    }
-
-    async function actualizarSede(formActualizarSede){
-
-        const swalWithBootstrapButtons = Swal.mixin({
-        customClass: {
-            confirmButton: "btn btn-success",
-            cancelButton: "btn btn-danger"
-        },
-        buttonsStyling: false
-        });
-        swalWithBootstrapButtons.fire({
-        title: "Desea actualizar la sede?",
-        text: "Se producirán cambios!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Sí actualizar!",
-        cancelButtonText: "No!",
-        reverseButtons: true
-        }).then(async (result) => {
-        if (result.isConfirmed) {
-           
-            limpiarErroresValidacion('msgError');
-
-            Swal.fire({
-                title: "Actualizando...",
-                text: "Por favor, espere mientras procesamos la solicitud.",
-                icon: "info",
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                allowEnterKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
+        function iniciarSelect2() {
+            $(".select2_form").select2({
+                placeholder: "SELECCIONAR",
+                allowClear: true,
+                height: '200px',
+                width: '100%',
             });
+        }
 
-            try {
-                
-                const formData  =   new FormData(formActualizarSede);
-                const sede_id   =   @json($sede->id);
+        async function actualizarSede(formActualizarSede) {
+            Swal.fire({
+                title: "Desea actualizar la sede?",
+                text: "Se producirán cambios!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sí actualizar!",
+                cancelButtonText: "No!",
+                reverseButtons: true
+            }).then(async (result) => {
+                if (result.isConfirmed) {
 
-                const res   =   await axios.post(route('mantenimiento.sedes.update',sede_id),formData,
-                                {
-                                    headers: {
-                                        "X-HTTP-Method-Override": "PUT"
-                                    }
-                                });
+                    limpiarErroresValidacion('msgError');
 
-                if(res.data.success){
-                    toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
-                    window.location.href = "{{ route('mantenimiento.sedes.index') }}";
-                }else{
-                    Swal.close();
-                    toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
-                }
+                    Swal.fire({
+                        title: "Actualizando...",
+                        text: "Por favor, espere mientras procesamos la solicitud.",
+                        icon: "info",
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
 
-            } catch (error) {
-                
-                Swal.close();
+                    try {
 
-                if (error.response) { // Verifica si error.response existe
-                    if (error.response.status === 422) {
-                        toastr.error('VALIDACIÓN CON ERRORES!!!', 'ERROR EN EL SERVIDOR');
-                        const lstErrors = error.response.data.errors;
-                        pintarErroresValidacion(lstErrors, 'error');
-                        return;
+                        const formData = new FormData(formActualizarSede);
+                        const sede_id = @json($sede->id);
+
+                        const res = await axios.post(route('mantenimiento.sedes.update', sede_id),
+                            formData, {
+                                headers: {
+                                    "X-HTTP-Method-Override": "PUT"
+                                }
+                            });
+
+                        if (res.data.success) {
+                            toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
+                            window.location.href = "{{ route('mantenimiento.sedes.index') }}";
+                        } else {
+                            Swal.close();
+                            toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
+                        }
+
+                    } catch (error) {
+
+                        Swal.close();
+
+                        if (error.response) { // Verifica si error.response existe
+                            if (error.response.status === 422) {
+                                toastr.error('VALIDACIÓN CON ERRORES!!!', 'ERROR EN EL SERVIDOR');
+                                const lstErrors = error.response.data.errors;
+                                pintarErroresValidacion(lstErrors, 'error');
+                                return;
+                            }
+
+                            toastr.error(error.response.data.message || 'Error desconocido',
+                                'ERROR EN LA PETICIÓN ACTUALIZAR SEDE!!!');
+                            return;
+                        }
+
+                        toastr.error(error, 'ERROR EN LA PETICIÓN ACTUALIZAR SEDE!!!');
                     }
 
-                    toastr.error(error.response.data.message || 'Error desconocido', 'ERROR EN LA PETICIÓN ACTUALIZAR SEDE!!!');
-                    return;
+                } else if (
+                    /* Read more about handling dismissals below */
+                    result.dismiss === Swal.DismissReason.cancel
+                ) {
+                    Swal.fire({
+                        title: "Operación cancelada",
+                        text: "No se realizaron acciones",
+                        icon: "error"
+                    });
                 }
+            });
+        }
 
-                toastr.error(error,'ERROR EN LA PETICIÓN ACTUALIZAR SEDE!!!');
+        function initFilePondImage() {
+
+            const sede = @json($sede);
+
+            const inputElement = document.querySelector('#img_empresa');
+
+            pondImage = FilePond.create(inputElement, {
+
+                allowMultiple: false,
+                instantUpload: false,
+                maxFileSize: '2MB',
+                storeAsFile: true,
+
+                acceptedFileTypes: [
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp",
+                    "image/avif"
+                ],
+
+                files: sede.logo_ruta ? [{
+                    source: `/storage/${sede.logo_ruta}`
+                }] : [],
+
+                labelIdle: `
+                    <div style="padding:10px;">
+                        <i class="fas fa-cloud-upload-alt"
+                            style="font-size:40px;color:#2563eb;margin-bottom:10px;">
+                        </i>
+
+                        <div style="font-size:15px;font-weight:bold;">
+                            Arrastra una imagen o
+                            <span style="color:#2563eb;">haz click aquí</span>
+                        </div>
+
+                        <small style="color:#6b7280;">
+                            JPG, JPEG, WEBP, AVIF | Máx. 2MB
+                        </small>
+                    </div>
+                `,
+
+                fileValidateTypeLabelExpectedTypes: 'Solo se permiten JPG, JPEG, WEBP y AVIF',
+
+                labelMaxFileSizeExceeded: 'El archivo es demasiado grande',
+
+                labelMaxFileSize: 'El tamaño máximo permitido es 2MB'
+
+            });
+
+        }
+
+        function changeDepartment(department_id) {
+
+            const lstProvinces = @json($provincias);
+            const lstDistricts = @json($distritos);
+
+            let lstProvincesFiltered = [];
+
+            if (department_id) {
+
+                departamento_id = String(department_id).padStart(2, '0');
+
+                lstProvincesFiltered = lstProvinces.filter((province) => {
+                    return province.departamento_id == department_id;
+                })
+
+                $('#province').empty().trigger('change');
+
+                lstProvincesFiltered.forEach((province) => {
+                    $('#province').append(new Option(province.nombre, province.id, false, false));
+                })
+
+                $('#province').select2({
+                    placeholder: 'Seleccione una provincia',
+                    width: '100%'
+                });
+
+                $('#province').trigger('change');
             }
 
-        } else if (
-            /* Read more about handling dismissals below */
-            result.dismiss === Swal.DismissReason.cancel
-        ) {
-            swalWithBootstrapButtons.fire({
-            title: "Operación cancelada",
-            text: "No se realizaron acciones",
-            icon: "error"
-            });
-        }
-        });
-    }
-
-
-   
-    function changeDepartment(department_id){
-
-        const lstProvinces     =   @json($provincias);
-        const lstDistricts     =   @json($distritos);
-
-        let lstProvincesFiltered      =   [];
-            
-        if(department_id){
-
-            departamento_id = String(department_id).padStart(2, '0');
-
-            lstProvincesFiltered      =   lstProvinces.filter((province)=>{
-                return  province.departamento_id == department_id;
-            })   
-
-            $('#provincia').empty().trigger('change');
-
-            lstProvincesFiltered.forEach((province)=>{
-                $('#provincia').append(new Option(province.nombre, province.id, false, false));
-            })
-
-            $('#provincia').select2({
-                placeholder: 'Seleccione una provincia',
-                width: '100%'
-            });
-
-            $('#provincia').trigger('change');
         }
 
-    }
+        function changeProvince(province_id) {
 
-    function changeProvince(province_id){
+            const lstDistricts = @json($distritos);
 
-        const lstDistricts            =   @json($distritos);
+            let lstDistrictsFiltered = [];
 
-        let lstDistrictsFiltered      =   [];
+            if (province_id) {
 
-        if(province_id){
+                province_id = String(province_id).padStart(4, '0');
 
-            province_id = String(province_id).padStart(4, '0');
+                lstDistrictsFiltered = lstDistricts.filter((district) => {
+                    return district.provincia_id == province_id;
+                })
 
-            lstDistrictsFiltered      =   lstDistricts.filter((district)=>{
-                return  district.provincia_id == province_id;
-            })   
+                $('#district').empty().trigger('change');
 
-            $('#distrito').empty().trigger('change');
+                lstDistrictsFiltered.forEach((district) => {
+                    $('#district').append(new Option(district.nombre, district.id, false, false));
+                })
 
-            lstDistrictsFiltered.forEach((district)=>{
-                $('#distrito').append(new Option(district.nombre, district.id, false, false));
-            })
+                $('#district').select2({
+                    placeholder: 'Seleccione un distrito',
+                    width: '100%'
+                });
+            }
 
-            $('#distrito').select2({
-                placeholder: 'Seleccione un distrito',
-                width: '100%'
-            });
         }
 
-    }
+        function setUbigeoPrevio() {
 
-    function setUbigeoPrevio(){
-        const sede  =   @json($sede);
-        
-        $('#departamento').val(sede.departamento_id).trigger('change');
-        $('#provincia').val(sede.provincia_id).trigger('change');
-        $('#distrito').val(sede.distrito_id).trigger('change');
+            const sede = @json($sede);
+            console.log(sede);
 
-    }
-   
-</script>
+            const departamento = String(sede.departamento_id).padStart(2, '0');
+            const provincia = String(sede.provincia_id).padStart(4, '0');
+            const distrito = String(sede.distrito_id).padStart(6, '0');
+            console.log({
+                departamento,
+                provincia,
+                distrito
+            });
+            $('#department').val(departamento).trigger('change');
+            $('#province').val(provincia).trigger('change');
+            $('#district').val(distrito).trigger('change');
+        }
+    </script>
 @endpush
