@@ -167,7 +167,7 @@
                 ],
 
                 files: sede.logo_ruta ? [{
-                    source: `/storage/${sede.logo_ruta}`
+                    source: `/storage/${sede.logo_ruta}`,
                 }] : [],
 
                 labelIdle: `

@@ -181,7 +181,7 @@
                     </span>
 
                     <input required maxlength="191" name="direccion" id="direccion" type="text" class="form-control"
-                        placeholder="Ingrese dirección" value="{{$sede->direccion}}">
+                        placeholder="Ingrese dirección" value="{{ $sede->direccion }}">
                 </div>
 
                 <small class="field-info">
@@ -204,7 +204,7 @@
                     </span>
 
                     <input maxlength="191" name="telefono" id="telefono" type="text" class="form-control"
-                        placeholder="Ingrese teléfono" value="{{$sede->telefono}}">
+                        placeholder="Ingrese teléfono" value="{{ $sede->telefono }}">
                 </div>
 
                 <small class="field-info">
@@ -227,7 +227,7 @@
                     </span>
 
                     <input maxlength="191" name="correo" id="correo" type="email" class="form-control"
-                        placeholder="correo@empresa.com" value="{{$sede->correo}}">
+                        placeholder="correo@empresa.com" value="{{ $sede->correo }}">
                 </div>
 
                 <small class="field-info">
@@ -308,7 +308,7 @@
                 <input id="img_empresa" name="img_empresa" type="file">
 
                 <small class="field-info">
-                    Formatos permitidos: JPG, JPEG, WEBP, AVIF | Máximo 2MB
+                    Formatos permitidos: JPG, JPEG, PNG, WEBP, AVIF | Máximo 2MB
                 </small>
 
             </div>
@@ -326,7 +326,7 @@
                     </span>
 
                     <input maxlength="200" name="urbanizacion" id="urbanizacion" type="text"
-                        class="form-control" placeholder="Ingrese urbanización" value="{{$sede->urbanizacion}}">
+                        class="form-control" placeholder="Ingrese urbanización" value="{{ $sede->urbanizacion }}">
                 </div>
 
                 <small class="field-info">
@@ -349,7 +349,7 @@
                     </span>
 
                     <input required maxlength="191" name="codigo_local" id="codigo_local" type="text"
-                        class="form-control" placeholder="Ingrese código local" value="{{$sede->codigo_local}}">
+                        class="form-control" placeholder="Ingrese código local" value="{{ $sede->codigo_local }}">
                 </div>
 
                 <small class="field-info">

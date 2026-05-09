@@ -308,7 +308,7 @@
                 <input id="img_empresa" name="img_empresa" type="file">
 
                 <small class="field-info">
-                    Formatos permitidos: JPG, JPEG, WEBP, AVIF | Máximo 2MB
+                    Formatos permitidos: JPG, JPEG, PNG, WEBP, AVIF | Máximo 2MB
                 </small>
 
             </div>
