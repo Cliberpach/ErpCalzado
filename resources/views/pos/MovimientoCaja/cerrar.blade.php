@@ -10,40 +10,43 @@
                 <h4 class="modal-title">Caja</h4>
                 <small class="font-bold">Cerrar de Caja</small>
             </div>
-            <div class="modal-body"> 
-                <form id="form-cerrar-caja" role="form" action="{{ route('Caja.cerrar') }}" method="POST" >
+            <div class="modal-body">
+                <form id="form-cerrar-caja" role="form" action="{{ route('Caja.cerrar') }}" method="POST">
                     {{ csrf_field() }} {{ method_field('POST') }}
-                    <input type="hidden" name="movimiento_id" id="movimiento_id" >
+                    <input type="hidden" name="movimiento_id" id="movimiento_id">
                     <div class="form-group">
                         <label class="required">Caja:</label>
-                        <input type="text" name="caja" id="caja" disabled class="form-control" placeholder="">
+                        <input type="text" name="caja" id="caja" disabled class="form-control"
+                            placeholder="">
                     </div>
                     <div class="form-group">
                         <label class="required">Colaborador:</label>
-                        <input type="text" name="colaborador" id="colaborador" disabled class="form-control" placeholder="">
+                        <input type="text" name="colaborador" id="colaborador" disabled class="form-control"
+                            placeholder="">
                     </div>
                     <div class="form-group row">
                         <div class="col-md-12">
                             <label class="required">Monto Inicial:</label>
-                            <input type="text" name="monto_inicial" id="monto_inicial" disabled class="form-control" placeholder="">
+                            <input type="text" name="monto_inicial" id="monto_inicial" disabled class="form-control"
+                                placeholder="">
                         </div>
                     </div>
                     <div class="form-group row">
                         <div class="col-md-12">
                             <label class="required">Ingresos:</label>
-                            <input type="text" name="ingreso" id="ingreso" class="form-control" >
+                            <input type="text" name="ingreso" id="ingreso" class="form-control">
                         </div>
                     </div>
                     <div class="form-group row">
                         <div class="col-md-12">
                             <label class="required">Egresos:</label>
-                            <input type="text" name="egreso" id="egreso" class="form-control" >
+                            <input type="text" name="egreso" id="egreso" class="form-control">
                         </div>
                     </div>
                     <div class="form-group row">
                         <div class="col-md-12">
                             <label class="required">Saldo:</label>
-                            <input type="text" name="saldo" id="saldo" class="form-control" >
+                            <input type="text" name="saldo" id="saldo" class="form-control">
                         </div>
                     </div>
             </div>
@@ -63,11 +66,8 @@
     </div>
 </div>
 @push('styles')
-    <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 @endpush
 @push('scripts')
-    <!-- Select2 -->
-    <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
     <script>
         //Select2
         $(".select2_form").select2({
@@ -77,11 +77,8 @@
             width: '100%',
         });
 
-        function eventsCerrarCaja(){
-            
-        }
+        function eventsCerrarCaja() {
 
-       
-        
+        }
     </script>
 @endpush
