@@ -8,7 +8,6 @@
 @section('hero-title', 'Registrar Producto')
 @section('hero-subtitle', 'Productos')
 
-
 @section('content')
     @include('utils.modals.mdl_category.main')
     @include('utils.modals.mdl_brand.main')
@@ -65,6 +64,8 @@
             const colores = @json($colores);
             loadFpImg();
             loadSelectProducts();
+            loadFeatureIconsSelect();
+
             pintarTablaColores(colores);
             cargarDatatables();
             events();
@@ -128,6 +129,175 @@
             window.brandSelect = loadSimpleSelect('marca', '<i class="fas fa-certificate text-success"></i>');
             window.modelSelect = loadSimpleSelect('modelo', '<i class="fas fa-cubes text-primary"></i>');
             window.colorSelect = loadSimpleSelect('modelo', '<i class="fas fa-cubes text-primary"></i>');
+        }
+
+        function loadFeatureIconsSelect() {
+            const simpleSelect = document.getElementById('icon');
+
+            if (simpleSelect && !simpleSelect.tomselect) {
+
+                const plugins = [];
+                plugins.push('clear_button');
+
+                const icons = [{
+                        id: 'fas fa-star',
+                        text: 'Estrella'
+                    },
+                    {
+                        id: 'fas fa-gem',
+                        text: 'Premium'
+                    },
+                    {
+                        id: 'fas fa-shield-alt',
+                        text: 'Protección'
+                    },
+                    {
+                        id: 'fas fa-award',
+                        text: 'Calidad'
+                    },
+                    {
+                        id: 'fas fa-heart',
+                        text: 'Favorito'
+                    },
+                    {
+                        id: 'fas fa-fire',
+                        text: 'Destacado'
+                    },
+                    {
+                        id: 'fas fa-bolt',
+                        text: 'Rápido'
+                    },
+                    {
+                        id: 'fas fa-leaf',
+                        text: 'Eco'
+                    },
+                    {
+                        id: 'fas fa-globe',
+                        text: 'Global'
+                    },
+                    {
+                        id: 'fas fa-thumbs-up',
+                        text: 'Recomendado'
+                    },
+
+                    {
+                        id: 'fas fa-lock',
+                        text: 'Seguro'
+                    },
+                    {
+                        id: 'fas fa-truck',
+                        text: 'Delivery'
+                    },
+                    {
+                        id: 'fas fa-box-open',
+                        text: 'Empaque'
+                    },
+                    {
+                        id: 'fas fa-sync-alt',
+                        text: 'Actualizado'
+                    },
+                    {
+                        id: 'fas fa-check-circle',
+                        text: 'Verificado'
+                    },
+                    {
+                        id: 'fas fa-clock',
+                        text: 'Rápido'
+                    },
+                    {
+                        id: 'fas fa-medal',
+                        text: 'Garantía'
+                    },
+                    {
+                        id: 'fas fa-crown',
+                        text: 'Exclusivo'
+                    },
+                    {
+                        id: 'fas fa-magic',
+                        text: 'Innovador'
+                    },
+                    {
+                        id: 'fas fa-smile',
+                        text: 'Cómodo'
+                    },
+
+                    {
+                        id: 'fas fa-shoe-prints',
+                        text: 'Calzado'
+                    },
+                    {
+                        id: 'fas fa-tshirt',
+                        text: 'Moda'
+                    },
+                    {
+                        id: 'fas fa-shopping-bag',
+                        text: 'Compra'
+                    },
+                    {
+                        id: 'fas fa-tags',
+                        text: 'Oferta'
+                    },
+                    {
+                        id: 'fas fa-percentage',
+                        text: 'Descuento'
+                    },
+                    {
+                        id: 'fas fa-hand-holding-heart',
+                        text: 'Confianza'
+                    },
+                    {
+                        id: 'fas fa-wrench',
+                        text: 'Resistente'
+                    },
+                    {
+                        id: 'fas fa-sun',
+                        text: 'Ligero'
+                    },
+                    {
+                        id: 'fas fa-moon',
+                        text: 'Elegante'
+                    },
+                    {
+                        id: 'fas fa-battery-full',
+                        text: 'Duradero'
+                    }
+                ];
+
+                window.iconSelect = new TomSelect(simpleSelect, {
+
+                    options: icons,
+
+                    valueField: 'id',
+                    labelField: 'text',
+                    searchField: ['text', 'id'],
+
+                    create: false,
+
+                    sortField: {
+                        field: 'text',
+                        direction: 'asc'
+                    },
+
+                    plugins: plugins,
+
+                    render: {
+
+                        option: (item, escape) => `
+                    <div class="d-flex align-items-center">
+                        <i class="${escape(item.id)} text-primary mr-2"></i>
+                        <span>${escape(item.text)}</span>
+                    </div>
+                `,
+
+                        item: (item, escape) => `
+                    <div class="d-flex align-items-center">
+                        <i class="${escape(item.id)} text-primary mr-2"></i>
+                        <span>${escape(item.text)}</span>
+                    </div>
+                `
+                    }
+                });
+            }
         }
 
         //===== PINTAR ERRORES AL CREAR COLOR =====

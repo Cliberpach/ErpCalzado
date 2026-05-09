@@ -206,68 +206,81 @@
 
                 <div class="panel-body">
 
-                    <div id="features-container">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div id="features-container">
 
-                        <!-- ITEM -->
-                        <div class="feature-item card-feature mb-3">
+                                <!-- ITEM -->
+                                <div class="feature-item card-feature mb-3">
 
-                            <div class="row">
+                                    <div class="row align-items-end">
 
-                                <!-- TITLE -->
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label>Título</label>
+                                        <!-- TITLE -->
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>
+                                                    <i class="fas fa-heading text-primary"></i>
+                                                    Título
+                                                </label>
 
-                                        <input type="text" name="features[0][title]" class="form-control"
-                                            placeholder="Ej: Material Premium">
+                                                <input type="text" name="features[0][title]" class="form-control"
+                                                    placeholder="Ej: Material Premium">
+                                            </div>
+                                        </div>
+
+                                        <!-- ICON -->
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>
+                                                    <i class="fas fa-icons text-warning"></i>
+                                                    Ícono
+                                                </label>
+
+                                                <select class="icon" id="icon">
+                                                    <option value=""></option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- DESCRIPTION -->
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>
+                                                    <i class="fas fa-align-left text-success"></i>
+                                                    Descripción
+                                                </label>
+
+                                                <input type="text" name="features[0][description]"
+                                                    class="form-control" placeholder="Ej: Acabado resistente">
+                                            </div>
+                                        </div>
+
+                                        <!-- BUTTON -->
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-success btn-block"
+                                                    id="btn-add-feature">
+
+                                                    <i class="fas fa-plus-circle"></i>
+                                                    Agregar
+                                                </button>
+                                            </div>
+                                        </div>
+
                                     </div>
-                                </div>
-
-                                <!-- ICON -->
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Ícono</label>
-
-                                        <input type="text" name="features[0][icon]" class="form-control"
-                                            placeholder="Ej: fa-gem">
-                                    </div>
-                                </div>
-
-                                <!-- DESCRIPTION -->
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label>Descripción</label>
-
-                                        <input type="text" name="features[0][description]" class="form-control"
-                                            placeholder="Ej: Acabado resistente">
-                                    </div>
-                                </div>
-
-                                <!-- DELETE -->
-                                <div class="col-md-1 d-flex align-items-center">
-
-                                    <button type="button" class="btn btn-danger btn-remove-feature">
-                                        <i class="fa fa-trash"></i>
-                                    </button>
 
                                 </div>
 
                             </div>
-
                         </div>
-
                     </div>
 
-                    <!-- BUTTON -->
-                    <div class="text-center mt-3">
-
-                        <button type="button" class="btn btn-success" id="btn-add-feature">
-
-                            <i class="fa fa-plus"></i>
-                            Agregar Característica
-
-                        </button>
-
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                @include('almacenes.productos.tables.tbl_product_features')
+                            </div>
+                        </div>
                     </div>
 
                 </div>

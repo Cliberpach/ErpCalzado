@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Almacenes\Categoria\CategoriaController;
 use App\Http\Controllers\Api\Almacenes\Producto\ProductoController;
 use App\Http\Controllers\Api\Almacenes\Color\ColorController;
 use App\Http\Controllers\Api\Almacenes\Talla\TallaController;
+use App\Http\Controllers\Api\Company\CompanyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,4 +41,8 @@ Route::prefix('colores')->group(function () {
 
 Route::prefix('tallas')->group(function () {
     Route::get('/get-all', [TallaController::class, 'getAll']);
+});
+
+Route::prefix('company')->group(function () {
+    Route::get('/get-company-locations', [CompanyController::class, 'getCompanyLocations']);
 });
