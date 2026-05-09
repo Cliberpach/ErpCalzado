@@ -188,6 +188,95 @@
 
     <hr>
 
+    <!-- FEATURES -->
+    <div class="row">
+        <div class="col-12">
+            <div class="panel panel-primary">
+
+                <div class="panel-heading">
+                    <h4 class="mb-1">
+                        <b>CARACTERÍSTICAS DEL PRODUCTO</b>
+                    </h4>
+
+                    <small class="text-white">
+                        Agrega las características principales que se mostrarán
+                        en el ecommerce.
+                    </small>
+                </div>
+
+                <div class="panel-body">
+
+                    <div id="features-container">
+
+                        <!-- ITEM -->
+                        <div class="feature-item card-feature mb-3">
+
+                            <div class="row">
+
+                                <!-- TITLE -->
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Título</label>
+
+                                        <input type="text" name="features[0][title]" class="form-control"
+                                            placeholder="Ej: Material Premium">
+                                    </div>
+                                </div>
+
+                                <!-- ICON -->
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Ícono</label>
+
+                                        <input type="text" name="features[0][icon]" class="form-control"
+                                            placeholder="Ej: fa-gem">
+                                    </div>
+                                </div>
+
+                                <!-- DESCRIPTION -->
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Descripción</label>
+
+                                        <input type="text" name="features[0][description]" class="form-control"
+                                            placeholder="Ej: Acabado resistente">
+                                    </div>
+                                </div>
+
+                                <!-- DELETE -->
+                                <div class="col-md-1 d-flex align-items-center">
+
+                                    <button type="button" class="btn btn-danger btn-remove-feature">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- BUTTON -->
+                    <div class="text-center mt-3">
+
+                        <button type="button" class="btn btn-success" id="btn-add-feature">
+
+                            <i class="fa fa-plus"></i>
+                            Agregar Característica
+
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
     <div class="row">
         <div class="col-12">
             <div class="panel panel-success">

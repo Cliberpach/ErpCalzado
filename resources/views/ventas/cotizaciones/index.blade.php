@@ -1,45 +1,36 @@
 @extends('layout')
-@section('content')
 
 @section('ventas-active', 'active')
 @section('cotizaciones-active', 'active')
 
+@section('bread-module', 'Ventas')
+@section('bread-submodule', 'Cotizacion')
+@section('hero-title', 'Lista de Cotizaciones')
+@section('hero-subtitle', 'Ventas')
 
-<div class="row wrapper border-bottom white-bg page-heading">
-    <div class="col-lg-10 col-md-10">
-        <h2 style="text-transform:uppercase"><b>Listado de Cotizaciones</b></h2>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{ route('home') }}">Panel de Control</a>
-            </li>
-            <li class="breadcrumb-item active">
-                <strong>Cotizaciones</strong>
-            </li>
-        </ol>
-    </div>
-    <div class="col-lg-2 col-md-2">
-        <button onclick="crearCotizacion()" id="btn_añadir_cotizacion" class="btn btn-block btn-w-m btn-primary m-t-md">
-            <i class="fa fa-plus-square"></i> NUEVO
-        </button>
-    </div>
-</div>
+@section('btn-add')
+    <a class="main-btn-add" href="#" onclick="crearCotizacion()">
+        <i class="fas fa-plus-circle"></i> Nuevo
+    </a>
+@endsection
 
-<div class="wrapper wrapper-content animated fadeInRight">
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="ibox ">
-                <div class="ibox-content">
-                    <div class="col-12">
-                        <div class="table-responsive">
-                            @include('ventas.cotizaciones.tables.tbl_list_cotizacion')
+@section('content')
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-content">
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                @include('ventas.cotizaciones.tables.tbl_list_cotizacion')
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-@stop
+@endsection
 
 <script>
     let dtCotizaciones = null;
@@ -103,7 +94,7 @@
                     data: 'total_pagar',
                     name: 'co.total_pagar',
                     searchable: false,
-                    orderable:false,
+                    orderable: false,
                     render: function(data, type, row) {
                         return formatoMoneda(data);
                     }
