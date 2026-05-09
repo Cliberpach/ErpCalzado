@@ -13,7 +13,7 @@
             <div class="modal-body">
 
                 @include('pos.MovimientoCaja.forms.form_abrir_caja')
-                
+
             </div>
             <div class="modal-footer">
                 <div class="col-md-6 text-left" style="color:#fcbc6c">
@@ -27,12 +27,11 @@
                             class="fa fa-times"></i> Cancelar</button>
                 </div>
             </div>
-            
+
         </div>
     </div>
 </div>
 @push('styles')
-    <link href="{{ asset('Inspinia/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
     <style>
         .swal2-container {
             z-index: 9999 !important;
@@ -40,9 +39,6 @@
     </style>
 @endpush
 @push('scripts')
-
-    <!-- Select2 -->
-    <script src="{{ asset('Inspinia/js/plugins/select2/select2.full.min.js') }}"></script>
     <script>
 
         function eventsMdlAbrirCaja(){
@@ -55,9 +51,9 @@
                 limpiarFormAbrirCaja();
             });
 
-        }   
+        }
 
-      
+
 
         async function openMdlAbrirCaja(){
             await getDatosAperturaCaja();
@@ -87,7 +83,7 @@
             reverseButtons: true
             }).then(async (result) => {
             if (result.isConfirmed) {
-               
+
                 toastr.clear();
                 limpiarErroresValidacion('msgError');
 
@@ -113,7 +109,7 @@
                         toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
                     }
                 } catch (error) {
-                    
+
                     if (error.response) {
                         if (error.response.status === 422) {
                             const errors = error.response.data.errors;
@@ -126,7 +122,7 @@
                         toastr.error('No se pudo contactar al servidor. Revisa tu conexión a internet.', 'ERROR DE CONEXIÓN');
                     } else {
                         toastr.error(error.message, 'ERROR DESCONOCIDO');
-                    }       
+                    }
                 }finally{
                     Swal.close();
                 }
@@ -141,13 +137,13 @@
             });
         }
 
-      
+
 
         async function getDatosAperturaCaja(){
             try {
                 mostrarAnimacion();
                 const res   =   await axios.get(route('Caja.getDatosAperturaCaja',{sede_id:@json($sede_id)}));
-                
+
                 if(res.data.success){
                     setDatosMdlAperturaCaja(res.data);
                     $('#modal_crear_caja').modal('show');
@@ -166,27 +162,27 @@
             const cajas_desocupadas     =   datos.cajas_desocupadas;
             const cajeros_desocupados   =   datos.cajeros_desocupados;
 
-            $('#caja').empty().append('<option value="" disabled selected>Seleccionar</option>');  
+            $('#caja').empty().append('<option value="" disabled selected>Seleccionar</option>');
             cajas_desocupadas.forEach((cd)=>{
-                $('#caja').append(new Option(cd.nombre, cd.id)); 
+                $('#caja').append(new Option(cd.nombre, cd.id));
             })
 
-            $('#cajero_id').empty().append('<option value="" disabled selected>Seleccionar</option>');  
+            $('#cajero_id').empty().append('<option value="" disabled selected>Seleccionar</option>');
             cajeros_desocupados.forEach((cd)=>{
-                $('#cajero_id').append(new Option(cd.nombre, cd.id)); 
+                $('#cajero_id').append(new Option(cd.nombre, cd.id));
             })
 
         }
 
         function limpiarFormAbrirCaja(){
 
-            $('#caja').val(null).trigger('change'); 
-            $('#caja').empty().trigger('change');  
+            $('#caja').val(null).trigger('change');
+            $('#caja').empty().trigger('change');
 
-            $('#cajero_id').val(null).trigger('change'); 
-            $('#cajero_id').empty().trigger('change');  
+            $('#cajero_id').val(null).trigger('change');
+            $('#cajero_id').empty().trigger('change');
 
-            $('#turno').val(null).trigger('change'); 
+            $('#turno').val(null).trigger('change');
 
             document.querySelector('#saldo_inicial').value  =   0;
 
