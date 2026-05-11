@@ -45,14 +45,12 @@
     <script src="{{ mix('js/tomselect.js') }}"></script>
     <script>
         let ponds = [];
-        const formCrearMarca = document.querySelector('#crear_marca');
-        const formCrearModelo = document.querySelector('#crear_modelo');
-        const formCrearColor = document.querySelector('#crear_color');
+        let features = [];
+
+        const btnAddFeature = document.getElementById('btn-add-feature');
+        const tbodyFeatures = document.getElementById('tbody-features');
+
         const formRegProducto = document.querySelector('#form_registrar_producto');
-        const tokenValue = document.querySelector('input[name="_token"]').value;
-        const selectCategorias = document.querySelector('#categoria');
-        const selectMarcas = document.querySelector('#marca');
-        const selectModelos = document.querySelector('#modelo');
         const inputColoresJSON = document.querySelector('#coloresJSON');
         const tableColores = document.querySelector('#table-colores');
 
@@ -102,6 +100,9 @@
                 e.preventDefault();
                 registrarProducto(e.target);
             })
+
+            btnAddFeature.addEventListener('click', addFeature);
+
         }
 
         function loadFpImg() {
@@ -300,87 +301,6 @@
             }
         }
 
-        //===== PINTAR ERRORES AL CREAR COLOR =====
-        const pintarErroresColor = (errores_color) => {
-            let message = '';
-            errores_color.forEach((m, index) => {
-                message += m;
-                if (index < errores_color.length - 1) {
-                    message += '\n';
-                }
-            });
-            return message;
-        }
-
-        //===== PINTAR ERRORES AL CREAR CATEGORÍA =====
-        const pintarErroresCategoria = (errores_marca) => {
-            let message = '';
-            errores_marca.forEach((m, index) => {
-                message += m;
-                if (index < errores_marca.length - 1) {
-                    message += '\n';
-                }
-            });
-            return message;
-        }
-
-        //===== PINTAR ERRORES AL CREAR MARCA =====
-        const pintarErroresMarca = (errores_marca) => {
-            let message = '';
-            errores_marca.forEach((m, index) => {
-                message += m;
-                if (index < errores_marca.length - 1) {
-                    message += '\n';
-                }
-            });
-            return message;
-        }
-
-        //===== PINTAR ERRORES AL CREAR MODELO =====
-        const pintarErroresModelo = (errores_modelo) => {
-            let message = '';
-            errores_modelo.forEach((m, index) => {
-                message += m;
-                if (index < errores_modelo.length - 1) {
-                    message += '\n';
-                }
-            });
-            return message;
-        }
-
-
-        //==== actualizar select de categorías ============
-        const updateSelectCategorias = (categorias_actualizadas) => {
-            let items = '<option></option>';
-            categorias_actualizadas.forEach((c) => {
-                const selected = "{{ old('categoria') == '" + c.id + "' ? 'selected' : '' }}";
-                items += `<option value="${c.id}" ${selected}>${c.descripcion}</option>`;
-            });
-            selectCategorias.innerHTML = items;
-        };
-
-        //====== actualizar select de marcas =========
-        const updateSelectMarcas = (marcas_actualizadas) => {
-            let items = '<option></option>';
-            marcas_actualizadas.forEach((m) => {
-                const selected = "{{ old('marca') == '" + m.id + "' ? 'selected' : '' }}";
-                items += `<option value="${m.id}" ${selected}>${m.marca}</option>`;
-            });
-            selectMarcas.innerHTML = items;
-        };
-
-
-        //========= actualizar select de modelos ===========
-        const updateSelectModelos = (modelos_actualizados) => {
-            let items = '<option></option>';
-            modelos_actualizados.forEach((m) => {
-                const selected = "{{ old('marca') == '" + m.id + "' ? 'selected' : '' }}";
-                items += `<option value="${m.id}" ${selected}>${m.descripcion}</option>`;
-            });
-            selectModelos.innerHTML = items;
-        };
-
-
         //============ guardar colores asignados ============
         const saveColorsAssigned = () => {
             //======== guardamos el array en el inputJSON de colores asignados ========
@@ -474,6 +394,7 @@
                         limpiarErroresValidacion('msgErrorProducto');
                         const formData = new FormData(formRegistrarProducto);
                         formData.append('coloresJSON', JSON.stringify(coloresAsignados));
+                        formData.append('features', JSON.stringify(features));
 
                         ponds.forEach((pond, index) => {
                             const files = pond.getFiles();
@@ -570,6 +491,229 @@
             })
 
             tbody.innerHTML = filas;
+        }
+
+        // ======================================
+        // AGREGAR FEATURE
+        // ======================================
+        function addFeature() {
+            toastr.clear();
+            const featureItem = document.querySelector('.feature-item');
+
+            // INPUTS
+            const titleInput = featureItem.querySelector('input[name*="[title]"]');
+            const descriptionInput = featureItem.querySelector('input[name*="[description]"]');
+
+            // VALUES
+            const title = titleInput.value.trim();
+
+            const icon = window.iconSelect ?
+                window.iconSelect.getValue() :
+                '';
+
+            const description = descriptionInput.value.trim();
+
+            // VALIDAR TITULO
+            if (!title) {
+                toastr.error('Ingrea un título');
+                return;
+            }
+
+            // VALIDAR REPETIDOS
+            const exists = features.some(feature =>
+                feature.title.trim().toLowerCase() === title.toLowerCase()
+            );
+
+            if (exists) {
+                toastr.error('Ya existe una característica con ese título');
+                return;
+            }
+
+            // OBJETO
+            const feature = {
+                id: Date.now(),
+                title,
+                icon,
+                description,
+                sort_order: features.length + 1
+            };
+
+            // AGREGAR
+            features.push(feature);
+
+            // PINTAR
+            paintTblFeatures();
+
+            // LIMPIAR
+            clearFeatureInputs();
+        }
+
+
+        // ======================================
+        // PINTAR TABLA
+        // ======================================
+        function paintTblFeatures() {
+
+            // ACTUALIZAR ORDEN
+            updateSortOrder();
+
+            let html = '';
+
+            // TABLA VACIA
+            if (features.length === 0) {
+
+                html = `
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">
+                            No hay características registradas
+                        </td>
+                    </tr>
+                `;
+
+            } else {
+
+                features.forEach((feature, index) => {
+
+                    html += `
+                <tr>
+
+                    <!-- ACCION -->
+                    <td class="text-center align-middle">
+
+                        <div class="btn-group">
+
+                            <!-- SUBIR -->
+                            <button
+                                type="button"
+                                class="btn btn-info btn-sm"
+                                onclick="moveFeatureUp(${index})"
+                                ${index === 0 ? 'disabled' : ''}
+                            >
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+
+                            <!-- BAJAR -->
+                            <button
+                                type="button"
+                                class="btn btn-secondary btn-sm"
+                                onclick="moveFeatureDown(${index})"
+                                ${index === features.length - 1 ? 'disabled' : ''}
+                            >
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+
+                            <!-- ELIMINAR -->
+                            <button
+                                type="button"
+                                class="btn btn-danger btn-sm"
+                                onclick="removeFeature(${feature.id})"
+                            >
+                                <i class="fas fa-trash"></i>
+                            </button>
+
+                        </div>
+
+                    </td>
+
+                    <!-- TITULO -->
+                    <td class="text-center align-middle">
+                        ${feature.title}
+                    </td>
+
+                    <!-- ICONO -->
+                    <td class="text-center align-middle">
+
+                        ${
+                            feature.icon
+                                ? `<i class="${feature.icon}"></i>`
+                                : '-'
+                        }
+
+                    </td>
+
+                    <!-- DESCRIPCION -->
+                    <td class="text-center align-middle">
+                        ${feature.description || '-'}
+                    </td>
+
+                </tr>
+            `;
+                });
+            }
+
+            // PINTAR
+            tbodyFeatures.innerHTML = html;
+
+        }
+
+
+        // ======================================
+        // ACTUALIZAR SORT ORDER
+        // ======================================
+        function updateSortOrder() {
+
+            features.forEach((feature, index) => {
+                feature.sort_order = index + 1;
+            });
+        }
+
+
+        // ======================================
+        // SUBIR
+        // ======================================
+        function moveFeatureUp(index) {
+
+            if (index === 0) return;
+
+            [features[index - 1], features[index]] = [features[index], features[index - 1]];
+
+            paintTblFeatures();
+        }
+
+
+        // ======================================
+        // BAJAR
+        // ======================================
+        function moveFeatureDown(index) {
+
+            if (index === features.length - 1) return;
+
+            [features[index + 1], features[index]] = [features[index], features[index + 1]];
+
+            paintTblFeatures();
+        }
+
+
+        // ======================================
+        // ELIMINAR
+        // ======================================
+        function removeFeature(id) {
+
+            features = features.filter(feature => feature.id !== id);
+
+            paintTblFeatures();
+        }
+
+
+
+
+        // ======================================
+        // LIMPIAR INPUTS
+        // ======================================
+        function clearFeatureInputs() {
+
+            const featureItem = document.querySelector('.feature-item');
+
+            // TITLE
+            featureItem.querySelector('input[name*="[title]"]').value = '';
+
+            // DESCRIPTION
+            featureItem.querySelector('input[name*="[description]"]').value = '';
+
+            // TOMSELECT
+            if (window.iconSelect) {
+                window.iconSelect.clear();
+            }
         }
     </script>
 @endpush

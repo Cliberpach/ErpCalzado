@@ -16,9 +16,7 @@ class CreatProductFeatureTable extends Migration
         Schema::create('product_features', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('product_id')
-                ->constrained('products')
-                ->onDelete('cascade');
+            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
 
             $table->string('title', 100);
             $table->string('icon', 50)->nullable();

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Mantenimiento\Cuentas\CuentaController;
+use App\Http\Controllers\Mantenimiento\Promocion\PromocionController;
 use App\Http\Controllers\Mantenimiento\TipoPago\TipoPagoController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,11 +18,15 @@ Route::prefix('mantenimiento/')->middleware('auth')->group(function () {
         Route::post('/asignar-cuentas/store', [TipoPagoController::class, 'asignarCuentasStore'])->name('mantenimiento.tipo_pago.asignarCuentasStore');
     });
 
-    // Route::prefix('cuentas/')->group(function () {
-    //     Route::get('index/{tipo_pago_id}', 'Mantenimiento\Cuentas\CuentaController@index')->name('mantenimiento.cuentas.index');
-    //     Route::get('getCuentas/{tipo_pago_id}', 'Mantenimiento\Cuentas\CuentaController@getCuentas')->name('mantenimiento.cuentas.getCuentas');
-    // });
-
+    Route::prefix('promociones')->group(function () {
+        Route::get('index', [PromocionController::class, 'index'])->name('mantenimiento.promociones.index');
+        Route::get('getAll', [PromocionController::class, 'getAll'])->name('mantenimiento.promociones.getAll');
+        Route::post('store', [PromocionController::class, 'store'])->name('mantenimiento.promociones.store');
+        Route::delete('destroy/{id}', [PromocionController::class, 'destroy'])->name('mantenimiento.promociones.destroy');
+        Route::put('update/{id}', [PromocionController::class, 'update'])->name('mantenimiento.promociones.update');
+        Route::put('add-products/{id}', [PromocionController::class, 'addProducts'])->name('mantenimiento.promociones.addProducts');
+        Route::get('get-products-promocion/{id}', [PromocionController::class, 'getProductsPromocion'])->name('mantenimiento.promociones.getProductsPromocion');
+    });
 
     Route::prefix('cuentas/')->group(function () {
         Route::get('index/', 'Mantenimiento\Cuentas\CuentaController@index')->name('mantenimiento.cuentas.index');

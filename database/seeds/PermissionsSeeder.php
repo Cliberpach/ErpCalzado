@@ -128,6 +128,7 @@ class PermissionsSeeder extends Seeder
         Permission::create(['name' => 'Métodos de Entrega', 'slug' => 'mantenimiento.metodo_entrega.index', 'description' => 'El usuario puede acceder a métodos de entrega']);
         Permission::create(['name' => 'Cuentas Bancarias', 'slug' => 'mantenimiento.cuentas.index', 'description' => 'El usuario puede acceder a cuentas bancarias']);
         Permission::create(['name' => 'Tipo de Pago', 'slug' => 'mantenimiento.tipo_pago.index', 'description' => 'El usuario puede acceder a tipos de pago']);
+        Permission::create(['name' => 'Mantenedor Promociones', 'slug' => 'mantenimiento.promociones.index', 'description' => 'Mantenedor Promociones']);
 
         // Seguridad
         Permission::create(['name' => 'Usuarios', 'slug' => 'seguridad.user.index', 'description' => 'El usuario puede acceder a usuarios']);

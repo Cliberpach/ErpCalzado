@@ -4,6 +4,7 @@ namespace App\Http\Services\Almacen\Productos;
 
 use App\Almacenes\Producto;
 use App\Almacenes\ProductoColor;
+use App\Models\Almacenes\Producto\ProductFeature;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -12,44 +13,16 @@ use Illuminate\Support\Facades\Schema;
 class ProductoRepository
 {
 
-    public function insertarProducto(array $datos): Producto
+    public function store(array $dto): Producto
     {
-        $producto                   =   new Producto();
-        $producto->nombre           =   mb_strtoupper($datos['nombre'], 'UTF-8');
-        $producto->marca_id         =   $datos['marca'];
-        $producto->categoria_id     =   $datos['categoria'];
-        $producto->modelo_id        =   $datos['modelo'];
-        $producto->medida           =   105;
-        $producto->precio_venta_1   =   $datos['precio1'];
-        $producto->precio_venta_2   =   $datos['precio2'];
-        $producto->precio_venta_3   =   $datos['precio3'];
-        $producto->costo            =   $datos['costo'] ?? 0;
-        $producto->mostrar_en_web   =   $datos['mostrar_en_web'];
-        $producto->descripcion      =   $datos['descripcion'] ?? null;
-        $producto->save();
-
-        return $producto;
+        return Producto::create($dto);
     }
 
-    public function actualizarProducto(array $datos, int $id): Producto
+    public function update(array $dto, int $id): Producto
     {
-        $producto                   =   Producto::findOrFail($id);
-        $producto->nombre           =   $datos['nombre'];
-        $producto->marca_id         =   $datos['marca'];
-        $producto->categoria_id     =   $datos['categoria'];
-        $producto->modelo_id        =   $datos['modelo'];
-        $producto->precio_venta_1   =   $datos['precio1'];
-        $producto->precio_venta_2   =   $datos['precio2'];
-        $producto->precio_venta_3   =   $datos['precio3'];
-        $producto->precio_venta_4   =   $datos['precio4'];
-        $producto->costo            =   $datos['costo'];
-        $producto->mostrar_en_web   =   $datos['mostrar_en_web'] ?? false;
-        $producto->descripcion      =   $datos['descripcion'] ?? null;
-        $producto->is_featured      =   $datos['is_featured'] ?? 0;
-        $producto->is_sale          =   $datos['is_sale'] ?? 0;
-        $producto->is_outlet        =   $datos['is_outlet'] ?? 0;
-        $producto->update();
-        return $producto;
+        $product                   =   Producto::findOrFail($id);
+        $product->update($dto);
+        return $product;
     }
 
     public function insertarProductoColor(int $almacen_id, int $producto_id, int $color_id)
@@ -61,7 +34,7 @@ class ProductoRepository
         $producto_color->save();
     }
 
-    public function guardarImagenes(array $datos, Producto $producto)
+    public function saveImages(array $datos, Producto $producto)
     {
         $destinationPath = public_path('storage/productos/img');
         if (!File::exists($destinationPath)) {
@@ -229,5 +202,15 @@ class ProductoRepository
         return array_filter($precios_venta->toArray(), function ($precio) {
             return !is_null($precio);
         });
+    }
+
+    public function storeMasiveFeatures(array $dto)
+    {
+        ProductFeature::insert($dto);
+    }
+
+    public function destroyFeatures(int $id)
+    {
+        ProductFeature::where('product_id', $id)->delete();
     }
 }

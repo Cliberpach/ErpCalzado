@@ -66,6 +66,7 @@ class ProductoStoreRequest extends FormRequest
             ],
 
             'coloresJSON'   =>  'nullable',
+            'features'   =>  'nullable',
 
             'imagen1' => 'nullable|file|mimes:jpg,jpeg,webp,avif|max:2048',
             'imagen2' => 'nullable|file|mimes:jpg,jpeg,webp,avif|max:2048',
@@ -127,7 +128,7 @@ class ProductoStoreRequest extends FormRequest
             'mostrar_en_web.boolean' => 'El campo MOSTRAR EN WEB debe ser verdadero o falso.',
 
             'descripcion.max' => 'El campo descripción no puede tener más de 300 caracteres.',
-            
+
             'is_featured.boolean' => 'El campo destacado debe ser verdadero o falso.',
             'is_sale.boolean'     => 'El campo oferta debe ser verdadero o falso.',
             'is_outlet.boolean'   => 'El campo outlet debe ser verdadero o falso.'

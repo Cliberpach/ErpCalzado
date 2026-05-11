@@ -68,6 +68,7 @@ class ProductoUpdateRequest extends FormRequest
             ],
 
             'coloresJSON'   =>  'nullable',
+            'features'   =>  'nullable',
 
             'imagen1' => 'nullable|file|mimes:jpg,jpeg,webp,avif|max:2048',
             'imagen2' => 'nullable|file|mimes:jpg,jpeg,webp,avif|max:2048',

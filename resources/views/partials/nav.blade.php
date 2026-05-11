@@ -200,19 +200,12 @@
     </li>
 @endcan
 
-@can('restore', [Auth::user(), [
-    'consulta.consulta_documento.index',
-    'consulta.consulta_venta_documento.index',
-    'consulta.consulta_venta_cotizacion.index',
-    'consulta.consulta_venta_documento_no.index',
-    'consulta.consulta_compras_orden.index',
-    'consulta.consulta_compras_documento.index',
-    'consulta.consulta_cuenta_proveedor.index',
-    'consulta.consulta_cuenta_cliente.index',
-    'consulta.consulta_nota_salida.index',
-    'consulta.consulta_nota_ingreso.index',
-    'consulta.consulta_utilidad_bruta.index'
-]])
+@can('restore', [Auth::user(), ['consulta.consulta_documento.index', 'consulta.consulta_venta_documento.index',
+    'consulta.consulta_venta_cotizacion.index', 'consulta.consulta_venta_documento_no.index',
+    'consulta.consulta_compras_orden.index', 'consulta.consulta_compras_documento.index',
+    'consulta.consulta_cuenta_proveedor.index', 'consulta.consulta_cuenta_cliente.index',
+    'consulta.consulta_nota_salida.index', 'consulta.consulta_nota_ingreso.index',
+    'consulta.consulta_utilidad_bruta.index']])
     <li class="@yield('consulta-active')">
 
         <a href="#">
@@ -471,7 +464,7 @@
 @can('restore', [Auth::user(), ['mantenimiento.colaborador.index', 'mantenimiento.empresa.index',
     'mantenimiento.sedes.index', 'mantenimiento.condicion.index', 'mantenimiento.tabla.index',
     'mantenimiento.configuracion.index', 'mantenimiento.metodo_entrega.index', 'mantenimiento.cuentas.index',
-    'mantenimiento.tipo_pago.index']])
+    'mantenimiento.tipo_pago.index', 'mantenimiento.promociones.index']])
     <li class="@yield('mantenimiento-active')">
         <a href="#"><i class="fa fa-cogs"></i> <span class="nav-label">Mantenimento</span><span
                 class="fa arrow"></span></a>
@@ -506,6 +499,9 @@
             @endcan
             @can('haveaccess', 'mantenimiento.cuentas.index')
                 <li class="@yield('cuentas_bancarias-active')"><a href="{{ route('mantenimiento.cuentas.index') }}">Cuentas</a></li>
+            @endcan
+            @can('haveaccess', 'mantenimiento.promociones.index')
+                <li class="@yield('promociones-active')"><a href="{{ route('mantenimiento.promociones.index') }}">Promociones</a></li>
             @endcan
         </ul>
     </li>

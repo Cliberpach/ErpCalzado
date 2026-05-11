@@ -16,62 +16,61 @@ class ProductoService
 {
     private ProductoMapper $s_mapper;
     private ProductoRepository $s_repository;
+    private ProductoDto $s_dto;
+    private ProductValidation $s_validation;
 
     public function __construct()
     {
         $this->s_repository =   new ProductoRepository();
         $this->s_mapper     =   new ProductoMapper();
+        $this->s_dto        =   new ProductoDto();
+        $this->s_validation =   new ProductValidation();
     }
 
-    public function store(array $datos): Producto
+    public function store(array $data): Producto
     {
-        //======= GUARDANDO PRODUCTO =======
-        $producto                   =   new Producto();
-        $producto->nombre           =   mb_strtoupper(trim($datos['nombre']), 'UTF-8');
-        $producto->marca_id         =   $datos['marca'];
-        $producto->categoria_id     =   $datos['categoria'];
-        $producto->modelo_id        =   $datos['modelo'];
-        $producto->medida           =   105;
-        $producto->precio_venta_1   =   $datos['precio1'];
-        $producto->precio_venta_2   =   $datos['precio2'];
-        $producto->precio_venta_3   =   $datos['precio3'];
-        $producto->precio_venta_4   =   $datos['precio4'];
-        $producto->costo            =   $datos['costo'] ?? 0;
-        $producto->descripcion      =   $datos['descripcion'] ?? null;
-        $producto->mostrar_en_web   =   $datos['mostrar_web'] ?? null;
-        $producto->is_featured      =   $datos['is_featured'] ?? 0;
-        $producto->is_sale          =   $datos['is_sale'] ?? 0;
-        $producto->is_outlet        =   $datos['is_outlet'] ?? 0;
-        $producto->save();
+        $data   =   $this->s_validation->validationStore($data);
+
+        $dto    =   $this->s_dto->dtoStore($data);
+        $instance   =   $this->s_repository->store($dto);
+
+        $dto_features   =   $this->s_dto->dtoProductFeatures($data['features'], $instance->id);
+        $this->s_repository->storeMasiveFeatures($dto_features);
 
         //======= GUARDAMOS LOS COLORES ASIGNADOS AL PRODUCTO ========
-        $coloresAsignados = json_decode($datos['coloresJSON']);
-
+        $coloresAsignados = json_decode($data['coloresJSON']);
         foreach ($coloresAsignados as $color_id) {
-            $almacen_id                     =   $datos['almacen'];
+            $almacen_id                     =   $data['almacen'];
 
             $producto_color                 =   new ProductoColor();
             $producto_color->almacen_id     =   $almacen_id;
-            $producto_color->producto_id    =   $producto->id;
+            $producto_color->producto_id    =   $instance->id;
             $producto_color->color_id       =   $color_id;
             $producto_color->save();
         }
 
-        $producto->codigo = 1000 + $producto->id;
-        $producto->update();
+        $instance->codigo = 1000 + $instance->id;
+        $instance->update();
 
         //========= GUARDAR IMAGENES =========
-        $this->s_repository->guardarImagenes($datos, $producto);
+        $this->s_repository->saveImages($data, $instance);
 
-        return $producto;
+        return $instance;
     }
 
-    public function update(array $datos, int $id): Producto
+    public function update(array $data, int $id): Producto
     {
-        $producto   =   $this->s_repository->actualizarProducto($datos, $id);
+        $data   =   $this->s_validation->validationStore($data);
+        $dto_store  =   $this->s_dto->dtoStore($data);
+
+        $instance   =   $this->s_repository->update($dto_store, $id);
+
+        $this->s_repository->destroyFeatures($id);
+        $dto_features   =   $this->s_dto->dtoProductFeatures($data['features'], $instance->id);
+        $this->s_repository->storeMasiveFeatures($dto_features);
 
         //=========== EDITAMOS LOS COLORES DEL PRODUCTO ==========
-        $coloresNuevos = json_decode($datos['coloresJSON']); //['A','C']     ['A','R','C']  ['A','B']
+        $coloresNuevos = json_decode($data['coloresJSON']); //['A','C']     ['A','R','C']  ['A','B']
 
         //===== OBTENIENDO COLORES ANTERIORES DEL PRODUCTO ALMACÉN ===== //['A','R','C']     ['A','C']   ['A','B']
         $colores_anteriores =   DB::select(
@@ -85,7 +84,7 @@ class ProductoService
                                     AND pc.almacen_id = ?',
             [
                 $id,
-                $datos['almacen']
+                $data['almacen']
             ]
         );
 
@@ -103,13 +102,13 @@ class ProductoService
             DB::table('producto_colores')
                 ->where('producto_id', $id)
                 ->where('color_id', $value)
-                ->where('almacen_id', $datos['almacen'])
+                ->where('almacen_id', $data['almacen'])
                 ->delete();
             //===== ELIMINANDO TALLAS DEL COLOR DEL ALMACÉN =====
             DB::table('producto_color_tallas')
                 ->where('producto_id', $id)
                 ->where('color_id', $value)
-                ->where('almacen_id', $datos['almacen'])
+                ->where('almacen_id', $data['almacen'])
                 ->delete();
         }
 
@@ -118,13 +117,13 @@ class ProductoService
         $colores_diferentes_2 = array_diff($ids_colores_nuevos, $ids_colores_anteriores);
         foreach ($colores_diferentes_2 as $key => $value) {
             //==== REGISTRANDO COLORES ======
-            $this->s_repository->insertarProductoColor($datos['almacen'], $id, $value);
+            $this->s_repository->insertarProductoColor($data['almacen'], $id, $value);
         }
 
         //======== ACTUALIZAR IMÁGENES =========
-        $this->s_repository->actualizarImagenes($datos, $producto);
+        $this->s_repository->actualizarImagenes($data, $instance);
 
-        return $producto;
+        return $instance;
     }
 
     public function generarAdhesivos(array $data): Collection

@@ -9,6 +9,7 @@ use App\Almacenes\Modelo;
 use App\Almacenes\Color;
 use App\Almacenes\Talla;
 use App\Almacenes\Producto;
+use App\Almacenes\ProductoColor;
 use App\Almacenes\TipoCliente;
 use App\Exports\Producto\CodigoBarra;
 use App\Exports\Reportes\PI\Producto_PI;
@@ -19,6 +20,7 @@ use App\Http\Requests\Almacen\Producto\ProductoUpdateRequest;
 use App\Http\Services\Almacen\Productos\ProductoManager;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Mantenimiento\Sedes\Sede;
+use App\Models\Almacenes\Producto\ProductFeature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
@@ -106,17 +108,15 @@ array:12 [
   "precio3"             => "3"
   "costo"               => "1"
   "almacen"             => "1"
-  "table-colores_length" => "10"
+    "features" => "[{"id":1778513170670,"title":"Material Premium","icon":"fas fa-gem","description":"Acabado resistente","sort_order":1},{"id":1778513200878,"title":"Punta de acero","icon":"fas fa-lock","description":"Punta contra accidentes","sort_order":2}]"
 ]
 */
     public function store(ProductoStoreRequest $request)
     {
         $this->authorize('haveaccess', 'almacen.producto.index');
-
         DB::beginTransaction();
 
         try {
-
             $datos      =   $request->validated();
             $producto   =   $this->s_producto->store($datos);
 
@@ -143,23 +143,18 @@ array:12 [
         $categorias =   Categoria::where('estado', 'ACTIVO')->get();
         $modelos    =   Modelo::where('estado', 'ACTIVO')->get();
         $colores    =   Color::where('estado', 'ACTIVO')->get();
-        $tallas     =   Talla::where('estado', 'ACTIVO')->get();
 
         $sede_id    =   Auth::user()->sede->id;
-        $almacenes  =   Almacen::where('estado', 'ACTIVO')
-            ->where('sede_id', $sede_id)
+        $almacenes  =   Almacen::where('estado', 'ACTIVO')->where('sede_id', $sede_id)->get();
+
+        $colores_asignados  =   ProductoColor::from('producto_colores as pc')
+            ->join('colores as c', 'c.id', 'pc.color_id')
+            ->where('pc.estado', 'ACTIVO')
+            ->where('c.estado', 'ACTIVO')
+            ->where('c.tipo', 'COLOR')
             ->get();
 
-        $colores_asignados  =   DB::select(
-            'select
-                                pc.*
-                                from producto_colores as pc
-                                inner join colores  as c on c.id = pc.color_id
-                                where
-                                c.estado = "ACTIVO"
-                                and pc.producto_id = ?',
-            [$id]
-        );
+        $features           =   ProductFeature::where('status', 1)->get();
 
         return view('almacenes.productos.edit', [
             'producto' => $producto,
@@ -169,8 +164,8 @@ array:12 [
             'almacenes' => $almacenes,
             'modelos' => $modelos,
             'colores' => $colores,
-            'tallas'   => $tallas,
             'colores_asignados'   => $colores_asignados,
+            'features'              =>  $features
         ]);
     }
 
@@ -199,8 +194,8 @@ array:13 [
 
         try {
 
-            $datos      =   $request->validated();
-            $producto   =   $this->s_producto->update($datos, $id);
+            $data      =   $request->validated();
+            $producto   =   $this->s_producto->update($data, $id);
 
             //Registro de actividad
             $descripcion = "SE MODIFICÓ EL PRODUCTO CON LA DESCRIPCION: " . $producto->nombre;
@@ -612,4 +607,28 @@ array:13 [
         }
     }
 
+    public function dataTableProducts()
+    {
+
+        $productos  =    DB::table('productos as p')
+            ->join('marcas as ma', 'p.marca_id', '=', 'ma.id')
+            ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
+            ->join('modelos as mo', 'mo.id', '=', 'p.modelo_id')
+            ->select(
+                'ca.descripcion as categoria',
+                'mo.descripcion as modelo',
+                'ma.marca',
+                'p.*',
+                DB::raw("(
+                    SELECT GROUP_CONCAT(co.descripcion)
+                    FROM producto_colores pc
+                    JOIN colores co ON co.id = pc.color_id
+                    WHERE pc.producto_id = p.id
+                ) as colores")
+            )
+            ->where('p.estado', 'ACTIVO')
+            ->orderBy('p.id', 'DESC');;
+
+        return DataTables::of($productos)->make(true);
+    }
 }

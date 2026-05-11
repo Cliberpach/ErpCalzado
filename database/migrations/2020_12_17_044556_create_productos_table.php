@@ -58,6 +58,9 @@ class CreateProductosTable extends Migration
             $table->longText('img5_nombre')->nullable();
 
             $table->boolean('mostrar_en_web')->default(false);
+            $table->boolean('is_featured')->default(0);
+            $table->boolean('is_sale')->default(0);
+            $table->boolean('is_outlet')->default(0);
 
             $table->timestamps();
         });

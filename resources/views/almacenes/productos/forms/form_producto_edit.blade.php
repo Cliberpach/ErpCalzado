@@ -193,6 +193,108 @@
 
     <hr>
 
+    <!-- FEATURES -->
+    <div class="row">
+        <div class="col-12">
+            <div class="panel panel-primary">
+
+                <div class="panel-heading">
+                    <h4 class="mb-1">
+                        <b>CARACTERÍSTICAS DEL PRODUCTO</b>
+                    </h4>
+
+                    <small class="text-white">
+                        Agrega las características principales que se mostrarán
+                        en el ecommerce.
+                    </small>
+                </div>
+
+                <div class="panel-body">
+
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div id="features-container">
+
+                                <!-- ITEM -->
+                                <div class="feature-item card-feature mb-3">
+
+                                    <div class="row align-items-end">
+
+                                        <!-- TITLE -->
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>
+                                                    <i class="fas fa-heading text-primary"></i>
+                                                    Título
+                                                </label>
+
+                                                <input type="text" name="features[0][title]" class="form-control"
+                                                    placeholder="Ej: Material Premium">
+                                            </div>
+                                        </div>
+
+                                        <!-- ICON -->
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>
+                                                    <i class="fas fa-icons text-warning"></i>
+                                                    Ícono
+                                                </label>
+
+                                                <select class="icon" id="icon" data-placeholder="Seleccionar">
+                                                    <option value=""></option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- DESCRIPTION -->
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>
+                                                    <i class="fas fa-align-left text-success"></i>
+                                                    Descripción
+                                                </label>
+
+                                                <input type="text" name="features[0][description]"
+                                                    class="form-control" placeholder="Ej: Acabado resistente">
+                                            </div>
+                                        </div>
+
+                                        <!-- BUTTON -->
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-success btn-block"
+                                                    id="btn-add-feature">
+
+                                                    <i class="fas fa-plus-circle"></i>
+                                                    Agregar
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                @include('almacenes.productos.tables.tbl_product_features')
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
     <div class="row">
         <div class="col-12">
             <div class="panel panel-success">

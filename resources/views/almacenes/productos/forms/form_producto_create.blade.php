@@ -236,7 +236,7 @@
                                                     Ícono
                                                 </label>
 
-                                                <select class="icon" id="icon">
+                                                <select class="icon" id="icon" data-placeholder="Seleccionar">
                                                     <option value=""></option>
                                                 </select>
                                             </div>

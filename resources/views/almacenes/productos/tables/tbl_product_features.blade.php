@@ -7,7 +7,11 @@
             <th class="text-center">DESCRIPCION</th>
         </tr>
     </thead>
-    <tbody>
-
+    <tbody id="tbody-features">
+        <tr>
+            <td colspan="5" class="text-center text-muted">
+                No hay características registradas
+            </td>
+        </tr>
     </tbody>
 </table>

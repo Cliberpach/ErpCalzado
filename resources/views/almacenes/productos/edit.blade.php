@@ -43,32 +43,34 @@
     <script src="{{ mix('js/tomselect.js') }}"></script>
     <script>
         let ponds = [];
+        let features = [];
+
         //====== VARIABLES ===============
-        const formCrearCategoria = document.querySelector('#crear_categoria');
-        const formCrearMarca = document.querySelector('#crear_marca');
-        const formCrearModelo = document.querySelector('#crear_modelo');
-        const formCrearColor = document.querySelector('#crear_color');
         const formActualizarProducto = document.querySelector('#form_actualizar_producto');
-        const tokenValue = document.querySelector('input[name="_token"]').value;
-        const selectCategorias = document.querySelector('#categoria');
-        const selectMarcas = document.querySelector('#marca');
-        const selectModelos = document.querySelector('#modelo');
         const inputColoresJSON = document.querySelector('#coloresJSON');
         const tableColores = document.querySelector('#table-colores');
         const coloresPrevios = @json($colores_asignados);
+
+        const btnAddFeature = document.getElementById('btn-add-feature');
+        const tbodyFeatures = document.getElementById('tbody-features');
 
         let coloresAsignados = [];
         let dtColores = null;
 
         //=========== CUANDO SE CARGUE EL HTML Y CSS HACER ESTO =========
         document.addEventListener('DOMContentLoaded', () => {
+
+            setFeaturesPreview(@json($features));
+
             loadFpImg();
             loadSelectProducts();
+            loadFeatureIconsSelect();
 
             limpiarTabla('tbl_producto_colores');
             cargarDatatables();
 
             events();
+
             loadMdlCategory({
                 categorySelect: window.categorySelect
             });
@@ -102,6 +104,8 @@
                 e.preventDefault();
                 actualizarProducto(e.target);
             })
+
+            btnAddFeature.addEventListener('click', addFeature);
         }
 
         function loadSelectProducts() {
@@ -111,86 +115,174 @@
             window.colorSelect = loadSimpleSelect('modelo', '<i class="fas fa-cubes text-primary"></i>');
         }
 
-        //===== PINTAR ERRORES AL CREAR COLOR =====
-        const pintarErroresColor = (errores_color) => {
-            let message = '';
-            errores_color.forEach((m, index) => {
-                message += m;
-                if (index < errores_color.length - 1) {
-                    message += '\n';
-                }
-            });
-            return message;
+        function loadFeatureIconsSelect() {
+            const simpleSelect = document.getElementById('icon');
+
+            if (simpleSelect && !simpleSelect.tomselect) {
+
+                const plugins = [];
+                plugins.push('clear_button');
+
+                const icons = [{
+                        id: 'fas fa-star',
+                        text: 'Estrella'
+                    },
+                    {
+                        id: 'fas fa-gem',
+                        text: 'Premium'
+                    },
+                    {
+                        id: 'fas fa-shield-alt',
+                        text: 'Protección'
+                    },
+                    {
+                        id: 'fas fa-award',
+                        text: 'Calidad'
+                    },
+                    {
+                        id: 'fas fa-heart',
+                        text: 'Favorito'
+                    },
+                    {
+                        id: 'fas fa-fire',
+                        text: 'Destacado'
+                    },
+                    {
+                        id: 'fas fa-bolt',
+                        text: 'Rápido'
+                    },
+                    {
+                        id: 'fas fa-leaf',
+                        text: 'Eco'
+                    },
+                    {
+                        id: 'fas fa-globe',
+                        text: 'Global'
+                    },
+                    {
+                        id: 'fas fa-thumbs-up',
+                        text: 'Recomendado'
+                    },
+
+                    {
+                        id: 'fas fa-lock',
+                        text: 'Seguro'
+                    },
+                    {
+                        id: 'fas fa-truck',
+                        text: 'Delivery'
+                    },
+                    {
+                        id: 'fas fa-box-open',
+                        text: 'Empaque'
+                    },
+                    {
+                        id: 'fas fa-sync-alt',
+                        text: 'Actualizado'
+                    },
+                    {
+                        id: 'fas fa-check-circle',
+                        text: 'Verificado'
+                    },
+                    {
+                        id: 'fas fa-clock',
+                        text: 'Rápido'
+                    },
+                    {
+                        id: 'fas fa-medal',
+                        text: 'Garantía'
+                    },
+                    {
+                        id: 'fas fa-crown',
+                        text: 'Exclusivo'
+                    },
+                    {
+                        id: 'fas fa-magic',
+                        text: 'Innovador'
+                    },
+                    {
+                        id: 'fas fa-smile',
+                        text: 'Cómodo'
+                    },
+
+                    {
+                        id: 'fas fa-shoe-prints',
+                        text: 'Calzado'
+                    },
+                    {
+                        id: 'fas fa-tshirt',
+                        text: 'Moda'
+                    },
+                    {
+                        id: 'fas fa-shopping-bag',
+                        text: 'Compra'
+                    },
+                    {
+                        id: 'fas fa-tags',
+                        text: 'Oferta'
+                    },
+                    {
+                        id: 'fas fa-percentage',
+                        text: 'Descuento'
+                    },
+                    {
+                        id: 'fas fa-hand-holding-heart',
+                        text: 'Confianza'
+                    },
+                    {
+                        id: 'fas fa-wrench',
+                        text: 'Resistente'
+                    },
+                    {
+                        id: 'fas fa-sun',
+                        text: 'Ligero'
+                    },
+                    {
+                        id: 'fas fa-moon',
+                        text: 'Elegante'
+                    },
+                    {
+                        id: 'fas fa-battery-full',
+                        text: 'Duradero'
+                    }
+                ];
+
+                window.iconSelect = new TomSelect(simpleSelect, {
+
+                    options: icons,
+
+                    valueField: 'id',
+                    labelField: 'text',
+                    searchField: ['text', 'id'],
+
+                    create: false,
+
+                    sortField: {
+                        field: 'text',
+                        direction: 'asc'
+                    },
+
+                    plugins: plugins,
+
+                    render: {
+
+                        option: (item, escape) => `
+                    <div class="d-flex align-items-center">
+                        <i class="${escape(item.id)} text-primary mr-2"></i>
+                        <span>${escape(item.text)}</span>
+                    </div>
+                `,
+
+                        item: (item, escape) => `
+                    <div class="d-flex align-items-center">
+                        <i class="${escape(item.id)} text-primary mr-2"></i>
+                        <span>${escape(item.text)}</span>
+                    </div>
+                `
+                    }
+                });
+            }
         }
-
-        //===== PINTAR ERRORES AL CREAR CATEGORÍA =====
-        const pintarErroresCategoria = (errores_marca) => {
-            let message = '';
-            errores_marca.forEach((m, index) => {
-                message += m;
-                if (index < errores_marca.length - 1) {
-                    message += '\n';
-                }
-            });
-            return message;
-        }
-
-        //===== PINTAR ERRORES AL CREAR MARCA =====
-        const pintarErroresMarca = (errores_marca) => {
-            let message = '';
-            errores_marca.forEach((m, index) => {
-                message += m;
-                if (index < errores_marca.length - 1) {
-                    message += '\n';
-                }
-            });
-            return message;
-        }
-
-        //===== PINTAR ERRORES AL CREAR MODELO =====
-        const pintarErroresModelo = (errores_modelo) => {
-            let message = '';
-            errores_modelo.forEach((m, index) => {
-                message += m;
-                if (index < errores_modelo.length - 1) {
-                    message += '\n';
-                }
-            });
-            return message;
-        }
-
-
-        //==== actualizar select de categorías ============
-        const updateSelectCategorias = (categorias_actualizadas) => {
-            let items = '<option></option>';
-            categorias_actualizadas.forEach((c) => {
-                const selected = "{{ old('categoria') == '" + c.id + "' ? 'selected' : '' }}";
-                items += `<option value="${c.id}" ${selected}>${c.descripcion}</option>`;
-            });
-            selectCategorias.innerHTML = items;
-        };
-
-        //====== actualizar select de marcas =========
-        const updateSelectMarcas = (marcas_actualizadas) => {
-            let items = '<option></option>';
-            marcas_actualizadas.forEach((m) => {
-                const selected = "{{ old('marca') == '" + m.id + "' ? 'selected' : '' }}";
-                items += `<option value="${m.id}" ${selected}>${m.marca}</option>`;
-            });
-            selectMarcas.innerHTML = items;
-        };
-
-
-        //========= actualizar select de modelos ===========
-        const updateSelectModelos = (modelos_actualizados) => {
-            let items = '<option></option>';
-            modelos_actualizados.forEach((m) => {
-                const selected = "{{ old('marca') == '" + m.id + "' ? 'selected' : '' }}";
-                items += `<option value="${m.id}" ${selected}>${m.descripcion}</option>`;
-            });
-            selectModelos.innerHTML = items;
-        };
-
 
         //============ guardar colores asignados ============
         const saveColorsAssigned = () => {
@@ -314,6 +406,7 @@
                         const formData = new FormData(formActualizarProducto);
 
                         formData.append('coloresJSON', JSON.stringify(coloresAsignados));
+                        formData.append('features', JSON.stringify(features));
 
                         let urlUpdateProducto = `{{ route('almacenes.producto.update', ['id' => ':id']) }}`;
                         urlUpdateProducto = urlUpdateProducto.replace(':id', producto_id);
@@ -467,6 +560,262 @@
 
                 ponds.push(pond);
             });
+        }
+
+        // ======================================
+        // AGREGAR FEATURE
+        // ======================================
+        function addFeature() {
+            toastr.clear();
+            const featureItem = document.querySelector('.feature-item');
+
+            // INPUTS
+            const titleInput = featureItem.querySelector('input[name*="[title]"]');
+            const descriptionInput = featureItem.querySelector('input[name*="[description]"]');
+
+            // VALUES
+            const title = titleInput.value.trim();
+
+            const icon = window.iconSelect ?
+                window.iconSelect.getValue() :
+                '';
+
+            const description = descriptionInput.value.trim();
+
+            // VALIDAR TITULO
+            if (!title) {
+                toastr.error('Ingrea un título');
+                return;
+            }
+
+            // VALIDAR REPETIDOS
+            const exists = features.some(feature =>
+                feature.title.trim().toLowerCase() === title.toLowerCase()
+            );
+
+            if (exists) {
+                toastr.error('Ya existe una característica con ese título');
+                return;
+            }
+
+            // OBJETO
+            const feature = {
+                id: Date.now(),
+                title,
+                icon,
+                description,
+                sort_order: features.length + 1
+            };
+
+            // AGREGAR
+            features.push(feature);
+
+            // PINTAR
+            paintTblFeatures();
+
+            // LIMPIAR
+            clearFeatureInputs();
+        }
+
+
+        // ======================================
+        // PINTAR TABLA
+        // ======================================
+        function paintTblFeatures() {
+
+            // ACTUALIZAR ORDEN
+            updateSortOrder();
+
+            let html = '';
+
+            // TABLA VACIA
+            if (features.length === 0) {
+
+                html = `
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">
+                            No hay características registradas
+                        </td>
+                    </tr>
+                `;
+
+            } else {
+
+                features.forEach((feature, index) => {
+
+                    html += `
+                <tr>
+
+                    <!-- ACCION -->
+                    <td class="text-center align-middle">
+
+                        <div class="btn-group">
+
+                            <!-- SUBIR -->
+                            <button
+                                type="button"
+                                class="btn btn-info btn-sm"
+                                onclick="moveFeatureUp(${index})"
+                                ${index === 0 ? 'disabled' : ''}
+                            >
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+
+                            <!-- BAJAR -->
+                            <button
+                                type="button"
+                                class="btn btn-secondary btn-sm"
+                                onclick="moveFeatureDown(${index})"
+                                ${index === features.length - 1 ? 'disabled' : ''}
+                            >
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+
+                            <!-- ELIMINAR -->
+                            <button
+                                type="button"
+                                class="btn btn-danger btn-sm"
+                                onclick="removeFeature(${feature.id})"
+                            >
+                                <i class="fas fa-trash"></i>
+                            </button>
+
+                        </div>
+
+                    </td>
+
+                    <!-- TITULO -->
+                    <td class="text-center align-middle">
+                        ${feature.title}
+                    </td>
+
+                    <!-- ICONO -->
+                    <td class="text-center align-middle">
+
+                        ${
+                            feature.icon
+                                ? `<i class="${feature.icon}"></i>`
+                                : '-'
+                        }
+
+                    </td>
+
+                    <!-- DESCRIPCION -->
+                    <td class="text-center align-middle">
+                        ${feature.description || '-'}
+                    </td>
+
+                </tr>
+            `;
+                });
+            }
+
+            // PINTAR
+            tbodyFeatures.innerHTML = html;
+
+        }
+
+
+        // ======================================
+        // ACTUALIZAR SORT ORDER
+        // ======================================
+        function updateSortOrder() {
+
+            features.forEach((feature, index) => {
+                feature.sort_order = index + 1;
+            });
+        }
+
+
+        // ======================================
+        // SUBIR
+        // ======================================
+        function moveFeatureUp(index) {
+
+            if (index === 0) return;
+
+            [features[index - 1], features[index]] = [features[index], features[index - 1]];
+
+            paintTblFeatures();
+        }
+
+
+        // ======================================
+        // BAJAR
+        // ======================================
+        function moveFeatureDown(index) {
+
+            if (index === features.length - 1) return;
+
+            [features[index + 1], features[index]] = [features[index], features[index + 1]];
+
+            paintTblFeatures();
+        }
+
+
+        // ======================================
+        // ELIMINAR
+        // ======================================
+        function removeFeature(id) {
+
+            features = features.filter(feature => feature.id !== id);
+
+            paintTblFeatures();
+        }
+
+        // ======================================
+        // LIMPIAR INPUTS
+        // ======================================
+        function clearFeatureInputs() {
+
+            const featureItem = document.querySelector('.feature-item');
+
+            // TITLE
+            featureItem.querySelector('input[name*="[title]"]').value = '';
+
+            // DESCRIPTION
+            featureItem.querySelector('input[name*="[description]"]').value = '';
+
+            // TOMSELECT
+            if (window.iconSelect) {
+                window.iconSelect.clear();
+            }
+        }
+
+
+        // ======================================
+        // SET FEATURES PREVIEW
+        // ======================================
+        function setFeaturesPreview(productFeatures = []) {
+
+            // VALIDAR ARRAY
+            if (!Array.isArray(productFeatures)) {
+                features = [];
+                paintTblFeatures();
+                return;
+            }
+
+            // MAPEAR DATA
+            features = productFeatures.map(feature => ({
+
+                id: feature.id,
+
+                title: feature.title,
+
+                icon: feature.icon,
+
+                description: feature.description,
+
+                sort_order: feature.sort_order ?? 0,
+
+                status: feature.status ?? 1,
+            }));
+
+            // ORDENAR
+            features.sort((a, b) => a.sort_order - b.sort_order);
+
+            // PINTAR
+            paintTblFeatures();
         }
     </script>
 @endpush

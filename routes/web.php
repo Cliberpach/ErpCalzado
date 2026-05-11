@@ -686,6 +686,7 @@ require __DIR__ . '/cajas/web.php';
 require __DIR__ . '/almacenes/web.php';
 require __DIR__ . '/dashboard/web.php';
 require __DIR__ . '/seguridad/web.php';
+require __DIR__ . '/utils/web.php';
 
 Route::get('ventas/documentos/comprobante/{id}/{size}', 'Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');
 Route::get('ventas/documentos/xml/{id}', 'Ventas\DocumentoController@xml')->name('ventas.documento.xml');
@@ -718,17 +719,6 @@ Route::post('/liberar_colaborador', 'Pos\CajaController@retirarColaborades')->na
 Route::get('/get-colaborades/{id}', 'Pos\CajaController@getColaborades')->name('Caja.getColaborades');
 Route::get('/get-producto-by-modelo/{modelo_id}', 'Almacenes\ProductoController@getProductosByModelo'); //VENTAS-NOTA SALIDA
 Route::get('/get-stocklogico/{almacen_id}/{producto_id}/{color_id}/{talla_id}', 'Almacenes\ProductoController@getStockLogico');
-
-Route::prefix('utilidades')->group(function () {
-    Route::get('consultarDocumento', 'UtilidadesController@consultarDocumento')->name('utilidades.consultarDocumento');
-    Route::get('getClientes', 'Ventas\ClienteController@getClientes')->name('utilidades.getClientes');
-    Route::get('getProductosTodos', 'Almacenes\ProductoController@getProductosTodos')->name('utilidades.getProductosTodos');
-    Route::get('getProductosConStock', 'Almacenes\ProductoController@getProductosConStock')->name('utilidades.getProductosConStock');
-    Route::get('getColoresTalla/{almacen_id}/{producto_id}', 'Almacenes\ProductoController@getColoresTalla')->name('utilidades.getColoresTalla');
-    Route::get('validarCantidad', 'UtilidadesController@validarCantidad')->name('utilidades.validarCantidad');
-    Route::get('get-cuentas-metodo/{metodo_pago}', 'UtilidadesController@getCuentasPorMetodoPago')->name('utilidades.getCuentasPorMetodoPago');
-});
-
 
 Route::group(['prefix' => 'consultas'], function () {
     Route::get('/comprobante', [QuerySaleController::class, 'index'])->name('consultarComprobante');

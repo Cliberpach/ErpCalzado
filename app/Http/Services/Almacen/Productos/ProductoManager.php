@@ -20,7 +20,6 @@ class ProductoManager
         return $this->s_producto->store($data);
     }
 
-
     public function update(array $data, int $id): Producto
     {
         return $this->s_producto->update($data, $id);
