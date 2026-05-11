@@ -1,34 +1,29 @@
 @extends('layout')
-@section('content')
 
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
+@section('hero-state', 'd-none')
 
-@csrf
+@section('content')
+    @csrf
 
-<ventas-app
-:lst_modos_pago="{{ json_encode($modos_pago) }}"
-:v_sede = "{{json_encode($sede)}}"
-:registrador = "{{json_encode($registrador)}}"
-:lst_almacenes="{{ json_encode($almacenes) }}"
-:lst_departamentos_base="{{ json_encode($departamentos) }}"
-:lst_provincias_base="{{ json_encode($provincias) }}"
-:lst_distritos_base="{{ json_encode($distritos) }}"
-:imginicial="'{{ asset('img/default.png') }}'"
-:lst_condiciones="{{ json_encode($condiciones) }}"
-:lst_modos_pago="{{ json_encode($modos_pago) }}">
-</ventas-app>
+    <ventas-app :lst_modos_pago="{{ json_encode($modos_pago) }}" :v_sede="{{ json_encode($sede) }}"
+        :registrador="{{ json_encode($registrador) }}" :lst_almacenes="{{ json_encode($almacenes) }}"
+        :lst_departamentos_base="{{ json_encode($departamentos) }}" :lst_provincias_base="{{ json_encode($provincias) }}"
+        :lst_distritos_base="{{ json_encode($distritos) }}" :imginicial="'{{ asset('img/default.png') }}'"
+        :lst_condiciones="{{ json_encode($condiciones) }}" :lst_modos_pago="{{ json_encode($modos_pago) }}">
+    </ventas-app>
+@endsection
 
-@stop
 @push('styles')
-<style>
-    .letrapequeña {
-        font-size: 11px;
-    }
-</style>
-<link rel="stylesheet" href="/css/appPages.css">
+    <style>
+        .letrapequeña {
+            font-size: 11px;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/appPages.css">
 @endpush
 
 @push('scripts-vue-js')
-<script src="{{'/js/appPages.js?v='.rand() }}"></script>
+    <script src="{{ '/js/appPages.js?v=' . rand() }}"></script>
 @endpush
