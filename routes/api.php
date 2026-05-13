@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Almacenes\Producto\ProductoController;
 use App\Http\Controllers\Api\Almacenes\Color\ColorController;
 use App\Http\Controllers\Api\Almacenes\Talla\TallaController;
 use App\Http\Controllers\Api\Company\CompanyController;
+use App\Http\Controllers\Api\Promotions\PromotionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,5 +49,5 @@ Route::prefix('company')->group(function () {
 });
 
 Route::prefix('promotions')->group(function () {
-    Route::get('/get-promotions', [CompanyController::class, 'getPromotions']);
+    Route::get('/get-promotions', [PromotionController::class, 'getPromotions']);
 });
