@@ -46,3 +46,7 @@ Route::prefix('tallas')->group(function () {
 Route::prefix('company')->group(function () {
     Route::get('/get-company-locations', [CompanyController::class, 'getCompanyLocations']);
 });
+
+Route::prefix('promotions')->group(function () {
+    Route::get('/get-promotions', [CompanyController::class, 'getPromotions']);
+});
