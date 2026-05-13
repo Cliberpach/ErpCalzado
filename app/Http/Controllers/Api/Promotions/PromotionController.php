@@ -32,7 +32,7 @@ class PromotionController extends Controller
                 ->where('pp.estado', 1)
                 ->whereIn('pp.promocion_id', $promotionsIds)
                 ->select(
-                    'pp.id as promotion_id',
+                    'pp.promocion_id as promotion_id',
                     'p.nombre as producto_nombre',
                     'ca.descripcion as categoria_nombre',
                     'mo.descripcion as modelo_nombre',
