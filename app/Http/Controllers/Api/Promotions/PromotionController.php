@@ -41,7 +41,7 @@ class PromotionController extends Controller
             $baseUrl = url('storage/');
 
             // =========================
-            // QUERY BASE (PRODUCTO NIVEL)
+            // QUERY BASE (PRODUCTOS)
             // =========================
             $query = PromocionProducto::from('promociones_productos as pp')
                 ->join('promociones as pr', 'pr.id', '=', 'pp.promocion_id')
@@ -49,36 +49,17 @@ class PromotionController extends Controller
                 ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
                 ->join('modelos as mo', 'mo.id', '=', 'p.modelo_id')
                 ->join('marcas as ma', 'ma.id', '=', 'p.marca_id')
-
-                // solo para validar stock (NO para select final)
                 ->join('producto_color_tallas as pct', 'pct.producto_id', '=', 'p.id')
-
                 ->where('pct.stock', '>', 0)
                 ->where('pct.stock_logico', '>', 0)
                 ->where('pct.almacen_id', 1)
-
                 ->where('p.estado', 'ACTIVO')
                 ->where('pp.estado', 1)
                 ->whereIn('pp.promocion_id', $promotionsIds)
-
-                ->distinct()
-
-                ->select(
-                    'p.id as producto_id',
-                    'p.nombre as producto_nombre',
-                    'ca.descripcion as categoria_nombre',
-                    'mo.descripcion as modelo_nombre',
-                    'ma.marca as marca_nombre',
-                    'p.precio_venta_1',
-                    'p.img1_ruta',
-                    'p.img2_ruta',
-                    'p.img3_ruta',
-                    'p.img4_ruta',
-                    'p.img5_ruta'
-                );
+                ->distinct();
 
             // =========================
-            // FILTROS
+            // FILTROS (PRODUCTOS)
             // =========================
 
             if ($promoFilter && strtoupper($promoFilter) !== 'TODOS') {
@@ -101,7 +82,6 @@ class PromotionController extends Controller
                 });
             }
 
-            // filtros EXISTS (AMAZON STYLE)
             if (!empty($sizeFilter)) {
                 $query->whereExists(function ($q) use ($sizeFilter) {
                     $q->select(DB::raw(1))
@@ -128,43 +108,77 @@ class PromotionController extends Controller
             $total = (clone $query)->count();
 
             // =========================
-            // PRODUCTS
+            // PRODUCTS (SIN DUPLICAR VARIANTS)
             // =========================
-            $products = $query
+            $products = (clone $query)
+                ->select(
+                    'p.id',
+                    'p.nombre',
+                    'ca.descripcion as category',
+                    'mo.descripcion as model',
+                    'ma.marca as brand',
+                    'p.precio_venta_1',
+                    'p.img1_ruta',
+                    'p.img2_ruta',
+                    'p.img3_ruta',
+                    'p.img4_ruta',
+                    'p.img5_ruta'
+                )
+                ->groupBy(
+                    'p.id',
+                    'p.nombre',
+                    'ca.descripcion',
+                    'mo.descripcion',
+                    'ma.marca',
+                    'p.precio_venta_1',
+                    'p.img1_ruta',
+                    'p.img2_ruta',
+                    'p.img3_ruta',
+                    'p.img4_ruta',
+                    'p.img5_ruta'
+                )
                 ->orderBy('p.id', 'desc')
                 ->skip($offset)
                 ->take($limit)
+                ->get();
+
+            // =========================
+            // VARIANTS (AMAZON STYLE)
+            // =========================
+            $variants = (clone $query)
+                ->select(
+                    'p.id as product_id',
+                    'pct.id as variant_id',
+                    't.descripcion as size',
+                    'co.descripcion as color',
+                    'pct.stock'
+                )
                 ->get()
-                ->map(function ($p) use ($baseUrl) {
+                ->groupBy('product_id');
 
-                    return [
-                        'id' => $p->producto_id,
-                        'name' => $p->producto_nombre,
-                        'category' => $p->categoria_nombre,
-                        'model' => $p->modelo_nombre,
-                        'brand' => $p->marca_nombre,
-                        'price' => $p->precio_venta_1,
-
-                        'images' => collect([
-                            $p->img1_ruta,
-                            $p->img2_ruta,
-                            $p->img3_ruta,
-                            $p->img4_ruta,
-                            $p->img5_ruta
-                        ])
-                            ->filter()
-                            ->map(
-                                fn($img) =>
-                                $baseUrl . '/' . str_replace('storage/', '', $img)
-                            )
-                            ->values()
-                    ];
-                });
+            // attach variants to products
+            $products = $products->map(function ($p) use ($variants, $baseUrl) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->nombre,
+                    'category' => $p->category,
+                    'model' => $p->model,
+                    'brand' => $p->brand,
+                    'price' => $p->precio_venta_1,
+                    'images' => array_values(array_filter([
+                        $p->img1_ruta ? $baseUrl . '/' . str_replace('storage/', '', $p->img1_ruta) : null,
+                        $p->img2_ruta ? $baseUrl . '/' . str_replace('storage/', '', $p->img2_ruta) : null,
+                        $p->img3_ruta ? $baseUrl . '/' . str_replace('storage/', '', $p->img3_ruta) : null,
+                        $p->img4_ruta ? $baseUrl . '/' . str_replace('storage/', '', $p->img4_ruta) : null,
+                        $p->img5_ruta ? $baseUrl . '/' . str_replace('storage/', '', $p->img5_ruta) : null,
+                    ])),
+                    'variants' => $variants[$p->id] ?? []
+                ];
+            });
 
             // =========================
-            // FILTROS DINAMICOS (AMAZON STYLE)
+            // FILTERS (DINÁMICOS)
             // =========================
-
             $filtersQuery = clone $query;
 
             $categories = (clone $filtersQuery)
@@ -178,21 +192,20 @@ class PromotionController extends Controller
                 ->pluck('ma.marca');
 
             $sizes = (clone $filtersQuery)
-                ->join('producto_color_tallas as pct', 'pct.producto_id', '=', 'p.id')
-                ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+                ->join('producto_color_tallas as pct2', 'pct2.producto_id', '=', 'p.id')
+                ->join('tallas as t', 't.id', '=', 'pct2.talla_id')
                 ->distinct()
                 ->pluck('t.descripcion');
 
             $colors = (clone $filtersQuery)
-                ->join('producto_color_tallas as pct', 'pct.producto_id', '=', 'p.id')
-                ->join('colores as co', 'co.id', '=', 'pct.color_id')
+                ->join('producto_color_tallas as pct3', 'pct3.producto_id', '=', 'p.id')
+                ->join('colores as co', 'co.id', '=', 'pct3.color_id')
                 ->distinct()
                 ->pluck('co.descripcion');
 
             // =========================
             // RESPONSE
             // =========================
-
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -213,7 +226,6 @@ class PromotionController extends Controller
                 ]
             ]);
         } catch (Throwable $th) {
-
             return response()->json([
                 'success' => false,
                 'message' => $th->getMessage()
