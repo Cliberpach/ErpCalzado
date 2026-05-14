@@ -53,6 +53,7 @@ class PromotionController extends Controller
             if ($promoFilter) {
                 $query->where('pr.nombre', $promoFilter);
             }
+            dd($promoFilter);
 
             $total = $query->count();
 
