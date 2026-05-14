@@ -21,7 +21,9 @@ class PromotionController extends Controller
             $promoFilter     = $request->get('promo');
             $categoryFilter  = $request->get('categoria');
             $searchFilter    = $request->get('search');
-            $sizeFilter      = $request->get('talla'); // 👈 nuevo
+            $sizeFilter      = $request->get('talla');
+            $colorFilter     = $request->get('color');   // 👈 nuevo
+            $brandFilter     = $request->get('marca');   // 👈 nuevo
 
             // PROMOCIONES ACTIVAS
             $promotions = Promocion::where('estado', 'ACTIVO')
@@ -37,17 +39,32 @@ class PromotionController extends Controller
 
             // QUERY BASE
             $query = PromocionProducto::from('promociones_productos as pp')
+
                 ->join('promociones as pr', 'pr.id', '=', 'pp.promocion_id')
+
                 ->join('productos as p', 'p.id', '=', 'pp.producto_id')
+
                 ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
+
                 ->join('modelos as mo', 'mo.id', '=', 'p.modelo_id')
+
+                ->join('marcas as ma', 'ma.id', '=', 'p.marca_id')
+
                 ->join('producto_color_tallas as pct', 'pct.producto_id', '=', 'p.id')
+
                 ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+
+                ->join('colores as co', 'co.id', '=', 'pct.color_id')
+
                 ->where('pct.stock', '>', 0)
                 ->where('pct.stock_logico', '>', 0)
+                ->where('pct.almacen_id', 1)
+
                 ->where('p.estado', 'ACTIVO')
                 ->where('pp.estado', 1)
+
                 ->whereIn('pp.promocion_id', $promotionsIds)
+
                 ->select(
                     'pp.promocion_id as promotion_id',
                     'pr.nombre as promotion_nombre',
@@ -55,6 +72,9 @@ class PromotionController extends Controller
                     'p.nombre as producto_nombre',
                     'ca.descripcion as categoria_nombre',
                     'mo.descripcion as modelo_nombre',
+                    'ma.descripcion as marca_nombre',
+                    'co.descripcion as color_nombre',
+                    't.descripcion as talla_nombre',
                     'p.precio_venta_1',
                     'p.img1_ruta',
                     'p.img2_ruta',
@@ -66,36 +86,30 @@ class PromotionController extends Controller
 
             /*
         |--------------------------------------------------------------------------
-        | FILTRO PROMOCION
+        | FILTROS
         |--------------------------------------------------------------------------
         */
+
             if ($promoFilter && strtoupper($promoFilter) !== 'TODOS') {
                 $query->where('pr.nombre', $promoFilter);
             }
 
-            /*
-        |--------------------------------------------------------------------------
-        | FILTRO CATEGORIA
-        |--------------------------------------------------------------------------
-        */
             if ($categoryFilter) {
                 $query->where('ca.descripcion', $categoryFilter);
             }
 
-            /*
-        |--------------------------------------------------------------------------
-        | FILTRO TALLA 👈 NUEVO
-        |--------------------------------------------------------------------------
-        */
             if ($sizeFilter) {
                 $query->where('t.descripcion', $sizeFilter);
             }
 
-            /*
-        |--------------------------------------------------------------------------
-        | BUSCADOR
-        |--------------------------------------------------------------------------
-        */
+            if ($colorFilter) {
+                $query->where('co.descripcion', $colorFilter);
+            }
+
+            if ($brandFilter) {
+                $query->where('ma.descripcion', $brandFilter);
+            }
+
             if ($searchFilter) {
                 $query->where(function ($q) use ($searchFilter) {
                     $q->where('p.nombre', 'LIKE', "%{$searchFilter}%")
@@ -106,7 +120,7 @@ class PromotionController extends Controller
 
             /*
         |--------------------------------------------------------------------------
-        | CLONAR QUERY PARA FILTROS DINAMICOS
+        | CLON PARA FILTROS DINAMICOS
         |--------------------------------------------------------------------------
         */
             $filtersQuery = clone $query;
@@ -137,6 +151,9 @@ class PromotionController extends Controller
                         'producto_nombre'  => $p->producto_nombre,
                         'categoria_nombre' => $p->categoria_nombre,
                         'modelo_nombre'    => $p->modelo_nombre,
+                        'marca_nombre'     => $p->marca_nombre,
+                        'color_nombre'     => $p->color_nombre,
+                        'talla_nombre'     => $p->talla_nombre,
                         'precio_venta_1'   => $p->precio_venta_1,
 
                         'imagenes' => collect([
@@ -174,6 +191,20 @@ class PromotionController extends Controller
                 ->pluck('t.descripcion')
                 ->values();
 
+            $colors = (clone $filtersQuery)
+                ->select('co.descripcion')
+                ->distinct()
+                ->orderBy('co.descripcion')
+                ->pluck('co.descripcion')
+                ->values();
+
+            $brands = (clone $filtersQuery)
+                ->select('ma.descripcion')
+                ->distinct()
+                ->orderBy('ma.descripcion')
+                ->pluck('ma.descripcion')
+                ->values();
+
             /*
         |--------------------------------------------------------------------------
         | RESPONSE
@@ -190,6 +221,8 @@ class PromotionController extends Controller
                     'filters' => [
                         'categories' => $categories,
                         'sizes'      => $sizes,
+                        'colors'     => $colors,
+                        'brands'     => $brands,
                     ],
 
                     'meta' => [
