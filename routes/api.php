@@ -51,4 +51,5 @@ Route::prefix('company')->group(function () {
 
 Route::prefix('promotions')->group(function () {
     Route::get('/get-promotions', [PromotionController::class, 'getPromotions']);
+    Route::get('/get-home-promotions', [PromotionController::class, 'getHomePromotions']);
 });

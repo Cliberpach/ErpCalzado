@@ -11,6 +11,88 @@ use Throwable;
 
 class PromotionController extends Controller
 {
+    public function getHomePromotions()
+    {
+        try {
+            $today   = now()->toDateString();
+            $baseUrl = url('storage/');
+
+            $promotions = DB::table('promociones as pr')
+                ->where('pr.estado', 'ACTIVO')
+                ->where(function ($q) use ($today) {
+                    $q->whereNull('pr.fecha_inicio')
+                      ->orWhere('pr.fecha_inicio', '<=', $today);
+                })
+                ->where(function ($q) use ($today) {
+                    $q->whereNull('pr.fecha_fin')
+                      ->orWhere('pr.fecha_fin', '>=', $today);
+                })
+                ->orderBy('pr.fecha_fin', 'asc')
+                ->limit(4)
+                ->select(
+                    'pr.id',
+                    'pr.nombre',
+                    'pr.descripcion',
+                    'pr.tipo_promocion',
+                    'pr.valor',
+                    'pr.cantidad_minima',
+                    'pr.fecha_fin'
+                )
+                ->get();
+
+            $ids = $promotions->pluck('id');
+
+            // Total de productos por promoción
+            $counts = DB::table('promociones_productos')
+                ->whereIn('promocion_id', $ids)
+                ->where('estado', 1)
+                ->select('promocion_id', DB::raw('COUNT(*) as total'))
+                ->groupBy('promocion_id')
+                ->get()
+                ->keyBy('promocion_id');
+
+            // Primera imagen de producto por promoción
+            $images = DB::table('promociones_productos as pp')
+                ->join('productos as p', 'p.id', '=', 'pp.producto_id')
+                ->whereIn('pp.promocion_id', $ids)
+                ->where('pp.estado', 1)
+                ->whereNotNull('p.img1_ruta')
+                ->orderBy('pp.promocion_id')
+                ->orderBy('pp.id')
+                ->select('pp.promocion_id', 'p.img1_ruta')
+                ->get()
+                ->unique('promocion_id')
+                ->keyBy('promocion_id');
+
+            $data = $promotions->map(function ($promo) use ($counts, $images, $baseUrl) {
+                $img  = isset($images[$promo->id]) ? $images[$promo->id]->img1_ruta : null;
+                $ruta = $img ? $baseUrl . '/' . str_replace('storage/', '', $img) : null;
+
+                return [
+                    'id'              => $promo->id,
+                    'nombre'          => $promo->nombre,
+                    'descripcion'     => $promo->descripcion,
+                    'tipo_promocion'  => $promo->tipo_promocion,
+                    'valor'           => floatval($promo->valor),
+                    'cantidad_minima' => (int) $promo->cantidad_minima,
+                    'fecha_fin'       => $promo->fecha_fin,
+                    'total_productos' => isset($counts[$promo->id]) ? (int) $counts[$promo->id]->total : 0,
+                    'imagen'          => $ruta,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data'    => $data,
+            ]);
+        } catch (Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
     public function getPromotions(Request $request)
     {
         try {
