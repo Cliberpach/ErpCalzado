@@ -107,7 +107,7 @@ class PromotionController extends Controller
             }
 
             if ($brandFilter) {
-                $query->where('ma.descripcion', $brandFilter);
+                $query->where('ma.marca', $brandFilter);
             }
 
             if ($searchFilter) {
@@ -199,10 +199,10 @@ class PromotionController extends Controller
                 ->values();
 
             $brands = (clone $filtersQuery)
-                ->select('ma.descripcion')
+                ->select('ma.marca')
                 ->distinct()
-                ->orderBy('ma.descripcion')
-                ->pluck('ma.descripcion')
+                ->orderBy('ma.marca')
+                ->pluck('ma.marca')
                 ->values();
 
             /*
