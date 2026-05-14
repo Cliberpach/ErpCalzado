@@ -148,7 +148,7 @@ class PromotionController extends Controller
             $variants = (clone $query)
                 ->select(
                     'p.id as product_id',
-                    'pct.id as variant_id',
+                    DB::raw("CONCAT(p.id, '-', pct.talla_id, '-', pct.color_id) as variant_id"),
                     't.descripcion as size',
                     'co.descripcion as color',
                     'pct.stock'
