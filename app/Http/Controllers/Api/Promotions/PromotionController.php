@@ -72,7 +72,7 @@ class PromotionController extends Controller
                     'p.nombre as producto_nombre',
                     'ca.descripcion as categoria_nombre',
                     'mo.descripcion as modelo_nombre',
-                    'ma.descripcion as marca_nombre',
+                    'ma.marca as marca_nombre',
                     'co.descripcion as color_nombre',
                     't.descripcion as talla_nombre',
                     'p.precio_venta_1',
