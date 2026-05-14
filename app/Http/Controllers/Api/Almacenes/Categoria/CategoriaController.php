@@ -4,22 +4,23 @@ namespace App\Http\Controllers\Api\Almacenes\Categoria;
 
 use App\Almacenes\Categoria;
 use App\Http\Controllers\Controller;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
-use Yajra\DataTables\DataTables;
-use Illuminate\Validation\Rule;
 use Throwable;
 
 class CategoriaController extends Controller
 {
-
     public function getAll()
     {
         try {
 
-            $categorias = Categoria::where('estado', 'ACTIVO')
+            $categorias = Categoria::select(
+                'id',
+                'descripcion',
+                'estado',
+                'tipo',
+                'img_nombre',
+                'img_ruta'
+            )
+                ->where('estado', 'ACTIVO')
                 ->where('tipo', 'CATEGORIA')
                 ->get()
                 ->map(function ($categoria) {
@@ -42,14 +43,15 @@ class CategoriaController extends Controller
                 'success' => true,
                 'message' => 'CATEGORÍAS OBTENIDAS',
                 'data' => $categorias
-            ]);
+            ], 200);
         } catch (Throwable $th) {
+
+            Log::error($th);
 
             return response()->json([
                 'success' => false,
-                'message' => $th->getMessage(),
-                'code' => $th->getCode()
-            ]);
+                'message' => 'Error interno del servidor'
+            ], 500);
         }
     }
 }
