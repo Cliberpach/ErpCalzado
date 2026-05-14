@@ -17,6 +17,7 @@ class PromotionController extends Controller
             $limit = $request->get('limit', 10);
             $offset = $request->get('offset', 0);
             $promoFilter = $request->get('promo');
+                        dd($promoFilter);
 
             $promotions = Promocion::where('estado', 'ACTIVO')
                 ->where('fecha_inicio', '<=', now()->toDateString())
@@ -53,7 +54,6 @@ class PromotionController extends Controller
             if ($promoFilter) {
                 $query->where('pr.nombre', $promoFilter);
             }
-            dd($promoFilter);
 
             $total = $query->count();
 
