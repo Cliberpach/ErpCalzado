@@ -30,7 +30,7 @@ class PromotionController extends Controller
             $baseUrl = url('storage/');
 
             $query = PromocionProducto::from('promociones_productos as pp')
-                ->join('promociones as pr','pr.id','pp.promocion_id')
+                ->join('promociones as pr', 'pr.id', 'pp.promocion_id')
                 ->join('productos as p', 'p.id', 'pp.producto_id')
                 ->join('categorias as ca', 'ca.id', 'p.categoria_id')
                 ->join('modelos as mo', 'mo.id', 'p.modelo_id')
@@ -50,7 +50,7 @@ class PromotionController extends Controller
                     'p.img5_ruta'
                 );
 
-            if ($promoFilter) {
+            if ($promoFilter && $promoFilter != 'TODOS') {
                 $query->where('pr.nombre', $promoFilter);
             }
 
