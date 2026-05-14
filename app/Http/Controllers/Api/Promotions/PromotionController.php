@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Mantenimiento\Promocion\Promocion;
 use App\Models\Mantenimiento\Promocion\PromocionProducto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class PromotionController extends Controller
@@ -17,15 +18,17 @@ class PromotionController extends Controller
             $limit  = $request->get('limit', 12);
             $offset = $request->get('offset', 0);
 
-            // FILTROS
-            $promoFilter     = $request->get('promo');
-            $categoryFilter  = $request->get('categoria');
-            $searchFilter    = $request->get('search');
-            $sizeFilter      = $request->get('talla');
-            $colorFilter     = $request->get('color');   // 👈 nuevo
-            $brandFilter     = $request->get('marca');   // 👈 nuevo
+            // filtros
+            $filters = $request->get('filters', []);
 
-            // PROMOCIONES ACTIVAS
+            $promoFilter    = $filters['promo'] ?? null;
+            $categoryFilter = $filters['categories'] ?? [];
+            $searchFilter   = $filters['search'] ?? null;
+            $sizeFilter     = $filters['sizes'] ?? [];
+            $colorFilter    = $filters['colors'] ?? [];
+            $brandFilter    = $filters['brands'] ?? [];
+
+            // promociones activas
             $promotions = Promocion::where('estado', 'ACTIVO')
                 ->where('fecha_inicio', '<=', now()->toDateString())
                 ->where('fecha_fin', '>=', now()->toDateString())
@@ -37,24 +40,18 @@ class PromotionController extends Controller
 
             $baseUrl = url('storage/');
 
-            // QUERY BASE
+            // =========================
+            // QUERY BASE (PRODUCTO NIVEL)
+            // =========================
             $query = PromocionProducto::from('promociones_productos as pp')
-
                 ->join('promociones as pr', 'pr.id', '=', 'pp.promocion_id')
-
                 ->join('productos as p', 'p.id', '=', 'pp.producto_id')
-
                 ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
-
                 ->join('modelos as mo', 'mo.id', '=', 'p.modelo_id')
-
                 ->join('marcas as ma', 'ma.id', '=', 'p.marca_id')
 
+                // solo para validar stock (NO para select final)
                 ->join('producto_color_tallas as pct', 'pct.producto_id', '=', 'p.id')
-
-                ->join('tallas as t', 't.id', '=', 'pct.talla_id')
-
-                ->join('colores as co', 'co.id', '=', 'pct.color_id')
 
                 ->where('pct.stock', '>', 0)
                 ->where('pct.stock_logico', '>', 0)
@@ -62,52 +59,38 @@ class PromotionController extends Controller
 
                 ->where('p.estado', 'ACTIVO')
                 ->where('pp.estado', 1)
-
                 ->whereIn('pp.promocion_id', $promotionsIds)
 
+                ->distinct()
+
                 ->select(
-                    'pp.promocion_id as promotion_id',
-                    'pr.nombre as promotion_nombre',
                     'p.id as producto_id',
                     'p.nombre as producto_nombre',
                     'ca.descripcion as categoria_nombre',
                     'mo.descripcion as modelo_nombre',
                     'ma.marca as marca_nombre',
-                    'co.descripcion as color_nombre',
-                    't.descripcion as talla_nombre',
                     'p.precio_venta_1',
                     'p.img1_ruta',
                     'p.img2_ruta',
                     'p.img3_ruta',
                     'p.img4_ruta',
                     'p.img5_ruta'
-                )
-                ->distinct();
+                );
 
-            /*
-        |--------------------------------------------------------------------------
-        | FILTROS
-        |--------------------------------------------------------------------------
-        */
+            // =========================
+            // FILTROS
+            // =========================
 
             if ($promoFilter && strtoupper($promoFilter) !== 'TODOS') {
                 $query->where('pr.nombre', $promoFilter);
             }
 
-            if ($categoryFilter) {
-                $query->where('ca.descripcion', $categoryFilter);
+            if (!empty($categoryFilter)) {
+                $query->whereIn('ca.descripcion', (array) $categoryFilter);
             }
 
-            if ($sizeFilter) {
-                $query->where('t.descripcion', $sizeFilter);
-            }
-
-            if ($colorFilter) {
-                $query->where('co.descripcion', $colorFilter);
-            }
-
-            if ($brandFilter) {
-                $query->where('ma.marca', $brandFilter);
+            if (!empty($brandFilter)) {
+                $query->whereIn('ma.marca', (array) $brandFilter);
             }
 
             if ($searchFilter) {
@@ -118,25 +101,35 @@ class PromotionController extends Controller
                 });
             }
 
-            /*
-        |--------------------------------------------------------------------------
-        | CLON PARA FILTROS DINAMICOS
-        |--------------------------------------------------------------------------
-        */
-            $filtersQuery = clone $query;
+            // filtros EXISTS (AMAZON STYLE)
+            if (!empty($sizeFilter)) {
+                $query->whereExists(function ($q) use ($sizeFilter) {
+                    $q->select(DB::raw(1))
+                        ->from('producto_color_tallas as pct2')
+                        ->join('tallas as t', 't.id', '=', 'pct2.talla_id')
+                        ->whereColumn('pct2.producto_id', 'p.id')
+                        ->whereIn('t.descripcion', (array) $sizeFilter);
+                });
+            }
 
-            /*
-        |--------------------------------------------------------------------------
-        | TOTAL
-        |--------------------------------------------------------------------------
-        */
-            $total = $query->count();
+            if (!empty($colorFilter)) {
+                $query->whereExists(function ($q) use ($colorFilter) {
+                    $q->select(DB::raw(1))
+                        ->from('producto_color_tallas as pct3')
+                        ->join('colores as co', 'co.id', '=', 'pct3.color_id')
+                        ->whereColumn('pct3.producto_id', 'p.id')
+                        ->whereIn('co.descripcion', (array) $colorFilter);
+                });
+            }
 
-            /*
-        |--------------------------------------------------------------------------
-        | PRODUCTOS
-        |--------------------------------------------------------------------------
-        */
+            // =========================
+            // TOTAL
+            // =========================
+            $total = (clone $query)->count();
+
+            // =========================
+            // PRODUCTS
+            // =========================
             $products = $query
                 ->orderBy('p.id', 'desc')
                 ->skip($offset)
@@ -145,90 +138,76 @@ class PromotionController extends Controller
                 ->map(function ($p) use ($baseUrl) {
 
                     return [
-                        'promotion_id'     => $p->promotion_id,
-                        'promotion_nombre' => $p->promotion_nombre,
-                        'producto_id'      => $p->producto_id,
-                        'producto_nombre'  => $p->producto_nombre,
-                        'categoria_nombre' => $p->categoria_nombre,
-                        'modelo_nombre'    => $p->modelo_nombre,
-                        'marca_nombre'     => $p->marca_nombre,
-                        'color_nombre'     => $p->color_nombre,
-                        'talla_nombre'     => $p->talla_nombre,
-                        'precio_venta_1'   => $p->precio_venta_1,
+                        'id' => $p->producto_id,
+                        'name' => $p->producto_nombre,
+                        'category' => $p->categoria_nombre,
+                        'model' => $p->modelo_nombre,
+                        'brand' => $p->marca_nombre,
+                        'price' => $p->precio_venta_1,
 
-                        'imagenes' => collect([
-                            'img1_ruta',
-                            'img2_ruta',
-                            'img3_ruta',
-                            'img4_ruta',
-                            'img5_ruta'
+                        'images' => collect([
+                            $p->img1_ruta,
+                            $p->img2_ruta,
+                            $p->img3_ruta,
+                            $p->img4_ruta,
+                            $p->img5_ruta
                         ])
-                            ->map(fn($f) => $p->$f
-                                ? $baseUrl . '/' . str_replace('storage/', '', $p->$f)
-                                : null)
                             ->filter()
-                            ->values(),
+                            ->map(
+                                fn($img) =>
+                                $baseUrl . '/' . str_replace('storage/', '', $img)
+                            )
+                            ->values()
                     ];
                 });
 
-            /*
-        |--------------------------------------------------------------------------
-        | FILTROS DINAMICOS
-        |--------------------------------------------------------------------------
-        */
+            // =========================
+            // FILTROS DINAMICOS (AMAZON STYLE)
+            // =========================
+
+            $filtersQuery = clone $query;
 
             $categories = (clone $filtersQuery)
                 ->select('ca.descripcion')
                 ->distinct()
-                ->orderBy('ca.descripcion')
-                ->pluck('ca.descripcion')
-                ->values();
-
-            $sizes = (clone $filtersQuery)
-                ->select('t.descripcion')
-                ->distinct()
-                ->orderBy('t.descripcion')
-                ->pluck('t.descripcion')
-                ->values();
-
-            $colors = (clone $filtersQuery)
-                ->select('co.descripcion')
-                ->distinct()
-                ->orderBy('co.descripcion')
-                ->pluck('co.descripcion')
-                ->values();
+                ->pluck('ca.descripcion');
 
             $brands = (clone $filtersQuery)
                 ->select('ma.marca')
                 ->distinct()
-                ->orderBy('ma.marca')
-                ->pluck('ma.marca')
-                ->values();
+                ->pluck('ma.marca');
 
-            /*
-        |--------------------------------------------------------------------------
-        | RESPONSE
-        |--------------------------------------------------------------------------
-        */
+            $sizes = (clone $filtersQuery)
+                ->join('producto_color_tallas as pct', 'pct.producto_id', '=', 'p.id')
+                ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+                ->distinct()
+                ->pluck('t.descripcion');
+
+            $colors = (clone $filtersQuery)
+                ->join('producto_color_tallas as pct', 'pct.producto_id', '=', 'p.id')
+                ->join('colores as co', 'co.id', '=', 'pct.color_id')
+                ->distinct()
+                ->pluck('co.descripcion');
+
+            // =========================
+            // RESPONSE
+            // =========================
 
             return response()->json([
                 'success' => true,
-                'message' => 'PROMOCIONES OBTENIDAS',
                 'data' => [
                     'promotions' => $promotions,
-                    'products'   => $products,
-
+                    'products' => $products,
                     'filters' => [
                         'categories' => $categories,
-                        'sizes'      => $sizes,
-                        'colors'     => $colors,
-                        'brands'     => $brands,
+                        'brands' => $brands,
+                        'sizes' => $sizes,
+                        'colors' => $colors,
                     ],
-
                     'meta' => [
-                        'total'    => $total,
-                        'limit'    => (int) $limit,
-                        'offset'   => (int) $offset,
+                        'total' => $total,
+                        'limit' => (int) $limit,
+                        'offset' => (int) $offset,
                         'has_more' => ($offset + $limit) < $total
                     ]
                 ]
@@ -237,7 +216,7 @@ class PromotionController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => $th->getMessage(),
+                'message' => $th->getMessage()
             ], 500);
         }
     }
