@@ -390,12 +390,15 @@ class ProductoController extends Controller
                 ->where('p.mostrar_en_web', true)
                 ->where('p.estado', 'ACTIVO');
 
-            match ($type) {
-                'featured'     => $query->where('p.is_featured', 1)->orderByDesc('p.updated_at'),
-                'sale'         => $query->where('p.is_sale', 1)->orderByDesc('p.updated_at'),
-                'outlet'       => $query->where('p.is_outlet', 1)->orderByDesc('p.updated_at'),
-                'new_arrivals' => $query->orderByDesc('p.created_at'),
-            };
+            if ($type === 'sale') {
+                $query->where('p.is_sale', 1)->orderByDesc('p.updated_at');
+            } elseif ($type === 'outlet') {
+                $query->where('p.is_outlet', 1)->orderByDesc('p.updated_at');
+            } elseif ($type === 'new_arrivals') {
+                $query->orderByDesc('p.created_at');
+            } else {
+                $query->where('p.is_featured', 1)->orderByDesc('p.updated_at');
+            }
 
             $products = $query->limit($limit)->get();
 
