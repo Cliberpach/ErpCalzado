@@ -146,7 +146,6 @@ class PromotionController extends Controller
             // VARIANTS (AMAZON STYLE)
             // =========================
             $variants = DB::table('producto_color_tallas as pct')
-                ->join('productos as p', 'p.id', '=', 'pct.producto_id')
                 ->join('tallas as t', 't.id', '=', 'pct.talla_id')
                 ->join('colores as co', 'co.id', '=', 'pct.color_id')
                 ->select(
@@ -154,9 +153,11 @@ class PromotionController extends Controller
                     DB::raw("CONCAT(pct.producto_id, '-', pct.talla_id, '-', pct.color_id) as variant_id"),
                     't.descripcion as size',
                     'co.descripcion as color',
-                    'pct.stock'
+                    DB::raw('SUM(pct.stock) as stock')
                 )
+                ->where('pct.almacen_id', 1)
                 ->where('pct.stock', '>', 0)
+                ->groupBy('pct.producto_id', 'pct.talla_id', 'pct.color_id')
                 ->get()
                 ->groupBy('product_id');
 
