@@ -46,7 +46,6 @@ class CategoriaController extends Controller
             ], 200);
         } catch (Throwable $th) {
 
-            Log::error($th);
 
             return response()->json([
                 'success' => false,

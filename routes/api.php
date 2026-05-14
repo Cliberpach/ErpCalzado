@@ -34,6 +34,7 @@ Route::prefix('productos')->group(function () {
     Route::get('{producto}/colores/{color}/tallas', [ProductoController::class, 'getTallasByColor']);
     Route::get('search-product', [ProductoController::class, 'searchProduct']);
     Route::get('get-by-tag', [ProductoController::class, 'getProductsByTag']);
+    Route::get('get-home-products', [ProductoController::class, 'getHomeProducts']);
 });
 
 Route::prefix('colores')->group(function () {

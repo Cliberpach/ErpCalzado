@@ -357,6 +357,93 @@ class ProductoController extends Controller
         }
     }
 
+    public function getHomeProducts(Request $request)
+    {
+        try {
+            $type  = $request->get('type', 'featured');
+            $limit = min((int) $request->get('limit', 8), 12);
+
+            $validTypes = ['featured', 'sale', 'outlet', 'new_arrivals'];
+            if (!in_array($type, $validTypes)) {
+                $type = 'featured';
+            }
+
+            $query = DB::table('productos as p')
+                ->join('categorias as c', 'c.id', '=', 'p.categoria_id')
+                ->join('marcas as m', 'm.id', '=', 'p.marca_id')
+                ->select(
+                    'p.id',
+                    'p.nombre',
+                    'p.precio_venta_1',
+                    'p.precio_venta_2',
+                    'p.precio_venta_3',
+                    'p.img1_ruta',
+                    'p.img2_ruta',
+                    'p.img3_ruta',
+                    'p.is_featured',
+                    'p.is_sale',
+                    'p.is_outlet',
+                    'c.descripcion as categoria_nombre',
+                    'm.marca as marca_nombre'
+                )
+                ->where('p.tipo', 'PRODUCTO')
+                ->where('p.mostrar_en_web', true)
+                ->where('p.estado', 'ACTIVO');
+
+            match ($type) {
+                'featured'     => $query->where('p.is_featured', 1)->orderByDesc('p.updated_at'),
+                'sale'         => $query->where('p.is_sale', 1)->orderByDesc('p.updated_at'),
+                'outlet'       => $query->where('p.is_outlet', 1)->orderByDesc('p.updated_at'),
+                'new_arrivals' => $query->orderByDesc('p.created_at'),
+            };
+
+            $products = $query->limit($limit)->get();
+
+            $ids = $products->pluck('id');
+
+            $colores = DB::table('producto_colores as pc')
+                ->join('colores as co', 'co.id', '=', 'pc.color_id')
+                ->whereIn('pc.producto_id', $ids)
+                ->where('pc.almacen_id', 1)
+                ->select('pc.producto_id', 'co.id', 'co.descripcion as nombre', 'co.codigo')
+                ->get()
+                ->groupBy('producto_id');
+
+            $baseUrl = url('storage/');
+            $imgUrl  = fn($ruta) => $ruta ? $baseUrl . '/' . str_replace('storage/', '', $ruta) : null;
+
+            $data = $products->map(function ($p) use ($colores, $imgUrl) {
+                return [
+                    'id'               => $p->id,
+                    'nombre'           => $p->nombre,
+                    'categoria_nombre' => $p->categoria_nombre,
+                    'marca_nombre'     => $p->marca_nombre,
+                    'precio_venta_1'   => floatval($p->precio_venta_1),
+                    'precio_venta_2'   => floatval($p->precio_venta_2),
+                    'precio_venta_3'   => floatval($p->precio_venta_3),
+                    'img1_url'         => $imgUrl($p->img1_ruta),
+                    'img2_url'         => $imgUrl($p->img2_ruta),
+                    'img3_url'         => $imgUrl($p->img3_ruta),
+                    'is_featured'      => (bool) $p->is_featured,
+                    'is_sale'          => (bool) $p->is_sale,
+                    'is_outlet'        => (bool) $p->is_outlet,
+                    'colores'          => isset($colores[$p->id]) ? $colores[$p->id]->values() : [],
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'type'    => $type,
+                'data'    => $data,
+            ]);
+        } catch (Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
     public function getProductsByTag()
     {
         $baseUrl = url('storage/');
