@@ -206,6 +206,13 @@ class ProductoController extends Controller
                 $color->tallas = $tallas_color;
             }
 
+            $features = DB::table('product_features')
+                ->where('product_id', $producto->id)
+                ->where('status', 1)
+                ->orderBy('sort_order')
+                ->select('title', 'icon', 'description')
+                ->get();
+
             $data = [
                 'id' => $producto->id,
                 'disponible'    =>  $cant_tallas === 0 ? false : true,
@@ -223,6 +230,7 @@ class ProductoController extends Controller
                 'img4_url'      => $producto->img4_ruta ? asset($producto->img4_ruta) : null,
                 'img5_url'      => $producto->img5_ruta ? asset($producto->img5_ruta) : null,
                 'colores'       => $colores,
+                'features'      => $features,
             ];
 
             return response()->json([
