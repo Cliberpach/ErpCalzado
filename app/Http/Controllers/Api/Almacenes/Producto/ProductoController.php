@@ -456,10 +456,10 @@ class ProductoController extends Controller
             $validTypes   = ['featured', 'sale', 'outlet', 'new_arrivals', 'promotion'];
             if (!in_array($type, $validTypes)) { $type = ''; }
 
-            $categoriaIds = array_values(array_filter((array) $request->get('categoria_ids', []), 'is_numeric'));
-            $marcaIds     = array_values(array_filter((array) $request->get('marca_ids', []), 'is_numeric'));
-            $colorIds     = array_values(array_filter((array) $request->get('color_ids', []), 'is_numeric'));
-            $tallaIds     = array_values(array_filter((array) $request->get('talla_ids', []), 'is_numeric'));
+            $categorias = array_values(array_filter(array_map('trim', (array) $request->get('categorias', [])), 'strlen'));
+            $marcas     = array_values(array_filter(array_map('trim', (array) $request->get('marcas', [])), 'strlen'));
+            $colores    = array_values(array_filter(array_map('trim', (array) $request->get('colores', [])), 'strlen'));
+            $tallas     = array_values(array_filter(array_map('trim', (array) $request->get('tallas', [])), 'strlen'));
 
             $sort = $request->get('sort', 'newest');
             if (!in_array($sort, ['newest', 'precio_asc', 'precio_desc', 'nombre_asc'])) {
@@ -486,30 +486,32 @@ class ProductoController extends Controller
                 });
             }
 
-            if (!empty($categoriaIds)) {
-                $base->whereIn('p.categoria_id', $categoriaIds);
+            if (!empty($categorias)) {
+                $base->whereIn('c.descripcion', $categorias);
             }
 
-            if (!empty($marcaIds)) {
-                $base->whereIn('p.marca_id', $marcaIds);
+            if (!empty($marcas)) {
+                $base->whereIn('m.marca', $marcas);
             }
 
-            if (!empty($colorIds)) {
-                $base->whereExists(function ($q) use ($colorIds) {
+            if (!empty($colores)) {
+                $base->whereExists(function ($q) use ($colores) {
                     $q->select(DB::raw(1))
                       ->from('producto_colores as pc')
+                      ->join('colores as co', 'co.id', '=', 'pc.color_id')
                       ->whereColumn('pc.producto_id', 'p.id')
-                      ->whereIn('pc.color_id', $colorIds)
+                      ->whereIn('co.descripcion', $colores)
                       ->where('pc.almacen_id', 1);
                 });
             }
 
-            if (!empty($tallaIds)) {
-                $base->whereExists(function ($q) use ($tallaIds) {
+            if (!empty($tallas)) {
+                $base->whereExists(function ($q) use ($tallas) {
                     $q->select(DB::raw(1))
                       ->from('producto_color_tallas as pct')
+                      ->join('tallas as t', 't.id', '=', 'pct.talla_id')
                       ->whereColumn('pct.producto_id', 'p.id')
-                      ->whereIn('pct.talla_id', $tallaIds)
+                      ->whereIn('t.descripcion', $tallas)
                       ->where('pct.almacen_id', 1)
                       ->where('pct.stock_logico', '>', 0);
                 });
