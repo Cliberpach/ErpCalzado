@@ -161,7 +161,7 @@ array:12 [
             ->where('c.tipo', 'COLOR')
             ->get();
 
-        $features           =   ProductFeature::where('status', 1)->get();
+        $features   =   ProductFeature::where('status', 1)->where('product_id', $id)->get();
 
         return view('almacenes.productos.edit', [
             'producto' => $producto,
