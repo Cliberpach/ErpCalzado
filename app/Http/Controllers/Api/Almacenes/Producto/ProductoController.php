@@ -609,6 +609,15 @@ class ProductoController extends Controller
                 'c.descripcion as categoria_nombre', 'm.marca as marca_nombre'
             );
 
+            if ($type === 'promotion') {
+                $productsQuery->addSelect(DB::raw(
+                    "(SELECT pr.nombre FROM promociones_productos pp
+                      JOIN promociones pr ON pr.id = pp.promocion_id
+                      WHERE pp.producto_id = p.id AND pp.estado = 1 AND pr.estado = 'ACTIVO'
+                      LIMIT 1) as promo_nombre"
+                ));
+            }
+
             if ($sort === 'precio_asc') {
                 $productsQuery->orderBy('p.precio_venta_1');
             } elseif ($sort === 'precio_desc') {
@@ -649,6 +658,7 @@ class ProductoController extends Controller
                     'is_featured'      => (bool) $p->is_featured,
                     'is_sale'          => (bool) $p->is_sale,
                     'is_outlet'        => (bool) $p->is_outlet,
+                    'promo_nombre'     => $p->promo_nombre ?? null,
                     'colores'          => isset($colores[$p->id]) ? $colores[$p->id]->values() : [],
                 ];
             });
