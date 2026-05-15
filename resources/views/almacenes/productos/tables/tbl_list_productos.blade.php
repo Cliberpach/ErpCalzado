@@ -7,6 +7,7 @@
             <th class="text-center">MODELO</th>
             <th class="text-center">MARCA</th>
             <th class="text-center">CATEGORIA</th>
+            <th class="text-center">COLORES</th>
             <th class="text-center">STOCK</th>
             <th data-priority="1" class="text-center">ACCIÓN</th>
         </tr>

@@ -14,7 +14,7 @@
             <div class="col-lg-12">
                 <div class="ibox">
                     <div class="ibox-content">
-                        <form action="{{ route('user.store') }}" method="POST">
+                        <form action="{{ route('seguridad.user.store') }}" method="POST">
                             @csrf
                             <input type="hidden" name="sede_id" id="sede_id" value="{{ $sede_id }}">
                             <div class="row">
@@ -142,7 +142,7 @@
                                                 (<label class="required"></label>) son obligatorios.</small>
                                         </div>
                                         <div class="col-md-6 text-right">
-                                            <a href="{{ route('user.index') }}" id="btn_cancelar"
+                                            <a href="{{ route('seguridad.user.index') }}" id="btn_cancelar"
                                                 class="btn btn-w-m btn-default">
                                                 <i class="fa fa-arrow-left"></i> Regresar
                                             </a>

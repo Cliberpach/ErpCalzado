@@ -64,7 +64,14 @@ class ProductoController extends Controller
                 'categorias.descripcion as categoria',
                 'modelos.descripcion as modelo',
                 'marcas.marca',
-                'productos.*'
+                'productos.*',
+                DB::raw('(SELECT COUNT(*) FROM producto_color_imagenes WHERE producto_id = productos.id) as total_imagenes'),
+                DB::raw("(SELECT GROUP_CONCAT(DISTINCT c.descripcion ORDER BY c.descripcion SEPARATOR ';;')
+                          FROM producto_colores pc
+                          JOIN colores c ON c.id = pc.color_id
+                          WHERE pc.producto_id = productos.id
+                            AND pc.estado = 'ACTIVO'
+                            AND c.estado = 'ACTIVO') as colores_data")
             )
             ->orderBy('productos.id', 'DESC')
             ->where('productos.estado', 'ACTIVO')
@@ -420,6 +427,23 @@ array:13 [
             return response()->json(["message" => "success", "data" => $stock_logico]);
         } catch (\Exception $e) {
             return response()->json(["message" => "Error al obtener el stock lógico", "error" => $e->getMessage()], 500);
+        }
+    }
+
+    public function getColorsByProducto(int $producto_id)
+    {
+        try {
+            $colores = DB::table('producto_colores as pc')
+                ->join('colores as c', 'c.id', '=', 'pc.color_id')
+                ->where('pc.producto_id', $producto_id)
+                ->where('pc.estado', 'ACTIVO')
+                ->select('c.id', 'c.descripcion', 'c.codigo')
+                ->distinct()
+                ->get();
+
+            return response()->json(['success' => true, 'data' => $colores]);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
 

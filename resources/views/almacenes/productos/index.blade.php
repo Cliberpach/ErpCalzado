@@ -14,8 +14,13 @@
     </a>
 @endsection
 
+@push('styles')
+    <link href="{{ mix('css/filepond.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
     @include('almacenes.productos.modals.mdl_producto_stocks')
+    @include('almacenes.productos.modals.mdl_imagenes')
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
             <div class="col-lg-12">
@@ -49,6 +54,7 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ mix('js/filepond.js') }}"></script>
     <script>
         let dtProductos = null;
         let table = null;
@@ -95,7 +101,18 @@
                     {
                         data: 'nombre',
                         className: "text-left",
-                        name: "nombre"
+                        name: "nombre",
+                        render: function(data, type, row) {
+                            if (type !== 'display') return data;
+                            const badge = row.total_imagenes > 0
+                                ? `<span class="badge badge-success ml-1"
+                                         title="${row.total_imagenes} imagen(es) subidas"
+                                         style="font-size:0.65rem;">
+                                       <i class="fas fa-images mr-1"></i>${row.total_imagenes}
+                                   </span>`
+                                : '';
+                            return `<span>${data}</span>${badge}`;
+                        }
                     },
                     {
                         data: 'modelo',
@@ -111,6 +128,45 @@
                         data: 'categoria',
                         className: "text-left",
                         name: "categoria"
+                    },
+                    {
+                        data: 'colores_data',
+                        defaultContent: "",
+                        searchable: false,
+                        orderable: false,
+                        className: "text-center",
+                        render: function(data, type, row) {
+                            if (type !== 'display') return data || '';
+                            if (!data) return '<span class="text-muted" style="font-size:0.75rem;">—</span>';
+
+                            const PALETTE = [
+                                '#e74c3c','#e67e22','#f39c12','#27ae60','#16a085',
+                                '#2980b9','#8e44ad','#2c3e50','#c0392b','#1abc9c',
+                                '#d35400','#7f8c8d','#6c5ce7','#00b894','#fd79a8',
+                            ];
+                            const MAX = 6;
+                            const colores = data.split(';;').map(function(nombre) {
+                                return { nombre: nombre.trim() };
+                            });
+
+                            let html = '<div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:center;">';
+                            colores.slice(0, MAX).forEach(function(c, i) {
+                                const bg = PALETTE[i % PALETTE.length];
+                                html += '<span style="'
+                                    + 'background:' + bg + ';color:#fff;'
+                                    + 'font-size:0.65rem;padding:2px 6px;border-radius:10px;'
+                                    + 'white-space:nowrap;font-weight:600;letter-spacing:.3px;'
+                                    + '">' + c.nombre + '</span>';
+                            });
+                            if (colores.length > MAX) {
+                                html += '<span style="'
+                                    + 'background:#6c757d;color:#fff;'
+                                    + 'font-size:0.65rem;padding:2px 6px;border-radius:10px;font-weight:600;'
+                                    + '">+' + (colores.length - MAX) + ' más</span>';
+                            }
+                            html += '</div>';
+                            return html;
+                        }
                     },
                     {
                         data: 'id',
@@ -142,25 +198,38 @@
                             var url_editar = '{{ route('almacenes.producto.edit', ':id') }}';
                             url_editar = url_editar.replace(':id', data.id);
 
+                            const nombre = (data.nombre || '').substring(0, 40);
+                            const imgBadge = data.total_imagenes > 0
+                                ? `<span class="badge badge-success ml-1" style="font-size:0.65rem;">${data.total_imagenes}</span>`
+                                : `<span class="badge badge-secondary ml-1" style="font-size:0.65rem;">0</span>`;
+
                             return `
                             <div class="btn-group" style="text-transform:capitalize;">
                                 <button data-toggle="dropdown" class="btn btn-primary btn-sm dropdown-toggle">
                                     <i class="fa fa-bars"></i>
                                 </button>
-                                <ul class="dropdown-menu">
+                                <ul class="dropdown-menu dropdown-menu-right">
                                     <li>
                                         <a class="dropdown-item" href="${url_detalle}" title="Detalle">
-                                            <i class="fa fa-eye"></i> Ver
+                                            <i class="fa fa-eye text-info mr-1"></i> Ver
                                         </a>
                                     </li>
                                     <li>
                                         <a class="dropdown-item modificarDetalle" href="${url_editar}" title="Modificar">
-                                            <i class="fa fa-edit"></i> Editar
+                                            <i class="fa fa-edit text-warning mr-1"></i> Editar
                                         </a>
                                     </li>
                                     <li>
+                                        <a class="dropdown-item" href="#"
+                                           onclick="openMdlImagenes(${data.id}, '${nombre}')"
+                                           title="Gestionar imágenes por color">
+                                            <i class="fas fa-images text-primary mr-1"></i> Imágenes ${imgBadge}
+                                        </a>
+                                    </li>
+                                    <li><div class="dropdown-divider"></div></li>
+                                    <li>
                                         <a class="dropdown-item" href="#" onclick="eliminar(${data.id})" title="Eliminar">
-                                            <i class="fa fa-trash"></i> Eliminar
+                                            <i class="fa fa-trash text-danger mr-1"></i> Eliminar
                                         </a>
                                     </li>
                                 </ul>

@@ -20,7 +20,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $this->authorize('haveaccess', 'user.index');
+        $this->authorize('haveaccess', 'seguridad.user.index');
 
         $users = User::with('sede')
             ->where('estado', 'ACTIVO')
@@ -32,7 +32,7 @@ class UserController extends Controller
 
     public function create()
     {
-        $this->authorize('haveaccess', 'seguridad.user.create');
+        $this->authorize('haveaccess', 'seguridad.user.index');
 
         $auxs   =   Persona::where('estado', 'ACTIVO')->get();
 
@@ -74,6 +74,8 @@ array:8 [▼
 */
     public function store(Request $request)
     {
+                $this->authorize('haveaccess', 'seguridad.user.index');
+
         $data = $request->all();
 
         $rules = [
@@ -147,6 +149,8 @@ array:8 [▼
 
     public function show($id)
     {
+                $this->authorize('haveaccess', 'seguridad.user.index');
+
         $user = User::find($id);
 
         $auxs = Persona::where('estado', 'ACTIVO')->get();
@@ -187,6 +191,8 @@ array:8 [▼
 
     public function edit($id)
     {
+                $this->authorize('haveaccess', 'seguridad.user.index');
+
         $user   =   User::find($id);
 
         $auxs = Persona::where('estado', 'ACTIVO')->get();
@@ -221,6 +227,8 @@ array:8 [▼
 
     public function update(Request $request, $id)
     {
+                $this->authorize('haveaccess', 'seguridad.user.index');
+
         $user = User::find($id);
 
         $data = $request->all();
@@ -294,7 +302,7 @@ array:8 [▼
 
     public function destroy($id)
     {
-        $this->authorize('haveaccess', 'seguridad.user.delete');
+        $this->authorize('haveaccess', 'seguridad.user.index');
 
         DB::beginTransaction();
         try {

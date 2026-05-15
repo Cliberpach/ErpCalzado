@@ -76,6 +76,7 @@ Route::prefix('almacenes')->group(function () {
         Route::get('/datos/{id}', 'Almacenes\ProductoController@show')->name('almacenes.producto.show');
         Route::delete('/destroy/{id}', 'Almacenes\ProductoController@destroy')->name('almacenes.producto.destroy');
         Route::get('/getColores/{almacen_id}/{producto_id}', 'Almacenes\ProductoController@getColores')->name('almacenes.producto.getColores');
+        Route::get('/getColorsByProducto/{producto_id}',    'Almacenes\ProductoController@getColorsByProducto')->name('almacenes.producto.getColorsByProducto');
         Route::get('/getTallas/{almacen_id}/{producto_id}/{color_id}', 'Almacenes\ProductoController@getTallas')->name('almacenes.producto.getTallas');
 
         Route::get('/getExcel', 'Almacenes\ProductoController@getExcel')->name('almacenes.producto.getExcel');
@@ -85,6 +86,13 @@ Route::prefix('almacenes')->group(function () {
         Route::get('generarCode', 'Almacenes\ProductoController@generarCode')->name('generarCode');
 
         Route::get('/obtenerProducto/{id}', 'Almacenes\ProductoController@obtenerProducto')->name('almacenes.producto.obtenerProducto');
+
+        // Imágenes por color
+        Route::prefix('/{productoId}/colores/{colorId}/imagenes')->group(function () {
+            Route::get('/',       'Almacenes\ProductoColorImagenController@index')  ->name('almacenes.producto.imagenes.index');
+            Route::post('/store', 'Almacenes\ProductoColorImagenController@store')  ->name('almacenes.producto.imagenes.store');
+            Route::delete('/{id}','Almacenes\ProductoColorImagenController@destroy')->name('almacenes.producto.imagenes.destroy');
+        });
     });
 
     //NotaIngreso
