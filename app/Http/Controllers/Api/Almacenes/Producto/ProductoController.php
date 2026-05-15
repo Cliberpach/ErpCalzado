@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Almacenes\Color\Color;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class ProductoController extends Controller
@@ -204,6 +205,17 @@ class ProductoController extends Controller
 
                 $cant_tallas += count($tallas_color);
                 $color->tallas = $tallas_color;
+
+                $color->imagenes = DB::table('producto_color_imagenes')
+                    ->where('producto_id', $producto->id)
+                    ->where('color_id', $color->id)
+                    ->orderBy('orden')
+                    ->pluck('img_route')
+                    ->map(function ($ruta) {
+                        return asset(Storage::url($ruta));
+                    })
+                    ->values()
+                    ->all();
             }
 
             $features = DB::table('product_features')
