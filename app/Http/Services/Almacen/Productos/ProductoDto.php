@@ -35,7 +35,7 @@ class ProductoDto
 
             'descripcion' => $data['descripcion'] ?? null,
 
-            'mostrar_en_web' => $data['mostrar_web'] ?? 0,
+            'mostrar_en_web' => $data['mostrar_en_web'] ?? 0,
 
             'is_featured' => $data['is_featured'] ?? 0,
 

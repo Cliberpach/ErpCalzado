@@ -138,18 +138,18 @@
                 </div>
 
                 <div class="col-lg-6 col-12 mb-3">
-                    <label for="mostrar_web" class="required" style="font-weight: bold;">Mostrar en web</label>
+                    <label for="mostrar_en_web" class="required" style="font-weight: bold;">Mostrar en web</label>
 
                     <div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="mostrar_web" name="mostrar_web"
+                        <input type="checkbox" class="custom-control-input" id="mostrar_en_web" name="mostrar_en_web"
                             value="1">
 
-                        <label class="custom-control-label" for="mostrar_web">
+                        <label class="custom-control-label" for="mostrar_en_web">
                             SÍ
                         </label>
                     </div>
 
-                    <span style="font-weight: bold;color:red;" class="mostrar_web_error msgErrorProducto"></span>
+                    <span style="font-weight: bold;color:red;" class="mostrar_en_web_error msgErrorProducto"></span>
                 </div>
 
                 <div class="col-lg-6 col-12 mb-3">
