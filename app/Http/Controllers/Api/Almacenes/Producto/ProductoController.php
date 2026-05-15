@@ -451,7 +451,11 @@ class ProductoController extends Controller
     {
         try {
             // --- Params ---
-            $search      = trim($request->get('search', ''));
+            $search       = trim($request->get('search', ''));
+            $type         = $request->get('type', '');
+            $validTypes   = ['featured', 'sale', 'outlet', 'new_arrivals'];
+            if (!in_array($type, $validTypes)) { $type = ''; }
+
             $categoriaIds = array_values(array_filter((array) $request->get('categoria_ids', []), 'is_numeric'));
             $marcaIds     = array_values(array_filter((array) $request->get('marca_ids', []), 'is_numeric'));
             $colorIds     = array_values(array_filter((array) $request->get('color_ids', []), 'is_numeric'));
@@ -510,6 +514,15 @@ class ProductoController extends Controller
                       ->where('pct.stock_logico', '>', 0);
                 });
             }
+
+            if ($type === 'featured') {
+                $base->where('p.is_featured', 1);
+            } elseif ($type === 'sale') {
+                $base->where('p.is_sale', 1);
+            } elseif ($type === 'outlet') {
+                $base->where('p.is_outlet', 1);
+            }
+            // type=new_arrivals → no additional where; sort defaults to newest
 
             // --- All matching IDs (base for facets + total count) ---
             $allIds = (clone $base)->select('p.id')->distinct()->pluck('id')->toArray();
