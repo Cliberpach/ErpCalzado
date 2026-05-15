@@ -453,7 +453,7 @@ class ProductoController extends Controller
             // --- Params ---
             $search       = trim($request->get('search', ''));
             $type         = $request->get('type', '');
-            $validTypes   = ['featured', 'sale', 'outlet', 'new_arrivals'];
+            $validTypes   = ['featured', 'sale', 'outlet', 'new_arrivals', 'promotion'];
             if (!in_array($type, $validTypes)) { $type = ''; }
 
             $categoriaIds = array_values(array_filter((array) $request->get('categoria_ids', []), 'is_numeric'));
@@ -521,6 +521,24 @@ class ProductoController extends Controller
                 $base->where('p.is_sale', 1);
             } elseif ($type === 'outlet') {
                 $base->where('p.is_outlet', 1);
+            } elseif ($type === 'promotion') {
+                // Productos que pertenecen a al menos una promoción activa y vigente
+                $base->whereExists(function ($q) {
+                    $q->select(DB::raw(1))
+                      ->from('promociones_productos as pp')
+                      ->join('promociones as pr', 'pr.id', '=', 'pp.promocion_id')
+                      ->whereColumn('pp.producto_id', 'p.id')
+                      ->where('pp.estado', 1)
+                      ->where('pr.estado', 'ACTIVO')
+                      ->where(function ($d) {
+                          $d->whereNull('pr.fecha_inicio')
+                            ->orWhereRaw('pr.fecha_inicio <= CURDATE()');
+                      })
+                      ->where(function ($d) {
+                          $d->whereNull('pr.fecha_fin')
+                            ->orWhereRaw('pr.fecha_fin >= CURDATE()');
+                      });
+                });
             }
             // type=new_arrivals → no additional where; sort defaults to newest
 
