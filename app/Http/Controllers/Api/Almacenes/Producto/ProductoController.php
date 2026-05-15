@@ -447,6 +447,204 @@ class ProductoController extends Controller
         }
     }
 
+    public function getListing(Request $request)
+    {
+        try {
+            // --- Params ---
+            $search      = trim($request->get('search', ''));
+            $categoriaIds = array_values(array_filter((array) $request->get('categoria_ids', []), 'is_numeric'));
+            $marcaIds     = array_values(array_filter((array) $request->get('marca_ids', []), 'is_numeric'));
+            $colorIds     = array_values(array_filter((array) $request->get('color_ids', []), 'is_numeric'));
+            $tallaIds     = array_values(array_filter((array) $request->get('talla_ids', []), 'is_numeric'));
+
+            $sort = $request->get('sort', 'newest');
+            if (!in_array($sort, ['newest', 'precio_asc', 'precio_desc', 'nombre_asc'])) {
+                $sort = 'newest';
+            }
+
+            $perPage = (int) $request->get('per_page', 24);
+            if (!in_array($perPage, [12, 24, 48])) { $perPage = 24; }
+            $page = max(1, (int) $request->get('page', 1));
+
+            // --- Base filtered query ---
+            $base = DB::table('productos as p')
+                ->join('categorias as c', 'c.id', '=', 'p.categoria_id')
+                ->join('marcas as m', 'm.id', '=', 'p.marca_id')
+                ->where('p.tipo', 'PRODUCTO')
+                ->where('p.mostrar_en_web', true)
+                ->where('p.estado', 'ACTIVO');
+
+            if ($search !== '') {
+                $base->where(function ($q) use ($search) {
+                    $q->where('p.nombre', 'like', "%{$search}%")
+                      ->orWhere('c.descripcion', 'like', "%{$search}%")
+                      ->orWhere('m.marca', 'like', "%{$search}%");
+                });
+            }
+
+            if (!empty($categoriaIds)) {
+                $base->whereIn('p.categoria_id', $categoriaIds);
+            }
+
+            if (!empty($marcaIds)) {
+                $base->whereIn('p.marca_id', $marcaIds);
+            }
+
+            if (!empty($colorIds)) {
+                $base->whereExists(function ($q) use ($colorIds) {
+                    $q->select(DB::raw(1))
+                      ->from('producto_colores as pc')
+                      ->whereColumn('pc.producto_id', 'p.id')
+                      ->whereIn('pc.color_id', $colorIds)
+                      ->where('pc.almacen_id', 1);
+                });
+            }
+
+            if (!empty($tallaIds)) {
+                $base->whereExists(function ($q) use ($tallaIds) {
+                    $q->select(DB::raw(1))
+                      ->from('producto_color_tallas as pct')
+                      ->whereColumn('pct.producto_id', 'p.id')
+                      ->whereIn('pct.talla_id', $tallaIds)
+                      ->where('pct.almacen_id', 1)
+                      ->where('pct.stock_logico', '>', 0);
+                });
+            }
+
+            // --- All matching IDs (base for facets + total count) ---
+            $allIds = (clone $base)->select('p.id')->distinct()->pluck('id')->toArray();
+            $total  = count($allIds);
+
+            // --- Empty result fast path ---
+            if ($total === 0) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'products'   => [],
+                        'pagination' => ['total' => 0, 'per_page' => $perPage, 'current_page' => 1, 'last_page' => 1, 'from' => 0, 'to' => 0],
+                        'facets'     => ['categorias' => [], 'marcas' => [], 'colores' => [], 'tallas' => []],
+                    ],
+                ]);
+            }
+
+            // --- Facets (computed from the filtered set) ---
+            $facetCategorias = DB::table('productos as p')
+                ->join('categorias as c', 'c.id', '=', 'p.categoria_id')
+                ->whereIn('p.id', $allIds)
+                ->select('c.id', 'c.descripcion as label', DB::raw('COUNT(DISTINCT p.id) as count'))
+                ->groupBy('c.id', 'c.descripcion')
+                ->orderBy('c.descripcion')
+                ->get();
+
+            $facetMarcas = DB::table('productos as p')
+                ->join('marcas as m', 'm.id', '=', 'p.marca_id')
+                ->whereIn('p.id', $allIds)
+                ->select('m.id', 'm.marca as label', DB::raw('COUNT(DISTINCT p.id) as count'))
+                ->groupBy('m.id', 'm.marca')
+                ->orderBy('m.marca')
+                ->get();
+
+            $facetColores = DB::table('producto_colores as pc')
+                ->join('colores as co', 'co.id', '=', 'pc.color_id')
+                ->whereIn('pc.producto_id', $allIds)
+                ->where('pc.almacen_id', 1)
+                ->select('co.id', 'co.descripcion as label', 'co.codigo', DB::raw('COUNT(DISTINCT pc.producto_id) as count'))
+                ->groupBy('co.id', 'co.descripcion', 'co.codigo')
+                ->orderBy('co.descripcion')
+                ->get();
+
+            $facetTallas = DB::table('producto_color_tallas as pct')
+                ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+                ->whereIn('pct.producto_id', $allIds)
+                ->where('pct.almacen_id', 1)
+                ->where('pct.stock_logico', '>', 0)
+                ->select('t.id', 't.descripcion as label', DB::raw('COUNT(DISTINCT pct.producto_id) as count'))
+                ->groupBy('t.id', 't.descripcion')
+                ->orderBy('t.descripcion')
+                ->get();
+
+            // --- Paginated products query ---
+            $lastPage = max(1, (int) ceil($total / $perPage));
+            $page     = min($page, $lastPage);
+            $offset   = ($page - 1) * $perPage;
+
+            $productsQuery = (clone $base)->select(
+                'p.id', 'p.nombre',
+                'p.precio_venta_1', 'p.precio_venta_2', 'p.precio_venta_3',
+                'p.img1_ruta', 'p.img2_ruta', 'p.img3_ruta',
+                'p.is_featured', 'p.is_sale', 'p.is_outlet', 'p.created_at',
+                'c.descripcion as categoria_nombre', 'm.marca as marca_nombre'
+            );
+
+            if ($sort === 'precio_asc') {
+                $productsQuery->orderBy('p.precio_venta_1');
+            } elseif ($sort === 'precio_desc') {
+                $productsQuery->orderByDesc('p.precio_venta_1');
+            } elseif ($sort === 'nombre_asc') {
+                $productsQuery->orderBy('p.nombre');
+            } else {
+                $productsQuery->orderByDesc('p.created_at');
+            }
+
+            $products = $productsQuery->offset($offset)->limit($perPage)->get();
+
+            // --- Enrich colors (batch, no N+1) ---
+            $pageIds = $products->pluck('id')->toArray();
+            $colores = DB::table('producto_colores as pc')
+                ->join('colores as co', 'co.id', '=', 'pc.color_id')
+                ->whereIn('pc.producto_id', $pageIds)
+                ->where('pc.almacen_id', 1)
+                ->select('pc.producto_id', 'co.id', 'co.descripcion as nombre', 'co.codigo')
+                ->get()
+                ->groupBy('producto_id');
+
+            $baseUrl = url('storage/');
+            $imgUrl  = fn($ruta) => $ruta ? $baseUrl . '/' . str_replace('storage/', '', $ruta) : null;
+
+            $data = $products->map(function ($p) use ($colores, $imgUrl) {
+                return [
+                    'id'               => $p->id,
+                    'nombre'           => $p->nombre,
+                    'categoria_nombre' => $p->categoria_nombre,
+                    'marca_nombre'     => $p->marca_nombre,
+                    'precio_venta_1'   => floatval($p->precio_venta_1),
+                    'precio_venta_2'   => floatval($p->precio_venta_2),
+                    'precio_venta_3'   => floatval($p->precio_venta_3),
+                    'img1_url'         => $imgUrl($p->img1_ruta),
+                    'img2_url'         => $imgUrl($p->img2_ruta),
+                    'img3_url'         => $imgUrl($p->img3_ruta),
+                    'is_featured'      => (bool) $p->is_featured,
+                    'is_sale'          => (bool) $p->is_sale,
+                    'is_outlet'        => (bool) $p->is_outlet,
+                    'colores'          => isset($colores[$p->id]) ? $colores[$p->id]->values() : [],
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data'    => [
+                    'products'   => $data,
+                    'pagination' => [
+                        'total'        => $total,
+                        'per_page'     => $perPage,
+                        'current_page' => $page,
+                        'last_page'    => $lastPage,
+                        'from'         => $offset + 1,
+                        'to'           => min($offset + $perPage, $total),
+                    ],
+                    'facets' => [
+                        'categorias' => $facetCategorias,
+                        'marcas'     => $facetMarcas,
+                        'colores'    => $facetColores,
+                        'tallas'     => $facetTallas,
+                    ],
+                ],
+            ]);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()], 500);
+        }
+    }
+
     public function getProductsByTag()
     {
         $baseUrl = url('storage/');
