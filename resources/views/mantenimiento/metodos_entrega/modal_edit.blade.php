@@ -26,7 +26,7 @@
                         <label for="tipo_envio" style="font-weight: bold;">
                             TIPO ENVÍO<span style="color: rgb(227, 160, 36);font-weight: bold;">*</span>
                         </label>
-                        <select required name="tipo_envio_edit" id="tipo_envio_edit" class="select2_form form-control">
+                        <select required name="tipo_envio_edit" id="tipo_envio_edit" class="form-control">
                             @foreach ($tipos_envio as $tipo_envio)
                                 <option value="{{$tipo_envio->id}}">{{$tipo_envio->descripcion}}</option>
                             @endforeach
@@ -54,7 +54,10 @@
 
 <script>
     function eventsUpdate(){
-        
+        if (!document.getElementById('tipo_envio_edit').tomselect) {
+            window.tsTipoEnvioEdit = new TomSelect('#tipo_envio_edit', { create: false, allowEmptyOption: false });
+        }
+
         document.querySelector('#frmMetodoEntregaUpdate').addEventListener('submit',async (e)=>{
             e.preventDefault();
     

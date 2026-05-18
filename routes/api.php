@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Almacenes\Talla\TallaController;
 use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\Promotions\PromotionController;
 use App\Http\Controllers\Api\Cart\CartController;
+use App\Http\Controllers\Api\Shipping\ShippingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,6 +50,10 @@ Route::prefix('tallas')->group(function () {
 
 Route::prefix('company')->group(function () {
     Route::get('/get-company-locations', [CompanyController::class, 'getCompanyLocations']);
+});
+
+Route::prefix('shipping')->group(function () {
+    Route::get('/cost-by-province/{provinceId}', [ShippingController::class, 'costByProvince']);
 });
 
 Route::prefix('promotions')->group(function () {

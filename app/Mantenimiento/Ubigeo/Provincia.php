@@ -8,6 +8,7 @@ class Provincia extends Model
 {
     protected $table = 'provincias';
     public $timestamps = false;
+    protected $fillable = ['costo'];
 
     public function departamentos()
     {

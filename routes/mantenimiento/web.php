@@ -133,5 +133,12 @@ Route::prefix('mantenimiento/')->middleware('auth')->group(function () {
         Route::post('/create-sede', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@createSede')->name('mantenimiento.metodo_entrega.createSede');
         Route::post('/update-sede', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@updateSede')->name('mantenimiento.metodo_entrega.updateSede');
         Route::post('/delete-sede', 'Mantenimiento\MetodoEntrega\MetodoEntregaController@deleteSede')->name('mantenimiento.metodo_entrega.deleteSede');
+
+        // Tarifarios de envío
+        Route::prefix('tarifarios')->group(function () {
+            Route::get('/', 'Mantenimiento\MetodoEntrega\TarifarioEnvioController@index')->name('mantenimiento.metodo_entrega.tarifarios.index');
+            Route::get('/getTable', 'Mantenimiento\MetodoEntrega\TarifarioEnvioController@getTable')->name('mantenimiento.metodo_entrega.tarifarios.getTable');
+            Route::post('/update-costo', 'Mantenimiento\MetodoEntrega\TarifarioEnvioController@updateCosto')->name('mantenimiento.metodo_entrega.tarifarios.updateCosto');
+        });
     });
 });
