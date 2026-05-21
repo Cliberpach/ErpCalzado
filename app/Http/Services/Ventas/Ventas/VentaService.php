@@ -60,7 +60,7 @@ class VentaService
 
         //========== CALCULAR MONTOS ======
         $montos =   $this->s_calculos->calcularMontos($datos_validados->lstVenta, $datos_validados);
-
+       
         if ($datos_validados->condicion->id == 1 && $datos_validados->isPay) {
             $this->s_validacion->validacionPagos($datos_validados->lstPagos, $montos->monto_total_pagar);
         }
@@ -114,7 +114,7 @@ class VentaService
 
             $this->s_repository->insertarDespacho($venta, $data_envio, $datos_validados);
         }
-       
+
         return $venta;
     }
 

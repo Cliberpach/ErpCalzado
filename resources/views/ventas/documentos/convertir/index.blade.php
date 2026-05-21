@@ -1,30 +1,14 @@
 @extends('layout')
-@section('content')
 
 @section('ventas-active', 'active')
 @section('documento-active', 'active')
 
-<div class="row wrapper border-bottom white-bg page-heading">
-    <div class="col-lg-12">
-        <h2 style="text-transform:uppercase"><b>CONVERTIR DOCUMENTO DE VENTA</b></h2>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{ route('home') }}">Panel de Control</a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{{ route('consultas.ventas.documento.no.index') }}">Documentos de venta no enviados</a>
-            </li>
-            <li class="breadcrumb-item active">
-                <strong>Editar</strong>
-            </li>
-        </ol>
-    </div>
+@section('bread-module', 'Ventas')
+@section('bread-submodule', 'Ventas')
+@section('hero-title', 'Convertir Venta')
+@section('hero-subtitle', 'Ventas')
 
-
-
-</div>
-
-
+@section('content')
 <div class="wrapper wrapper-content animated fadeInRight">
     <div class="row">
         <div class="col-lg-12">
@@ -86,8 +70,7 @@
         </div>
     </div>
 </div>
-
-@stop
+@endsection
 
 @push('styles')
 <style>

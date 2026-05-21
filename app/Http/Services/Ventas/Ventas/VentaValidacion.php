@@ -69,7 +69,7 @@ class VentaValidacion
         $lstPagos  = isset($datos['lstPagos'])
             ? (is_string($datos['lstPagos']) ? json_decode($datos['lstPagos'], true) : $datos['lstPagos'])
             : [];
-        $isPay     = filter_var($datos['isPay'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $isPay     = isset($datos['isPay']) ? true : false;
 
         $tipo_pago_1 = null;
         $cuenta_pago_1 = null;
@@ -273,7 +273,7 @@ class VentaValidacion
         $tipo_pago_1 = null;
         $cuenta_pago_1 = null;
         if ($condicion->id == 1) {
-            $tipo_pago_1    =   TipoPago::find($datos['metodo_pago_1'])??null;
+            $tipo_pago_1    =   TipoPago::find($datos['metodo_pago_1']) ?? null;
             $cuenta_pago_1  =   Cuenta::find($datos['cuenta_1']) ?? null;
         }
 
