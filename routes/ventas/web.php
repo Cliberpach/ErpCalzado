@@ -82,11 +82,14 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
         Route::put('update/{id}', 'Ventas\DocumentoController@update')->name('ventas.documento.update');
         Route::get('destroy/{id}', 'Ventas\DocumentoController@destroy')->name('ventas.documento.destroy');
         Route::get('show/{id}', 'Ventas\DocumentoController@show')->name('ventas.documento.show');
+        Route::get('getShow/{id}', 'Ventas\DocumentoController@getShow')->name('ventas.documento.getShow');
         Route::get('reporte/{id}', 'Ventas\DocumentoController@report')->name('ventas.documento.reporte');
         Route::get('tipoPago/{id}', 'Ventas\DocumentoController@TypePay')->name('ventas.documento.tipo_pago.existente');
         Route::get('getProductos', 'Ventas\DocumentoController@getProductos')->name('ventas.documento.getProductos');
         Route::get('/getColoresTallas/{almacen_id}/{producto_id}', 'Ventas\DocumentoController@getColoresTallas')->name('ventas.documento.getColoresTallas');
         Route::get('/getProductoBarCode/{barcode}', 'Ventas\DocumentoController@getProductoBarCode')->name('ventas.documento.getProductoBarCode');
+        Route::get('/getStocksMatriz', 'Ventas\DocumentoController@getStocksMatriz')->name('ventas.documento.getStocksMatriz');
+        Route::get('/getStockDisponible', 'Ventas\DocumentoController@getStockDisponible')->name('ventas.documento.getStockDisponible');
         Route::post('/validarStockVentas', 'Ventas\DocumentoController@validarStockVentas')->name('ventas.documento.validarStockVentas');
         Route::post('/actualizarStockAdd', 'Ventas\DocumentoController@actualizarStockAdd')->name('ventas.documento.actualizarStockAdd');
         Route::post('/actualizarStockDelete', 'Ventas\DocumentoController@actualizarStockDelete')->name('ventas.documento.actualizarStockDelete');

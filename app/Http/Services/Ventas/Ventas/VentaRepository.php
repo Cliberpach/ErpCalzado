@@ -23,194 +23,9 @@ use Illuminate\Http\UploadedFile;
 
 class VentaRepository
 {
-    public function insertarVenta(object $datos_validados, object $montos, object $datos_correlativo, $legenda): Documento
+    public function store(array $dto): Documento
     {
-        //====== GRABAR MAESTRO VENTA =====
-        $documento                      =   new Documento();
-
-        $documento->caja_id             =   $datos_validados->caja_movimiento->caja_id;
-        $documento->caja_nombre         =   $datos_validados->caja_movimiento->caja_nombre;
-        $documento->caja_movimiento_id  =   $datos_validados->caja_movimiento->movimiento_id;
-
-        //========= FECHAS ========
-        $documento->fecha_documento     = Carbon::now()->toDateString();
-        $documento->fecha_atencion      = Carbon::now()->toDateString();
-
-        if ($datos_validados->condicion->id != 1) {
-            $nro_dias                       = $datos_validados->condicion->dias;
-            $documento->fecha_vencimiento   = Carbon::now()->addDays($nro_dias)->toDateString();
-        } else {
-            $documento->fecha_vencimiento   = Carbon::now()->toDateString();
-        }
-
-        //======= PAGO =======
-        //======== SI SE PROPORCIONA EFECTIVO,MONTO Y FECHA PAGO ========
-        if ($datos_validados->metodoPagoId == 1 && $datos_validados->montoPago && $datos_validados->fechaOperacionPago) {
-
-            $montoPago = round($datos_validados->montoPago, 2);
-            $montoTotal = round($montos->monto_total_pagar, 2);
-
-            if (bccomp($montoPago, $montoTotal, 2) !== 0) {
-                throw new Exception("EL MONTO DE PAGO NO COINCIDE CON EL TOTAL DE LA VENTA");
-            }
-
-            $documento->pago_1_monto            =   $datos_validados->montoPago;
-            $documento->pago_1_fecha_operacion  =   $datos_validados->fechaOperacionPago;
-            $documento->importe                 =   $datos_validados->montoPago;
-            $documento->pago_1_tipo_pago_nombre =   $datos_validados->tipo_pago_1->descripcion;
-            $documento->pago_1_tipo_pago_id     =   $datos_validados->metodoPagoId;
-            $documento->tipo_pago_id            =   $datos_validados->metodoPagoId;
-            $documento->estado_pago             =   'PAGADA';
-        }
-
-        //======== SI SE PROPORCIONA OTRO MÉTODO,CUENTA,MONTO,NRO OP,FECHA ========
-        if ($datos_validados->metodoPagoId != 1 && $datos_validados->cuentaPagoId && $datos_validados->montoPago && $datos_validados->nroOperacionPago && $datos_validados->fechaOperacionPago) {
-
-            $montoPago = round($datos_validados->montoPago, 2);
-            $montoTotal = round($montos->monto_total_pagar, 2);
-
-            if (bccomp($montoPago, $montoTotal, 2) !== 0) {
-                throw new Exception("EL MONTO DE PAGO NO COINCIDE CON EL TOTAL DE LA VENTA");
-            }
-
-            $documento->pago_1_monto            =   $datos_validados->montoPago;
-            $documento->pago_1_fecha_operacion  =   $datos_validados->fechaOperacionPago;
-            $documento->importe                 =   $datos_validados->montoPago;
-            $documento->pago_1_tipo_pago_nombre =   $datos_validados->tipo_pago_1->descripcion;
-            $documento->pago_1_tipo_pago_id     =   $datos_validados->metodoPagoId;
-            $documento->tipo_pago_id            =   $datos_validados->metodoPagoId;
-            $documento->estado_pago             =   'PAGADA';
-            if ($datos_validados->cuenta_pago_1) {
-                $documento->pago_1_banco_nombre         =   $datos_validados->cuenta_pago_1->banco_nombre;
-                $documento->pago_1_nro_cuenta           =   $datos_validados->cuenta_pago_1->nro_cuenta;
-                $documento->pago_1_cci                  =   $datos_validados->cuenta_pago_1->cci;
-                $documento->pago_1_celular              =   $datos_validados->cuenta_pago_1->celular;
-                $documento->pago_1_titular              =   $datos_validados->cuenta_pago_1->titular;
-                $documento->pago_1_moneda               =   $datos_validados->cuenta_pago_1->moneda;
-                $documento->pago_1_cuenta_id            =   $datos_validados->cuentaPagoId;
-                $documento->pago_1_nro_operacion        =   $datos_validados->nroOperacionPago;
-            }
-        }
-
-        //======== EMPRESA ========
-        $documento->ruc_empresa                 =   $datos_validados->empresa->ruc;
-        $documento->empresa                     =   $datos_validados->empresa->razon_social;
-        $documento->direccion_fiscal_empresa    =   $datos_validados->empresa->direccion_fiscal;
-        $documento->empresa_id                  =   $datos_validados->empresa->id;
-
-        //========= CLIENTE =======
-        $documento->tipo_documento_cliente  = $datos_validados->cliente->tipo_documento;
-        $documento->documento_cliente       = $datos_validados->cliente->documento;
-        $documento->direccion_cliente       = $datos_validados->cliente->direccion;
-        $documento->cliente                 = $datos_validados->cliente->nombre;
-        $documento->cliente_id              = $datos_validados->cliente->id;
-
-        //======== TIPO VENTA ======
-        $documento->tipo_venta_id           = $datos_validados->tipo_venta->id;   //boleta,factura,nota_venta
-        $documento->tipo_venta_nombre       = $datos_validados->tipo_venta->descripcion;
-        $documento->tipo_venta_codigo       = $datos_validados->tipo_venta->simbolo;
-
-        //========= CONDICIÓN PAGO ======
-        $documento->condicion_id            =   $datos_validados->condicion->id;
-        $documento->condicion_pago_nombre   =   $datos_validados->condicion->descripcion;
-
-        $documento->observacion         =   mb_strtoupper($datos_validados->observacion, 'UTF-8');
-        $documento->user_id             =   $datos_validados->usuario->id;
-        $documento->registrador_nombre  =   $datos_validados->usuario->usuario;
-
-        //========= MONTOS Y MONEDA ========
-        $documento->sub_total               =   $montos->monto_subtotal;
-        $documento->monto_embalaje          =   $montos->monto_embalaje;
-        $documento->monto_envio             =   $montos->monto_envio;
-        $documento->total                   =   $montos->monto_total;
-        $documento->total_igv               =   $montos->monto_igv;
-        $documento->total_pagar             =   $montos->monto_total_pagar;
-        $documento->igv                     =   $datos_validados->empresa->igv;
-        $documento->monto_descuento         =   $montos->monto_descuento;
-        $documento->porcentaje_descuento    =   $montos->porcentaje_descuento;
-        $documento->moneda                  =   1;
-
-        //======== SUNAT ========
-        $documento->mto_oper_gravadas_sunat =   $montos->mtoOperGravadasSunat;
-        $documento->mto_igv_sunat           =   $montos->mtoIgvSunat;
-        $documento->total_impuestos_sunat   =   $montos->totalImpuestosSunat;
-        $documento->valor_venta_sunat       =   $montos->valorVentaSunat;
-        $documento->sub_total_sunat         =   $montos->subTotalSunat;
-        $documento->mto_imp_venta_sunat     =   $montos->mtoImpVentaSunat;
-
-        //======= SERIE Y CORRELATIVO ======
-        $documento->serie       =   $datos_correlativo->serie;
-        $documento->correlativo =   $datos_correlativo->correlativo;
-
-        $documento->legenda     =   $legenda;
-
-        $documento->sede_id         =   $datos_validados->sede_id;
-
-        $documento->almacen_id      =   $datos_validados->almacen->id;
-        $documento->almacen_nombre  =   $datos_validados->almacen->descripcion;
-
-        //======== DOCS VENTA DE TIPO ANTICIPO ========
-        if ($datos_validados->facturar && $datos_validados->pedido_id) {
-            $documento->pedido_id               =   $datos_validados->pedido_id;
-            $documento->es_anticipo             =   true;
-            $documento->tipo_doc_venta_pedido   =   "FACTURACIÓN";
-            $documento->pedido_id               =   $datos_validados->pedido_id;
-            $documento->saldo_anticipo          =   $montos->monto_total_pagar;
-        }
-
-        //======= TICKET PEDIDO CRÉDITO =======
-        if ($datos_validados->ticket_credito && $datos_validados->pedido_id) {
-            $documento->pedido_id               =   $datos_validados->pedido_id;
-            $documento->tipo_doc_venta_pedido   =   "CREDITO";
-            $documento->pedido_id               =   $datos_validados->pedido_id;
-        }
-
-        if ($datos_validados->modo === 'CONSUMO') {
-            $documento->pedido_id               =   $datos_validados->pedido_id;
-        }
-
-        //========= DOCS VENTA PAGADAS CON ANTICIPO PARCIAL O TOTAL ========
-        if ($datos_validados->facturado === 'SI' || $datos_validados->modo === 'CONSUMO') {
-            $documento->estado_pago  =   'PAGADA';
-        }
-
-        if ($datos_validados->anticipo_consumido_id) {
-            $documento->anticipo_consumido_id               =   $datos_validados->anticipo_consumido_id;
-            $documento->anticipo_monto_consumido            =   $datos_validados->anticipo_monto_consumido;
-            $documento->anticipo_monto_consumido_sin_igv    =   $datos_validados->anticipo_monto_consumido / (($datos_validados->porcentaje_igv + 100) / 100);
-            $documento->anticipo_consumido_serie            =   $datos_validados->doc_anticipo_serie;
-            $documento->anticipo_consumido_correlativo      =   $datos_validados->doc_anticipo_correlativo;
-        }
-
-        //======== EN CASO DE CONVERSIÓN DE DOCUMENTO =====
-        if ($datos_validados->documento_convertido) {
-            $documento_convertido           =   Documento::find($datos_validados->documento_convertido);
-            $documento->convert_de_id       =   $datos_validados->documento_convertido;
-            $documento->convert_de_serie    =   $documento_convertido->serie . '-' . $documento_convertido->correlativo;
-            $documento->estado_pago         =   'PAGADA';
-        }
-
-        //======= EN CASO DE REGULARIZACIÓN =====
-        if ($datos_validados->doc_regularizar_id) {
-            $doc_regularizar                    =   Documento::find($datos_validados->doc_regularizar_id);
-            $documento->regularizado_de_id      =   $doc_regularizar->id;
-            $documento->regularizado_de_serie   =   $doc_regularizar->serie . '-' . $doc_regularizar->correlativo;
-            $documento->estado_pago             =   'PAGADA';
-        }
-
-        $documento->modo    =   $datos_validados->modo ?? 'VENTA';
-        if ($datos_validados->modo) {
-            $documento->tipo_doc_venta_pedido   =   "ATENCION";
-            $documento->pedido_id               =   $datos_validados->pedido_id ?? null;
-        }
-        if ($datos_validados->tipo_doc_venta_pedido  === 'CONSUMO') {
-            $documento->tipo_doc_venta_pedido   =   "CONSUMO";
-        }
-
-        $documento->telefono    =   $datos_validados->telefono;
-        $documento->save();
-
-        return $documento;
+        return Documento::create($dto);
     }
 
     public function insertarDetalleVenta(object $datos_validados, Documento $documento, string $mode)
@@ -702,5 +517,49 @@ class VentaRepository
             "DELETE FROM cotizacion_documento_detalles WHERE documento_id = ?",
             [$venta_id]
         );
+    }
+
+    public function queryStockDisponible(array $filters): \Illuminate\Database\Query\Builder
+    {
+        $query = DB::table('producto_color_tallas as pct')
+            ->join('productos as p',   'p.id',  '=', 'pct.producto_id')
+            ->join('colores as co',    'co.id', '=', 'pct.color_id')
+            ->join('tallas as t',      't.id',  '=', 'pct.talla_id')
+            ->join('almacenes as al',  'al.id', '=', 'pct.almacen_id')
+            ->join('marcas as ma',     'ma.id', '=', 'p.marca_id')
+            ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
+            ->where('pct.stock', '>', 0)
+            ->where('p.estado', 'ACTIVO')
+            ->where('al.tipo_almacen', 'PRINCIPAL')
+            ->select(
+                'p.id as producto_id',
+                'p.nombre as producto_nombre',
+                'p.codigo as producto_codigo',
+                'co.descripcion as color_nombre',
+                't.descripcion as talla_nombre',
+                'al.descripcion as almacen_nombre',
+                'ma.marca as marca_nombre',
+                'ca.descripcion as categoria_nombre',
+                'pct.stock',
+                'pct.stock_logico'
+            );
+
+        if (!empty($filters['talla_id'])) {
+            $query->where('pct.talla_id', $filters['talla_id']);
+        }
+        if (!empty($filters['color_id'])) {
+            $query->where('pct.color_id', $filters['color_id']);
+        }
+        if (!empty($filters['marca_id'])) {
+            $query->where('p.marca_id', $filters['marca_id']);
+        }
+        if (!empty($filters['categoria_id'])) {
+            $query->where('p.categoria_id', $filters['categoria_id']);
+        }
+        if (!empty($filters['almacen_id'])) {
+            $query->where('pct.almacen_id', $filters['almacen_id']);
+        }
+
+        return $query;
     }
 }

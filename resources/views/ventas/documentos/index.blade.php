@@ -6,7 +6,6 @@
 
 @section('content')
     @csrf
-
     <ventas-app :lst_modos_pago="{{ json_encode($modos_pago) }}" :v_sede="{{ json_encode($sede) }}"
         :registrador="{{ json_encode($registrador) }}" :lst_almacenes="{{ json_encode($almacenes) }}"
         :lst_departamentos_base="{{ json_encode($departamentos) }}" :lst_provincias_base="{{ json_encode($provincias) }}"

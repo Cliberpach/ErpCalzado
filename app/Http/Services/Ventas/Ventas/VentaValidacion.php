@@ -14,6 +14,8 @@ use App\Ventas\Documento\Documento;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class VentaValidacion
 {
@@ -63,11 +65,27 @@ class VentaValidacion
 
         $almacen = Almacen::find($datos['almacenSeleccionado']);
 
+        // lstPagos puede venir como JSON string (FormData) o como array
+        $lstPagos  = isset($datos['lstPagos'])
+            ? (is_string($datos['lstPagos']) ? json_decode($datos['lstPagos'], true) : $datos['lstPagos'])
+            : [];
+        $isPay     = filter_var($datos['isPay'] ?? true, FILTER_VALIDATE_BOOLEAN);
+
         $tipo_pago_1 = null;
         $cuenta_pago_1 = null;
-        if ($condicion_id == 1) {
-            $tipo_pago_1    =   TipoPago::find($datos['metodoPagoId']);
-            $cuenta_pago_1  =   Cuenta::find($datos['cuentaPagoId']);
+        $tipo_pago_2 = null;
+        $cuenta_pago_2 = null;
+
+        if ($condicion_id == 1 && $isPay && !empty($lstPagos)) {
+            $p1 = $lstPagos[0];
+            $tipo_pago_1   = TipoPago::find($p1['metodoPagoId'] ?? null);
+            $cuenta_pago_1 = Cuenta::find($p1['cuentaPagoId'] ?? null);
+
+            if (isset($lstPagos[1])) {
+                $p2 = $lstPagos[1];
+                $tipo_pago_2   = TipoPago::find($p2['metodoPagoId'] ?? null);
+                $cuenta_pago_2 = Cuenta::find($p2['cuentaPagoId'] ?? null);
+            }
         }
 
         $datos_validados = (object)[
@@ -109,15 +127,13 @@ class VentaValidacion
             'telefono'                  =>  $datos['telefono'] ?? null,
 
             //===== DATOS DE PAGO ========
-            'metodoPagoId'              =>  $datos['metodoPagoId'] ?? null,
-            'cuentaPagoId'              =>  $datos['cuentaPagoId'] ?? null,
-            'montoPago'                 =>  $datos['montoPago'] ?? null,
-            'nroOperacionPago'          =>  $datos['nroOperacionPago'] ?? null,
-            'imgPago'                   =>  $datos['imgPago'] ?? null,
-            'fechaOperacionPago'        =>  $datos['fechaOperacionPago'] ?? null,
-
+            'lstPagos'                  =>  $lstPagos,
+            'lstImgsPagos'              =>  $datos['lstImgsPagos'] ?? [],
+            'isPay'                     =>  $isPay,
             'tipo_pago_1'               =>  $tipo_pago_1,
             'cuenta_pago_1'             =>  $cuenta_pago_1,
+            'tipo_pago_2'               =>  $tipo_pago_2,
+            'cuenta_pago_2'             =>  $cuenta_pago_2,
 
             'atencion'                  =>  $datos['atencion'] ?? null
         ];
@@ -140,6 +156,62 @@ class VentaValidacion
         if (count($existe) === 0) {
             throw new Exception($tipo_comprobante->descripcion . ', NO ESTÁ ACTIVO EN LA EMPRESA!!!');
         }
+    }
+
+    public function validacionPagos(array $lst_pagos, float $total_pagar)
+    {
+        $errores     = [];
+        $suma_montos = 0;
+        $metodos     = [];
+
+        foreach ($lst_pagos as $index => $pago) {
+            $key = fn($campo) => "pagos_{$index}_{$campo}";
+
+            if (empty($pago['metodoPagoId'])) {
+                $errores[$key('metodoPagoId')][] = 'Seleccione un método de pago.';
+            }
+
+            if (empty($pago['fechaOperacionPago'])) {
+                $errores[$key('fechaOperacionPago')][] = 'Ingrese la fecha.';
+            }
+
+            if (empty($pago['montoPago']) || floatval($pago['montoPago']) <= 0) {
+                $errores[$key('montoPago')][] = 'El monto debe ser mayor a 0.';
+            } else {
+                $suma_montos += floatval($pago['montoPago']);
+            }
+
+            if (!empty($pago['metodoPagoId']) && $pago['metodoPagoId'] != 1) {
+                if (empty($pago['cuentaPagoId'])) {
+                    $errores[$key('cuentaPagoId')][] = 'Seleccione una cuenta.';
+                }
+                if (empty($pago['nroOperacionPago'])) {
+                    $errores[$key('nroOperacionPago')][] = 'Ingrese nro de operación.';
+                }
+            }
+
+            $metodos[] = $pago['metodoPagoId'] ?? null;
+        }
+
+        if (count($metodos) !== count(array_unique($metodos))) {
+            $errores['pagos_general_error'][] = 'No pueden repetirse los métodos de pago.';
+        }
+
+        if (round($suma_montos, 2) !== round($total_pagar, 2)) {
+            $errores['pagos_general_error'][] = 'La suma de pagos no coincide con el total.';
+        }
+
+        if (!empty($errores)) {
+            $validator = Validator::make([], []);
+            foreach ($errores as $campo => $mensajes) {
+                foreach ($mensajes as $msg) {
+                    $validator->errors()->add($campo, $msg);
+                }
+            }
+            throw new ValidationException($validator);
+        }
+
+        return true;
     }
 
     public static function validacionUpdate($datos, $id)

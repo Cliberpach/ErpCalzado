@@ -3,6 +3,7 @@
 use App\Http\Controllers\Almacenes\AlmacenController;
 use App\Http\Controllers\Almacenes\ProductoController;
 use App\Http\Controllers\Seguridad\UserController;
+use App\Http\Controllers\UtilidadesController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('utilidades')->group(function () {
@@ -21,4 +22,10 @@ Route::prefix('utilidades')->group(function () {
     Route::get('getUsers', [UserController::class, 'getUsers'])->name('utilidades.getUsers');
     Route::get('get-almacenes', [AlmacenController::class, 'getAlmacenes'])->name('utilidades.getAlmacenes');
     Route::get('datatable-productos', [ProductoController::class, 'dataTableProducts'])->name('utilidades.dataTableProducts');
+    Route::get('getProductosSimple', [UtilidadesController::class, 'getProductosSimple'])->name('utilidades.getProductosSimple');
+    Route::get('getTallas', [UtilidadesController::class, 'getTallasEndpoint'])->name('utilidades.getTallas');
+    Route::get('getColores', [UtilidadesController::class, 'getColores'])->name('utilidades.getColores');
+    Route::get('getMarcas', [UtilidadesController::class, 'getMarcas'])->name('utilidades.getMarcas');
+    Route::get('getCategorias', [UtilidadesController::class, 'getCategorias'])->name('utilidades.getCategorias');
+    Route::get('getAlmacenes', 'UtilidadesController@getAlmacenes')->name('utilidades.getAlmacenes');
 });

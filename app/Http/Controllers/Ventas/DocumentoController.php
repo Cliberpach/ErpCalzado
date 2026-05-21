@@ -318,21 +318,56 @@ class DocumentoController extends Controller
         }
     }
 
-    public function getColoresTallas($almacen_id, $producto_id)
+    public function getStocksMatriz(Request $request)
     {
         try {
+            $almacen_id = $request->input('almacen_id');
 
-            $data   =   $this->s_venta->getColoresTallas($almacen_id, $producto_id);
+            if (!$almacen_id) {
+                throw new Exception('FALTA SELECCIONAR UN ALMACÉN!!!');
+            }
+
+            $data = $this->s_venta->getStocksMatriz([
+                'almacen_id'   => $almacen_id,
+                'categoria_id' => $request->input('categoria_id'),
+                'marca_id'     => $request->input('marca_id'),
+                'modelo_id'    => $request->input('modelo_id'),
+                'color_id'     => $request->input('color_id'),
+                'talla_id'     => $request->input('talla_id'),
+                'producto_id'  => $request->input('producto_id'),
+            ]);
 
             return response()->json([
-                "success"               =>  true,
-                "stocks"                =>  $data->stocks,
-                "producto_colores"      =>  $data->producto_colores,
-                'precios_venta'         =>  $data->precios_venta_array
+                'success'          => true,
+                'stocks'           => $data->stocks,
+                'producto_colores' => $data->producto_colores,
+                'precios_venta'    => $data->precios_venta,
             ]);
         } catch (Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
+    }
+
+    public function getStockDisponible(Request $request)
+    {
+        $filters = [
+            'talla_id'    => $request->input('talla_id'),
+            'color_id'    => $request->input('color_id'),
+            'marca_id'    => $request->input('marca_id'),
+            'categoria_id' => $request->input('categoria_id'),
+            'almacen_id'  => $request->input('almacen_id'),
+        ];
+
+        $query = $this->s_venta->queryStockDisponible($filters);
+
+        return DataTables::of($query)
+            ->filterColumn('producto_nombre', function ($q, $keyword) {
+                $q->where(function ($sub) use ($keyword) {
+                    $sub->where('p.nombre', 'LIKE', "%{$keyword}%")
+                        ->orWhere('p.codigo', 'LIKE', "%{$keyword}%");
+                });
+            })
+            ->make(true);
     }
 
     /*
@@ -635,7 +670,7 @@ array:13 [
     {
         try {
 
-        $this->authorize('haveaccess', 'venta.documento_venta.index');
+            $this->authorize('haveaccess', 'venta.documento_venta.index');
 
             $sede_id        =   Auth::user()->sede_id;
 
@@ -820,7 +855,7 @@ array:27 [
         DB::beginTransaction();
         try {
 
-            $documento  =   $this->s_venta->registrar($request->toArray());
+            $documento  =   $this->s_venta->store($request->toArray());
 
             DB::commit();
 
@@ -1364,6 +1399,25 @@ array:27 [
             'nombre_completo' => $nombre_completo,
             'cadena_valor' => $convertir,
         ]);
+    }
+
+    public function getShow($id)
+    {
+        try {
+            $documento = Documento::findOrFail($id);
+            $detalles = Detalle::where('documento_id', $id)
+                ->where('estado', 'ACTIVO')
+                ->get(['id', 'nombre_producto', 'nombre_color', 'nombre_talla', 'nombre_modelo', 'cantidad', 'precio_unitario_nuevo', 'importe_nuevo']);
+            return response()->json([
+                'success' => true,
+                'data'    => [
+                    'sale'     => $documento,
+                    'detalles' => $detalles,
+                ],
+            ]);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 
     public function report($id)
@@ -3747,8 +3801,6 @@ array:5 [
 */
     public function getProductosVenta(Request $request)
     {
-
-
         try {
 
             $search         = $request->query('search'); // Palabra clave para la búsqueda
@@ -3783,7 +3835,7 @@ array:5 [
 
 
             return response()->json(['success' => true, 'message' => 'PRODUCTOS OBTENIDOS', 'data' => $productos]);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }

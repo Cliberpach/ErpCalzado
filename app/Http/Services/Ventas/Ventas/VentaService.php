@@ -33,20 +33,22 @@ class VentaService
     private ProductoColorTallaService $s_pct;
     private OrdenProduccionService $s_orden_produccion;
     private KardexCuentaService $s_kardex_cuenta;
+    private VentaDto $s_dto;
 
     public function __construct()
     {
-        $this->s_validacion     =   new VentaValidacion();
-        $this->s_correlativo    =   new CorrelativoService();
-        $this->s_calculos       =   new CalculosService();
-        $this->s_repository     =   new VentaRepository();
-        $this->s_despacho       =   new DespachoService();
-        $this->s_pct            =   new ProductoColorTallaService();
-        $this->s_orden_produccion   =   new OrdenProduccionService();
-        $this->s_kardex_cuenta      =   new KardexCuentaService();
+        $this->s_validacion       = new VentaValidacion();
+        $this->s_correlativo      = new CorrelativoService();
+        $this->s_calculos         = new CalculosService();
+        $this->s_repository       = new VentaRepository();
+        $this->s_despacho         = new DespachoService();
+        $this->s_pct              = new ProductoColorTallaService();
+        $this->s_orden_produccion = new OrdenProduccionService();
+        $this->s_kardex_cuenta    = new KardexCuentaService();
+        $this->s_dto              = new VentaDto();
     }
 
-    public function registrar(array $datos): Documento
+    public function store(array $datos): Documento
     {
         //========= VALIDACIONES COMPLEJAS ======
         $datos_validados    =   $this->s_validacion->validacionStore($datos);
@@ -59,13 +61,22 @@ class VentaService
         //========== CALCULAR MONTOS ======
         $montos =   $this->s_calculos->calcularMontos($datos_validados->lstVenta, $datos_validados);
 
+        if ($datos_validados->condicion->id == 1 && $datos_validados->isPay) {
+            $this->s_validacion->validacionPagos($datos_validados->lstPagos, $montos->monto_total_pagar);
+        }
+
         //======== OBTENIENDO LEYENDA ======
-        $legenda                =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
+        $legenda    =   UtilidadesController::convertNumeroLetras($montos->monto_total_pagar);
 
         //======= INSERTAR VENTA =======
-        $venta  =   $this->s_repository->insertarVenta($datos_validados, $montos, $datos_correlativo, $legenda);
+        $dto    =   $this->s_dto->dtoStore($datos_validados, $montos, $datos_correlativo, $legenda);
+        $venta  =   $this->s_repository->store($dto);
 
         $this->s_repository->insertarDetalleVenta($datos_validados, $venta, 'STORE');
+
+        if ($datos_validados->condicion->id == 1) {
+            $this->saveImgsPago($datos_validados->lstImgsPagos, $venta);
+        }
 
         //======== ASOCIAR LA VENTA CON EL MOVIMIENTO CAJA DEL COLABORADOR ====
         $this->s_repository->asociarVentaCaja($venta, $datos_validados);
@@ -103,8 +114,28 @@ class VentaService
 
             $this->s_repository->insertarDespacho($venta, $data_envio, $datos_validados);
         }
-
+       
         return $venta;
+    }
+
+    public function saveImgsPago(array $lstImgsPagos, Documento $sale)
+    {
+        if (array_key_exists(0, $lstImgsPagos) && $lstImgsPagos[0] instanceof UploadedFile) {
+            $img1      = $lstImgsPagos[0];
+            $img1_name = $sale->serie . '_' . $sale->correlativo . '_' . 'img_pago_1.' . $img1->getClientOriginalExtension();
+            $sale->pago_1_img_nombre = $img1_name;
+            $sale->pago_1_img_ruta   = 'ventas/pagos/' . $img1_name;
+            $sale->save();
+            UtilidadesController::saveFile($img1, $img1_name, 'ventas/pagos');
+        }
+        if (array_key_exists(1, $lstImgsPagos) && $lstImgsPagos[1] instanceof UploadedFile) {
+            $img2      = $lstImgsPagos[1];
+            $img2_name = $sale->serie . '_' . $sale->correlativo . '_' . 'img_pago_2.' . $img2->getClientOriginalExtension();
+            $sale->pago_2_img_nombre = $img2_name;
+            $sale->pago_2_img_ruta   = 'ventas/pagos/' . $img2_name;
+            $sale->save();
+            UtilidadesController::saveFile($img2, $img2_name, 'ventas/pagos');
+        }
     }
 
     public function storePago(array $datos)
@@ -479,7 +510,7 @@ class VentaService
 
     public function getColoresTallas($almacen_id, $producto_id): object
     {
-        $s_producto =   new ProductoService();
+        $s_producto     =   new ProductoService();
         $precios_venta  =   $s_producto->getPreciosVenta($producto_id);
         $stocks         =   $s_producto->getProductoStocks($almacen_id, $producto_id);
         $colores        =   $s_producto->getProductoColores($almacen_id, $producto_id);
@@ -488,6 +519,33 @@ class VentaService
             'stocks'    =>  $stocks,
             'producto_colores'  =>  $colores,
             'precios_venta_array'   =>  $precios_venta
+        ];
+    }
+
+    public function queryStockDisponible(array $filters): \Illuminate\Database\Query\Builder
+    {
+        return $this->s_repository->queryStockDisponible($filters);
+    }
+
+    public function getStocksMatriz(array $params): object
+    {
+        $almacen_id   = $params['almacen_id']   ?? null;
+        $categoria_id = $params['categoria_id'] ?? null;
+        $marca_id     = $params['marca_id']     ?? null;
+        $modelo_id    = $params['modelo_id']    ?? null;
+        $color_id     = $params['color_id']     ?? null;
+        $talla_id     = $params['talla_id']     ?? null;
+        $producto_id  = $params['producto_id']  ?? null;
+
+        $s_producto     =   new ProductoService();
+        $precios_venta  =   $s_producto->getPreciosVenta($producto_id);
+        $stocks         =   $s_producto->getVariantsConStock($almacen_id, $producto_id);
+        $colores        =   $s_producto->getProductoColores($almacen_id, $producto_id);
+
+        return (object)[
+            'stocks'           => $stocks,
+            'producto_colores' => $colores,
+            'precios_venta'    => $precios_venta
         ];
     }
 }

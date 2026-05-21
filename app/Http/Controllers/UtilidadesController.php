@@ -15,10 +15,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Luecano\NumeroALetras\NumeroALetras;
 use Throwable;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
+use App\Models\Almacenes\Almacen\Almacen;
+use App\Models\Almacenes\Categoria\Categoria;
+use App\Models\Almacenes\Marca\Marca;
 
 class UtilidadesController extends Controller
 {
-
     public static function validarItem($item, $almacen_id)
     {
 
@@ -523,7 +527,134 @@ array:2 [
         }
     }
 
-    public static function getTiposClientes(){
-        return TipoCliente::where('estado','ACTIVO')->get();
+    public static function getTiposClientes()
+    {
+        return TipoCliente::where('estado', 'ACTIVO')->get();
+    }
+
+    public static function saveFile(UploadedFile $file, string $fileName, $folder): string
+    {
+        $path   =   $folder;
+        Storage::disk('public')->putFileAs($path, $file, $fileName);
+        return $path . '/' . $fileName;
+    }
+
+    public static function deleteFile(?string $path): void
+    {
+        if ($path && Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
+    }
+
+    public function getTallasEndpoint(Request $request)
+    {
+        $q      = $request->input('q', '');
+        $query  = Talla::where('estado', 'ACTIVO');
+        if ($q) {
+            $query->where('descripcion', 'LIKE', "%{$q}%");
+        }
+        $tallas = $query->orderByRaw("
+            CASE
+                WHEN descripcion = '35' THEN 1
+                WHEN descripcion = '36' THEN 2
+                WHEN descripcion = '37' THEN 3
+                WHEN descripcion = '38' THEN 4
+                WHEN descripcion = '39' THEN 5
+                WHEN descripcion = '40' THEN 6
+                WHEN descripcion = '41' THEN 7
+                ELSE 8
+            END
+        ")->orderBy('descripcion')->get(['id', 'descripcion']);
+        return response()->json($tallas);
+    }
+
+    public function getColores(Request $request)
+    {
+        $q      = $request->input('q', '');
+        $query  = \App\Almacenes\Color::where('estado', 'ACTIVO');
+        if ($q) {
+            $query->where('descripcion', 'LIKE', "%{$q}%");
+        }
+        return response()->json($query->orderBy('descripcion')->get(['id', 'descripcion']));
+    }
+
+    public function getMarcas(Request $request)
+    {
+        $q      = $request->input('q', '');
+        $query  = Marca::select(
+            'id',
+            'marca as descripcion'
+        )
+            ->where('estado', 'ACTIVO')->where('tipo', 'MARCA');
+        if ($q) {
+            $query->where('marca', 'LIKE', "%{$q}%");
+        }
+        return response()->json($query->orderBy('marca')->get());
+    }
+
+    public function getCategorias(Request $request)
+    {
+        $q      = $request->input('q', '');
+        $query  = Categoria::where('estado', 'ACTIVO')->where('tipo', 'CATEGORIA');
+        if ($q) {
+            $query->where('descripcion', 'LIKE', "%{$q}%");
+        }
+        return response()->json($query->orderBy('descripcion')->get(['id', 'descripcion']));
+    }
+
+    public function getAlmacenes(Request $request)
+    {
+        $q      = $request->input('q', '');
+        $query  = Almacen::where('estado', 'ACTIVO')
+            ->where('tipo', 'ALMACEN')
+            //->where('sede_id', Auth::user()->sede_id)
+            ->where('tipo_almacen', 'PRINCIPAL');
+        if ($q) {
+            $query->where('descripcion', 'LIKE', "%{$q}%");
+        }
+        return response()->json($query->orderBy('descripcion')->get(['id', 'descripcion']));
+    }
+
+    public function getModelos(Request $request)
+    {
+        $q     = $request->input('q', '');
+        $query = \App\Almacenes\Modelo::where('estado', 'ACTIVO');
+        if ($q) {
+            $query->where('descripcion', 'LIKE', "%{$q}%");
+        }
+        return response()->json($query->orderBy('descripcion')->get(['id', 'descripcion']));
+    }
+
+    public function getProductosSimple(Request $request)
+    {
+        $q          = $request->input('q', '');
+        $almacen_id = $request->input('almacen_id');
+
+        $query = DB::table('productos as p')
+            ->join('producto_color_tallas as pct', 'pct.producto_id', '=', 'p.id')
+            ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
+            ->join('marcas as ma', 'ma.id', '=', 'p.marca_id')
+            ->join('modelos as mo', 'mo.id', '=', 'p.modelo_id')
+            ->where('p.estado', 'ACTIVO')
+            ->where('pct.stock_logico', '>', 0)
+            ->select(
+                'p.id',
+                'p.nombre',
+                DB::raw("CONCAT(ca.descripcion, ' - ', ma.marca, ' - ', mo.descripcion, ' - ', p.nombre) as producto_completo")
+            )
+            ->groupBy('p.id', 'p.nombre', 'ca.descripcion', 'ma.marca', 'mo.descripcion');
+
+        if ($q) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('p.nombre', 'LIKE', "%{$q}%")
+                    ->orWhere('p.codigo', 'LIKE', "%{$q}%")
+                    ->orWhere('ca.descripcion', 'LIKE', "%{$q}%")
+                    ->orWhere('ma.marca', 'LIKE', "%{$q}%")
+                    ->orWhere('mo.descripcion', 'LIKE', "%{$q}%");
+            });
+        }
+        if ($almacen_id) $query->where('pct.almacen_id', $almacen_id);
+
+        return response()->json($query->orderBy('p.nombre')->limit(50)->get());
     }
 }

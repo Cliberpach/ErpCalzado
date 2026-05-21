@@ -254,7 +254,7 @@
                             if (data.fecha_Cierre == "-") {
                                 html = `<div class='btn-group'>
                                 <button class='btn btn-warning btn-sm' onclick='cerrarCaja(${data.id})' title='Modificar'><i class='fa fa-lock'> Close</i></button>
-                                <button class='btn btn-danger btn-sm'  onclick='reporte(${data.id})' title='Pdf'><i class='fa fa-file-pdf-o'></i></button>
+                                <button class='btn btn-danger btn-sm'  onclick='reporte(${data.id})' title='Pdf'><i class='fas fa-file-pdf'></i></button>
                                 <button class='btn btn-block btn-sm btn-primary' id='btn_mostrar_colaborades_${data.id}'  data_id=${data.id}  onclick='mostrarColaboradores(${data.id})'>Detalles</button>
                                 </div>
                                 `

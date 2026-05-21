@@ -3,6 +3,29 @@
         @csrf
 
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
+            <label for="nombre_edit" style="font-weight: bold;" class="required_field">
+                Nombre de la Cuenta
+            </label>
+
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon1">
+                        <i class="fas fa-tag"></i>
+                    </span>
+                </div>
+
+                <input maxlength="160" required id="nombre_edit" name="nombre_edit" type="text" class="form-control"
+                    placeholder="Ej: YAPE CHICLAYO" aria-label="Nombre de la Cuenta" aria-describedby="basic-addon1">
+            </div>
+
+            <small class="text-muted">
+                Nombre identificador para seleccionar la cuenta.
+            </small>
+
+            <span class="nombre_edit_error msgError" style="color:red;"></span>
+        </div>
+
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-3">
             <label for="titular_edit" style="font-weight: bold;" class="required_field">Titular</label>
             <div class="input-group">
                 <div class="input-group-prepend">

@@ -25,6 +25,12 @@ class CuentaStoreRequest extends FormRequest
     public function rules()
     {
         return [
+
+            'nombre' => [
+                'required',
+                'string',
+                'max:160',
+            ],
             'titular' => [
                 'required',
                 'string',
@@ -66,6 +72,9 @@ class CuentaStoreRequest extends FormRequest
     public function messages()
     {
         return [
+            'nombre.required'       => 'El nombre de la cuenta es obligatorio.',
+            'nombre.max'            => 'El nombre de la cuenta no puede superar los 160 caracteres.',
+
             'banco_id.required'     => 'El banco es obligatorio.',
             'banco_id.exists'       => 'El banco seleccionado no es válido o no está activo.',
 
@@ -89,8 +98,29 @@ class CuentaStoreRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'nro_cuenta'    => preg_replace('/\s+/', '', $this->nro_cuenta),
-            'cci'           => preg_replace('/\s+/', '', $this->cci),
+
+            'nombre' => mb_strtoupper(
+                preg_replace('/\s+/', ' ', trim($this->nombre ?? '')),
+                'UTF-8'
+            ),
+
+            'titular' => mb_strtoupper(
+                preg_replace('/\s+/', ' ', trim($this->titular ?? '')),
+                'UTF-8'
+            ),
+
+            'nro_cuenta' => preg_replace(
+                '/\s+/',
+                '',
+                trim($this->nro_cuenta ?? '')
+            ),
+
+            'cci' => preg_replace(
+                '/\s+/',
+                '',
+                trim($this->cci ?? '')
+            ),
+
         ]);
     }
 

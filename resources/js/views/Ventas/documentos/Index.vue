@@ -94,6 +94,7 @@
         <!-- <ModalPdfDownloadVue :pdfData.sync="pdfData" /> -->
         <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" @storeDataEnvio="storeDataEnvio"
             ref="modalEnvioRef" />
+        <MdlShowSaleVue ref="mdlShowSale" />
     </div>
 </template>
 <script>
@@ -101,6 +102,7 @@
 //import ModalPdfDownloadVue from '../../../components/ventas/ModalPdfDownload.vue';
 import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
 import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
+import MdlShowSaleVue from '../../../components/ventas/MdlShowSale.vue';
 
 import 'datatables.net-responsive-bs4';
 import 'datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css';
@@ -112,6 +114,7 @@ export default {
         //ModalPdfDownloadVue,
         ModalVentasVue,
         ModalEnvioVue,
+        MdlShowSaleVue,
     },
     data() {
         let today = new Date();
@@ -172,6 +175,9 @@ export default {
             if (this.tabla) {
                 this.tabla.ajax.reload(null, false);
             }
+        },
+        saleShow(id) {
+            this.$refs.mdlShowSale.abrir(id);
         },
         cambiarTallas(documento_id) {
             const url = route('venta.cambiarTallas.create', documento_id);
@@ -774,7 +780,7 @@ export default {
                         render: function (data, type, row) {
                             return `
                             <div class="btn-group" role="group">
-                                <button data-id="${row.id}"  class="btn btn-dark btn-sm btn-pdf" title="PDF">
+                                <button data-id="${row.id}" class="btn btn-dark btn-sm btn-pdf" title="PDF">
                                     <strong>PDF</strong>
                                 </button>
                                 <button class="btn btn-info btn-sm btn-xml" data-id="${row.id}" title="XML">
@@ -929,6 +935,10 @@ export default {
                             }
 
 
+                            acciones += `<a href="javascript:void(0);" class="dropdown-item btn-sale-show" data-id="${row.id}" title="Ver detalle">
+                                    <i class="fas fa-eye" style="color: #1a6db5;"></i> Ver detalle
+                                </a>`;
+
                             acciones += `</div></div>`;
                             return acciones;
                         }
@@ -975,6 +985,12 @@ export default {
 
             vm.tabla.on('draw', function () {
                 console.log(vm.tabla.rows().data().toArray());
+            });
+
+            // Botón Ver detalle
+            $('#dt-ventas tbody').on('click', '.btn-sale-show', function () {
+                const id = $(this).data('id');
+                vm.saleShow(id);
             });
 
             // Delegación de evento para botón PDF

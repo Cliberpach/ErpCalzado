@@ -4,6 +4,8 @@
             <th data-priority="1"><i class="fas fa-vote-yea"></i></th>
             <th data-priority="2" class="text-center">PED</th>
             <th data-priority="3" class="text-center">CLIENTE</th>
+            <th class="text-center">CLIENTE DOC</th>
+            <th class="text-center">CLIENTE TEL</th>
             <th class="text-center">FEC REGISTRO</th>
             <th class="text-center">FEC PROPUESTA</th>
             <th class="text-center">VENDEDOR</th>

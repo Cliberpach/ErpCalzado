@@ -1,156 +1,14 @@
-<style>
-.overlay_venta {
-    position: fixed;
-    /* Fija el overlay para que cubra todo el viewport */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    /* Color oscuro con opacidad */
-    z-index: 99999999999 !important;
-    /* Asegura que el overlay esté sobre todo */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-size: 24px;
-    visibility: hidden;
-}
-
-/*========== LOADER SPINNER =======*/
-.loader_cotizacion_create {
-    position: relative;
-    width: 75px;
-    height: 100px;
-    background-repeat: no-repeat;
-    background-image: linear-gradient(#DDD 50px, transparent 0),
-        linear-gradient(#DDD 50px, transparent 0),
-        linear-gradient(#DDD 50px, transparent 0),
-        linear-gradient(#DDD 50px, transparent 0),
-        linear-gradient(#DDD 50px, transparent 0);
-    background-size: 8px 100%;
-    background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px;
-    animation: pillerPushUp 4s linear infinite;
-}
-
-.loader_cotizacion_create:after {
-    content: '';
-    position: absolute;
-    bottom: 10px;
-    left: 0;
-    width: 10px;
-    height: 10px;
-    background: #de3500;
-    border-radius: 50%;
-    animation: ballStepUp 4s linear infinite;
-}
-
-@keyframes pillerPushUp {
-
-    0%,
-    40%,
-    100% {
-        background-position: 0px 90px, 15px 78px, 30px 66px, 45px 58px, 60px 50px
-    }
-
-    50%,
-    90% {
-        background-position: 0px 50px, 15px 58px, 30px 66px, 45px 78px, 60px 90px
-    }
-}
-
-@keyframes ballStepUp {
-    0% {
-        transform: translate(0, 0)
-    }
-
-    5% {
-        transform: translate(8px, -14px)
-    }
-
-    10% {
-        transform: translate(15px, -10px)
-    }
-
-    17% {
-        transform: translate(23px, -24px)
-    }
-
-    20% {
-        transform: translate(30px, -20px)
-    }
-
-    27% {
-        transform: translate(38px, -34px)
-    }
-
-    30% {
-        transform: translate(45px, -30px)
-    }
-
-    37% {
-        transform: translate(53px, -44px)
-    }
-
-    40% {
-        transform: translate(60px, -40px)
-    }
-
-    50% {
-        transform: translate(60px, 0)
-    }
-
-    57% {
-        transform: translate(53px, -14px)
-    }
-
-    60% {
-        transform: translate(45px, -10px)
-    }
-
-    67% {
-        transform: translate(37px, -24px)
-    }
-
-    70% {
-        transform: translate(30px, -20px)
-    }
-
-    77% {
-        transform: translate(22px, -34px)
-    }
-
-    80% {
-        transform: translate(15px, -30px)
-    }
-
-    87% {
-        transform: translate(7px, -44px)
-    }
-
-    90% {
-        transform: translate(0, -40px)
-    }
-
-    100% {
-        transform: translate(0, 0);
-    }
-}
-</style>
-
 <template>
 
     <div class="">
 
         <EditarItemVue :visible="modalVisible" :title="modalTitle" :tallas="initData.tallas"
             :tallasProducto="tallasProductoEdit" :productoEditar="productoEditar" :detalleVenta="productos_tabla"
-            @update-producto="actualizarProducto" @close="closeModal">
+            @update-producto="actualizarProducto" @close="closeModal" @show-spinner="mostrarAnimacionVenta"
+            @hide-spinner="ocultarAnimacionVenta">
         </EditarItemVue>
 
-        <div class="overlay_venta">
-            <span class="loader_cotizacion_create"></span>
-        </div>
+        <SpinnerOverlay :visible="spinnerVisible" />
 
         <div class="wrapper wrapper-content animated fadeInRight content-create" :class="{ 'sk__loading': loading }">
             <div class="row">
@@ -291,16 +149,6 @@
                                                         </template>
                                                     </v-select>
 
-                                                    <!--
-                                                    <v-select v-model="cliente_id" :options="initData.clientes"
-                                                        :reduce="cl => cl" label="cliente"
-                                                        placeholder="Buscar clientes...">
-                                                        <template v-slot:option="option">
-                                                            {{ option.cliente }}
-                                                        </template>
-                                                    </v-select>
-                                                    -->
-
                                                 </div>
                                             </div>
                                         </div>
@@ -310,85 +158,26 @@
                             <hr>
 
                             <TablaProductos @addProductoDetalle="addProductoDetalle" @addDataEnvio="addDataEnvio"
-                                @actualizarMontoPago="actualizarMontoPago" @borrarDataEnvio="borrarDataEnvio"
-                                :fullaccessTable="FullaccessTable" :idcotizacion="idcotizacion"
-                                :btnDisabled="disabledBtnProducto" :parametros="paramsLotes" :modelos="initData.modelos"
-                                :categorias="initData.categorias" :marcas="initData.marcas" :tallas="initData.tallas"
-                                :precio_envio="formCreate.precio_envio" :precio_despacho="formCreate.precio_despacho"
-                                :cliente="cliente_id" :almacenSeleccionado="almacenSeleccionado" ref="tablaProductos" />
+                                @borrarDataEnvio="borrarDataEnvio" :fullaccessTable="FullaccessTable"
+                                :idcotizacion="idcotizacion" :btnDisabled="disabledBtnProducto"
+                                :parametros="paramsLotes" :modelos="initData.modelos" :categorias="initData.categorias"
+                                :marcas="initData.marcas" :tallas="initData.tallas" :cliente="cliente_id"
+                                :almacenSeleccionado="almacenSeleccionado" ref="tablaProductos" />
+
+                            <DetalleDocumentoVue :carrito="carrito" :tallas="initData.tallas"
+                                :monto_subtotal="monto_subtotal" :monto_embalaje="monto_embalaje"
+                                :monto_envio="monto_envio" :monto_descuento="monto_descuento" :monto_igv="monto_igv"
+                                :monto_total="monto_total" :monto_total_pagar="monto_total_pagar"
+                                :hayDatosEnvio="hayDatosEnvio" @editarItem="openMdlEditItem"
+                                @eliminarItem="onEliminarItem" @descuento="onDescuento" @setDataEnvio="onSetDataEnvio"
+                                @update:monto_embalaje="onUpdateEmbalaje" @update:monto_envio="onUpdateEnvio" />
 
                             <div class="hr-line-dashed"></div>
 
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="panel panel-success">
-                                        <div class="panel-heading">
-                                            <h4 class=""><b>Datos de Pago</b></h4>
-                                        </div>
-                                        <div class="panel-body ibox-content">
-                                            <div class="row">
-                                                <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
-                                                    <label style="font-weight: bold;">MÉTODO PAGO</label>
-                                                    <v-select v-model="metodoPagoId" :options="lst_metodos_pago"
-                                                        :reduce="a => a.id" label="descripcion"
-                                                        placeholder="Seleccionar" ref="selectMetodoPago">
-                                                    </v-select>
-                                                    <span class="metodoPagoId_error msgError"></span>
-                                                </div>
-                                                <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
-                                                    <label style="font-weight: bold;">CUENTA</label>
-                                                    <v-select v-model="cuentaPagoId" :options="lstCuentas"
-                                                        :reduce="a => a.cuenta_id" label="cuentaLabel"
-                                                        placeholder="Seleccionar" ref="selectCuentaPago">
-                                                    </v-select>
-                                                    <span class="cuentaPagoId_error msgError"></span>
-                                                </div>
-                                                <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
-                                                    <label style="font-weight: bold;">MONTO</label>
-                                                    <div class="input-group">
-                                                        <div class="input-group-prepend">
-                                                            <span class="input-group-text bg-light">
-                                                                <i class="fas fa-dollar-sign text-success"></i>
-                                                            </span>
-                                                        </div>
-                                                        <input v-model="montoPago" type="text" class="form-control"
-                                                            placeholder="Ingrese monto" @input="validarMontoPago"
-                                                            ref="inputMontoPago">
-                                                    </div>
-                                                    <span class="montoPago_error msgError"></span>
-                                                </div>
-                                                <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
-                                                    <label style="font-weight: bold;">N° OPERACIÓN</label>
-                                                    <div class="input-group">
-                                                        <div class="input-group-prepend">
-                                                            <span class="input-group-text bg-light">
-                                                                <i class="fas fa-receipt text-primary"></i>
-                                                            </span>
-                                                        </div>
-                                                        <input v-model="nroOperacionPago" type="text"
-                                                            class="form-control" placeholder="Ingrese N° de operación"
-                                                            ref="inputNroOperacionPago">
-                                                    </div>
-                                                    <span class="nroOperacionPago_error msgError"></span>
-                                                </div>
-                                                <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
-                                                    <label style="font-weight: bold;">FECHA</label>
-                                                    <div class="input-group">
-                                                        <div class="input-group-prepend">
-                                                            <span class="input-group-text bg-light">
-                                                                <i class="fas fa-calendar-alt text-warning"></i>
-                                                            </span>
-                                                        </div>
-                                                        <input v-model="fechaOperacionPago" type="date"
-                                                            class="form-control" ref="inputFechaOperacionPago">
-                                                    </div>
-                                                    <span class="fechaOperacionPago_error msgError"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <PagosComponent ref="datosPago" :lstMetodosPago="lst_metodos_pago"
+                                :montoTotal="monto_total_pagar" @show-spinner="mostrarAnimacionVenta"
+                                @hide-spinner="ocultarAnimacionVenta" @update-pagos="formCreate.lstPagos = $event"
+                                @update-isPay="formCreate.isPay = $event" />
 
                             <div class="form-group row">
                                 <div class="col-md-6 text-left" style="color:#fcbc6c">
@@ -421,6 +210,8 @@
             :lst_provincias_base="this.lst_provincias_base" :lst_distritos_base="this.lst_distritos_base"
             :v_sede="this.v_sede" />
 
+        <ModalConsultarStock />
+
     </div>
 </template>
 
@@ -428,13 +219,21 @@
 import ModalClienteVue from '../../../components/ventas/ModalCliente.vue';
 import TablaProductos from '../../../components/ventas/TablaProductos.vue';
 import EditarItemVue from '../../../components/ventas/EditarItem.vue';
+import ModalConsultarStock from '../../../components/ventas/ModalConsultarStock.vue';
+import DetalleDocumentoVue from '../../../components/ventas/DetalleDocumento.vue';
+import SpinnerOverlay from '../../../components/shared/SpinnerOverlay.vue';
+import PagosComponent from '../../../components/ventas/PagosComponent.vue';
 
 export default {
     name: "VentaCreate",
     components: {
         ModalClienteVue,
         TablaProductos,
-        EditarItemVue
+        EditarItemVue,
+        ModalConsultarStock,
+        DetalleDocumentoVue,
+        SpinnerOverlay,
+        PagosComponent,
     },
     props: {
         ruta: {
@@ -488,15 +287,10 @@ export default {
 
             //====== ALMACÉN =====
             almacenSeleccionado: null,
-            checkDespacho: false,
-            checkEnvio: false,
             initData: {
                 condiciones: [],
-                dolar: 0,
                 empresas: [],
-                fecha_hoy: "",
                 fullaccess: false,
-                vista: "",
                 tipoVentas: [],
                 modelos: [],
                 categorias: [],
@@ -521,7 +315,6 @@ export default {
                 cotizacion_id: null,
                 productos_tabla: "",
                 envio_sunat: false,
-                igv: 18,
                 monto_sub_total: 0,
                 monto_total_igv: 0,
                 monto_total: 0,
@@ -530,18 +323,13 @@ export default {
                 data_envio: null,
                 telefono: null,
 
-                metodoPagoId: null,
-                cuentaPagoId: null,
-                montoPago: null,
-                nroOperacionPago: null,
-                imgPago: null,
-                fechaOperacionPago: null
+                lstPagos: [],
+                isPay: true
             },
             tipo_venta: "",
             condicion_id: 1,
 
             loading: true,
-            loadingClienteNew: false,
             paramsLotes: {
                 tipo_cliente: '',
                 tipocomprobante: '',
@@ -573,38 +361,23 @@ export default {
             }],
             search: '',
             page: 1,
-            more: false,
             searchTimeout: null,
 
-            //======= DATOS DE PAGO =======
-            lstCuentas: [],
-            metodoPagoId: null,
-            cuentaPagoId: null,
-            montoPago: null,
-            nroOperacionPago: null,
-            imgPago: null,
-            fechaOperacionPago: null,
+            //====== ESTADO COMPARTIDO PARA DetalleDocumento ======
+            carrito: [],
+            monto_subtotal: 0,
+            monto_embalaje: 0,
+            monto_envio: 0,
+            monto_descuento: 0,
+            monto_igv: 0,
+            monto_total: 0,
+            monto_total_pagar: 0,
+            hayDatosEnvio: false,
 
-            //====== ADD =======
-            observacion: null
-        }
-    },
-    filters: {
-        truncate: function (data, num) {
-            const reqdString =
-                data.split("").slice(0, num).join("");
-            return reqdString;
+            spinnerVisible: false,
         }
     },
     watch: {
-        metodoPagoId: {
-            handler(value) {
-                if (value) {
-                    this.cuentaPagoId = null;
-                    this.getCuentasPorMetodoPago(value);
-                }
-            }
-        },
         almacenSeleccionado: {
             handler(value) {
                 //===== LIMPIAR FORMULARIO DETALLE ======
@@ -619,7 +392,7 @@ export default {
         },
         initData: {
             handler(value) {
-                const { tipoVentas, condiciones, clientes, empresas } = value;
+                const { tipoVentas, condiciones, empresas } = value;
                 this.FullaccessTable = value.fullaccess;
 
                 this.formCreate.empresa_id = empresas.length > 0 ? empresas[0].id : 0;
@@ -672,7 +445,7 @@ export default {
             if (value) {
                 this.formCreate.cliente_id = value.id;
                 this.disabledBtnProducto = false;
-                this.formCreate.telefono = value.telefono_movil;
+                this.formCreate.telefono = value.telefono_movil ?? null;
             } else {
                 this.formCreate.cliente_id = null;
                 this.disabledBtnProducto = true;
@@ -690,8 +463,6 @@ export default {
             }
         })
 
-        this.metodoPagoId = 3;
-        this.fechaOperacionPago = new Date().toISOString().split('T')[0];
         window.addEventListener("beforeunload", this.handleBeforeUnload);
 
         this.formCreate.fecha_documento_campo = this.$fechaActual;
@@ -710,43 +481,9 @@ export default {
         actualizarProducto(productoEditado) {
             this.$refs.tablaProductos.actualizarItemCarrito(productoEditado);
         },
-        actualizarMontoPago(valor) {
-            this.montoPago = formatoNumero(valor);
-        },
         borrarDataEnvio() {
             this.formCreate.data_envio = null;
-        },
-        async getCuentasPorMetodoPago(metodoPagoId) {
-            try {
-                this.mostrarAnimacionVenta();
-                const res = await this.axios.get(route('utilidades.getCuentasPorMetodoPago', metodoPagoId));
-                if (res.data.success) {
-                    toastr.info(res.data.message, 'OPERACIÓN COMPLETADA');
-                    this.lstCuentas = res.data.data;
-                } else {
-                    toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
-                }
-            } catch (error) {
-                toastr.error(error, 'ERROR EN LA PETICIÓN OBTENER CUENTAS POR MÉTODO DE PAGO');
-            } finally {
-                this.ocultarAnimacionVenta();
-            }
-        },
-        validarMontoPago(e) {
-            let valor = e.target.value;
-
-            // 1. Solo números y punto (elimina cualquier otro, incluido -)
-            valor = valor.replace(/[^0-9.]/g, '');
-
-            // 2. Solo permitir un único punto (quita los demás)
-            valor = valor.replace(/(\..*?)\./g, '$1');
-
-            // 3. Limitar a 2 decimales si existe punto
-            valor = valor.replace(/^(\d+)(\.\d{0,2})?.*$/, '$1$2');
-
-            e.target.value = valor;
-            this.montoPago = valor;
-
+            this.hayDatosEnvio = false;
         },
         resetClientes() {
             this.search = '';
@@ -793,33 +530,28 @@ export default {
         closeModal() {
             this.modalVisible = false;
         },
-        addDataEnvio(value) {
-            // const { departamento,provincia,distrito,tipo_envio,empresa_envio,sede_envio,destinatario } = value;
-            this.formCreate.data_envio = JSON.stringify(value);
+        // --- delegados desde DetalleDocumento ---
+        onEliminarItem(item, index) {
+            this.$refs.tablaProductos.EliminarItem(item, index);
         },
-        formatearDetalle(detalles) {
-            if (detalles.length > 0) {
-                let carritoFormateado = [];
-                detalles.forEach((d) => {
-                    d.tallas.forEach((t) => {
-                        const producto = {};
-                        producto.producto_id = d.producto_id;
-                        producto.color_id = d.color_id;
-                        producto.talla_id = t.talla_id;
-                        producto.cantidad = t.cantidad;
-                        producto.precio_unitario = d.precio_venta;
-                        producto.porcentaje_descuento = d.porcentaje_descuento;
-                        producto.precio_unitario_nuevo = d.precio_venta_nuevo;
-                        carritoFormateado.push(producto);
-                    })
-                })
-                return carritoFormateado;
-            }
-            return [];
+        onDescuento(producto_id, color_id, event) {
+            this.$refs.tablaProductos.validarDescuento(producto_id, color_id, event);
+        },
+        onSetDataEnvio() {
+            this.$refs.tablaProductos.setDataEnvio();
+        },
+        onUpdateEmbalaje(val) {
+            this.$refs.tablaProductos.monto_embalaje = val;
+        },
+        onUpdateEnvio(val) {
+            this.$refs.tablaProductos.monto_envio = val;
+        },
+        addDataEnvio(value) {
+            this.formCreate.data_envio = JSON.stringify(value);
+            this.hayDatosEnvio = true;
         },
         async ObtenerData() {
             try {
-                //this.mostrarAnimacionVenta();
                 this.loading = true;
                 const { data } = await this.axios.post(route("ventas.documento.getCreate"));
                 const { success, initData } = data;
@@ -827,32 +559,29 @@ export default {
                 this.loading = false;
             } catch (ex) {
 
-            } finally {
-                //this.ocultarAnimacionVenta();
             }
         },
-        Volver() {
-            this.$emit("update:ruta", "index");
-        },
-        selectedCliente(value) {
-            console.log(value);
-        },
-
         NuevoCliente() {
             $("#modal_cliente").modal("show");
         },
         formAddCliente(clienteNuevo) {
-            this.loadingClienteNew = true;
             this.clientes.push(clienteNuevo);
             this.cliente_id = clienteNuevo;
         },
         //======= OBTENIENDO CARRITO DEL COMPONENTE HIJO TablaProductos.vue ==========
         addProductoDetalle(value) {
             const { detalles, totales } = value;
-            //this.productos_tabla      =   this.formatearDetalle(detalles);
             this.productos_tabla = detalles;
             this.formCreate = Object.assign(this.formCreate, totales);
-            console.log(this.formCreate);
+            // feed DetalleDocumento
+            this.carrito = detalles;
+            this.monto_subtotal = totales.monto_sub_total || 0;
+            this.monto_embalaje = totales.monto_embalaje || 0;
+            this.monto_envio = totales.monto_envio || 0;
+            this.monto_descuento = totales.monto_descuento || 0;
+            this.monto_igv = totales.monto_total_igv || 0;
+            this.monto_total = totales.monto_total || 0;
+            this.monto_total_pagar = totales.monto_total_pagar || 0;
         },
         Grabar() {
             try {
@@ -920,28 +649,33 @@ export default {
 
                 this.formCreate.almacenSeleccionado = this.almacenSeleccionado;
                 this.formCreate.sede_id = this.initData.sede_id;
-                this.formCreate.metodoPagoId = this.metodoPagoId;
-                this.formCreate.cuentaPagoId = this.cuentaPagoId;
-                this.formCreate.montoPago = this.montoPago;
-                this.formCreate.nroOperacionPago = this.nroOperacionPago;
-                this.formCreate.fechaOperacionPago = this.fechaOperacionPago;
-                this.formCreate.observacion = this.observacion;
-                this.formCreate.almacenSeleccionado = this.almacenSeleccionado;
-                this.formCreate.sede_id = this.initData.sede_id;
 
-                const res = await this.axios.post(route('ventas.documento.store'), this.formCreate);
-                /*
-                const delay     =   new Promise(resolve => setTimeout(resolve, 10000));
-                const request   =   this.axios.post(route('ventas.documento.store'), this.formCreate);
-                const [res]     =   await Promise.all([request, delay]);
-                */
+                const formData = new FormData();
+                // adjuntar imágenes de cada pago
+                this.formCreate.lstPagos.forEach((pago, index) => {
+                    if (pago.imgPago) {
+                        formData.append(`lstImgsPagos[${index}]`, pago.imgPago);
+                    }
+                });
+                // serializar el resto de campos
+                for (const key in this.formCreate) {
+                    if (key === 'lstPagos') {
+                        formData.append('lstPagos', JSON.stringify(this.formCreate.lstPagos));
+                    } else if (key !== 'lstImgsPagos') {
+                        const val = this.formCreate[key];
+                        if (val !== null && val !== undefined) {
+                            formData.append(key, val);
+                        }
+                    }
+                }
+
+                const res = await this.axios.post(route('ventas.documento.store'), formData);
 
                 if (res.data.success) {
                     this.$refs.tablaProductos.ChangeAsegurarCierre();
                     toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
                     const url_open_pdf = route("ventas.documento.comprobante", { id: res.data.documento_id, size: 80 });
                     window.open(url_open_pdf, 'Comprobante SISCOM', 'location=1, status=1, scrollbars=1,width=900, height=600');
-                    //this.$emit("update:ruta", "index");
                     window.location.href = route("ventas.documento.index");
 
                 } else {
@@ -951,28 +685,17 @@ export default {
             } catch (error) {
                 const status = error.response?.status;
                 const errors = error.response?.data?.errors;
+                Swal.close();
 
                 if (status === 422 && errors) {
                     pintarErroresValidacion(errors, 'error');
-                    Swal.close();
                 } else if (status) {
                     toastr.error(`Error ${status}: ${error.response?.data?.message || 'Ocurrió un problema'}`);
                 } else {
                     toastr.error(error.message || 'Error de conexión con el servidor', 'ERROR');
                 }
-                Swal.close();
             }
 
-        },
-        validarTipo() {
-
-            var enviar = true
-
-            if (this.formCreate.tipo_cliente_documento == '0' && this.formCreate.tipo_venta == 127) {
-                toastr.error('El tipo de documento del cliente es diferente a RUC.', 'Error');
-                enviar = false;
-            }
-            return enviar
         },
         validarCampos() {
 
@@ -1037,75 +760,11 @@ export default {
             }
 
 
-            if (this.metodoPagoId == 1 && this.montoPago && this.fechaOperacionPago) {
-                correcto = this.validarDatosPago();
-            }
-
-            if (this.metodoPagoId != 1 && this.cuentaPagoId && this.montoPago && this.nroOperacionPago && this.fechaOperacionPago) {
-                correcto = this.validarDatosPago();
-            }
+            correcto = this.$refs.datosPago.validar(this.monto_total_pagar);
 
 
             return correcto;
 
-        },
-        validarDatosPago() {
-
-            //====== VALIDAR PAGO ========
-            if (this.metodoPagoId != 1 && !this.cuentaPagoId) {
-                toastr.error('CUENTA PAGO ES OBLIGATORIA PARA ESTE MÉTODO DE PAGO');
-                this.$nextTick(() => {
-                    const select = this.$refs.selectCuentaPago;
-
-                    select.$el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                    select.$refs.search.focus();
-
-                    select.open = true;
-                });
-
-                return false;
-            }
-
-            const montoPago = Math.round(parseFloat(this.montoPago) * 100) / 100;
-            const totalVenta = Math.round(parseFloat(this.formCreate.monto_total_pagar) * 100) / 100;
-
-            if (montoPago !== totalVenta) {
-                toastr.error('EL MONTO DE PAGO ES DIFERENTE AL TOTAL DE LA VENTA');
-                this.$nextTick(() => {
-                    const input = this.$refs.inputMontoPago;
-                    if (input) {
-                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        input.focus();
-                    }
-                });
-                return false;
-            }
-
-            if (!this.nroOperacionPago && this.metodoPagoId != 1) {
-                toastr.error('N° OPERACIÓN OBLIGATORIO PARA ESTE MÉTODO DE PAGO');
-                this.$nextTick(() => {
-                    const input = this.$refs.inputNroOperacionPago;
-                    if (input) {
-                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        input.focus();
-                    }
-                });
-                return false;
-            }
-
-            if (!this.fechaOperacionPago) {
-                toastr.error('FECHA OPERACIÓN OBLIGATORIO');
-                this.$nextTick(() => {
-                    const input = this.$refs.inputFechaOperacionPago;
-                    if (input) {
-                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        input.focus();
-                    }
-                });
-                return false;
-            }
-            return true;
         },
         async getTipoComprobante() {
             try {
@@ -1132,10 +791,10 @@ export default {
             this.$emit("update:ruta", "index");
         },
         mostrarAnimacionVenta() {
-            document.querySelector('.overlay_venta').style.visibility = 'visible';
+            this.spinnerVisible = true;
         },
         ocultarAnimacionVenta() {
-            document.querySelector('.overlay_venta').style.visibility = 'hidden';
+            this.spinnerVisible = false;
         }
     },
 }

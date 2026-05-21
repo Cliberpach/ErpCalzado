@@ -41,57 +41,12 @@ class DocVentaStoreRequest extends FormRequest
                 'max:20',
             ],
 
-            'metodoPagoId' => [
-                'nullable',
-                Rule::exists('tipos_pago', 'id')->where(function ($query) {
-                    $query->where('estado', 'ACTIVO');
-                }),
-            ],
-
-            'imgPago' => 'nullable|mimes:png,jpg,jpeg|max:4096',
+            'lstPagos' => 'nullable|string',
         ];
 
-        // Si es EFECTIVO (1) Y monto y fecha tienen valor
-        if ($this->metodoPagoId == 1 && $this->filled('montoPago') && $this->filled('fechaOperacionPago')) {
-            $rules['montoPago'] = 'numeric|gt:0';
-            $rules['fechaOperacionPago'] = 'date';
-        }
-
-        // Si es distinto de 1 Y además tiene valores en cuenta, monto, nroOperacion y fecha
-        if (
-            $this->metodoPagoId &&
-            $this->metodoPagoId != 1 &&
-            $this->filled('cuentaPagoId') &&
-            $this->filled('montoPago') &&
-            $this->filled('nroOperacionPago') &&
-            $this->filled('fechaOperacionPago')
-        ) {
-            $rules['cuentaPagoId'] = [
-                Rule::exists('cuentas', 'id')->where(function ($query) {
-                    $query->where('estado', 'ACTIVO');
-                }),
-                function ($attribute, $value, $fail) {
-                    $exists = DB::table('tipo_pago_cuentas')
-                        ->where('tipo_pago_id', $this->metodoPagoId)
-                        ->where('cuenta_id', $value)
-                        ->exists();
-
-                    if (!$exists) {
-                        $fail('La cuenta seleccionada no está asociada al método de pago.');
-                    }
-                }
-            ];
-
-            $rules['montoPago'] = 'numeric|gt:0';
-            $rules['nroOperacionPago'] = [
-                'max:20',
-                Rule::unique('cotizacion_documento', 'pago_1_nro_operacion')
-                    ->where(function ($query) {
-                        $query->where('sunat', '<>', '2');
-                    }),
-            ];
-            $rules['fechaOperacionPago'] = 'date';
-        }
+        // validar imágenes de pagos
+        $rules['lstImgsPagos.0'] = 'nullable|mimes:png,jpg,jpeg,webp|max:5120';
+        $rules['lstImgsPagos.1'] = 'nullable|mimes:png,jpg,jpeg,webp|max:5120';
 
         return $rules;
     }
@@ -115,21 +70,10 @@ class DocVentaStoreRequest extends FormRequest
             'telefono.min'                     => 'El teléfono debe tener al menos :min dígitos.',
             'telefono.max'                     => 'El teléfono no puede tener más de :max dígitos.',
 
-            // Mensajes de pago
-            'metodoPagoId.exists'   => 'El método de pago seleccionado no es válido o no está activo.',
-
-            'cuentaPagoId.exists'   => 'La cuenta de pago seleccionada no es válida o no está activa.',
-
-            'montoPago.numeric'  => 'El monto de pago debe ser un número.',
-            'montoPago.gt'       => 'El monto de pago debe ser mayor a 0.',
-
-            'nroOperacionPago.max'      => 'El número de operación no puede exceder los :max caracteres.',
-            'nroOperacionPago.unique'   => 'El número de operación ya ha sido registrado en otra venta.',
-
-            'imgPago.mimes' => 'La imagen de pago debe ser un archivo de tipo: png, jpg o jpeg.',
-            'imgPago.max'   => 'La imagen de pago no debe superar los 4 MB.',
-
-            'fechaOperacionPago.date'     => 'La fecha de la operación debe ser una fecha válida.',
+            'lstImgsPagos.0.mimes' => 'La imagen del pago 1 debe ser jpg, png o webp.',
+            'lstImgsPagos.0.max'   => 'La imagen del pago 1 no debe superar los 5 MB.',
+            'lstImgsPagos.1.mimes' => 'La imagen del pago 2 debe ser jpg, png o webp.',
+            'lstImgsPagos.1.max'   => 'La imagen del pago 2 no debe superar los 5 MB.',
         ];
     }
 

@@ -166,6 +166,64 @@ class CreateCotizacionDocumentoTable extends Migration
             $table->unsignedDecimal('pago_1_monto', 15, 6)->nullable();
             $table->unsignedInteger('pago_1_tipo_pago_id')->nullable();
 
+            $table->unsignedBigInteger('pago_2_cuenta_id')
+                ->nullable();
+
+            $table->string('pago_2_banco_nombre', 160)
+                ->nullable();
+
+            $table->string('pago_2_nro_cuenta', 100)
+                ->nullable();
+
+            $table->string('pago_2_cci', 100)
+                ->nullable();
+
+            $table->string('pago_2_celular', 20)
+                ->nullable();
+
+            $table->string('pago_2_titular', 200)
+                ->nullable();
+
+            $table->string('pago_2_moneda', 160)
+                ->nullable();
+
+            $table->date('pago_2_fecha_operacion')
+                ->nullable();
+
+            $table->string('pago_2_tipo_pago_nombre', 160)
+                ->nullable();
+
+            $table->string('pago_2_nro_operacion', 30)
+                ->nullable();
+
+            $table->decimal('pago_2_monto', 16, 2)
+                ->unsigned()
+                ->nullable();
+
+            $table->unsignedInteger('pago_2_tipo_pago_id')
+                ->nullable();
+
+            $table->longText('pago_1_img_ruta')
+                ->nullable();
+
+            $table->longText('pago_2_img_ruta')
+                ->nullable();
+
+            $table->string('pago_1_img_nombre', 300)
+                ->nullable();
+
+            $table->string('pago_2_img_nombre', 300)
+                ->nullable();
+
+            $table->time('pago_2_hora_operacion')
+                ->nullable();
+
+            $table->unsignedInteger('origen_venta_id')
+                ->nullable();
+
+            $table->string('origen_venta_nombre', 191)
+                ->nullable();
+
             //=========== CONVERSION /REGULARIZACION / GUIAS
             $table->unsignedInteger('resumen_id')->nullable();
             $table->unsignedInteger('convert_de_id')->nullable();

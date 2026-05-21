@@ -4,7 +4,7 @@
             <div class="col-12 col-md-10">
                 <h2 style="text-transform:uppercase">
                     <b v-if="ruta == 'index'">Lista de Documentos de Venta</b>
-                    <b v-if="ruta == 'create'">REGISTRAR NUEVO DOCUMENTO DE VENTA</b>
+                    <b v-if="ruta == 'create'">REGISTRAR VENTA</b>
                 </h2>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">

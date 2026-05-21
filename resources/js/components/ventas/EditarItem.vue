@@ -1,9 +1,8 @@
 <template>
-    <transition name="fade" @before-enter="beforeEnter" @enter="enter" @before-leave="beforeLeave" @leave="leave">
+    <transition name="fade">
         <div v-if="visible" class="modal-overlay" style="z-index: 99999 !important;">
 
-            <div id="mdlEditItem" class="modal fade show d-block" style="background: rgba(0, 0, 0, 0.5); z-index: 999999 !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;">
+            <div id="mdlEditItem" class="modal fade show d-block" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
 
                 <div class="modal-dialog" style="max-height: 90vh;">
                     <div class="modal-content d-flex flex-column" style="max-height: 90vh; overflow: hidden;">
@@ -26,23 +25,6 @@
                         <!-- Cuerpo -->
                         <div class="modal-body" style="overflow-y: auto; flex: 1 1 auto;">
 
-                            <!-- <div class="row mb-3">
-                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                                    <label for="" class="font-weight-bold">PRECIO VENTA</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text" id="basic-addon1">
-                                                <i class="fas fa-dollar-sign"></i>
-                                            </span>
-                                        </div>
-                                        <input :value="productoLocal.precio_venta_nuevo"
-                                            @input="editarPrecioVenta($event)" type="text" class="form-control"
-                                            placeholder="Precio" aria-label="Precio" aria-describedby="basic-addon1"
-                                            ref="inputPrecioVentaEditar" />
-                                    </div>
-                                </div>
-                            </div> -->
-
                             <div class="row">
                                 <div class="col-12">
                                     <label for="" style="font-weight: bold;">TALLAS</label>
@@ -61,14 +43,9 @@
                                                     <td class="text-start">{{ item.talla_nombre }}</td>
                                                     <td class="text-start">{{ item.stock_logico }}</td>
                                                     <td class="text-start">
-                                                        <div v-if="item.stock_logico > 0">
-                                                            <input min="0" type="text" style="width: 60px;"
-                                                                class="form-control" v-model="item.cantidad"
-                                                                @input="item.cantidad = (/^[0-9]+$/.test(item.cantidad)) ? parseInt(item.cantidad) : 0" />
-                                                        </div>
-                                                        <div v-else>
-
-                                                        </div>
+                                                        <input min="0" type="text" style="width: 60px;"
+                                                            class="form-control" v-model="item.cantidad"
+                                                            @input="item.cantidad = (/^[0-9]+$/.test(item.cantidad)) ? parseInt(item.cantidad) : 0" />
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -130,7 +107,6 @@ export default {
     data() {
         return {
             cantidadPorTalla: [],
-            precioVentaNuevoEditado: null,
             productoLocal: {},
             dtTallas: null,
         }
@@ -195,38 +171,11 @@ export default {
             });
         },
         async onModalOpen() {
-            this.$parent.mostrarAnimacionVenta();
+            this.$emit('show-spinner');
             const stocksTallas = await this.getTallas(this.productoEditar);
             this.setCantTallaOriginal(stocksTallas);
-            this.$parent.ocultarAnimacionVenta();
+            this.$emit('hide-spinner');
         },
-        editarPrecioVenta(event) {
-            let valor = event.target.value;
-
-            // Reemplaza caracteres no válidos (permite solo números y punto)
-            valor = valor.replace(/[^0-9.]/g, '');
-
-            if (valor.startsWith('.')) {
-                valor = '';
-            }
-
-            // Limita a un solo punto decimal
-            const partes = valor.split('.');
-            if (partes.length > 2) {
-                valor = partes[0] + '.' + partes[1];
-            }
-
-            // Limita a 2 decimales si existe parte decimal
-            if (partes[1]) {
-                partes[1] = partes[1].substring(0, 2);
-                valor = partes[0] + '.' + partes[1];
-            }
-
-            event.target.value = valor;
-            this.productoLocal.precio_venta_nuevo = parseFloat(valor);
-
-        },
-
         getCantidadForTalla(tallaId) {
             const tallaEncontrada = this.tallasProducto.find(talla => talla.talla_id == tallaId);
             return tallaEncontrada ? tallaEncontrada.cantidad : '';
@@ -239,11 +188,11 @@ export default {
 
             //====== EDITAR ITEM =======
             toastr.clear();
-            this.$parent.mostrarAnimacionVenta();
+            this.$emit('show-spinner');
 
             const validacion = this.validacionEditarItem(this.productoLocal);
             if (!validacion) {
-                this.$parent.ocultarAnimacionVenta();
+                this.$emit('hide-spinner');
                 return;
             }
 
@@ -259,7 +208,7 @@ export default {
             console.log('PRODUCTO EDITADO', this.productoLocal);
             this.$emit('update-producto', this.productoLocal);
 
-            this.$parent.ocultarAnimacionVenta();
+            this.$emit('hide-spinner');
             this.closeModal();
 
         },
@@ -314,7 +263,7 @@ export default {
             if (res.data.success) {
                 toastr.success(res.data.message, 'OPERACIÓN COMPLETADA');
             } else {
-                this.$parent.ocultarAnimacionVenta();
+                this.$emit('hide-spinner');
                 toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
                 return false;
             }
@@ -332,26 +281,8 @@ export default {
             return validacion;
 
         },
-        validacionEditarItem(producto) {
-            let validacion = true;
-            /*if (producto.precio_venta_nuevo > producto.precio_venta) {
-                toastr.error('EL PRECIO DE VENTA DEBE SER MENOR O IGUAL AL ORIGINAL');
-                validacion = false;
-                this.$refs.inputPrecioVentaEditar.focus();
-            }*/
-
-            /*if (producto.precio_venta_nuevo <= 0) {
-                toastr.error('EL PRECIO DE VENTA DEBE SER MAYOR A 0');
-                validacion = false;
-                this.$refs.inputPrecioVentaEditar.focus();
-            }*/
-
-            /*if (isNaN(producto.precio_venta_nuevo)) {
-                toastr.error('PRECIO VENTA NO VÁLIDO');
-                validacion = false;
-                this.$refs.inputPrecioVentaEditar.focus();
-            }*/
-            return validacion;
+        validacionEditarItem(_producto) {
+            return true;
         },
         calcularMontosProducto(producto) {
             producto.porcentaje_descuento = parseFloat(
@@ -369,28 +300,23 @@ export default {
             producto.subtotal = subtotal;
             producto.subtotal_nuevo = subtotal_nuevo;
         },
-        beforeEnter(el) {
-            el.style.opacity = 0;
-            el.style.transform = 'scale(0.8)';
-        },
-        enter(el, done) {
-            el.offsetHeight;
-            el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-            el.style.opacity = 1;
-            el.style.transform = 'scale(1)';
-            done();
-        },
         setCantTallaOriginal(stocksTallas) {
             const tallas = [];
 
             this.tallas.forEach((t) => {
-                const talla_find = this.tallasProducto.find((p) => p.talla_id == t.id);
                 const stockTalla = stocksTallas.find(st => st.talla_id == t.id);
+                const stock_logico = parseInt(stockTalla ? stockTalla.stock_logico : 0);
+                const talla_find = this.tallasProducto.find((p) => p.talla_id == t.id);
+                const cantidad_en_carrito = talla_find ? parseInt(talla_find.cantidad) : 0;
+
+                // mostrar si tiene stock disponible O ya está en el carrito (para poder bajarla o anularla)
+                if (stock_logico <= 0 && cantidad_en_carrito <= 0) return;
+
                 tallas.push({
                     talla_id: t.id,
                     talla_nombre: t.descripcion,
-                    cantidad: talla_find ? talla_find.cantidad : 0,
-                    stock_logico: parseInt(stockTalla ? stockTalla.stock_logico : 0)
+                    cantidad: cantidad_en_carrito,
+                    stock_logico,
                 });
             });
 
@@ -400,14 +326,6 @@ export default {
 
         },
 
-        beforeLeave(el) {
-            el.style.transition = 'opacity 0.3s ease, transform 0.3s ease'; // Set transition for leave
-        },
-        leave(el, done) {
-            el.style.opacity = 0;
-            el.style.transform = 'scale(0.8)';
-            done();
-        },
         async getTallas(producto) {
             console.log('TRAYENDO TALLAS', producto);
             try {

@@ -16,6 +16,7 @@ class CreateCuentasTable extends Migration
         Schema::create('cuentas', function (Blueprint $table) {
             $table->id();
 
+            $table->string('nombre', 160);
             $table->unsignedInteger('banco_id');
             $table->foreign('banco_id')->references('id')->on('tabladetalles');
 
@@ -25,9 +26,9 @@ class CreateCuentasTable extends Migration
             $table->string('cci', 100)->nullable();
 
             $table->string('celular', 20)->nullable();
-            $table->string('titular',200);
+            $table->string('titular', 200);
 
-            $table->string('moneda',160);
+            $table->string('moneda', 160);
 
             $table->unsignedInteger('registrador_id');
             $table->foreign('registrador_id')->references('id')->on('users');

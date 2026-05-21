@@ -21,16 +21,44 @@ class CuentaUpdateRequest extends FormRequest
     protected function prepareForValidation()
     {
         $sanitized = [];
+
         foreach ($this->all() as $key => $value) {
-            $newKey = str_ends_with($key, '_edit') ? substr($key, 0, -5) : $key;
+
+            $newKey = str_ends_with($key, '_edit')
+                ? substr($key, 0, -5)
+                : $key;
+
             $sanitized[$newKey] = $value;
         }
 
-        if (isset($sanitized['nro_cuenta'])) {
-            $sanitized['nro_cuenta'] = preg_replace('/\s+/', '', $sanitized['nro_cuenta']);
+        if (isset($sanitized['nombre'])) {
+            $sanitized['nombre'] = mb_strtoupper(
+                preg_replace('/\s+/', ' ', trim($sanitized['nombre'] ?? '')),
+                'UTF-8'
+            );
         }
+
+        if (isset($sanitized['titular'])) {
+            $sanitized['titular'] = mb_strtoupper(
+                preg_replace('/\s+/', ' ', trim($sanitized['titular'] ?? '')),
+                'UTF-8'
+            );
+        }
+
+        if (isset($sanitized['nro_cuenta'])) {
+            $sanitized['nro_cuenta'] = preg_replace(
+                '/\s+/',
+                '',
+                trim($sanitized['nro_cuenta'] ?? '')
+            );
+        }
+
         if (isset($sanitized['cci'])) {
-            $sanitized['cci'] = preg_replace('/\s+/', '', $sanitized['cci']);
+            $sanitized['cci'] = preg_replace(
+                '/\s+/',
+                '',
+                trim($sanitized['cci'] ?? '')
+            );
         }
 
         $this->merge($sanitized);
@@ -44,19 +72,29 @@ class CuentaUpdateRequest extends FormRequest
     public function rules()
     {
         return [
+
+            'nombre' => [
+                'required',
+                'string',
+                'max:160',
+            ],
+
             'titular' => [
                 'required',
                 'string',
                 'max:200',
             ],
+
             'banco_id' => [
                 'required',
                 Rule::exists('tabladetalles', 'id')->where('estado', 'ACTIVO'),
             ],
+
             'moneda' => [
                 'required',
                 'in:SOLES,DOLARES',
             ],
+
             'nro_cuenta' => [
                 'required',
                 'string',
@@ -65,6 +103,7 @@ class CuentaUpdateRequest extends FormRequest
                     ->where(fn($query) => $query->where('estado', 'ACTIVO'))
                     ->ignore($this->route('id')),
             ],
+
             'cci' => [
                 'required',
                 'string',
@@ -73,6 +112,7 @@ class CuentaUpdateRequest extends FormRequest
                     ->where(fn($query) => $query->where('estado', 'ACTIVO'))
                     ->ignore($this->route('id')),
             ],
+
             'celular' => [
                 'nullable',
                 'regex:/^\d{1,20}$/',
@@ -83,6 +123,13 @@ class CuentaUpdateRequest extends FormRequest
     public function messages()
     {
         return [
+
+            'nombre.required'       => 'El nombre de la cuenta es obligatorio.',
+            'nombre.max'            => 'El nombre de la cuenta no puede superar los 160 caracteres.',
+
+            'titular.required'      => 'El titular es obligatorio.',
+            'titular.max'           => 'El titular no puede superar los 200 caracteres.',
+
             'banco_id.required'     => 'El banco es obligatorio.',
             'banco_id.exists'       => 'El banco seleccionado no es válido o no está activo.',
 
@@ -100,11 +147,11 @@ class CuentaUpdateRequest extends FormRequest
             'itf.numeric'           => 'El ITF debe ser un número.',
             'itf.regex'             => 'El ITF debe tener hasta 16 dígitos en total y hasta 2 decimales.',
 
-            'cuenta_contable.max'               => 'La cuenta contable no puede superar los 20 caracteres.',
-            'celular.regex' => 'El celular debe contener solo números y tener un máximo de 20 dígitos.',
+            'cuenta_contable.max'   => 'La cuenta contable no puede superar los 20 caracteres.',
+
+            'celular.regex'         => 'El celular debe contener solo números y tener un máximo de 20 dígitos.',
         ];
     }
-
 
     protected function failedValidation(Validator $validator)
     {

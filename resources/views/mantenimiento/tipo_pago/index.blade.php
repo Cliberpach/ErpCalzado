@@ -1,47 +1,41 @@
 @extends('layout')
+
+@section('mantenimiento-active', 'active')
+@section('tipo_pago-active', 'active')
+
+@section('bread-module', 'Mantenimiento')
+@section('bread-submodule', 'Tipos Pago')
+@section('hero-title', 'Lista de Tipos Pago')
+@section('hero-subtitle', 'Tipos Pago')
+
+@section('btn-add')
+    <a class="main-btn-add" href="#"  onclick="openMdlNuevoMetodoPago()">
+        <i class="fas fa-plus-circle"></i> Nuevo
+    </a>
+@endsection
+
 @section('content')
 
     @include('mantenimiento.tipo_pago.modals.mdl_tipo_pago_create')
     @include('mantenimiento.tipo_pago.modals.mdl_tipo_pago_edit')
-
-@section('mantenimiento-active', 'active')
-@section('tipo_pago-active', 'active')
-<div class="row wrapper border-bottom white-bg page-heading">
-    <div class="col-lg-10 col-md-10">
-        <h2 style="text-transform:uppercase"><b>Tipos de Pago</b></h2>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{ route('home') }}">Panel de Control</a>
-            </li>
-            <li class="breadcrumb-item active">
-                <strong>Tipos de Pago</strong>
-            </li>
-
-        </ol>
-    </div>
-    <div class="col-lg-2 col-md-2">
-        <a class="btn btn-block btn-w-m btn-success m-t-md" href="javascript:void(0);" onclick="openMdlNuevoMetodoPago()">
-            <i class="fa fa-plus-square"></i> Añadir nuevo
-        </a>
-    </div>
-</div>
-
-<div class="wrapper wrapper-content animated fadeInRight">
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="ibox ">
-                <div class="ibox-content">
-                    <div class="col-12">
-                        <div class="table-responsive">
-                            @include('mantenimiento.tipo_pago.tables.tbl_list_metodos_pago')
+   
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-content">
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                @include('mantenimiento.tipo_pago.tables.tbl_list_metodos_pago')
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-@stop
+@endsection
+
 <script>
     let dtMetodosPago = null;
 
@@ -109,7 +103,7 @@
                                     <i class="fas fa-th"></i>
                                 </button>
                                 <div class="dropdown-menu">
-                                  
+
                                     <a class="dropdown-item" href="#" data-id="${row.id}" data-action="editar" onclick="openMdlEditMetodoPago(${data.id})">
                                         <i class="fas fa-edit"></i> Editar
                                     </a>

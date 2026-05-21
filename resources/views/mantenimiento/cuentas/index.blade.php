@@ -1,4 +1,16 @@
 @extends('layout')
+
+@section('bread-module', 'Mantenimiento')
+@section('bread-submodule', 'Cuentas')
+@section('hero-title', 'Lista de Cuentas')
+@section('hero-subtitle', 'Cuentas')
+
+@section('btn-add')
+    <a class="main-btn-add" href="#" onclick="openMdlNuevoMetodoPago()">
+        <i class="fas fa-plus-circle"></i> Nuevo
+    </a>
+@endsection
+
 @section('content')
 
     @include('mantenimiento.cuentas.modals.mdl_cuenta_create')
@@ -7,25 +19,6 @@
 @section('mantenimiento-active', 'active')
 @section('cuentas_bancarias-active', 'active')
 
-<div class="row wrapper border-bottom white-bg page-heading">
-    <div class="col-lg-10 col-md-10">
-        <h2 style="text-transform:uppercase"><b>Cuentas</b></h2>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{ route('home') }}">Panel de Control</a>
-            </li>
-            <li class="breadcrumb-item active">
-                <strong>Cuentas</strong>
-            </li>
-
-        </ol>
-    </div>
-    <div class="col-lg-2 col-md-2">
-        <a class="btn btn-block btn-w-m btn-success m-t-md" href="javascript:void(0);" onclick="openMdlNuevoMetodoPago()">
-            <i class="fa fa-plus-square"></i> Añadir nuevo
-        </a>
-    </div>
-</div>
 
 <div class="wrapper wrapper-content animated fadeInRight">
     <div class="row">
@@ -43,6 +36,7 @@
     </div>
 </div>
 @endsection
+
 <script>
     let dtCuentas = null;
 
@@ -80,10 +74,13 @@
             order: [
                 [0, 'desc']
             ],
-            columns: [
-                {
+            columns: [{
                     data: 'id',
                     name: 'c.id'
+                },
+                {
+                    data: 'nombre',
+                    name: 'c.nombre'
                 },
                 {
                     data: 'banco_nombre',

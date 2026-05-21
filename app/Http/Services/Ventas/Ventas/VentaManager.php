@@ -13,9 +13,9 @@ class VentaManager
         $this->s_venta      =   new VentaService();
     }
 
-    public function registrar(array $datos): Documento
+    public function store(array $datos): Documento
     {
-        return $this->s_venta->registrar($datos);
+        return $this->s_venta->store($datos);
     }
 
     public function storePago(array $datos)
@@ -36,5 +36,15 @@ class VentaManager
     public function getColoresTallas($almacen_id, $producto_id)
     {
         return $this->s_venta->getColoresTallas($almacen_id, $producto_id);
+    }
+
+    public function getStocksMatriz(array $params): object
+    {
+        return $this->s_venta->getStocksMatriz($params);
+    }
+
+    public function queryStockDisponible(array $filters): \Illuminate\Database\Query\Builder
+    {
+        return $this->s_venta->queryStockDisponible($filters);
     }
 }

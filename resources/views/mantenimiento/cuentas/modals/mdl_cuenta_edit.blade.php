@@ -1,4 +1,5 @@
-<div class="modal fade" id="mdlEditCuenta" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="mdlEditCuenta" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
 
@@ -53,11 +54,12 @@
         }
 
         //======== SETTEANDO DATA ========
-        document.querySelector('#titular_edit').value       = rowEditar.titular;
+        document.querySelector('#nombre_edit').value = rowEditar.nombre;
+        document.querySelector('#titular_edit').value = rowEditar.titular;
         $('#moneda_edit').val(rowEditar.moneda).trigger('change');
-        document.querySelector('#nro_cuenta_edit').value    = rowEditar.nro_cuenta;
-        document.querySelector('#cci_edit').value           = rowEditar.cci;
-        document.querySelector('#celular_edit').value       = rowEditar.celular;
+        document.querySelector('#nro_cuenta_edit').value = rowEditar.nro_cuenta;
+        document.querySelector('#cci_edit').value = rowEditar.cci;
+        document.querySelector('#celular_edit').value = rowEditar.celular;
         $('#banco_id_edit').val(rowEditar.banco_id).trigger('change');
 
         $('#mdlEditCuenta').modal('show');
@@ -114,7 +116,7 @@
 
                     if (response.status === 422) {
                         if ('errors' in res) {
-                            pintarErroresValidacion(res.errors,'edit_error')
+                            pintarErroresValidacion(res.errors, 'edit_error')
                         }
                         Swal.close();
                         return;

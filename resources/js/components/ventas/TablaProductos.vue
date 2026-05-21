@@ -162,69 +162,37 @@
                         <div class="orbit"></div>
                     </div>
                 </div>
-                <div class="panel-heading">
-                    <h4 class=""><b>Seleccionar productos</b></h4>
+                <div class="panel-heading d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><b>Seleccionar productos</b></h4>
+                    <button type="button" class="btn btn-success btn-sm"
+                        data-toggle="modal" data-target="#modal_consultar_stock">
+                        <i class="fas fa-boxes"></i> Consultar Stocks
+                    </button>
                 </div>
                 <div class="panel-body ibox-content">
 
                     <div class="row" v-if="idcotizacion == 0">
 
-                        <!-- <div class="col-12 mb-3 d-flex justify-content-end">
-                            <button class="btn btn-danger" @click="eliminarCarrito"> ELIMINAR TODO </button>
-                        </div> -->
-
-                        <!-- <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
-                            <label class="required" style="font-weight: bold;">CATEGORÍA</label>
-
+                        <div class="col-lg-6 col-md-8 col-sm-12 mt-2">
+                            <label style="font-weight:bold; font-size:11px;">CATEGORÍA - MARCA - MODELO - PRODUCTO</label>
                             <v-select
-                                v-model="categoriaSeleccionada"
-                                :options="categorias"
-                                :reduce="categoria => categoria.id"
-                                label="descripcion"
-                                placeholder="Seleccionar"
-                            >
-                            </v-select>
-
-                        </div>
-
-                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
-                            <label class="required" style="font-weight: bold;">MARCA</label>
-                            <v-select
-                                v-model="marcaSeleccionada"
-                                :options="marcas"
-                                :reduce="marca => marca.id"
-                                label="marca"
-                                placeholder="Seleccionar">
+                                v-model="productoSeleccionado"
+                                :options="lst_productos"
+                                :reduce="p => p.id"
+                                label="producto_completo"
+                                :filterable="false"
+                                placeholder="Escribe para buscar..."
+                                @search="onSearchProducto">
+                                <template #no-options="{ search }">
+                                    <span style="font-size:11px;">{{ search ? 'Sin resultados' : 'Escribe para buscar...' }}</span>
+                                </template>
                             </v-select>
                         </div>
 
-
-                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" >
-                            <label class="required" style="font-weight: bold;">MODELO</label>
-                            <v-select
-                                v-model="modeloSeleccionado"
-                                :options="modelos"
-                                :reduce="modelo => modelo.id"
-                                label="descripcion"
-                                placeholder="Seleccionar">
-                            </v-select>
-                        </div> -->
-
-                        <div class="col-lg-12 col-md-3 col-sm-12 col-xs-12 mt-3">
-                            <label class="required" style="font-weight: bold;">CATEGORÍA - MARCA - MODELO -
-                                PRODUCTO</label>
-
-                            <v-select v-model="productoSeleccionado" :options="productos" label="producto_completo"
-                                placeholder="Seleccionar" @search="buscarProducto" :loading="loadingProductos">
-                            </v-select>
-                        </div>
-
-
-                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 mt-3">
+                        <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12 mt-3">
                             <label class="required" style="font-weight: bold;">PRECIO VENTA</label>
-                            <v-select v-model="precioVentaSeleccionado" :options="preciosVenta"
-                                :reduce="pv => pv.sale_price" placeholder="Seleccionar"
-                                label="text">
+                            <v-select v-model="precioVentaSeleccionado" :options="preciosVenta" label="text"
+                                :reduce="pv => pv.sale_price" placeholder="Seleccionar">
                             </v-select>
                         </div>
 
@@ -248,6 +216,30 @@
 
                     </div>
                     <hr>
+                    <div class="row mb-2" v-if="productosPorModelo.producto_colores && productosPorModelo.producto_colores.length">
+                        <div class="col-lg-3 col-md-4 col-sm-6 mt-1">
+                            <label style="font-weight:bold; font-size:11px;">FILTRAR POR COLOR</label>
+                            <v-select
+                                v-model="filtroColor"
+                                :options="lst_colores_matriz"
+                                :reduce="c => c.color_id"
+                                label="color_nombre"
+                                placeholder="Todos los colores"
+                                :clearable="true">
+                            </v-select>
+                        </div>
+                        <div class="col-lg-3 col-md-4 col-sm-6 mt-1">
+                            <label style="font-weight:bold; font-size:11px;">FILTRAR POR TALLA</label>
+                            <v-select
+                                v-model="filtroTalla"
+                                :options="lst_tallas_matriz"
+                                :reduce="t => t.id"
+                                label="descripcion"
+                                placeholder="Todas las tallas"
+                                :clearable="true">
+                            </v-select>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-sm table-striped table-bordered table-hover"
                             style="text-transform:uppercase" id="table-stocks">
@@ -255,45 +247,40 @@
                                 <tr>
                                     <th>PRODUCTO</th>
                                     <th>COLOR</th>
-                                    <template v-for="talla in tallas">
-                                        <template v-if="tallaHasStocks(talla.id)">
-                                            <th class="colorStockLogico">
-                                                {{ talla.descripcion }}
-                                            </th>
-                                            <th>CANT</th>
-                                        </template>
+                                    <template v-for="talla in tallasFiltradas">
+                                        <th class="colorStockLogico">
+                                            {{ talla.descripcion }}
+                                        </th>
+                                        <th>CANT</th>
                                     </template>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="pc in productosPorModelo.producto_colores"
+                                <tr v-for="pc in productoColoresFiltrados"
                                     :key="`${pc.producto_id}${pc.color_id}`">
                                     <td>{{ pc.producto_nombre }}</td>
                                     <td>{{ pc.color_nombre }}</td>
 
-                                    <template v-for="t in tallas">
+                                    <template v-for="t in tallasFiltradas">
+                                        <td class="colorStockLogico">
+                                            <span>
+                                                {{ printStockLogico(pc.producto_id, pc.color_id, t.id) }}
+                                            </span>
+                                        </td>
+                                        <td style="width: 5%;"
+                                            v-if="printStockLogico(pc.producto_id, pc.color_id, t.id) > 0">
+                                            <input type="text" class="form-control inputCantidad inputCantidadColor"
+                                                :data-almacen-id="almacenSeleccionado"
+                                                :data-producto-id="pc.producto_id"
+                                                :data-producto-nombre="pc.producto_nombre"
+                                                :data-color-nombre="pc.color_nombre" :data-talla-nombre="t.descripcion"
+                                                :data-color-id="pc.color_id" :data-talla-id="t.id"
+                                                @input="validarContenidoInput($event)"
+                                                :disabled="printStockLogico(pc.producto_id, pc.color_id, t.id) === 0" />
+                                        </td>
+                                        <td v-else>
 
-                                        <template v-if="tallaHasStocks(t.id)">
-                                            <td class="colorStockLogico">
-                                                <span>
-                                                    {{ printStockLogico(pc.producto_id, pc.color_id, t.id) }}
-                                                </span>
-                                            </td>
-                                            <td style="width: 5%;"
-                                                v-if="printStockLogico(pc.producto_id, pc.color_id, t.id) > 0">
-                                                <input type="text" class="form-control inputCantidad inputCantidadColor"
-                                                    :data-almacen-id="pc.almacen_id" :data-producto-id="pc.producto_id"
-                                                    :data-producto-nombre="pc.producto_nombre"
-                                                    :data-color-nombre="pc.color_nombre"
-                                                    :data-talla-nombre="t.descripcion" :data-color-id="pc.color_id"
-                                                    :data-talla-id="t.id" @input="validarContenidoInput($event)"
-                                                    :disabled="printStockLogico(pc.producto_id, pc.color_id, t.id) === 0" />
-                                            </td>
-                                            <td v-else>
-
-                                            </td>
-                                        </template>
-
+                                        </td>
                                     </template>
                                 </tr>
                             </tbody>
@@ -316,195 +303,6 @@
                 </div>
             </div>
             <!-- FIN PRIMER PANEL -->
-
-            <!-- SEGUNDO PANEL -->
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h4 class=""><b>Detalle del documento de venta</b></h4>
-                </div>
-                <div class="panel-body ibox-content">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped table-bordered table-hover"
-                            style="text-transform:uppercase">
-                            <thead>
-                                <tr>
-                                    <th class="text-center">
-                                        <i class="fas fa-dashboard"></i>
-                                    </th>
-                                    <th class="text-center">PRODUCTO</th>
-                                    <th class="text-center">COLOR</th>
-
-                                    <template v-for="t in tallasExistsCarrito">
-                                        <th class="text-center">
-                                            {{ t.descripcion }}
-                                        </th>
-                                    </template>
-
-                                    <!-- <template v-for="t in tallas">
-                                        <th class="text-center">{{ t.descripcion }}</th>
-                                    </template> -->
-
-                                    <th class="text-center">P. VENTA</th>
-                                    <th class="text-center">SUBTOTAL</th>
-                                    <th class="text-center">DSCTO %</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="carrito.length > 0">
-                                    <tr v-for="(item, index) in carrito" :key="index">
-                                        <td class="text-center">
-                                            <div class='btn-group'>
-                                                <button type="button" class='btn btn-sm btn-warning btn-edit'
-                                                    style='color:white' @click.prevent="openMdlEditItem(item)">
-                                                    <i class='fa fa-edit'></i>
-                                                </button>
-                                                <button type="button" class='btn btn-sm btn-danger btn-delete'
-                                                    style='color:white' @click.prevent="EliminarItem(item, index)">
-                                                    <i class='fa fa-trash'></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <div style="width: 160px;">
-                                                {{ item.producto_nombre }}
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <div style="width: 160px;">
-                                                {{ item.color_nombre }}
-                                            </div>
-                                        </td>
-                                        <td v-for="t in tallasExistsCarrito">
-                                            <p style="font-weight: bold;">{{ printTallaDetalle(t.id, item) }}</p>
-                                        </td>
-                                        <td>
-                                            <div v-if="item.precio_venta !== item.precio_venta_nuevo">
-                                                <del style="color: gray;">{{ item.precio_venta.toFixed(2) }}</del><br>
-                                                <strong>{{ item.precio_venta_nuevo.toFixed(2) }}</strong>
-                                            </div>
-                                            <div v-else>
-                                                {{ item.precio_venta_nuevo.toFixed(2) }}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div v-if="Number(item.subtotal) !== Number(item.subtotal_nuevo)">
-                                                <del style="color: gray;">{{ Number(item.subtotal).toFixed(2)
-                                                    }}</del><br>
-                                                <strong>{{ Number(item.subtotal_nuevo).toFixed(2) }}</strong>
-                                            </div>
-                                            <div v-else>
-                                                {{ Number(item.subtotal_nuevo).toFixed(2) }}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <input @input="validarDescuento(item.producto_id, item.color_id, $event)"
-                                                type="text" :value="item.porcentaje_descuento" style="width: 100px;"
-                                                class="form-control">
-                                        </td>
-                                    </tr>
-                                </template>
-                                <template v-else>
-                                    <tr>
-                                        <td :colspan="tallas.length + 5" class="text-center"><strong>No hay
-                                                detalles</strong></td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="col-12 d-flex justify-content-end">
-                        <div class="table-responsive">
-                            <table style="margin:0 0 0 auto;">
-                                <tfoot>
-                                    <tr>
-                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
-                                            SUBTOTAL:</td>
-                                        <td class="subtotal" colspan="1" style="font-weight: bold; text-align:end;">
-                                            {{ `S/. ${Number(monto_subtotal).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,
-                                                ",")}` }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
-                                            EMBALAJE:</td>
-                                        <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
-                                            <div class="input-group">
-                                                <span class="input-group-text" id="basic-addon1">
-                                                    <svg style="width: 20px;" xmlns="http://www.w3.org/2000/svg"
-                                                        viewBox="0 0 640 512">
-                                                        <!Font Awesome Free 6.5.1 by @fontawesome -
-                                                            https://fontawesome.com License -
-                                                            https://fontawesome.com/license/free Copyright 2024
-                                                            Fonticons, Inc.>
-                                                            <path
-                                                                d="M425.7 256c-16.9 0-32.8-9-41.4-23.4L320 126l-64.2 106.6c-8.7 14.5-24.6 23.5-41.5 23.5-4.5 0-9-.6-13.3-1.9L64 215v178c0 14.7 10 27.5 24.2 31l216.2 54.1c10.2 2.5 20.9 2.5 31 0L551.8 424c14.2-3.6 24.2-16.4 24.2-31V215l-137 39.1c-4.3 1.3-8.8 1.9-13.3 1.9zm212.6-112.2L586.8 41c-3.1-6.2-9.8-9.8-16.7-8.9L320 64l91.7 152.1c3.8 6.3 11.4 9.3 18.5 7.3l197.9-56.5c9.9-2.9 14.7-13.9 10.2-23.1zM53.2 41L1.7 143.8c-4.6 9.2 .3 20.2 10.1 23l197.9 56.5c7.1 2 14.7-1 18.5-7.3L320 64 69.8 32.1c-6.9-.8-13.5 2.7-16.6 8.9z" />
-                                                    </svg>
-                                                </span>
-                                                <input style="width: 70px;" v-model="monto_embalaje" type="text"
-                                                    class="form-control" aria-label="PRECIO DESPACHO"
-                                                    aria-describedby="basic-addon1">
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
-                                            ENVÍO:</td>
-                                        <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
-                                            <div class="input-group">
-                                                <span class="input-group-text btn"
-                                                    :class="hayDatosEnvio ? 'btn-success' : 'btn-light'"
-                                                    id="basic-addon1" @click.prevent="setDataEnvio">
-                                                    <i class="fas fa-truck"></i>
-                                                </span>
-                                                <input style="width: 70px;" v-model="monto_envio" type="text"
-                                                    class="form-control" aria-label="PRECIO ENVÍO"
-                                                    aria-describedby="basic-addon1">
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
-                                            DESCUENTO:</td>
-                                        <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
-                                            <span>{{ `S/.
-                                                ${formatoNumero(monto_descuento)}` }}</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
-                                            TOTAL:
-                                        </td>
-                                        <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
-                                            {{ `S/. ${formatoNumero(monto_total)}` }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">IGV:
-                                        </td>
-                                        <td class="igv" colspan="1" style="font-weight: bold; text-align:end;">
-                                            {{ `S/. ${formatoNumero(monto_igv)}` }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td :colspan="tallas.length + 4" style="font-weight: bold; text-align:end;">
-                                            TOTAL A
-                                            PAGAR:</td>
-                                        <td class="total" colspan="1" style="font-weight: bold; text-align:end;">
-                                            {{ `S/.
-                                            ${formatoNumero(monto_total_pagar)}`
-                                            }}
-                                        </td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-            <!-- FIN SEGUNDO PANEL -->
-
 
             <ModalEnvioVue :cliente="cliente" @addDataEnvio="addDataEnvio" @borrarDataEnvio="borrarDataEnvio" />
 
@@ -546,7 +344,7 @@ export default {
     data() {
         return {
             hayDatosEnvio: false,
-            tallasExistsCarrito: [],
+
             monto_embalaje: 0,
             monto_envio: 0,
             monto_descuento: 0,
@@ -560,14 +358,9 @@ export default {
             carrito: [],
             deshabilitarBtnAgregar: true,
             productosPorModelo: {},
-            modeloSeleccionado: null,
-            categoriaSeleccionada: null,
-            marcaSeleccionada: null,
-            productoSeleccionado: null,
+            preciosVenta: [],
             precioVentaSeleccionado: null,
             buscarCodigoBarra: null,
-            productos: [],
-            preciosVenta: [],
             asegurarCierre: 5,
             formDetalles: {
                 producto_id: "",
@@ -601,11 +394,14 @@ export default {
             Igv: 18,
             modalLote: false,
 
-            //======== SELECT PRODUCTOS ========
-            loadingProductos: false,
-            paginaActual: 1,
-            perPage: 10,
-            buscando: false
+            //======== FILTROS PRODUCTOS ========
+            productoSeleccionado: null,
+            lst_productos: [],
+            filtroColor: null,
+            filtroTalla: null,
+            lst_colores_matriz: [],
+            lst_tallas_matriz: [],
+            searchTimer: null,
         }
     },
     watch: {
@@ -690,10 +486,6 @@ export default {
         carrito: {
             handler(value) {
 
-                console.log('WATCH CARRITO');
-
-                this.getTallasExistsCarrito();
-
                 //======== si aún quedan items en el carrito , asegurar cierre será 1 =========
                 if (this.carrito.length > 0) {
                     this.asegurarCierre = 1;
@@ -737,34 +529,19 @@ export default {
             },
             deep: true,
         },
-        modeloSeleccionado: {
-            handler(value) {
-                this.getProductos();
-            },
-            deep: true,
-        },
-        categoriaSeleccionada: {
-            handler(value) {
-                this.getProductos();
-            },
-            deep: true,
-        },
-        marcaSeleccionada: {
-            handler(value) {
-                this.getProductos();
-            },
-            deep: true,
-        },
-        productoSeleccionado: {
-            handler(value) {
-                const producto_id = value.producto_id;
-                if (producto_id) {
-                    //====== OBTENER COLORES Y TALLAS DEL PRODUCTO ======
-                    this.getColoresTallas();
-                }
-
-            },
-            deep: true,
+        productoSeleccionado(val) {
+            if (val) {
+                this.buscarStocks();
+            } else {
+                this.productosPorModelo = {};
+                this.preciosVenta = [];
+                this.precioVentaSeleccionado = null;
+                this.filtroColor = null;
+                this.filtroTalla = null;
+                this.lst_colores_matriz = [];
+                this.lst_tallas_matriz = [];
+                this.clearInputsCantidad();
+            }
         },
 
         codigoPrecioMenor: {
@@ -798,6 +575,17 @@ export default {
     created() {
 
     },
+    computed: {
+        productoColoresFiltrados() {
+            if (!this.productosPorModelo.producto_colores) return [];
+            if (!this.filtroColor) return this.productosPorModelo.producto_colores;
+            return this.productosPorModelo.producto_colores.filter(pc => pc.color_id === this.filtroColor);
+        },
+        tallasFiltradas() {
+            if (!this.filtroTalla) return this.lst_tallas_matriz;
+            return this.lst_tallas_matriz.filter(t => t.id === this.filtroTalla);
+        },
+    },
     methods: {
         formatoNumero(valor) {
             return parseFloat(valor).toLocaleString('es-PE', {
@@ -819,53 +607,63 @@ export default {
                 this.$set(this.carrito, indexProducto, productoEditado);
             }
             this.calcularMontos();
+            this.recargarTablaStocks();
         },
         borrarDataEnvio() {
             this.$emit('borrarDataEnvio');
             this.hayDatosEnvio = false;
         },
-        async buscarProducto(query) {
+        async buscarStocks() {
             if (!this.almacenSeleccionado) {
                 toastr.clear();
                 toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
-                //======= FOCUS AL VSELECT ALMACÉN ========
-                //this.$parent.$refs.selectAlmacen.$el.querySelector("input").focus();
                 return;
             }
-
-            if (query.length > 2) {
-
-                this.loadingProductos = true;
-                this.buscando = true;
-
-                try {
-                    toastr.clear();
-                    const url = route('ventas.documento.getProductosVenta');
-
-                    const response = await axios.get(url, {
-                        params: {
-                            search: query,
-                            page: this.paginaActual,
-                            perPage: this.perPage,
-                            almacen_id: this.almacenSeleccionado,
-                        }
-                    });
-
-                    if (response.data.success) {
-                        this.productos = response.data.data.data;
-                        this.loadingProductos = false;
-                        this.buscando = false;
-                    } else {
-                        toastr.error(response.data.message, 'ERROR EN EL SERVIDOR');
+            this.$parent.mostrarAnimacionVenta();
+            try {
+                const res = await this.axios.get(route('ventas.documento.getStocksMatriz'), {
+                    params: {
+                        almacen_id:  this.almacenSeleccionado,
+                        producto_id: this.productoSeleccionado || '',
                     }
-
-                } catch (error) {
-                    console.error("Error al buscar productos:", error);
-                    this.loadingProductos = false;
-                    this.buscando = false;
+                });
+                if (res.data.success) {
+                    this.productosPorModelo = res.data;
+                    this.preciosVenta = res.data.precios_venta || [];
+                    this.precioVentaSeleccionado = null;
+                    // populate matrix color/talla filter options
+                    const coloresSeen = new Set();
+                    this.lst_colores_matriz = (res.data.producto_colores || []).filter(pc => {
+                        if (coloresSeen.has(pc.color_id)) return false;
+                        coloresSeen.add(pc.color_id);
+                        return true;
+                    });
+                    const tallaIdsConStock = new Set((res.data.stocks || []).filter(st => st.stock_logico > 0).map(st => st.talla_id));
+                    this.lst_tallas_matriz = (this.tallas || []).filter(t => tallaIdsConStock.has(t.id));
+                    this.filtroColor = null;
+                    this.filtroTalla = null;
+                    this.clearInputsCantidad();
+                } else {
+                    toastr.error(res.data.message, 'ERROR');
                 }
+            } catch (e) {
+                toastr.error('Error al buscar stocks', 'ERROR');
+            } finally {
+                this.$parent.ocultarAnimacionVenta();
             }
+        },
 
+        limpiarFiltrosProducto() {
+            this.productoSeleccionado = null;
+            this.lst_productos = [];
+            this.productosPorModelo = {};
+            this.preciosVenta = [];
+            this.precioVentaSeleccionado = null;
+            this.filtroColor = null;
+            this.filtroTalla = null;
+            this.lst_colores_matriz = [];
+            this.lst_tallas_matriz = [];
+            this.clearInputsCantidad();
         },
         openMdlEditItem(producto) {
             this.$parent.openMdlEditItem(producto);
@@ -951,7 +749,7 @@ export default {
                     this.monto_subtotal = 0;
                     this.monto_igv = 0;
                     this.monto_total = 0;
-                    await this.getColoresTallas();
+                    this.recargarTablaStocks();
                     this.$parent.ocultarAnimacionVenta();
                     toastr.success('Detalle eliminado', 'Completado');
                 } catch (error) {
@@ -1016,14 +814,6 @@ export default {
                 console.error('Error al obtener stock logico:', error);
                 return null;
             }
-        },
-        printTallaDetalle(talla_id, item) {
-
-            const itemTalla = item.tallas.find((t) => talla_id == t.talla_id);
-            // console.log(itemTalla);
-            const cantidad = itemTalla ? itemTalla.cantidad : '';
-
-            return cantidad;
         },
         calcularSubTotal() {
             //======= calculando el subtotal de cada producto color =========
@@ -1112,7 +902,7 @@ export default {
                 this.clearInputsCantidad();
 
                 //======== ACTUALIZAR TABLERO STOCKS =======
-                this.getColoresTallas();
+                this.recargarTablaStocks();
 
                 this.reordenarCarrito();
                 this.calcularSubTotal();
@@ -1123,16 +913,11 @@ export default {
                     this.calcularDescuento(c.producto_id, c.color_id, c.porcentaje_descuento);
                 })
 
-                console.log('CARRITO', this.carrito);
-
             } catch (error) {
                 toastr.error(error, 'ERROR AL AGREGAR PRODUCTO!!!');
             }
 
             this.$parent.ocultarAnimacionVenta();
-
-            console.log(this.asegurarCierre);
-            console.log(this.carrito);
         },
         async validarStockVentas(almacenId, lstInputProducts) {
 
@@ -1295,6 +1080,7 @@ export default {
             this.validarCantidadInstantanea(e);
         },
 
+
         async validarCantidadInstantanea(event) {
             const cantidadSolicitada = event.target.value;
             try {
@@ -1323,95 +1109,38 @@ export default {
                 console.error('Error al obtener stock logico:', error);
             }
         },
-        async getProductos() {
-            toastr.clear();
-
-            const modelo_id = this.modeloSeleccionado;
-            const marca_id = this.marcaSeleccionada;
-            const categoria_id = this.categoriaSeleccionada;
-
-            if (modelo_id || marca_id || categoria_id) {
-                try {
-                    const res = await axios.get(route('ventas.documento.getProductos'), {
-                        params: {
-                            modelo_id: modelo_id,
-                            marca_id: marca_id,
-                            categoria_id: categoria_id
-                        }
-                    });
-
-                    if (res.data.success) {
-                        this.productos = res.data.productos;
-                        this.productoSeleccionado = null;
-                        this.precioVentaSeleccionado = null;
-
-                        toastr.info('PRODUCTOS CARGADOS', 'OPERACIÓN COMPLETADA');
-                    } else {
-                        //ocultarAnimacionCotizacion();
-                        toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
-                    }
-                } catch (error) {
-                    //ocultarAnimacionCotizacion();
-                    toastr.error(error, 'ERROR EN LA PETICIÓN DE OBTENER PRODUCTOS');
-                }
-
-            } else {
-                //ocultarAnimacionCotizacion();
-            }
+        recargarTablaStocks() {
+            this.buscarStocks();
         },
-        //======= OBTENER COLORES Y TALLAS POR PRODUCTO =======
-        async getColoresTallas() {
 
-            //======= MOSTRAR ANIMACIÓN =======
-            this.$parent.mostrarAnimacionVenta();
-            const producto_id = this.productoSeleccionado.producto_id;
-            const almacen_id = this.almacenSeleccionado;
-
-            if (!producto_id) {
-                this.$parent.ocultarAnimacionVenta();
-                return;
-            }
-
-            //======= DEBE SELECCIONARSE UN ALMACÉN =======
-            if (!this.almacenSeleccionado) {
-                toastr.clear();
-                toastr.error('DEBES SELECCIONAR UN ALMACÉN!!!');
-                //======= FOCUS AL VSELECT ALMACÉN ========
-                this.$nextTick(() => {
-                    this.$parent.$refs.selectAlmacen.$el.querySelector("input").focus();
-                });
-                this.$parent.ocultarAnimacionVenta();
-                return;
-            }
-
-            if (producto_id) {
-                try {
-                    const res = await axios.get(route('ventas.documento.getColoresTallas', { almacen_id, producto_id }));
-                    if (res.data.success) {
-                        this.productosPorModelo = res.data;
-                        this.preciosVenta = res.data.precios_venta;
-                    } else {
-                        toastr.error(res.data.message, 'ERROR EN EL SERVIDOR');
-                    }
-                } catch (error) {
-                    toastr.error(error, 'ERROR EN LA PETICIÓN OBTENER COLORES Y TALLAS');
-                } finally {
-                    //ocultarAnimacionCotizacion();
-                }
-            }
-            this.$parent.ocultarAnimacionVenta();
-        },
         printStockLogico(productoId, colorId, tallaId) {
-            const stock = this.productosPorModelo.stocks.find(st => st.producto_id === productoId && st.color_id === colorId && st.talla_id === tallaId);
+            if (!this.productosPorModelo.stocks) return 0;
+            const stock = this.productosPorModelo.stocks.find(
+                st => st.producto_id === productoId && st.color_id === colorId && st.talla_id === tallaId
+            );
             return stock ? stock.stock_logico : 0;
         },
-        tallaHasStocks(tallaId) {
-            const stocks = this.productosPorModelo?.stocks || [];
 
-            const total = stocks
-                .filter(stock => stock.talla_id == tallaId)
-                .reduce((sum, stock) => sum + Number(stock.stock_logico), 0);
-            return total == 0 ? false : true;
+        onSearchProducto(search, loading) {
+            clearTimeout(this.searchTimer);
+            if (!search || search.length < 1) { loading(false); return; }
+            const vm = this;
+            this.searchTimer = setTimeout(async () => {
+                loading(true);
+                try {
+                    const res = await vm.axios.get(route('utilidades.getProductosSimple'), {
+                        params: {
+                            q:          search,
+                            almacen_id: vm.almacenSeleccionado || '',
+                        }
+                    });
+                    vm.lst_productos = res.data;
+                } catch (e) {
+                    // silent
+                } finally {
+                    loading(false);
+                }
+            }, 400);
         },
         async devolverCantidades() {
             console.log('ASEGURAR CIERRE', this.asegurarCierre);
@@ -1479,7 +1208,7 @@ export default {
 
                 //this.actualizarStockLogico(item, "eliminar");
                 //======== renderizamos la tabla de stocks ==============
-                this.getColoresTallas();
+                this.recargarTablaStocks();
                 //========== eliminar el item del carrito ========
                 //============ renderizamos la tabla detalle =======
                 this.carrito.splice(index, 1);
@@ -1549,7 +1278,7 @@ export default {
                     this.clearInputsCantidad();
 
                     //======== ACTUALIZAR TABLERO STOCKS =======
-                    this.getColoresTallas();
+                    this.recargarTablaStocks();
 
                     this.reordenarCarrito();
                     this.calcularSubTotal();
@@ -1560,7 +1289,6 @@ export default {
                         this.calcularDescuento(c.producto_id, c.color_id, c.porcentaje_descuento);
                     })
 
-                    console.log('carrito', this.carrito);
                     toastr.info('AGREGADO AL DETALLE!!!', `${res.data.producto.producto_nombre} - ${res.data.producto.color_nombre} - ${res.data.producto.talla_nombre}
                                 PRECIO: ${res.data.producto.precio_venta}`, { timeOut: 0 });
 
@@ -1577,31 +1305,12 @@ export default {
             this.$parent.mostrarAnimacionVenta();
             await this.devolverCantidades();
             this.carrito = [];
-            this.productosPorModelo = [];
-            this.productos = [];
-            this.productoSeleccionado = '';
+            this.productosPorModelo = {};
             this.precioVentaSeleccionado = '';
+            this.clearInputsCantidad();
             this.$parent.ocultarAnimacionVenta();
-        },
-        getTallasExistsCarrito() {
-            const tallasExists = [];
-
-            this.tallas.forEach((talla) => {
-                const cantidad = this.carrito.reduce((total, item) => {
-                    const suma = item.tallas
-                        .filter(t => t.talla_id == talla.id)
-                        .reduce((acc, t) => acc + Number(t.cantidad), 0);
-
-                    return total + suma;
-                }, 0);
-
-                if (cantidad > 0) {
-                    tallasExists.push(talla);
-                }
-            });
-
-            this.tallasExistsCarrito = tallasExists;
         }
+
     }
 }
 </script>

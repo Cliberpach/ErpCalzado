@@ -131,30 +131,41 @@ class ProductoRepository
 
     public function getProductoStocks(int $almacen_id, int $producto_id)
     {
-        $stocks =  DB::select(
-            'SELECT
-            p.id AS producto_id,
-            p.nombre AS producto_nombre,
-            pct.color_id,
-            c.descripcion AS color_nombre,
-            pct.talla_id,
-            t.descripcion AS talla_nombre,
-            pct.stock,
-            pct.stock_logico,
-            pct.almacen_id
-            FROM producto_color_tallas AS pct
-            INNER JOIN productos AS p ON p.id = pct.producto_id
-            INNER JOIN colores AS c ON c.id = pct.color_id
-            INNER JOIN tallas AS t ON t.id = pct.talla_id
-            WHERE p.id = ?
-            AND c.estado="ACTIVO"
-            AND t.estado="ACTIVO"
-            AND p.estado="ACTIVO"
-            AND pct.almacen_id = ?
-            ORDER BY p.id,c.id,t.id',
-            [$producto_id, $almacen_id]
-        );
-        return $stocks;
+        $stocks = DB::table('producto_color_tallas as pct')
+            ->join('productos as p',   'p.id',  '=', 'pct.producto_id')
+            ->join('colores as c',     'c.id',  '=', 'pct.color_id')
+            ->join('tallas as t',      't.id',  '=', 'pct.talla_id')
+            ->join('marcas as ma',     'ma.id', '=', 'p.marca_id')
+            ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
+            ->join('modelos as mo',    'mo.id', '=', 'p.modelo_id')
+            ->where('p.estado', 'ACTIVO')
+            ->where('c.estado', 'ACTIVO')
+            ->where('t.estado', 'ACTIVO')
+            ->where('pct.almacen_id', $almacen_id)
+            ->where('pct.producto_id', $producto_id)
+            ->select('p.id as producto_id', 'p.nombre as producto_nombre', 'c.id as color_id', 't.id as talla_id', 'pct.stock_logico');
+
+        return $stocks->get();
+    }
+
+    public function getVariantsConStock(int $almacen_id, int $producto_id)
+    {
+        $stocks = DB::table('producto_color_tallas as pct')
+            ->join('productos as p',   'p.id',  '=', 'pct.producto_id')
+            ->join('colores as c',     'c.id',  '=', 'pct.color_id')
+            ->join('tallas as t',      't.id',  '=', 'pct.talla_id')
+            ->join('marcas as ma',     'ma.id', '=', 'p.marca_id')
+            ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
+            ->join('modelos as mo',    'mo.id', '=', 'p.modelo_id')
+            ->where('p.estado', 'ACTIVO')
+            ->where('c.estado', 'ACTIVO')
+            ->where('t.estado', 'ACTIVO')
+            ->where('pct.almacen_id', $almacen_id)
+            ->where('pct.producto_id', $producto_id)
+            ->where('pct.stock_logico', '>', 0)
+            ->select('p.id as producto_id', 'p.nombre as producto_nombre', 'c.id as color_id', 't.id as talla_id', 'pct.stock_logico');
+
+        return $stocks->get();
     }
 
     public function getPreciosVenta(int $producto_id)
