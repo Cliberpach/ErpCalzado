@@ -345,12 +345,13 @@ class UtilidadesController extends Controller
     {
         try {
             $cuentas    =   DB::select('SELECT
+                            c.nombre,
                             c.nro_cuenta,
                             c.celular,
                             c.banco_nombre,
                             tpc.tipo_pago_id,
                             tpc.cuenta_id,
-                            CONCAT(c.banco_nombre, " - ", c.nro_cuenta, " - ", c.celular) AS cuentaLabel
+                            CONCAT(c.nombre," - ",c.banco_nombre, " - ", c.nro_cuenta, " - ", c.celular) AS cuentaLabel
                             FROM tipo_pago_cuentas as tpc
                             INNER JOIN cuentas as c on c.id = tpc.cuenta_id
                             INNER JOIN tipos_pago as tp on tp.id = tpc.tipo_pago_id
