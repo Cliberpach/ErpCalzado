@@ -34,22 +34,16 @@ class PedidoMapper
                 $item_talla['id'] = $talla->id;
                 $item_talla['nombre'] = $talla->descripcion;
 
-                // Filtrar stocks para color y talla actuales
-                $stock_filtrado = array_filter($stocks, function ($stock) use ($producto, $color, $talla) {
+                $stock_filtrado = collect($stocks)->filter(function ($stock) use ($producto, $color, $talla) {
                     return $stock->producto_id == $producto['id'] &&
                         $stock->color_id == $color->color_id &&
                         $stock->talla_id == $talla->id;
                 });
 
-                // Asignar stock y stock lógico si existe, o establecer en 0
-                if (!empty($stock_filtrado)) {
-                    $first_stock = reset($stock_filtrado); // Obtiene el primer elemento del array filtrado
-                    $item_talla['stock'] = $first_stock->stock;
-                    $item_talla['stock_logico'] = $first_stock->stock_logico;
-                } else {
-                    $item_talla['stock'] = 0;
-                    $item_talla['stock_logico'] = 0;
-                }
+                $first_stock = $stock_filtrado->first();
+
+                $item_talla['stock'] = $first_stock->stock ?? 0;
+                $item_talla['stock_logico'] = $first_stock->stock_logico ?? 0;
 
                 $lstTallas[] = $item_talla;
             }

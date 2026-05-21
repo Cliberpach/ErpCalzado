@@ -63,8 +63,7 @@
                 </div>
             </div>
         </div>
-        <ModalPagoVue @pago-registrado="$emit('pago-registrado')" :modoPagos="modoPagos" :imgDefault="imgDefault" :cuentas="cuentas" :pagos="formPago"
-        :cliente_id="cliente_id" :recibos_caja="recibos_caja" :saldoRecibosCaja="saldoRecibosCaja"/>
+        <ModalPagoVue ref="modalPagoRef" :lstMetodosPago="modoPagos" @pago-registrado="$emit('pago-registrado')" />
     </div>
 
 </template>
@@ -83,86 +82,12 @@ export default {
     },
     data() {
         return {
-            saldoRecibosCaja:0,
-            recibos_caja:[],
-            cuentas: [],
-            formPago:null,
-            loading:false
-        }
+            loading: false,
+        };
     },
     methods: {
         Pagar(item) {
-
-            let timerInterval;
-            let me = this;
-            me.formPago = null;
-            Swal.fire({
-                title: 'Cargando...',
-                icon: 'info',
-                customClass: {
-                    container: 'my-swal'
-                },
-                timer: 10,
-                allowOutsideClick: false,
-                didOpen: async () => {
-                    Swal.showLoading();
-                    Swal.stopTimer();
-
-                    //============ OBTENER LAS CUENTAS BANCARIAS DE LA EMPRESA ==========
-                    const res_cuentas   =   await this.getCuentas(item.empresa_id);
-                    if(res_cuentas){
-                        //========= OBTENER LOS RECIBOS DE CAJA DEL CLIENTE ========
-                        const res_recibos_caja  =   await this.getRecibosCaja(this.cliente_id);
-                        if(res_recibos_caja){
-                            me.formPago = item;
-                            $("#modal_pago").modal("show");
-                            timerInterval = 0;
-                            Swal.resumeTimer();
-                        }
-                    }
-                },
-                willClose: () => {
-                    clearInterval(timerInterval)
-                }
-            });
-        },
-        async getCuentas(empresa_id){
-            try {
-                const res   =   await axios.post(route('ventas.documento.getCuentas'),{empresa_id});
-                if(res.data.success){
-                    //========= COLOCAMOS LAS CUENTAS DE LA EMPRESA ============
-                    this.cuentas      =   res.data.cuentas;
-                    return true;
-                }else{
-                    toastr.error('ERROR AL OBTENER LAS CUENTAS BANCARIAS DE LA EMPRESA','ERROR EN EL SERVIDOR');
-                    return false;
-                }
-            } catch (error) {
-                toastr.error(error,'ERROR EN EL SERVIDOR AL OBTENER CUENTAS BANCARIAS DE LA EMPRESA');
-                return false;
-            }
-        },
-        async getRecibosCaja(cliente_id){
-            try {
-                this.saldoRecibosCaja   =   0;
-                const res       =   await axios.get(route('ventas.documento.getRecibosCaja',cliente_id));
-                if(res.data.success){
-                    //========== COLOCAMOS LOS RECIBOS =========
-                    this.recibos_caja       =   res.data.recibos_caja;
-
-                    this.recibos_caja.forEach((recibo)=>{
-                        this.saldoRecibosCaja   +=  parseFloat(recibo.saldo);
-                    })
-
-                    return true;
-                }else{
-                    toastr.error(res.data.exception,res.data.message);
-                    return false;
-                }
-            } catch (error) {
-                toastr.error(error,'ERROR EN EL SERVIDOR AL OBTENER RECIBOS DE CAJA');
-                return false;
-            }
+            this.$refs.modalPagoRef.abrir(item);
         }
     }
 }

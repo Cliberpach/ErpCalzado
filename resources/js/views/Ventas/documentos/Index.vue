@@ -89,20 +89,19 @@
                 </div>
             </div>
         </div>
-        <ModalVentasVue @pago-registrado="recargarTabla" :ventasPendientes="ventasPendientes" :imgDefault="imginicial"
-            :modoPagos="this.lst_modos_pago" :cliente_id="cliente_id" />
         <!-- <ModalPdfDownloadVue :pdfData.sync="pdfData" /> -->
         <ModalEnvioVue :cliente="cliente" @updateDataEnvio="updateDataEnvio" @storeDataEnvio="storeDataEnvio"
             ref="modalEnvioRef" />
         <MdlShowSaleVue ref="mdlShowSale" />
+        <ModalPagoVue ref="modalPago" :lstMetodosPago="lst_modos_pago" @pago-registrado="recargarTabla" />
     </div>
 </template>
 <script>
 
 //import ModalPdfDownloadVue from '../../../components/ventas/ModalPdfDownload.vue';
-import ModalVentasVue from '../../../components/ventas/ModalVentas.vue';
-import ModalEnvioVue from '../../../components/ventas/ModalEnvio.vue';
-import MdlShowSaleVue from '../../../components/ventas/MdlShowSale.vue';
+import ModalEnvioVue  from '../../../components/ventas/ModalEnvio.vue';
+import MdlShowSaleVue  from '../../../components/ventas/MdlShowSale.vue';
+import ModalPagoVue    from '../../../components/ventas/ModalPago.vue';
 
 import 'datatables.net-responsive-bs4';
 import 'datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css';
@@ -112,9 +111,9 @@ export default {
     props: ["imginicial", "lst_modos_pago"],
     components: {
         //ModalPdfDownloadVue,
-        ModalVentasVue,
         ModalEnvioVue,
         MdlShowSaleVue,
+        ModalPagoVue,
     },
     data() {
         let today = new Date();
@@ -145,9 +144,8 @@ export default {
             cliente: "",
             cliente_id: null,
             numero_doc: "",
-            ventasPendientes: [],
-            loading: false,
-            pdfData: null,
+            loading:  false,
+            pdfData:  null,
             modopagos: []
         };
     },
@@ -178,6 +176,9 @@ export default {
         },
         saleShow(id) {
             this.$refs.mdlShowSale.abrir(id);
+        },
+        pagarDirecto(row) {
+            this.$refs.modalPago.abrir(row);
         },
         cambiarTallas(documento_id) {
             const url = route('venta.cambiarTallas.create', documento_id);
@@ -1035,7 +1036,7 @@ export default {
 
             $('#dt-ventas').on('click', '.btn-pagar', function () {
                 const row = $(this).data('row');
-                vm.Pagar(row);
+                vm.pagarDirecto(row);
             });
 
             $('#dt-ventas').on('click', '.btn-regularizar', function () {
