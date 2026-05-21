@@ -143,7 +143,14 @@ class ProductoRepository
             ->where('t.estado', 'ACTIVO')
             ->where('pct.almacen_id', $almacen_id)
             ->where('pct.producto_id', $producto_id)
-            ->select('p.id as producto_id', 'p.nombre as producto_nombre', 'c.id as color_id', 't.id as talla_id', 'pct.stock_logico');
+            ->select(
+                'p.id as producto_id',
+                'p.nombre as producto_nombre',
+                'c.id as color_id',
+                't.id as talla_id',
+                'pct.stock_logico',
+                'pct.stock'
+            );
 
         return $stocks->get();
     }
