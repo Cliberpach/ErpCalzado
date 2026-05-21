@@ -101,48 +101,28 @@ export default {
 
             if (!this.$refs.pagosRef.validar(this.total)) return;
 
-            const p1 = lstPagos[0];
-            const p2 = lstPagos[1] ?? null;
-
-            // Mapear al formato esperado por storePago
-            let tipo_pago_id = p1.metodoPagoId;
-            let cuenta_id    = p1.cuentaPagoId ?? '';
-            let nro_op       = p1.nroOperacionPago ?? '';
-            let fecha_pago   = p1.fechaOperacionPago ?? '';
-            let importe      = parseFloat(p1.montoPago);
-            let efectivo     = 0;
-
-            if (p2) {
-                const cashPago    = lstPagos.find(p => p.metodoPagoId == 1);
-                const nonCashPago = lstPagos.find(p => p.metodoPagoId != 1);
-                efectivo     = parseFloat(cashPago?.montoPago ?? 0);
-                importe      = parseFloat(nonCashPago?.montoPago ?? 0);
-                tipo_pago_id = nonCashPago?.metodoPagoId ?? p1.metodoPagoId;
-                cuenta_id    = nonCashPago?.cuentaPagoId ?? '';
-                nro_op       = nonCashPago?.nroOperacionPago ?? '';
-                fecha_pago   = nonCashPago?.fechaOperacionPago ?? p1.fechaOperacionPago ?? '';
-            } else if (p1.metodoPagoId == 1) {
-                efectivo = importe;
-                importe  = 0;
-            }
-
             const ahora     = new Date();
             const hora_pago = `${String(ahora.getHours()).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')}`;
 
-            const formData = new FormData();
-            formData.append('venta_id',      this.ventaId);
-            formData.append('monto_venta',   this.total);
-            formData.append('tipo_pago_id',  tipo_pago_id);
-            formData.append('importe',       importe);
-            formData.append('efectivo',      efectivo);
-            formData.append('cuenta_id',     cuenta_id);
-            formData.append('nro_operacion', nro_op);
-            formData.append('fecha_pago',    fecha_pago);
-            formData.append('hora_pago',     hora_pago);
-            formData.append('modo_pago',     tipo_pago_id);
+            // Serializar lstPagos sin el campo imgPago (los archivos van por separado)
+            const pagosData = lstPagos.map(p => ({
+                metodoPagoId:       p.metodoPagoId,
+                cuentaPagoId:       p.cuentaPagoId,
+                montoPago:          p.montoPago,
+                fechaOperacionPago: p.fechaOperacionPago,
+                nroOperacionPago:   p.nroOperacionPago,
+            }));
 
-            if (p1.imgPago)  formData.append('imagen',  p1.imgPago);
-            if (p2?.imgPago) formData.append('imagen2', p2.imgPago);
+            const formData = new FormData();
+            formData.append('venta_id',    this.ventaId);
+            formData.append('monto_venta', this.total);
+            formData.append('hora_pago',   hora_pago);
+            formData.append('lstPagos',    JSON.stringify(pagosData));
+
+            // Imágenes por separado indexadas (imagen_0, imagen_1)
+            lstPagos.forEach((p, i) => {
+                if (p.imgPago) formData.append(`imagen_${i}`, p.imgPago);
+            });
 
             Swal.fire({
                 title: 'Registrando pago...',

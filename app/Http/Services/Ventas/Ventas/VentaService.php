@@ -60,7 +60,7 @@ class VentaService
 
         //========== CALCULAR MONTOS ======
         $montos =   $this->s_calculos->calcularMontos($datos_validados->lstVenta, $datos_validados);
-       
+
         if ($datos_validados->condicion->id == 1 && $datos_validados->isPay) {
             $this->s_validacion->validacionPagos($datos_validados->lstPagos, $montos->monto_total_pagar);
         }
@@ -99,7 +99,6 @@ class VentaService
         //======== EN CASO VENTA CONTADO Y PAGADA ELECTRÓNICO, VA AL KARDEX ===========
         if (
             $venta->condicion_id == 1
-            && $venta->tipo_pago_id != 1
             && $venta->estado_pago == 'PAGADA'
             && !$datos_validados->atencion
             && !$datos_validados->documento_convertido
@@ -140,188 +139,137 @@ class VentaService
 
     public function storePago(array $datos)
     {
-        $cuenta_id      =   $datos['cuenta_id'] ?? null;
-        $tipo_pago_id   =   $datos['tipo_pago_id'] ?? null;
-        $tipo_pago      =   TipoPago::findOrFail($tipo_pago_id);
+        $lstPagos = is_string($datos['lstPagos'])
+            ? json_decode($datos['lstPagos'], true)
+            : $datos['lstPagos'];
 
-        $validacion =   DB::selectOne('SELECT
-                            c.banco_nombre,
-                            c.nro_cuenta,
-                            c.cci,
-                            c.celular,
-                            c.titular,
-                            c.moneda
+        if (empty($lstPagos)) {
+            throw new Exception('NO SE ENVIARON DATOS DE PAGO');
+        }
+
+        $hora_pago = $datos['hora_pago'] ?? null;
+        $documento = Documento::find($datos['venta_id']);
+
+        // ===== PAGO 1 =====
+        $p1          = $lstPagos[0];
+        $tipo_pago_1 = TipoPago::findOrFail($p1['metodoPagoId']);
+        $cuenta_1    = null;
+
+        if (!empty($p1['cuentaPagoId']) && $p1['metodoPagoId'] != 1) {
+            $cuenta_1 = DB::selectOne('SELECT c.banco_nombre, c.nro_cuenta, c.cci, c.celular, c.titular, c.moneda
                             FROM tipo_pago_cuentas as tpc
                             INNER JOIN cuentas as c ON c.id = tpc.cuenta_id
                             INNER JOIN tipos_pago as tp ON tp.id = tpc.tipo_pago_id
-                            WHERE tpc.cuenta_id = ?
-                            AND tpc.tipo_pago_id = ?
-                            AND c.estado = "ACTIVO"
-                            AND tp.estado = "ACTIVO"
-                            LIMIT 1', [$cuenta_id, $tipo_pago_id]);
+                            WHERE tpc.cuenta_id = ? AND tpc.tipo_pago_id = ?
+                            AND c.estado = "ACTIVO" AND tp.estado = "ACTIVO"
+                            LIMIT 1', [$p1['cuentaPagoId'], $p1['metodoPagoId']]);
 
-        if (!$validacion && $cuenta_id && $tipo_pago_id != 1) {
-            throw new Exception('NO EXISTE EL TIPO DE PAGO ASOCIADO CON LA CUENTA BANCARIA SELECCIONADA');
-        }
-
-        $documento                      = Documento::find($datos['venta_id']);
-
-        $documento->tipo_pago_id            = $datos['tipo_pago_id'] ?? null;
-        $documento->importe                 = $datos['importe'] ?? 0;
-        $documento->efectivo                = $datos['efectivo'] ?? 0;
-        $documento->estado_pago             = 'PAGADA';
-        $documento->pago_1_cuenta_id        = $datos['cuenta_id'] ?? null;
-        $documento->pago_1_tipo_pago_nombre = $tipo_pago->descripcion;
-        $documento->pago_1_tipo_pago_id     = $datos['tipo_pago_id'];
-        $documento->pago_1_monto            = $datos['importe'] ?? 0;
-
-        if ($validacion) {
-            $documento->pago_1_banco_nombre     = $validacion->banco_nombre;
-            $documento->pago_1_nro_cuenta       = $validacion->nro_cuenta;
-            $documento->pago_1_cci              = $validacion->cci;
-            $documento->pago_1_celular          = $validacion->celular;
-            $documento->pago_1_titular          = $validacion->titular;
-            $documento->pago_1_moneda           = $validacion->moneda;
-            $documento->pago_1_fecha_operacion  = $datos['fecha_pago'] ?? null;
-            $documento->pago_1_hora_operacion   = $datos['hora_pago'] ?? null;
-            $documento->pago_1_nro_operacion    = $datos['nro_operacion'] ?? null;
-        }
-
-        if (isset($datos['imagen']) && $datos['imagen'] instanceof UploadedFile) {
-            if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'))) {
-                mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'));
+            if (!$cuenta_1) {
+                throw new Exception('PAGO 1: NO EXISTE EL TIPO DE PAGO ASOCIADO CON LA CUENTA BANCARIA');
             }
-            $extension              =   $datos['imagen']->getClientOriginalExtension();
-            $nombreImagenPago       =   $documento->serie . '-' . $documento->correlativo . '.' . $extension;
-            $documento->ruta_pago   =   $datos['imagen']->storeAs('public/pagos', $nombreImagenPago);
         }
 
-        if (isset($datos['imagen2']) && $datos['imagen2'] instanceof UploadedFile) {
-            if (!file_exists(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'))) {
-                mkdir(storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pagos'));
+        // Calcular totales importe (no-efectivo) / efectivo
+        $efectivo = 0.0;
+        $importe  = 0.0;
+        foreach ($lstPagos as $p) {
+            if (intval($p['metodoPagoId']) === 1) {
+                $efectivo += floatval($p['montoPago']);
+            } else {
+                $importe  += floatval($p['montoPago']);
             }
-            $extension              =   $datos['imagen2']->getClientOriginalExtension();
-            $nombreImagenPago       =   $documento->serie . '-' . $documento->correlativo . '-2' . '.' . $extension;
-            $documento->ruta_pago_2 =   $datos['imagen2']->storeAs('public/pagos', $nombreImagenPago);
         }
 
-        $documento->update();
+        $documento->tipo_pago_id = $p1['metodoPagoId'];
+        $documento->estado_pago  = 'PAGADA';
+        $documento->importe      = $importe;
+        $documento->efectivo     = $efectivo;
 
-        if ($documento->convertir) {
-            $doc_convertido                     = Documento::find($documento->convertir);
-            $doc_convertido->estado_pago        = $documento->estado_pago;
-            $doc_convertido->importe            = $documento->importe;
-            $doc_convertido->efectivo           = $documento->efectivo;
-            $doc_convertido->tipo_pago_id       = $documento->tipo_pago_id;
-            $doc_convertido->banco_empresa_id   = $documento->banco_empresa_id;
-            $doc_convertido->ruta_pago          = $documento->ruta_pago;
+        $documento->pago_1_tipo_pago_id     = $p1['metodoPagoId'];
+        $documento->pago_1_tipo_pago_nombre = $tipo_pago_1->descripcion;
+        $documento->pago_1_monto            = floatval($p1['montoPago']);
+        $documento->pago_1_fecha_operacion  = $p1['fechaOperacionPago'] ?? null;
+        //$documento->pago_1_hora_operacion   = $hora_pago;
+        $documento->pago_1_nro_operacion    = $p1['nroOperacionPago']   ?? null;
+        $documento->pago_1_cuenta_id        = $p1['cuentaPagoId']       ?? null;
+
+        if ($cuenta_1) {
+            $documento->pago_1_banco_nombre = $cuenta_1->banco_nombre;
+            $documento->pago_1_nro_cuenta   = $cuenta_1->nro_cuenta;
+            $documento->pago_1_cci          = $cuenta_1->cci;
+            $documento->pago_1_celular      = $cuenta_1->celular;
+            $documento->pago_1_titular      = $cuenta_1->titular;
+            $documento->pago_1_moneda       = $cuenta_1->moneda;
+        }
+
+        // ===== PAGO 2 (si existe) =====
+        if (isset($lstPagos[1])) {
+            $p2          = $lstPagos[1];
+            $tipo_pago_2 = TipoPago::findOrFail($p2['metodoPagoId']);
+            $cuenta_2    = null;
+
+            if (!empty($p2['cuentaPagoId']) && $p2['metodoPagoId'] != 1) {
+                $cuenta_2 = DB::selectOne('SELECT c.banco_nombre, c.nro_cuenta, c.cci, c.celular, c.titular, c.moneda
+                                FROM tipo_pago_cuentas as tpc
+                                INNER JOIN cuentas as c ON c.id = tpc.cuenta_id
+                                INNER JOIN tipos_pago as tp ON tp.id = tpc.tipo_pago_id
+                                WHERE tpc.cuenta_id = ? AND tpc.tipo_pago_id = ?
+                                AND c.estado = "ACTIVO" AND tp.estado = "ACTIVO"
+                                LIMIT 1', [$p2['cuentaPagoId'], $p2['metodoPagoId']]);
+
+                if (!$cuenta_2) {
+                    throw new Exception('PAGO 2: NO EXISTE EL TIPO DE PAGO ASOCIADO CON LA CUENTA BANCARIA');
+                }
+            }
+
+            // Si pago 2 es no-efectivo pasa a ser el tipo_pago_id principal
+            if ($p2['metodoPagoId'] != 1) {
+                $documento->tipo_pago_id = $p2['metodoPagoId'];
+            }
+
+            $documento->pago_2_tipo_pago_id     = $p2['metodoPagoId'];
+            $documento->pago_2_tipo_pago_nombre = $tipo_pago_2->descripcion;
+            $documento->pago_2_monto            = floatval($p2['montoPago']);
+            $documento->pago_2_fecha_operacion  = $p2['fechaOperacionPago'] ?? null;
+            //$documento->pago_2_hora_operacion   = $hora_pago;
+            $documento->pago_2_nro_operacion    = $p2['nroOperacionPago']   ?? null;
+            $documento->pago_2_cuenta_id        = $p2['cuentaPagoId']       ?? null;
+
+            if ($cuenta_2) {
+                $documento->pago_2_banco_nombre = $cuenta_2->banco_nombre;
+                $documento->pago_2_nro_cuenta   = $cuenta_2->nro_cuenta;
+                $documento->pago_2_cci          = $cuenta_2->cci;
+                $documento->pago_2_celular      = $cuenta_2->celular;
+                $documento->pago_2_titular      = $cuenta_2->titular;
+                $documento->pago_2_moneda       = $cuenta_2->moneda;
+            }
+        }
+
+        $documento->save();
+
+        // ===== IMÁGENES via saveImgsPago (columnas pago_N_img_*) =====
+        $lstImgs = [];
+        foreach (array_keys($lstPagos) as $i) {
+            $key = "imagen_{$i}";
+            if (isset($datos[$key]) && $datos[$key] instanceof UploadedFile) {
+                $lstImgs[$i] = $datos[$key];
+            }
+        }
+        if (!empty($lstImgs)) {
+            $this->saveImgsPago($lstImgs, $documento);
+        }
+
+        // ===== PROPAGACIÓN A DOCUMENTO CONVERTIDO =====
+        if ($documento->convert_en_id) {
+            $doc_convertido                   = Documento::find($documento->convert_en_id);
+            $doc_convertido->estado_pago      = $documento->estado_pago;
             $doc_convertido->update();
         }
 
-        //======== EN CASO VENTA CONTADO Y PAGADA ELECTRÓNICO, VA AL KARDEX ===========
-        if ($documento->condicion_id == 1 && $documento->tipo_pago_id != 1 && $documento->estado_pago == 'PAGADA') {
+        // ===== KARDEX (pago electrónico en venta contado) =====
+        if ($documento->condicion_id == 1 && $documento->estado_pago == 'PAGADA') {
             $this->s_kardex_cuenta->registrarDesdeVenta($documento);
         }
-
-        //========= DOCUMENTO CONTADO PAGADO =======
-        /*
-        if ($documento->condicion_id == 1 && $documento->estado_pago === 'PAGADA') {
-            $this->s_despacho->generarDespachoDefecto($documento->id, "VENTA");
-        }
-        */
-
-        //========== CANJEANDO RECIBOS DE CAJA ========
-        /*if ($request->get('modo_pago') === "4-RECIBO DE CAJA") {
-                //======== OBTENEMOS TODOS LOS RECIBOS DE CAJA DEL CLIENTE ==========
-                $recibos_caja_cliente   =   DB::select(
-                    'SELECT * FROM recibos_caja AS rc
-                                            WHERE rc.cliente_id=?
-                                            AND rc.saldo>0
-                                            AND rc.estado="ACTIVO"
-                                            AND (rc.estado_servicio="LIBRE" OR rc.estado_servicio="USANDO")
-                                            ORDER BY rc.created_at',
-                    [$documento->cliente_id]
-                );
-
-                $total_pendiente    =   $documento->total_pagar;
-
-                //========= RESTAMOS SALDO EN ORDEN ASC POR FECHA DE CREACIÓN =========
-                foreach ($recibos_caja_cliente as $recibo) {
-
-                    $saldo_recibo       =   $recibo->saldo;
-
-                    //======= SI EL TOTAL PENDIENTE >= SALDO DEL RECIBO CAJA ========
-                    if ($total_pendiente >= $saldo_recibo) {
-                        //======= GUARDAMOS SALDO ANTERIOR DEL RECIBO =======
-                        $saldo_anterior_recibo          =       $recibo->saldo;
-                        //======= CONSUMIR TODO EL SALDO DEL RECIBO ========
-                        $nuevo_saldo_recibo             =       0;
-                        //======= NUEVO ESTADO DEL RECIBO ========
-                        $nuevo_estado_servicio_recibo   =   'CANJEADO';
-                        //========= TOTAL PENDIENTE BAJA SEGÚN EL SALDO DEL RECIBO =========
-                        $total_pendiente                -=      $saldo_recibo;
-
-                        //======= ACTUALIZAMOS EL RECIBO ========
-                        DB::table('recibos_caja')
-                            ->where('id', $recibo->id)
-                            ->update([
-                                'saldo' => $nuevo_saldo_recibo,
-                                'estado_servicio' => $nuevo_estado_servicio_recibo,
-                                'updated_at' => now()
-                            ]);
-
-                        //========= GRABAMOS EL DETALLE DE USO DEL RECIBO ======
-                        DB::table('recibos_caja_detalle')
-                            ->insert([
-                                'recibo_id'    => $recibo->id,
-                                'documento_id' => $documento->id,
-                                'saldo_antes'  => $saldo_anterior_recibo,
-                                'monto_usado'  => $saldo_recibo,
-                                'saldo_despues' => $nuevo_saldo_recibo,
-                                'created_at'   => now(),
-                                'updated_at'   => now()
-                            ]);
-                    } else {
-                        //======= SI EL TOTAL PENDIENTE ES MENOR AL SALDO DEL RECIBO ========
-                        //======== SALDO ANTERIOR RECIBO =========
-                        $saldo_anterior_recibo          =   $recibo->saldo;
-                        //======== MONTO USADO ===========
-                        $monto_usado                    =   $total_pendiente;
-                        //======== CONSUMIR UNA PARTE DEL SALDO DEL RECIBO =======
-                        $nuevo_saldo_recibo             =   $recibo->saldo  -   $total_pendiente;
-                        //======== TOTAL PENDIENTE BAJA A 0 =======
-                        $total_pendiente                =   0;
-                        //======== ACTUALIZAR ESTADO DEL RECIBO =========
-                        $nuevo_estado_servicio_recibo   =   'USANDO';
-
-                        //======= ACTUALIZAMOS EL RECIBO ========
-                        DB::table('recibos_caja')
-                            ->where('id', $recibo->id)
-                            ->update([
-                                'saldo' => $nuevo_saldo_recibo,
-                                'estado_servicio' => $nuevo_estado_servicio_recibo,
-                                'updated_at' => now()
-                            ]);
-
-                        //========= GRABAMOS EL DETALLE DE USO DEL RECIBO ======
-                        DB::table('recibos_caja_detalle')
-                            ->insert([
-                                'recibo_id'   =>  $recibo->id,
-                                'documento_id'          =>  $documento->id,
-                                'saldo_antes'           =>  $saldo_anterior_recibo,
-                                'monto_usado'           =>  $monto_usado,
-                                'saldo_despues'         =>  $nuevo_saldo_recibo,
-                                'created_at'            =>  now(),
-                                'updated_at'            =>  now()
-                            ]);
-                    }
-
-                    //======== DETENER EL BUCLE SI EL TOTAL PENDIENTE ES 0 ========
-                    if ($total_pendiente === 0) {
-                        break;
-                    }
-                }
-            }*/
     }
 
     public function operarVentaCreditoPagada(int $venta_id, $modo_despacho)

@@ -388,7 +388,7 @@ array:13 [
 ]
 */
     public function storePago(StorePagoRequest $request)
-    {
+    {   
         try {
             DB::beginTransaction();
             $this->s_venta->storePago($request->toArray());

@@ -29,8 +29,7 @@ class KardexCuentaService
     public function registrarDesdeVenta(Documento $venta)
     {
         $dto    =   $this->prepararDatosVenta($venta);
-
-        KardexCuenta::create($dto);
+        KardexCuenta::insert($dto);
     }
 
     public function actualizarDesdeVenta(Documento $venta)
@@ -38,7 +37,7 @@ class KardexCuentaService
         $dto    =   $this->prepararDatosVenta($venta);
 
         $kardex_cuenta          =   KardexCuenta::where('venta_id', $venta->id)->first();
-        if($kardex_cuenta){
+        if ($kardex_cuenta) {
             $kardex_cuenta->update($dto);
         }
     }
@@ -55,9 +54,9 @@ class KardexCuentaService
 
         $kardex_cuenta  =   KardexCuenta::where('egreso_id', $egreso->id)->first();
 
-        if($kardex_cuenta){
+        if ($kardex_cuenta) {
             $kardex_cuenta->update($dto);
-        }else{
+        } else {
             KardexCuenta::create($dto);
         }
     }
@@ -69,7 +68,8 @@ class KardexCuentaService
         $kardex_cuenta->update();
     }
 
-    public function registrarDesdeCuentaCliente(DetalleCuentaCliente $pago) {
+    public function registrarDesdeCuentaCliente(DetalleCuentaCliente $pago)
+    {
         $dto    =   $this->prepararDatosCuentaCliente($pago);
         KardexCuenta::create($dto);
     }
@@ -86,7 +86,7 @@ class KardexCuentaService
             'pago_proveedor_id'     =>  null,
             'registrador_id'        =>  Auth::user()->id,
             'registrador_nombre'    =>  Auth::user()->usuario,
-            'metodo_pago_id'        =>  $metodo_pago->id ,
+            'metodo_pago_id'        =>  $metodo_pago->id,
             'metodo_pago_nombre'        =>  $metodo_pago->descripcion,
             'fecha_registro'            =>  $pago->fecha,
             'documento'                 =>  $cuenta_cliente->numero_doc,
@@ -102,25 +102,55 @@ class KardexCuentaService
 
     public function prepararDatosVenta(Documento $venta): array
     {
-        $dto    =   [
-            'cuenta_bancaria_id'    =>  $venta->pago_1_cuenta_id,
-            'venta_id'              =>  $venta->id,
-            'pago_cliente_id'       =>  null,
-            'pago_proveedor_id'     =>  null,
-            'registrador_id'        =>  $venta->user_id,
-            'registrador_nombre'    =>  $venta->registrador_nombre,
-            'metodo_pago_id'        =>  $venta->pago_1_tipo_pago_id,
-            'metodo_pago_nombre'        =>  $venta->pago_1_tipo_pago_nombre,
-            'fecha_registro'            =>  $venta->pago_1_fecha_operacion,
-            'documento'                 =>  $venta->serie . '-' . $venta->correlativo,
-            'banco_abreviatura'         =>  $venta->pago_1_banco_nombre,
-            'nro_cuenta'                =>  $venta->pago_1_nro_cuenta,
-            'monto'                     =>  $venta->pago_1_monto,
-            'tipo_documento'            => 'VENTA',
-            'tipo_operacion'            =>  'INGRESO'
-        ];
+        $dto_general    =   [];
 
-        return $dto;
+        if ($venta->pago_1_tipo_pago_id != 1 && $venta->pago_1_tipo_pago_id) {
+            $dto_1    =   [
+                'cuenta_bancaria_id'    =>  $venta->pago_1_cuenta_id,
+                'venta_id'              =>  $venta->id,
+                'pago_cliente_id'       =>  null,
+                'pago_proveedor_id'     =>  null,
+                'registrador_id'        =>  $venta->user_id,
+                'registrador_nombre'    =>  $venta->registrador_nombre,
+                'metodo_pago_id'        =>  $venta->pago_1_tipo_pago_id,
+                'metodo_pago_nombre'        =>  $venta->pago_1_tipo_pago_nombre,
+                'fecha_registro'            =>  $venta->pago_1_fecha_operacion,
+                'documento'                 =>  $venta->serie . '-' . $venta->correlativo,
+                'banco_abreviatura'         =>  $venta->pago_1_banco_nombre,
+                'nro_cuenta'                =>  $venta->pago_1_nro_cuenta,
+                'monto'                     =>  $venta->pago_1_monto,
+                'tipo_documento'            => 'VENTA',
+                'tipo_operacion'            =>  'INGRESO',
+                'created_at'                =>  now(),
+                'updated_at'                =>  now()
+            ];
+            $dto_general[]  =   $dto_1;
+        }
+
+        if ($venta->pago_2_tipo_pago_id != 1 && $venta->pago_2_tipo_pago_id) {
+            $dto_2    =   [
+                'cuenta_bancaria_id'    =>  $venta->pago_2_cuenta_id,
+                'venta_id'              =>  $venta->id,
+                'pago_cliente_id'       =>  null,
+                'pago_proveedor_id'     =>  null,
+                'registrador_id'        =>  $venta->user_id,
+                'registrador_nombre'    =>  $venta->registrador_nombre,
+                'metodo_pago_id'        =>  $venta->pago_2_tipo_pago_id,
+                'metodo_pago_nombre'        =>  $venta->pago_2_tipo_pago_nombre,
+                'fecha_registro'            =>  $venta->pago_2_fecha_operacion,
+                'documento'                 =>  $venta->serie . '-' . $venta->correlativo,
+                'banco_abreviatura'         =>  $venta->pago_2_banco_nombre,
+                'nro_cuenta'                =>  $venta->pago_2_nro_cuenta,
+                'monto'                     =>  $venta->pago_2_monto,
+                'tipo_documento'            => 'VENTA',
+                'tipo_operacion'            =>  'INGRESO',
+                'created_at'                =>  now(),
+                'updated_at'                =>  now()
+            ];
+            $dto_general[]  =   $dto_2;
+        }
+
+        return $dto_general;
     }
 
     public function prepararDatosEgreso(Egreso $egreso): array
