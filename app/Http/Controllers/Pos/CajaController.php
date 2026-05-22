@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Pos;
 use App\DetallesMovimientoCaja;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\MovimientoCaja\MovimientoCajaAperturaRequest;
+use App\Http\Services\Caja\CajaMovimiento\CajaMovimientoManager;
 use App\Mantenimiento\Colaborador\Colaborador;
-use App\Mantenimiento\Empresa\Empresa;
 use App\Mantenimiento\Sedes\Sede;
 use App\Pos\Caja;
 use App\Pos\MovimientoCaja;
@@ -15,13 +15,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\DataTables;
-use Barryvdh\DomPDF\Facade as PDF;
 use Exception;
 
-use function PHPUnit\Framework\returnSelf;
 
 class CajaController extends Controller
 {
+    private CajaMovimientoManager $s_caja;
+
+    public function __construct()
+    {
+        $this->s_caja = new CajaMovimientoManager();
+    }
+
     public function index()
     {
         $this->authorize('haveaccess', 'caja.movimiento_caja.index');
@@ -494,37 +499,7 @@ array:4 [
 
     public function reporteMovimiento($id)
     {
-        $movimiento = MovimientoCaja::findOrFail($id);
-
-        $usuarios   =  DetallesMovimientoCaja::select('u.id', 'u.usuario', 'detalles_movimiento_caja.fecha_entrada', 'detalles_movimiento_caja.fecha_salida')
-            ->join('users as u', 'u.id', '=', 'detalles_movimiento_caja.usuario_id')
-            ->join('user_persona as up', 'up.user_id', '=', 'u.id')
-            ->where('detalles_movimiento_caja.movimiento_id', '=', $id)
-            ->get();
-
-        $colaborador    =   Colaborador::find($movimiento->colaborador_id);
-
-        $recibos        =   DB::select('select rc.*,c.nombre as cliente_nombre
-                            from recibos_caja as rc
-                            inner join clientes as c on c.id=rc.cliente_id
-                            where rc.movimiento_id=?', [$id]);
-
-        $totalIngresosPorTipoPago   =   obtenerTotalIngresosPorTipoPago($movimiento);
-
-        $empresa    = Empresa::first();
-        $fecha      = Carbon::now()->toDateString();
-
-        $pdf = PDF::loadview('pos.MovimientoCaja.Reportes.movimientocaja', [
-            'movimiento'                =>  $movimiento,
-            'empresa'                   =>  $empresa,
-            'fecha'                     =>  $fecha,
-            'usuarios'                  =>  $usuarios,
-            'totalIngresosPorTipoPago'  =>  $totalIngresosPorTipoPago,
-            'recibos'                   =>  $recibos,
-            'colaborador'               =>  $colaborador
-        ])
-            ->setPaper('a4')
-            ->setWarnings(false);
+        $pdf = $this->s_caja->reporteMovimiento((int) $id);
         return $pdf->stream();
     }
     private function ObtenerTotales($id)

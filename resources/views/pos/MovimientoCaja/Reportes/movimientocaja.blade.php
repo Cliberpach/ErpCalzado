@@ -140,6 +140,7 @@
             border-top: 2px solid #52BE80;
             border-left: 2px solid #52BE80;
             border-right: 2px solid #52BE80;
+            background-color: #E8F8F5;
         }
 
         .tbl-detalles tbody {
@@ -194,9 +195,7 @@
             width: 22px;
             height: 22px;
             -ms-transform: rotate(45deg);
-            /* IE 9 */
             -webkit-transform: rotate(45deg);
-            /* Chrome, Safari, Opera */
             transform: rotate(45deg);
         }
 
@@ -227,9 +226,7 @@
             width: 22px;
             height: 22px;
             -ms-transform: rotate(45deg);
-            /* IE 9 */
             -webkit-transform: rotate(45deg);
-            /* Chrome, Safari, Opera */
             transform: rotate(45deg);
         }
 
@@ -249,6 +246,13 @@
             background-color: brown;
             left: 7px;
             top: 10px;
+        }
+
+        .pagos-cell {
+            font-size: 11px;
+            line-height: 1.6;
+            text-align: left;
+            padding-left: 6px;
         }
     </style>
 </head>
@@ -288,26 +292,21 @@
                     <td style="padding-left: 5px;">CAJA</td>
                     <td>:</td>
                     <td>{{ $movimiento->caja->nombre }}</td>
-                    {{-- <td>{{ getFechaFormato( $documento->fecha_documento ,'d/m/Y')}}</td> --}}
                 </tr>
                 <tr>
                     <td style="padding-left: 5px;">Colaborador</td>
                     <td>:</td>
-                    <td>{{ $colaborador->nombre }}
-                    </td>
-                    {{-- <td>{{ getFechaFormato( $documento->fecha_documento ,'d/m/Y')}}</td> --}}
+                    <td>{{ $colaborador->nombre }}</td>
                 </tr>
                 <tr>
                     <td style="padding-left: 5px;">Turno</td>
                     <td>:</td>
                     <td>{{ 'MAÑANA' }}</td>
-                    {{-- <td>{{ getFechaFormato( $documento->fecha_documento ,'d/m/Y')}}</td> --}}
                 </tr>
                 <tr>
                     <td style="padding-left: 5px;">Monto Inicial</td>
                     <td>:</td>
                     <td>{{ $movimiento->monto_inicial }}</td>
-                    {{-- <td>{{ getFechaFormato( $documento->fecha_documento ,'d/m/Y')}}</td> --}}
                 </tr>
                 <tr>
                     <td style="padding-left: 5px;">Fecha</td>
@@ -317,39 +316,37 @@
             </tbody>
         </table>
     </div><br>
+
+    {{-- ============================================================ --}}
+    {{-- VENTAS --}}
+    {{-- ============================================================ --}}
     <span style="text-transform: uppercase;font-size:15px">VENTAS</span>
     <br>
     <div class="cuerpo">
         <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
             <thead>
                 <tr>
-                    <th style="text-align: center;border-right: 2px solid #52BE80">NUMERO</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">NUMERO</th>
                     <th style="text-align: center; border-right: 2px solid #52BE80">CLIENTE</th>
                     <th style="text-align: center; border-right: 2px solid #52BE80">DEV</th>
                     <th style="text-align: center; border-right: 2px solid #52BE80">COBRAR</th>
                     <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
-                    @php
-                        $cont = 0;
-                        while ($cont < count(tipos_pago())) {
-                            if ($cont == count(tipos_pago()) - 1) {
-                                echo '<th style="text-align: center;">' . tipos_pago()[$cont]->descripcion . '</th>';
-                            } else {
-                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">' .
-                                    tipos_pago()[$cont]->descripcion .
-                                    '</th>';
-                            }
-                            $cont++;
-                        }
-                    @endphp
+                    <th style="text-align: center;">PAGOS</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($movimiento->detalleMovimientoVentas as $ventas)
-                    {{-- $ventas->documento->sunat != '2' &&  --}}
                     @if (
                         $ventas->documento->condicion_id == 1 &&
                             $ventas->documento->estado_pago == 'PAGADA' &&
                             ifNoConvertido($ventas->documento->id))
+                        @php
+                            $pagosVenta = [];
+                            if (!empty($ventas->documento->pago_1_tipo_pago_nombre) && floatval($ventas->documento->pago_1_monto) > 0)
+                                $pagosVenta[] = $ventas->documento->pago_1_tipo_pago_nombre . ': ' . number_format(floatval($ventas->documento->pago_1_monto), 2);
+                            if (!empty($ventas->documento->pago_2_tipo_pago_nombre) && floatval($ventas->documento->pago_2_monto) > 0)
+                                $pagosVenta[] = $ventas->documento->pago_2_tipo_pago_nombre . ': ' . number_format(floatval($ventas->documento->pago_2_monto), 2);
+                        @endphp
                         <tr>
                             <td style="text-align: center; border-right: 2px solid #52BE80">
                                 {{ $ventas->documento->serie . '-' . $ventas->documento->correlativo }}</td>
@@ -366,33 +363,20 @@
                                 @elseif($ventas->documento->estado === 'ANULADO')
                                     ANULADO
                                 @endif
-
                             </td>
                             <td style="text-align: center; border-right: 2px solid #52BE80;">
-                                {{$ventas->cobrar}}
+                                {{ $ventas->cobrar }}
                             </td>
                             <td style="text-align: center; border-right: 2px solid #52BE80">
                                 {{ $ventas->documento->total_pagar }}
                             </td>
-                            @foreach (tipos_pago() as $tipo)
-                            {{-- EFECTIVO --}}
-                                @if ($tipo->id == 1)
-                                    @if ($tipo->id == $ventas->documento->tipo_pago_id)
-                                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                                            {{ $ventas->documento->importe }}</td>';
-                                    @else
-                                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                                            {{ $ventas->documento->efectivo }}</td>';
-                                    @endif
-                                @else
-                                    @if ($tipo->id == $ventas->documento->tipo_pago_id)
-                                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                                            {{ $ventas->documento->importe }}</td>';
-                                    @else
-                                        <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
-                                    @endif
-                                @endif
-                            @endforeach
+                            <td class="pagos-cell">
+                                @forelse ($pagosVenta as $linea)
+                                    {{ $linea }}<br>
+                                @empty
+                                    -
+                                @endforelse
+                            </td>
                         </tr>
                     @endif
                 @endforeach
@@ -400,40 +384,47 @@
                     <td colspan="5"
                         style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
                     </td>
-                    @foreach (tipos_pago() as $tipo_pago)
-                        <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">
-                            {{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento, $tipo_pago->id), 2) }}</td>
-                    @endforeach
+                    <td style="border-top: 2px solid #52BE80; padding: 4px 6px; font-size: 11px; line-height: 1.6;">
+                        @foreach (tipos_pago() as $tipo)
+                            @php $tot = cuadreMovimientoCajaIngresosVentaResum($movimiento, $tipo->id); @endphp
+                            @if ($tot > 0)
+                                {{ $tipo->descripcion }}: {{ number_format($tot, 2) }}<br>
+                            @endif
+                        @endforeach
+                    </td>
                 </tr>
             </tbody>
         </table>
     </div><br>
+
+    {{-- ============================================================ --}}
+    {{-- COBRANZA CLIENTES --}}
+    {{-- ============================================================ --}}
     <span style="text-transform: uppercase;font-size:15px">COBRANZA CLIENTES</span>
     <br>
     <div class="cuerpo">
         <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
             <thead>
                 <tr>
-                    <th style="text-align: center;border-right: 2px solid #52BE80">NUMERO</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">NUMERO</th>
                     <th style="text-align: center; border-right: 2px solid #52BE80">CLIENTE</th>
                     <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
-                    @php
-                        $cont = 0;
-                        while ($cont < count(tipos_pago())) {
-                            if ($cont == count(tipos_pago()) - 1) {
-                                echo '<th style="text-align: center;">' . tipos_pago()[$cont]->descripcion . '</th>';
-                            } else {
-                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">' .
-                                    tipos_pago()[$cont]->descripcion .
-                                    '</th>';
-                            }
-                            $cont++;
-                        }
-                    @endphp
+                    <th style="text-align: center;">PAGOS</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($movimiento->detalleCuentaCliente as $cuentaCliente)
+                    @php
+                        $pagoCobranzaLinea = '';
+                        foreach (tipos_pago() as $tp) {
+                            if ($tp->id == $cuentaCliente->tipo_pago_id) {
+                                $m = ($tp->id == 1) ? $cuentaCliente->efectivo : $cuentaCliente->importe;
+                                if (floatval($m) > 0)
+                                    $pagoCobranzaLinea = $tp->descripcion . ': ' . number_format(floatval($m), 2);
+                                break;
+                            }
+                        }
+                    @endphp
                     <tr>
                         <td style="text-align: center; border-right: 2px solid #52BE80">
                             {{ $cuentaCliente->cuenta_cliente->documento->serie . '-' . $cuentaCliente->cuenta_cliente->documento->correlativo }}
@@ -443,68 +434,56 @@
                         <td style="text-align: center; border-right: 2px solid #52BE80">
                             {{ $cuentaCliente->monto }}
                         </td>
-                        @foreach (tipos_pago() as $tipo)
-                            @if ($tipo->id == 1)
-                                @if ($tipo->id == $cuentaCliente->tipo_pago_id)
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                                        {{ $cuentaCliente->efectivo }}</td>';
-                                @else
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                                        {{ $cuentaCliente->efectivo }}</td>';
-                                @endif
-                            @else
-                                @if ($tipo->id == $cuentaCliente->tipo_pago_id)
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                                        {{ $cuentaCliente->importe }}</td>';
-                                @else
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
-                                @endif
-                            @endif
-                        @endforeach
+                        <td class="pagos-cell">{{ $pagoCobranzaLinea ?: '-' }}</td>
                     </tr>
                 @endforeach
                 <tr>
                     <td colspan="3"
                         style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
                     </td>
-                    @foreach (tipos_pago() as $tipo)
-                        <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">
-                            {{ number_format(cuadreMovimientoCajaIngresosCobranzaResum($movimiento, $tipo->id), 2) }}
-                        </td>
-                    @endforeach
+                    <td style="border-top: 2px solid #52BE80; padding: 4px 6px; font-size: 11px; line-height: 1.6;">
+                        @foreach (tipos_pago() as $tipo)
+                            @php $tot = cuadreMovimientoCajaIngresosCobranzaResum($movimiento, $tipo->id); @endphp
+                            @if ($tot > 0)
+                                {{ $tipo->descripcion }}: {{ number_format($tot, 2) }}<br>
+                            @endif
+                        @endforeach
+                    </td>
                 </tr>
             </tbody>
         </table>
     </div>
     <br>
+
+    {{-- ============================================================ --}}
+    {{-- EGRESOS POR CAJA --}}
+    {{-- ============================================================ --}}
     <span style="text-transform: uppercase;font-size:15px">EGRESOS POR CAJA</span>
     <br>
     <div class="cuerpo">
         <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
             <thead>
                 <tr>
-                    <th style="text-align: center; border-right: 2px solid #52BE80;">ID RECIBO </th>
-                    <th style="text-align: center;border-right: 2px solid #52BE80">DESCRIPCION</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80;">ID RECIBO</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">DESCRIPCION</th>
                     <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
-                    @php
-                        $cont = 0;
-                        while ($cont < count(tipos_pago())) {
-                            if ($cont == count(tipos_pago()) - 1) {
-                                echo '<th style="text-align: center;">' . tipos_pago()[$cont]->descripcion . '</th>';
-                            } else {
-                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">' .
-                                    tipos_pago()[$cont]->descripcion .
-                                    '</th>';
-                            }
-                            $cont++;
-                        }
-                    @endphp
+                    <th style="text-align: center;">PAGOS</th>
                 </tr>
             </thead>
             <tbody>
-
                 @foreach ($movimiento->detalleMoviemientoEgresos as $detalleEgreso)
                     @if ($detalleEgreso->egreso->estado == 'ACTIVO')
+                        @php
+                            $pagoEgresoLinea = '';
+                            foreach (tipos_pago() as $tp) {
+                                if ($tp->id == $detalleEgreso->egreso->tipo_pago_id) {
+                                    $m = ($tp->id == 1) ? $detalleEgreso->egreso->efectivo : $detalleEgreso->egreso->importe;
+                                    if (floatval($m) > 0)
+                                        $pagoEgresoLinea = $tp->descripcion . ': ' . number_format(floatval($m), 2);
+                                    break;
+                                }
+                            }
+                        @endphp
                         <tr>
                             <td style="text-align: center; border-right: 2px solid #52BE80">
                                 {{ $detalleEgreso->egreso->documento }}</td>
@@ -512,24 +491,7 @@
                                 {{ $detalleEgreso->egreso->descripcion }}</td>
                             <td style="text-align: center; border-right: 2px solid #52BE80">
                                 {{ $detalleEgreso->egreso->monto }}</td>
-                            @foreach (tipos_pago() as $tipo)
-                                @if ($tipo->id == 1)
-                                    @if ($tipo->id == $detalleEgreso->egreso->tipo_pago_id)
-                                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                                            {{ $detalleEgreso->egreso->efectivo }}</td>';
-                                    @else
-                                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                                            {{ $detalleEgreso->egreso->efectivo }}</td>';
-                                    @endif
-                                @else
-                                    @if ($tipo->id == $detalleEgreso->egreso->tipo_pago_id)
-                                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                                            {{ $detalleEgreso->egreso->importe }}</td>';
-                                    @else
-                                        <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
-                                    @endif
-                                @endif
-                            @endforeach
+                            <td class="pagos-cell">{{ $pagoEgresoLinea ?: '-' }}</td>
                         </tr>
                     @endif
                 @endforeach
@@ -537,59 +499,51 @@
                     <td colspan="3"
                         style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
                     </td>
-                    @foreach (tipos_pago() as $tipo)
-                        <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">
-                            {{ number_format(cuadreMovimientoCajaEgresosEgresoResum($movimiento, $tipo->id), 2) }}</td>
-                    @endforeach
+                    <td style="border-top: 2px solid #52BE80; padding: 4px 6px; font-size: 11px; line-height: 1.6;">
+                        @foreach (tipos_pago() as $tipo)
+                            @php $tot = cuadreMovimientoCajaEgresosEgresoResum($movimiento, $tipo->id); @endphp
+                            @if ($tot > 0)
+                                {{ $tipo->descripcion }}: {{ number_format($tot, 2) }}<br>
+                            @endif
+                        @endforeach
+                    </td>
                 </tr>
             </tbody>
         </table>
     </div>
     <br>
+
+    {{-- ============================================================ --}}
+    {{-- RECIBOS DE CAJA --}}
+    {{-- ============================================================ --}}
     <span style="text-transform: uppercase;font-size:15px">RECIBOS DE CAJA</span>
     <div class="cuerpo">
         <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
             <thead>
                 <tr>
-                    <th style="text-align: center; border-right: 2px solid #52BE80;">ID RECIBO </th>
-                    <th style="text-align: center;border-right: 2px solid #52BE80">DESCRIPCION</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80;">ID RECIBO</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">DESCRIPCION</th>
                     <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
-                    @php
-                        $cont = 0;
-                        while ($cont < count(tipos_pago())) {
-                            if ($cont == count(tipos_pago()) - 1) {
-                                echo '<th style="text-align: center;">' . tipos_pago()[$cont]->descripcion . '</th>';
-                            } else {
-                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">' .
-                                    tipos_pago()[$cont]->descripcion .
-                                    '</th>';
-                            }
-                            $cont++;
-                        }
-                    @endphp
+                    <th style="text-align: center;">PAGOS</th>
                 </tr>
             </thead>
             <tbody>
-
                 @foreach ($recibos as $recibo)
                     @if ($recibo->estado == 'ACTIVO')
                         <tr>
                             <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{'RC-'.$recibo->id }}</td>
+                                {{ 'RC-' . $recibo->id }}</td>
                             <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{  $recibo->cliente_nombre.'-'.$recibo->estado_servicio }}</td>
+                                {{ $recibo->cliente_nombre . '-' . $recibo->estado_servicio }}</td>
                             <td style="text-align: center; border-right: 2px solid #52BE80">
                                 {{ $recibo->monto }}</td>
-                            @foreach (tipos_pago() as $tipo)
-
-                                @if ($tipo->descripcion == $recibo->metodo_pago)
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                                            {{ $recibo->monto }}</td>';
+                            <td class="pagos-cell">
+                                @if (!empty($recibo->metodo_pago) && floatval($recibo->monto) > 0)
+                                    {{ strtoupper($recibo->metodo_pago) }}: {{ number_format(floatval($recibo->monto), 2) }}
                                 @else
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
+                                    -
                                 @endif
-
-                            @endforeach
+                            </td>
                         </tr>
                     @endif
                 @endforeach
@@ -597,15 +551,23 @@
                     <td colspan="3"
                         style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
                     </td>
-                    @foreach (tipos_pago() as $tipo)
-                        <td style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">
-                            {{ number_format(calcularTotalesRecibosCaja($movimiento, $tipo->descripcion), 2) }}</td>
-                    @endforeach
+                    <td style="border-top: 2px solid #52BE80; padding: 4px 6px; font-size: 11px; line-height: 1.6;">
+                        @foreach (tipos_pago() as $tipo)
+                            @php $tot = calcularTotalesRecibosCaja($movimiento, $tipo->descripcion); @endphp
+                            @if ($tot > 0)
+                                {{ $tipo->descripcion }}: {{ number_format($tot, 2) }}<br>
+                            @endif
+                        @endforeach
+                    </td>
                 </tr>
             </tbody>
         </table>
     </div>
     <br>
+
+    {{-- ============================================================ --}}
+    {{-- PAGOS PROVEEDORES --}}
+    {{-- ============================================================ --}}
     <span style="text-transform: uppercase;font-size:15px">PAGOS PROVEEDORES</span>
     <br>
     <div class="cuerpo">
@@ -613,26 +575,25 @@
             <thead>
                 <tr>
                     <th style="text-align: center; border-right: 2px solid #52BE80;">TIPO DOC</th>
-                    <th style="text-align: center;border-right: 2px solid #52BE80">NUMERO</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">CLIENTE</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">NUMERO</th>
+                    <th style="text-align: center; border-right: 2px solid #52BE80">PROVEEDOR</th>
                     <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
-                    @php
-                        $cont = 0;
-                        while ($cont < count(tipos_pago())) {
-                            if ($cont == count(tipos_pago()) - 1) {
-                                echo '<th style="text-align: center;">' . tipos_pago()[$cont]->descripcion . '</th>';
-                            } else {
-                                echo '<th style="text-align: center; border-right: 2px solid #52BE80">' .
-                                    tipos_pago()[$cont]->descripcion .
-                                    '</th>';
-                            }
-                            $cont++;
-                        }
-                    @endphp
+                    <th style="text-align: center;">PAGOS</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($movimiento->detalleCuentaProveedor as $detalleProveedor)
+                    @php
+                        $pagoProvLinea = '';
+                        foreach (tipos_pago() as $tp) {
+                            if ($tp->id == $detalleProveedor->tipo_pago_id) {
+                                $m = ($tp->id == 1) ? $detalleProveedor->efectivo : $detalleProveedor->importe;
+                                if (floatval($m) > 0)
+                                    $pagoProvLinea = $tp->descripcion . ': ' . number_format(floatval($m), 2);
+                                break;
+                            }
+                        }
+                    @endphp
                     <tr>
                         <td style="text-align: center; border-right: 2px solid #52BE80">
                             {{ $detalleProveedor->cuenta_proveedor->documento->tipo_compra }}</td>
@@ -644,34 +605,21 @@
                         <td style="text-align: center; border-right: 2px solid #52BE80">
                             {{ $detalleProveedor->efectivo + $detalleProveedor->importe }}
                         </td>
-                        @foreach (tipos_pago() as $tipo)
-                            @if ($tipo->id == 1)
-                                @if ($tipo->id == $detalleProveedor->tipo_pago_id)
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                                        {{ $detalleProveedor->efectivo }}</td>';
-                                @else
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                                        {{ $detalleProveedor->efectivo }}</td>';
-                                @endif
-                            @else
-                                @if ($tipo->id == $detalleProveedor->tipo_pago_id)
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">
-                                        {{ $detalleProveedor->importe }}</td>';
-                                @else
-                                    <td style="text-align: center; border-right: 2px solid #52BE80">0.00</td>';
-                                @endif
-                            @endif
-                        @endforeach
+                        <td class="pagos-cell">{{ $pagoProvLinea ?: '-' }}</td>
                     </tr>
                 @endforeach
                 <tr>
                     <td colspan="4"
-                        style="text-align: center; border-top: 2px solid #52BE80 ;border-right: 2px solid #52BE80">
+                        style="text-align: center; border-top: 2px solid #52BE80; border-right: 2px solid #52BE80">
                         TOTAL</td>
-                    @foreach (tipos_pago() as $tipo)
-                        <td style="text-align: center;border-top: 2px solid #52BE80 ;border-right: 2px solid #52BE80">
-                            {{ number_format(cuadreMovimientoCajaEgresosPagoResum($movimiento, $tipo->id), 2) }}</td>
-                    @endforeach
+                    <td style="border-top: 2px solid #52BE80; padding: 4px 6px; font-size: 11px; line-height: 1.6;">
+                        @foreach (tipos_pago() as $tipo)
+                            @php $tot = cuadreMovimientoCajaEgresosPagoResum($movimiento, $tipo->id); @endphp
+                            @if ($tot > 0)
+                                {{ $tipo->descripcion }}: {{ number_format($tot, 2) }}<br>
+                            @endif
+                        @endforeach
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -861,7 +809,7 @@
                                 </td>
                                 <td style="text-align:right; padding: 5px;">
                                     <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoCajaIngresosVenta($movimiento) + cuadreMovimientoCajaIngresosRecibo($movimiento)  - cuadreMovimientoDevoluciones($movimiento), 2) }}
+                                        {{ number_format(cuadreMovimientoCajaIngresosVenta($movimiento) + cuadreMovimientoCajaIngresosRecibo($movimiento) - cuadreMovimientoDevoluciones($movimiento), 2) }}
                                     </p>
                                 </td>
                             </tr>
@@ -869,46 +817,41 @@
                     </table>
                     <br>
                     <span style="text-transform: uppercase;font-size:15px">Trabajadores de ventas presentes</span>
-    <div class="cuerpo">
-        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th style="text-align: center; border-right: 2px solid #52BE80;">Codigo</th>
-                    <th style="text-align: center;border-right: 2px solid #52BE80">Nombres</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">Fecha Entrada</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">Fecha Salida</th>
-
-                </tr>
-            </thead>
-            <tbody>
-                @if (count($usuarios) == 0)
-                    <tr>
-                        <td colspan="5" style="text-align: center; border-right: 2px solid #52BE80">
-                            Sin Usuarios Ventas
-                        </td>
-                    </tr>
-                @else
-                    @foreach ($usuarios as $u)
-                        <tr>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $u->id }}</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $u->usuario }}</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $u->fecha_entrada }}</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $u->fecha_salida }}
-                            </td>
-
-
-                        </tr>
-                    @endforeach
-                @endif
-
-
-            </tbody>
-        </table>
-    </div><br>
+                    <div class="cuerpo">
+                        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center; border-right: 2px solid #52BE80;">Codigo</th>
+                                    <th style="text-align: center; border-right: 2px solid #52BE80">Nombres</th>
+                                    <th style="text-align: center; border-right: 2px solid #52BE80">Fecha Entrada</th>
+                                    <th style="text-align: center; border-right: 2px solid #52BE80">Fecha Salida</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (count($usuarios) == 0)
+                                    <tr>
+                                        <td colspan="4" style="text-align: center; border-right: 2px solid #52BE80">
+                                            Sin Usuarios Ventas
+                                        </td>
+                                    </tr>
+                                @else
+                                    @foreach ($usuarios as $u)
+                                        <tr>
+                                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                                {{ $u->id }}</td>
+                                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                                {{ $u->usuario }}</td>
+                                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                                {{ $u->fecha_entrada }}</td>
+                                            <td style="text-align: center; border-right: 2px solid #52BE80">
+                                                {{ $u->fecha_salida }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+                            </tbody>
+                        </table>
+                    </div><br>
                 </td>
             </tr>
         </table>
