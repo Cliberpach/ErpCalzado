@@ -8,7 +8,7 @@ class Empresa extends Model
 {
     protected $table = 'empresas';
     public $timestamps = true;
-    protected $fillable =[
+    protected $fillable = [
         'ruc',
         'razon_social',
         'razon_social_abreviada',
@@ -40,6 +40,21 @@ class Empresa extends Model
 
         'condicion',
         'estado_fe',
+
+        'igv',
+        'direccion_llegada',
+
+        'departamento',
+        'provincia',
+        'distrito',
+        'urbanizacion',
+
+        'cod_local',
+
+        'departamento_id',
+        'provincia_id',
+        'distrito_id'
+
     ];
 
     public function cotizaciones()
@@ -59,6 +74,6 @@ class Empresa extends Model
 
     public function bancos()
     {
-        return $this->hasMany('App\Mantenimiento\Empresa\Banco')->where('estado','ACTIVO');
+        return $this->hasMany('App\Mantenimiento\Empresa\Banco')->where('estado', 'ACTIVO');
     }
 }

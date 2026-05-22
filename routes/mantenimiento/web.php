@@ -75,9 +75,12 @@ Route::prefix('mantenimiento/')->middleware('auth')->group(function () {
         Route::get('show/{id}', 'Mantenimiento\Empresa\EmpresaController@show')->name('mantenimiento.empresas.show');
         Route::get('edit/{id}', 'Mantenimiento\Empresa\EmpresaController@edit')->name('mantenimiento.empresas.edit');
         Route::put('update/{id}', 'Mantenimiento\Empresa\EmpresaController@update')->name('mantenimiento.empresas.update');
+        Route::get('edit/facturacion/{id}', 'Mantenimiento\Empresa\EmpresaController@editFacturacion')->name('mantenimiento.empresas.editFacturacion');
         Route::get('serie/{id}', 'Mantenimiento\Empresa\EmpresaController@serie')->name('serie.empresa.facturacion');
         Route::post('certificate', 'Mantenimiento\Empresa\EmpresaController@certificate')->name('mantenimiento.empresas.certificado');
         Route::get('obtenerNumeracion/{id}', 'Mantenimiento\Empresa\EmpresaController@obtenerNumeracion')->name('mantenimiento.empresas.obtenerNumeracion');
+        Route::get('numeracion/create/{empresa_id}', 'Mantenimiento\Empresa\EmpresaController@numeracionCreate')->name('mantenimiento.empresas.numeracionCreate');
+        Route::post('numeracion/store', 'Mantenimiento\Empresa\EmpresaController@numeracionStore')->name('mantenimiento.empresas.numeracionStore');
     });
     //Condiciones
     Route::prefix('condiciones')->group(function () {

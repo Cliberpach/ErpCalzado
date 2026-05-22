@@ -4,9 +4,9 @@
 @section('sedes-active', 'active')
 
 @section('bread-module', 'Mantenimiento')
-@section('bread-submodule', 'Mantenimiento')
+@section('bread-submodule', 'Sedes')
 @section('hero-title', 'Lista de Sedes')
-@section('hero-subtitle', 'Mantenimiento')
+@section('hero-subtitle', 'Sedes')
 
 @section('btn-add')
     <a class="main-btn-add" href="#" onclick="goToSedeCreate()">
@@ -98,34 +98,34 @@
                         render: function(data, type, row) {
 
                             let acciones = ``;
-
                             const ruta_numeracion =
                                 `{{ route('mantenimiento.sedes.numeracionCreate', ':sede_id') }}`.replace(
-                                    ':sede_id', row.id
-                                );
-
-                            const ruta_editar =
-                                `{{ route('mantenimiento.sedes.edit', ':id') }}`.replace(
-                                    ':id', row.id
-                                );
+                                    ':sede_id', row.id);
+                            const ruta_editar = `{{ route('mantenimiento.sedes.edit', ':id') }}`.replace(
+                                ':id', row.id);
 
                             if (data.tipo_sede == 'SECUNDARIA') {
                                 acciones = `
                                     <div class="dropdown">
-                                        <button class="btn btn-success dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
+                                        <button class="btn btn-success dropdown-toggle"
+                                            type="button"
+                                            data-toggle="dropdown"
+                                            aria-expanded="false">
                                             <i class="fas fa-th-large"></i>
                                         </button>
 
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item text-primary font-weight-bold" href="${ruta_editar}">
-                                                <i class="fas fa-edit mr-2 text-primary"></i>
+
+                                            <a class="dropdown-item" href="${ruta_editar}">
+                                                <i class="fas fa-edit text-warning mr-2"></i>
                                                 Editar
                                             </a>
 
-                                            <a class="dropdown-item text-success font-weight-bold" href="${ruta_numeracion}">
-                                                <i class="fas fa-hashtag mr-2 text-success"></i>
+                                            <a class="dropdown-item" href="${ruta_numeracion}">
+                                                <i class="fas fa-hashtag text-primary mr-2"></i>
                                                 Numeración
                                             </a>
+
                                         </div>
                                     </div>
                                 `;
@@ -136,16 +136,16 @@
                     }
                 ],
                 language: {
-                    processing: "Cargando resúmenes",
+                    processing: "Cargando sedes",
                     search: "BUSCAR: ",
-                    lengthMenu: "MOSTRAR _MENU_ RESÚMENES",
+                    lengthMenu: "MOSTRAR _MENU_ SEDES",
                     info: "MOSTRANDO _START_ A _END_ DE _TOTAL_ RESÚMENES",
                     infoEmpty: "MOSTRANDO 0 RESÚMENES",
-                    infoFiltered: "(FILTRADO de _MAX_ RESÚMENES)",
+                    infoFiltered: "(FILTRADO de _MAX_ SEDES)",
                     infoPostFix: "",
                     loadingRecords: "CARGA EN CURSO",
                     zeroRecords: "Aucun &eacute;l&eacute;ment &agrave; afficher",
-                    emptyTable: "NO HAY RESÚMENES DISPONIBLES",
+                    emptyTable: "NO HAY SEDES DISPONIBLES",
                     paginate: {
                         first: "PRIMERO",
                         previous: "ANTERIOR",

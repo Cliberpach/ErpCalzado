@@ -5,18 +5,24 @@ namespace App\Http\Controllers\Mantenimiento\Sede;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Mantenimiento\Sedes\NumeracionStoreRequest;
 use App\Http\Requests\Mantenimiento\Sedes\SedeStoreRequest;
-use App\Mantenimiento\Empresa\Empresa;
-use App\Mantenimiento\Empresa\Numeracion;
+use App\Http\Requests\Mantenimiento\Sedes\SedeUpdateRequest;
+use App\Http\Services\Mantenimiento\Sede\SedeManager;
 use App\Mantenimiento\Sedes\Sede;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Throwable;
 use Yajra\DataTables\Facades\DataTables;
 
 class SedeController extends Controller
 {
+    private SedeManager $s_manager;
+
+    public function __construct()
+    {
+        $this->s_manager = new SedeManager();
+    }
+
     public function index()
     {
         return view('mantenimiento.sedes.index');
@@ -66,92 +72,43 @@ array:14 [
   "codigo_local"    => "0001"
   "serie"           =>  "0002"
   "urbanizacion"    =>  "urbanizacion"
-    "img_empresa" => Illuminate\Http\UploadedFile {#2039}
+    "img_empresa" => Illuminate\Http\UploadedFile {#2039
+        -test: false
+        -originalName: "certificate_test.pem"
+        -mimeType: "application/octet-stream"
+        -error: 0
+        #hashName: null
+        path: "D:\xampp\tmp"
+        filename: "php49A5.tmp"
+        basename: "php49A5.tmp"
+        pathname: "D:\xampp\tmp\php49A5.tmp"
+        extension: "tmp"
+        realPath: "D:\xampp\tmp\php49A5.tmp"
+        aTime: 2025-01-04 11:40:25
+        mTime: 2025-01-04 11:40:25
+        cTime: 2025-01-04 11:40:25
+        inode: 38843546786703131
+        size: 5332
+        perms: 0100666
+        owner: 0
+        group: 0
+        type: "file"
+        writable: true
+        readable: true
+        executable: false
+        file: true
+        dir: false
+        link: false
+        linkTarget: "D:\xampp\tmp\php49A5.tmp"
+    }
 ]
 */
     public function store(SedeStoreRequest $request)
     {
         DB::beginTransaction();
         try {
-
-            $empresa                =   Empresa::find(1);
-
-            $sede               =   new Sede();
-            $sede->nombre       =   $request->get('nombre');
-            $sede->empresa_id   =   1;
-            $sede->ruc          =   $empresa->ruc;
-            $sede->razon_social =   $empresa->razon_social;
-            $sede->direccion    =   $request->get('direccion');
-            $sede->telefono     =   $request->get('telefono');
-            $sede->correo       =   $request->get('correo');
-
-            $departamento_id    =   $request->get('departamento');
-            $provincia_id       =   $request->get('provincia');
-            $distrito_id        =   $request->get('distrito');
-
-            $departamento_id    = str_pad($departamento_id, 2, '0', STR_PAD_LEFT);
-            $provincia_id       = str_pad($provincia_id, 4, '0', STR_PAD_LEFT);
-            $distrito_id        = str_pad($distrito_id, 6, '0', STR_PAD_LEFT);
-
-            $sede->departamento_id   =   $departamento_id;
-            $sede->provincia_id      =   $provincia_id;
-            $sede->distrito_id       =   $distrito_id;
-
-            $departamento               =   DB::select('select d.nombre from departamentos as d where d.id=?', [$departamento_id])[0]->nombre;
-            $provincia                  =   DB::select('select p.nombre from provincias as p where p.id=?', [$provincia_id])[0]->nombre;
-            $distrito                   =   DB::select('select d.nombre from distritos as d where d.id=?', [$distrito_id])[0]->nombre;
-
-            $sede->departamento_nombre      =   $departamento;
-            $sede->provincia_nombre         =   $provincia;
-            $sede->distrito_nombre          =   $distrito;
-
-            $sede->codigo_local             =   $request->get('codigo_local');
-            $sede->tipo_sede                =   'SECUNDARIA';
-            $sede->serie                    =   $request->get('serie');
-            $sede->urbanizacion             =   $request->get('urbanizacion');
-            $sede->save();
-
-            $nombre_carpeta_personal = 'S' . $sede->id . '_' . $sede->ruc;
-            $sede->carpeta_nombre   =   $nombre_carpeta_personal;
-            $sede->save();
-
-            //======== CREANDO CARPETA PERSONAL PARA LA SEDE ========
-            $ruta_base = "public/{$nombre_carpeta_personal}";
-            if (!Storage::exists($ruta_base)) {
-                Storage::makeDirectory($ruta_base);
-            }
-
-            //======== GUARDANDO LOGO SEDE ========
-            if ($request->hasFile('img_empresa')) {
-
-                $imagen = $request->file('img_empresa');
-
-                $nombre_imagen =
-                    'LOGO_' .
-                    $nombre_carpeta_personal .
-                    '.' .
-                    $imagen->getClientOriginalExtension();
-
-                $ruta_logo = $nombre_carpeta_personal . '/logo';
-
-                if (!Storage::disk('public')->exists($ruta_logo)) {
-                    Storage::disk('public')->makeDirectory($ruta_logo);
-                }
-
-                $ruta_completa = $imagen->storeAs(
-                    $ruta_logo,
-                    $nombre_imagen,
-                    'public'
-                );
-
-                $sede->logo_ruta   = $ruta_completa;
-                $sede->logo_nombre = $nombre_imagen;
-
-                $sede->update();
-            }
-
+            $this->s_manager->store($request->all());
             DB::commit();
-
             return response()->json(['success' => true, 'message' => 'SEDE REGISTRADA']);
         } catch (Throwable $th) {
             DB::rollBack();
@@ -223,84 +180,16 @@ array:4 [
 */
     public function numeracionStore(NumeracionStoreRequest $request)
     {
-
         DB::beginTransaction();
         try {
-
-            $sede_id    =   $request->get('sede_id');
-
-            if (!$sede_id) {
-                throw new Exception("FALTA EL ID DE LA SEDE EN LA PETICIÓN!!!");
-            }
-
-            $sede   =   Sede::where('id', $sede_id)
-                ->where('estado', 'ACTIVO')
-                ->first();
-
-            if (!$sede) {
-                throw new Exception("LA SEDE NO EXISTE EN LA BD!!!");
-            }
-
-            //======== EVITAR DUPLICADOS =======
-            $existe =   DB::select(
-                'select
-                        enf.*
-                        from empresa_numeracion_facturaciones as enf
-                        where
-                        enf.tipo_comprobante = ?
-                        and enf.sede_id = ?
-                        and enf.estado = "ACTIVO"',
-                [
-                    $request->get('comprobante_id'),
-                    $request->get('sede_id')
-                ]
-            );
-
-            if (count($existe) !== 0) {
-                throw new Exception("EL TIPO DE COMPROBANTE YA FUE AGREGADO!!!");
-            }
-
-            //======== VALIDANDO EL TIPO COMPROBANTE ======
-            $tipo_comprobante   =   DB::select(
-                'select
-                                    td.*
-                                    from tabladetalles as td
-                                    where td.id = ?
-                                    and td.parametro = ?
-                                    and td.estado = "ACTIVO"',
-                [
-                    $request->get('comprobante_id'),
-                    $request->get('parametro')
-                ]
-            );
-
-            if (count($tipo_comprobante) === 0) {
-                throw new Exception("EL TIPO DE COMPROBANTE NO EXISTE EN LA BD!!!");
-            }
-
-            //========= REGISTRANDO NUMERACIÓN =====
-            $numeracion                     =   new Numeracion();
-            $numeracion->empresa_id         =   1;
-            $numeracion->sede_id            =   $sede_id;
-            $numeracion->serie              =   strtoupper(str_replace(
-                ['á', 'é', 'í', 'ó', 'ú', 'ñ'],
-                ['a', 'e', 'i', 'o', 'u', 'n'],
-                $tipo_comprobante[0]->parametro . $request->get('serie')
-            ));
-
-            $numeracion->tipo_comprobante   =   $tipo_comprobante[0]->id;
-            $numeracion->numero_iniciar     =   $request->get('nro_inicio');
-            $numeracion->emision_iniciada   =   '0';
-            $numeracion->numero_fin         =   null;
-            $numeracion->save();
-
+            $this->s_manager->storeNumeracion($request->all());
             DB::commit();
             return response()->json([
-                'success' => true,
-                'message' => 'NUMERACIÓN AGREGADA A LA SEDE',
+                'success'        => true,
+                'message'        => 'NUMERACIÓN AGREGADA A LA SEDE',
                 'comprobante_id' => $request->get('comprobante_id')
             ]);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
@@ -321,133 +210,25 @@ array:4 [
 
 
     /*
-array:11 [
-  "_token" => "KA1dFsFUbCYF1eViw83L6oy0nk6rSS97vku67CF8"
-  "nombre" => "a"
-  "direccion" => "a"
-  "telefono" => "1"
-  "correo" => "admin@gmail.com"
-  "departamento" => "01"
-  "provincia" => "0101"
-  "distrito" => "010101"
-  "urbanizacion" => "a"
-  "codigo_local" => "1"
-  "img_empresa" => Illuminate\Http\UploadedFile {#1194}
+array:10 [
+  "_token" => "JOyNM7PhCTjKURJp3IlRSZAkxqLZl6lX1xKseSbB"
+  "nombre" => "SEDE CHICLAYO"
+  "direccion" => "AV U123"
+  "telefono" => null
+  "correo" => null
+  "departamento" => "14"
+  "provincia" => "1401"
+  "distrito" => "140108"
+  "urbanizacion" => null
+  "codigo_local" => "0002"
 ]
 */
-    public function update($id, Request $request)
+    public function update($id, SedeUpdateRequest $request)
     {
         DB::beginTransaction();
         try {
-            $empresa            =   Empresa::find(1);
-
-            $sede               =   Sede::find($id);
-            $sede->nombre       =   $request->get('nombre');
-            $sede->empresa_id   =   1;
-            $sede->ruc          =   $empresa->ruc;
-            $sede->razon_social =   $empresa->razon_social;
-            $sede->direccion    =   $request->get('direccion');
-            $sede->telefono     =   $request->get('telefono');
-            $sede->correo       =   $request->get('correo');
-
-            $departamento_id    =   $request->get('departamento');
-            $provincia_id       =   $request->get('provincia');
-            $distrito_id        =   $request->get('distrito');
-
-            $departamento_id    = str_pad($departamento_id, 2, '0', STR_PAD_LEFT);
-            $provincia_id       = str_pad($provincia_id, 4, '0', STR_PAD_LEFT);
-            $distrito_id        = str_pad($distrito_id, 6, '0', STR_PAD_LEFT);
-
-            $sede->departamento_id   =   $departamento_id;
-            $sede->provincia_id      =   $provincia_id;
-            $sede->distrito_id       =   $distrito_id;
-
-            $departamento               =   DB::select('select d.nombre from departamentos as d where d.id=?', [$departamento_id])[0]->nombre;
-            $provincia                  =   DB::select('select p.nombre from provincias as p where p.id=?', [$provincia_id])[0]->nombre;
-            $distrito                   =   DB::select('select d.nombre from distritos as d where d.id=?', [$distrito_id])[0]->nombre;
-
-            $sede->departamento_nombre      =   $departamento;
-            $sede->provincia_nombre         =   $provincia;
-            $sede->distrito_nombre          =   $distrito;
-
-            $sede->codigo_local             =   $request->get('codigo_local');
-            $sede->urbanizacion             =   $request->get('urbanizacion');
-            $sede->update();
-
-
-            //======= ACTUALIZANDO LOGO SEDE =======
-
-            // asegurar carpeta principal sede
-            $ruta_base =
-                $sede->carpeta_nombre;
-
-            if (
-                !Storage::disk('public')
-                    ->exists($ruta_base)
-            ) {
-
-                Storage::disk('public')
-                    ->makeDirectory($ruta_base);
-            }
-
-            if ($request->hasFile('img_empresa')) {
-
-                // eliminar logo anterior
-                if (
-                    $sede->logo_ruta &&
-                    Storage::disk('public')->exists($sede->logo_ruta)
-                ) {
-
-                    Storage::disk('public')
-                        ->delete($sede->logo_ruta);
-                }
-
-                $imagen = $request->file('img_empresa');
-
-                $extension =
-                    strtolower(
-                        $imagen->getClientOriginalExtension()
-                    );
-
-                $nombre_imagen =
-                    'LOGO_' .
-                    $sede->carpeta_nombre .
-                    '.' .
-                    $extension;
-
-                // carpeta logo
-                $ruta_logo =
-                    $sede->carpeta_nombre . '/logo';
-
-                // crear carpeta logo
-                if (
-                    !Storage::disk('public')
-                        ->exists($ruta_logo)
-                ) {
-
-                    Storage::disk('public')
-                        ->makeDirectory($ruta_logo);
-                }
-
-                // guardar imagen
-                $ruta_completa = $imagen->storeAs(
-                    $ruta_logo,
-                    $nombre_imagen,
-                    'public'
-                );
-
-                // actualizar campos
-                $sede->logo_ruta =
-                    $ruta_completa;
-
-                $sede->logo_nombre =
-                    $nombre_imagen;
-
-                $sede->save();
-            }
-
+            $this->s_manager->update($request->all(), (int) $id);
             DB::commit();
-
             return response()->json(['success' => true, 'message' => 'SEDE ACTUALIZADA CON ÉXITO']);
         } catch (Throwable $th) {
             DB::rollBack();

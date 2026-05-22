@@ -4,9 +4,9 @@
 @section('sedes-active', 'active')
 
 @section('bread-module', 'Mantenimiento')
-@section('bread-submodule', 'Mantenimiento')
+@section('bread-submodule', 'Sedes')
 @section('hero-title', 'Registrar Sede')
-@section('hero-subtitle', 'Mantenimiento')
+@section('hero-subtitle', 'Sedes')
 
 @section('content')
     <div class="wrapper wrapper-content animated fadeInRight">
@@ -38,7 +38,6 @@
 @push('scripts')
     <script src="{{ mix('js/filepond.js') }}"></script>
     <script>
-        let pondImage = null;
         const btnGetComprobantes = document.querySelector('#btn-get-comprobantes');
         const bodyTableSearchComprobantes = document.querySelector('.table-search-comprobantes tbody');
         let tableResumenes = null;
@@ -47,11 +46,10 @@
         let listComprobantes = [];
 
         document.addEventListener('DOMContentLoaded', () => {
-            initFilePondImage();
             events();
             iniciarSelect2();
             cargarDataTable();
-
+            loadFpImagen();
         })
 
         function events() {
@@ -72,49 +70,32 @@
             });
         }
 
-
-        function initFilePondImage() {
-            const inputElement = document.querySelector('#img_empresa');
-
-            pondImage = FilePond.create(inputElement, {
-
-                allowMultiple: false,
-                instantUpload: false,
-                maxFileSize: '2MB',
+        function loadFpImagen() {
+            const input = document.querySelector('#img_empresa');
+            FilePond.create(input, {
+                allowImagePreview: true,
+                imagePreviewHeight: 120,
+                imageCropAspectRatio: '1:1',
+                styleLayout: 'compact',
+                stylePanelAspectRatio: 0.5,
                 storeAsFile: true,
-
-                acceptedFileTypes: [
-                    "image/jpeg",
-                    "image/png",
-                    "image/webp",
-                    "image/avif"
-                ],
-
-                labelIdle: `
-                    <div style="padding:10px;">
-                        <i class="fas fa-cloud-upload-alt"
-                        style="font-size:40px;color:#2563eb;margin-bottom:10px;">
-                        </i>
-
-                        <div style="font-size:15px;font-weight:bold;">
-                            Arrastra una imagen o
-                            <span style="color:#2563eb;">haz click aquí</span>
-                        </div>
-
-                        <small style="color:#6b7280;">
-                            JPG, JPEG, WEBP, AVIF | Máx. 2MB
-                        </small>
-                    </div>
-                `,
-
-                fileValidateTypeLabelExpectedTypes: 'Solo se permiten JPG, JPEG, WEBP y AVIF',
-                labelMaxFileSizeExceeded: 'El archivo es demasiado grande',
-                labelMaxFileSize: 'El tamaño máximo permitido es 2MB'
+                maxFileSize: '1MB',
+                acceptedFileTypes: ['image/jpeg', 'image/webp'],
+                labelFileTypeNotAllowed: 'Solo se permiten JPG, JPEG y WEBP',
+                labelMaxFileSizeExceeded: 'El archivo supera 1 MB',
             });
         }
 
         async function registrarSede(formStoreSede) {
-            Swal.fire({
+
+            const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    confirmButton: "btn btn-success",
+                    cancelButton: "btn btn-danger"
+                },
+                buttonsStyling: false
+            });
+            swalWithBootstrapButtons.fire({
                 title: "Desea registrar la sede?",
                 text: "Se afiliará a la empresa!",
                 icon: "warning",
@@ -172,7 +153,7 @@
                     /* Read more about handling dismissals below */
                     result.dismiss === Swal.DismissReason.cancel
                 ) {
-                    Swal.fire({
+                    swalWithBootstrapButtons.fire({
                         title: "Operación cancelada",
                         text: "No se realizaron acciones",
                         icon: "error"
@@ -180,6 +161,7 @@
                 }
             });
         }
+
 
         function cargarDataTable() {
             const getResumenesUrl = "{{ route('ventas.resumenes.getResumenes') }}";

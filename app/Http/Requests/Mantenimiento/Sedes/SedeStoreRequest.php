@@ -20,6 +20,24 @@ class SedeStoreRequest extends FormRequest
         return true;
     }
 
+      protected function prepareForValidation()
+    {
+        $this->merge([
+
+            'departamento' => $this->departamento
+                ? str_pad($this->departamento, 2, '0', STR_PAD_LEFT)
+                : null,
+
+            'provincia' => $this->provincia
+                ? str_pad($this->provincia, 4, '0', STR_PAD_LEFT)
+                : null,
+
+            'distrito' => $this->distrito
+                ? str_pad($this->distrito, 6, '0', STR_PAD_LEFT)
+                : null,
+        ]);
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -36,6 +54,7 @@ class SedeStoreRequest extends FormRequest
             'distrito'          =>  'required|max:10',
             'codigo_local'      =>  'required|max:10',
             'urbanizacion'      =>  'required|max:200',
+            'img_empresa'       =>  'nullable|image|mimes:jpg,jpeg,webp|max:1024',
         ];
     }
 
@@ -71,7 +90,11 @@ class SedeStoreRequest extends FormRequest
             'codigo_local.max'          => 'El código local no puede exceder los 10 caracteres.',
 
             'urbanizacion.required'     => 'La urbanización es requerida',
-            'urbanizacion.max'          => 'La urbanización no puede exceder los 200 caracteres'
+            'urbanizacion.max'          => 'La urbanización no puede exceder los 200 caracteres',
+
+            'img_empresa.image'         => 'El archivo debe ser una imagen.',
+            'img_empresa.mimes'         => 'Solo se permiten imágenes JPG, JPEG o WEBP.',
+            'img_empresa.max'           => 'La imagen no puede superar 1 MB.',
         ];
     }
 
