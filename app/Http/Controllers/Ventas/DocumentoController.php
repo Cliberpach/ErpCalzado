@@ -62,6 +62,7 @@ use App\User;
 use Illuminate\Support\Facades\Response;
 use App\Ventas\CambioTalla;
 use App\Ventas\EnvioVenta;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class DocumentoController extends Controller
@@ -388,7 +389,7 @@ array:13 [
 ]
 */
     public function storePago(StorePagoRequest $request)
-    {   
+    {
         try {
             DB::beginTransaction();
             $this->s_venta->storePago($request->toArray());
@@ -864,6 +865,15 @@ array:27 [
                 'message' => 'DOCUMENTO VENTA REGISTRADO CON ÉXITO',
                 'documento_id' => $documento->id
             ]);
+        } catch (ValidationException $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Errores de validación.',
+                'errors' => $e->errors()
+            ], 422);
         } catch (Throwable $th) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $th->getMessage() . "-" . $th->getLine() . "-" . $th->getFile(), 'line' => $th->getLine(), 'file' => $th->getFile()]);
@@ -3927,8 +3937,6 @@ array:2 [
                     'documento_convertido'  =>  $documento->id,
                     'monto_embalaje'        =>  $documento->monto_embalaje,
                     'monto_envio'           =>  $documento->monto_envio,
-                    'metodoPagoId'          =>  null,
-                    'cuentaPagoId'          =>  null
                 ]
             );
         } catch (Throwable $th) {

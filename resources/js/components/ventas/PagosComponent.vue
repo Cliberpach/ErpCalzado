@@ -141,7 +141,7 @@ export default {
     data() {
         return {
             lstPagos: [this.getNuevoPago(true)],
-            isPay: true,
+            isPay: false,
         };
     },
     watch: {

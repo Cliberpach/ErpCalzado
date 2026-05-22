@@ -69,7 +69,8 @@ class VentaValidacion
         $lstPagos  = isset($datos['lstPagos'])
             ? (is_string($datos['lstPagos']) ? json_decode($datos['lstPagos'], true) : $datos['lstPagos'])
             : [];
-        $isPay     = isset($datos['isPay']) ? true : false;
+
+        $isPay = filter_var($datos['isPay'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         $tipo_pago_1 = null;
         $cuenta_pago_1 = null;

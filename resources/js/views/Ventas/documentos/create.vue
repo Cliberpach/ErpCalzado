@@ -324,7 +324,7 @@ export default {
                 telefono: null,
 
                 lstPagos: [],
-                isPay: true
+                isPay: false
             },
             tipo_venta: "",
             condicion_id: 1,
