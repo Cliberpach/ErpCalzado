@@ -10,8 +10,8 @@ Route::prefix('cajas')->middleware('auth')->group(function () {
         Route::get('/index', 'Pos\CajaController@index')->name('Caja.index');
         Route::get('/getCajas', 'Pos\CajaController@getCajas')->name('Caja.getCajas');
         Route::post('/store', 'Pos\CajaController@store')->name('Caja.store');
-        Route::post('/update/{id}', 'Pos\CajaController@update')->name('Caja.update');
-        Route::get('/destroy/{id}', 'Pos\CajaController@destroy')->name('Caja.destroy');
+        Route::put('/update/{id}', 'Pos\CajaController@update')->name('Caja.update');
+        Route::delete('/destroy/{id}', 'Pos\CajaController@destroy')->name('Caja.destroy');
         //-------------------------Movimientos de Caja -------------------------
     });
 
@@ -29,6 +29,7 @@ Route::prefix('cajas')->middleware('auth')->group(function () {
         Route::get('verificarEstadoUser', 'Pos\CajaController@verificarEstadoUser')->name('Caja.movimiento.verificarestado');
         Route::get('repoteMovimiento/{id}', 'Pos\CajaController@reporteMovimiento')->name('Caja.reporte.movimiento');
         Route::get('caja/verificar-ventas/{movimiento_id}', 'Pos\CajaController@verificarVentasNoPagadas')->name('caja.movimiento.verificarVentasNoPagadas');
+        Route::get('estadoCajas', 'Pos\CajaController@estadoCajas')->name('Caja.estadoCajas');
     });
 
 

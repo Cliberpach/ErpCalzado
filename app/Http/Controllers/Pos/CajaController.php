@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Pos;
 use App\DetallesMovimientoCaja;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\MovimientoCaja\MovimientoCajaAperturaRequest;
+use App\Http\Services\Caja\Caja\CajaManager;
 use App\Http\Services\Caja\CajaMovimiento\CajaMovimientoManager;
 use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Sedes\Sede;
@@ -21,10 +22,12 @@ use Exception;
 class CajaController extends Controller
 {
     private CajaMovimientoManager $s_caja;
+    private CajaManager $s_cajaManager;
 
     public function __construct()
     {
-        $this->s_caja = new CajaMovimientoManager();
+        $this->s_caja        = new CajaMovimientoManager();
+        $this->s_cajaManager = new CajaManager();
     }
 
     public function index()
@@ -101,29 +104,33 @@ array:3 [▼
 */
     public function store(Request $request)
     {
-
-        $this->authorize('haveaccess', 'caja.movimiento_caja.index');
-
-        $caja           =   new Caja();
-        $caja->nombre   =   $request->nombre;
-        $caja->sede_id  =   $request->get('sede_id');
-        $caja->save();
-
-        return redirect()->route('Caja.index');
+        try {
+            $this->authorize('haveaccess', 'caja.movimiento_caja.index');
+            $this->s_cajaManager->store($request->nombre, (int) Auth::user()->sede_id);
+            return response()->json(['success' => true, 'message' => 'Caja creada correctamente.']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
+
     public function update(Request $request, $id)
     {
-        $caja = Caja::findOrFail($id);
-        $caja->nombre = $request->nombre_editar;
-        $caja->save();
-        return redirect()->route('Caja.index');
+        try {
+            $this->s_cajaManager->update((int) $id, $request->nombre);
+            return response()->json(['success' => true, 'message' => 'Caja actualizada correctamente.']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
+
     public function destroy($id)
     {
-        $caja = Caja::findOrFail($id);
-        $caja->estado = 'ANULADO';
-        $caja->save();
-        return redirect()->route('Caja.index');
+        try {
+            $this->s_cajaManager->destroy((int) $id);
+            return response()->json(['success' => true, 'message' => 'Caja eliminada correctamente.']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
 
@@ -131,34 +138,28 @@ array:3 [▼
     {
         $this->authorize('haveaccess', 'caja.movimiento_caja.index');
 
-        $lstAniosDB = DB::table('lote_productos')
-            ->select(DB::raw('year(created_at) as value'))
-            ->distinct()
-            ->orderBy('value', 'desc')
-            ->get();
-        $lstAnios = collect();
-        foreach ($lstAniosDB as $item) {
-            $lstAnios->push([
-                "value" => $item->value
-            ]);
-        }
         $fecha_hoy = Carbon::now();
-        $mes = date_format($fecha_hoy, 'm');
-        $anio_ = date_format($fecha_hoy, 'Y');
-        $search = array_search("$anio_", array_column($lstAnios->values()->all(), "value"));
-        if ($search === false) {
-            $lstAnios->push([
-                "value" => (int)$anio_
-            ]);
-        }
+        $mes   = $fecha_hoy->format('m');
+        $anio_ = $fecha_hoy->format('Y');
 
-        $sede_id    =   Auth::user()->sede_id;
+        $lstAnios = array_map(
+            fn($y) => (object)['value' => $y],
+            range((int)$anio_, 2020)
+        );
+
+        $sede_id = Auth::user()->sede_id;
+
+        $lstCajas = Caja::where('estado', 'ACTIVO')
+            ->where('sede_id', $sede_id)
+            ->orderBy('nombre')
+            ->get(['id', 'nombre']);
 
         return view('pos.MovimientoCaja.indexMovimiento', [
-            'lstAnios'  =>  json_decode(json_encode($lstAnios->sortByDesc("value")->values())),
-            'mes'       =>  $mes,
-            'anio_'     =>  $anio_,
-            'sede_id'   =>  $sede_id
+            'lstAnios' => $lstAnios,
+            'mes'      => $mes,
+            'anio_'    => $anio_,
+            'sede_id'  => $sede_id,
+            'lstCajas' => $lstCajas,
         ]);
     }
 
@@ -273,6 +274,10 @@ array:3 [▼
             //====== USUARIOS PUEDEN VER SOLO SUS PROPIOS MOVIMIENTOS CAJA ======
             $consulta->where('sede_id', Auth::user()->sede_id)
                 ->where('colaborador_id', Auth::user()->colaborador_id);
+        }
+
+        if ($request->caja_id) {
+            $consulta->where('caja_id', $request->caja_id);
         }
 
         $movimientos = $consulta
@@ -397,85 +402,59 @@ array:4 [
         }
     }
 
+    public function estadoCajas()
+    {
+        $cajas = Caja::where('estado', 'ACTIVO')
+            ->orderBy('nombre')
+            ->get(['id', 'nombre']);
+
+        $result = $cajas->map(function ($caja) {
+            $movimiento = MovimientoCaja::where('caja_id', $caja->id)
+                ->where('estado_movimiento', 'APERTURA')
+                ->orderByDesc('id')
+                ->first(['colaborador_id', 'fecha_apertura']);
+
+            $colaborador = null;
+            if ($movimiento) {
+                $colaborador = Colaborador::find($movimiento->colaborador_id);
+            }
+
+            return [
+                'nombre'      => $caja->nombre,
+                'estado_caja' => $movimiento ? 'ABIERTA' : 'CERRADA',
+                'colaborador' => $colaborador ? $colaborador->nombre : '-',
+                'desde'       => $movimiento ? $movimiento->fecha_apertura : '-',
+            ];
+        });
+
+        return response()->json($result);
+    }
+
     public function cerrarCaja(Request $request)
     {
-
-        $movimiento                     = MovimientoCaja::findOrFail($request->movimiento_id);
-        $movimiento->estado_movimiento  = 'CIERRE';
-        $movimiento->fecha_cierre       = date('Y-m-d h:i:s');
-        $movimiento->monto_final        = (float) $request->saldo;
-        $movimiento->save();
-        $caja = $movimiento->caja;
-        $caja->estado_caja = 'CERRADA';
-        $caja->save();
-
-        $detalles = DetallesMovimientoCaja::select('*')
-            ->where('detalles_movimiento_caja.movimiento_id', '=', $movimiento->id)
-            ->get();
-
-        foreach ($detalles as $d) {
-            $d->fecha_salida = date('Y-m-d h:i:s');
-            $d->save();
-        }
-
+        $this->s_caja->cerrar((int) $request->movimiento_id, (float) $request->saldo);
         return redirect()->route('Caja.Movimiento.index');
     }
 
     public function verificarVentasNoPagadas($movimiento_id)
     {
-
         try {
-            //========= BUSCAMOS LOS DOCS DE VENTA NO PAGADOS, EXCEPTO LOS CONVERTIDOS ===========
-            $docs_no_pagados    =   DB::select('select
-                                    cd.serie,
-                                    cd.correlativo
-                                    from detalle_movimiento_venta as dmv
-                                    inner join cotizacion_documento as cd on cd.id=dmv.cdocumento_id
-                                    where
-                                    cd.estado_pago = "PENDIENTE"
-                                    and mcaja_id = ?
-                                    and cd.convert_de_id is null
-                                    and cd.estado = "ACTIVO"
-                                    group by cd.serie,cd.correlativo', [$movimiento_id]);
-
-
-
-            return response()->json(['success' => true, 'docs_no_pagados' => $docs_no_pagados]);
+            $docs = $this->s_caja->ventasNoPagadas((int) $movimiento_id);
+            return response()->json(['success' => true, 'docs_no_pagados' => $docs]);
         } catch (\Throwable $th) {
             return response()->json([
-                'success' => false,
-                'message' => "ERROR EN EL SERVIDOR AL CONSULTAR DOCS VENTA NO PAGADOS",
-                'exception' => $th->getMessage()
+                'success'   => false,
+                'message'   => 'Error al consultar documentos pendientes',
+                'exception' => $th->getMessage(),
             ]);
         }
     }
 
     public function cajaDatosCierre(Request $request)
     {
-        $movimiento     =   MovimientoCaja::findOrFail($request->id);
-
-        //======= CAJERO DEL MOVIMIENTO =====
-        $colaborador    =   Colaborador::find($movimiento->colaborador_id);
-
-
-        $ingresos =
-            cuadreMovimientoCajaIngresosVentaResum($movimiento, 5) +
-            cuadreMovimientoCajaIngresosRecibo($movimiento) +
-            cuadreMovimientoCajaIngresosCobranzaResum($movimiento);
-
-        $egresos =
-            cuadreMovimientoCajaEgresosEgresoResum($movimiento, 4) +
-            cuadreMovimientoCajaEgresosPagoResum($movimiento);
-
-
-        return [
-            'caja' => $movimiento->caja->nombre,
-            'monto_inicial' =>  $movimiento->monto_inicial,
-            'colaborador'   =>  $colaborador->nombre,
-            'egresos' => $egresos,
-            'ingresos' => $ingresos,
-            'saldo' => $movimiento->monto_inicial + $ingresos - $egresos,
-        ];
+        return response()->json(
+            $this->s_caja->datosCierre((int) $request->id)->toArray()
+        );
     }
 
     public function verificarEstadoUser()

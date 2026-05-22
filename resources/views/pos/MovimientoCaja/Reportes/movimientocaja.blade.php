@@ -1,862 +1,451 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Reporte Caja Movimiento</title>
-    <link rel="icon" href="{{ base_path() . '/img/siscom.ico' }}" />
-
     <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            color: black;
-        }
+        body { font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; font-size: 11px; }
 
-        .cabecera {
-            width: 100%;
-            position: relative;
-            height: 100px;
-            max-height: 150px;
-        }
+        /* ── CABECERA ── */
+        .cabecera { width: 100%; position: relative; height: 96px; }
+        .logo     { width: 28%; position: absolute; left: 0; }
+        .logo img { width: 92%; height: 88px; }
+        .empresa  { width: 60%; position: absolute; left: 30%; }
+        .empresa p { margin: 2px 0; }
+        .nombre-empresa { font-size: 14px; font-weight: bold; }
 
-        .logo {
-            width: 30%;
-            position: absolute;
-            left: 0%;
-        }
+        /* ── INFO MOVIMIENTO ── */
+        .tbl-info { width: 100%; border-collapse: collapse; font-size: 11px;
+                    border: 2px solid #52BE80; margin-top: 4px; }
+        .tbl-info td { padding: 3px 6px; }
+        .tbl-info .lbl { font-weight: bold; width: 12%; }
 
-        .logo .logo-img {
-            position: relative;
-            width: 95%;
-            margin-right: 5%;
-            height: 90px;
-        }
+        /* ── SECCIÓN TÍTULO ── */
+        .seccion-titulo { text-transform: uppercase; font-size: 12px; font-weight: bold;
+                          margin-top: 10px; margin-bottom: 1px; color: #1a5c35;
+                          border-left: 3px solid #52BE80; padding-left: 5px; }
 
-        .img-fluid {
-            width: 100%;
-            height: 100%;
-        }
+        /* ── TABLA DETALLE ── */
+        .tbl-data { width: 100%; border-collapse: collapse; font-size: 10px; }
+        .tbl-data thead tr { background-color: #D5F5E3; }
+        .tbl-data th { padding: 4px 5px; text-align: center;
+                       border: 1px solid #52BE80; text-transform: uppercase; }
+        .tbl-data td { padding: 3px 5px; border: 1px solid #A9DFBF; vertical-align: top; }
+        .tbl-data .fila-total td { border-top: 2px solid #52BE80;
+                                   background-color: #EAFAF1; font-weight: bold; }
+        .tbl-data .fila-anulado td { color: #999; }
 
-        .empresa {
-            width: 60%;
-            position: absolute;
-            left: 30%;
-        }
+        .pagos-cell { text-align: left; line-height: 1.5; }
+        .tc { text-align: center; }
+        .tr { text-align: right; }
 
-        .empresa .empresa-info {
-            position: relative;
-            width: 100%;
-        }
+        /* Nota de crédito badge */
+        .nota-badge { font-size: 9px; color: #c0392b; font-weight: bold; }
+        .nota-detalle { font-size: 9px; color: #922b21; }
+        .conv-badge  { font-size: 9px; color: #1a5276; }
+        .check-verde { color: #229954; font-weight: bold; }
 
-        .nombre-empresa {
-            font-size: 16px;
-        }
+        /* ── RESÚMENES ── */
+        .tbl-resumen { width: 100%; border-collapse: collapse; font-size: 11px;
+                       border: 2px solid #229954; }
+        .tbl-resumen thead tr { background-color: #52BE80; color: white; }
+        .tbl-resumen th { padding: 5px 7px; text-align: center; }
+        .tbl-resumen td { padding: 4px 7px; border-bottom: 1px solid #A9DFBF; }
+        .tbl-resumen .fila-subtotal td { background-color: #A2D9CE; font-weight: bold; }
+        .tbl-resumen .fila-total    td { background-color: #FCF3CF; font-weight: bold; }
+        .tbl-resumen .fila-negativo td { color: #922b21; }
+        .tbl-resumen .tr { text-align: right; }
 
-        .ruc-empresa {
-            font-size: 15px;
-        }
+        /* ── TOTAL VENTA DÍA (bloque final) ── */
+        .bloque-total-dia { width: 100%; border-collapse: collapse; margin-top: 10px;
+                            border: 2px solid #229954; }
+        .bloque-total-dia td { padding: 6px 10px; background-color: #A2D9CE;
+                               font-size: 13px; font-weight: bold; text-transform: uppercase; }
 
-        .direccion-empresa {
-            font-size: 12px;
-        }
-
-        .text-info-empresa {
-            font-size: 12px;
-        }
-
-        .comprobante {
-            width: 30%;
-            position: absolute;
-            left: 70%;
-        }
-
-        .comprobante .comprobante-info {
-            position: relative;
-            width: 100%;
-            display: flex;
-            align-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        .numero-documento {
-            margin: 1px;
-            padding-top: 20px;
-            padding-bottom: 20px;
-            border: 2px solid #52BE80;
-            font-size: 14px;
-        }
-
-        .nombre-documento {
-            margin-top: 5px;
-            margin-bottom: 5px;
-            margin-left: 0px;
-            margin-right: 0px;
-            width: 100%;
-            background-color: #7DCEA0;
-        }
-
-        .logos-empresas {
-            width: 100%;
-            height: 105px;
-        }
-
-        .img-logo {
-            width: 95%;
-            height: 100px;
-        }
-
-        .logo-empresa {
-            width: 14.2%;
-            float: left;
-        }
-
-        .informacion {
-            width: 100%;
-            position: relative;
-            border: 2px solid #52BE80;
-        }
-
-        .tbl-informacion {
-            width: 100%;
-            font-size: 12px;
-        }
-
-        .cuerpo {
-            width: 100%;
-            position: relative;
-            border: 1px solid #52BE80;
-            margin-top: 10px;
-        }
-
-        .tbl-detalles {
-            width: 100%;
-            font-size: 12px;
-        }
-
-        .tbl-detalles thead {
-            border-top: 2px solid #52BE80;
-            border-left: 2px solid #52BE80;
-            border-right: 2px solid #52BE80;
-            background-color: #E8F8F5;
-        }
-
-        .tbl-detalles tbody {
-            border-top: 2px solid #52BE80;
-            border-bottom: 2px solid #52BE80;
-            border-left: 2px solid #52BE80;
-            border-right: 2px solid #52BE80;
-        }
-
-        .info-total-qr {
-            position: relative;
-            width: 100%;
-        }
-
-        .tbl-total {
-            width: 100%;
-            border: 2px solid #229954;
-        }
-
-        .qr-img {
-            margin-top: 15px;
-        }
-
-        .text-cuerpo {
-            font-size: 12px
-        }
-
-        .tbl-qr {
-            width: 100%;
-        }
-
-        /*---------------------------------------------*/
-
-        .m-0 {
-            margin: 0;
-        }
-
-        .text-uppercase {
-            text-transform: uppercase;
-        }
-
-        .p-0 {
-            padding: 0;
-        }
-
-        .cont-check {
-            position: relative;
-        }
-
-        .checkmark {
-            display: inline-block;
-            width: 22px;
-            height: 22px;
-            -ms-transform: rotate(45deg);
-            -webkit-transform: rotate(45deg);
-            transform: rotate(45deg);
-        }
-
-        .checkmark_stem {
-            position: absolute;
-            width: 3px;
-            height: 12px;
-            background-color: #229954;
-            left: 11px;
-            top: 6px;
-        }
-
-        .checkmark_kick {
-            position: absolute;
-            width: 3px;
-            height: 3px;
-            background-color: #229954;
-            left: 8px;
-            top: 15px;
-        }
-
-        .cont-remove {
-            position: relative;
-        }
-
-        .remove {
-            display: inline-block;
-            width: 22px;
-            height: 22px;
-            -ms-transform: rotate(45deg);
-            -webkit-transform: rotate(45deg);
-            transform: rotate(45deg);
-        }
-
-        .remove_stem {
-            position: absolute;
-            width: 3px;
-            height: 12px;
-            background-color: brown;
-            left: 11px;
-            top: 6px;
-        }
-
-        .remove_kick {
-            position: absolute;
-            width: 12px;
-            height: 3px;
-            background-color: brown;
-            left: 7px;
-            top: 10px;
-        }
-
-        .pagos-cell {
-            font-size: 11px;
-            line-height: 1.6;
-            text-align: left;
-            padding-left: 6px;
-        }
+        .m-0 { margin: 0; }
+        .text-uppercase { text-transform: uppercase; }
     </style>
 </head>
-
 <body>
-    <div class="cabecera">
-        <div class="logo">
-            <div class="logo-img">
-                @if ($empresa->ruta_logo)
-                    <img src="{{ base_path() . '/storage/app/' . $empresa->ruta_logo }}" class="img-fluid">
-                @else
-                    <img src="{{ public_path() . '/img/default.png' }}" class="img-fluid">
+
+{{-- ══════════════════════════════════════════════════════════ CABECERA ══ --}}
+<div class="cabecera">
+    <div class="logo">
+        @if ($empresa->ruta_logo)
+            <img src="{{ base_path() . '/storage/app/' . $empresa->ruta_logo }}" alt="logo">
+        @else
+            <img src="{{ public_path() . '/img/default.png' }}" alt="logo">
+        @endif
+    </div>
+    <div class="empresa">
+        <p class="nombre-empresa text-uppercase">{{ $empresa->razon_social }}</p>
+        <p class="text-uppercase">{{ $empresa->direccion_fiscal }}</p>
+        <p>Tel: {{ $empresa->telefono }} &nbsp;|&nbsp; {{ $empresa->correo }}</p>
+    </div>
+</div>
+<br>
+
+{{-- ══════════════════════════════════════════════════ INFO MOVIMIENTO ══ --}}
+<table class="tbl-info">
+    <tbody>
+        <tr>
+            <td class="lbl">CAJA</td><td>:</td>
+            <td>{{ $cabecera['cajaNombre'] }}</td>
+            <td class="lbl">FECHA</td><td>:</td>
+            <td>{{ $cabecera['fecha'] }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">COLABORADOR</td><td>:</td>
+            <td>{{ $cabecera['colaborador'] }}</td>
+            <td class="lbl">MONTO INICIAL</td><td>:</td>
+            <td>S/ {{ number_format($cabecera['montoInicial'], 2) }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">EMISIÓN</td><td>:</td>
+            <td colspan="3">{{ $cabecera['fechaReporte'] }}</td>
+        </tr>
+    </tbody>
+</table>
+
+{{-- ══════════════════════════════════════════════════ VENTAS CONTADO ══ --}}
+<p class="seccion-titulo">Ventas Contado</p>
+<table class="tbl-data">
+    <thead>
+        <tr>
+            <th style="width:11%">Número</th>
+            <th style="width:25%">Cliente</th>
+            <th style="width:7%">Cobrar</th>
+            <th style="width:9%">Total</th>
+            <th style="width:20%">Nota / Estado</th>
+            <th style="width:14%">Conv. a</th>
+            <th>Pagos</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse ($ventasContado['filas'] as $fila)
+            <tr @if($fila['anulado']) class="fila-anulado" @endif>
+                <td class="tc">{{ $fila['numero'] }}</td>
+                <td>{{ $fila['cliente'] }}</td>
+                <td class="tc">{{ $fila['cobrar'] }}</td>
+                <td class="tr">
+                    {{ number_format($fila['total'], 2) }}
+                    @if ($fila['anulado'])
+                        <br><span class="nota-badge">ANULADO</span>
+                    @endif
+                </td>
+
+                {{-- Nota de crédito info --}}
+                <td>
+                    @if ($fila['anulado'])
+                        &mdash;
+                    @elseif (!empty($fila['notaInfo']['notas']))
+                        <span class="nota-badge">
+                            NC {{ $fila['notaInfo']['tipo'] }}
+                            ({{ number_format($fila['notaInfo']['total'], 2) }})
+                        </span>
+                        @foreach ($fila['notaInfo']['notas'] as $n)
+                            <br><span class="nota-detalle">{{ $n['motivo'] }}: {{ number_format($n['monto'], 2) }}</span>
+                        @endforeach
+                        @if ($fila['notaInfo']['tipo'] === 'PARCIAL')
+                            <br><span class="nota-detalle">Neto: {{ number_format($fila['efectivaNeto'], 2) }}</span>
+                        @endif
+                    @else
+                        &mdash;
+                    @endif
+                </td>
+
+                {{-- Conversión --}}
+                <td class="tc">
+                    @if ($fila['convertidoA'])
+                        <span class="conv-badge">→ {{ $fila['convertidoA'] }}</span>
+                    @else
+                        &mdash;
+                    @endif
+                </td>
+
+                <td class="pagos-cell">
+                    @foreach ($fila['pagosLineas'] as $linea)
+                        {{ $linea }}<br>
+                    @endforeach
+                </td>
+            </tr>
+        @empty
+            <tr><td colspan="7" class="tc">Sin ventas contado</td></tr>
+        @endforelse
+
+        <tr class="fila-total">
+            <td colspan="3" class="tc">TOTAL</td>
+            <td class="tr">{{ number_format($ventasContado['totalGeneral'], 2) }}</td>
+            <td class="nota-detalle" style="font-size:10px;">
+                @if ($ventasContado['totalNotas'] > 0)
+                    NC desc: {{ number_format($ventasContado['totalNotas'], 2) }}
                 @endif
-            </div>
-        </div>
-        <div class="empresa">
-            <div class="empresa-info">
-                <p class="m-0 p-0 text-uppercase nombre-empresa">
-                    {{ DB::table('empresas')->count() == 0 ? 'SISCOM ' : DB::table('empresas')->first()->razon_social }}
-                </p>
-                <p class="m-0 p-0 text-uppercase direccion-empresa">
-                    {{ DB::table('empresas')->count() == 0 ? '- ' : DB::table('empresas')->first()->direccion_fiscal }}
-                </p>
-
-                <p class="m-0 p-0 text-info-empresa">Central telefónica:
-                    {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->telefono }}</p>
-                <p class="m-0 p-0 text-info-empresa">Email:
-                    {{ DB::table('empresas')->count() == 0 ? '-' : DB::table('empresas')->first()->correo }}</p>
-            </div>
-        </div>
-
-    </div><br>
-    <div class="informacion">
-        <table class="tbl-informacion">
-            <tbody style="padding-top: 5px; padding-bottom: 5px;">
-                <tr>
-                    <td style="padding-left: 5px;">CAJA</td>
-                    <td>:</td>
-                    <td>{{ $movimiento->caja->nombre }}</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 5px;">Colaborador</td>
-                    <td>:</td>
-                    <td>{{ $colaborador->nombre }}</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 5px;">Turno</td>
-                    <td>:</td>
-                    <td>{{ 'MAÑANA' }}</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 5px;">Monto Inicial</td>
-                    <td>:</td>
-                    <td>{{ $movimiento->monto_inicial }}</td>
-                </tr>
-                <tr>
-                    <td style="padding-left: 5px;">Fecha</td>
-                    <td>:</td>
-                    <td>{{ date_format($movimiento->created_at, 'Y/m/d') }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div><br>
-
-    {{-- ============================================================ --}}
-    {{-- VENTAS --}}
-    {{-- ============================================================ --}}
-    <span style="text-transform: uppercase;font-size:15px">VENTAS</span>
-    <br>
-    <div class="cuerpo">
-        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">NUMERO</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">CLIENTE</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">DEV</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">COBRAR</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
-                    <th style="text-align: center;">PAGOS</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($movimiento->detalleMovimientoVentas as $ventas)
-                    @if (
-                        $ventas->documento->condicion_id == 1 &&
-                            $ventas->documento->estado_pago == 'PAGADA' &&
-                            ifNoConvertido($ventas->documento->id))
-                        @php
-                            $pagosVenta = [];
-                            if (!empty($ventas->documento->pago_1_tipo_pago_nombre) && floatval($ventas->documento->pago_1_monto) > 0)
-                                $pagosVenta[] = $ventas->documento->pago_1_tipo_pago_nombre . ': ' . number_format(floatval($ventas->documento->pago_1_monto), 2);
-                            if (!empty($ventas->documento->pago_2_tipo_pago_nombre) && floatval($ventas->documento->pago_2_monto) > 0)
-                                $pagosVenta[] = $ventas->documento->pago_2_tipo_pago_nombre . ': ' . number_format(floatval($ventas->documento->pago_2_monto), 2);
-                        @endphp
-                        <tr>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $ventas->documento->serie . '-' . $ventas->documento->correlativo }}</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $ventas->documento->clienteEntidad->nombre }}</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80;">
-                                @if (count($ventas->documento->notas) > 0)
-                                    <div class="cont-check">
-                                        <span class="checkmark">
-                                            <div class="checkmark_stem"></div>
-                                            <div class="checkmark_kick"></div>
-                                        </span>
-                                    </div>
-                                @elseif($ventas->documento->estado === 'ANULADO')
-                                    ANULADO
-                                @endif
-                            </td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80;">
-                                {{ $ventas->cobrar }}
-                            </td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $ventas->documento->total_pagar }}
-                            </td>
-                            <td class="pagos-cell">
-                                @forelse ($pagosVenta as $linea)
-                                    {{ $linea }}<br>
-                                @empty
-                                    -
-                                @endforelse
-                            </td>
-                        </tr>
-                    @endif
+            </td>
+            <td></td>
+            <td class="pagos-cell">
+                @foreach ($ventasContado['totalesPorTipo'] as $t)
+                    {{ $t['nombre'] }}: {{ number_format($t['monto'], 2) }}<br>
                 @endforeach
-                <tr>
-                    <td colspan="5"
-                        style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
-                    </td>
-                    <td style="border-top: 2px solid #52BE80; padding: 4px 6px; font-size: 11px; line-height: 1.6;">
-                        @foreach (tipos_pago() as $tipo)
-                            @php $tot = cuadreMovimientoCajaIngresosVentaResum($movimiento, $tipo->id); @endphp
-                            @if ($tot > 0)
-                                {{ $tipo->descripcion }}: {{ number_format($tot, 2) }}<br>
-                            @endif
-                        @endforeach
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div><br>
+            </td>
+        </tr>
+    </tbody>
+</table>
 
-    {{-- ============================================================ --}}
-    {{-- COBRANZA CLIENTES --}}
-    {{-- ============================================================ --}}
-    <span style="text-transform: uppercase;font-size:15px">COBRANZA CLIENTES</span>
-    <br>
-    <div class="cuerpo">
-        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">NUMERO</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">CLIENTE</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
-                    <th style="text-align: center;">PAGOS</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($movimiento->detalleCuentaCliente as $cuentaCliente)
-                    @php
-                        $pagoCobranzaLinea = '';
-                        foreach (tipos_pago() as $tp) {
-                            if ($tp->id == $cuentaCliente->tipo_pago_id) {
-                                $m = ($tp->id == 1) ? $cuentaCliente->efectivo : $cuentaCliente->importe;
-                                if (floatval($m) > 0)
-                                    $pagoCobranzaLinea = $tp->descripcion . ': ' . number_format(floatval($m), 2);
-                                break;
-                            }
-                        }
-                    @endphp
-                    <tr>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                            {{ $cuentaCliente->cuenta_cliente->documento->serie . '-' . $cuentaCliente->cuenta_cliente->documento->correlativo }}
-                        </td>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                            {{ $cuentaCliente->cuenta_cliente->documento->clienteEntidad->nombre }}</td>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                            {{ $cuentaCliente->monto }}
-                        </td>
-                        <td class="pagos-cell">{{ $pagoCobranzaLinea ?: '-' }}</td>
-                    </tr>
-                @endforeach
-                <tr>
-                    <td colspan="3"
-                        style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
-                    </td>
-                    <td style="border-top: 2px solid #52BE80; padding: 4px 6px; font-size: 11px; line-height: 1.6;">
-                        @foreach (tipos_pago() as $tipo)
-                            @php $tot = cuadreMovimientoCajaIngresosCobranzaResum($movimiento, $tipo->id); @endphp
-                            @if ($tot > 0)
-                                {{ $tipo->descripcion }}: {{ number_format($tot, 2) }}<br>
-                            @endif
-                        @endforeach
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <br>
-
-    {{-- ============================================================ --}}
-    {{-- EGRESOS POR CAJA --}}
-    {{-- ============================================================ --}}
-    <span style="text-transform: uppercase;font-size:15px">EGRESOS POR CAJA</span>
-    <br>
-    <div class="cuerpo">
-        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th style="text-align: center; border-right: 2px solid #52BE80;">ID RECIBO</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">DESCRIPCION</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
-                    <th style="text-align: center;">PAGOS</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($movimiento->detalleMoviemientoEgresos as $detalleEgreso)
-                    @if ($detalleEgreso->egreso->estado == 'ACTIVO')
-                        @php
-                            $pagoEgresoLinea = '';
-                            foreach (tipos_pago() as $tp) {
-                                if ($tp->id == $detalleEgreso->egreso->tipo_pago_id) {
-                                    $m = ($tp->id == 1) ? $detalleEgreso->egreso->efectivo : $detalleEgreso->egreso->importe;
-                                    if (floatval($m) > 0)
-                                        $pagoEgresoLinea = $tp->descripcion . ': ' . number_format(floatval($m), 2);
-                                    break;
-                                }
-                            }
-                        @endphp
-                        <tr>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $detalleEgreso->egreso->documento }}</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $detalleEgreso->egreso->descripcion }}</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $detalleEgreso->egreso->monto }}</td>
-                            <td class="pagos-cell">{{ $pagoEgresoLinea ?: '-' }}</td>
-                        </tr>
-                    @endif
-                @endforeach
-                <tr>
-                    <td colspan="3"
-                        style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
-                    </td>
-                    <td style="border-top: 2px solid #52BE80; padding: 4px 6px; font-size: 11px; line-height: 1.6;">
-                        @foreach (tipos_pago() as $tipo)
-                            @php $tot = cuadreMovimientoCajaEgresosEgresoResum($movimiento, $tipo->id); @endphp
-                            @if ($tot > 0)
-                                {{ $tipo->descripcion }}: {{ number_format($tot, 2) }}<br>
-                            @endif
-                        @endforeach
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <br>
-
-    {{-- ============================================================ --}}
-    {{-- RECIBOS DE CAJA --}}
-    {{-- ============================================================ --}}
-    <span style="text-transform: uppercase;font-size:15px">RECIBOS DE CAJA</span>
-    <div class="cuerpo">
-        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th style="text-align: center; border-right: 2px solid #52BE80;">ID RECIBO</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">DESCRIPCION</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
-                    <th style="text-align: center;">PAGOS</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($recibos as $recibo)
-                    @if ($recibo->estado == 'ACTIVO')
-                        <tr>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ 'RC-' . $recibo->id }}</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $recibo->cliente_nombre . '-' . $recibo->estado_servicio }}</td>
-                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                {{ $recibo->monto }}</td>
-                            <td class="pagos-cell">
-                                @if (!empty($recibo->metodo_pago) && floatval($recibo->monto) > 0)
-                                    {{ strtoupper($recibo->metodo_pago) }}: {{ number_format(floatval($recibo->monto), 2) }}
-                                @else
-                                    -
-                                @endif
-                            </td>
-                        </tr>
-                    @endif
-                @endforeach
-                <tr>
-                    <td colspan="3"
-                        style="text-align: center; border-right: 2px solid #52BE80; border-top: 2px solid #52BE80">TOTAL
-                    </td>
-                    <td style="border-top: 2px solid #52BE80; padding: 4px 6px; font-size: 11px; line-height: 1.6;">
-                        @foreach (tipos_pago() as $tipo)
-                            @php $tot = calcularTotalesRecibosCaja($movimiento, $tipo->descripcion); @endphp
-                            @if ($tot > 0)
-                                {{ $tipo->descripcion }}: {{ number_format($tot, 2) }}<br>
-                            @endif
-                        @endforeach
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <br>
-
-    {{-- ============================================================ --}}
-    {{-- PAGOS PROVEEDORES --}}
-    {{-- ============================================================ --}}
-    <span style="text-transform: uppercase;font-size:15px">PAGOS PROVEEDORES</span>
-    <br>
-    <div class="cuerpo">
-        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th style="text-align: center; border-right: 2px solid #52BE80;">TIPO DOC</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">NUMERO</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">PROVEEDOR</th>
-                    <th style="text-align: center; border-right: 2px solid #52BE80">MONTO</th>
-                    <th style="text-align: center;">PAGOS</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($movimiento->detalleCuentaProveedor as $detalleProveedor)
-                    @php
-                        $pagoProvLinea = '';
-                        foreach (tipos_pago() as $tp) {
-                            if ($tp->id == $detalleProveedor->tipo_pago_id) {
-                                $m = ($tp->id == 1) ? $detalleProveedor->efectivo : $detalleProveedor->importe;
-                                if (floatval($m) > 0)
-                                    $pagoProvLinea = $tp->descripcion . ': ' . number_format(floatval($m), 2);
-                                break;
-                            }
-                        }
-                    @endphp
-                    <tr>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                            {{ $detalleProveedor->cuenta_proveedor->documento->tipo_compra }}</td>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                            {{ $detalleProveedor->cuenta_proveedor->documento->serie_tipo . ' - ' . $detalleProveedor->cuenta_proveedor->documento->numero_tipo }}
-                        </td>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                            {{ $detalleProveedor->cuenta_proveedor->documento->proveedor->descripcion }}</td>
-                        <td style="text-align: center; border-right: 2px solid #52BE80">
-                            {{ $detalleProveedor->efectivo + $detalleProveedor->importe }}
-                        </td>
-                        <td class="pagos-cell">{{ $pagoProvLinea ?: '-' }}</td>
-                    </tr>
-                @endforeach
-                <tr>
-                    <td colspan="4"
-                        style="text-align: center; border-top: 2px solid #52BE80; border-right: 2px solid #52BE80">
-                        TOTAL</td>
-                    <td style="border-top: 2px solid #52BE80; padding: 4px 6px; font-size: 11px; line-height: 1.6;">
-                        @foreach (tipos_pago() as $tipo)
-                            @php $tot = cuadreMovimientoCajaEgresosPagoResum($movimiento, $tipo->id); @endphp
-                            @if ($tot > 0)
-                                {{ $tipo->descripcion }}: {{ number_format($tot, 2) }}<br>
-                            @endif
-                        @endforeach
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div><br>
-
-    <br>
-    <div class="info-total-qr">
-        <table class="tbl-qr" cellpadding="2" cellspacing="0">
+{{-- ══════════════════════════════════════════════════════ COBRANZAS ══ --}}
+<p class="seccion-titulo">Cobranza Clientes</p>
+<table class="tbl-data">
+    <thead>
+        <tr>
+            <th style="width:15%">Número</th>
+            <th style="width:45%">Cliente</th>
+            <th style="width:15%">Monto</th>
+            <th>Pagos</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse ($cobranzas['filas'] as $fila)
             <tr>
-                <td style="width: 100%;">
-                    <table class="tbl-total text-uppercase" cellpadding="2" cellspacing="0">
-                        <thead style="background-color: #52BE80; color: white;">
-                            <tr>
-                                <th style="text-align:center; padding: 5px;" colspan="2">DETALLES EFECTIVO</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="m-0 p-0">VENTAS</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento, 1), 2) }}
-                                    </p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="m-0 p-0">DEVOLUCIONES</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoDevolucionesResum($movimiento, 1), 2) }}</p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                                    <hr>
-                                </td>
-                            </tr>
-                            <tr style="background-color: #A2D9CE;">
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="m-0 p-0">VENTAS EFECTIVA</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento, 1) - cuadreMovimientoDevolucionesResum($movimiento, 1), 2) }}
-                                    </p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                                    <hr>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="m-0 p-0">COBRANZA</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoCajaIngresosCobranzaResum($movimiento, 1), 2) }}
-                                    </p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="m-0 p-0">PAGOS</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoCajaEgresosPagoResum($movimiento, 1), 2) }}</p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="m-0 p-0">EGRESOS</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoCajaEgresosEgresoResum($movimiento, 1) - cuadreMovimientoDevolucionesResum($movimiento, 1), 2) }}
-                                    </p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                                    <hr>
-                                </td>
-                            </tr>
-                            <tr style="background-color: #FCF3CF;">
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="m-0 p-0">EFECTIVO</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento, 1) + cuadreMovimientoCajaIngresosCobranzaResum($movimiento, 1) - cuadreMovimientoCajaEgresosEgresoResum($movimiento, 1) - cuadreMovimientoCajaEgresosPagoResum($movimiento, 1), 2) }}
-                                    </p>
-                                </td>
-                            </tr>
-                            <tr style="background-color: #FCF3CF;">
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="m-0 p-0">SALDO ANTERIOR</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">{{ number_format($movimiento->monto_inicial, 2) }}</p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                                    <hr>
-                                </td>
-                            </tr>
-                            <tr style="background-color: #FCF3CF;">
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="m-0 p-0">SALDO CAJA DEL DIA</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">
-                                        {{ number_format($movimiento->monto_inicial + cuadreMovimientoCajaIngresosVentaResum($movimiento, 1) + cuadreMovimientoCajaIngresosCobranzaResum($movimiento, 1) - cuadreMovimientoCajaEgresosEgresoResum($movimiento, 1) - cuadreMovimientoCajaEgresosPagoResum($movimiento, 1), 2) }}
-                                    </p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <td class="tc">{{ $fila['numero'] }}</td>
+                <td>{{ $fila['cliente'] }}</td>
+                <td class="tr">{{ number_format($fila['monto'], 2) }}</td>
+                <td class="pagos-cell">
+                    @foreach ($fila['pagosLineas'] as $linea){{ $linea }}<br>@endforeach
                 </td>
             </tr>
-        </table>
-        <br>
-        <table class="tbl-qr" cellpadding="2" cellspacing="0">
+        @empty
+            <tr><td colspan="4" class="tc">Sin cobranzas</td></tr>
+        @endforelse
+        <tr class="fila-total">
+            <td colspan="2" class="tc">TOTAL</td>
+            <td class="tr">{{ number_format($cobranzas['totalGeneral'], 2) }}</td>
+            <td class="pagos-cell">
+                @foreach ($cobranzas['totalesPorTipo'] as $t){{ $t['nombre'] }}: {{ number_format($t['monto'], 2) }}<br>@endforeach
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+{{-- ══════════════════════════════════════════════════ EGRESOS POR CAJA ══ --}}
+<p class="seccion-titulo">Egresos por Caja</p>
+<table class="tbl-data">
+    <thead>
+        <tr>
+            <th style="width:14%">ID Egreso</th>
+            <th style="width:46%">Descripción</th>
+            <th style="width:15%">Monto</th>
+            <th>Pagos</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse ($egresos['filas'] as $fila)
             <tr>
-                <td style="width: 100%;">
-                    <table class="tbl-total text-uppercase" cellpadding="2" cellspacing="0">
-                        <thead style="background-color: #52BE80; color: white;">
-                            <tr>
-                                <th style="text-align:center; padding: 5px;" colspan="2">VENTAS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (tipos_pago() as $tipo)
-                                @if ($tipo->id > 1)
-                                    <tr>
-                                        <td style="text-align:left; padding: 5px;">
-                                            <p class="m-0 p-0">{{ $tipo->descripcion }}</p>
-                                        </td>
-                                        <td style="text-align:right; padding: 5px;">
-                                            <p class="p-0 m-0">
-                                                {{ number_format(cuadreMovimientoCajaIngresosVentaResum($movimiento, $tipo->id), 2) }}
-                                            </p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="text-align:left; padding: 5px;">
-                                            <p class="m-0 p-0">{{ $tipo->descripcion }} DEVOLUCIONES</p>
-                                        </td>
-                                        <td style="text-align:right; padding: 5px;">
-                                            <p class="p-0 m-0">
-                                                {{ number_format(cuadreMovimientoDevolucionesResum($movimiento, $tipo->id), 2) }}
-                                            </p>
-                                        </td>
-                                    </tr>
-                                @endif
-                            @endforeach
-                            <tr>
-                                <td colspan="2">
-                                    <hr>
-                                </td>
-                            </tr>
-                            <tr style="background-color: #A2D9CE;">
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="p-0 m-0">TOTAL VENTA ELECTRONICO</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoCajaIngresosVentaElectronico($movimiento), 2) }}
-                                    </p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                                    <hr>
-                                </td>
-                            </tr>
-                            <tr style="background-color: #A2D9CE;">
-                                <td style="text-align:left; padding: 5px;">
-                                    <p class="p-0 m-0">TOTAL VENTA DEL DIA</p>
-                                </td>
-                                <td style="text-align:right; padding: 5px;">
-                                    <p class="p-0 m-0">
-                                        {{ number_format(cuadreMovimientoCajaIngresosVenta($movimiento) + cuadreMovimientoCajaIngresosRecibo($movimiento) - cuadreMovimientoDevoluciones($movimiento), 2) }}
-                                    </p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <br>
-                    <span style="text-transform: uppercase;font-size:15px">Trabajadores de ventas presentes</span>
-                    <div class="cuerpo">
-                        <table class="tbl-detalles text-uppercase" cellpadding="8" cellspacing="0">
-                            <thead>
-                                <tr>
-                                    <th style="text-align: center; border-right: 2px solid #52BE80;">Codigo</th>
-                                    <th style="text-align: center; border-right: 2px solid #52BE80">Nombres</th>
-                                    <th style="text-align: center; border-right: 2px solid #52BE80">Fecha Entrada</th>
-                                    <th style="text-align: center; border-right: 2px solid #52BE80">Fecha Salida</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (count($usuarios) == 0)
-                                    <tr>
-                                        <td colspan="4" style="text-align: center; border-right: 2px solid #52BE80">
-                                            Sin Usuarios Ventas
-                                        </td>
-                                    </tr>
-                                @else
-                                    @foreach ($usuarios as $u)
-                                        <tr>
-                                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                                {{ $u->id }}</td>
-                                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                                {{ $u->usuario }}</td>
-                                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                                {{ $u->fecha_entrada }}</td>
-                                            <td style="text-align: center; border-right: 2px solid #52BE80">
-                                                {{ $u->fecha_salida }}
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                @endif
-                            </tbody>
-                        </table>
-                    </div><br>
+                <td class="tc">{{ $fila['idEgreso'] }}</td>
+                <td>{{ $fila['descripcion'] }}</td>
+                <td class="tr">{{ number_format($fila['monto'], 2) }}</td>
+                <td class="pagos-cell">
+                    @foreach ($fila['pagosLineas'] as $linea){{ $linea }}<br>@endforeach
                 </td>
             </tr>
-        </table>
-        <br>
-    </div>
+        @empty
+            <tr><td colspan="4" class="tc">Sin egresos</td></tr>
+        @endforelse
+        <tr class="fila-total">
+            <td colspan="2" class="tc">TOTAL</td>
+            <td class="tr">{{ number_format($egresos['totalGeneral'], 2) }}</td>
+            <td class="pagos-cell">
+                @foreach ($egresos['totalesPorTipo'] as $t){{ $t['nombre'] }}: {{ number_format($t['monto'], 2) }}<br>@endforeach
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+{{-- ══════════════════════════════════════════════════ PAGOS PROVEEDORES ══ --}}
+<p class="seccion-titulo">Pagos Proveedores</p>
+<table class="tbl-data">
+    <thead>
+        <tr>
+            <th style="width:10%">Tipo Doc</th>
+            <th style="width:18%">Número</th>
+            <th style="width:32%">Proveedor</th>
+            <th style="width:12%">Monto</th>
+            <th>Pagos</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse ($pagosProveedor['filas'] as $fila)
+            <tr>
+                <td class="tc">{{ $fila['tipoDoc'] }}</td>
+                <td class="tc">{{ $fila['numero'] }}</td>
+                <td>{{ $fila['proveedor'] }}</td>
+                <td class="tr">{{ number_format($fila['monto'], 2) }}</td>
+                <td class="pagos-cell">
+                    @foreach ($fila['pagosLineas'] as $linea){{ $linea }}<br>@endforeach
+                </td>
+            </tr>
+        @empty
+            <tr><td colspan="5" class="tc">Sin pagos a proveedores</td></tr>
+        @endforelse
+        <tr class="fila-total">
+            <td colspan="3" class="tc">TOTAL</td>
+            <td class="tr">{{ number_format($pagosProveedor['totalGeneral'], 2) }}</td>
+            <td class="pagos-cell">
+                @foreach ($pagosProveedor['totalesPorTipo'] as $t){{ $t['nombre'] }}: {{ number_format($t['monto'], 2) }}<br>@endforeach
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+{{-- ═══════════════════════════════════════════════════════ CONVERSIONES ══ --}}
+@if (!empty($conversiones))
+<p class="seccion-titulo">Conversiones de Documentos</p>
+<table class="tbl-data">
+    <thead>
+        <tr>
+            <th style="width:25%">Documento Origen</th>
+            <th style="width:25%">Convertido a</th>
+            <th style="width:35%">Cliente</th>
+            <th style="width:15%">Monto</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach ($conversiones as $conv)
+            <tr>
+                <td class="tc">{{ $conv['origen'] }}</td>
+                <td class="tc"><span class="conv-badge">{{ $conv['destino'] }}</span></td>
+                <td>{{ $conv['cliente'] }}</td>
+                <td class="tr">{{ number_format($conv['monto'], 2) }}</td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
+@endif
+
+{{-- ══════════════════════════════════════ RESÚMENES EFECTIVO + ELECTRÓNICO ══ --}}
+<br>
+<table style="width:100%; border-collapse: collapse;">
+    <tr>
+        {{-- ── Efectivo ── --}}
+        <td style="width:48%; vertical-align: top; padding-right: 6px;">
+            <table class="tbl-resumen">
+                <thead><tr><th colspan="2">RESUMEN EFECTIVO</th></tr></thead>
+                <tbody>
+                    <tr style="background:#EBF5FB;">
+                        <td style="color:#1a5276;">Total venta del día <small>(todos los métodos)</small></td>
+                        <td class="tr" style="color:#1a5276; font-weight:bold;">{{ number_format($resumenElect['totalVentaDia'], 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Ventas efectivo (bruto)</td>
+                        <td class="tr">{{ number_format($resumenEfectivo['ventasBruto'], 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td>+ Cobranza efectivo</td>
+                        <td class="tr">{{ number_format($resumenEfectivo['cobranza'], 2) }}</td>
+                    </tr>
+                    <tr class="fila-negativo">
+                        <td>- Pagos proveedor efectivo</td>
+                        <td class="tr">{{ number_format($resumenEfectivo['pagosProveedor'], 2) }}</td>
+                    </tr>
+                    <tr class="fila-negativo">
+                        <td>- Egresos caja efectivo</td>
+                        <td class="tr">{{ number_format($resumenEfectivo['egresos'], 2) }}</td>
+                    </tr>
+                    <tr class="fila-subtotal">
+                        <td>Efectivo neto del día</td>
+                        <td class="tr">{{ number_format($resumenEfectivo['efectivoNeto'], 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td>+ Saldo anterior</td>
+                        <td class="tr">{{ number_format($resumenEfectivo['saldoAnterior'], 2) }}</td>
+                    </tr>
+                    <tr class="fila-total">
+                        <td>SALDO CAJA DEL DÍA</td>
+                        <td class="tr">{{ number_format($resumenEfectivo['saldoCajaDelDia'], 2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+
+        {{-- ── Electrónico ── --}}
+        <td style="width:48%; vertical-align: top; padding-left: 6px;">
+            <table class="tbl-resumen">
+                <thead><tr><th colspan="2">PAGOS ELECTRÓNICOS</th></tr></thead>
+                <tbody>
+                    @forelse ($resumenElect['porTipo'] as $tipo)
+                        <tr>
+                            <td>{{ $tipo['nombre'] }}</td>
+                            <td class="tr">{{ number_format($tipo['ventas'], 2) }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="2" class="tc">Sin pagos electrónicos</td></tr>
+                    @endforelse
+                    <tr class="fila-total">
+                        <td>TOTAL VENTAS ELECTRÓNICAS</td>
+                        <td class="tr">{{ number_format($resumenElect['totalVentaElectronica'], 2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+</table>
+
+{{-- ══════════════════════════════════ INGRESOS / EGRESOS POR MÉTODO ══ --}}
+<br>
+<table class="tbl-resumen">
+    <thead>
+        <tr>
+            <th style="width:28%">MÉTODO DE PAGO</th>
+            <th style="width:18%">INGRESOS<br><small style="font-size:8px; font-weight:normal;">(ventas + cobr.)</small></th>
+            <th style="width:18%">EGRESOS CAJA</th>
+            <th style="width:18%">PAG. PROV.</th>
+            <th style="width:18%">NETO</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse ($resumenMetodos as $fila)
+            <tr>
+                <td>{{ $fila['nombre'] }}</td>
+                <td class="tr">{{ number_format($fila['ingresos'], 2) }}</td>
+                <td class="tr">{{ number_format($fila['egresosCaja'], 2) }}</td>
+                <td class="tr">{{ number_format($fila['pagosProveedor'], 2) }}</td>
+                <td class="tr">{{ number_format($fila['neto'], 2) }}</td>
+            </tr>
+        @empty
+            <tr><td colspan="5" class="tc">Sin movimientos</td></tr>
+        @endforelse
+    </tbody>
+</table>
+
+{{-- ══════════════════════════════ TOTAL VENTA + SALDO CONSOLIDADO ══ --}}
+@php
+    $_totIng   = array_sum(array_column($resumenMetodos, 'ingresos'));
+    $_totEgr   = array_sum(array_column($resumenMetodos, 'egresosCaja'))
+               + array_sum(array_column($resumenMetodos, 'pagosProveedor'));
+    $_saldoCons = $resumenEfectivo['saldoAnterior'] + $_totIng - $_totEgr;
+@endphp
+<br>
+<table class="bloque-total-dia">
+    <tr>
+        <td style="width:70%; background:#A2D9CE; font-size:12px;">
+            TOTAL VENTA DEL DÍA
+            <small style="font-size:9px; font-weight:normal;">(ventas contado, todos los métodos)</small>
+        </td>
+        <td style="text-align:right; width:30%; background:#A2D9CE; font-size:12px;">
+            S/ {{ number_format($resumenElect['totalVentaDia'], 2) }}
+        </td>
+    </tr>
+    <tr>
+        <td style="width:70%; background:#1a5c35; color:white; font-size:13px;">
+            SALDO CONSOLIDADO DEL TURNO
+            <small style="font-size:9px; font-weight:normal; opacity:0.8;">
+                (inicial + ventas + cobranzas - egresos caja - pag. proveedor)
+            </small>
+        </td>
+        <td style="text-align:right; width:30%; background:#1a5c35; color:white; font-size:13px;">
+            S/ {{ number_format($_saldoCons, 2) }}
+        </td>
+    </tr>
+</table>
+
 </body>
-
 </html>

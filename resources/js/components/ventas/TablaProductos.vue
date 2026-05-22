@@ -1307,6 +1307,7 @@ export default {
             this.carrito = [];
             this.productosPorModelo = {};
             this.precioVentaSeleccionado = '';
+            this.productoSeleccionado = null;
             this.clearInputsCantidad();
             this.$parent.ocultarAnimacionVenta();
         }

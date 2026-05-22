@@ -1,32 +1,27 @@
-<div id="modal_edit_caja" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal_editar_caja"
-    aria-hidden="true">
+<div id="modal_edit_caja" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="lbl_editar_caja" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <form action="" method="post"  id="frm_editar_caja">
-            @csrf
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modal_editar_caja">Editar Caja</h5>
-                    <button class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <label for="" class="required">Caja</label>
-                    <input type="text" name="nombre_editar" id="nombre_editar" class="form-control" required>
-                </div>
-                <div class="modal-footer">
-                    <div class="col-md-6 text-left" style="color:#fcbc6c">
-                        <i class="fa fa-exclamation-circle"></i><small>Los campos marcados con asterisco (<label
-                                class="required"></label>) son obligatorios.</small>
-                    </div>
-                    <div class="col-md-6 text-right">
-                        <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i>
-                            Guardar</button>
-                        <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i
-                                class="fa fa-times"></i> Cancelar</button>
-                    </div>
-                </div>
+        <div class="modal-content">
+            <input type="hidden" id="edit_caja_id">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lbl_editar_caja">
+                    <i class="fas fa-edit mr-1"></i> Editar Caja
+                </h5>
+                <button class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-        </form>
+            <div class="modal-body">
+                <label class="required">Nombre de Caja</label>
+                <input type="text" id="nombre_edit" class="form-control" maxlength="100" autocomplete="off">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary btn-sm" onclick="actualizarCaja()">
+                    <i class="fa fa-save mr-1"></i>Guardar
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+                    <i class="fa fa-times mr-1"></i>Cancelar
+                </button>
+            </div>
+        </div>
     </div>
 </div>

@@ -16,7 +16,9 @@
 
 @section('content')
     @include('pos.MovimientoCaja.modals.mdl_abrir_caja')
-    @include('pos.MovimientoCaja.cerrar')
+    @include('pos.MovimientoCaja.modals.mdl_cerrar_caja')
+    @include('pos.MovimientoCaja.modals.mdl_docs_no_pagados')
+    @include('pos.MovimientoCaja.modals.mdl_estado_cajas')
     @include('pos.MovimientoCaja.detallesMovimiento')
 
 
@@ -29,7 +31,7 @@
                         <input type="hidden" name="" id="filtros" value="INACTIVO">
                         <div class="row">
                             <div class="col-md-12">
-                                <div class="row form-group">
+                                <div class="row form-group align-items-end">
                                     <div class="col-md-2 filtro_inactivo">
                                         <label for="">Mes</label>
                                         <select name="mes" id="mes" class="custom-select">
@@ -68,15 +70,30 @@
                                             value="{{ FechaActual() }}">
                                     </div>
                                     <div class="col-md-2">
+                                        <label for="">Caja</label>
+                                        <select id="filter_caja" class="form-control" style="width:100%;">
+                                            <option value="">Todas</option>
+                                            @foreach ($lstCajas as $caja)
+                                                <option value="{{ $caja->id }}">{{ $caja->nombre }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
                                         <label for="" class="text-white">Buscar</label>
                                         <button type="button" class="btn btn-block btn-primary" disabled id="reload">
-                                            <i class="fa fa-search"></i>
-                                            Buscar
+                                            <i class="fa fa-search"></i> Buscar
                                         </button>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label for=""><strong>Total Venta:</strong> <span id="totalVenta">S/
-                                                0.00</span> </label>
+                                    <div class="col-md-2">
+                                        <label for="" class="text-white">.</label>
+                                        <button type="button" class="btn btn-block btn-info btn-sm"
+                                            onclick="abrirModalEstadoCajas()" title="Ver estado actual de las cajas">
+                                            <i class="fas fa-store-alt mr-1"></i> Ver estado cajas
+                                        </button>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for=""><strong>Total Venta:</strong></label>
+                                        <div><span id="totalVenta" class="font-weight-bold">S/ 0.00</span></div>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -112,6 +129,7 @@
     </style>
 @endpush
 @push('scripts')
+    <script src="{{ mix('js/tomselect.js') }}"></script>
     <script>
         var detalles_colaborades = document.getElementById("modal_detalles_colaboradores");
         var cuerpo_colaborades = document.querySelector('#modal_detalles_colaboradores table tbody');
@@ -130,7 +148,6 @@
             eventsMdlAbrirCaja();
             eventsCerrarCaja();
         }
-
 
         function iniciarDataTableMovimientos() {
             dtMovimientoCajas = $('.dataTables-cajas').DataTable({
@@ -172,6 +189,7 @@
                         d.filter = $("#filtros").val();
                         d.desde = $("#desde").val();
                         d.hasta = $("#hasta").val();
+                        d.caja_id = window.filterCajaSelect ? window.filterCajaSelect.getValue() : $("#filter_caja").val();
                     }
                 },
                 "columns": [
@@ -250,7 +268,7 @@
                             var html =
                                 "<div class='btn-group'><a class='btn btn-primary btn-sm' href='#' title='Caja Cerrada'><i class='fa fa-check'> Caja Cerrada</i></a><a class='btn btn-danger btn-sm' href='#'  onclick='reporte(" +
                                 data.id +
-                                ")' title='Pdf'><i class='fa fa-file-pdf-o'></i></a></div>";
+                                ")' title='Pdf'><i class='fas fa-file-pdf'></i></a></div>";
                             if (data.fecha_Cierre == "-") {
                                 html = `<div class='btn-group'>
                                 <button class='btn btn-warning btn-sm' onclick='cerrarCaja(${data.id})' title='Modificar'><i class='fa fa-lock'> Close</i></button>
@@ -297,6 +315,17 @@
                 height: '200px',
                 width: '100%',
             });
+
+            const cajaEl = document.getElementById('filter_caja');
+            if (cajaEl && !cajaEl.tomselect) {
+                window.filterCajaSelect = new TomSelect(cajaEl, {
+                    create: false,
+                    allowEmptyOption: true,
+                    placeholder: 'Todas las cajas',
+                    plugins: ['clear_button'],
+                    onChange: function() { dtMovimientoCajas && dtMovimientoCajas.draw(); }
+                });
+            }
         }
 
 
@@ -372,53 +401,40 @@
 
         //========= TRAER DATOS DEL MOVIMIENTO CAJA Y ABRIR MODAL CERRAR CAJA =======
         async function cerrarCaja(id) {
-            if (id) {
-                mostrarAnimacion();
-                const res_validacion_docs = await validarVentasNoPagadas(id);
-                if (res_validacion_docs) {
-                    axios.get("{{ route('Caja.datos.cierre') }}", {
-                            params: {
-                                id: id
-                            }
-                        }).then((value) => {
-                            var datos = value.data;
-                            $("#modal_cerrar_caja #movimiento_id").val(id);
-                            $("#modal_cerrar_caja #caja").val(datos.caja);
-                            $("#modal_cerrar_caja #colaborador").val(datos.colaborador);
-                            $("#modal_cerrar_caja #monto_inicial").val(datos.monto_inicial);
-                            $("#modal_cerrar_caja #ingreso").val(convertFloat(datos.ingresos).toFixed(2));
-                            $("#modal_cerrar_caja #egreso").val(convertFloat(datos.egresos).toFixed(2));
-                            $("#modal_cerrar_caja #saldo").val(convertFloat(datos.saldo).toFixed(2));
-                            $("#modal_cerrar_caja").modal("show");
-                        }).catch((value) => {})
-                        .finally((r) => {
-                            ocultarAnimacion();
-                        });
-                } else {
-                    ocultarAnimacion();
-                }
-            }
+            if (!id) return;
+
+            mostrarAnimacion();
+            const validado = await validarVentasNoPagadas(id);
+            ocultarAnimacion();
+            if (!validado) return;
+
+            mostrarAnimacion();
+            axios.get("{{ route('Caja.datos.cierre') }}", { params: { id } })
+                .then(function(res) {
+                    $('#movimiento_id').val(id);
+                    poblarModalCierre(res.data);
+                })
+                .catch(function() {})
+                .finally(function() { ocultarAnimacion(); });
         }
 
         async function validarVentasNoPagadas(movimiento_id) {
-            const res = await axios.get(
-                '{{ route('caja.movimiento.verificarVentasNoPagadas', ['movimiento_id' => ':movimiento_id']) }}'
-                .replace(':movimiento_id', movimiento_id))
-            if (res.data.success) {
-                if (res.data.docs_no_pagados.length === 0) {
-                    return true;
-                } else {
-                    res.data.docs_no_pagados.forEach((dn) => {
-                        toastr.error(`${dn.serie}-${dn.correlativo}`,
-                            'DEBE PAGAR EL DOC DE VENTA PARA PODER CERRAR CAJA', {
-                                timeOut: 0,
-                                extendedTimeOut: 0
-                            });
-                    })
+            try {
+                const res = await axios.get(
+                    '{{ route('caja.movimiento.verificarVentasNoPagadas', ['movimiento_id' => ':movimiento_id']) }}'
+                    .replace(':movimiento_id', movimiento_id)
+                );
+                if (!res.data.success) {
+                    toastr.error(res.data.exception, res.data.message);
                     return false;
                 }
-            } else {
-                toastr.error(res.data.exception, res.data.message)
+                if (res.data.docs_no_pagados.length > 0) {
+                    poblarModalDocNoPagados(res.data.docs_no_pagados);
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                toastr.error('Error al validar documentos pendientes');
                 return false;
             }
         }
