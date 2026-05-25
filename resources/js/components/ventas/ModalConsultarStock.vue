@@ -43,7 +43,7 @@
                                     :reduce="t => t.id"
                                     label="descripcion"
                                     placeholder="Todas"
-                                    :loading="cargando">
+                                >
                                 </v-select>
                             </div>
                             <div class="col-12 col-md-2">
@@ -54,7 +54,7 @@
                                     :reduce="c => c.id"
                                     label="descripcion"
                                     placeholder="Todos"
-                                    :loading="cargando">
+                                >
                                 </v-select>
                             </div>
                             <div class="col-12 col-md-2">
@@ -65,7 +65,7 @@
                                     :reduce="m => m.id"
                                     label="descripcion"
                                     placeholder="Todas"
-                                    :loading="cargando">
+                                >
                                 </v-select>
                             </div>
                             <div class="col-12 col-md-2">
@@ -76,7 +76,7 @@
                                     :reduce="c => c.id"
                                     label="descripcion"
                                     placeholder="Todas"
-                                    :loading="cargando">
+                                >
                                 </v-select>
                             </div>
                             <div class="col-12 col-md-2">
@@ -152,8 +152,6 @@ export default {
     data() {
         return {
             tabla: null,
-            cargando: false,
-            catalogosCargados: false,
             filtros: {
                 talla_id:     null,
                 color_id:     null,
@@ -169,14 +167,16 @@ export default {
         };
     },
     mounted() {
-        const vm = this;
         this.$nextTick(() => {
-            vm.initDataTable();
-            vm.cargarAlmacenes();
-            $('#modal_consultar_stock').on('shown.bs.modal', function () {
-                if (vm.tabla) vm.tabla.columns.adjust();
-                if (!vm.catalogosCargados) vm.cargarCatalogos();
-            });
+            this.initDataTable();
+            this.cargarAlmacenes();
+            this.cargarCatalogos();
+
+            const vm = this;
+            document.getElementById('modal_consultar_stock')
+                .addEventListener('shown.bs.modal', function () {
+                    if (vm.tabla) vm.tabla.columns.adjust();
+                });
         });
     },
     methods: {
@@ -243,7 +243,6 @@ export default {
         },
 
         async cargarCatalogos() {
-            this.cargando = true;
             try {
                 const [tallas, colores, marcas, categorias] = await Promise.all([
                     this.axios.get(route('utilidades.getTallas')),
@@ -255,11 +254,8 @@ export default {
                 this.lst_colores    = colores.data;
                 this.lst_marcas     = marcas.data;
                 this.lst_categorias = categorias.data;
-                this.catalogosCargados = true;
             } catch (e) {
-                // silent — selects quedarán vacíos, usuario puede reintentar
-            } finally {
-                this.cargando = false;
+                // silent
             }
         },
 
