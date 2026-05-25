@@ -42,12 +42,8 @@
                                     :options="lst_tallas"
                                     :reduce="t => t.id"
                                     label="descripcion"
-                                    :filterable="false"
                                     placeholder="Todas"
-                                    @search="onSearchTalla">
-                                    <template #no-options="{ search }">
-                                        <span style="font-size:12px;">{{ search ? 'Sin resultados' : 'Escribe para buscar...' }}</span>
-                                    </template>
+                                    :loading="cargando">
                                 </v-select>
                             </div>
                             <div class="col-12 col-md-2">
@@ -57,12 +53,8 @@
                                     :options="lst_colores"
                                     :reduce="c => c.id"
                                     label="descripcion"
-                                    :filterable="false"
                                     placeholder="Todos"
-                                    @search="onSearchColor">
-                                    <template #no-options="{ search }">
-                                        <span style="font-size:12px;">{{ search ? 'Sin resultados' : 'Escribe para buscar...' }}</span>
-                                    </template>
+                                    :loading="cargando">
                                 </v-select>
                             </div>
                             <div class="col-12 col-md-2">
@@ -72,12 +64,8 @@
                                     :options="lst_marcas"
                                     :reduce="m => m.id"
                                     label="descripcion"
-                                    :filterable="false"
                                     placeholder="Todas"
-                                    @search="onSearchMarca">
-                                    <template #no-options="{ search }">
-                                        <span style="font-size:12px;">{{ search ? 'Sin resultados' : 'Escribe para buscar...' }}</span>
-                                    </template>
+                                    :loading="cargando">
                                 </v-select>
                             </div>
                             <div class="col-12 col-md-2">
@@ -87,12 +75,8 @@
                                     :options="lst_categorias"
                                     :reduce="c => c.id"
                                     label="descripcion"
-                                    :filterable="false"
                                     placeholder="Todas"
-                                    @search="onSearchCategoria">
-                                    <template #no-options="{ search }">
-                                        <span style="font-size:12px;">{{ search ? 'Sin resultados' : 'Escribe para buscar...' }}</span>
-                                    </template>
+                                    :loading="cargando">
                                 </v-select>
                             </div>
                             <div class="col-12 col-md-2">
@@ -168,19 +152,20 @@ export default {
     data() {
         return {
             tabla: null,
+            cargando: false,
+            catalogosCargados: false,
             filtros: {
-                talla_id:    null,
-                color_id:    null,
-                marca_id:    null,
+                talla_id:     null,
+                color_id:     null,
+                marca_id:     null,
                 categoria_id: null,
-                almacen_id:  null,
+                almacen_id:   null,
             },
             lst_tallas:     [],
             lst_colores:    [],
             lst_marcas:     [],
             lst_categorias: [],
             lst_almacenes:  [],
-            searchTimers:   {},
         };
     },
     mounted() {
@@ -189,9 +174,8 @@ export default {
             vm.initDataTable();
             vm.cargarAlmacenes();
             $('#modal_consultar_stock').on('shown.bs.modal', function () {
-                if (vm.tabla) {
-                    vm.tabla.columns.adjust();
-                }
+                if (vm.tabla) vm.tabla.columns.adjust();
+                if (!vm.catalogosCargados) vm.cargarCatalogos();
             });
         });
     },
@@ -207,20 +191,20 @@ export default {
                     url: route('ventas.documento.getStockDisponible'),
                     type: 'GET',
                     data(d) {
-                        d.talla_id    = vm.filtros.talla_id    || '';
-                        d.color_id    = vm.filtros.color_id    || '';
-                        d.marca_id    = vm.filtros.marca_id    || '';
+                        d.talla_id     = vm.filtros.talla_id     || '';
+                        d.color_id     = vm.filtros.color_id     || '';
+                        d.marca_id     = vm.filtros.marca_id     || '';
                         d.categoria_id = vm.filtros.categoria_id || '';
-                        d.almacen_id  = vm.filtros.almacen_id  || '';
+                        d.almacen_id   = vm.filtros.almacen_id   || '';
                     },
                 },
                 columns: [
-                    { data: 'producto_nombre',   name: 'producto_nombre',  searchable: true  },
-                    { data: 'color_nombre',      name: 'co.descripcion',   searchable: true },
-                    { data: 'talla_nombre',      name: 't.descripcion',    searchable: true },
-                    { data: 'almacen_nombre',    name: 'al.descripcion',   searchable: true },
-                    { data: 'marca_nombre',      name: 'ma.marca',   searchable: true },
-                    { data: 'categoria_nombre',  name: 'ca.descripcion',   searchable: true },
+                    { data: 'producto_nombre',  name: 'producto_nombre', searchable: true  },
+                    { data: 'color_nombre',     name: 'co.descripcion',  searchable: true  },
+                    { data: 'talla_nombre',     name: 't.descripcion',   searchable: true  },
+                    { data: 'almacen_nombre',   name: 'al.descripcion',  searchable: true  },
+                    { data: 'marca_nombre',     name: 'ma.marca',        searchable: true  },
+                    { data: 'categoria_nombre', name: 'ca.descripcion',  searchable: true  },
                     {
                         data: 'stock',
                         name: 'pct.stock',
@@ -240,7 +224,7 @@ export default {
                 },
                 language: {
                     processing:   'Procesando...',
-                    search:       'Buscar(producto,color,talla,marca,categoria):',
+                    search:       'Buscar (producto, color, talla, marca, categoría):',
                     lengthMenu:   'Mostrar _MENU_ registros',
                     info:         'Mostrando _START_ a _END_ de _TOTAL_ registros',
                     infoEmpty:    'Mostrando 0 a 0 de 0 registros',
@@ -258,25 +242,25 @@ export default {
             });
         },
 
-        recargarTabla() {
-            if (this.tabla) {
-                this.tabla.ajax.reload(null, false);
+        async cargarCatalogos() {
+            this.cargando = true;
+            try {
+                const [tallas, colores, marcas, categorias] = await Promise.all([
+                    this.axios.get(route('utilidades.getTallas')),
+                    this.axios.get(route('utilidades.getColores')),
+                    this.axios.get(route('utilidades.getMarcas')),
+                    this.axios.get(route('utilidades.getCategorias')),
+                ]);
+                this.lst_tallas     = tallas.data;
+                this.lst_colores    = colores.data;
+                this.lst_marcas     = marcas.data;
+                this.lst_categorias = categorias.data;
+                this.catalogosCargados = true;
+            } catch (e) {
+                // silent — selects quedarán vacíos, usuario puede reintentar
+            } finally {
+                this.cargando = false;
             }
-        },
-
-        limpiarFiltros() {
-            this.filtros = {
-                talla_id:    null,
-                color_id:    null,
-                marca_id:    null,
-                categoria_id: null,
-                almacen_id:  null,
-            };
-            this.lst_tallas     = [];
-            this.lst_colores    = [];
-            this.lst_marcas     = [];
-            this.lst_categorias = [];
-            this.recargarTabla();
         },
 
         async cargarAlmacenes() {
@@ -288,37 +272,19 @@ export default {
             }
         },
 
-        fetchServerOptions(routeName, search, loading, listKey) {
-            clearTimeout(this.searchTimers[listKey]);
-            if (!search || search.length < 1) {
-                loading(false);
-                return;
-            }
-            const vm = this;
-            this.searchTimers[listKey] = setTimeout(async () => {
-                loading(true);
-                try {
-                    const res = await vm.axios.get(route(routeName), { params: { q: search } });
-                    vm[listKey] = res.data;
-                } catch (e) {
-                    // silent
-                } finally {
-                    loading(false);
-                }
-            }, 400);
+        recargarTabla() {
+            if (this.tabla) this.tabla.ajax.reload(null, false);
         },
 
-        onSearchTalla(search, loading) {
-            this.fetchServerOptions('utilidades.getTallas', search, loading, 'lst_tallas');
-        },
-        onSearchColor(search, loading) {
-            this.fetchServerOptions('utilidades.getColores', search, loading, 'lst_colores');
-        },
-        onSearchMarca(search, loading) {
-            this.fetchServerOptions('utilidades.getMarcas', search, loading, 'lst_marcas');
-        },
-        onSearchCategoria(search, loading) {
-            this.fetchServerOptions('utilidades.getCategorias', search, loading, 'lst_categorias');
+        limpiarFiltros() {
+            this.filtros = {
+                talla_id:     null,
+                color_id:     null,
+                marca_id:     null,
+                categoria_id: null,
+                almacen_id:   null,
+            };
+            this.recargarTabla();
         },
     },
 };
