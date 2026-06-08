@@ -666,6 +666,37 @@
     </script>
 
     <script src="{{ mix('js/utils.js') }}"></script>
+
+    <script>
+        function handleSessionExpirada() {
+            toastr.warning('Tu sesión ha expirado. Redirigiendo al inicio de sesión...', 'SESIÓN EXPIRADA');
+            setTimeout(function() {
+                window.location.href = '{{ route('login') }}';
+            }, 2000);
+        }
+
+        axios.interceptors.response.use(
+            function(response) { return response; },
+            function(error) {
+                if (error.response && (error.response.status === 401 || error.response.status === 419)) {
+                    handleSessionExpirada();
+                }
+                return Promise.reject(error);
+            }
+        );
+
+        (function() {
+            var originalFetch = window.fetch;
+            window.fetch = async function() {
+                var response = await originalFetch.apply(this, arguments);
+                if (response.status === 401 || response.status === 419) {
+                    handleSessionExpirada();
+                }
+                return response;
+            };
+        })();
+    </script>
+
     @stack('scripts')
 
     <script>

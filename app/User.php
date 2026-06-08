@@ -13,7 +13,17 @@ class User extends Authenticatable
     use Notifiable, UserTrait;
 
     protected $fillable = [
-        'usuario', 'email', 'password','contra','nombre_imagen','ruta_imagen','sede_id'
+        'usuario',
+        'email',
+        'email_verified_at',
+        'password',
+        'contra',
+        'remember_token',
+        'ruta_imagen',
+        'nombre_imagen',
+        'estado',
+        'sede_id',
+        'colaborador_id',
     ];
 
     protected $hidden = [

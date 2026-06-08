@@ -7,7 +7,8 @@ Route::prefix('seguridad')->group(function () {
     //Users
     Route::prefix('users')->group(function () {
         Route::get('/', 'Seguridad\UserController@index')->name('seguridad.user.index');
-        Route::get('destroy/{id}', 'Seguridad\UserController@destroy')->name('seguridad.user.destroy');
+        Route::get('getUsuarios', 'Seguridad\UserController@getUsuarios')->name('seguridad.user.getUsuarios');
+        Route::delete('destroy/{id}', 'Seguridad\UserController@destroy')->name('seguridad.user.destroy');
         Route::get('create', 'Seguridad\UserController@create')->name('seguridad.user.create');
         Route::post('store', 'Seguridad\UserController@store')->name('seguridad.user.store');
         Route::get('edit/{id}', 'Seguridad\UserController@edit')->name('seguridad.user.edit');

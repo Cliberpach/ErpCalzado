@@ -3,42 +3,63 @@
 namespace App\Http\Controllers\Seguridad;
 
 use App\Http\Controllers\Controller;
-use App\Mantenimiento\Colaborador\Colaborador;
+use App\Http\Requests\Seguridad\Users\UserStoreRequest;
+use App\Http\Requests\Seguridad\Users\UserUpdateRequest;
+use App\Http\Services\Seguridad\User\UserManager;
 use App\Mantenimiento\Persona\Persona;
 use App\Permission\Model\Role;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use stdClass;
 use Throwable;
+use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
+    private UserManager $s_manager;
+
+    public function __construct()
+    {
+        $this->s_manager = new UserManager();
+    }
+
     public function index()
     {
         $this->authorize('haveaccess', 'seguridad.user.index');
+        return view('seguridad.users.index');
+    }
 
-        $users = User::with('sede')
+    public function getUsuarios()
+    {
+        $users = User::with(['sede', 'colaborador', 'roles'])
             ->where('estado', 'ACTIVO')
-            ->get();
+            ->select('users.*');
 
-
-        return view('seguridad.users.index', compact('users'));
+        return DataTables::of($users)
+            ->addColumn('sede_nombre', function ($u) {
+                return $u->sede ? $u->sede->nombre : '-';
+            })
+            ->addColumn('colaborador_nombre', function ($u) {
+                return $u->colaborador ? $u->colaborador->nombre : 'NO ASIGNADO';
+            })
+            ->addColumn('roles_html', function ($u) {
+                return $u->roles->map(function ($r) {
+                    return '<span class="badge badge-info">' . $r->name . '</span>';
+                })->implode(' ');
+            })
+            ->rawColumns(['roles_html'])
+            ->make(true);
     }
 
     public function create()
     {
         $this->authorize('haveaccess', 'seguridad.user.index');
 
-        $auxs   =   Persona::where('estado', 'ACTIVO')->get();
+        $sede_id = Auth::user()->sede_id;
 
-        $sede_id            =   Auth::user()->sede_id;
-
-        $colaboradores      =   DB::table('colaboradores as c')
+        $colaboradores = DB::table('colaboradores as c')
             ->join('empresa_sedes as es', 'es.id', 'c.sede_id')
             ->select('c.*', 'es.nombre as sede_nombre')
             ->where('c.estado', 'ACTIVO')
@@ -49,107 +70,33 @@ class UserController extends Controller
             })
             ->get();
 
-        $role_user = [];
-
         $roles = Role::all();
 
         return view('seguridad.users.create', compact('roles', 'colaboradores', 'sede_id'));
     }
 
-
-    /*
-array:8 [▼
-  "_token" => "uA8DojLYx1bnlHUStJrLNeX1e0TYsd5OkhYgNM2o"
-  "usuario" => "luisdaniel"
-  "email" => "ld@gmail.com"
-  "colaborador_id" => "6"
-  "password" => "123456789"
-  "confirm_password" => "123456789"
-  "sede" => "2"
-  "role" => array:2 [▼
-    0 => "1"
-    1 => "3"
-  ]
-]
-*/
-    public function store(Request $request)
+    public function store(UserStoreRequest $request)
     {
-                $this->authorize('haveaccess', 'seguridad.user.index');
+        $this->authorize('haveaccess', 'seguridad.user.index');
+        DB::beginTransaction();
+        try {
+            $user = $this->s_manager->store($request->all());
 
-        $data = $request->all();
+            $descripcion = 'SE AGREGÓ EL USUARIO CON EL NOMBRE: ' . $user->usuario;
+            $gestion     = 'USUARIOS';
+            crearRegistro($user, $descripcion, $gestion);
 
-        $rules = [
-            'usuario' => 'required',
-            'colaborador_id' => 'required',
-            'email' => ['required', Rule::unique('users', 'email')->where(function ($query) {
-                $query->whereIn('estado', ["ACTIVO", "ANULADO"]);
-            })],
-            'password' => 'required'
-        ];
-        $message = [
-            'usuario.required' => 'El campo usuario es obligatorio.',
-            'colaborador_id.required' => 'El campo colaborador es obligatorio.',
-            'email.required' => 'El campo email es obligatorio',
-            'email.unique' => 'El campo email debe ser único',
-            'password.required' => 'El campo contraseña  es obligatorio'
-
-        ];
-
-        Validator::make($data, $rules, $message)->validate();
-        $arrayDatos = $request->all();
-
-
-        if ($request->password !== $request->confirm_password) {
-            //Session::flash('success','Usuario creado.');
-            return back()->with([
-                'password' => $request->password,
-                'confirm_password' => $request->confirm_password,
-                'mpassword' => 'Contraseñas distintas',
-                'usuario' => $request->get('usuario'),
-                'colaborador_id' => $request->get('colaborador_id'),
-                'email' => $request->get('email'),
-                'role' => $request->get('role'),
-            ]);
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'USUARIO REGISTRADO CON ÉXITO']);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
-
-        $colaborador            =   Colaborador::find($request->get('colaborador_id'));
-
-        $user                   =   new User();
-        $password               =   strtoupper($request->password);
-
-        $user->usuario          =   strtoupper($request->get('usuario'));
-        $user->email            =   strtoupper($request->get('email'));
-        $user->password         =   bcrypt($password);
-        $user->contra           =   $password;
-        $user->sede_id          =   $colaborador->sede_id;
-        $user->colaborador_id   =   $request->get('colaborador_id');
-        $user->save();
-
-        /*
-            $user_persona               = new UserPersona();
-            $user_persona->user_id      = $user->id;
-            $user_persona->persona_id   = $request->get('colaborador_id');
-            $user_persona->save();
-        */
-
-        if ($request->get('role')) {
-            $user->roles()->sync($request->get('role'));
-        } else {
-            $user->roles()->sync([]);
-        }
-
-        //Registro de actividad
-        $descripcion = "SE AGREGÓ EL USUARIO CON EL NOMBRE: " . $user->usuario;
-        $gestion = "CLIENTES";
-        crearRegistro($user, $descripcion, $gestion);
-
-        Session::flash('success', 'Usuario creado.');
-        return redirect()->route('user.index')->with('guardar', 'success');
     }
 
-    public function show($id)
+    public function show(int $id)
     {
-                $this->authorize('haveaccess', 'seguridad.user.index');
+        $this->authorize('haveaccess', 'seguridad.user.index');
 
         $user = User::find($id);
 
@@ -179,7 +126,6 @@ array:8 [▼
         }
 
         $role_user = [];
-
         $roles = Role::all();
 
         foreach ($user->roles as $role) {
@@ -189,17 +135,14 @@ array:8 [▼
         return view('seguridad.users.show', compact('roles', 'role_user', 'user', 'colaboradores'));
     }
 
-    public function edit($id)
+    public function edit(int $id)
     {
-                $this->authorize('haveaccess', 'seguridad.user.index');
+        $this->authorize('haveaccess', 'seguridad.user.index');
 
-        $user   =   User::find($id);
+        $user    = User::find($id);
+        $sede_id = Auth::user()->sede_id;
 
-        $auxs = Persona::where('estado', 'ACTIVO')->get();
-
-        $sede_id            =   Auth::user()->sede_id;
-
-        $colaboradores  =   DB::table('colaboradores as c')
+        $colaboradores = DB::table('colaboradores as c')
             ->join('empresa_sedes as es', 'es.id', '=', 'c.sede_id')
             ->select('c.*', 'es.nombre as sede_nombre')
             ->where('c.estado', 'ACTIVO')
@@ -212,143 +155,57 @@ array:8 [▼
             ->get();
 
         $role_user = [];
-
         $roles = Role::all();
 
         foreach ($user->roles as $role) {
             $role_user[] = $role->id;
         }
 
-        return view(
-            'seguridad.users.edit',
-            compact('roles', 'role_user', 'user', 'colaboradores', 'sede_id')
-        );
+        return view('seguridad.users.edit', compact('roles', 'role_user', 'user', 'colaboradores', 'sede_id'));
     }
 
-    public function update(Request $request, $id)
-    {
-                $this->authorize('haveaccess', 'seguridad.user.index');
-
-        $user = User::find($id);
-
-        $data = $request->all();
-
-        $rules = [
-            'usuario' => ['required', Rule::unique('users', 'usuario')->where(function ($query) {
-                $query->whereIn('estado', ["ACTIVO", "ANULADO"]);
-            })->ignore($id)],
-            'colaborador_id' => 'required',
-            'email' => ['required', Rule::unique('users', 'email')->where(function ($query) {
-                $query->whereIn('estado', ["ACTIVO", "ANULADO"]);
-            })->ignore($id)],
-            'password' => 'required'
-        ];
-        $message = [
-            'usuario.required' => 'El campo usuario es obligatorio.',
-            'colaborador_id.required' => 'El campo colaborador es obligatorio.',
-            'email.required' => 'El campo email es obligatorio',
-            'email.unique' => 'El campo email debe ser único',
-            'password.required' => 'El campo contraseña  es obligatorio'
-
-        ];
-
-        Validator::make($data, $rules, $message)->validate();
-
-        if ($request->password !== $request->confirm_password) {
-            //Session::flash('success','Usuario creado.');
-            return back()->with([
-                'password' => $request->password,
-                'confirm_password' => $request->confirm_password,
-                'mpassword' => 'Contraseñas distintas',
-                'usuario' => $request->get('usuario'),
-                'colaborador_id' => $request->get('colaborador_id'),
-                'email' => $request->get('email'),
-                'role' => $request->get('role'),
-            ]);
-        }
-
-        $colaborador            =   Colaborador::find($request->get('colaborador_id'));
-
-        $password               =   strtoupper($request->password);
-
-        $user->usuario          =   strtoupper($request->usuario);
-        $user->email            =   strtoupper($request->email);
-        $user->password         =   bcrypt($password);
-        $user->contra           =   $password;
-        $user->sede_id          =   $colaborador->sede_id;
-        $user->colaborador_id   =   $request->get('colaborador_id');
-        $user->update();
-
-        /*
-            $user_persona               = UserPersona::find($user->user->id);
-            $user_persona->user_id      = $user->id;
-            $user_persona->persona_id   = $request->get('colaborador_id');
-            $user_persona->update();
-        */
-
-        if ($request->get('role')) {
-            $user->roles()->sync($request->get('role'));
-        } else {
-            $user->roles()->sync([]);
-        }
-
-        //Registro de actividad
-        $descripcion = "SE MODIFICÓ EL USUARIO CON EL NOMBRE: " . $user->usuario;
-        $gestion = "USUARIOS";
-        modificarRegistro($user, $descripcion, $gestion);
-        Session::flash('success', 'Usuario Modificado.');
-        return redirect()->route('user.index')->with('modificar', 'success');
-    }
-
-    public function destroy($id)
+    public function update(UserUpdateRequest $request, int $id)
     {
         $this->authorize('haveaccess', 'seguridad.user.index');
-
         DB::beginTransaction();
         try {
+            $user = $this->s_manager->update($id, $request->all());
 
-            $user = User::find($id);
-
-            //======= VERIFICAR QUE EL COLABORADOR DEL USER NO TENGA CAJAS ABIERTAS ======
-            $movimiento =   DB::select(
-                'SELECT
-                        dmc.movimiento_id
-                        from detalles_movimiento_caja as dmc
-                        where
-                        dmc.colaborador_id = ?
-                        and dmc.fecha_salida is null',
-                [$user->colaborador_id]
-            );
-
-            if (count($movimiento) != 0) {
-                abort(402, "ESTE USUARIO NO PUEDE ELIMINARSE, PORQUE SU COLABORADOR TIENE UNA CAJA ABIERTA");
-            }
-
-            $user->estado = 'ANULADO';
-            $user->update();
-
-            //Registro de actividad
-            $descripcion    = "SE ELIMINÓ EL USUARIO CON EL NOMBRE: " . $user->usuario;
-            $gestion        = "USUARIOS";
-            eliminarRegistro($user, $descripcion, $gestion);
-
-
-            Session::flash('messa_success', 'Usuario eliminado');
+            $descripcion = 'SE MODIFICÓ EL USUARIO CON EL NOMBRE: ' . $user->usuario;
+            $gestion     = 'USUARIOS';
+            modificarRegistro($user, $descripcion, $gestion);
 
             DB::commit();
-            return redirect()->route('user.index');
+            return response()->json(['success' => true, 'message' => 'USUARIO MODIFICADO CON ÉXITO']);
         } catch (Throwable $th) {
             DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
+    }
 
-            Session::flash('message_error', $th->getMessage());
-            return redirect()->route('user.index');
+    public function destroy(int $id)
+    {
+        $this->authorize('haveaccess', 'seguridad.user.index');
+        DB::beginTransaction();
+        try {
+            $user = $this->s_manager->destroy((int) $id);
+
+            $descripcion = 'SE ELIMINÓ EL USUARIO CON EL NOMBRE: ' . $user->usuario;
+            $gestion     = 'USUARIOS';
+            eliminarRegistro($user, $descripcion, $gestion);
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'USUARIO ELIMINADO CON ÉXITO']);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
 
     public function getUsers(Request $request)
     {
         try {
-            $users    =   User::where('estado', 'ACTIVO')->where('sede_id', $request->get('sede_id'))->get();
+            $users = User::where('estado', 'ACTIVO')->where('sede_id', $request->get('sede_id'))->get();
             return response()->json(['success' => true, 'message' => 'Usuarios obtenidos', 'data' => $users]);
         } catch (Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()]);

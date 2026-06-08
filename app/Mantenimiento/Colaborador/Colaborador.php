@@ -8,7 +8,22 @@ use Illuminate\Database\Eloquent\Model;
 class Colaborador extends Model
 {
     protected $table    =   'colaboradores';
-    protected $guarded =    [''];
+    protected $fillable = [
+        'persona_id',
+        'estado',
+        'sede_id',
+        'tipo_documento_id',
+        'tipo_documento_nombre',
+        'cargo_id',
+        'nro_documento',
+        'nombre',
+        'direccion',
+        'telefono',
+        'dias_trabajo',
+        'dias_descanso',
+        'pago_mensual',
+        'pago_dia',
+    ];
     
     public $timestamps=true;
         
