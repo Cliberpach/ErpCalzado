@@ -144,4 +144,13 @@ Route::prefix('mantenimiento/')->middleware('auth')->group(function () {
             Route::post('/update-costo', 'Mantenimiento\MetodoEntrega\TarifarioEnvioController@updateCosto')->name('mantenimiento.metodo_entrega.tarifarios.updateCosto');
         });
     });
+
+    //===== COPIAS DE SEGURIDAD =====
+    Route::prefix('copias_seguridad')->group(function () {
+        Route::get('index', 'Mantenimiento\CopiaSeguridad\CopiasSeguridadController@index')->name('mantenimiento.copias_seguridad.index');
+        Route::get('getBackups', 'Mantenimiento\CopiaSeguridad\CopiasSeguridadController@getBackups')->name('mantenimiento.copias_seguridad.getBackups');
+        Route::post('generate', 'Mantenimiento\CopiaSeguridad\CopiasSeguridadController@generate')->name('mantenimiento.copias_seguridad.generate');
+        Route::get('download/{id}', 'Mantenimiento\CopiaSeguridad\CopiasSeguridadController@download')->name('mantenimiento.copias_seguridad.download');
+        Route::delete('destroy/{id}', 'Mantenimiento\CopiaSeguridad\CopiasSeguridadController@destroy')->name('mantenimiento.copias_seguridad.destroy');
+    });
 });

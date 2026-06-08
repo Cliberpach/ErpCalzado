@@ -464,7 +464,7 @@
 @can('restore', [Auth::user(), ['mantenimiento.colaborador.index', 'mantenimiento.empresa.index',
     'mantenimiento.sedes.index', 'mantenimiento.condicion.index', 'mantenimiento.tabla.index',
     'mantenimiento.configuracion.index', 'mantenimiento.metodo_entrega.index', 'mantenimiento.cuentas.index',
-    'mantenimiento.tipo_pago.index', 'mantenimiento.promociones.index']])
+    'mantenimiento.tipo_pago.index', 'mantenimiento.promociones.index', 'copia_seguridad.index']])
     <li class="@yield('mantenimiento-active')">
         <a href="#"><i class="fa fa-cogs"></i> <span class="nav-label">Mantenimento</span><span
                 class="fa arrow"></span></a>
@@ -502,6 +502,10 @@
             @endcan
             @can('haveaccess', 'mantenimiento.promociones.index')
                 <li class="@yield('promociones-active')"><a href="{{ route('mantenimiento.promociones.index') }}">Promociones</a></li>
+            @endcan
+            @can('haveaccess', 'copia_seguridad.index')
+                <li class="@yield('copia_seguridad-active')"><a href="{{ route('mantenimiento.copias_seguridad.index') }}"> Copias de
+                        Seguridad</a></li>
             @endcan
         </ul>
     </li>

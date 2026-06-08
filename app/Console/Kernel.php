@@ -17,7 +17,8 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\StockCommand',
         'App\Console\Commands\SendNotasCreditoCommand',
         'App\Console\Commands\SendFacturas',
-        'App\Console\Commands\SendBoletasEspeciales'
+        'App\Console\Commands\SendBoletasEspeciales',
+        'App\Console\Commands\CrearBackupAutomaticoCommand',
     ];
 
     /**
@@ -28,13 +29,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        //$schedule->command('inspire')->hourly();
-        //$schedule->command('test:create')->everyThreeHours();
         $schedule->command('notas_credito:send')->dailyAt('23:00');
         $schedule->command('facturas:send')->dailyAt('23:10');
         $schedule->command('stock:send')->dailyAt('23:20');
-        // $schedule->command('boletas-especiales:send')->dailyAt('23:30');
         $schedule->command('resumenes:send')->dailyAt('23:40');
+        $schedule->command('backup:automatico')->dailyAt('03:00');
     }
 
     /**
