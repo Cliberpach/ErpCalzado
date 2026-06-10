@@ -31,12 +31,9 @@
 @endsection
 
 @push('styles')
-    <link href="{{ asset('Inspinia/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
 @endpush
 
 @push('scripts')
-    <script src="{{ asset('Inspinia/js/plugins/dataTables/datatables.min.js') }}"></script>
-    <script src="{{ asset('Inspinia/js/plugins/dataTables/dataTables.bootstrap4.min.js') }}"></script>
     <script>
         let dtUsuarios = null;
 
