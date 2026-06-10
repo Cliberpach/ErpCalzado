@@ -1,6 +1,7 @@
 <table id="tbl_list_users" class="table table-striped table-bordered table-hover" style="text-transform:uppercase">
     <thead>
         <tr>
+            <th scope="col">#</th>
             <th scope="col">SEDE</th>
             <th scope="col">USUARIO</th>
             <th scope="col">CORREO</th>
