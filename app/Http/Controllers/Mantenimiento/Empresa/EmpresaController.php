@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers\Mantenimiento\Empresa;
 
-use App\Compras\Banco;
-use App\Events\FacturacionEmpresa;
 use App\Facturacion\Helpers\Certificate\GenerateCertificate;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Mantenimiento\Empresa\EmpresaUpdateRequest;
+use App\Http\Requests\Mantenimiento\Empresa\FacturacionUpdateRequest;
 use App\Http\Requests\Mantenimiento\Sedes\NumeracionStoreRequest;
 use App\Http\Services\Mantenimiento\Empresa\EmpresaManager;
 use App\Http\Services\Mantenimiento\Sede\SedeManager;
@@ -14,15 +13,13 @@ use App\Mantenimiento\Empresa\Banco as EmpresaBanco;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Mantenimiento\Empresa\Facturacion;
 use App\Mantenimiento\Empresa\Numeracion;
+use App\Mantenimiento\Greenter\GreenterConfig;
 use App\Mantenimiento\Ubigeo\Departamento;
 use App\Mantenimiento\Ubigeo\Distrito;
 use App\Mantenimiento\Ubigeo\Provincia;
 use Exception;
-use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
 use Throwable;
 use Yajra\DataTables\DataTables;
 
@@ -85,214 +82,6 @@ class EmpresaController extends Controller
         ]);
     }
 
-    public function store(Request $request)
-    {
-        $data = $request->all();
-
-        return $data;
-        $rules = [
-            'ruc' => ['required', 'numeric', 'min:11', Rule::unique('empresas', 'ruc')->where(function ($query) {
-                $query->whereIn('estado', ["ACTIVO"]);
-            })],
-            'estado' => 'required',
-            'razon_social' => 'required',
-            'direccion_fiscal' => 'required',
-            'direccion_llegada' => 'required',
-            'dni_representante' => 'required|min:8|numeric',
-            'nombre_representante' => 'required',
-            'num_asiento' => 'required',
-            'num_partida' => 'required',
-            'telefono' => 'nullable|numeric',
-            'celular' => 'nullable|numeric',
-            'correo' => 'nullable',
-            'web' => 'nullable',
-            'facebook' => 'nullable',
-            'instagram' => 'nullable',
-            'estado_fe' => 'nullable',
-            'logo' => 'image|mimetypes:image/jpeg,image/png,image/jpg|max:40000|required_if:estado_fe,==,on',
-            'certificado_base' => 'required_if:estado_fe,==,on',
-            'soap_usuario' => 'required_if:estado_fe,==,on',
-            'soap_password' => 'required_if:estado_fe,==,on',
-        ];
-
-        $message = [
-            'ruc.required' => 'El campo Ruc es obligatorio.',
-            'ruc.unique' => 'El campo Ruc debe de ser campo único.',
-            'ruc.numeric' => 'El campo Ruc debe se numérico.',
-            'ruc.min' => 'El campo Ruc debe tener 11 dígitos.',
-            'razon_social.required' => 'El campo Razón Social es obligatorio.',
-            'direccion_fiscal.required' => 'El campo Direccion Fiscal es obligatorio.',
-            'direccion_llegada.required' => 'El campo Direccion Planta es obligatorio.',
-            'logo.image' => 'El campo Logo no contiene el formato imagen.',
-            'logo.max' => 'El tamaño máximo del Logo para cargar es de 40 MB.',
-            'dni_representante.required' => 'El campo Dni es obligatorio.',
-            'dni_representante.min' => 'El campo Dni debe tener 8 dígitos.',
-            'dni_representante.numeric' => 'El campo Dni debe ser numérico.',
-            'nombre_representante.required' => 'El campo Nombre es obligatorio.',
-            'num_asiento.required' => 'El campo N° Asiento es obligatorio.',
-            'num_partida.required' => 'El campo N° Partida es obligatorio.',
-            'telefono.numeric' => 'El campo Teléfono es obligatorio.',
-            'estado.required' => 'El campo Estado es obligatorio.',
-            'soap_usuario.required_if' => 'El campo Soap Usuario es obligatorio.',
-            'soap_password.required_if' => 'El campo Soap Contraseña es obligatorio.',
-        ];
-
-        Validator::make($data, $rules, $message)->validate();
-
-        $empresa = new Empresa();
-        $empresa->ruc = $request->get('ruc');
-        $empresa->razon_social = $request->get('razon_social');
-        $empresa->razon_social_abreviada = $request->get('razon_social_abreviada');
-        $empresa->direccion_fiscal = $request->get('direccion_fiscal');
-        $empresa->direccion_llegada = $request->get('direccion_llegada');
-        $empresa->telefono = $request->get('telefono');
-        $empresa->celular = $request->get('celular');
-        $empresa->ubigeo = $request->get('ubigeo_empresa');
-
-        if ($request->hasFile('logo')) {
-            $file = $request->file('logo');
-            $name = $file->getClientOriginalName();
-            $empresa->nombre_logo = $name;
-            $empresa->ruta_logo = $request->file('logo')->store('public/empresas/logos');
-            $empresa->base64_logo = '-'; //base64_encode( file_get_contents($request->file('logo')));
-        }
-
-        $empresa->dni_representante = $request->get('dni_representante');
-        $empresa->nombre_representante = $request->get('nombre_representante');
-        $empresa->estado_dni_representante = $request->get('estado_dni_representante');
-
-        $empresa->num_partida = $request->get('num_partida');
-        $empresa->num_asiento = $request->get('num_asiento');
-        $empresa->estado_ruc = $request->get('estado');
-        $empresa->web = $request->get('web');
-        $empresa->facebook = $request->get('facebook');
-        $empresa->instagram = $request->get('instagram');
-
-        if ($request->get('estado_fe') == 'on') {
-            $empresa->estado_fe = '1';
-        } else {
-            $empresa->estado_fe = '0';
-        }
-        $empresa->save();
-
-
-        if ($request->get('estado_fe') == 'on') {
-
-            $contenidoImagen = file_get_contents($request->file('logo'));
-
-            $empresa_facturacion = array(
-                "plan" => "free",
-                "environment" => "beta",
-                "sol_user" => $request->get('soap_usuario'),
-                "sol_pass" => $request->get('soap_password'),
-                "ruc" =>  $empresa->ruc,
-                "razon_social" => $empresa->razon_social,
-                "direccion" => $empresa->direccion_fiscal,
-                "certificado" => $request->get('certificado_base'),
-                "logo" => $empresa->base64_logo,
-            );
-
-            $json_empresa = json_encode($empresa_facturacion);
-            //AGREGAR EMPRESA "FACTURACION ELECTRONICA"
-            //$facturado = json_decode((agregarEmpresaapi($json_empresa)));
-            //Facturacion Electronica (GUARDAR DATOS INGRESADO POR API)
-            $facturacion = new Facturacion();
-            $facturacion->empresa_id = $empresa->id; //RELACION CON LA EMPRESA
-            $facturacion->fe_id = 1048; //ID EMPRESA API
-            $facturacion->sol_user = $request->get('soap_usuario');
-            $facturacion->sol_pass = $request->get('soap_password');
-            $facturacion->plan = 'free';
-            $facturacion->ambiente = 'beta';
-            $facturacion->certificado =  $request->get('certificado_base');
-            $facturacion->save();
-
-            //REGISTRAR NUMERACION DE FACTURACION DE LA EMPRESA
-            event(
-                new FacturacionEmpresa(
-                    $empresa,
-                    $data['numeracion_tabla']
-                )
-            );
-        }
-
-        //Llenado de Bancos
-        $entidadesJSON = $request->get('entidades_tabla');
-        $entidadtabla = json_decode($entidadesJSON[0]);
-
-        if ($entidadtabla) {
-            foreach ($entidadtabla as $entidad) {
-                Banco::create([
-                    'empresa_id' => $empresa->id,
-                    'descripcion' => $entidad->entidad,
-                    'tipo_moneda' => $entidad->moneda,
-                    'num_cuenta' => $entidad->cuenta,
-                    'cci' => $entidad->cci,
-                    'itf' => $entidad->itf,
-                ]);
-            }
-        }
-
-        //Registro de actividad
-        $descripcion = "SE AGREGÓ LA EMPRESA: " . $empresa->razon_social . ' con el RUC ' . $empresa->ruc;
-        $gestion = "EMPRESAS";
-        crearRegistro($empresa, $descripcion, $gestion);
-
-        Session::flash('success', 'Empresa creada.');
-        return redirect()->route('mantenimiento.empresas.index')->with('guardar', 'success');
-    }
-
-    public function destroy($id)
-    {
-
-        $empresa = Empresa::findOrFail($id);
-        $empresa->estado = 'ANULADO';
-        $empresa->update();
-
-        //Registro de actividad
-        $descripcion = "SE ELIMINÓ LA EMPRESA: " . $empresa->razon_social . ' con el RUC ' . $empresa->ruc;
-        $gestion = "EMPRESAS";
-        eliminarRegistro($empresa, $descripcion, $gestion);
-
-        $facturacion = Facturacion::where('empresa_id', $empresa->id)->where('estado', 'ACTIVO')->first();
-
-        if ($facturacion) {
-
-            $estado = borrarEmpresaapi($facturacion->fe_id);
-
-            $facturacion->estado = 'ANULADO';
-            $facturacion->update();
-
-            if ($estado != '200') {
-                // Session::flash('success','Empresa eliminado (Error en eliminacion del certificado)');
-                // return redirect()->route('mantenimiento.empresas.index')->with('eliminar', 'success');
-
-                return [
-                    'success' => true,
-                    'eliminar' => 'success',
-                    'mensaje' => 'Empresa eliminada (Error en eliminacion del certificado)'
-                ];
-            } else {
-                // Session::flash('success','Empresa eliminado.');
-                // return redirect()->route('mantenimiento.empresas.index')->with('eliminar', 'success');
-
-                return [
-                    'success' => true,
-                    'eliminar' => 'success',
-                    'mensaje' => 'Empresa eliminada.'
-                ];
-            }
-        } else {
-
-            // Session::flash('success','Empresa eliminado.');
-            // return redirect()->route('mantenimiento.empresas.index')->with('eliminar', 'success');
-            return [
-                'success' => true,
-                'eliminar' => 'success',
-                'mensaje' => 'Empresa eliminada'
-            ];
-        }
-    }
-
     public function show($id)
     {
         $empresa = Empresa::findOrFail($id);
@@ -327,10 +116,27 @@ class EmpresaController extends Controller
 
     public function editFacturacion($id)
     {
-        $empresa = Empresa::findOrFail($id);
+        $empresa         = Empresa::findOrFail($id);
+        $greenter_config = GreenterConfig::where('empresa_id', 1)->where('modo', 'PRODUCCION')->first();
+
         return view('mantenimiento.empresas.facturacion', [
-            'empresa' => $empresa
+            'empresa'         => $empresa,
+            'greenter_config' => $greenter_config,
         ]);
+    }
+
+    public function facturacionStore(FacturacionUpdateRequest $request)
+    {
+        try {
+            $this->s_manager->facturacionStore(
+                $request->except('certificado'),
+                $request->file('certificado')
+            );
+
+            return response()->json(['success' => true, 'message' => 'CONFIGURACIÓN DE FACTURACIÓN GUARDADA CON ÉXITO']);
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
     }
 
     /*

@@ -380,13 +380,16 @@
     </li>
 @endcan
 
-@can('restore', [Auth::user(), ['contabilidad.documentos.index']])
+@can('restore', [Auth::user(), ['contabilidad.documentos.index', 'contabilidad.sunat.index']])
     <li class="@yield('contabilidad-active')">
         <a href="#"><i class="fa fa-question-circle"></i> <span class="nav-label">Contabilidad </span><span
                 class="fa arrow"></span></a>
         <ul class="nav nav-second-level collapse">
             @can('haveaccess', 'contabilidad.documentos.index')
                 <li class="@yield('contabilidad_documentos-active')"><a href="{{ route('consultas.contabilidad.index') }}">Documentos</a></li>
+            @endcan
+            @can('haveaccess', 'contabilidad.sunat.index')
+                <li class="@yield('contabilidad-sunat-active')"><a href="{{ route('contabilidad.sunat.index') }}">Consulta SUNAT</a></li>
             @endcan
         </ul>
     </li>

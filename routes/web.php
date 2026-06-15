@@ -518,6 +518,12 @@ Route::group(
 
         });
 
+        // Contabilidad - Consulta SUNAT
+        Route::prefix('contabilidad/sunat')->group(function () {
+            Route::get('index', 'Contabilidad\ConsultaSunatController@index')->name('contabilidad.sunat.index');
+            Route::post('validar', 'Contabilidad\ConsultaSunatController@validar')->name('contabilidad.sunat.validar');
+        });
+
 
 
         // Reportes - Producto - informe

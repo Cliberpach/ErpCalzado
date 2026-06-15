@@ -99,6 +99,7 @@ class PermissionsSeeder extends Seeder
 
         // Contabilidad
         Permission::create(['name' => 'Contabilidad Documentos', 'slug' => 'contabilidad.documentos.index', 'description' => 'El usuario puede acceder a documentos de contabilidad']);
+        Permission::create(['name' => 'Consulta SUNAT', 'slug' => 'contabilidad.sunat.index', 'description' => 'El usuario puede consultar comprobantes en SUNAT (Validador CPE)']);
 
         // Reportes
         Permission::create(['name' => 'Reporte Caja Diaria', 'slug' => 'reporte.reporte_cajadiaria.index', 'description' => 'El usuario puede acceder al reporte de caja diaria']);

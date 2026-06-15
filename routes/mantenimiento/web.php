@@ -71,7 +71,6 @@ Route::prefix('mantenimiento/')->middleware('auth')->group(function () {
         Route::get('getBusiness', 'Mantenimiento\Empresa\EmpresaController@getBusiness')->name('getBusiness');
         Route::get('create', 'Mantenimiento\Empresa\EmpresaController@create')->name('mantenimiento.empresas.create');
         Route::post('store', 'Mantenimiento\Empresa\EmpresaController@store')->name('mantenimiento.empresas.store');
-        Route::get('destroy/{id}', 'Mantenimiento\Empresa\EmpresaController@destroy')->name('mantenimiento.empresas.destroy');
         Route::get('show/{id}', 'Mantenimiento\Empresa\EmpresaController@show')->name('mantenimiento.empresas.show');
         Route::get('edit/{id}', 'Mantenimiento\Empresa\EmpresaController@edit')->name('mantenimiento.empresas.edit');
         Route::put('update/{id}', 'Mantenimiento\Empresa\EmpresaController@update')->name('mantenimiento.empresas.update');
@@ -81,7 +80,9 @@ Route::prefix('mantenimiento/')->middleware('auth')->group(function () {
         Route::get('obtenerNumeracion/{id}', 'Mantenimiento\Empresa\EmpresaController@obtenerNumeracion')->name('mantenimiento.empresas.obtenerNumeracion');
         Route::get('numeracion/create/{empresa_id}', 'Mantenimiento\Empresa\EmpresaController@numeracionCreate')->name('mantenimiento.empresas.numeracionCreate');
         Route::post('numeracion/store', 'Mantenimiento\Empresa\EmpresaController@numeracionStore')->name('mantenimiento.empresas.numeracionStore');
+        Route::post('facturacion/store', 'Mantenimiento\Empresa\EmpresaController@facturacionStore')->name('mantenimiento.empresas.facturacionStore');
     });
+
     //Condiciones
     Route::prefix('condiciones')->group(function () {
         Route::get('index', 'Mantenimiento\CondicionController@index')->name('mantenimiento.condiciones.index');
