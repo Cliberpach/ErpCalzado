@@ -43,16 +43,32 @@ class ConsultaSunatManager
 
     private function validarUno(string $ruc, array $datos, string $token): array
     {
-        $response = Http::timeout(15)
-            ->withToken($token)
-            ->get("https://api.sunat.gob.pe/v1/contribuyente/contribuyentes/{$ruc}/validarcomprobante", [
-                'numRuc'       => $ruc,
-                'codComp'      => $datos['codComp'],
-                'numeroSerie'  => $datos['serie'],
-                'numero'       => $datos['numero'],
-                'fechaEmision' => $datos['fechaEmision'],
-                'monto'        => $datos['monto'],
+        $url = sprintf(
+            'https://api.sunat.gob.pe/v1/contribuyente/contribuyentes/%s/validarcomprobante',
+            rawurlencode($ruc)
+        );
+
+        $body = [
+            'numRuc'       => $ruc,
+            'codComp'      => $datos['codComp'],
+            'numeroSerie'  => $datos['serie'],
+            'numero'       => (string)(int)$datos['numero'],
+            'fechaEmision' => $datos['fechaEmision'],
+            'monto'        => $datos['monto'],
+        ];
+
+        try {
+            $response = Http::timeout(15)
+                ->withToken($token)
+                ->acceptJson()
+                ->post($url, $body);
+        } catch (\Throwable $e) {
+            return array_merge($datos, [
+                'estadoCp'    => null,
+                'descripcion' => 'Error de conexión: ' . $e->getMessage(),
+                'error'       => true,
             ]);
+        }
 
         if (!$response->successful()) {
             return array_merge($datos, [
