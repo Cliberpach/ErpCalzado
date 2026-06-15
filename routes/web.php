@@ -522,6 +522,8 @@ Route::group(
         Route::prefix('contabilidad/sunat')->group(function () {
             Route::get('index', 'Contabilidad\ConsultaSunatController@index')->name('contabilidad.sunat.index');
             Route::post('validar', 'Contabilidad\ConsultaSunatController@validar')->name('contabilidad.sunat.validar');
+            Route::get('individual', 'Contabilidad\ConsultaSunatController@indexIndividual')->name('contabilidad.sunat.individual');
+            Route::post('individual/validar', 'Contabilidad\ConsultaSunatController@validarIndividual')->name('contabilidad.sunat.validarIndividual');
         });
 
 

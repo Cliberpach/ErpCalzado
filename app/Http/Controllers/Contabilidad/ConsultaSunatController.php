@@ -25,6 +25,65 @@ class ConsultaSunatController extends Controller
         return view('contabilidad.sunat.index');
     }
 
+    public function indexIndividual()
+    {
+        $this->authorize('haveaccess', 'contabilidad.sunat.index');
+        return view('contabilidad.sunat.individual');
+    }
+
+    public function validarIndividual(Request $request)
+    {
+        $this->authorize('haveaccess', 'contabilidad.sunat.index');
+
+        try {
+            $codComp  = $request->tipo_comprobante;
+            $serie    = strtoupper(trim($request->serie ?? ''));
+            $numero   = (int) $request->numero;
+            $fechaRaw = $request->fecha_emision;
+            $monto    = $request->monto;
+
+            if (!$codComp || !$serie || !$numero || !$fechaRaw || $monto === null || $monto === '') {
+                throw new Exception('Todos los campos son obligatorios.');
+            }
+
+            $fechaEmision = Carbon::createFromFormat('Y-m-d', $fechaRaw)->format('d/m/Y');
+            $montoFmt     = number_format((float) $monto, 2, '.', '');
+
+            $config = DB::select('
+                SELECT gc.cpe_client_id, gc.cpe_client_secret, e.ruc
+                FROM greenter_config AS gc
+                INNER JOIN empresas AS e ON e.id = gc.empresa_id
+                WHERE gc.empresa_id = 1 AND gc.modo = "PRODUCCION"
+                LIMIT 1
+            ');
+
+            if (count($config) === 0) {
+                throw new Exception('No se encontró configuración Greenter. Configure en Mantenimiento > Empresas.');
+            }
+
+            if (!$config[0]->cpe_client_id || !$config[0]->cpe_client_secret) {
+                throw new Exception('Configure las credenciales CPE (client_id y client_secret) en Mantenimiento > Empresas > Greenter.');
+            }
+
+            $ruc          = $config[0]->ruc;
+            $clientId     = $config[0]->cpe_client_id;
+            $clientSecret = $config[0]->cpe_client_secret;
+
+            $resultados = $this->manager->validarLote($ruc, [[
+                'codComp'      => $codComp,
+                'serie'        => $serie,
+                'numero'       => (string) $numero,
+                'fechaEmision' => $fechaEmision,
+                'monto'        => $montoFmt,
+            ]], $clientId, $clientSecret);
+
+            return response()->json(['success' => true, 'data' => $resultados[0] ?? null]);
+
+        } catch (Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
+        }
+    }
+
     public function validar(Request $request)
     {
         $this->authorize('haveaccess', 'contabilidad.sunat.index');

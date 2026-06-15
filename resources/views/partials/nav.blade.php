@@ -390,6 +390,7 @@
             @endcan
             @can('haveaccess', 'contabilidad.sunat.index')
                 <li class="@yield('contabilidad-sunat-active')"><a href="{{ route('contabilidad.sunat.index') }}">Consulta SUNAT</a></li>
+                <li class="@yield('contabilidad-sunat-individual-active')"><a href="{{ route('contabilidad.sunat.individual') }}">Consulta Individual</a></li>
             @endcan
         </ul>
     </li>
