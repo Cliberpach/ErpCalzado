@@ -387,7 +387,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                 </div>
 
             </div>
@@ -830,7 +830,7 @@ export default {
                 } else {
                     document.querySelector('#documento').focus();
                     this.loading = false;
-                    toastr.error(res.data.message, 'ERROR AL CONSULTAR ' + tipoDoc);
+                    toastr.error(res.data.message, 'ERROR AL CONSULTAR ');
                 }
 
             } catch (ex) {

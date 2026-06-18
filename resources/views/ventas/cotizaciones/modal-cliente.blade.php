@@ -488,8 +488,8 @@
             //     this.CamposRUC(data);
             // }
         } catch (ex) {
-            this.loading = false;
-            alert("Error en consultarAPIMdlCliente" + ex);
+            const msg = ex?.response?.data?.message ?? 'Error al consultar el documento';
+            toastr.error(msg, 'ERROR AL CONSULTAR');
         } finally {
             ocultarAnimacion();
         }
