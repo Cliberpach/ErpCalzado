@@ -2,15 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Carbon\Carbon;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class ParametroController extends Controller
 {
@@ -22,7 +16,7 @@ class ParametroController extends Controller
         // $resp = $request->json();
 
         $url = "https://apiperu.dev/api/ruc/".$ruc;
-        $client = new \GuzzleHttp\Client(['verify'=>false]);
+        $client = new \GuzzleHttp\Client(['verify'=>false, 'http_errors'=>false]);
         $token = 'c36358c49922c564f035d4dc2ff3492fbcfd31ee561866960f75b79f7d645d7d';
         $response = $client->get($url, [
             'headers' => [
@@ -50,7 +44,7 @@ class ParametroController extends Controller
         // return $resp;
 
         $url = "https://apiperu.dev/api/dni/".$dni;
-            $client = new \GuzzleHttp\Client(['verify'=>false]);
+            $client = new \GuzzleHttp\Client(['verify'=>false, 'http_errors'=>false]);
             $token = 'c36358c49922c564f035d4dc2ff3492fbcfd31ee561866960f75b79f7d645d7d';
             $response = $client->get($url, [
                 'headers' => [
@@ -92,7 +86,7 @@ class ParametroController extends Controller
         DB::beginTransaction();
 
         try {
-            DB::update('UPDATE producto_color_tallas 
+            DB::update('UPDATE producto_color_tallas
                         SET stock_logico = stock');
 
             DB::commit();
@@ -106,20 +100,20 @@ class ParametroController extends Controller
 
     public function descargarBD(){
         try {
-            
+
             $fechaActual = Carbon::now()->format('Y-m-d');
             $ubicacionArchivoTemporal = getcwd() . DIRECTORY_SEPARATOR . "Respaldo_" . uniqid(date("Y-m-d") . "_", true) . ".sql";
-    
-            $rutaMysqldump = '/usr/bin/mysqldump'; 
-            //$rutaMysqldump = 'D:\xampp\mysql\bin\mysqldump.exe'; 
+
+            $rutaMysqldump = '/usr/bin/mysqldump';
+            //$rutaMysqldump = 'D:\xampp\mysql\bin\mysqldump.exe';
             $salida = "";
             $codigoSalida = 0;
 
-            // $comando = sprintf("%s --user=\"%s\" --password=\"%s\" %s > %s", 
-            // 'mysqldump', 
-            // env("DB_USERNAME"), 
-            // env("DB_PASSWORD"), 
-            // env("DB_DATABASE"), 
+            // $comando = sprintf("%s --user=\"%s\" --password=\"%s\" %s > %s",
+            // 'mysqldump',
+            // env("DB_USERNAME"),
+            // env("DB_PASSWORD"),
+            // env("DB_DATABASE"),
             // $ubicacionArchivoTemporal);
 
             $comando = sprintf(
@@ -131,7 +125,7 @@ class ParametroController extends Controller
             );
 
             exec($comando, $salida, $codigoSalida);
-            
+
             if ($codigoSalida !== 0) {
                 return back()->with('toastrError', "Código de salida distinto de 0, se obtuvo código (" . $codigoSalida. "). Revise los ajustes e intente de nuevo");
             }
@@ -139,7 +133,7 @@ class ParametroController extends Controller
             $fechaActual            = now()->format('Y-m-d');
             $nombreBaseDatos        = env('DB_DATABASE');
             $nombreArchivo          = $fechaActual . '_' . $nombreBaseDatos . '.sql';
-                    
+
             return response()->download($ubicacionArchivoTemporal, $nombreArchivo)->deleteFileAfterSend(true);
         } catch (\Throwable $e) {
             return back()->with('toastrError', 'Error al descargar la copia de seguridad: ' . $e->getMessage());

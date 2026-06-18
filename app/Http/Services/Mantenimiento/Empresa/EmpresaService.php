@@ -83,12 +83,12 @@ class EmpresaService
             $config->nombre_certificado = 'certificate_merris.pem';
         }
 
-        $config->id_api_guia_remision  = $data['id_api_guia_remision']   ?? $config->id_api_guia_remision;
-        $config->clave_api_guia_remision = $data['clave_api_guia_remision'] ?? $config->clave_api_guia_remision;
-        $config->sol_user              = $data['sol_user']                ?? $config->sol_user;
-        $config->sol_pass              = $data['sol_pass']                ?? $config->sol_pass;
-        $config->cpe_client_id         = $data['cpe_client_id']           ?? $config->cpe_client_id;
-        $config->cpe_client_secret     = $data['cpe_client_secret']       ?? $config->cpe_client_secret;
+        $config->id_api_guia_remision       = $data['id_api_guia_remision']   ?? $config->id_api_guia_remision;
+        $config->clave_api_guia_remision    = $data['clave_api_guia_remision'] ?? $config->clave_api_guia_remision;
+        $config->sol_user                   = $data['sol_user']                ?? $config->sol_user;
+        $config->sol_pass                   = $data['sol_pass']                ?? $config->sol_pass;
+        $config->cpe_client_id              = $data['cpe_client_id']           ?? $config->cpe_client_id;
+        $config->cpe_client_secret          = $data['cpe_client_secret']       ?? $config->cpe_client_secret;
 
         $config->save();
     }

@@ -835,7 +835,8 @@ export default {
 
             } catch (ex) {
                 this.loading = false;
-                alert("Error en consultarAPI" + ex);
+                const msg = ex?.response?.data?.message ?? 'Error al consultar el documento';
+                toastr.error(msg, 'ERROR AL CONSULTAR');
             }
         },
         CamposDNI(results) {
