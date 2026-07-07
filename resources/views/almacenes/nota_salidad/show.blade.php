@@ -1,31 +1,23 @@
 @extends('layout')
- @section('content')
 
 @section('almacenes-active', 'active')
 @section('nota_salidad-active', 'active')
 
-<div class="row wrapper border-bottom white-bg page-heading">
+@section('bread-module', 'Almacén')
+@section('bread-submodule', 'Ver Nota de Salida')
+@section('hero-title', 'Ver Nota de Salida')
+@section('hero-subtitle', 'Nota de Salida')
 
-    <div class="col-lg-12">
-       <h2  style="text-transform:uppercase"><b>VER NOTA DE SALIDA</b></h2>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{route('home')}}">Panel de Control</a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{{route('almacenes.nota_salidad.index')}}">Nota de Salidad</a>
-            </li>
-            <li class="breadcrumb-item active">
-                <strong>Vizualizar</strong>
-            </li>
+@section('content')
 
-        </ol>
-    </div>
-
-
-
-</div>
-
+@php
+    // Solo se muestran las tallas que tienen stock (cantidad > 0) en al menos un color del detalle.
+    $tallasConStockIds = collect($detalle)
+        ->filter(fn ($item) => (float) ($item->cantidad ?? 0) > 0)
+        ->pluck('talla_id')
+        ->unique();
+    $tallasConStock = $tallas->whereIn('id', $tallasConStockIds)->values();
+@endphp
 
 <div class="wrapper wrapper-content animated fadeInRight">
 
@@ -101,7 +93,9 @@
                                     <div class="panel-body">
                                         <hr>
                                         <div class="table-responsive">
-                                            @include('almacenes.nota_salidad.tables.tbl_ns_detalle')
+                                            @include('almacenes.nota_salidad.tables.tbl_ns_detalle',[
+                                                "tallas" => $tallasConStock
+                                            ])
                                         </div>
                                     </div>
                                 </div>
@@ -184,7 +178,7 @@ function pintarDetalleNotaSalida(){
     const producto_color_procesado  =   [];
     const bodyTablaDetalles         =   document.querySelector('#tabla_ns_detalle tbody');
     const detalles                  =   @json($detalle);
-    const tallas                    =   @json($tallas);
+    const tallas                    =   @json($tallasConStock);
 
     detalles.forEach((c)=>{
         htmlTallas=``;
@@ -200,7 +194,7 @@ function pintarDetalleNotaSalida(){
                     return ct.producto_id==c.producto_id && ct.color_id==c.color_id && t.id==ct.talla_id;
                 });
                 cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
-                htmlTallas += `<td>${cantidad}</td>`; 
+                htmlTallas += `<td>${Number(cantidad)>0?cantidad:''}</td>`;
             })
 
 

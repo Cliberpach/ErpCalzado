@@ -1,28 +1,23 @@
 @extends('layout')
-@section('content')
 
 @section('almacenes-active', 'active')
 @section('traslados-active', 'active')
 
-<div class="row wrapper border-bottom white-bg page-heading">
+@section('bread-module', 'Almacén')
+@section('bread-submodule', 'Ver Traslado')
+@section('hero-title', 'Ver Traslado')
+@section('hero-subtitle', 'Traslados')
 
-    <div class="col-lg-12">
-        <h2 style="text-transform:uppercase"><b>VER TRASLADO</b></h2>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{ route('home') }}">Panel de Control</a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{{ route('almacenes.traslados.index') }}">Traslados</a>
-            </li>
-            <li class="breadcrumb-item active">
-                <strong>Vizualizar</strong>
-            </li>
+@section('content')
 
-        </ol>
-    </div>
-</div>
-
+@php
+    // Solo se muestran las tallas que tienen stock (cantidad > 0) en al menos un color del detalle.
+    $tallasConStockIds = collect($detalle)
+        ->filter(fn ($item) => (float) ($item->cantidad ?? 0) > 0)
+        ->pluck('talla_id')
+        ->unique();
+    $tallasConStock = $tallas->whereIn('id', $tallasConStockIds)->values();
+@endphp
 
 <div class="wrapper wrapper-content animated fadeInRight">
 
@@ -141,7 +136,9 @@
                                 <div class="panel-body">
                                     <hr>
                                     <div class="table-responsive">
-                                        @include('almacenes.traslados.tables.tbl_traslado_show')
+                                        @include('almacenes.traslados.tables.tbl_traslado_show',[
+                                            "tallas" => $tallasConStock
+                                        ])
                                     </div>
                                 </div>
                             </div>
@@ -199,7 +196,7 @@
 
     function pintarDetalleTraslado() {
         const detalles = @json($detalle);
-        const tallas = @json($tallas);
+        const tallas = @json($tallasConStock);
         const bodyTablaDetalles = document.querySelector('#tbl_traslado_show tbody');
         let fila = ``;
         const producto_color_procesado = [];
@@ -221,7 +218,7 @@
 
                     cantidad.length != 0 ? cantidad = cantidad[0].cantidad : cantidad = '';
 
-                    htmlTallas += `<td>${cantidad}</td>`;
+                    htmlTallas += `<td>${Number(cantidad) > 0 ? cantidad : ''}</td>`;
                 });
 
                 fila += htmlTallas;

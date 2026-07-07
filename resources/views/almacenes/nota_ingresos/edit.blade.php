@@ -1,30 +1,24 @@
-@extends('layout') @section('content')
+@extends('layout')
 
 @section('almacenes-active', 'active')
 @section('nota_ingreso-active', 'active')
 
-<div class="row wrapper border-bottom white-bg page-heading">
+@section('bread-module', 'Almacén')
+@section('bread-submodule', 'Ver Nota de Ingreso')
+@section('hero-title', 'Ver Nota de Ingreso')
+@section('hero-subtitle', 'Nota de Ingresos')
 
-    <div class="col-lg-12">
-       <h2  style="text-transform:uppercase"><b>VER NOTA DE INGRESO</b></h2>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{route('home')}}">Panel de Control</a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{{route('almacenes.nota_ingreso.index')}}">NOTA DE INGRESOS</a>
-            </li>
-            <li class="breadcrumb-item active">
-                <strong>VER</strong>
-            </li>
+@section('content')
 
-        </ol>
-    </div>
-
-
-
-</div>
-
+@php
+    // Solo se muestran las tallas que tienen stock (cantidad > 0) en al menos un color del detalle.
+    $detalleData = json_decode($detalle, true) ?: [];
+    $tallasConStockIds = collect($detalleData)
+        ->filter(fn ($item) => (float) ($item['cantidad'] ?? 0) > 0)
+        ->pluck('talla_id')
+        ->unique();
+    $tallasConStock = $tallas->whereIn('id', $tallasConStockIds)->values();
+@endphp
 
 <div class="wrapper wrapper-content animated fadeInRight">
 
@@ -168,7 +162,8 @@
                                     <div class="row m-t-sm" style="text-transform:uppercase">
                                         <div class="col-lg-12">
                                             @include('almacenes.nota_ingresos.tabla-productos',[
-                                                "carrito" => "carrito"
+                                                "carrito" => "carrito",
+                                                "tallas" => $tallasConStock
                                             ])
                                         </div>
                                     </div> 
@@ -579,7 +574,7 @@ $(".select2_form").select2({
 <script>
     const selectModelo =  document.querySelector('#modelo');
     const tokenValue = document.querySelector('input[name="_token"]').value;
-    const tallas     = @json($tallas);
+    const tallas     = @json($tallasConStock);
     const detalleNotaIngresoPrevia = @json($detalle);
     const bodyTablaProductos  =  document.querySelector('#table-productos tbody');
     const bodyTablaDetalle  =  document.querySelector('#table-detalle tbody');
@@ -694,7 +689,7 @@ $(".select2_form").select2({
                         return ct.producto_id==c.producto_id && ct.color_id==c.color_id && t.id==ct.talla_id;
                     });
                     cantidad.length!=0?cantidad=cantidad[0].cantidad:cantidad=0;
-                    htmlTallas += `<td>${cantidad}</td>`; 
+                    htmlTallas += `<td>${Number(cantidad)>0?cantidad:''}</td>`;
                 })
 
 
