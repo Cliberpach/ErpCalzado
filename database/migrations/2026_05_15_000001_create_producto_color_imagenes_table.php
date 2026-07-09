@@ -12,7 +12,7 @@ class CreateProductoColorImagenesTable extends Migration
             $table->id();
 
             $table->unsignedInteger('producto_id');
-            $table->unsignedBigInteger('color_id');
+            $table->unsignedInteger('color_id');
 
             $table->string('img_route', 500)->comment('Ruta en storage, ej: public/productos/imagenes/archivo.jpg');
             $table->string('img_name', 255)->comment('Nombre original del archivo');

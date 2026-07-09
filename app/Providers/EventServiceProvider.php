@@ -50,6 +50,9 @@ class EventServiceProvider extends ServiceProvider
         Login::class => [
             BroadcastUserLogin::class,
         ],
+        \App\Events\ProductoActualizadoEvent::class => [
+            \App\Listeners\NotificarEcommerceMerrisListener::class,
+        ],
     ];
 
     /**

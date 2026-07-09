@@ -24,8 +24,8 @@ class CreateGreenterConfigTable extends Migration
             $table->string('sol_user', 100);
             $table->string('sol_pass', 100);
             $table->foreign('empresa_id')->references('id')->on('empresas');
-            $table->string('cpe_client_id')->nullable()->after('clave_api_guia_remision');
-            $table->string('cpe_client_secret')->nullable()->after('cpe_client_id');
+            $table->string('cpe_client_id')->nullable();
+            $table->string('cpe_client_secret')->nullable();
             $table->timestamps();
         });
     }

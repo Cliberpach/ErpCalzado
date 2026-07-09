@@ -38,6 +38,7 @@ Route::prefix('productos')->group(function () {
     Route::get('get-by-tag', [ProductoController::class, 'getProductsByTag']);
     Route::get('get-home-products', [ProductoController::class, 'getHomeProducts']);
     Route::get('listing', [ProductoController::class, 'getListing']);
+    Route::get('stock-lote', [ProductoController::class, 'stockLote']); // Fase 4.3-A
 });
 
 Route::prefix('colores')->group(function () {

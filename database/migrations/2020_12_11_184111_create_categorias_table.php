@@ -21,8 +21,6 @@ class CreateCategoriasTable extends Migration
             $table->string('img_nombre', 200)->nullable();
             $table->enum('estado', ['ACTIVO', 'ANULADO'])->default('ACTIVO');
             $table->enum('tipo', ['CATEGORIA', 'FICTICIO'])->default('CATEGORIA');
-            $table->longText('img_ruta')->nullable();
-            $table->longText('img_nombre')->nullable();
             $table->timestamps();
         });
     }

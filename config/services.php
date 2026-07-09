@@ -30,4 +30,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Fase 4.2/4.4: webhook de producto hacia ecommerceMerris.
+    'ecommerce_merris' => [
+        'webhook_url'    => env('ECOMMERCE_MERRIS_WEBHOOK_URL'),
+        'webhook_secret' => env('ECOMMERCE_MERRIS_WEBHOOK_SECRET'),
+    ],
+
 ];

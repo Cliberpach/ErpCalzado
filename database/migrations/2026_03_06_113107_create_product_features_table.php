@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatProductFeatureTable extends Migration
+class CreateProductFeaturesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -16,7 +16,8 @@ class CreatProductFeatureTable extends Migration
         Schema::create('product_features', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
+            $table->unsignedInteger('product_id');
+            $table->foreign('product_id')->references('id')->on('productos')->onDelete('cascade');
 
             $table->string('title', 100);
             $table->string('icon', 50)->nullable();

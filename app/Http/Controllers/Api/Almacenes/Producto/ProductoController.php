@@ -767,4 +767,48 @@ class ProductoController extends Controller
             ),
         ]);
     }
+
+    /**
+     * Fase 4.3-A (ecommerceMerris): stock agregado por producto, en lote,
+     * para el badge "queda poco stock" en listados/home. NO es para validar
+     * una venta — eso sigue siendo `cart/validate-stock` en vivo,
+     * por talla/color exacto.
+     *
+     * GET productos/stock-lote?ids[]=1&ids[]=2...
+     */
+    public function stockLote(Request $request)
+    {
+        $ids = $request->get('ids', []);
+
+        if (empty($ids)) {
+            return response()->json(['success' => true, 'data' => []]);
+        }
+
+        $stock = DB::table('producto_color_tallas')
+            ->whereIn('producto_id', $ids)
+            ->where('almacen_id', 1)
+            ->where('estado', 'ACTIVO')
+            ->groupBy('producto_id')
+            ->selectRaw('producto_id, SUM(stock) as stock_total, SUM(stock_logico) as stock_logico_total')
+            ->get()
+            ->keyBy('producto_id');
+
+        $minimos = Producto::whereIn('id', $ids)->pluck('stock_minimo', 'id');
+
+        $data = collect($ids)->map(function ($id) use ($stock, $minimos) {
+            $fila = $stock->get($id);
+            $stockLogico = $fila->stock_logico_total ?? 0;
+            $stockMinimo = $minimos->get($id) ?? 0;
+
+            return [
+                'producto_id'       => (int) $id,
+                'stock_total'       => (int) ($fila->stock_total ?? 0),
+                'stock_logico'      => (int) $stockLogico,
+                'stock_bajo'        => $stockLogico > 0 && $stockLogico <= $stockMinimo,
+                'sin_stock'         => $stockLogico <= 0,
+            ];
+        })->values();
+
+        return response()->json(['success' => true, 'data' => $data]);
+    }
 }
