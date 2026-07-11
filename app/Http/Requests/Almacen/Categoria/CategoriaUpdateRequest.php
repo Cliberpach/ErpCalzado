@@ -58,6 +58,8 @@ class CategoriaUpdateRequest extends FormRequest
                 'mimes:jpg,jpeg,png,webp,avif',
                 'max:2048'
             ],
+
+            'mostrar_en_web' => 'nullable|boolean',
         ];
     }
 
@@ -75,6 +77,8 @@ class CategoriaUpdateRequest extends FormRequest
             'imagen.image' => 'El archivo debe ser una imagen válida.',
             'imagen.mimes' => 'La imagen debe ser de tipo: jpg, jpeg, png, webp o avif.',
             'imagen.max' => 'La imagen no debe superar los 2 MB.',
+
+            'mostrar_en_web.boolean' => 'El campo MOSTRAR EN WEB debe ser verdadero o falso.',
         ];
     }
 

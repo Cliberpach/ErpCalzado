@@ -112,6 +112,10 @@
                 const pond = FilePond.create(input, {
                     allowMultiple: false,
                     instantUpload: false,
+                    // Sin esto, FilePond gestiona el archivo aparte y nunca
+                    // lo devuelve al <input> original — `new FormData(form)`
+                    // lo manda vacío (bug reportado 2026-07-10, ver edit.blade.php).
+                    storeAsFile: true,
                     maxFileSize: "2MB",
                     acceptedFileTypes: [
                         "image/jpeg",

@@ -36,7 +36,8 @@ class CategoriaController extends Controller
             'id',
             'descripcion',
             'img_ruta',
-            'img_nombre'
+            'img_nombre',
+            'mostrar_en_web'
         )
             ->where('estado', 'ACTIVO');
 

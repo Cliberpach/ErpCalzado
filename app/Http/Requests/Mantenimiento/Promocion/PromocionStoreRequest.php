@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Mantenimiento\Promocion;
 
+use App\Classes\TipoPromocion;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
@@ -44,7 +45,7 @@ class PromocionStoreRequest extends FormRequest
 
                 'required',
 
-                'in:descuento_fijo,descuento_porcentaje,precio_total',
+                TipoPromocion::reglaValidacion(),
             ],
 
             'valor' => [

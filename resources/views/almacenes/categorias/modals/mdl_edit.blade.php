@@ -64,7 +64,8 @@
         }
         paramsMdlEditCategoria.row = row;
 
-        document.querySelector('#nombre_edit').value = row.descripcion;
+        document.querySelector('#descripcion_edit').value = row.descripcion;
+        document.querySelector('#mostrar_en_web_edit').checked = !!row.mostrar_en_web;
 
         if (!paramsMdlEditCategoria.fpImg) return;
         paramsMdlEditCategoria.fpImg.removeFiles();

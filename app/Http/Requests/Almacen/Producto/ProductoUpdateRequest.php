@@ -76,6 +76,16 @@ class ProductoUpdateRequest extends FormRequest
             'imagen4' => 'nullable|file|mimes:jpg,jpeg,webp,avif|max:2048',
             'imagen5' => 'nullable|file|mimes:jpg,jpeg,webp,avif|max:2048',
 
+            // Sin esto, $request->validated() los descarta antes de llegar
+            // a ProductoRepository::actualizarImagenes() — el borrado de
+            // imagen queda inerte aunque el repositorio ya lo soporte
+            // (bug reportado 2026-07-10).
+            'remove_imagen1' => 'nullable|boolean',
+            'remove_imagen2' => 'nullable|boolean',
+            'remove_imagen3' => 'nullable|boolean',
+            'remove_imagen4' => 'nullable|boolean',
+            'remove_imagen5' => 'nullable|boolean',
+
             'mostrar_en_web' => 'nullable|boolean',
             'descripcion' => 'nullable|string|max:300',
 

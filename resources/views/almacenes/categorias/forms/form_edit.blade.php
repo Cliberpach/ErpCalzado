@@ -27,4 +27,14 @@
 
     </div>
 
+    <div class="form-group">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="mostrar_en_web_edit" name="mostrar_en_web" value="1">
+            <label class="form-check-label fw-bold" for="mostrar_en_web_edit">
+                MOSTRAR EN WEB
+            </label>
+        </div>
+        <small class="text-danger font-weight-bold mostrar_en_web_error"></small>
+    </div>
+
 </form>

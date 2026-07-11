@@ -22,6 +22,7 @@ class CategoriaController extends Controller
             )
                 ->where('estado', 'ACTIVO')
                 ->where('tipo', 'CATEGORIA')
+                ->where('mostrar_en_web', true)
                 ->get()
                 ->map(function ($categoria) {
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Mantenimiento\Promocion;
 
+use App\Classes\TipoPromocion;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
@@ -14,9 +15,17 @@ class PromocionUpdateRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Solo nombre/descripcion se normalizan a mayúscula (igual que store()).
+     * tipo_promocion es un enum interno en minúscula — nunca debe
+     * transformarse, o deja de matchear con las comparaciones de
+     * tipo_promocion en el JS de ambos repos (index.blade.php,
+     * promo-card.js, ui.js), que comparan en minúscula exacta.
+     */
     protected function prepareForValidation()
     {
         $cleanData = [];
+        $aMayuscula = ['nombre', 'descripcion'];
 
         foreach ($this->all() as $key => $value) {
 
@@ -24,7 +33,7 @@ class PromocionUpdateRequest extends FormRequest
 
                 $newKey = str_replace('_edit', '', $key);
 
-                $cleanData[$newKey] = is_string($value)
+                $cleanData[$newKey] = (is_string($value) && in_array($newKey, $aMayuscula, true))
                     ? mb_strtoupper(trim($value), 'UTF-8')
                     : $value;
             }
@@ -61,7 +70,7 @@ class PromocionUpdateRequest extends FormRequest
 
                 'required',
 
-                'in:DESCUENTO_FIJO,DESCUENTO_PORCENTAJE,PRECIO_TOTAL',
+                TipoPromocion::reglaValidacion(),
             ],
 
             'valor' => [

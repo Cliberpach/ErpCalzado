@@ -210,6 +210,8 @@ array:2 [
 */
     public function addProducts(Request $request, $id)
     {
+        $this->authorize('haveaccess', 'mantenimiento.promociones.index');
+
         DB::beginTransaction();
 
         try {
@@ -225,6 +227,17 @@ array:2 [
 
             // NORMALIZAR IDS
             $productos = array_map('intval', $productos);
+
+            // Serializa por producto: si el producto no tiene fila previa en
+            // promociones_productos, no hay nada que el lock del join de abajo
+            // pueda bloquear, y dos requests concurrentes agregando el mismo
+            // producto a dos promociones distintas pasarían ambas la
+            // validación. Bloqueando la fila de `productos` (que sí existe
+            // siempre) se fuerza a que la segunda transacción espere.
+            DB::table('productos')
+                ->whereIn('id', $productos)
+                ->lockForUpdate()
+                ->get();
 
             /*
         |--------------------------------------------------------------------------
@@ -253,6 +266,10 @@ array:2 [
                     'productos.nombre'
                 )
                 ->distinct()
+                // Evita condición de carrera: dos requests concurrentes agregando
+                // el mismo producto a dos promociones distintas podían pasar
+                // ambas esta validación antes de que cualquiera hiciera commit.
+                ->lockForUpdate()
                 ->get();
 
             if ($productosEnPromocion->isNotEmpty()) {
@@ -321,6 +338,8 @@ array:2 [
 
     public function getProductsPromocion($id)
     {
+        $this->authorize('haveaccess', 'mantenimiento.promociones.index');
+
         try {
 
             $productos = DB::table('promociones_productos')

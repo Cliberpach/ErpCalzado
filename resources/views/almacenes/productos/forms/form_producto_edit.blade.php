@@ -310,26 +310,31 @@
                         <!-- Imagen 1 -->
                         <div class="col-md-4 col-6 mb-3">
                             <input type="file" class="filepond" name="imagen1" />
+                            <input type="hidden" name="remove_imagen1" id="remove_imagen1" value="0">
                         </div>
 
                         <!-- Imagen 2 -->
                         <div class="col-md-4 col-6 mb-3">
                             <input type="file" class="filepond" name="imagen2" />
+                            <input type="hidden" name="remove_imagen2" id="remove_imagen2" value="0">
                         </div>
 
                         <!-- Imagen 3 -->
                         <div class="col-md-4 col-6 mb-3">
                             <input type="file" class="filepond" name="imagen3" />
+                            <input type="hidden" name="remove_imagen3" id="remove_imagen3" value="0">
                         </div>
 
                         <!-- Imagen 4 -->
                         <div class="col-md-4 col-6 mb-3">
                             <input type="file" class="filepond" name="imagen4" />
+                            <input type="hidden" name="remove_imagen4" id="remove_imagen4" value="0">
                         </div>
 
                         <!-- Imagen 5 -->
                         <div class="col-md-4 col-6 mb-3">
                             <input type="file" class="filepond" name="imagen5" />
+                            <input type="hidden" name="remove_imagen5" id="remove_imagen5" value="0">
                         </div>
 
                     </div>

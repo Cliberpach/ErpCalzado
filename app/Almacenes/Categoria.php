@@ -13,7 +13,8 @@ class Categoria extends Model
         'estado',
         'tipo',
         'img_ruta',
-        'img_nombre'
+        'img_nombre',
+        'mostrar_en_web'
     ];
     public $timestamps = true;
 }

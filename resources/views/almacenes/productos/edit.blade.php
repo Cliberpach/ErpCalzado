@@ -532,12 +532,19 @@
 
             inputs.forEach((input, index) => {
 
-                const campo = `img${index + 1}_ruta`;
+                const i = index + 1;
+                const campo = `img${i}_ruta`;
                 const url = producto[campo] ? @json(asset('')) + `${producto[campo]}` : null;
+                const removeFlag = document.getElementById(`remove_imagen${i}`);
 
                 const pond = FilePond.create(input, {
                     allowMultiple: false,
                     instantUpload: false,
+                    // Sin esto, FilePond gestiona el archivo aparte y nunca
+                    // lo devuelve al <input> original — `new FormData(form)`
+                    // lo manda vacío y el guardado/borrado de imágenes
+                    // generales queda inerte (bug reportado 2026-07-10).
+                    storeAsFile: true,
 
                     acceptedFileTypes: [
                         'image/jpeg',
@@ -555,7 +562,17 @@
 
                     files: url ? [{
                         source: url
-                    }] : []
+                    }] : [],
+
+                    // El backend (ProductoRepository::actualizarImagenes)
+                    // ya soporta borrar vía remove_imagen{n}, pero nada
+                    // en el front lo enviaba — de ahí que "tampoco borre".
+                    onremovefile: (error) => {
+                        if (!error && removeFlag) removeFlag.value = '1';
+                    },
+                    onaddfile: (error) => {
+                        if (!error && removeFlag) removeFlag.value = '0';
+                    },
                 });
 
                 ponds.push(pond);
