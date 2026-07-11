@@ -43,6 +43,7 @@ class ProductoController extends Controller
                 'p.img3_ruta',
                 'p.img4_ruta',
                 'p.img5_ruta',
+                'p.updated_at',
                 'c.descripcion as categoria_nombre'
             )
             ->where('p.tipo', 'PRODUCTO')
@@ -118,6 +119,8 @@ class ProductoController extends Controller
             ->groupBy('producto_id');
 
         $data = $productos->getCollection()->map(function ($producto) use ($colores) {
+            $v = strtotime($producto->updated_at);
+
             return [
                 'id' => $producto->id,
                 'nombre' => $producto->nombre,
@@ -127,11 +130,11 @@ class ProductoController extends Controller
                 'precio_venta_2' => floatval($producto->precio_venta_2),
                 'precio_venta_3' => floatval($producto->precio_venta_3),
 
-                'img1_url' => $producto->img1_ruta ? asset($producto->img1_ruta) : null,
-                'img2_url' => $producto->img2_ruta ? asset($producto->img2_ruta) : null,
-                'img3_url' => $producto->img3_ruta ? asset($producto->img3_ruta) : null,
-                'img4_url' => $producto->img4_ruta ? asset($producto->img4_ruta) : null,
-                'img5_url' => $producto->img5_ruta ? asset($producto->img5_ruta) : null,
+                'img1_url' => $producto->img1_ruta ? asset($producto->img1_ruta) . '?v=' . $v : null,
+                'img2_url' => $producto->img2_ruta ? asset($producto->img2_ruta) . '?v=' . $v : null,
+                'img3_url' => $producto->img3_ruta ? asset($producto->img3_ruta) . '?v=' . $v : null,
+                'img4_url' => $producto->img4_ruta ? asset($producto->img4_ruta) . '?v=' . $v : null,
+                'img5_url' => $producto->img5_ruta ? asset($producto->img5_ruta) . '?v=' . $v : null,
 
                 'colores'       => isset($colores[$producto->id]) ? $colores[$producto->id]->values() : []
             ];
@@ -170,6 +173,7 @@ class ProductoController extends Controller
                     'p.img3_ruta',
                     'p.img4_ruta',
                     'p.img5_ruta',
+                    'p.updated_at',
                     'c.descripcion as categoria_nombre'
                 )
                 ->where('p.tipo', 'PRODUCTO')
@@ -225,6 +229,8 @@ class ProductoController extends Controller
                 ->select('title', 'icon', 'description')
                 ->get();
 
+            $v = strtotime($producto->updated_at);
+
             $data = [
                 'id' => $producto->id,
                 'disponible'    =>  $cant_tallas === 0 ? false : true,
@@ -236,11 +242,11 @@ class ProductoController extends Controller
                 'precio_venta_2' => floatval($producto->precio_venta_2),
                 'precio_venta_3' => floatval($producto->precio_venta_3),
 
-                'img1_url'      => $producto->img1_ruta ? asset($producto->img1_ruta) : null,
-                'img2_url'      => $producto->img2_ruta ? asset($producto->img2_ruta) : null,
-                'img3_url'      => $producto->img3_ruta ? asset($producto->img3_ruta) : null,
-                'img4_url'      => $producto->img4_ruta ? asset($producto->img4_ruta) : null,
-                'img5_url'      => $producto->img5_ruta ? asset($producto->img5_ruta) : null,
+                'img1_url'      => $producto->img1_ruta ? asset($producto->img1_ruta) . '?v=' . $v : null,
+                'img2_url'      => $producto->img2_ruta ? asset($producto->img2_ruta) . '?v=' . $v : null,
+                'img3_url'      => $producto->img3_ruta ? asset($producto->img3_ruta) . '?v=' . $v : null,
+                'img4_url'      => $producto->img4_ruta ? asset($producto->img4_ruta) . '?v=' . $v : null,
+                'img5_url'      => $producto->img5_ruta ? asset($producto->img5_ruta) . '?v=' . $v : null,
                 'colores'       => $colores,
                 'features'      => $features,
             ];
@@ -403,6 +409,7 @@ class ProductoController extends Controller
                     'p.is_featured',
                     'p.is_sale',
                     'p.is_outlet',
+                    'p.updated_at',
                     'c.descripcion as categoria_nombre',
                     'm.marca as marca_nombre'
                 )
@@ -433,9 +440,11 @@ class ProductoController extends Controller
                 ->groupBy('producto_id');
 
             $baseUrl = url('storage/');
-            $imgUrl  = fn($ruta) => $ruta ? $baseUrl . '/' . str_replace('storage/', '', $ruta) : null;
+            $imgUrl  = fn($ruta, $v) => $ruta ? $baseUrl . '/' . str_replace('storage/', '', $ruta) . '?v=' . $v : null;
 
             $data = $products->map(function ($p) use ($colores, $imgUrl) {
+                $v = strtotime($p->updated_at);
+
                 return [
                     'id'               => $p->id,
                     'nombre'           => $p->nombre,
@@ -444,9 +453,9 @@ class ProductoController extends Controller
                     'precio_venta_1'   => floatval($p->precio_venta_1),
                     'precio_venta_2'   => floatval($p->precio_venta_2),
                     'precio_venta_3'   => floatval($p->precio_venta_3),
-                    'img1_url'         => $imgUrl($p->img1_ruta),
-                    'img2_url'         => $imgUrl($p->img2_ruta),
-                    'img3_url'         => $imgUrl($p->img3_ruta),
+                    'img1_url'         => $imgUrl($p->img1_ruta, $v),
+                    'img2_url'         => $imgUrl($p->img2_ruta, $v),
+                    'img3_url'         => $imgUrl($p->img3_ruta, $v),
                     'is_featured'      => (bool) $p->is_featured,
                     'is_sale'          => (bool) $p->is_sale,
                     'is_outlet'        => (bool) $p->is_outlet,
@@ -625,7 +634,7 @@ class ProductoController extends Controller
                 'p.id', 'p.nombre',
                 'p.precio_venta_1', 'p.precio_venta_2', 'p.precio_venta_3',
                 'p.img1_ruta', 'p.img2_ruta', 'p.img3_ruta',
-                'p.is_featured', 'p.is_sale', 'p.is_outlet', 'p.created_at',
+                'p.is_featured', 'p.is_sale', 'p.is_outlet', 'p.created_at', 'p.updated_at',
                 'c.descripcion as categoria_nombre', 'm.marca as marca_nombre'
             );
 
@@ -661,9 +670,11 @@ class ProductoController extends Controller
                 ->groupBy('producto_id');
 
             $baseUrl = url('storage/');
-            $imgUrl  = fn($ruta) => $ruta ? $baseUrl . '/' . str_replace('storage/', '', $ruta) : null;
+            $imgUrl  = fn($ruta, $v) => $ruta ? $baseUrl . '/' . str_replace('storage/', '', $ruta) . '?v=' . $v : null;
 
             $data = $products->map(function ($p) use ($colores, $imgUrl) {
+                $v = strtotime($p->updated_at);
+
                 return [
                     'id'               => $p->id,
                     'nombre'           => $p->nombre,
@@ -672,9 +683,9 @@ class ProductoController extends Controller
                     'precio_venta_1'   => floatval($p->precio_venta_1),
                     'precio_venta_2'   => floatval($p->precio_venta_2),
                     'precio_venta_3'   => floatval($p->precio_venta_3),
-                    'img1_url'         => $imgUrl($p->img1_ruta),
-                    'img2_url'         => $imgUrl($p->img2_ruta),
-                    'img3_url'         => $imgUrl($p->img3_ruta),
+                    'img1_url'         => $imgUrl($p->img1_ruta, $v),
+                    'img2_url'         => $imgUrl($p->img2_ruta, $v),
+                    'img3_url'         => $imgUrl($p->img3_ruta, $v),
                     'is_featured'      => (bool) $p->is_featured,
                     'is_sale'          => (bool) $p->is_sale,
                     'is_outlet'        => (bool) $p->is_outlet,
