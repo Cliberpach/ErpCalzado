@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Almacenes;
 
+use App\Events\ProductoActualizadoEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Almacenes\Producto\ProductoColorImagen;
 use Illuminate\Http\Request;
@@ -78,6 +79,8 @@ class ProductoColorImagenController extends Controller
 
             DB::commit();
 
+            ProductoActualizadoEvent::dispatch($productoId, 'actualizado');
+
             return response()->json([
                 'success' => true,
                 'data'    => [
@@ -125,6 +128,8 @@ class ProductoColorImagenController extends Controller
             }
 
             DB::commit();
+
+            ProductoActualizadoEvent::dispatch($productoId, 'actualizado');
 
             return response()->json(['success' => true, 'message' => 'Imagen eliminada.']);
         } catch (Throwable $th) {

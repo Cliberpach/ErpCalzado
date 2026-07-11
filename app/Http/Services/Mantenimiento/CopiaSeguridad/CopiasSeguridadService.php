@@ -8,6 +8,8 @@ use Throwable;
 
 class CopiasSeguridadService
 {
+    private const MAX_BACKUPS = 3;
+
     private CopiasSeguridadRepository $repository;
 
     public function __construct()
@@ -30,6 +32,7 @@ class CopiasSeguridadService
             $tamano  = $this->repository->tamanoArchivo($this->repository->rutaArchivo($zipName));
 
             $this->repository->marcarCompletado($registro, $zipName, $tamano);
+            $this->repository->limpiarAntiguos(self::MAX_BACKUPS);
         } catch (Throwable $th) {
             $this->repository->marcarFallido($registro, $th->getMessage());
             throw $th;

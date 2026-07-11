@@ -534,7 +534,8 @@
 
                 const i = index + 1;
                 const campo = `img${i}_ruta`;
-                const url = producto[campo] ? @json(asset('')) + `${producto[campo]}` : null;
+                const v = producto.updated_at ? new Date(producto.updated_at).getTime() : Date.now();
+                const url = producto[campo] ? @json(asset('')) + `${producto[campo]}?v=${v}` : null;
                 const removeFlag = document.getElementById(`remove_imagen${i}`);
 
                 const pond = FilePond.create(input, {

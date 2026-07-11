@@ -54,6 +54,21 @@ class CopiasSeguridadRepository
         CopiaSeguridad::findOrFail($id)->delete();
     }
 
+    public function limpiarAntiguos(int $keep): void
+    {
+        $antiguos = CopiaSeguridad::where('estado', 'COMPLETADO')
+            ->orderByDesc('id')
+            ->skip($keep)
+            ->get();
+
+        foreach ($antiguos as $registro) {
+            if ($registro->nombre) {
+                $this->eliminarArchivo($registro->nombre);
+            }
+            $registro->delete();
+        }
+    }
+
     public function generarDump(): string
     {
         $config  = config('database.connections.mysql');
