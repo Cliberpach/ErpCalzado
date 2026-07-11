@@ -210,17 +210,25 @@
             <table class="tbl-detalles text-uppercase" cellpadding="5" cellspacing="0">
                 <thead>
                     <tr >
-                        <th style="text-align: left; width: 10%;">CANT</th>
-                        <th style="text-align: left;  width: 10%;">UM</th>
-                        <th style="text-align: left;  width: 60%;">DESCRIPCION</th>
+                        <th style="text-align: left; width: 8%;">CANT</th>
+                        <th style="text-align: left; width: 22%;">PRODUCTO</th>
+                        <th style="text-align: left; width: 15%;">CATEGORIA</th>
+                        <th style="text-align: left; width: 15%;">MARCA</th>
+                        <th style="text-align: left; width: 15%;">MODELO</th>
+                        <th style="text-align: left; width: 12%;">COLOR</th>
+                        <th style="text-align: left; width: 13%;">TALLA</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($detalles as $item)
                     <tr>
                         <td style="text-align: left">{{ number_format($item->cantidad, 2) }}</td>
-                        <td style="text-align: left">{{ $item->producto->getMedida() }}</td>
                         <td style="text-align: left">{{ $item->producto->nombre }}</td>
+                        <td style="text-align: left">{{ $item->producto->categoria->descripcion ?? '-' }}</td>
+                        <td style="text-align: left">{{ $item->producto->marca->marca ?? '-' }}</td>
+                        <td style="text-align: left">{{ $item->producto->modelo->descripcion ?? '-' }}</td>
+                        <td style="text-align: left">{{ $item->color->descripcion ?? '-' }}</td>
+                        <td style="text-align: left">{{ $item->talla->descripcion ?? '-' }}</td>
                     </tr>
                     @endforeach
                 </tbody>

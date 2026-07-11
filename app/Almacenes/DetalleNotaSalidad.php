@@ -65,6 +65,16 @@ class DetalleNotaSalidad extends Model
         return $this->belongsTo('App\Almacenes\LoteProducto','lote_id');
     }
 
+    public function color()
+    {
+        return $this->belongsTo('App\Almacenes\Color', 'color_id');
+    }
+
+    public function talla()
+    {
+        return $this->belongsTo('App\Almacenes\Talla', 'talla_id');
+    }
+
      // Método para desactivar el decremento de stock lógico
      public function disableDecrementarStockLogico()
      {
