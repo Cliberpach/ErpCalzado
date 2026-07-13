@@ -60,6 +60,7 @@ Route::prefix('shipping')->group(function () {
 Route::prefix('promotions')->group(function () {
     Route::get('/get-promotions', [PromotionController::class, 'getPromotions']);
     Route::get('/get-home-promotions', [PromotionController::class, 'getHomePromotions']);
+    Route::get('/get-promotion-products', [PromotionController::class, 'getPromotionProducts']);
 });
 
 Route::prefix('cart')->group(function () {

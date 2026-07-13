@@ -93,6 +93,66 @@ class PromotionController extends Controller
         }
     }
 
+    /**
+     * GET promotions/get-promotion-products?promocion_id=&limit=&offset=
+     * Membresía cruda producto↔promoción, por id (no por nombre), SIN join
+     * a stock. A diferencia de getPromotions() (que exige stock > 0 en
+     * almacen_id=1 para armar el listado comprable de /promotions/index),
+     * este endpoint responde solo "¿pertenece a la promo?" — lo consume
+     * ecommerceMerris (CatalogSyncService::syncPromotions) para armar el
+     * pivote local `promotion_product`, que es dato de catálogo/curación,
+     * no de disponibilidad de venta. Un producto sin stock hoy igual debe
+     * quedar asociado a la promo (se muestra en la vitrina, la venta se
+     * valida en vivo al agregar al carrito).
+     */
+    public function getPromotionProducts(Request $request)
+    {
+        try {
+            $promocionId = (int) $request->get('promocion_id');
+            if (!$promocionId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'promocion_id requerido',
+                ], 422);
+            }
+
+            $limit  = (int) $request->get('limit', 500);
+            $offset = (int) $request->get('offset', 0);
+
+            $query = PromocionProducto::from('promociones_productos as pp')
+                ->join('productos as p', 'p.id', '=', 'pp.producto_id')
+                ->where('pp.promocion_id', $promocionId)
+                ->where('pp.estado', 1)
+                ->where('p.estado', 'ACTIVO');
+
+            $total = (clone $query)->count();
+
+            $productIds = (clone $query)
+                ->orderBy('pp.producto_id')
+                ->skip($offset)
+                ->take($limit)
+                ->pluck('pp.producto_id');
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'product_ids' => $productIds,
+                    'meta' => [
+                        'total'    => $total,
+                        'limit'    => $limit,
+                        'offset'   => $offset,
+                        'has_more' => ($offset + $limit) < $total,
+                    ],
+                ],
+            ]);
+        } catch (Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
     public function getPromotions(Request $request)
     {
         try {
