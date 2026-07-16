@@ -64,6 +64,7 @@ class PermissionsSeeder extends Seeder
         // Pedidos
         Permission::create(['name' => 'Pedidos', 'slug' => 'pedido.pedido.index', 'description' => 'El usuario puede acceder a pedidos']);
         Permission::create(['name' => 'Detalles de Pedidos', 'slug' => 'pedido.pedidos_detalles.index', 'description' => 'El usuario puede acceder a detalles de pedidos']);
+        Permission::create(['name' => 'Reservas Web', 'slug' => 'pedido.reservas_web.index', 'description' => 'El usuario puede confirmar/anular reservas del ecommerce (carrito Fase F)']);
 
         // Almacén
         Permission::create(['name' => 'Almacén', 'slug' => 'almacen.almacen.index', 'description' => 'El usuario puede acceder a almacén']);

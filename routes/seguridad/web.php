@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('seguridad')->group(function () {
+Route::prefix('seguridad')->middleware('auth')->group(function () {
 
     //Users
     Route::prefix('users')->group(function () {

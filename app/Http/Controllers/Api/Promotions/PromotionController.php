@@ -299,7 +299,12 @@ class PromotionController extends Controller
                 )
                 ->where('pct.almacen_id', 1)
                 ->where('pct.stock', '>', 0)
-                ->groupBy('pct.producto_id', 'pct.talla_id', 'pct.color_id')
+                // t.descripcion/co.descripcion van en el GROUP BY porque
+                // están en el SELECT sin agregar (SUM solo aplica a
+                // pct.stock) — con sql_mode=ONLY_FULL_GROUP_BY, MySQL no
+                // asume la dependencia funcional a través del join aunque
+                // sea 1:1 con talla_id/color_id (error 1055 sin esto).
+                ->groupBy('pct.producto_id', 'pct.talla_id', 't.descripcion', 'pct.color_id', 'co.descripcion')
                 ->get()
                 ->groupBy('product_id');
 

@@ -199,9 +199,6 @@
                             url_editar = url_editar.replace(':id', data.id);
 
                             const nombre = (data.nombre || '').substring(0, 40);
-                            const imgBadge = data.total_imagenes > 0
-                                ? `<span class="badge badge-success ml-1" style="font-size:0.65rem;">${data.total_imagenes}</span>`
-                                : `<span class="badge badge-secondary ml-1" style="font-size:0.65rem;">0</span>`;
 
                             return `
                             <div class="btn-group" style="text-transform:capitalize;">
@@ -217,13 +214,6 @@
                                     <li>
                                         <a class="dropdown-item modificarDetalle" href="${url_editar}" title="Modificar">
                                             <i class="fa fa-edit text-warning mr-1"></i> Editar
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="#"
-                                           onclick="openMdlImagenes(${data.id}, '${nombre}')"
-                                           title="Gestionar imágenes por color">
-                                            <i class="fas fa-images text-primary mr-1"></i> Imágenes ${imgBadge}
                                         </a>
                                     </li>
                                     <li><div class="dropdown-divider"></div></li>

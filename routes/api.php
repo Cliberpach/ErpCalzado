@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Almacenes\Talla\TallaController;
 use App\Http\Controllers\Api\Company\CompanyController;
 use App\Http\Controllers\Api\Promotions\PromotionController;
 use App\Http\Controllers\Api\Cart\CartController;
+use App\Http\Controllers\Api\ReservasWeb\ReservaWebController;
 use App\Http\Controllers\Api\Shipping\ShippingController;
 
 /*
@@ -51,6 +52,7 @@ Route::prefix('tallas')->group(function () {
 
 Route::prefix('company')->group(function () {
     Route::get('/get-company-locations', [CompanyController::class, 'getCompanyLocations']);
+    Route::post('/stock-por-sede', [CompanyController::class, 'stockPorSede']);
 });
 
 Route::prefix('shipping')->group(function () {
@@ -65,4 +67,9 @@ Route::prefix('promotions')->group(function () {
 
 Route::prefix('cart')->group(function () {
     Route::get('/validate-stock', [CartController::class, 'validateStock']);
+    Route::post('/validate-stock-lote', [CartController::class, 'validateStockLote']);
+});
+
+Route::prefix('reservas-web')->middleware('reservas-web.token')->group(function () {
+    Route::post('/', [ReservaWebController::class, 'store']);
 });

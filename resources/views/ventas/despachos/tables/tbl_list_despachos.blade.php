@@ -2,6 +2,7 @@
     <thead>
         <tr>
             <th class="text-center" rowspan="2">MODO</th>
+            <th class="text-center" rowspan="2">ORIGEN</th>
 
             <th class="text-center" colspan="5">DOC VENTA</th>
 

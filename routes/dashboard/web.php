@@ -3,7 +3,7 @@
 use App\Http\Controllers\Dashboard\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('dashboard')->group(function () {
+Route::prefix('dashboard')->middleware('auth')->group(function () {
     Route::prefix('dashboard')->group(function () {
         Route::get('getData', [DashboardController::class, 'getData'])->name('dashboard.getData');
         Route::get('getTopProducts', [DashboardController::class, 'getTopProducts'])->name('dashboard.getTopProducts');

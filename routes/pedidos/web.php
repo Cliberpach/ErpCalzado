@@ -3,7 +3,7 @@
     use App\Http\Controllers\Pedidos\PedidoController;
     use Illuminate\Support\Facades\Route;
 
-    Route::prefix('pedidos')->group(function () {
+    Route::prefix('pedidos')->middleware('auth')->group(function () {
 
         //PEDIDOS-PEDIDOS
         Route::prefix('pedidos')->group(function () {
@@ -63,5 +63,20 @@
             Route::get('/getProductosByModelo/{modelo_id}', 'Pedidos\OrdenProduccionController@getProductosByModelo')->name('pedidos.ordenes_produccion.getProductosByModelo');
             Route::get('/getColoresTallas/{producto_id}', 'Pedidos\OrdenProduccionController@getColoresTallas')->name('pedidos.ordenes_produccion.getColoresTallas');
             Route::post('store', 'Pedidos\OrdenProduccionController@store')->name('pedidos.ordenes_produccion.store');
+        });
+
+        //======= PEDIDOS - RESERVAS WEB (carrito Fase F, ecommerceMerris) =======
+        Route::prefix('reservas-web')->group(function () {
+            Route::get('index', 'Pedidos\ReservaWebController@index')->name('pedidos.reservas_web.index');
+            Route::get('getTable', 'Pedidos\ReservaWebController@getTable')->name('pedidos.reservas_web.getTable');
+            Route::get('getDetalle/{id}', 'Pedidos\ReservaWebController@getDetalle')->name('pedidos.reservas_web.getDetalle');
+            Route::get('show/{id}', 'Pedidos\ReservaWebController@show')->name('pedidos.reservas_web.show');
+            Route::post('confirmar/{id}', 'Pedidos\ReservaWebController@confirmar')->name('pedidos.reservas_web.confirmar');
+            Route::post('anular/{id}', 'Pedidos\ReservaWebController@anular')->name('pedidos.reservas_web.anular');
+            Route::get('getAlmacenesOrigen/{id}', 'Pedidos\ReservaWebController@getAlmacenesOrigen')->name('pedidos.reservas_web.getAlmacenesOrigen');
+            Route::post('cubrir-stock/{id}', 'Pedidos\ReservaWebController@cubrirStock')->name('pedidos.reservas_web.cubrirStock');
+            Route::post('eliminar/{id}', 'Pedidos\ReservaWebController@eliminar')->name('pedidos.reservas_web.eliminar');
+            Route::get('getModo', 'Pedidos\ReservaWebController@getModo')->name('pedidos.reservas_web.getModo');
+            Route::post('setModo', 'Pedidos\ReservaWebController@setModo')->name('pedidos.reservas_web.setModo');
         });
     });

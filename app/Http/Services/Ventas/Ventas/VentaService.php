@@ -2,6 +2,7 @@
 
 namespace App\Http\Services\Ventas\Ventas;
 
+use App\Almacenes\Almacen;
 use App\Http\Controllers\UtilidadesController;
 use App\Http\Services\Almacen\ProductoColorTalla\ProductoColorTallaService;
 use App\Http\Services\Almacen\Productos\ProductoService;
@@ -9,8 +10,14 @@ use App\Http\Services\Kardex\Cuenta\KardexCuentaService;
 use App\Http\Services\Produccion\Orden\OrdenProduccionService;
 use App\Http\Services\Ventas\Despacho\DespachoService;
 use App\Mantenimiento\Empresa\Empresa;
+use App\Mantenimiento\MetodoEntrega\EmpresaEnvioSede;
+use App\Mantenimiento\MetodoEntrega\MetodoEntrega;
 use App\Mantenimiento\Sedes\Sede;
+use App\Mantenimiento\Tabla\Detalle as TablaDetalle;
 use App\Mantenimiento\TipoPago\TipoPago;
+use App\Models\Ventas\ReservaWeb\ReservaWeb;
+use App\Models\Ventas\TipoCliente\TipoCliente;
+use App\Ventas\Cliente;
 use App\Ventas\CuentaCliente;
 use App\Ventas\DetalleCuentaCliente;
 use App\Ventas\Documento\Detalle;
@@ -18,6 +25,7 @@ use App\Ventas\Documento\Documento;
 use App\Ventas\EnvioVenta;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\UploadedFile;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -495,5 +503,201 @@ class VentaService
             'producto_colores' => $colores,
             'precios_venta'    => $precios_venta
         ];
+    }
+
+    /**
+     * Genera el comprobante fiscal (y, para recojo en tienda, el
+     * despacho) de una reserva_web confirmada.
+     * (docs/PLANIFICATIONS/2026-07-15-plan-despacho-web-auto.md,
+     * docs/PLANIFICATIONS/2026-07-15-plan-pendientes.md Fase 2)
+     *
+     * `facturar=true` evita que store()/insertarDetalleVenta() vuelva a
+     * descontar stock (ya se descontó en
+     * Api\ReservasWeb\ReservaWebController::store()) — verificado leyendo
+     * VentaRepository::insertarDetalleVenta() líneas 100-143. Ese mismo
+     * flag hace que VentaRepository::insertarDespacho() NO cree el
+     * EnvioVenta (se salta cuando facturar=true) — por eso el EnvioVenta
+     * se arma acá aparte, en crearEnvioRecojoTienda(), en vez de mandar
+     * `data_envio` en $datos. No se toca insertarDespacho() ni su
+     * condición: es código compartido con el flujo interno de Pedidos,
+     * que también depende de facturar=true + sin despacho ahí.
+     *
+     * Alcance actual (decidido 2026-07-15): solo recojo en tienda genera
+     * despacho automático — el mapeo sede→empresa de envío ya existe en
+     * el catálogo real. Envío a domicilio genera el comprobante pero el
+     * despacho lo arma el staff a mano, como hoy (sin transportista por
+     * defecto definido todavía).
+     */
+    public function storeFromEcommerce(ReservaWeb $reserva, string $modo = 'PRODUCCION'): Documento
+    {
+        $reserva->loadMissing('detalle');
+
+        $esFactura = (bool) $reserva->desea_factura;
+
+        // ===== 1. Cliente: buscar o crear/actualizar por documento, nunca duplicar =====
+        // tabladetalles tabla_id=3 (tipo de documento): 6=DNI, 7=CARNET EXT., 8=RUC
+        $tipoDocumentoId = $esFactura ? 8 : ($reserva->doc_tipo === 'DNI' ? 6 : 7);
+        $numeroDocumento = $esFactura ? $reserva->ruc : $reserva->doc_numero;
+        $tipoDocumentoDetalle = TablaDetalle::findOrFail($tipoDocumentoId);
+        $nombreCliente = $esFactura ? $reserva->razon_social : $reserva->cliente_nombre;
+
+        $cliente = Cliente::where('tipo_documento', $tipoDocumentoDetalle->simbolo)
+            ->where('documento', $numeroDocumento)
+            ->where('estado', 'ACTIVO')
+            ->first();
+
+        if ($cliente) {
+            // Decidido 2026-07-15: actualizar siempre con lo más reciente.
+            $cliente->nombre = mb_strtoupper($nombreCliente, 'UTF-8');
+            $cliente->correo_electronico = $reserva->cliente_email;
+            $cliente->telefono_movil = $reserva->cliente_telefono;
+            $cliente->direccion = $reserva->cliente_direccion ?: 'S/D'; // direccion_cliente es NOT NULL en cotizacion_documento
+            $cliente->save();
+        } else {
+            $tipoCliente = TipoCliente::findOrFail(3); // UNIDAD (decidido 2026-07-15)
+            $cliente = new Cliente();
+            $cliente->tipo_documento_id = $tipoDocumentoDetalle->id;
+            $cliente->tipo_documento = $tipoDocumentoDetalle->simbolo;
+            $cliente->documento = $numeroDocumento;
+            $cliente->nombre = mb_strtoupper($nombreCliente, 'UTF-8');
+            $cliente->correo_electronico = $reserva->cliente_email;
+            $cliente->telefono_movil = $reserva->cliente_telefono;
+            $cliente->direccion = $reserva->cliente_direccion ?: 'S/D'; // direccion_cliente es NOT NULL en cotizacion_documento
+            $cliente->tipo_cliente_id = $tipoCliente->id;
+            $cliente->tipo_cliente_nombre = $tipoCliente->nombre;
+            $cliente->estado = 'ACTIVO';
+            $cliente->save();
+        }
+
+        // ===== 2. Detalle de venta, agrupado por producto+color (shape que espera insertarDetalleVenta()) =====
+        $almacen = Almacen::findOrFail($reserva->almacen_id);
+
+        $grupos = $reserva->detalle->groupBy(fn ($d) => $d->producto_id . '-' . $d->color_id);
+        $lstVenta = [];
+        foreach ($grupos as $lineas) {
+            $first = $lineas->first();
+            $lstVenta[] = [
+                'producto_id'          => $first->producto_id,
+                'color_id'             => $first->color_id,
+                'producto_nombre'      => DB::table('productos')->where('id', $first->producto_id)->value('nombre'),
+                'color_nombre'         => DB::table('colores')->where('id', $first->color_id)->value('descripcion'),
+                'precio_venta'         => (float) $first->precio_venta_1,
+                'precio_venta_nuevo'   => (float) $first->precio_venta_1,
+                'porcentaje_descuento' => 0,
+                'tallas'               => $lineas->map(fn ($d) => [
+                    'talla_id'     => $d->talla_id,
+                    'talla_nombre' => DB::table('tallas')->where('id', $d->talla_id)->value('descripcion'),
+                    'cantidad'     => (int) $d->cantidad,
+                ])->values()->all(),
+            ];
+        }
+
+        // ===== 3. Medio de pago =====
+        // Decidido 2026-07-15: 'card'→TRANSFERENCIA (sin pasarela real,
+        // hoy en la práctica es transferencia/depósito), 'yape'→YAPE
+        // directo. cuenta_id=1 (BCP "MERRIS CALZADO EIRL") es la única
+        // cuenta activa ligada a ambos tipos de pago.
+        $metodoPagoIdPorMedio = ['card' => 2, 'yape' => 3];
+        $metodoPagoId = $metodoPagoIdPorMedio[$reserva->metodo_pago] ?? 1;
+        $lstPagos = [[
+            'metodoPagoId'       => $metodoPagoId,
+            'cuentaPagoId'       => $metodoPagoId === 1 ? null : 1,
+            'montoPago'          => (float) $reserva->total,
+            'nroOperacionPago'   => $reserva->pago_referencia ?: ('WEB-' . $reserva->codigo_pedido_ecommerce),
+            'fechaOperacionPago' => now()->toDateString(),
+        ]];
+
+        // ===== 4. Generar el Documento (comprobante) =====
+        $datos = [
+            'sede_id'             => $almacen->sede_id,
+            'productos_tabla'     => json_encode($lstVenta),
+            // DEMO (docs 2026-07-16): siempre NOTA DE VENTA (129) — nunca va a
+            // SUNAT, no consume numeración de boleta/factura real.
+            'tipo_venta'          => $modo === 'DEMO' ? 129 : ($esFactura ? 127 : 128),
+            'cliente_id'          => $cliente->id,
+            'almacenSeleccionado' => $almacen->id,
+            'condicion_id'        => '1', // CONTADO
+            'isPay'               => true,
+            'lstPagos'            => $lstPagos,
+            'facturar'            => true,
+            'modo'                => 'CONSUMO',
+            'observacion'         => 'VENTA ECOMMERCE WEB - PEDIDO ' . $reserva->codigo_pedido_ecommerce,
+            'monto_embalaje'      => 0,
+            'monto_envio'         => 0,
+        ];
+
+        $documento = $this->store($datos);
+
+        // ===== 5. Despacho — solo recojo en tienda por ahora (§ arriba) =====
+        if ($reserva->sede_recojo_id) {
+            $this->crearEnvioRecojoTienda($documento, $reserva);
+        }
+
+        return $documento;
+    }
+
+    /**
+     * Mapa sede→empresa de envío "RECOJO EN TIENDA"/"RECOJO EN ALMACEN"
+     * ya existente en el catálogo real (`empresas_envio` 40/41/42,
+     * `empresa_envio_sedes` 696/697/698). Si se agregan más sedes con
+     * recojo, sumarlas acá (o migrar a una columna en `empresa_sedes`
+     * más adelante si esto crece).
+     */
+    private function crearEnvioRecojoTienda(Documento $documento, ReservaWeb $reserva): void
+    {
+        $mapaEmpresaEnvio = [
+            1 => ['empresa_envio_id' => 42, 'sede_envio_id' => 698], // SEDE CENTRAL
+            2 => ['empresa_envio_id' => 40, 'sede_envio_id' => 696], // TIENDA TRUJILLO
+            3 => ['empresa_envio_id' => 41, 'sede_envio_id' => 697], // SEDE CHICLAYO
+        ];
+
+        $mapa = $mapaEmpresaEnvio[$reserva->sede_recojo_id] ?? null;
+        if (!$mapa) {
+            return; // sede de recojo sin mapeo conocido — despacho queda manual, no falla la venta
+        }
+
+        $empresaEnvio  = MetodoEntrega::findOrFail($mapa['empresa_envio_id']);
+        $sedeEnvio     = EmpresaEnvioSede::findOrFail($mapa['sede_envio_id']);
+        $tipoEnvio     = TablaDetalle::findOrFail(189); // RECOJO EN TIENDA
+        $tipoPagoEnvio = TablaDetalle::findOrFail(195); // ENVÍO GRATIS
+        $origenVenta   = TablaDetalle::where('descripcion', 'ECOMMERCE WEB')->firstOrFail();
+
+        EnvioVenta::create([
+            'documento_id'          => $documento->id,
+            'departamento'          => $sedeEnvio->departamento,
+            'provincia'             => $sedeEnvio->provincia,
+            'distrito'              => $sedeEnvio->distrito,
+            'empresa_envio_id'      => $empresaEnvio->id,
+            'empresa_envio_nombre'  => $empresaEnvio->empresa,
+            'sede_envio_id'         => $sedeEnvio->id,
+            'sede_envio_nombre'     => $sedeEnvio->direccion,
+            'tipo_envio'            => $tipoEnvio->descripcion,
+            'tipo_envio_id'         => $tipoEnvio->id,
+            'destinatario_tipo_doc' => $reserva->doc_tipo,
+            'destinatario_nro_doc'  => $reserva->doc_numero,
+            'destinatario_nombre'   => $reserva->cliente_nombre,
+            'cliente_id'            => $documento->cliente_id,
+            'cliente_nombre'        => $documento->cliente,
+            'cliente_celular'       => $reserva->cliente_telefono,
+            'tipo_pago_envio'       => $tipoPagoEnvio->descripcion,
+            'tipo_pago_envio_id'    => $tipoPagoEnvio->id,
+            'monto_envio'           => 0,
+            'entrega_domicilio'     => 'NO',
+            'direccion_entrega'     => $sedeEnvio->direccion,
+            'documento_nro'         => $documento->serie . '-' . $documento->correlativo,
+            'fecha_envio_propuesta' => now()->toDateString(),
+            'origen_venta'          => $origenVenta->descripcion,
+            'origen_venta_id'       => $origenVenta->id,
+            'obs_rotulo'            => null,
+            'obs_despacho'          => 'RECOJO EN TIENDA - RESERVA WEB ' . $reserva->codigo_pedido_ecommerce,
+            'usuario_nombre'        => Auth::user()->usuario,
+            'user_vendedor_id'      => $documento->user_id,
+            'user_vendedor_nombre'  => $documento->registrador_nombre,
+            'almacen_id'            => $documento->almacen_id,
+            'almacen_nombre'        => $documento->almacen_nombre,
+            'sede_id'               => $documento->sede_id,
+            'sede_despachadora_id'  => $reserva->sede_recojo_id,
+            'estado'                => 'PENDIENTE',
+        ]);
     }
 }

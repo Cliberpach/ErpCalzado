@@ -53,6 +53,15 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\ProductoActualizadoEvent::class => [
             \App\Listeners\NotificarEcommerceMerrisListener::class,
         ],
+        \App\Events\ReservaWebResueltaEvent::class => [
+            \App\Listeners\NotificarResolucionReservaWebListener::class,
+        ],
+        \App\Events\ReservaWebEnvioActualizadoEvent::class => [
+            \App\Listeners\NotificarEnvioReservaWebListener::class,
+        ],
+        \App\Events\ReservaWebCreadaEvent::class => [
+            \App\Listeners\EnviarCorreoPedidoRecibidoListener::class,
+        ],
     ];
 
     /**

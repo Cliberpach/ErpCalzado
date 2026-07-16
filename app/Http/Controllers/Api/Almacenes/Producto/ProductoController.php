@@ -304,14 +304,30 @@ class ProductoController extends Controller
                 ], 404);
             }
 
+            // Suma toda la red (solo almacenes PRINCIPAL de sedes activas,
+            // no REGALOS/FALLADO/CAMBIOS/CUADRE DE STOCK) — antes filtraba
+            // a almacen_id=1 (CENTRAL) fijo. Con recojo en tienda ya
+            // reservando de la sede elegida
+            // (docs/PLANIFICATIONS/2026-07-15-plan-recojo-tienda.md), ese
+            // filtro ocultaba stock real disponible en otras sedes. Ver
+            // docs/PLANIFICATIONS/2026-07-15-plan-pendientes.md Fase 1.2.
             $tallas = DB::table('producto_color_tallas as pct')
                 ->join('tallas as t', 't.id', '=', 'pct.talla_id')
+                ->join('almacenes as a', function ($join) {
+                    $join->on('a.id', '=', 'pct.almacen_id')
+                        ->where('a.tipo_almacen', 'PRINCIPAL')
+                        ->where('a.estado', 'ACTIVO');
+                })
                 ->where('pct.producto_id', $producto->id)
                 ->where('pct.color_id', $color->id)
-                ->where('pct.almacen_id', 1)
-                ->where('pct.stock_logico', '>', 0)
-                ->where('pct.stock', '>=', 'pct.stock_logico')
-                ->select('t.id', 't.descripcion as nombre', 'pct.stock', 'pct.stock_logico')
+                ->groupBy('t.id', 't.descripcion')
+                ->havingRaw('SUM(pct.stock_logico) > 0')
+                ->select(
+                    't.id',
+                    't.descripcion as nombre',
+                    DB::raw('SUM(pct.stock) as stock'),
+                    DB::raw('SUM(pct.stock_logico) as stock_logico')
+                )
                 ->get();
 
 
@@ -610,10 +626,25 @@ class ProductoController extends Controller
                 ->join('colores as co', 'co.id', '=', 'pc.color_id')
                 ->whereIn('pc.producto_id', $allIds)
                 ->where('pc.almacen_id', 1)
-                ->select('co.id', 'co.descripcion as label', 'co.codigo', DB::raw('COUNT(DISTINCT pc.producto_id) as count'))
-                ->groupBy('co.id', 'co.descripcion', 'co.codigo')
+                ->select('co.id', 'co.descripcion as label', 'co.codigo', 'co.img_ruta', 'co.updated_at', DB::raw('COUNT(DISTINCT pc.producto_id) as count'))
+                ->groupBy('co.id', 'co.descripcion', 'co.codigo', 'co.img_ruta', 'co.updated_at')
                 ->orderBy('co.descripcion')
-                ->get();
+                ->get()
+                ->map(function ($c) {
+                    // Foto real del color maestro (docs/modules/colores.md,
+                    // ecommerceMerris) — `codigo` (hex) queda solo como dato
+                    // heredado, ya no se usa para pintar el swatch.
+                    // ?v= es obligatorio: ColorService::saveImg() siempre
+                    // guarda en la MISMA ruta (`colores/{id}_color.ext`), así
+                    // que reemplazar la foto no cambia la URL — sin este
+                    // cache-bust, ecommerceMerris nunca vuelve a mirrorear la
+                    // foto nueva (su sync solo re-descarga si la URL cambió).
+                    $c->imagen = $c->img_ruta
+                        ? url('storage/' . str_replace('storage/', '', $c->img_ruta)) . '?v=' . strtotime($c->updated_at)
+                        : null;
+                    unset($c->img_ruta, $c->updated_at);
+                    return $c;
+                });
 
             $facetTallas = DB::table('producto_color_tallas as pct')
                 ->join('tallas as t', 't.id', '=', 'pct.talla_id')
@@ -665,15 +696,30 @@ class ProductoController extends Controller
                 ->join('colores as co', 'co.id', '=', 'pc.color_id')
                 ->whereIn('pc.producto_id', $pageIds)
                 ->where('pc.almacen_id', 1)
-                ->select('pc.producto_id', 'co.id', 'co.descripcion as nombre', 'co.codigo')
+                ->select('pc.producto_id', 'co.id', 'co.descripcion as nombre', 'co.codigo', 'co.img_ruta', 'co.updated_at')
                 ->get()
                 ->groupBy('producto_id');
 
             $baseUrl = url('storage/');
             $imgUrl  = fn($ruta, $v) => $ruta ? $baseUrl . '/' . str_replace('storage/', '', $ruta) . '?v=' . $v : null;
+            // Foto del color maestro (chip del swatch). ?v= obligatorio:
+            // ColorService::saveImg() reutiliza siempre la misma ruta
+            // (`colores/{id}_color.ext`) al reemplazar la foto, así que sin
+            // cache-bust ecommerceMerris nunca detecta que cambió.
+            $colorImgUrl = fn($ruta, $v) => $ruta ? $baseUrl . '/' . str_replace('storage/', '', $ruta) . '?v=' . $v : null;
 
-            $data = $products->map(function ($p) use ($colores, $imgUrl) {
+            $data = $products->map(function ($p) use ($colores, $imgUrl, $colorImgUrl) {
                 $v = strtotime($p->updated_at);
+
+                $coloresProducto = isset($colores[$p->id])
+                    ? $colores[$p->id]->map(function ($c) use ($colorImgUrl) {
+                        // Cache-bust con el updated_at del COLOR, no del
+                        // producto — son entidades distintas.
+                        $c->imagen = $colorImgUrl($c->img_ruta, strtotime($c->updated_at));
+                        unset($c->img_ruta, $c->updated_at);
+                        return $c;
+                    })->values()
+                    : [];
 
                 return [
                     'id'               => $p->id,
@@ -690,7 +736,7 @@ class ProductoController extends Controller
                     'is_sale'          => (bool) $p->is_sale,
                     'is_outlet'        => (bool) $p->is_outlet,
                     'promo_nombre'     => $p->promo_nombre ?? null,
-                    'colores'          => isset($colores[$p->id]) ? $colores[$p->id]->values() : [],
+                    'colores'          => $coloresProducto,
                 ];
             });
 

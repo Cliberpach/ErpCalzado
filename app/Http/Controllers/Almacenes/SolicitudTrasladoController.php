@@ -11,6 +11,7 @@ use App\Almacenes\Traslado;
 use App\Almacenes\TrasladoDetalle;
 use App\Http\Controllers\Controller;
 use App\Mantenimiento\Empresa\Empresa;
+use App\Models\Ventas\ReservaWeb\ReservaWebDetalle;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -167,6 +168,36 @@ array:1 [
                     $producto->stock_logico     =   $item->cantidad;
                     $producto->almacen_id       =   $traslado->almacen_destino_id;
                     $producto->save();
+                }
+
+                //====== RECOJO EN TIENDA: aplicar contra reserva web pendiente =====
+                //(docs/PLANIFICATIONS/2026-07-15-plan-recojo-tienda.md §2.3) Si este
+                //renglón de traslado se creó desde "Cubrir stock" (Pedidos\
+                //ReservaWebController::cubrirStock()), viene ligado a una línea de
+                //reservas_web_detalle. Lo que acaba de entrar a destino ya está
+                //comprometido con esa reserva — se vuelve a descontar de inmediato
+                //(igual que el descuento original de la reserva) y se baja
+                //cantidad_pendiente. Sin este paso, el traslado llega pero la
+                //reserva se queda marcada "falta cubrir" para siempre.
+                if ($item->reserva_web_detalle_id) {
+                    $reservaDetalle = ReservaWebDetalle::find($item->reserva_web_detalle_id);
+
+                    if ($reservaDetalle && $reservaDetalle->cantidad_pendiente > 0) {
+                        $aplicar = min($item->cantidad, $reservaDetalle->cantidad_pendiente);
+
+                        ProductoColorTalla::where('producto_id', $item->producto_id)
+                            ->where('color_id', $item->color_id)
+                            ->where('talla_id', $item->talla_id)
+                            ->where('almacen_id', $traslado->almacen_destino_id)
+                            ->decrement('stock', $aplicar);
+                        ProductoColorTalla::where('producto_id', $item->producto_id)
+                            ->where('color_id', $item->color_id)
+                            ->where('talla_id', $item->talla_id)
+                            ->where('almacen_id', $traslado->almacen_destino_id)
+                            ->decrement('stock_logico', $aplicar);
+
+                        $reservaDetalle->decrement('cantidad_pendiente', $aplicar);
+                    }
                 }
 
                 //========== REGISTRANDO EN KARDEX ========

@@ -84,7 +84,7 @@ return [
     */
 
     'from' => [
-        'address' => 'facturacion@siscomfac.com',
+        'address' => env('MAIL_FROM_ADDRESS', 'facturacion@siscomfac.com'),
         'name' => env('MAIL_FROM_NAME', 'SiScOmFaC'),
     ],
 

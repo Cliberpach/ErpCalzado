@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Ventas;
 
+use App\Events\ReservaWebEnvioActualizadoEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Despachos\EnvioVenta\EnvioVentaStoreRequest;
 use App\Http\Services\Ventas\Despacho\DespachoManager;
+use App\Models\Ventas\ReservaWeb\ReservaWeb;
 use Illuminate\Http\Request;
 use App\Ventas\EnvioVenta;
 use Yajra\DataTables\Facades\DataTables;
@@ -42,6 +44,7 @@ class DespachoController extends Controller
         $cliente_id             =   $request->get('cliente_id');
         $fecha_inicio_despacho  =   $request->get('fecha_inicio_despacho');
         $fecha_fin_despacho     =   $request->get('fecha_fin_despacho');
+        $origen                 =   $request->get('origen');
 
         $query  =   DB::table('envios_ventas as ev')
             ->select(
@@ -70,7 +73,9 @@ class DespachoController extends Controller
                 'ev.estado',
                 'ev.documento_id',
                 'ev.obs_despacho',
-                'ev.modo'
+                'ev.modo',
+                'ev.origen_venta',
+                DB::raw("CASE WHEN ev.origen_venta = 'ECOMMERCE WEB' THEN 'WEB' ELSE 'TIENDA' END as origen")
             )
             ->join('empresa_sedes as es', 'es.id', 'ev.sede_despachadora_id')
             ->join('empresa_sedes as eso', 'eso.id', 'ev.sede_id')
@@ -87,6 +92,13 @@ class DespachoController extends Controller
         }
         if ($cliente_id) {
             $query->where('ev.cliente_id', '=', $cliente_id);
+        }
+        if ($origen === 'WEB') {
+            $query->where('ev.origen_venta', 'ECOMMERCE WEB');
+        } elseif ($origen === 'TIENDA') {
+            $query->where(function ($q) {
+                $q->whereNull('ev.origen_venta')->orWhere('ev.origen_venta', '!=', 'ECOMMERCE WEB');
+            });
         }
 
         if ($fecha_inicio_despacho && $estado == 'DESPACHADO') {
@@ -186,6 +198,10 @@ class DespachoController extends Controller
                 ->where('documento_id', $request->get('documento_id'))
                 ->update(['estado' => 'RESERVADO']);
 
+            DB::table('reservas_web')
+                ->where('documento_id', $request->get('documento_id'))
+                ->update(['estado_envio' => 'RESERVADO']);
+
             DB::commit();
 
             return response()->json(['success' => true, 'message' => "ENVÍO RESERVADO"]);
@@ -216,6 +232,10 @@ class DespachoController extends Controller
                     'user_despachador_id'       =>  Auth::user()->id,
                     'user_despachador_nombre'   =>  Auth::user()->usuario
                 ]);
+
+            DB::table('reservas_web')
+                ->where('documento_id', $request->get('documento_id'))
+                ->update(['estado_envio' => 'DESPACHADO']);
 
             //======= REVIZAR SI EL DOCUMENTO ESTÁ LIGADO A UN PEDIDO =======
             $pedido_atencion    =   DB::select('SELECT cd.pedido_id
@@ -250,6 +270,18 @@ class DespachoController extends Controller
             }
 
             DB::commit();
+
+            // Fase 3 (docs/PLANIFICATIONS/2026-07-15-plan-pendientes.md):
+            // si este documento vino de una reserva_web (Fase 2 la generó
+            // automático, o el staff armó el despacho a mano para un
+            // pedido de domicilio), avisar a ecommerceMerris. Solo se
+            // notifica en DESPACHADO (mapeado a ENTREGADO) — RESERVADO es
+            // detalle interno, decidido no notificarlo.
+            $reservaWeb = ReservaWeb::where('documento_id', $request->get('documento_id'))->first();
+            if ($reservaWeb) {
+                ReservaWebEnvioActualizadoEvent::dispatch($reservaWeb->codigo_pedido_ecommerce, 'ENTREGADO');
+            }
+
             return response()->json(['success' => true, 'message' => "ENVÍO DESPACHADO"]);
         } catch (Throwable $th) {
             DB::rollback();

@@ -12,6 +12,7 @@ use App\Ventas\Documento\Documento;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Luecano\NumeroALetras\NumeroALetras;
@@ -832,7 +833,7 @@ class ComprobanteController extends Controller
                 if ($documento->tipo_venta_id != '129' && $documento->sunat == '1') {
                     $mail->attach(base_path() . '/storage/app/public/cdr/R-' . $documento->serie . '-' . $documento->correlativo . '.zip');
                 }
-                $mail->from('facturacion@siscomfac.com', 'SiScOmFaC');
+                $mail->from(config('mail.from.address'), config('mail.from.name'));
             });
 
             return response()->json([
@@ -840,6 +841,8 @@ class ComprobanteController extends Controller
                 'message' => 'El correo se envio con exito.'
             ]);
         } catch (Exception $e) {
+            Log::error("No se pudo enviar el comprobante por correo (doc {$request->id} a {$request->correo}): {$e->getMessage()}");
+
             return response()->json([
                 'success' => false,
                 'message' => 'No se puede conectar con el servidor, porfavor intentar nuevamente.'

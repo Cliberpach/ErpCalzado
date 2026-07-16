@@ -30,10 +30,19 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
-    // Fase 4.2/4.4: webhook de producto hacia ecommerceMerris.
+    // Fase 4.2/4.4: webhook de producto hacia ecommerceMerris. Mismo
+    // secreto se reutiliza para el webhook de reserva-web (Fase F del
+    // carrito, docs/PLANIFICATIONS/2026-07-11-carrito-plan.md §7) — es un
+    // canal de confianza único entre los dos sistemas, distintos endpoints
+    // por tipo de evento, no distintos secretos.
     'ecommerce_merris' => [
-        'webhook_url'    => env('ECOMMERCE_MERRIS_WEBHOOK_URL'),
-        'webhook_secret' => env('ECOMMERCE_MERRIS_WEBHOOK_SECRET'),
+        'webhook_url'              => env('ECOMMERCE_MERRIS_WEBHOOK_URL'),
+        'webhook_url_reserva_web'  => env('ECOMMERCE_MERRIS_RESERVA_WEB_WEBHOOK_URL'),
+        'webhook_url_reserva_envio' => env('ECOMMERCE_MERRIS_RESERVA_ENVIO_WEBHOOK_URL'),
+        'webhook_secret'           => env('ECOMMERCE_MERRIS_WEBHOOK_SECRET'),
+        // Dirección inversa: ecommerceMerris llamando a ErpCalzado para
+        // crear una reserva_web al confirmar checkout.
+        'reservas_web_api_token'   => env('RESERVAS_WEB_API_TOKEN'),
     ],
 
 ];

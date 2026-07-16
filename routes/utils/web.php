@@ -6,7 +6,7 @@ use App\Http\Controllers\Seguridad\UserController;
 use App\Http\Controllers\UtilidadesController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('utilidades')->group(function () {
+Route::prefix('utilidades')->middleware('auth')->group(function () {
     // Route::get('getProductos', 'UtilidadesController@getProductos')->name('utilidades.getProductos');
     // Route::get('getColores', 'UtilidadesController@getColores')->name('utilidades.getColores');
 

@@ -104,7 +104,7 @@
     </li>
 @endcan
 
-@can('restore', [Auth::user(), ['pedido.pedido.index', 'pedido.pedidos_detalles.index']])
+@can('restore', [Auth::user(), ['pedido.pedido.index', 'pedido.pedidos_detalles.index', 'pedido.reservas_web.index']])
     <li class="@yield('pedidos-active')">
         <a href="#"><i class="fas fa-file-invoice-dollar"></i> <span class="nav-label">Pedidos</span><span
                 class="fa arrow"></span></a>
@@ -117,6 +117,9 @@
             @endcan
             @can('haveaccess', 'pedido.ordenes_produccion.index')
                 <li class="@yield('ordenes-pedido-active')"><a href="{{ route('pedidos.ordenes_produccion.index') }}">Órdenes</a></li>
+            @endcan
+            @can('haveaccess', 'pedido.reservas_web.index')
+                <li class="@yield('reservas-web-active')"><a href="{{ route('pedidos.reservas_web.index') }}">Reservas Web</a></li>
             @endcan
         </ul>
     </li>

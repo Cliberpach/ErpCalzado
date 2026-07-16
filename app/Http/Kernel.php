@@ -64,6 +64,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'recibos_caja.create' => \App\Http\Middleware\ReciboCajaCreateMiddleware::class,
+        'reservas-web.token' => \App\Http\Middleware\VerifyReservasWebToken::class,
 
     ];
 }

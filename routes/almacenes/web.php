@@ -5,7 +5,7 @@ use App\Http\Controllers\Almacenes\ConductorController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
-Route::prefix('almacenes')->group(function () {
+Route::prefix('almacenes')->middleware('auth')->group(function () {
 
     Route::prefix('almacen')->group(function () {
         Route::get('index', 'Almacenes\AlmacenController@index')->name('almacenes.almacen.index');
