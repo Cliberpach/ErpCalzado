@@ -236,7 +236,7 @@
                 <tr>
                     <td>ATENDIDO POR</td>
                     <td>:</td>
-                    <td class="text-uppercase">{{ $documento->user->user->persona ? $documento->user->user->persona->getApellidosYNombres() : $documento->user->usuario }}</td>
+                    <td class="text-uppercase">{{ optional(optional($documento->user->colaborador)->persona)->getApellidosYNombres() ?: $documento->user->usuario }}</td>
                 </tr>
             </table>
         </div><br>
