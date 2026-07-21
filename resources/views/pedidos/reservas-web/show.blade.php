@@ -30,6 +30,7 @@
     <script>
         const RESERVA_ID = {{ (int) $id }};
         let currentReserva = null;
+        let currentDocumentoNumero = null;
 
         document.addEventListener('DOMContentLoaded', cargarReserva);
 
@@ -66,8 +67,9 @@
             return r.metodo_pago;
         }
 
-        function render({ reserva, detalle, sede_recojo_nombre, documento_numero }) {
+        function render({ reserva, detalle, sede_recojo_nombre, documento_numero, despacho_estado, envio_venta }) {
             currentReserva = reserva;
+            currentDocumentoNumero = documento_numero;
             const tienePendiente = detalle.some(d => d.cantidad_pendiente > 0);
             const estadoClase = reserva.estado === 'PENDIENTE' ? 'warning' : (reserva.estado === 'CONFIRMADO' ? 'success' : 'danger');
 
@@ -103,6 +105,8 @@
             if (reserva.estado === 'CONFIRMADO' && reserva.documento_id) {
                 acciones = `
                     <button class="btn btn-info" onclick="reenviarComprobante()"><i class="fa fa-envelope"></i> Reenviar comprobante</button>
+                    ${despacho_estado === 'FALTA_DESPACHO' ? `
+                        <button class="btn btn-warning" onclick="irAGenerarDespacho()"><i class="fa fa-truck"></i> Generar despacho</button>` : ''}
                     <button class="btn btn-danger" onclick="eliminarReserva()"><i class="fa fa-trash"></i> Eliminar</button>`;
             }
             if (reserva.estado === 'PENDIENTE') {
@@ -137,6 +141,15 @@
                         <p><strong>Fecha:</strong> ${reserva.fecha_reserva ? new Date(reserva.fecha_reserva).toLocaleString('es-PE') : '-'}</p>
                         <p><strong>Medio de pago:</strong> ${medioPagoTexto(reserva)}</p>
                         <p><strong>Comprobante:</strong> ${documento_numero ? `<span class="badge badge-success">${documento_numero}</span>` : '<span class="text-muted">Aún no generado</span>'}</p>
+                        <p><strong>Despacho:</strong> ${
+                            despacho_estado === 'FALTA_DESPACHO'
+                                ? '<span class="badge badge-danger">Falta generar</span>'
+                                : despacho_estado === 'ESTANCADO'
+                                    ? `<span class="badge badge-warning" title="Generado pero sin marcar enviado/entregado hace más de 3 días">Estancado (${envio_venta.estado})</span>`
+                                    : envio_venta
+                                        ? `<span class="badge badge-info">${envio_venta.estado}${envio_venta.empresa_envio_nombre ? ' — ' + envio_venta.empresa_envio_nombre : ''}</span>`
+                                        : '<span class="text-muted">-</span>'
+                        }</p>
                     </div>
                 </div>
                 <table class="table table-bordered table-sm" style="margin-top:10px;">
@@ -149,6 +162,23 @@
                 <hr>
                 <div class="d-flex" style="gap:8px;">${acciones}</div>
             `;
+        }
+
+        // Fase 2 de docs/PLANIFICATIONS/2026-07-17-flujo-envio-domicilio.md:
+        // no existe un deep-link real hacia el modal de despacho (vive en
+        // Ventas > Documentos, componente Vue ModalEnvio.vue, se abre por
+        // fila con un botón — verificado que no hay ?documento_id=X que lo
+        // auto-abra). Copiamos el número de documento al portapapeles para
+        // que buscarlo ahí sea rápido, en vez de fingir un prellenado que
+        // hoy no existe.
+        function irAGenerarDespacho() {
+            if (currentDocumentoNumero) {
+                navigator.clipboard?.writeText(currentDocumentoNumero).catch(() => {});
+                toastr.info(`Documento ${currentDocumentoNumero} copiado — búscalo en la lista y usa su botón "Despacho".`, 'GENERAR DESPACHO', { timeOut: 8000 });
+            } else {
+                toastr.warning('Esta reserva no tiene documento generado todavía.', 'AVISO');
+            }
+            window.open('{{ route('ventas.documento.index') }}', '_blank');
         }
 
         async function eliminarReserva() {

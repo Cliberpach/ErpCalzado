@@ -3,9 +3,11 @@
 namespace App\Models\Ventas\ReservaWeb;
 
 use App\Mantenimiento\Sedes\Sede;
+use App\Ventas\EnvioVenta;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ReservaWeb extends Model
 {
@@ -17,6 +19,9 @@ class ReservaWeb extends Model
         'cliente_email',
         'cliente_telefono',
         'cliente_direccion',
+        'department_id',
+        'province_id',
+        'district_id',
         'doc_tipo',
         'doc_numero',
         'desea_factura',
@@ -56,6 +61,17 @@ class ReservaWeb extends Model
     public function sedeRecojo(): BelongsTo
     {
         return $this->belongsTo(Sede::class, 'sede_recojo_id');
+    }
+
+    /**
+     * Fase 2 de docs/PLANIFICATIONS/2026-07-17-flujo-envio-domicilio.md
+     * (ecommerceMerris): no hay FK real, `documento_id` es el vínculo
+     * compartido con el `EnvioVenta` que generó esa misma venta (recojo
+     * automático o domicilio armado a mano por el staff).
+     */
+    public function envioVenta(): HasOne
+    {
+        return $this->hasOne(EnvioVenta::class, 'documento_id', 'documento_id');
     }
 
     /** Fase recojo en tienda: true si algún detalle todavía tiene stock por cubrir. */

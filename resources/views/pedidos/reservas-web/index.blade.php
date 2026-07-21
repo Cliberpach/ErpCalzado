@@ -47,6 +47,7 @@
                                         <th>Estado</th>
                                         <th>Estado envío</th>
                                         <th>Comprobante</th>
+                                        <th>Despacho</th>
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
@@ -98,6 +99,16 @@
                     {
                         data: 'comprobante_numero',
                         render: (d) => d ? `<span class="badge badge-success">${d}</span>` : '<span class="text-muted">-</span>'
+                    },
+                    {
+                        data: 'despacho_estado',
+                        orderable: false,
+                        searchable: false,
+                        render: (d) => {
+                            if (d === 'FALTA_DESPACHO') return '<span class="badge badge-danger" title="Confirmado pero sin despacho generado">Falta despacho</span>';
+                            if (d === 'ESTANCADO') return '<span class="badge badge-warning" title="Despacho generado pero sin marcar enviado/entregado hace más de 3 días">Estancado</span>';
+                            return '<span class="text-muted">-</span>';
+                        }
                     },
                     {
                         data: null,

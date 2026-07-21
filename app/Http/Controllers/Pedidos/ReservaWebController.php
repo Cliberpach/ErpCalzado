@@ -86,18 +86,48 @@ class ReservaWebController extends Controller
 
     public function getTable(Request $request)
     {
-        $query = ReservaWeb::with('detalle', 'sedeRecojo')->orderBy('fecha_reserva', 'desc');
+        $query = ReservaWeb::with('detalle', 'sedeRecojo', 'envioVenta')->orderBy('fecha_reserva', 'desc');
 
         return DataTables::of($query)
             ->addColumn('detalle_count', fn ($r) => $r->detalle->count())
             ->addColumn('tiene_pendiente', fn ($r) => $r->detalle->sum('cantidad_pendiente') > 0)
             ->addColumn('sede_recojo_nombre', fn ($r) => optional($r->sedeRecojo)->nombre)
+            ->addColumn('despacho_estado', fn ($r) => $this->calcularDespachoEstado($r))
             ->make(true);
+    }
+
+    /**
+     * Fase 2 de docs/PLANIFICATIONS/2026-07-17-flujo-envio-domicilio.md:
+     * "Falta despacho" cubre el caso normal de domicilio (nunca se
+     * genera EnvioVenta automático, ver VentaService::storeFromEcommerce()
+     * §5) y también el caso borde de recojo cuando la sede no tiene mapeo
+     * de empresa de envío (crearEnvioRecojoTienda() se sale sin crear
+     * nada, ver VentaService.php:654-657) — no distingue método de envío
+     * a propósito, ambos casos son igual de reales.
+     * "Despacho estancado" cubre la anécdota del usuario con Bata: un
+     * EnvioVenta que se generó pero nadie marcó DESPACHADO después de
+     * varios días — mitigación del lado staff, no promesa de SLA al
+     * cliente (ver ese mismo plan §4 Fase 2 punto 4).
+     */
+    private function calcularDespachoEstado(ReservaWeb $reserva): ?string
+    {
+        if ($reserva->estado !== 'CONFIRMADO') {
+            return null;
+        }
+
+        if (!$reserva->envioVenta) {
+            return 'FALTA_DESPACHO';
+        }
+
+        $estancado = $reserva->envioVenta->estado !== 'DESPACHADO'
+            && $reserva->envioVenta->created_at->lt(now()->subDays(3));
+
+        return $estancado ? 'ESTANCADO' : null;
     }
 
     public function getDetalle(int $id)
     {
-        $reserva = ReservaWeb::with('detalle.producto', 'detalle.traslados.traslado', 'sedeRecojo')->findOrFail($id);
+        $reserva = ReservaWeb::with('detalle.producto', 'detalle.traslados.traslado', 'sedeRecojo', 'envioVenta')->findOrFail($id);
 
         $colores      = DB::table('colores')->pluck('descripcion', 'id');
         $tallas       = DB::table('tallas')->pluck('descripcion', 'id');
@@ -115,6 +145,11 @@ class ReservaWebController extends Controller
                 'reserva' => $reserva,
                 'sede_recojo_nombre' => optional($reserva->sedeRecojo)->nombre,
                 'documento_numero' => $documentoNumero,
+                'despacho_estado' => $this->calcularDespachoEstado($reserva),
+                'envio_venta' => $reserva->envioVenta ? [
+                    'estado'               => $reserva->envioVenta->estado,
+                    'empresa_envio_nombre' => $reserva->envioVenta->empresa_envio_nombre,
+                ] : null,
                 'detalle' => $reserva->detalle->map(function ($d) use ($colores, $tallas, $sedePropia) {
                     $cubiertoAhora = $d->cantidad - $d->cantidad_pendiente;
 

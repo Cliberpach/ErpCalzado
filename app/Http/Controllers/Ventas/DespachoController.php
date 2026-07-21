@@ -204,6 +204,18 @@ class DespachoController extends Controller
 
             DB::commit();
 
+            // docs/PLANIFICATIONS/2026-07-17-tracking-visual-mis-pedidos.md
+            // §2.1: antes este paso intermedio no se notificaba a
+            // ecommerceMerris (a propósito, ver setDespacho() más abajo) —
+            // ahora sí, para que el cliente pueda ver "Preparando tu
+            // pedido" en /mis-pedidos antes del paso final. Mismo evento
+            // y firma HMAC que ya usa setDespacho(), sin infraestructura
+            // nueva.
+            $reservaWeb = ReservaWeb::where('documento_id', $request->get('documento_id'))->first();
+            if ($reservaWeb) {
+                ReservaWebEnvioActualizadoEvent::dispatch($reservaWeb->codigo_pedido_ecommerce, 'RESERVADO');
+            }
+
             return response()->json(['success' => true, 'message' => "ENVÍO RESERVADO"]);
         } catch (\Throwable $th) {
             DB::rollback();
@@ -274,9 +286,9 @@ class DespachoController extends Controller
             // Fase 3 (docs/PLANIFICATIONS/2026-07-15-plan-pendientes.md):
             // si este documento vino de una reserva_web (Fase 2 la generó
             // automático, o el staff armó el despacho a mano para un
-            // pedido de domicilio), avisar a ecommerceMerris. Solo se
-            // notifica en DESPACHADO (mapeado a ENTREGADO) — RESERVADO es
-            // detalle interno, decidido no notificarlo.
+            // pedido de domicilio), avisar a ecommerceMerris. Este es el
+            // paso final (ENTREGADO) — el intermedio (RESERVADO) se
+            // notifica en setEmbalaje() (docs/PLANIFICATIONS/2026-07-17-tracking-visual-mis-pedidos.md §2.1).
             $reservaWeb = ReservaWeb::where('documento_id', $request->get('documento_id'))->first();
             if ($reservaWeb) {
                 ReservaWebEnvioActualizadoEvent::dispatch($reservaWeb->codigo_pedido_ecommerce, 'ENTREGADO');
